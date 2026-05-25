@@ -91,6 +91,7 @@ export interface CompiledAgent {
   instructions: string;
   journeys: CompiledJourney[];
   tools: AnyTool[];
+  knowledge: KnowledgeSource[];
   widgets: WidgetDefinition[];
 }
 
@@ -105,6 +106,7 @@ export interface CompiledJourney {
   alwaysInclude: boolean;
   always?: JourneyActivationPredicate;
   matcher?: JourneyActivationPredicate;
+  knowledge: KnowledgeSource[];
   states: CompiledState[];
   initialStateId?: string;
   toGraph(): JourneyGraph;
@@ -568,6 +570,7 @@ export class StateMachineJourneyBuilder<
       alwaysInclude: this.options.always === true || this.options.alwaysInclude === true,
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
+      knowledge: this.knowledge.list(),
       states,
       initialStateId: this.initialState.id,
       toGraph: () => graph,
@@ -604,6 +607,7 @@ export class DelegationJourneyBuilder<const TId extends string> {
       alwaysInclude: this.options.always === true || this.options.alwaysInclude === true,
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
+      knowledge: this.options.specialist.knowledge ?? [],
       states: [],
       toGraph: () => graph,
       toJSON: () => graph,
@@ -654,6 +658,7 @@ export class AgentBuilder<const TId extends string> {
       instructions: this.options.instructions,
       journeys: compiledJourneys,
       tools: this.tools.list(),
+      knowledge: this.knowledge.list(),
       widgets: this.widgets,
     };
   }
