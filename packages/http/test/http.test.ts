@@ -5,6 +5,7 @@ import type {
   CreateRuntimeConversationInput,
   HandleUserMessageInput,
   HandleUserMessageResult,
+  RequestHandoffInput,
   RuntimeEvent,
   SubmitWidgetInput,
 } from "@cognidesk/core";
@@ -85,6 +86,28 @@ describe("HTTP adapter", () => {
       output: { confirmed: true },
     });
   });
+
+  it("requests handoff through the runtime", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+
+    const response = await handler.handle(new Request("http://localhost/conversations/conversation_1/handoff", {
+      method: "POST",
+      body: JSON.stringify({
+        reason: "Customer wants a person",
+        summary: "Ticket exception review.",
+      }),
+    }));
+    const body = await response.json() as { conversation: ConversationRecord; event: RuntimeEvent };
+
+    expect(response.status).toBe(200);
+    expect(body.conversation.lifecycle).toBe("handoff");
+    expect(body.event.type).toBe("handoff.requested");
+    expect(body.event.data).toEqual({
+      reason: "Customer wants a person",
+      summary: "Ticket exception review.",
+    });
+  });
 });
 
 class FakeRuntime implements CognideskHttpRuntime {
@@ -145,5 +168,26 @@ class FakeRuntime implements CognideskHttpRuntime {
     } satisfies RuntimeEvent;
     this.events.push(event);
     return event;
+  }
+
+  async requestHandoff(input: RequestHandoffInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }> {
+    const conversation = {
+      ...await this.createConversation({ agentId: "flight-service", context: {} }),
+      lifecycle: "handoff" as const,
+    };
+    const event = {
+      id: `event_${this.events.length + 1}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 1,
+      type: "handoff.requested",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        reason: input.reason,
+        ...(input.summary ? { summary: input.summary } : {}),
+        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+      },
+    } satisfies RuntimeEvent;
+    this.events.push(event);
+    return { conversation, event };
   }
 }

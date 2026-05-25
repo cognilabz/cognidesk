@@ -33,6 +33,26 @@ describe("createCognideskClient", () => {
             },
           });
         }
+        if (String(url).endsWith("/handoff")) {
+          return Response.json({
+            conversation: {
+              id: "conversation_1",
+              agentId: "flight-service",
+              lifecycle: "handoff",
+              context: {},
+              createdAt: "2026-05-25T00:00:00.000Z",
+              updatedAt: "2026-05-25T00:00:00.000Z",
+            },
+            event: {
+              id: "event_2",
+              conversationId: "conversation_1",
+              offset: 2,
+              type: "handoff.requested",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: JSON.parse(String(init?.body ?? "{}")) as unknown,
+            },
+          });
+        }
         return Response.json({ text: "ok", events: [], activeJourneyId: "ticket-status" });
       },
     });
@@ -43,6 +63,10 @@ describe("createCognideskClient", () => {
       promptId: "prompt_1",
       widgetKind: "confirmation",
       output: { confirmed: true },
+    });
+    await client.requestHandoff(created.conversation.id, {
+      reason: "Customer wants a human",
+      summary: "Needs review.",
     });
 
     expect(requests).toEqual([
@@ -57,6 +81,10 @@ describe("createCognideskClient", () => {
       {
         url: "http://localhost/api/conversations/conversation_1/widgets/prompt_1/submissions",
         body: { widgetKind: "confirmation", output: { confirmed: true } },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/handoff",
+        body: { reason: "Customer wants a human", summary: "Needs review." },
       },
     ]);
     expect(sent.activeJourneyId).toBe("ticket-status");

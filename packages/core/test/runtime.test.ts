@@ -156,6 +156,32 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("moves a conversation into handoff lifecycle and stores a handoff event", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.requestHandoff({
+      conversationId: conversation.id,
+      reason: "Customer asked for a human",
+      summary: "Needs ticket exception review.",
+      payload: { priority: "high" },
+    });
+
+    expect(result.conversation.lifecycle).toBe("handoff");
+    expect(result.event.type).toBe("handoff.requested");
+    expect(await runtime.getSnapshot(conversation.id)).toMatchObject({ lifecycle: "handoff" });
+    expect((await runtime.listEvents(conversation.id)).at(-1)?.data).toEqual({
+      reason: "Customer asked for a human",
+      summary: "Needs ticket exception review.",
+      payload: { priority: "high" },
+    });
+  });
+
   it("extracts context, skips satisfied states, runs transition tools, and stores the final active state", async () => {
     const searchFlights = tool("searchFlights", {
       input: z.object({ origin: z.string(), destination: z.string() }),

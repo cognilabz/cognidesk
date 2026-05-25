@@ -4,6 +4,7 @@ import type {
   CreateRuntimeConversationInput,
   HandleUserMessageInput,
   HandleUserMessageResult,
+  RequestHandoffInput,
   RuntimeEvent,
   SubmitWidgetInput,
 } from "@cognidesk/core";
@@ -12,6 +13,7 @@ export interface CognideskHttpRuntime {
   createConversation(input: CreateRuntimeConversationInput): Promise<ConversationRecord>;
   handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult>;
   submitWidget?(input: SubmitWidgetInput): Promise<RuntimeEvent>;
+  requestHandoff?(input: RequestHandoffInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
   listEvents(conversationId: string, afterOffset?: number): Promise<RuntimeEvent[]>;
 }
 
@@ -66,6 +68,21 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             ...(body.turn !== undefined ? { turn: body.turn } : {}),
             ...(body.app !== undefined ? { app: body.app } : {}),
             signal: request.signal,
+          });
+          return json(result, 200, options);
+        }
+
+        const handoffMatch = path.match(/^\/conversations\/([^/]+)\/handoff$/);
+        if (request.method === "POST" && handoffMatch) {
+          if (!options.runtime.requestHandoff) return json({ error: "Handoff is not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(handoffMatch[1] ?? "");
+          const body = await readJson<CreateHandoffBody>(request);
+          if (!body.reason) return json({ error: "reason is required" }, 400, options);
+          const result = await options.runtime.requestHandoff({
+            conversationId,
+            reason: body.reason,
+            ...(body.summary ? { summary: body.summary } : {}),
+            ...(body.payload !== undefined ? { payload: body.payload } : {}),
           });
           return json(result, 200, options);
         }
@@ -134,6 +151,12 @@ interface CreateMessageBody {
 interface CreateWidgetSubmissionBody {
   widgetKind?: string;
   output?: unknown;
+}
+
+interface CreateHandoffBody {
+  reason?: string;
+  summary?: string;
+  payload?: unknown;
 }
 
 function streamEvents(options: {

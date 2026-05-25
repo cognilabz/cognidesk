@@ -30,6 +30,7 @@ export interface CognideskClient {
   createConversation(input?: { agentId?: string; context?: unknown; id?: string }): Promise<CreateConversationResult>;
   sendMessage(conversationId: string, message: string, options?: { turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
+  requestHandoff(conversationId: string, input: { reason: string; summary?: string; payload?: unknown }): Promise<{ conversation: CreateConversationResult["conversation"]; event: RuntimeEvent }>;
   listEvents(conversationId: string, options?: { afterOffset?: number }): Promise<{ events: RuntimeEvent[] }>;
   streamEvents(conversationId: string, handlers: { onEvent(event: RuntimeEvent): void; onError?(error: Event): void }, options?: { afterOffset?: number }): () => void;
 }
@@ -124,6 +125,19 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
       });
       if (!response.ok) throw new Error(`Failed to submit widget: ${response.status}`);
       return await response.json() as { event: RuntimeEvent };
+    },
+    async requestHandoff(conversationId, input) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/handoff`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          reason: input.reason,
+          ...(input.summary ? { summary: input.summary } : {}),
+          ...(input.payload !== undefined ? { payload: input.payload } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to request handoff: ${response.status}`);
+      return await response.json() as { conversation: CreateConversationResult["conversation"]; event: RuntimeEvent };
     },
     streamEvents(conversationId, handlers, streamOptions = {}) {
       const eventSourceConstructor = options.EventSource ?? globalThis.EventSource;

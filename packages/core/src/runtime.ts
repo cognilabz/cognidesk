@@ -71,6 +71,13 @@ export interface SubmitWidgetInput {
   output: unknown;
 }
 
+export interface RequestHandoffInput {
+  conversationId: string;
+  reason: string;
+  summary?: string;
+  payload?: unknown;
+}
+
 export interface CompactConversationResult {
   summary: ConversationCompactionSummary;
   snapshot: RuntimeSnapshot;
@@ -298,6 +305,32 @@ export class CognideskRuntime {
       data: reason ? { reason } : {},
     });
     return conversation;
+  }
+
+  async requestHandoff(input: RequestHandoffInput) {
+    const conversation = await this.options.storage.updateConversationLifecycle(input.conversationId, "handoff");
+    if (!conversation) throw new Error(`Conversation '${input.conversationId}' does not exist.`);
+    const currentSnapshot = await this.options.storage.getSnapshot(input.conversationId);
+    await this.options.storage.saveSnapshot({
+      conversationId: input.conversationId,
+      lifecycle: "handoff",
+      activeStateIds: currentSnapshot?.activeStateIds ?? [],
+      updatedAt: new Date().toISOString(),
+      ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
+      ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
+      ...(currentSnapshot?.compactionSummary !== undefined ? { compactionSummary: currentSnapshot.compactionSummary } : {}),
+      ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
+    });
+    const event = await this.emit({
+      conversationId: input.conversationId,
+      type: "handoff.requested",
+      data: {
+        reason: input.reason,
+        ...(input.summary ? { summary: input.summary } : {}),
+        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+      },
+    });
+    return { conversation, event };
   }
 
   async compactConversation(input: CompactConversationInput): Promise<CompactConversationResult> {
