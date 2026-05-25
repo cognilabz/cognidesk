@@ -135,6 +135,7 @@ export interface CompiledState {
 export interface CompiledTransition<TContext = unknown> {
   kind: "event" | "conversational";
   targetId: string;
+  eventName?: string;
   description?: string;
   priority?: number;
   guard?: (context: GuardContext<unknown, TContext>) => MaybePromise<GuardResult>;
@@ -165,7 +166,7 @@ export interface JourneyGraphState {
   instructions?: string;
   summary?: string;
   collected: Array<{ path: string; required: boolean; extract: boolean }>;
-  transitions: Array<{ kind: "event" | "conversational"; targetId: string; description?: string; priority?: number }>;
+  transitions: Array<{ kind: "event" | "conversational"; targetId: string; eventName?: string; description?: string; priority?: number }>;
   actions: Array<{ type: "entry" | "exit" | "transition"; name: string }>;
   requiresVisit: boolean;
 }
@@ -187,6 +188,7 @@ export type JourneyActivationPredicate<TApp = unknown, TConversation = unknown, 
 interface InternalTransition {
   kind: "event" | "conversational";
   target: StateBuilder<string, ObjectSchema>;
+  eventName?: string;
   description?: string;
   priority?: number;
   guard?: (context: GuardContext<unknown, unknown>) => MaybePromise<GuardResult>;
@@ -441,6 +443,7 @@ export class StateBuilder<
         this.transitions.push({
           kind: "event",
           target: state,
+          eventName: event.name,
           description: event.name,
           ...(options.priority !== undefined ? { priority: options.priority } : {}),
           ...(options.guard ? { guard: options.guard as (context: GuardContext<unknown, unknown>) => MaybePromise<GuardResult> } : {}),
@@ -540,6 +543,7 @@ export class StateBuilder<
       transitions: this.transitions.map((transition) => ({
         kind: transition.kind,
         targetId: transition.target.id,
+        ...(transition.eventName ? { eventName: transition.eventName } : {}),
         ...(transition.description ? { description: transition.description } : {}),
         ...(transition.priority !== undefined ? { priority: transition.priority } : {}),
         ...(transition.guard ? { guard: transition.guard } : {}),
@@ -835,6 +839,7 @@ function sanitizeGraph(graph: JourneyGraph): JourneyGraph {
       transitions: state.transitions.map((transition) => ({
         kind: transition.kind,
         targetId: transition.targetId,
+        ...(transition.eventName ? { eventName: transition.eventName } : {}),
         ...(transition.description ? { description: transition.description } : {}),
         ...(transition.priority !== undefined ? { priority: transition.priority } : {}),
       })),

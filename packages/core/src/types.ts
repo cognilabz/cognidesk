@@ -211,6 +211,12 @@ export type RuntimeEvent =
   | RuntimeEventBase<"journey.candidates.retrieved", { journeyIds: string[] }>
   | RuntimeEventBase<"journey.matched", { candidates: Array<{ journeyId: string; confidence: number; reason?: string }> }>
   | RuntimeEventBase<"journey.activated", { journeyId: string; previousJourneyId?: string }>
+  | RuntimeEventBase<"journey.event.emitted", {
+      name: string;
+      payload: unknown;
+      routing: "none" | "activeJourneyOnly" | "full" | "targeted";
+      target?: { journeyId?: string; stateId?: string };
+    }>
   | RuntimeEventBase<"journey.state.entered", { journeyId: string; stateId: string }>
   | RuntimeEventBase<"journey.extraction.proposed", { journeyId: string; stateId: string; fields: string[] }>
   | RuntimeEventBase<"journey.extraction.accepted", { journeyId: string; stateId: string; fields: string[] }>

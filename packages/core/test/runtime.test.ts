@@ -435,6 +435,100 @@ describe("runtime turn pipeline", () => {
     ]);
   });
 
+  it("validates journey events and routes them through the active state machine", async () => {
+    const context = z.object({ bookingReference: z.string().optional() });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const status = agentBuilder.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status",
+      context,
+    });
+    const refreshed = status.event("ticket.refreshed", {
+      payload: z.object({ bookingReference: z.string() }),
+      routing: "activeJourneyOnly",
+    });
+    const wait = status.state("wait");
+    const done = status.final("done");
+    wait.on(refreshed).target(done);
+    status.initial(wait);
+
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you help with ticket ABC123?",
+    });
+
+    await expect(runtime.emitJourneyEvent({
+      conversationId: conversation.id,
+      event: refreshed,
+      payload: { bookingReference: 123 } as unknown as { bookingReference: string },
+    })).rejects.toThrow();
+
+    const result = await runtime.emitJourneyEvent({
+      conversationId: conversation.id,
+      event: refreshed,
+      payload: { bookingReference: "ABC123" },
+    });
+
+    expect(result.event.type).toBe("journey.event.emitted");
+    expect(result.snapshot?.activeJourneyId).toBe("ticket-status");
+    expect(result.snapshot?.activeStateIds).toEqual(["done"]);
+    expect(result.events.map((event) => event.type)).toEqual([
+      "journey.event.emitted",
+      "journey.state.entered",
+    ]);
+    expect((await runtime.listEvents(conversation.id)).at(-2)?.data).toMatchObject({
+      name: "ticket.refreshed",
+      payload: { bookingReference: "ABC123" },
+      routing: "activeJourneyOnly",
+    });
+  });
+
+  it("can route targeted journey events into an inactive state machine", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const status = agentBuilder.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status",
+      context: z.object({}),
+    });
+    const sync = status.event("ticket.synced", {
+      payload: z.object({ ok: z.boolean() }),
+      routing: "targeted",
+    });
+    const wait = status.state("wait");
+    const done = status.final("done");
+    wait.on(sync).target(done);
+    status.initial(wait);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.emitJourneyEvent({
+      conversationId: conversation.id,
+      event: sync,
+      payload: { ok: true },
+      target: { journeyId: "ticket-status", stateId: "wait" },
+    });
+
+    expect(result.snapshot?.activeJourneyId).toBe("ticket-status");
+    expect(result.snapshot?.activeStateIds).toEqual(["done"]);
+    expect(result.events.map((event) => event.type)).toEqual([
+      "journey.event.emitted",
+      "journey.activated",
+      "journey.state.entered",
+    ]);
+  });
+
   it("lets an exposed built-in tool view the active journey context", async () => {
     const context = z.object({
       bookingReference: z.string().optional(),

@@ -83,6 +83,22 @@ const http = createCognideskHttpHandler({ runtime, agentId: agent.id, basePath: 
 
 Core remains transport-neutral. The HTTP package exposes POST message submission, widget submissions, handoff requests, event history, and SSE event streaming. The React package provides `createCognideskClient`, `useChat`, and `ChatWidget`; assistant message segments can carry knowledge/tool references for source hovers.
 
+State-machine journeys can also declare typed Journey Events for app-driven state changes:
+
+```ts
+const ticketSynced = status.event("ticket.synced", {
+  payload: z.object({ bookingReference: z.string() }),
+  routing: "activeJourneyOnly",
+});
+lookup.on(ticketSynced).target(lookup);
+
+await runtime.emitJourneyEvent({
+  conversationId: conversation.id,
+  event: ticketSynced,
+  payload: { bookingReference: "ABC123" },
+});
+```
+
 ## Flight Demo
 
 Run the mocked flight service demo:

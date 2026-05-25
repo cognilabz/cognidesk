@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import type { CompiledAgent, CompiledJourney } from "./definition.js";
+import type { CompiledAgent, CompiledJourney, EventRoutingMode, JourneyEventDefinition } from "./definition.js";
 import {
   selectJourneyCandidates,
   type JourneyCandidate,
@@ -77,6 +77,26 @@ export interface EmitCustomEventInput<TEvent extends CustomRuntimeEventDefinitio
   event: TEvent;
   payload: z.infer<TEvent["payload"]>;
   traceId?: string;
+}
+
+export interface EmitJourneyEventInput<TEvent extends JourneyEventDefinition = JourneyEventDefinition> {
+  conversationId: string;
+  event: TEvent;
+  payload: z.infer<TEvent["payload"]>;
+  routing?: EventRoutingMode;
+  target?: {
+    journeyId?: string;
+    stateId?: string;
+  };
+  app?: unknown;
+  traceId?: string;
+  signal?: AbortSignal;
+}
+
+export interface EmitJourneyEventResult {
+  event: RuntimeEvent;
+  snapshot: RuntimeSnapshot | null;
+  events: RuntimeEvent[];
 }
 
 export interface RequestHandoffInput {
@@ -170,6 +190,48 @@ export class CognideskRuntime {
       data: payload,
       ...(input.traceId ? { traceId: input.traceId } : {}),
     });
+  }
+
+  async emitJourneyEvent<TEvent extends JourneyEventDefinition>(
+    input: EmitJourneyEventInput<TEvent>,
+  ): Promise<EmitJourneyEventResult> {
+    const conversation = await this.requireConversation(input.conversationId);
+    const routing = input.routing ?? input.event.routing ?? "activeJourneyOnly";
+    const payload = input.event.payload.parse(input.payload);
+    const emitted: RuntimeEvent[] = [];
+    const emit = async <TRuntimeEvent extends RuntimeEventInput>(event: TRuntimeEvent) => {
+      const stored = await this.emit(event);
+      emitted.push(stored);
+      return stored;
+    };
+    const event = await emit({
+      conversationId: input.conversationId,
+      type: "journey.event.emitted",
+      data: {
+        name: input.event.name,
+        payload,
+        routing,
+        ...(input.target ? { target: input.target } : {}),
+      },
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    });
+    if (routing === "none") {
+      return {
+        event,
+        snapshot: await this.options.storage.getSnapshot(input.conversationId),
+        events: emitted,
+      };
+    }
+    const snapshot = await this.processJourneyEvent({
+      conversation,
+      eventName: input.event.name,
+      routing,
+      app: input.app ?? this.options.app ?? {},
+      emit,
+      ...(input.target ? { target: input.target } : {}),
+      ...(input.signal ? { signal: input.signal } : {}),
+    });
+    return { event, snapshot, events: emitted };
   }
 
   async listEvents(conversationId: string, afterOffset?: number) {
@@ -746,6 +808,73 @@ export class CognideskRuntime {
     return null;
   }
 
+  private async resolveJourneyEventRoute(args: {
+    agent: CompiledAgent;
+    previousSnapshot: RuntimeSnapshot | null;
+    eventName: string;
+    routing: EventRoutingMode;
+    target?: { journeyId?: string; stateId?: string };
+  }) {
+    const stateMachineJourneys = args.agent.journeys.filter((journey) => journey.kind === "stateMachine");
+    const journeyById = new Map(stateMachineJourneys.map((journey) => [journey.id, journey]));
+    const activeJourney = args.previousSnapshot?.activeJourneyId
+      ? journeyById.get(args.previousSnapshot.activeJourneyId)
+      : undefined;
+    const activeState = activeJourney
+      ? findJourneyState(activeJourney, args.previousSnapshot?.activeStateIds[0] ?? activeJourney.initialStateId)
+      : undefined;
+
+    if (args.routing === "activeJourneyOnly") {
+      return activeJourney && activeState ? { journey: activeJourney, state: activeState } : null;
+    }
+
+    if (args.routing === "targeted") {
+      const journey = args.target?.journeyId
+        ? journeyById.get(args.target.journeyId)
+        : activeJourney;
+      if (!journey) return null;
+      const state = findJourneyState(
+        journey,
+        args.target?.stateId
+          ?? (journey.id === args.previousSnapshot?.activeJourneyId ? args.previousSnapshot?.activeStateIds[0] : undefined)
+          ?? journey.initialStateId,
+      );
+      return state ? { journey, state } : null;
+    }
+
+    if (args.routing === "full") {
+      if (activeJourney && activeState && hasEventTransition(activeState, args.eventName)) {
+        return { journey: activeJourney, state: activeState };
+      }
+      for (const journey of stateMachineJourneys) {
+        const state = journey.states.find((candidate) => hasEventTransition(candidate, args.eventName));
+        if (state) return { journey, state };
+      }
+    }
+
+    return null;
+  }
+
+  private async selectEventTransition(args: {
+    state: CompiledJourney["states"][number];
+    eventName: string;
+    context: Record<string, unknown>;
+    app: unknown;
+  }) {
+    const transitions = [...args.state.transitions]
+      .filter((transition) => transition.kind === "event" && (transition.eventName ?? transition.description) === args.eventName)
+      .sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0));
+    for (const transition of transitions) {
+      if (!transition.guard) return transition;
+      const result = await transition.guard({
+        app: args.app,
+        context: args.context,
+      });
+      if (guardAllows(result)) return transition;
+    }
+    return null;
+  }
+
   private async runStateToolRuns(args: {
     journey: CompiledJourney;
     conversation: ConversationRecord;
@@ -932,6 +1061,89 @@ export class CognideskRuntime {
     });
   }
 
+  private async processJourneyEvent(args: {
+    conversation: ConversationRecord;
+    eventName: string;
+    routing: EventRoutingMode;
+    target?: { journeyId?: string; stateId?: string };
+    app: unknown;
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }): Promise<RuntimeSnapshot | null> {
+    const agent = this.options.agent;
+    const previousSnapshot = await this.options.storage.getSnapshot(args.conversation.id);
+    if (!agent) return previousSnapshot;
+    const route = await this.resolveJourneyEventRoute({
+      agent,
+      previousSnapshot,
+      eventName: args.eventName,
+      routing: args.routing,
+      ...(args.target ? { target: args.target } : {}),
+    });
+    if (!route) return previousSnapshot;
+
+    const sameJourney = previousSnapshot?.activeJourneyId === route.journey.id;
+    const stateById = new Map(route.journey.states.map((state) => [state.id, state]));
+    const context = sameJourney && isRecord(previousSnapshot?.journeyContext)
+      ? structuredClone(previousSnapshot.journeyContext)
+      : {};
+    const transition = await this.selectEventTransition({
+      state: route.state,
+      eventName: args.eventName,
+      context,
+      app: args.app,
+    });
+    if (!transition) return previousSnapshot;
+
+    const nextState = stateById.get(transition.targetId);
+    if (!nextState) return previousSnapshot;
+    if (route.journey.id !== previousSnapshot?.activeJourneyId) {
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "journey.activated",
+        data: {
+          journeyId: route.journey.id,
+          ...(previousSnapshot?.activeJourneyId ? { previousJourneyId: previousSnapshot.activeJourneyId } : {}),
+        },
+      });
+    }
+    await args.emit({
+      conversationId: args.conversation.id,
+      type: "journey.state.entered",
+      data: { journeyId: route.journey.id, stateId: nextState.id },
+    });
+    await this.runStateToolRuns({
+      journey: route.journey,
+      conversation: args.conversation,
+      state: nextState,
+      context,
+      actionType: "entry",
+      emit: args.emit,
+      ...(args.signal ? { signal: args.signal } : {}),
+    });
+    const finalState = await this.advanceStateMachine({
+      journey: route.journey,
+      conversation: args.conversation,
+      stateById,
+      state: nextState,
+      context,
+      emit: args.emit,
+      ...(args.signal ? { signal: args.signal } : {}),
+    });
+    const snapshot: RuntimeSnapshot = {
+      conversationId: args.conversation.id,
+      lifecycle: args.conversation.lifecycle,
+      activeJourneyId: route.journey.id,
+      activeStateIds: [finalState.id],
+      journeyContext: context,
+      updatedAt: new Date().toISOString(),
+      ...(previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: previousSnapshot.compactionSummary } : {}),
+      ...(previousSnapshot?.definitionHash ? { definitionHash: previousSnapshot.definitionHash } : {}),
+    };
+    await this.options.storage.saveSnapshot(snapshot);
+    return snapshot;
+  }
+
   private async listVisibleCustomEventContext(agent: CompiledAgent, conversationId: string): Promise<VisibleCustomEventContext[]> {
     const visibleTypes = new Set(
       agent.customEvents
@@ -1102,6 +1314,17 @@ function uniqueKnowledgeSources(sources: KnowledgeSource[]) {
   const byName = new Map<string, KnowledgeSource>();
   for (const source of sources) byName.set(source.name, source);
   return [...byName.values()];
+}
+
+function findJourneyState(journey: CompiledJourney, stateId: string | undefined) {
+  if (!stateId) return undefined;
+  return journey.states.find((state) => state.id === stateId);
+}
+
+function hasEventTransition(state: CompiledJourney["states"][number], eventName: string) {
+  return state.transitions.some((transition) => (
+    transition.kind === "event" && (transition.eventName ?? transition.description) === eventName
+  ));
 }
 
 function renderJourneyRuntimeContext(journey: CompiledJourney, stateMachineTurn: StateMachineTurnResult | null) {
