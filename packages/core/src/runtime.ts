@@ -1722,12 +1722,15 @@ export class CognideskRuntime {
     const activeJourney = args.previousSnapshot?.activeJourneyId
       ? journeyById.get(args.previousSnapshot.activeJourneyId)
       : undefined;
-    const activeState = activeJourney
-      ? findJourneyState(activeJourney, args.previousSnapshot?.activeStateIds[0] ?? activeJourney.initialStateId)
-      : undefined;
+    const activeStates = activeJourney
+      ? findJourneyStates(activeJourney, args.previousSnapshot?.activeStateIds.length
+        ? args.previousSnapshot.activeStateIds
+        : activeJourney.initialStateId ? [activeJourney.initialStateId] : [])
+      : [];
 
     if (args.routing === "activeJourneyOnly") {
-      return activeJourney && activeState ? { journey: activeJourney, state: activeState } : null;
+      const state = activeStates.find((candidate) => hasEventTransition(candidate, args.eventName)) ?? activeStates[0];
+      return activeJourney && state ? { journey: activeJourney, state } : null;
     }
 
     if (args.routing === "targeted") {
@@ -1738,14 +1741,15 @@ export class CognideskRuntime {
       const state = findJourneyState(
         journey,
         args.target?.stateId
-          ?? (journey.id === args.previousSnapshot?.activeJourneyId ? args.previousSnapshot?.activeStateIds[0] : undefined)
+          ?? (journey.id === args.previousSnapshot?.activeJourneyId ? activeStates[0]?.id : undefined)
           ?? journey.initialStateId,
       );
       return state ? { journey, state } : null;
     }
 
     if (args.routing === "full") {
-      if (activeJourney && activeState && hasEventTransition(activeState, args.eventName)) {
+      const activeState = activeStates.find((candidate) => hasEventTransition(candidate, args.eventName));
+      if (activeJourney && activeState) {
         return { journey: activeJourney, state: activeState };
       }
       for (const journey of stateMachineJourneys) {
@@ -2106,16 +2110,19 @@ export class CognideskRuntime {
       : undefined;
     if (!journey || journey.kind !== "stateMachine") return;
     const stateById = new Map(journey.states.map((state) => [state.id, state]));
-    const stateId = snapshot?.activeStateIds[0];
-    const state = stateId ? stateById.get(stateId) : undefined;
+    const state = resolveWidgetPromptState(journey, snapshot, args.promptId);
     if (!state) return;
     const context = isRecord(snapshot?.journeyContext) ? structuredClone(snapshot.journeyContext) : {};
+    const siblingActiveStates = findJourneyStates(
+      journey,
+      (snapshot?.activeStateIds ?? []).filter((stateId) => stateId !== state.id),
+    );
     const fieldPrompt = parseFieldPromptId(args.promptId);
     if (fieldPrompt && fieldPrompt.journeyId === journey.id && fieldPrompt.stateId === state.id) {
       const field = state.collected.find((candidate) => candidate.path === fieldPrompt.path);
       if (!field) return;
       setPathValue(context, field.path, extractWidgetFieldValue(args.output));
-      const finalStates = await this.advanceStateMachine({
+      const branchStates = await this.advanceStateMachine({
         journey,
         conversation: args.conversation,
         stateById,
@@ -2123,7 +2130,8 @@ export class CognideskRuntime {
         context,
         emit: (event) => this.emit(event),
       });
-      const completed = createJourneyCompletion(journey.id, finalStates);
+      const activeStates = mergeActiveStates(siblingActiveStates, branchStates);
+      const completed = createJourneyCompletion(journey.id, activeStates);
       if (completed) {
         await this.emit({
           conversationId: args.conversation.id,
@@ -2134,7 +2142,7 @@ export class CognideskRuntime {
       await this.options.storage.saveSnapshot({
         conversationId: args.conversation.id,
         lifecycle: args.conversation.lifecycle,
-        activeStateIds: completed ? [] : finalStates.map((activeState) => activeState.id),
+        activeStateIds: completed ? [] : activeStates.map((activeState) => activeState.id),
         updatedAt: new Date().toISOString(),
         ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
         ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
@@ -2160,10 +2168,10 @@ export class CognideskRuntime {
       ? { targetId: toolTargetId }
       : await this.selectTransition({ journey, state, context });
     const nextState = next ? stateById.get(next.targetId) : null;
-    const completed = nextState?.type === "final"
-      ? { journeyId: journey.id, stateId: nextState.id }
-      : undefined;
-    const activeStateIds = completed ? [] : nextState ? [nextState.id] : [state.id];
+    const branchStates = nextState ? [nextState] : [state];
+    const activeStates = mergeActiveStates(siblingActiveStates, branchStates);
+    const completed = createJourneyCompletion(journey.id, activeStates);
+    const activeStateIds = completed ? [] : activeStates.map((activeState) => activeState.id);
     if (nextState) {
       await this.runStateActionRuns({
         journey,
@@ -2249,6 +2257,12 @@ export class CognideskRuntime {
     const context = sameJourney && isRecord(previousSnapshot?.journeyContext)
       ? structuredClone(previousSnapshot.journeyContext)
       : {};
+    const siblingActiveStates = sameJourney
+      ? findJourneyStates(
+          route.journey,
+          (previousSnapshot?.activeStateIds ?? []).filter((stateId) => stateId !== route.state.id),
+        )
+      : [];
     const transition = await this.selectEventTransition({
       state: route.state,
       eventName: args.eventName,
@@ -2321,7 +2335,8 @@ export class CognideskRuntime {
       emit: args.emit,
       ...(args.signal ? { signal: args.signal } : {}),
     });
-    const completed = createJourneyCompletion(route.journey.id, finalStates);
+    const activeStates = mergeActiveStates(siblingActiveStates, finalStates);
+    const completed = createJourneyCompletion(route.journey.id, activeStates);
     if (completed) {
       await args.emit({
         conversationId: args.conversation.id,
@@ -2332,7 +2347,7 @@ export class CognideskRuntime {
     const snapshot: RuntimeSnapshot = {
       conversationId: args.conversation.id,
       lifecycle: args.conversation.lifecycle,
-      activeStateIds: completed ? [] : finalStates.map((activeState) => activeState.id),
+      activeStateIds: completed ? [] : activeStates.map((activeState) => activeState.id),
       updatedAt: new Date().toISOString(),
       ...(completed ? {} : { activeJourneyId: route.journey.id, journeyContext: context }),
       ...(previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: previousSnapshot.compactionSummary } : {}),
@@ -2618,6 +2633,36 @@ function findJourneyState(journey: CompiledJourney, stateId: string | undefined)
   return journey.states.find((state) => state.id === stateId);
 }
 
+function findJourneyStates(journey: CompiledJourney, stateIds: string[]) {
+  const stateById = new Map(journey.states.map((state) => [state.id, state]));
+  return stateIds
+    .map((stateId) => stateById.get(stateId))
+    .filter((state): state is CompiledJourney["states"][number] => Boolean(state));
+}
+
+function mergeActiveStates(...stateGroups: CompiledJourney["states"][]) {
+  const byId = new Map<string, CompiledJourney["states"][number]>();
+  for (const state of stateGroups.flat()) byId.set(state.id, state);
+  return [...byId.values()];
+}
+
+function resolveWidgetPromptState(
+  journey: CompiledJourney,
+  snapshot: RuntimeSnapshot | null,
+  promptId: string,
+) {
+  const activeStateIds = new Set(snapshot?.activeStateIds ?? []);
+  const fieldPrompt = parseFieldPromptId(promptId);
+  if (fieldPrompt && fieldPrompt.journeyId === journey.id && activeStateIds.has(fieldPrompt.stateId)) {
+    return findJourneyState(journey, fieldPrompt.stateId);
+  }
+  const confirmationPrompt = parseToolConfirmationPromptId(promptId);
+  if (confirmationPrompt && confirmationPrompt.journeyId === journey.id && activeStateIds.has(confirmationPrompt.stateId)) {
+    return findJourneyState(journey, confirmationPrompt.stateId);
+  }
+  return findJourneyState(journey, snapshot?.activeStateIds[0]);
+}
+
 function createJourneyCompletion(journeyId: string, activeStates: CompiledJourney["states"]): StateMachineTurnResult["completed"] | undefined {
   if (activeStates.length === 0 || activeStates.some((state) => state.type !== "final")) return undefined;
   const onlyState = activeStates.length === 1 ? activeStates[0] : undefined;
@@ -2773,6 +2818,17 @@ function parseFieldPromptId(promptId: string) {
     journeyId,
     stateId,
     path: decodeURIComponent(encodedPath),
+  };
+}
+
+function parseToolConfirmationPromptId(promptId: string) {
+  const [kind, journeyId, stateId, ...toolNameParts] = promptId.split(":");
+  const toolName = toolNameParts.join(":");
+  if (kind !== "confirm" || !journeyId || !stateId || !toolName) return null;
+  return {
+    journeyId,
+    stateId,
+    toolName,
   };
 }
 

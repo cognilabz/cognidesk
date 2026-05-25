@@ -1434,6 +1434,59 @@ describe("runtime turn pipeline", () => {
     ]));
   });
 
+  it("applies widget submissions to the matching active parallel state", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const journey = agentBuilder.stateMachineJourney("parallel-profile", {
+      condition: "Customer updates profile while another branch remains active",
+      context: z.object({
+        email: z.string().email().optional(),
+      }),
+    });
+    const root = journey.parallel("profileRoot");
+    const hold = root.state("hold");
+    const collectEmail = root.state("collectEmail").collect("email", {
+      widget: widgetPrompt(textInputWidget, { label: "Email address" }),
+    });
+    const emailDone = journey.final("emailDone");
+    collectEmail.transitionTo(emailDone);
+    journey.initial(root);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      extraction: {
+        provider: "test",
+        model: "extraction",
+        generateText: async () => {
+          const structured = { values: {} };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const turn = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Update my profile.",
+    });
+    expect(turn.snapshot.activeStateIds.sort()).toEqual(["collectEmail", "hold"]);
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "field:parallel-profile:collectEmail:email",
+      widgetKind: "text-input",
+      output: { value: "alex@example.com" },
+    });
+
+    const snapshot = await runtime.getSnapshot(conversation.id);
+    expect(snapshot?.activeJourneyId).toBe("parallel-profile");
+    expect(snapshot?.activeStateIds.sort()).toEqual(["emailDone", "hold"]);
+    expect(snapshot?.journeyContext).toEqual({ email: "alex@example.com" });
+  });
+
   it("moves to handoff when the confirmed built-in handoff tool runs", async () => {
     const agentBuilder = createAgent("flight-service", {
       instructions: "Help customers with flights.",
@@ -1667,6 +1720,50 @@ describe("runtime turn pipeline", () => {
       payload: { bookingReference: "ABC123" },
       routing: "activeJourneyOnly",
     });
+  });
+
+  it("routes active-journey events to the matching active parallel state", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const journey = agentBuilder.stateMachineJourney("parallel-events", {
+      condition: "Customer has parallel event branches",
+      context: z.object({}),
+    });
+    const synced = journey.event("branch.synced", {
+      payload: z.object({ ok: z.boolean() }),
+      routing: "activeJourneyOnly",
+    });
+    const root = journey.parallel("root");
+    const passive = root.state("passive");
+    const waiting = root.state("waiting");
+    const syncedDone = journey.final("syncedDone");
+    waiting.on(synced).target(syncedDone);
+    journey.initial(root);
+
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    const turn = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Use the parallel event journey.",
+    });
+    expect(turn.snapshot.activeStateIds.sort()).toEqual(["passive", "waiting"]);
+
+    const result = await runtime.emitJourneyEvent({
+      conversationId: conversation.id,
+      event: synced,
+      payload: { ok: true },
+    });
+
+    expect(result.snapshot?.activeJourneyId).toBe("parallel-events");
+    expect(result.snapshot?.activeStateIds.sort()).toEqual(["passive", "syncedDone"]);
+    expect(result.events.map((event) => event.type)).toEqual([
+      "journey.event.emitted",
+      "journey.state.entered",
+    ]);
   });
 
   it("can route targeted journey events into an inactive state machine", async () => {
