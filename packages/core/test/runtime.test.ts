@@ -915,12 +915,13 @@ describe("runtime turn pipeline", () => {
     });
 
     const snapshot = await runtime.getSnapshot(conversation.id);
-    expect(snapshot?.activeStateIds).toEqual(["done"]);
-    expect(snapshot?.journeyContext).toMatchObject({
-      passengerName: "Alex",
-      bookingReference: "BOOKED-Alex",
-    });
-    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toContain("tool.completed");
+    expect(snapshot?.activeJourneyId).toBeUndefined();
+    expect(snapshot?.activeStateIds).toEqual([]);
+    expect(snapshot?.journeyContext).toBeUndefined();
+    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual(expect.arrayContaining([
+      "tool.completed",
+      "journey.completed",
+    ]));
   });
 
   it("moves to handoff when the confirmed built-in handoff tool runs", async () => {
@@ -1079,12 +1080,10 @@ describe("runtime turn pipeline", () => {
       text: "Find flights from Vienna to Berlin.",
     });
 
-    expect(result.snapshot.activeStateIds).toEqual(["completed"]);
-    expect(result.snapshot.journeyContext).toEqual({
-      origin: "Vienna",
-      destination: "Berlin",
-      flightCount: 1,
-    });
+    expect(result.activeJourneyId).toBeUndefined();
+    expect(result.snapshot.activeJourneyId).toBeUndefined();
+    expect(result.snapshot.activeStateIds).toEqual([]);
+    expect(result.snapshot.journeyContext).toBeUndefined();
     expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual([
       "custom.conversation.created",
       "message.started",
@@ -1099,6 +1098,7 @@ describe("runtime turn pipeline", () => {
       "tool.started",
       "tool.completed",
       "journey.state.entered",
+      "journey.completed",
       "message.started",
       "message.completed",
     ]);
@@ -1145,13 +1145,14 @@ describe("runtime turn pipeline", () => {
     });
 
     expect(result.event.type).toBe("journey.event.emitted");
-    expect(result.snapshot?.activeJourneyId).toBe("ticket-status");
-    expect(result.snapshot?.activeStateIds).toEqual(["done"]);
+    expect(result.snapshot?.activeJourneyId).toBeUndefined();
+    expect(result.snapshot?.activeStateIds).toEqual([]);
     expect(result.events.map((event) => event.type)).toEqual([
       "journey.event.emitted",
       "journey.state.entered",
+      "journey.completed",
     ]);
-    expect((await runtime.listEvents(conversation.id)).at(-2)?.data).toMatchObject({
+    expect((await runtime.listEvents(conversation.id)).at(-3)?.data).toMatchObject({
       name: "ticket.refreshed",
       payload: { bookingReference: "ABC123" },
       routing: "activeJourneyOnly",
@@ -1189,12 +1190,13 @@ describe("runtime turn pipeline", () => {
       target: { journeyId: "ticket-status", stateId: "wait" },
     });
 
-    expect(result.snapshot?.activeJourneyId).toBe("ticket-status");
-    expect(result.snapshot?.activeStateIds).toEqual(["done"]);
+    expect(result.snapshot?.activeJourneyId).toBeUndefined();
+    expect(result.snapshot?.activeStateIds).toEqual([]);
     expect(result.events.map((event) => event.type)).toEqual([
       "journey.event.emitted",
       "journey.activated",
       "journey.state.entered",
+      "journey.completed",
     ]);
   });
 
@@ -1217,7 +1219,7 @@ describe("runtime turn pipeline", () => {
         viewedContext: ({ output }) => output.context,
       },
     });
-    const done = status.final("done");
+    const done = status.state("done");
     status.initial(identify);
     identify.transitionTo(inspect);
     inspect.transitionTo(done);

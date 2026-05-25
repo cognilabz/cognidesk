@@ -413,9 +413,14 @@ export class StateBuilder<
 
   final<const TChildId extends string>(id: TChildId) {
     const child = this.state(id);
-    child.stateType = "final";
-    child.requiresVisit("final state marks journey completion");
+    child.markFinal();
     return child;
+  }
+
+  markFinal() {
+    this.stateType = "final";
+    this.requiresVisit("final state marks journey completion");
+    return this;
   }
 
   when(
@@ -651,7 +656,7 @@ export class StateMachineJourneyBuilder<
 
   final<const TStateId extends string>(id: TStateId) {
     const state = this.states.add(id);
-    state.requiresVisit("final state marks journey completion");
+    state.markFinal();
     return state;
   }
 

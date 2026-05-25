@@ -160,6 +160,10 @@ const stateExtractionSchema = z.object({
 interface StateMachineTurnResult {
   activeStateIds: string[];
   journeyContext: Record<string, unknown>;
+  completed?: {
+    journeyId: string;
+    stateId: string;
+  };
 }
 
 interface VisibleCustomEventContext {
@@ -500,7 +504,7 @@ export class CognideskRuntime {
         snapshot,
         events: emitted,
         text: assistantText,
-        ...(selectedJourney ? { activeJourneyId: selectedJourney.id } : {}),
+        ...(snapshot.activeJourneyId ? { activeJourneyId: snapshot.activeJourneyId } : {}),
       };
     } catch (error) {
       if (turn.interruptedByNewMessage && isAbortLikeError(error)) {
@@ -1274,10 +1278,21 @@ export class CognideskRuntime {
       state: activeState,
       context,
     });
+    const completed = finalState.type === "final"
+      ? { journeyId: args.journey.id, stateId: finalState.id }
+      : undefined;
+    if (completed) {
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "journey.completed",
+        data: completed,
+      });
+    }
 
     return {
-      activeStateIds: [finalState.id],
+      activeStateIds: completed ? [] : [finalState.id],
       journeyContext: context,
+      ...(completed ? { completed } : {}),
     };
   }
 
@@ -1703,7 +1718,10 @@ export class CognideskRuntime {
       ? { targetId: toolTargetId }
       : await this.selectTransition({ journey, state, context });
     const nextState = next ? stateById.get(next.targetId) : null;
-    const activeStateIds = nextState ? [nextState.id] : [state.id];
+    const completed = nextState?.type === "final"
+      ? { journeyId: journey.id, stateId: nextState.id }
+      : undefined;
+    const activeStateIds = completed ? [] : nextState ? [nextState.id] : [state.id];
     if (nextState) {
       await this.emit({
         conversationId: args.conversation.id,
@@ -1711,13 +1729,19 @@ export class CognideskRuntime {
         data: { journeyId: journey.id, stateId: nextState.id },
       });
     }
+    if (completed) {
+      await this.emit({
+        conversationId: args.conversation.id,
+        type: "journey.completed",
+        data: completed,
+      });
+    }
     await this.options.storage.saveSnapshot({
       conversationId: args.conversation.id,
       lifecycle: args.conversation.lifecycle,
-      activeJourneyId: journey.id,
       activeStateIds,
-      journeyContext: context,
       updatedAt: new Date().toISOString(),
+      ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
       ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
       ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
     });
@@ -1792,13 +1816,22 @@ export class CognideskRuntime {
       emit: args.emit,
       ...(args.signal ? { signal: args.signal } : {}),
     });
+    const completed = finalState.type === "final"
+      ? { journeyId: route.journey.id, stateId: finalState.id }
+      : undefined;
+    if (completed) {
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "journey.completed",
+        data: completed,
+      });
+    }
     const snapshot: RuntimeSnapshot = {
       conversationId: args.conversation.id,
       lifecycle: args.conversation.lifecycle,
-      activeJourneyId: route.journey.id,
-      activeStateIds: [finalState.id],
-      journeyContext: context,
+      activeStateIds: completed ? [] : [finalState.id],
       updatedAt: new Date().toISOString(),
+      ...(completed ? {} : { activeJourneyId: route.journey.id, journeyContext: context }),
       ...(previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: previousSnapshot.compactionSummary } : {}),
       ...(previousSnapshot?.definitionHash ? { definitionHash: previousSnapshot.definitionHash } : {}),
     };
@@ -1969,16 +2002,17 @@ export class CognideskRuntime {
     selectedJourney: CompiledJourney | null;
     stateMachineTurn: StateMachineTurnResult | null;
   }): RuntimeSnapshot {
+    const journeyCompleted = Boolean(args.stateMachineTurn?.completed);
     return {
       conversationId: args.conversationId,
       lifecycle: "active",
-      activeStateIds: args.stateMachineTurn?.activeStateIds
+      activeStateIds: journeyCompleted ? [] : args.stateMachineTurn?.activeStateIds
         ?? (args.selectedJourney?.initialStateId ? [args.selectedJourney.initialStateId] : []),
       updatedAt: new Date().toISOString(),
-      ...(args.selectedJourney ? { activeJourneyId: args.selectedJourney.id } : {}),
-      ...(args.stateMachineTurn
+      ...(!journeyCompleted && args.selectedJourney ? { activeJourneyId: args.selectedJourney.id } : {}),
+      ...(!journeyCompleted && args.stateMachineTurn
         ? { journeyContext: args.stateMachineTurn.journeyContext }
-        : args.previousSnapshot?.journeyContext !== undefined ? { journeyContext: args.previousSnapshot.journeyContext } : {}),
+        : !journeyCompleted && args.previousSnapshot?.journeyContext !== undefined ? { journeyContext: args.previousSnapshot.journeyContext } : {}),
       ...(args.previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: args.previousSnapshot.compactionSummary } : {}),
       ...(this.options.journeyIndex ? { definitionHash: this.options.journeyIndex.definitionHash } : {}),
     };
