@@ -53,6 +53,8 @@ export interface WidgetRendererProps {
 
 export type WidgetRenderer = (props: WidgetRendererProps) => ReactNode;
 
+export type WidgetRendererMap = Record<string, WidgetRenderer>;
+
 export interface ChatWidgetProps {
   client: CognideskClient;
   conversationId?: string;
@@ -61,7 +63,7 @@ export interface ChatWidgetProps {
   title?: ReactNode;
   placeholder?: string;
   appearance?: AppearanceConfiguration;
-  widgets?: Record<string, WidgetRenderer>;
+  widgets?: WidgetRendererMap;
   onConversationCreated?(conversationId: string): void;
   onWidgetSubmit?(args: { promptId: string; kind: string; output: unknown }): void;
 }
@@ -270,6 +272,10 @@ export function ChatWidget(props: ChatWidgetProps) {
   const chat = useChat(props);
   const [draft, setDraft] = useState("");
   const appearance = props.appearance;
+  const widgets = useMemo(() => ({
+    ...defaultWidgetRenderers,
+    ...props.widgets,
+  }), [props.widgets]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -295,7 +301,7 @@ export function ChatWidget(props: ChatWidgetProps) {
       </div>
       <div className={resolveElementClassName(elementKeys.widgetOutlet, appearance)} style={resolveInlineStyle(elementKeys.widgetOutlet, appearance)}>
         {chat.prompts.map((prompt) => {
-          const Widget = props.widgets?.[prompt.kind];
+          const Widget = widgets[prompt.kind];
           if (!Widget) return null;
           return (
             <div key={prompt.promptId} className="cd-widget">
@@ -343,6 +349,103 @@ export function ChatWidget(props: ChatWidgetProps) {
   );
 }
 
+export const defaultWidgetRenderers: WidgetRendererMap = {
+  confirmation: ({ input, submit }) => {
+    const data = asRecord(input);
+    return (
+      <div className="cd-widget-panel">
+        {typeof data.title === "string" ? <div className="cd-widget-title">{data.title}</div> : null}
+        {typeof data.message === "string" ? <div className="cd-widget-description">{data.message}</div> : null}
+        <div className="cd-widget-actions">
+          <button className="cd-widget-button cd-widget-button-primary" type="button" onClick={() => submit({ confirmed: true })}>
+            {typeof data.confirmLabel === "string" ? data.confirmLabel : "Confirm"}
+          </button>
+          <button className="cd-widget-button" type="button" onClick={() => submit({ confirmed: false })}>
+            {typeof data.cancelLabel === "string" ? data.cancelLabel : "Cancel"}
+          </button>
+        </div>
+      </div>
+    );
+  },
+  "text-input": ({ input, submit }) => {
+    const data = asRecord(input);
+    return (
+      <form className="cd-widget-panel" onSubmit={(event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        submit({ value: String(form.get("value") ?? "") });
+      }}>
+        <WidgetLabel input={data} />
+        <input className="cd-widget-input" name="value" placeholder={typeof data.placeholder === "string" ? data.placeholder : undefined} />
+        <button className="cd-widget-button cd-widget-button-primary" type="submit">Submit</button>
+      </form>
+    );
+  },
+  choice: ({ input, submit }) => {
+    const data = asRecord(input);
+    const options = Array.isArray(data.options) ? data.options.map(asRecord) : [];
+    return (
+      <div className="cd-widget-panel">
+        <WidgetLabel input={data} />
+        <div className="cd-widget-choice-list">
+          {options.map((option) => {
+            const id = typeof option.id === "string" ? option.id : "";
+            return (
+              <button key={id} className="cd-widget-choice" type="button" onClick={() => submit({ selectedId: id })}>
+                <span className="cd-widget-choice-label">{typeof option.label === "string" ? option.label : id}</span>
+                {typeof option.description === "string" ? <span className="cd-widget-choice-description">{option.description}</span> : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  },
+  "date-picker": ({ input, submit }) => {
+    const data = asRecord(input);
+    return (
+      <form className="cd-widget-panel" onSubmit={(event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        submit({ value: String(form.get("value") ?? "") });
+      }}>
+        <WidgetLabel input={data} />
+        <input
+          className="cd-widget-input"
+          name="value"
+          type="date"
+          min={typeof data.min === "string" ? data.min : undefined}
+          max={typeof data.max === "string" ? data.max : undefined}
+        />
+        <button className="cd-widget-button cd-widget-button-primary" type="submit">Submit</button>
+      </form>
+    );
+  },
+  form: ({ input, submit }) => {
+    const data = asRecord(input);
+    const fields = Array.isArray(data.fields) ? data.fields.map(asRecord) : [];
+    return (
+      <form className="cd-widget-panel" onSubmit={(event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        const values: Record<string, unknown> = {};
+        for (const field of fields) {
+          const path = typeof field.path === "string" ? field.path : "";
+          if (!path) continue;
+          values[path] = form.get(path);
+        }
+        submit({ values });
+      }}>
+        {typeof data.title === "string" ? <div className="cd-widget-title">{data.title}</div> : null}
+        <div className="cd-widget-fields">
+          {fields.map((field) => renderFormField(field))}
+        </div>
+        <button className="cd-widget-button cd-widget-button-primary" type="submit">Submit</button>
+      </form>
+    );
+  },
+};
+
 function MessageContent(props: { message: ChatMessage; appearance: AppearanceConfiguration | undefined }) {
   if (!props.message.segments?.length) return <>{props.message.text}</>;
   return (
@@ -363,6 +466,51 @@ function MessageContent(props: { message: ChatMessage; appearance: AppearanceCon
       })}
     </>
   );
+}
+
+function WidgetLabel(props: { input: Record<string, unknown> }) {
+  return (
+    <div>
+      {typeof props.input.label === "string" ? <label className="cd-widget-title">{props.input.label}</label> : null}
+      {typeof props.input.description === "string" ? <div className="cd-widget-description">{props.input.description}</div> : null}
+    </div>
+  );
+}
+
+function renderFormField(field: Record<string, unknown>) {
+  const path = typeof field.path === "string" ? field.path : "";
+  const label = typeof field.label === "string" ? field.label : path;
+  const type = typeof field.type === "string" ? field.type : "text";
+  const required = field.required !== false;
+  if (type === "choice") {
+    const options = Array.isArray(field.options) ? field.options.map(asRecord) : [];
+    return (
+      <label key={path} className="cd-widget-field">
+        <span className="cd-widget-field-label">{label}</span>
+        <select className="cd-widget-input" name={path} required={required}>
+          {options.map((option) => {
+            const id = typeof option.id === "string" ? option.id : "";
+            return <option key={id} value={id}>{typeof option.label === "string" ? option.label : id}</option>;
+          })}
+        </select>
+      </label>
+    );
+  }
+  return (
+    <label key={path} className="cd-widget-field">
+      <span className="cd-widget-field-label">{label}</span>
+      <input className="cd-widget-input" name={path} type={toHtmlInputType(type)} required={required} />
+    </label>
+  );
+}
+
+function toHtmlInputType(type: string) {
+  if (type === "email" || type === "date" || type === "number") return type;
+  return "text";
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
 export function formatSupportReferences(references: SupportReference[] | undefined) {

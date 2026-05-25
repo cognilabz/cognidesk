@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createCognideskClient, formatSupportReferences } from "../src/index.js";
+import { isValidElement } from "react";
+import { createCognideskClient, defaultWidgetRenderers, formatSupportReferences } from "../src/index.js";
 import type { RuntimeEvent } from "@cognidesk/core";
 
 describe("createCognideskClient", () => {
@@ -149,6 +150,29 @@ describe("createCognideskClient", () => {
       { type: "knowledge", id: "policy-bags" },
       { type: "toolResult", id: "tool_1" },
     ])).toBe("Knowledge: policy-bags\nTool result: tool_1");
+  });
+
+  it("exports default renderers for built-in widgets", () => {
+    const confirmation = defaultWidgetRenderers.confirmation;
+    expect(confirmation).toBeDefined();
+    const rendered = confirmation?.({
+      promptId: "prompt_1",
+      kind: "confirmation",
+      input: {
+        title: "Confirm booking",
+        message: "Book flight OS123?",
+      },
+      submit: () => {},
+    });
+
+    expect(isValidElement(rendered)).toBe(true);
+    expect(Object.keys(defaultWidgetRenderers).sort()).toEqual([
+      "choice",
+      "confirmation",
+      "date-picker",
+      "form",
+      "text-input",
+    ]);
   });
 });
 
