@@ -1,0 +1,33 @@
+{
+  "name": "@cognidesk/flight-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "dev:server": "tsx server/index.ts",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@cognidesk/core": "workspace:*",
+    "@cognidesk/http": "workspace:*",
+    "@cognidesk/react": "workspace:*",
+    "@cognidesk/storage-sqlite": "workspace:*",
+    "@cognidesk/ui": "workspace:*",
+    "@vitejs/plugin-react": "^5.1.1",
+    "vite": "^7.2.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14",
+    "tsx": "^4.20.6"
+  }
+}

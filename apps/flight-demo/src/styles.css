@@ -1,0 +1,56 @@
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #e5e7eb;
+  color: #111827;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.demo-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.demo-panel {
+  width: min(100%, 440px);
+}
+
+.demo-panel .cd-root {
+  width: 100%;
+  height: min(720px, calc(100vh - 48px));
+  box-shadow: 0 20px 60px rgb(15 23 42 / 18%);
+}
+
+.demo-confirmation {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--cd-color-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.demo-confirmation span {
+  color: var(--cd-color-text-muted);
+  font-size: 14px;
+}
+
+.demo-confirmation-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.demo-confirmation-actions button {
+  border: 1px solid var(--cd-color-border);
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+  padding: 8px 10px;
+}
