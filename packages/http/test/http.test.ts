@@ -143,6 +143,12 @@ describe("HTTP adapter", () => {
     }));
     const intermediate = await intermediateResponse.json() as { events: RuntimeEvent[] };
 
+    const preambleResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/preambles", {
+      method: "POST",
+      body: JSON.stringify({ purpose: "checking booking", maxWords: 8, traceId: "trace_2" }),
+    }));
+    const preamble = await preambleResponse.json() as { text: string; events: RuntimeEvent[] };
+
     const compactResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/compact", {
       method: "POST",
       body: JSON.stringify({ fromOffset: 1, toOffset: 3, schemaVersion: "test.v1" }),
@@ -160,6 +166,9 @@ describe("HTTP adapter", () => {
 
     expect(intermediateResponse.status).toBe(200);
     expect(intermediate.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);
+    expect(preambleResponse.status).toBe(200);
+    expect(preamble.text).toBe("I am still checking that for you.");
+    expect(preamble.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);
     expect(compactResponse.status).toBe(200);
     expect(compacted.summary).toEqual({ summary: "Compacted." });
     expect(snapshotResponse.status).toBe(200);
@@ -307,6 +316,16 @@ class FakeRuntime implements CognideskHttpRuntime {
     } satisfies RuntimeEvent;
     this.events.push(started, completed);
     return { events: [started, completed] };
+  }
+
+  async emitGeneratedPreamble(input: { conversationId: string; purpose?: string; maxWords?: number; traceId?: string }): Promise<{ text: string; events: RuntimeEvent[] }> {
+    const text = input.purpose ? "I am still checking that for you." : "Still working.";
+    const result = await this.emitIntermediateMessage({
+      conversationId: input.conversationId,
+      text,
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    });
+    return { text, events: result.events };
   }
 
   async compactConversation(input: { conversationId: string; fromOffset?: number; toOffset?: number; schemaVersion?: string }) {

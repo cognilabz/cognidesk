@@ -93,6 +93,19 @@ export interface EmitIntermediateMessageInput {
   traceId?: string;
 }
 
+export interface EmitGeneratedPreambleInput {
+  conversationId: string;
+  purpose?: string;
+  maxWords?: number;
+  traceId?: string;
+  signal?: AbortSignal;
+}
+
+export interface EmitGeneratedPreambleResult {
+  text: string;
+  events: RuntimeEvent[];
+}
+
 export interface EmitCustomEventInput<TEvent extends CustomRuntimeEventDefinition = CustomRuntimeEventDefinition> {
   conversationId: string;
   event: TEvent;
@@ -271,6 +284,38 @@ export class CognideskRuntime {
     });
     events.push(completed);
     return { events };
+  }
+
+  async emitGeneratedPreamble(input: EmitGeneratedPreambleInput): Promise<EmitGeneratedPreambleResult> {
+    const agent = this.requireAgent();
+    const models = this.requireModels();
+    const conversation = await this.requireConversation(input.conversationId);
+    const history = await this.listConversationMessages(conversation.id);
+    const messages = await this.redactModelMessages(conversation, createGeneratedPreambleMessages({
+      agent,
+      history,
+      maxWords: input.maxWords ?? 24,
+      ...(input.purpose ? { purpose: input.purpose } : {}),
+    }));
+    const output = await this.generateTextWithTrace({
+      conversationId: conversation.id,
+      model: models.response,
+      input: {
+        role: "response",
+        messages,
+        ...(input.signal ? { signal: input.signal } : {}),
+      },
+    });
+    const text = await this.redactAssistantMessage(
+      conversation,
+      normalizeGeneratedPreamble(output.text, input.maxWords ?? 24),
+    );
+    const emitted = await this.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text,
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    });
+    return { text, events: emitted.events };
   }
 
   async emitCustomEvent<TEvent extends CustomRuntimeEventDefinition>(
@@ -2742,6 +2787,40 @@ function renderEventsForCompaction(events: RuntimeEvent[]) {
     data: event.data,
     createdAt: event.createdAt,
   })).join("\n");
+}
+
+function createGeneratedPreambleMessages(args: {
+  agent: CompiledAgent;
+  history: ConversationMessage[];
+  purpose?: string;
+  maxWords: number;
+}): ModelMessage[] {
+  return [
+    {
+      role: "system",
+      content: [
+        args.agent.instructions,
+        `Write one brief wait-time preamble for the customer in ${args.maxWords} words or fewer.`,
+        "Acknowledge that work is continuing, but do not claim a result, policy, tool output, queue status, or completion.",
+        "Return only the customer-facing sentence.",
+        args.purpose ? `Current work: ${args.purpose}` : "",
+      ].filter(Boolean).join("\n"),
+    },
+    {
+      role: "user",
+      content: args.history.length > 0
+        ? args.history.map((message) => `${message.role}: ${message.content}`).join("\n")
+        : "No prior customer-visible conversation messages.",
+    },
+  ];
+}
+
+function normalizeGeneratedPreamble(text: string, maxWords: number) {
+  const singleLine = text.replace(/\s+/g, " ").trim();
+  if (!singleLine) return "I am still checking that for you.";
+  const words = singleLine.split(" ");
+  const clipped = words.length > maxWords ? words.slice(0, maxWords).join(" ") : singleLine;
+  return clipped.replace(/["']$/g, "");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

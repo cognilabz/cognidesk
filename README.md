@@ -81,7 +81,7 @@ await runtime.emitCustomEvent({
 const http = createCognideskHttpHandler({ runtime, agentId: agent.id, basePath: "/api" });
 ```
 
-Core remains transport-neutral. The HTTP package exposes POST message submission, widget submissions, handoff requests, event history, and SSE event streaming. The React package provides `createCognideskClient`, `useChat`, and `ChatWidget`; assistant message segments can carry knowledge/tool references for source hovers.
+Core remains transport-neutral. The HTTP package exposes POST message submission, widget submissions, intermediate messages, generated wait-time preambles, handoff requests, event history, and SSE event streaming. The React package provides `createCognideskClient`, `useChat`, and `ChatWidget`; assistant message segments can carry knowledge/tool references for source hovers.
 
 State-machine journeys can also declare typed Journey Events for app-driven state changes:
 

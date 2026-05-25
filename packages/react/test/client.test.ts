@@ -86,6 +86,19 @@ describe("createCognideskClient", () => {
             }],
           });
         }
+        if (String(url).endsWith("/preambles")) {
+          return Response.json({
+            text: "I am still checking that for you.",
+            events: [{
+              id: "event_5",
+              conversationId: "conversation_1",
+              offset: 5,
+              type: "message.completed",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: { text: "I am still checking that for you.", intermediate: true },
+            }],
+          });
+        }
         if (String(url).endsWith("/compact")) {
           return Response.json({
             summary: { summary: "Compacted." },
@@ -144,6 +157,11 @@ describe("createCognideskClient", () => {
       text: "Still checking.",
       traceId: "trace_1",
     });
+    await client.emitGeneratedPreamble(created.conversation.id, {
+      purpose: "checking booking",
+      maxWords: 8,
+      traceId: "trace_2",
+    });
     await client.compactConversation(created.conversation.id, {
       fromOffset: 1,
       toOffset: 4,
@@ -178,6 +196,10 @@ describe("createCognideskClient", () => {
       {
         url: "http://localhost/api/conversations/conversation_1/intermediate-messages",
         body: { text: "Still checking.", traceId: "trace_1" },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/preambles",
+        body: { purpose: "checking booking", maxWords: 8, traceId: "trace_2" },
       },
       {
         url: "http://localhost/api/conversations/conversation_1/compact",

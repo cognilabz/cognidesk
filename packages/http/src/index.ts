@@ -4,6 +4,7 @@ import type {
   CompactConversationResult,
   ConversationRecord,
   CreateRuntimeConversationInput,
+  EmitGeneratedPreambleInput,
   EmitIntermediateMessageInput,
   HandleUserMessageInput,
   HandleUserMessageResult,
@@ -19,6 +20,7 @@ export interface CognideskHttpRuntime {
   handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult>;
   submitWidget?(input: SubmitWidgetInput): Promise<RuntimeEvent>;
   emitIntermediateMessage?(input: EmitIntermediateMessageInput): Promise<{ events: RuntimeEvent[] }>;
+  emitGeneratedPreamble?(input: EmitGeneratedPreambleInput): Promise<{ text: string; events: RuntimeEvent[] }>;
   compactConversation?(input: CompactConversationInput): Promise<CompactConversationResult<unknown>>;
   closeConversation?(conversationId: string, reason?: string): Promise<ConversationRecord>;
   requestHandoff?(input: RequestHandoffInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
@@ -136,6 +138,21 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           return json(result, 200, options);
         }
 
+        const preambleMatch = path.match(/^\/conversations\/([^/]+)\/preambles$/);
+        if (request.method === "POST" && preambleMatch) {
+          if (!options.runtime.emitGeneratedPreamble) return json({ error: "Generated preambles are not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(preambleMatch[1] ?? "");
+          const body = await readJson<CreateGeneratedPreambleBody>(request);
+          const result = await options.runtime.emitGeneratedPreamble({
+            conversationId,
+            ...(body.purpose ? { purpose: body.purpose } : {}),
+            ...(body.maxWords !== undefined ? { maxWords: body.maxWords } : {}),
+            ...(body.traceId ? { traceId: body.traceId } : {}),
+            signal: request.signal,
+          });
+          return json(result, 200, options);
+        }
+
         const compactionMatch = path.match(/^\/conversations\/([^/]+)\/compact$/);
         if (request.method === "POST" && compactionMatch) {
           if (!options.runtime.compactConversation) return json({ error: "Conversation compaction is not supported by this runtime" }, 501, options);
@@ -242,6 +259,12 @@ interface CreateCloseBody {
 
 interface CreateIntermediateMessageBody {
   text?: string;
+  traceId?: string;
+}
+
+interface CreateGeneratedPreambleBody {
+  purpose?: string;
+  maxWords?: number;
   traceId?: string;
 }
 

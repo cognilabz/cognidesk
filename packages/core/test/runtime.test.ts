@@ -1106,6 +1106,55 @@ describe("runtime turn pipeline", () => {
     })).rejects.toThrow("is 'closed'");
   });
 
+  it("generates constrained wait-time preambles as intermediate messages", async () => {
+    let preamblePrompt = "";
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async ({ messages }) => {
+            preamblePrompt = messages.map((message) => message.content).join("\n");
+            return { text: "I am checking the latest mocked booking details now for you." };
+          },
+        },
+      }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await runtime.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text: "Programmatic progress should stay out of transcript.",
+    });
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you review booking ABC123?",
+    });
+
+    const result = await runtime.emitGeneratedPreamble({
+      conversationId: conversation.id,
+      purpose: "checking booking ABC123",
+      maxWords: 7,
+      traceId: "trace_preamble",
+    });
+
+    expect(result.text).toBe("I am checking the latest mocked booking");
+    expect(preamblePrompt).toContain("Write one brief wait-time preamble");
+    expect(preamblePrompt).toContain("Current work: checking booking ABC123");
+    expect(preamblePrompt).toContain("user: Can you review booking ABC123?");
+    expect(preamblePrompt).not.toContain("Programmatic progress should stay out of transcript.");
+    expect(result.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);
+    expect(result.events[1]).toMatchObject({
+      traceId: "trace_preamble",
+      data: {
+        text: "I am checking the latest mocked booking",
+        intermediate: true,
+      },
+    });
+  });
+
   it("validates declared custom runtime events and exposes only visible ones to the model", async () => {
     const leadCaptured = customRuntimeEvent("lead.captured", {
       payload: z.object({ email: z.string().email(), source: z.string() }),

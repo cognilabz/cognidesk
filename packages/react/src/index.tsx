@@ -44,6 +44,7 @@ export interface CognideskClient {
   sendMessage(conversationId: string, message: string, options?: { turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
   emitIntermediateMessage(conversationId: string, input: { text: string; traceId?: string }): Promise<{ events: RuntimeEvent[] }>;
+  emitGeneratedPreamble(conversationId: string, input?: { purpose?: string; maxWords?: number; traceId?: string }): Promise<{ text: string; events: RuntimeEvent[] }>;
   compactConversation(conversationId: string, input?: { fromOffset?: number; toOffset?: number; schemaVersion?: string }): Promise<{ summary: unknown; snapshot: NonNullable<RuntimeSnapshotResult["snapshot"]>; events: RuntimeEvent[] }>;
   closeConversation(conversationId: string, input?: { reason?: string }): Promise<{ conversation: CreateConversationResult["conversation"] }>;
   requestHandoff(conversationId: string, input: { reason: string; summary?: string; payload?: unknown }): Promise<{ conversation: CreateConversationResult["conversation"]; event: RuntimeEvent }>;
@@ -157,6 +158,19 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
       });
       if (!response.ok) throw new Error(`Failed to emit intermediate message: ${response.status}`);
       return await response.json() as { events: RuntimeEvent[] };
+    },
+    async emitGeneratedPreamble(conversationId, input = {}) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/preambles`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...(input.purpose ? { purpose: input.purpose } : {}),
+          ...(input.maxWords !== undefined ? { maxWords: input.maxWords } : {}),
+          ...(input.traceId ? { traceId: input.traceId } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to emit generated preamble: ${response.status}`);
+      return await response.json() as { text: string; events: RuntimeEvent[] };
     },
     async compactConversation(conversationId, input = {}) {
       const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/compact`, {
