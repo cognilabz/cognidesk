@@ -379,6 +379,125 @@ describe("runtime turn pipeline", () => {
     ]);
   });
 
+  it("retries retryable model-requested tools and emits an intermediate notice", async () => {
+    let attempts = 0;
+    const getTicketStatus = tool("getTicketStatus", {
+      description: "Get mocked ticket status.",
+      input: z.object({ bookingReference: z.string() }),
+      output: z.object({ status: z.string() }),
+      execute: async ({ input }) => {
+        attempts += 1;
+        if (attempts === 1) throw new Error("temporary outage");
+        return { status: `${input.bookingReference}:confirmed` };
+      },
+    });
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (!input.messages.some((message) => message.role === "tool")) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_1",
+              name: "getTicketStatus",
+              input: { bookingReference: "ABC123" },
+            }],
+          };
+        }
+        return { text: "Recovered." };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(getTicketStatus);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "What is ticket ABC123 doing?",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(attempts).toBe(2);
+    expect(events.map((event) => event.type)).toEqual([
+      "custom.conversation.created",
+      "message.started",
+      "message.completed",
+      "tool.started",
+      "message.started",
+      "message.completed",
+      "tool.completed",
+      "message.started",
+      "message.completed",
+    ]);
+    expect(events[5]).toMatchObject({
+      type: "message.completed",
+      data: { intermediate: true },
+    });
+  });
+
+  it("does not retry side-effect tools without an idempotency key", async () => {
+    let attempts = 0;
+    const chargeCard = tool("chargeCard", {
+      input: z.object({ amount: z.number() }),
+      output: z.object({ charged: z.boolean() }),
+      sideEffect: true,
+      execute: async () => {
+        attempts += 1;
+        throw new Error("processor unavailable");
+      },
+    });
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (!input.messages.some((message) => message.role === "tool")) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_charge",
+              name: "chargeCard",
+              input: { amount: 10 },
+            }],
+          };
+        }
+        return { text: "Could not charge." };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(chargeCard);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Charge me.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(attempts).toBe(1);
+    expect(events.filter((event) => (
+      event.type === "message.completed" && event.data.intermediate
+    ))).toHaveLength(0);
+    expect(events.filter((event) => event.type === "tool.completed").at(0)).toMatchObject({
+      data: {
+        success: false,
+        error: "processor unavailable",
+      },
+    });
+  });
+
   it("applies built-in lifecycle tools requested by the response model", async () => {
     const response = {
       provider: "test",

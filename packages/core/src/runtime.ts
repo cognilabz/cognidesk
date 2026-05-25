@@ -45,6 +45,10 @@ export interface RuntimeOptions {
   postProcessing?: {
     citations?: boolean;
   };
+  toolRetry?: {
+    maxAttempts?: number;
+    notice?: string;
+  };
 }
 
 export interface CreateRuntimeConversationInput<TConversationContext = unknown>
@@ -838,15 +842,15 @@ export class CognideskRuntime {
           input: parsedInput.data,
           conversationId: args.conversation.id,
         });
-        const output = toolDefinition.name === "cognidesk.viewJourneyContext"
-          ? createJourneyContextView(parsedInput.data, args.stateMachineTurn?.journeyContext ?? {})
-          : await toolDefinition.execute({
-              input: parsedInput.data,
-              app: this.options.app ?? {},
-              conversationId: args.conversation.id,
-              ...(idempotencyKey ? { idempotencyKey } : {}),
-              ...(args.signal ? { signal: args.signal } : {}),
-            });
+        const output = await this.executeToolWithRetry({
+          tool: toolDefinition,
+          input: parsedInput.data,
+          conversationId: args.conversation.id,
+          journeyContext: args.stateMachineTurn?.journeyContext ?? {},
+          emit: args.emit,
+          ...(idempotencyKey ? { idempotencyKey } : {}),
+          ...(args.signal ? { signal: args.signal } : {}),
+        });
         const parsedOutput = toolDefinition.output.parse(output);
         await args.emit({
           conversationId: args.conversation.id,
@@ -904,6 +908,69 @@ export class CognideskRuntime {
       ? journey.delegation?.tools ?? []
       : journey?.tools ?? [];
     return uniqueTools([...agent.tools, ...scoped]);
+  }
+
+  private async executeToolWithRetry(args: {
+    tool: AnyTool;
+    input: unknown;
+    conversationId: string;
+    idempotencyKey?: string;
+    journeyContext: Record<string, unknown>;
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const maxAttempts = this.toolExecutionMaxAttempts(args.tool, args.idempotencyKey);
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        if (args.tool.name === "cognidesk.viewJourneyContext") {
+          return createJourneyContextView(args.input, args.journeyContext);
+        }
+        return await args.tool.execute({
+          input: args.input,
+          app: this.options.app ?? {},
+          conversationId: args.conversationId,
+          ...(args.idempotencyKey ? { idempotencyKey: args.idempotencyKey } : {}),
+          ...(args.signal ? { signal: args.signal } : {}),
+        });
+      } catch (error) {
+        if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+        lastError = error;
+        if (attempt >= maxAttempts) break;
+        await this.emitRetryNotice({
+          conversationId: args.conversationId,
+          toolName: args.tool.name,
+          emit: args.emit,
+        });
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error("Tool execution failed.");
+  }
+
+  private toolExecutionMaxAttempts(toolDefinition: AnyTool, idempotencyKey: string | undefined) {
+    if (toolDefinition.sideEffect && !idempotencyKey) return 1;
+    return Math.max(1, this.options.toolRetry?.maxAttempts ?? 2);
+  }
+
+  private async emitRetryNotice(args: {
+    conversationId: string;
+    toolName: string;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const text = this.options.toolRetry?.notice ?? `I hit a temporary issue while running ${args.toolName}; retrying now.`;
+    await args.emit({
+      conversationId: args.conversationId,
+      type: "message.started",
+      data: { role: "assistant" },
+    });
+    await args.emit({
+      conversationId: args.conversationId,
+      type: "message.completed",
+      data: {
+        text,
+        intermediate: true,
+      },
+    });
   }
 
   private async trace(event: TraceEvent) {
@@ -1485,15 +1552,15 @@ export class CognideskRuntime {
           input: parsedInput.data,
           conversationId: args.conversation.id,
         });
-        const output = toolRun.tool.name === "cognidesk.viewJourneyContext"
-          ? createJourneyContextView(parsedInput.data, args.context)
-          : await toolRun.tool.execute({
-              input: parsedInput.data,
-              app: this.options.app ?? {},
-              conversationId: args.conversation.id,
-              ...(idempotencyKey ? { idempotencyKey } : {}),
-              ...(args.signal ? { signal: args.signal } : {}),
-            });
+        const output = await this.executeToolWithRetry({
+          tool: toolRun.tool,
+          input: parsedInput.data,
+          conversationId: args.conversation.id,
+          journeyContext: args.context,
+          emit: args.emit,
+          ...(idempotencyKey ? { idempotencyKey } : {}),
+          ...(args.signal ? { signal: args.signal } : {}),
+        });
         const parsedOutput = toolRun.tool.output.parse(output);
         for (const assignment of toolRun.assign) {
           setPathValue(args.context, assignment.path, assignment.value({
