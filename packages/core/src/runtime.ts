@@ -520,6 +520,8 @@ export class CognideskRuntime {
             conversation,
             previousSnapshot,
             userText,
+            turn: input.turn ?? {},
+            app: input.app ?? this.options.app ?? {},
             emit,
             signal: turn.controller.signal,
           })
@@ -1594,14 +1596,14 @@ export class CognideskRuntime {
     conversation: ConversationRecord;
     previousSnapshot: RuntimeSnapshot | null;
     userText: string;
+    turn: unknown;
+    app: unknown;
     signal?: AbortSignal;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }): Promise<StateMachineTurnResult> {
     const stateById = new Map(args.journey.states.map((state) => [state.id, state]));
     const sameJourney = args.previousSnapshot?.activeJourneyId === args.journey.id;
-    const context = sameJourney && isRecord(args.previousSnapshot?.journeyContext)
-      ? structuredClone(args.previousSnapshot.journeyContext)
-      : {};
+    const context = await this.resolveInitialJourneyContext(args);
     const activeStates = sameJourney
       ? (args.previousSnapshot?.activeStateIds ?? [])
         .map((stateId) => stateById.get(stateId))
@@ -1646,6 +1648,36 @@ export class CognideskRuntime {
       journeyContext: context,
       ...(completed ? { completed } : {}),
     };
+  }
+
+  private async resolveInitialJourneyContext(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    previousSnapshot: RuntimeSnapshot | null;
+    turn: unknown;
+    app: unknown;
+  }): Promise<Record<string, unknown>> {
+    if (args.previousSnapshot?.activeJourneyId === args.journey.id && isRecord(args.previousSnapshot.journeyContext)) {
+      return structuredClone(args.previousSnapshot.journeyContext);
+    }
+
+    const policy = args.journey.contextReuse;
+    if (!policy) return {};
+    const stored = args.previousSnapshot?.journeyContexts?.find((record) => record.journeyId === args.journey.id);
+    if (!isRecord(stored?.context)) return {};
+    const previousContext = structuredClone(stored.context);
+    const allowed = await policy.when({
+      app: args.app,
+      conversation: args.conversation,
+      turn: args.turn,
+      journeyId: args.journey.id,
+      previousContext,
+      ...(args.previousSnapshot?.activeJourneyId ? { activeJourneyId: args.previousSnapshot.activeJourneyId } : {}),
+    });
+    if (!allowed) return {};
+    return policy.fields?.length
+      ? selectContextFields(previousContext, policy.fields)
+      : previousContext;
   }
 
   private async applyStateExtraction(args: {
@@ -3240,6 +3272,15 @@ function setPathValue(context: Record<string, unknown>, path: string, value: unk
   }
   const last = parts.at(-1);
   if (last) current[last] = value;
+}
+
+function selectContextFields(context: Record<string, unknown>, fields: string[]) {
+  const selected: Record<string, unknown> = {};
+  for (const field of fields) {
+    const value = getPathValue(context, field);
+    if (value !== undefined) setPathValue(selected, field, structuredClone(value));
+  }
+  return selected;
 }
 
 function hasUsableValue(value: unknown) {

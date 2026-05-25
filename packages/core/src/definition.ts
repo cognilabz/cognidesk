@@ -119,6 +119,7 @@ export interface CompiledJourney {
   includeWhen?: (args: { app: unknown }) => boolean;
   matcher?: JourneyActivationPredicate;
   guard?: JourneyGuardPredicate;
+  contextReuse?: CompiledContextReusePolicy;
   knowledge: KnowledgeSource[];
   tools: AnyTool[];
   context?: ObjectSchema;
@@ -222,6 +223,25 @@ export type JourneyGuardPredicate<TApp = unknown, TConversation = unknown, TTurn
     journeyId: string;
   },
 ) => MaybePromise<GuardResult>;
+
+export type ContextReusePredicate<TApp = unknown, TConversation = unknown, TTurn = unknown, TContext = unknown> = (
+  args: ApplicationContextParts<TConversation, TTurn> & {
+    app: TApp;
+    activeJourneyId?: string;
+    journeyId: string;
+    previousContext: TContext;
+  },
+) => MaybePromise<boolean>;
+
+export interface ContextReusePolicy<TContext> {
+  fields?: Array<ContextPath<TContext>>;
+  when: ContextReusePredicate<unknown, unknown, unknown, TContext>;
+}
+
+export interface CompiledContextReusePolicy {
+  fields?: string[];
+  when: ContextReusePredicate;
+}
 
 interface InternalTransition {
   kind: "event" | "conversational";
@@ -716,6 +736,7 @@ export interface ActivationMetadata {
 export interface StateMachineJourneyOptions<TContextSchema extends ObjectSchema> extends ActivationMetadata {
   context: TContextSchema;
   description?: string;
+  contextReuse?: ContextReusePolicy<InferObject<TContextSchema>>;
 }
 
 export class StateCollection<TContextSchema extends ObjectSchema> {
@@ -851,6 +872,12 @@ export class StateMachineJourneyBuilder<
       ...(this.options.includeWhen ? { includeWhen: this.options.includeWhen } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       ...(this.options.guard ? { guard: this.options.guard } : {}),
+      ...(this.options.contextReuse ? {
+        contextReuse: {
+          ...(this.options.contextReuse.fields ? { fields: this.options.contextReuse.fields.map(String) } : {}),
+          when: this.options.contextReuse.when as ContextReusePredicate,
+        },
+      } : {}),
       knowledge: this.knowledge.list(),
       tools: this.tools.list(),
       context: this.options.context,

@@ -263,6 +263,8 @@ function journeyRoutingProjection(journey: CompiledJourney) {
     hasIncludeWhenPredicate: typeof journey.includeWhen === "function",
     hasMatcherPredicate: typeof journey.matcher === "function",
     hasGuardPredicate: typeof journey.guard === "function",
+    contextReuseFields: journey.contextReuse?.fields ?? [],
+    hasContextReusePredicate: typeof journey.contextReuse?.when === "function",
     initialStateId: journey.initialStateId,
     states: journey.states.map((state) => ({
       id: state.id,
