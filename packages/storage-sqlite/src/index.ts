@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { DatabaseSync } from "node:sqlite";
+import { createRequire } from "node:module";
 import type {
   ConversationLifecycle,
   RuntimeEvent,
@@ -10,6 +10,9 @@ import type {
   RuntimeEventInput,
   ListEventsOptions,
 } from "@cognidesk/core";
+
+const require = createRequire(import.meta.url);
+const { DatabaseSync } = require("node:sqlite") as typeof import("node:sqlite");
 
 export interface SqliteStorageOptions {
   filename: string;
@@ -26,7 +29,7 @@ function parseJson<T>(value: unknown): T {
 }
 
 export class SqliteStorageAdapter implements StorageAdapter {
-  private readonly db: DatabaseSync;
+  private readonly db: InstanceType<typeof DatabaseSync>;
 
   constructor(readonly options: SqliteStorageOptions) {
     this.db = new DatabaseSync(options.filename);

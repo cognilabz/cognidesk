@@ -25,6 +25,7 @@ const bookingContext = z.object({
   passengerName: z.string().optional(),
   selectedFlightId: z.string().optional(),
   bookingReference: z.string().optional(),
+  availableFlights: z.array(flight).optional(),
 });
 
 const statusContext = z.object({
@@ -143,7 +144,16 @@ export async function createFlightDemoRuntimeParts() {
     .collect("origin")
     .collect("destination")
     .collect("departureDate");
-  const chooseFlight = booking.state("chooseFlight").runTool(searchFlights, {});
+  const chooseFlight = booking.state("chooseFlight").runTool(searchFlights, {
+    input: ({ context }) => ({
+      origin: context.origin ?? "",
+      destination: context.destination ?? "",
+      departureDate: context.departureDate ?? "",
+    }),
+    assign: {
+      availableFlights: ({ output }) => output.flights,
+    },
+  });
   const confirmPassenger = booking.state("confirmPassenger").collect("passengerName");
   const book = booking.state("book").runTool(bookFlight, {
     confirm: {
@@ -166,10 +176,16 @@ export async function createFlightDemoRuntimeParts() {
     matcher: ({ turn }) => Boolean((turn as { forceStatus?: boolean }).forceStatus),
   });
   const identify = status.state("identify").collect("bookingReference", { required: false }).collect("flightNumber", { required: false });
-  const lookup = status.state("lookup").runTool(getTicketStatus, {});
+  const lookup = status.state("lookup").runTool(getTicketStatus, {
+    input: ({ context }) => ({
+      bookingReference: context.bookingReference ?? "",
+    }),
+  });
   const done = status.final("done");
   status.initial(identify);
-  identify.when("booking reference or flight number is known").target(lookup);
+  identify.when("booking reference or flight number is known", {
+    guard: ({ context }) => Boolean(context.bookingReference),
+  }).target(lookup);
   lookup.transitionTo(done);
 
   agent.delegationJourney("human-handoff", {
@@ -193,14 +209,19 @@ function createMockModelSet(): AgentModelSet {
   const response: ModelAdapter = {
     provider: "mock",
     model: "flight-demo-response",
-    generateText: async ({ messages }) => ({
-      text: createMockAnswer(messages),
-      usage: {
-        inputTokens: messages.reduce((sum, message) => sum + Math.ceil(message.content.length / 4), 0),
-        outputTokens: 40,
-        totalTokens: 40,
-      },
-    }),
+    generateText: async ({ role, messages }) => {
+      if (role === "extraction") return createMockExtraction(messages);
+      if (role === "citationPostProcessing") return createMockCitationSegments(messages);
+      if (role === "compaction") return createMockCompaction(messages);
+      return {
+        text: createMockAnswer(messages),
+        usage: {
+          inputTokens: messages.reduce((sum, message) => sum + Math.ceil(message.content.length / 4), 0),
+          outputTokens: 40,
+          totalTokens: 40,
+        },
+      };
+    },
   };
   const embedding: ModelAdapter = {
     provider: "mock",
@@ -220,6 +241,55 @@ function createMockModelSet(): AgentModelSet {
     journeyEmbedding: embedding,
     compaction: response,
   };
+}
+
+function createMockExtraction(messages: ModelMessage[]) {
+  const system = messages.find((message) => message.role === "system")?.content ?? "";
+  const user = [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
+  const lower = user.toLowerCase();
+  const values: Record<string, unknown> = {};
+  const wants = (path: string) => system.includes(path);
+  const route = lower.match(/from\s+([a-z\s]+?)\s+to\s+([a-z\s]+?)(?:\s+today|\s+tomorrow|\.|$)/i);
+  const toOnly = lower.match(/(?:to|for)\s+(vienna|berlin|paris)/i);
+  if (wants("origin") && route?.[1]) values.origin = titleCase(route[1].trim());
+  if (wants("destination") && route?.[2]) values.destination = titleCase(route[2].trim());
+  if (wants("destination") && !values.destination && toOnly?.[1]) values.destination = titleCase(toOnly[1]);
+  if (wants("departureDate")) {
+    if (lower.includes("tomorrow")) values.departureDate = "2026-05-26";
+    if (lower.includes("today")) values.departureDate = "2026-05-25";
+  }
+  const passenger = user.match(/(?:for|passenger)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
+  if (wants("passengerName") && passenger?.[1]) values.passengerName = passenger[1];
+  const bookingReference = user.match(/\b(?:CD-[A-Z0-9-]+|ABC\d{3,})\b/i)?.[0];
+  if (wants("bookingReference") && bookingReference) values.bookingReference = bookingReference.toUpperCase();
+  const flightNumber = user.match(/\bCL\d{3}\b/i)?.[0];
+  if (wants("flightNumber") && flightNumber) values.flightNumber = flightNumber.toUpperCase();
+  const structured = { values };
+  return { text: JSON.stringify(structured), structured };
+}
+
+function createMockCitationSegments(messages: ModelMessage[]) {
+  const user = [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
+  const answer = user.split("Assistant answer:\n").at(-1)?.trim() ?? "";
+  const knowledgeIds = [...user.matchAll(/^\[([^\]]+)\]/gm)].map((match) => match[1]).filter((id): id is string => Boolean(id));
+  const usedIds = knowledgeIds.filter((id) => answer.includes(id));
+  const structured = {
+    segments: [{
+      text: answer,
+      knowledgeIds: usedIds.length > 0 ? usedIds : knowledgeIds.slice(0, answer.includes("Source:") ? 1 : 0),
+    }],
+  };
+  return { text: JSON.stringify(structured), structured };
+}
+
+function createMockCompaction(messages: ModelMessage[]) {
+  const structured = {
+    summary: messages.at(-1)?.content.slice(0, 240) ?? "No conversation events.",
+    stableFacts: [],
+    openQuestions: [],
+    activeCommitments: [],
+  };
+  return { text: JSON.stringify(structured), structured };
 }
 
 function createMockAnswer(messages: ModelMessage[]) {
@@ -244,6 +314,13 @@ function createMockAnswer(messages: ModelMessage[]) {
     return "I can prepare a handoff summary for a human agent. Please share the booking reference and the issue.";
   }
   return "I can help with mocked flight booking, ticket status, flight information, check-in, baggage, or handoff.";
+}
+
+function titleCase(value: string) {
+  return value.split(/\s+/)
+    .filter(Boolean)
+    .map((part) => `${part[0]?.toUpperCase() ?? ""}${part.slice(1).toLowerCase()}`)
+    .join(" ");
 }
 
 function keywordEmbedding(text: string) {
