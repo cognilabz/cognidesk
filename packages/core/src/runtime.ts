@@ -401,12 +401,14 @@ export class CognideskRuntime {
         data: { text: userText },
       });
 
+      const history = await this.listConversationMessages(conversation.id);
       const previousSnapshot = await this.options.storage.getSnapshot(conversation.id);
       const selectedJourney = await this.selectJourney({
         agent,
         models,
         conversation,
         previousSnapshot,
+        history,
         input: {
           ...input,
           signal: turn.controller.signal,
@@ -444,7 +446,6 @@ export class CognideskRuntime {
       });
       this.throwIfTurnInterrupted(turn);
       const visibleCustomEvents = await this.listVisibleCustomEventContext(agent, conversation.id);
-      const history = await this.listConversationMessages(conversation.id);
       const modelMessages = await this.redactModelMessages(conversation, this.createResponseMessages({
         agent,
         journey: selectedJourney,
@@ -1190,6 +1191,7 @@ export class CognideskRuntime {
     models: AgentModelSet;
     conversation: ConversationRecord;
     previousSnapshot: RuntimeSnapshot | null;
+    history: ConversationMessage[];
     input: HandleUserMessageInput<TTurn>;
     userText: string;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
@@ -1222,6 +1224,7 @@ export class CognideskRuntime {
       models: args.models,
       conversation: args.conversation,
       userText: args.userText,
+      history: args.history,
       ...(args.previousSnapshot?.activeJourneyId ? { activeJourneyId: args.previousSnapshot.activeJourneyId } : {}),
       ...(args.input.signal ? { signal: args.input.signal } : {}),
     });
@@ -1263,6 +1266,7 @@ export class CognideskRuntime {
     models: AgentModelSet;
     conversation: ConversationRecord;
     userText: string;
+    history: ConversationMessage[];
     activeJourneyId?: string;
     signal?: AbortSignal;
   }): Promise<RankedJourneyCandidate[]> {
@@ -1288,6 +1292,8 @@ export class CognideskRuntime {
               content: [
                 `Latest user message: ${args.userText}`,
                 `Active journey: ${args.activeJourneyId ?? "none"}`,
+                "Conversation transcript:",
+                renderConversationTranscript(args.history),
                 "Candidates:",
                 ...args.candidates.map((candidate) => renderJourneyCandidateForMatcher(candidate)),
               ].join("\n\n"),
@@ -2541,6 +2547,11 @@ function renderJourneyCandidateForMatcher(candidate: JourneyCandidate) {
     journey.tags.length > 0 ? `  tags: ${journey.tags.join(", ")}` : "",
     journey.examples.length > 0 ? `  examples: ${journey.examples.join(" | ")}` : "",
   ].filter(Boolean).join("\n");
+}
+
+function renderConversationTranscript(history: ConversationMessage[]) {
+  if (history.length === 0) return "No prior conversation messages.";
+  return history.map((message) => `${message.role}: ${message.content}`).join("\n");
 }
 
 function uniqueKnowledgeSources(sources: KnowledgeSource[]) {

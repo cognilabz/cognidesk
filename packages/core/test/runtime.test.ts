@@ -174,6 +174,64 @@ describe("runtime turn pipeline", () => {
     }]);
   });
 
+  it("passes the full conversation transcript to the journey matcher", async () => {
+    let matcherPrompt = "";
+    let responseCount = 0;
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const ticket = agentBuilder.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status information",
+      context: z.object({ bookingReference: z.string().optional() }),
+    });
+    ticket.initial(ticket.state("identifyTicket"));
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      matcher: {
+        provider: "test",
+        model: "matcher",
+        generateText: async ({ messages }) => {
+          matcherPrompt = messages.map((message) => message.content).join("\n");
+          const structured = {
+            candidates: [{ journeyId: "ticket-status", confidence: 0.9 }],
+          };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+      response: {
+        provider: "test",
+        model: "response",
+        generateText: async () => {
+          responseCount += 1;
+          return { text: `Answer ${responseCount}` };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "My booking reference is ABC123.",
+    });
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you check it?",
+    });
+
+    expect(matcherPrompt).toContain("Conversation transcript:");
+    expect(matcherPrompt).toContain("user: My booking reference is ABC123.");
+    expect(matcherPrompt).toContain("assistant: Answer 1");
+    expect(matcherPrompt).toContain("user: Can you check it?");
+  });
+
   it("emits provider-neutral trace events without storing them as runtime events", async () => {
     const traces: TraceEvent[] = [];
     const searchFlights = tool("searchFlights", {
