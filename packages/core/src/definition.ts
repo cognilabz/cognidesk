@@ -117,7 +117,7 @@ export interface CompiledJourney {
   stickiness: "low" | "medium" | "high";
   alwaysInclude: boolean;
   always?: JourneyActivationPredicate;
-  includeWhen?: (args: { app: unknown }) => boolean;
+  includeWhen?: CandidateFilterPredicate;
   matcher?: JourneyActivationPredicate;
   guard?: JourneyGuardPredicate;
   contextReuse?: CompiledContextReusePolicy;
@@ -226,6 +226,13 @@ export type JourneyActivationPredicate<TApp = unknown, TConversation = unknown, 
     activeJourneyId?: string;
   },
 ) => MaybePromise<boolean>;
+
+export type CandidateFilterPredicate<TApp = unknown, TConversation = unknown, TTurn = unknown> = (
+  args: ApplicationContextParts<TConversation, TTurn> & {
+    app: TApp;
+    activeJourneyId?: string;
+  },
+) => boolean;
 
 export type JourneyGuardPredicate<TApp = unknown, TConversation = unknown, TTurn = unknown> = (
   args: ApplicationContextParts<TConversation, TTurn> & {
@@ -759,7 +766,7 @@ export interface ActivationMetadata {
   stickiness?: "low" | "medium" | "high";
   always?: boolean | JourneyActivationPredicate;
   alwaysInclude?: boolean;
-  includeWhen?: (args: { app: unknown }) => boolean;
+  includeWhen?: CandidateFilterPredicate;
   matcher?: JourneyActivationPredicate;
   guard?: JourneyGuardPredicate;
 }

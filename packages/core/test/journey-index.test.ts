@@ -104,7 +104,11 @@ describe("journey index", () => {
     agent.delegationJourney("internal-review", {
       condition: "Internal review is required",
       always: true,
-      includeWhen: ({ app }) => (app as { internal?: boolean }).internal === true,
+      includeWhen: ({ app, conversation, turn }) => (
+        (app as { internal?: boolean }).internal === true
+        && (conversation as { channel?: string }).channel === "agent-console"
+        && (turn as { allowInternal?: boolean }).allowInternal === true
+      ),
       specialist: {
         goal: "Review internal support notes.",
       },
@@ -118,13 +122,29 @@ describe("journey index", () => {
       embeddingModel,
       message: "Can you check ticket ABC123?",
       app: { internal: false },
-      conversation: { id: "conversation_1" },
-      turn: {},
+      conversation: { id: "conversation_1", channel: "agent-console" },
+      turn: { allowInternal: true },
       activeJourneyId: "internal-review",
       topK: 2,
     });
 
     expect(candidates.map((candidate) => candidate.journeyId)).toEqual(["ticket-status"]);
+
+    const allowed = await selectJourneyCandidates({
+      agent: compiled,
+      index,
+      embeddingModel,
+      message: "Can you check ticket ABC123?",
+      app: { internal: true },
+      conversation: { id: "conversation_1", channel: "agent-console" },
+      turn: { allowInternal: true },
+      topK: 1,
+    });
+
+    expect(allowed.map((candidate) => candidate.journeyId)).toEqual([
+      "internal-review",
+      "ticket-status",
+    ]);
   });
 
   it("rejects incompatible runtime embedding models", async () => {

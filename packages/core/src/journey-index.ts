@@ -154,7 +154,12 @@ export async function selectJourneyCandidates<TApp, TConversation, TTurn>(
   for (const entry of options.index.entries) {
     const journey = journeyById.get(entry.journeyId);
     if (!journey) continue;
-    if (journey.includeWhen && !journey.includeWhen({ app: options.app })) continue;
+    if (journey.includeWhen && !journey.includeWhen({
+      app: options.app,
+      conversation: options.conversation,
+      turn: options.turn,
+      ...(options.activeJourneyId ? { activeJourneyId: options.activeJourneyId } : {}),
+    })) continue;
     const similarity = cosineSimilarity(queryEmbedding.embedding, entry.embedding.vector);
     const score = similarity + priorityBoost(journey) + stickinessBoost(journey, options.activeJourneyId);
     candidates.push({
