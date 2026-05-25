@@ -577,6 +577,17 @@ export class StateCollection<TContextSchema extends ObjectSchema> {
   }
 }
 
+export class TypedStateRegistry<
+  TStateIds extends string,
+  TContextSchema extends ObjectSchema,
+> {
+  constructor(private readonly collection: StateCollection<TContextSchema>) {}
+
+  get<TId extends TStateIds>(id: TId) {
+    return this.collection.get(id) as StateBuilder<TId, TContextSchema>;
+  }
+}
+
 export class StateMachineJourneyBuilder<
   const TId extends string,
   TContextSchema extends ObjectSchema,
@@ -596,6 +607,11 @@ export class StateMachineJourneyBuilder<
 
   state<const TStateId extends string>(id: TStateId) {
     return this.states.add(id);
+  }
+
+  defineStates<const TStateIds extends readonly [string, ...string[]]>(...ids: TStateIds) {
+    for (const id of ids) this.states.add(id);
+    return new TypedStateRegistry<TStateIds[number], TContextSchema>(this.states);
   }
 
   final<const TStateId extends string>(id: TStateId) {

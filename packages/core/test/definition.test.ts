@@ -131,4 +131,31 @@ describe("definition builders", () => {
     // @ts-expect-error arbitrary array index paths are not supported
     search.collect("passengers.0.firstName");
   });
+
+  it("supports compile-time checked state registry lookups", () => {
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agent.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context: bookingContext,
+    });
+    const states = booking.defineStates("search", "chooseFlight", "confirm");
+    const search = states.get("search").collect("origin");
+    const choose = states.get("chooseFlight");
+    const confirm = states.get("confirm");
+    const completed = booking.final("completed");
+
+    if (false) {
+      // @ts-expect-error unknown state ids are rejected at typecheck time
+      states.get("missing");
+    }
+
+    booking.initial(search);
+    search.transitionTo(choose);
+    choose.transitionTo(confirm);
+    confirm.transitionTo(completed);
+
+    expect(agent.compile().journeys[0]?.toMermaid()).toContain("search --> chooseFlight");
+  });
 });
