@@ -229,7 +229,7 @@ export type RuntimeEvent =
   | RuntimeEventBase<"journey.candidates.retrieved", { journeyIds: string[] }>
   | RuntimeEventBase<"journey.matched", { candidates: Array<{ journeyId: string; confidence: number; reason?: string }> }>
   | RuntimeEventBase<"journey.activated", { journeyId: string; previousJourneyId?: string }>
-  | RuntimeEventBase<"journey.completed", { journeyId: string; stateId: string }>
+  | RuntimeEventBase<"journey.completed", { journeyId: string; stateId?: string; reason?: string }>
   | RuntimeEventBase<"journey.event.emitted", {
       name: string;
       payload: unknown;

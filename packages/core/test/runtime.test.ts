@@ -1335,6 +1335,59 @@ describe("runtime turn pipeline", () => {
     expect(systemPrompt).toContain("Delegation tools: summarizeHandoff");
   });
 
+  it("completes delegation journeys when completion criteria are satisfied", async () => {
+    let completionPrompt = "";
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    agentBuilder.delegationJourney("human-handoff", {
+      condition: "Customer asks for a human specialist",
+      specialist: {
+        goal: "Collect a concise handoff summary and stop automated troubleshooting.",
+        instructions: "Ask only for missing handoff details.",
+      },
+      completeWhen: ["booking reference is known", "issue summary is known"],
+    });
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      response: {
+        provider: "test",
+        model: "response",
+        generateText: async () => ({ text: "I have the booking reference and issue summary ready." }),
+      },
+      matcher: {
+        provider: "test",
+        model: "matcher",
+        generateText: async ({ messages }) => {
+          completionPrompt = messages.map((message) => message.content).join("\n");
+          const structured = { complete: true, reason: "All handoff details are known." };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "I need a human for booking ABC123 because the ticket name is wrong.",
+    });
+
+    expect(result.activeJourneyId).toBeUndefined();
+    expect(result.snapshot.activeJourneyId).toBeUndefined();
+    expect(result.snapshot.activeStateIds).toEqual([]);
+    expect(completionPrompt).toContain("Completion criteria: booking reference is known; issue summary is known");
+    expect(completionPrompt).toContain("assistant: I have the booking reference and issue summary ready.");
+    expect((await runtime.listEvents(conversation.id)).at(-1)).toMatchObject({
+      type: "journey.completed",
+      data: {
+        journeyId: "human-handoff",
+        reason: "All handoff details are known.",
+      },
+    });
+  });
+
   it("applies privacy hooks before storage, model calls, and returned assistant text", async () => {
     let modelPrompt = "";
     const response = {
