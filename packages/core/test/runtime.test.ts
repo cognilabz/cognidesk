@@ -1557,6 +1557,63 @@ describe("runtime turn pipeline", () => {
     ]));
   });
 
+  it("emits structured guard denials and guard prompts without advancing state", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const journey = agentBuilder.stateMachineJourney("ticket-review", {
+      condition: "Customer wants ticket review information",
+      context: z.object({}),
+    });
+    const review = journey.state("reviewTicket");
+    const done = journey.final("done");
+    journey.initial(review);
+    review.transitionTo(done, {
+      guard: () => ({
+        allow: false,
+        code: "identity_required",
+        message: "Identity must be confirmed before the review can continue.",
+        metadata: { policy: "ticket-review" },
+        prompt: widgetPrompt(textInputWidget, {
+          label: "Confirmation code",
+          placeholder: "ABC-123",
+        }),
+      }),
+    });
+
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const turn = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "I need a ticket review.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+    const denial = events.find((event) => event.type === "journey.guard.denied");
+    const prompt = events.find((event) => event.type === "ui.prompted");
+
+    expect(turn.snapshot.activeJourneyId).toBe("ticket-review");
+    expect(turn.snapshot.activeStateIds).toEqual(["reviewTicket"]);
+    expect(denial?.data).toEqual({
+      journeyId: "ticket-review",
+      stateId: "reviewTicket",
+      code: "identity_required",
+      message: "Identity must be confirmed before the review can continue.",
+      metadata: { policy: "ticket-review" },
+    });
+    expect(prompt?.data).toEqual({
+      promptId: "guard:ticket-review:reviewTicket:identity_required",
+      widgetKind: "text-input",
+      input: {
+        label: "Confirmation code",
+        placeholder: "ABC-123",
+      },
+    });
+  });
+
   it("applies widget submissions to the matching active parallel state", async () => {
     const agentBuilder = createAgent("flight-service", {
       instructions: "Help customers with flights.",

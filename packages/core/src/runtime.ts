@@ -13,6 +13,7 @@ import type {
   AgentModelSet,
   AnyTool,
   CustomRuntimeEventDefinition,
+  GuardResult,
   KnowledgeItem,
   KnowledgeSource,
   MessageSegment,
@@ -1718,8 +1719,10 @@ export class CognideskRuntime {
         ? { targetId: toolTargetId }
         : await this.selectTransition({
             journey: args.journey,
+            conversation: args.conversation,
             state,
             context: args.context,
+            emit: args.emit,
           });
       if (!transition) return [state];
 
@@ -1805,8 +1808,10 @@ export class CognideskRuntime {
 
   private async selectTransition(args: {
     journey: CompiledJourney;
+    conversation: ConversationRecord;
     state: CompiledJourney["states"][number];
     context: Record<string, unknown>;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
     const transitions = [...args.state.transitions]
       .filter((transition) => transition.kind === "conversational")
@@ -1818,6 +1823,7 @@ export class CognideskRuntime {
         context: args.context,
       });
       if (guardAllows(result)) return transition;
+      await this.emitGuardDenial({ ...args, result });
     }
     return null;
   }
@@ -1874,10 +1880,13 @@ export class CognideskRuntime {
   }
 
   private async selectEventTransition(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
     state: CompiledJourney["states"][number];
     eventName: string;
     context: Record<string, unknown>;
     app: unknown;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
     const transitions = [...args.state.transitions]
       .filter((transition) => transition.kind === "event" && (transition.eventName ?? transition.description) === args.eventName)
@@ -1889,6 +1898,7 @@ export class CognideskRuntime {
         context: args.context,
       });
       if (guardAllows(result)) return transition;
+      await this.emitGuardDenial({ ...args, result });
     }
     return null;
   }
@@ -2132,6 +2142,48 @@ export class CognideskRuntime {
     return null;
   }
 
+  private async emitGuardDenial(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    state: CompiledJourney["states"][number];
+    result: GuardResult;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    if (!isStructuredGuardDenial(args.result)) return;
+
+    await args.emit({
+      conversationId: args.conversation.id,
+      type: "journey.guard.denied",
+      data: {
+        journeyId: args.journey.id,
+        stateId: args.state.id,
+        code: args.result.code,
+        ...(args.result.message ? { message: args.result.message } : {}),
+        ...(args.result.metadata ? { metadata: args.result.metadata } : {}),
+      },
+    });
+
+    if (!args.result.prompt) return;
+    const promptId = createGuardPromptId(args.journey.id, args.state.id, args.result.code);
+    const existing = await this.options.storage.listEvents({ conversationId: args.conversation.id });
+    const hasOpenPrompt = existing.some((event) => (
+      event.type === "ui.prompted" && event.data.promptId === promptId
+    )) && !existing.some((event) => (
+      event.type === "ui.submitted" && event.data.promptId === promptId
+    ));
+    if (hasOpenPrompt) return;
+
+    await args.emit({
+      conversationId: args.conversation.id,
+      type: "ui.prompted",
+      data: {
+        promptId,
+        widgetKind: args.result.prompt.widget.kind,
+        input: args.result.prompt.input,
+      },
+    });
+  }
+
   private async emitFieldPrompts(args: {
     journey: CompiledJourney;
     conversation: ConversationRecord;
@@ -2278,7 +2330,13 @@ export class CognideskRuntime {
     if (latestConversation.lifecycle !== "active") return;
     const next = toolTargetId
       ? { targetId: toolTargetId }
-      : await this.selectTransition({ journey, state, context });
+      : await this.selectTransition({
+          journey,
+          conversation: args.conversation,
+          state,
+          context,
+          emit: (event) => this.emit(event),
+        });
     const nextState = next ? stateById.get(next.targetId) : null;
     const branchStates = nextState ? [nextState] : [state];
     const activeStates = mergeActiveStates(siblingActiveStates, branchStates);
@@ -2376,10 +2434,13 @@ export class CognideskRuntime {
         )
       : [];
     const transition = await this.selectEventTransition({
+      journey: route.journey,
+      conversation: args.conversation,
       state: route.state,
       eventName: args.eventName,
       context,
       app: args.app,
+      emit: args.emit,
     });
     if (!transition) return previousSnapshot;
 
@@ -2992,9 +3053,13 @@ function hasUsableValue(value: unknown) {
   return true;
 }
 
-function guardAllows(result: Awaited<ReturnType<NonNullable<CompiledJourney["states"][number]["transitions"][number]["guard"]>>>) {
+function guardAllows(result: GuardResult) {
   if (typeof result === "boolean") return result;
   return result.allow;
+}
+
+function isStructuredGuardDenial(result: GuardResult): result is Extract<GuardResult, { allow: false }> {
+  return typeof result === "object" && result !== null && result.allow === false;
 }
 
 function createJourneyContextView(input: unknown, context: Record<string, unknown>) {
@@ -3021,6 +3086,10 @@ function createJourneyContextView(input: unknown, context: Record<string, unknow
 
 function createToolConfirmationPromptId(journeyId: string, stateId: string, toolName: string) {
   return `confirm:${journeyId}:${stateId}:${toolName}`;
+}
+
+function createGuardPromptId(journeyId: string, stateId: string, code: string) {
+  return `guard:${journeyId}:${stateId}:${encodeURIComponent(code)}`;
 }
 
 function createFieldPromptId(journeyId: string, stateId: string, path: string) {
