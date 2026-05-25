@@ -34,12 +34,68 @@ describe("CognideskTestHarness", () => {
         goal: "Find out ticket status",
         scriptedTurns: ["What is the status of CD-123?"],
       },
+      assertions: [
+        { id: "mentions-handled", type: "assistantContains", text: "handled" },
+        { id: "ticket-journey", type: "journeyActivated", journeyId: "ticket-status" },
+        {
+          id: "custom-transcript",
+          type: "custom",
+          evaluate: ({ transcript }) => ({
+            passed: transcript.some((turn) => turn.content.includes("CD-123")),
+            reasoning: "Transcript includes the booking reference.",
+          }),
+        },
+      ],
       criteria: [{ id: "relevance", description: "Assistant answers the ticket status request." }],
     });
 
     expect(result.transcript).toHaveLength(2);
+    expect(result.assertions).toEqual([
+      {
+        assertionId: "mentions-handled",
+        passed: true,
+        reasoning: "Assistant transcript contains 'handled'.",
+      },
+      {
+        assertionId: "ticket-journey",
+        passed: true,
+        reasoning: "Journey 'ticket-status' was activated.",
+      },
+      {
+        assertionId: "custom-transcript",
+        passed: true,
+        reasoning: "Transcript includes the booking reference.",
+      },
+    ]);
     expect(result.score).toBe(0.9);
     expect(result.passed).toBe(true);
+  });
+
+  it("fails scenarios when deterministic assertions fail", async () => {
+    const harness = createTestHarness({
+      client: {
+        createConversation: async () => ({ id: "conversation_1" }),
+        sendMessage: async () => ({ text: "No matching content.", events: [] }),
+      },
+    });
+
+    const result = await harness.runScenario({
+      id: "assertion-failure",
+      agentId: "flight-service",
+      user: {
+        identity: "Traveller",
+        goal: "Trigger assertion failure",
+        scriptedTurns: ["Hello"],
+      },
+      assertions: [{ id: "missing", type: "assistantContains", text: "confirmed" }],
+    });
+
+    expect(result.assertions).toEqual([{
+      assertionId: "missing",
+      passed: false,
+      reasoning: "Assistant transcript did not contain 'confirmed'.",
+    }]);
+    expect(result.passed).toBe(false);
   });
 
   it("can use a model-backed simulated user when no script is provided", async () => {
@@ -118,6 +174,7 @@ describe("CognideskTestHarness", () => {
             conversationId: "conversation_1",
             transcript: [],
             events: [],
+            assertions: [],
             judgements: [],
             score: 0,
             passed: false
