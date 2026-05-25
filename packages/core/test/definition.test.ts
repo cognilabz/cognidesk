@@ -197,6 +197,27 @@ describe("definition builders", () => {
     });
   });
 
+  it("inherits parent collected fields into child states", () => {
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agent.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context: bookingContext,
+    });
+    const parent = booking.state("traveller").collect("passenger.email");
+    const name = parent.state("name").collect("passenger.firstName");
+    parent.initial(name);
+    booking.initial(parent);
+
+    const graph = agent.compile().journeys[0]?.toGraph();
+
+    expect(graph?.states.find((state) => state.id === "name")?.collected).toEqual([
+      { path: "passenger.email", required: true, extract: true },
+      { path: "passenger.firstName", required: true, extract: true },
+    ]);
+  });
+
   it("rejects duplicate runtime definition identifiers", () => {
     const duplicateTool = tool("searchFlights", {
       input: z.object({}),

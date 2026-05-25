@@ -674,9 +674,11 @@ export class StateBuilder<
     parentId?: string,
     inheritedTools: AnyTool[] = [],
     inheritedKnowledge: KnowledgeSource[] = [],
+    inheritedCollectedFields: StateBuilder<string, TContextSchema>["collectedFields"] = [],
   ): CompiledState[] {
     const tools = this.tools.list(inheritedTools);
     const knowledge = this.knowledge.list(inheritedKnowledge);
+    const collected = mergeCollectedFields(inheritedCollectedFields, this.collectedFields);
     const own: CompiledState = {
       id: this.id,
       type: this.stateType,
@@ -686,7 +688,7 @@ export class StateBuilder<
       ...(this.stateSummary ? { summary: this.stateSummary } : {}),
       tools,
       knowledge,
-      collected: this.collectedFields,
+      collected,
       transitions: this.transitions.map((transition) => ({
         kind: transition.kind,
         targetId: transition.target.id,
@@ -716,7 +718,7 @@ export class StateBuilder<
       })),
       requiresVisit: this.visitRequirement !== null,
     };
-    return [own, ...this.children.flatMap((child) => child.compile(this.id, tools, knowledge))];
+    return [own, ...this.children.flatMap((child) => child.compile(this.id, tools, knowledge, collected))];
   }
 }
 
@@ -1027,6 +1029,16 @@ function compileAssignments<TContext>(
     path,
     value: value as (args: { output: unknown; context: unknown }) => unknown,
   }));
+}
+
+function mergeCollectedFields<TContextSchema extends ObjectSchema>(
+  inherited: StateBuilder<string, TContextSchema>["collectedFields"],
+  own: StateBuilder<string, TContextSchema>["collectedFields"],
+) {
+  const byPath = new Map<string, StateBuilder<string, TContextSchema>["collectedFields"][number]>();
+  for (const field of inherited) byPath.set(field.path, field);
+  for (const field of own) byPath.set(field.path, field);
+  return [...byPath.values()];
 }
 
 function sanitizeGraph(graph: JourneyGraph): JourneyGraph {
