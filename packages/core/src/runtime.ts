@@ -436,6 +436,7 @@ export class CognideskRuntime {
       const knowledge = await this.retrieveKnowledge({
         agent,
         journey: selectedJourney,
+        stateMachineTurn,
         conversationId: conversation.id,
         message: userText,
         emit,
@@ -454,7 +455,7 @@ export class CognideskRuntime {
         visibleCustomEvents,
         compactionSummary: previousSnapshot?.compactionSummary,
       }));
-      const availableTools = this.resolveAvailableModelTools(agent, selectedJourney);
+      const availableTools = this.resolveAvailableModelTools(agent, selectedJourney, stateMachineTurn);
       const modelTools = availableTools.map(toModelToolDefinition);
       this.throwIfTurnInterrupted(turn);
       const response = await this.generateResponseWithTools({
@@ -952,11 +953,16 @@ export class CognideskRuntime {
     return messages;
   }
 
-  private resolveAvailableModelTools(agent: CompiledAgent, journey: CompiledJourney | null) {
+  private resolveAvailableModelTools(
+    agent: CompiledAgent,
+    journey: CompiledJourney | null,
+    stateMachineTurn: StateMachineTurnResult | null,
+  ) {
     const scoped = journey?.kind === "delegation"
       ? journey.delegation?.tools ?? []
       : journey?.tools ?? [];
-    return uniqueTools([...agent.tools, ...scoped]);
+    const stateTools = resolveActiveStates(journey, stateMachineTurn).flatMap((state) => state.tools);
+    return uniqueTools([...agent.tools, ...scoped, ...stateTools]);
   }
 
   private async executeToolWithRetry(args: {
@@ -1315,14 +1321,17 @@ export class CognideskRuntime {
   private async retrieveKnowledge(args: {
     agent: CompiledAgent;
     journey: CompiledJourney | null;
+    stateMachineTurn: StateMachineTurnResult | null;
     conversationId: string;
     message: string;
     signal?: AbortSignal;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
+    const activeStates = resolveActiveStates(args.journey, args.stateMachineTurn);
     const sources = uniqueKnowledgeSources([
       ...args.agent.knowledge,
       ...(args.journey?.knowledge ?? []),
+      ...activeStates.flatMap((state) => state.knowledge),
     ]);
     const items: Array<KnowledgeItem> = [];
     for (const source of sources) {
@@ -2357,6 +2366,12 @@ function findJourneyState(journey: CompiledJourney, stateId: string | undefined)
   return journey.states.find((state) => state.id === stateId);
 }
 
+function resolveActiveStates(journey: CompiledJourney | null, stateMachineTurn: StateMachineTurnResult | null) {
+  if (!journey || journey.kind !== "stateMachine" || !stateMachineTurn) return [];
+  const activeStateIds = new Set(stateMachineTurn.activeStateIds);
+  return journey.states.filter((state) => activeStateIds.has(state.id));
+}
+
 function isFieldRequired(
   field: CompiledJourney["states"][number]["collected"][number],
   context: Record<string, unknown>,
@@ -2387,11 +2402,15 @@ function renderJourneyRuntimeContext(journey: CompiledJourney, stateMachineTurn:
       lines.push(`Delegation tools: ${journey.delegation.tools.map((toolDefinition) => toolDefinition.name).join(", ")}`);
     }
   } else {
+    const activeStates = resolveActiveStates(journey, stateMachineTurn);
     lines.push(
       stateMachineTurn?.activeStateIds.length
         ? `Active state: ${stateMachineTurn.activeStateIds.join(", ")}`
         : journey.initialStateId ? `Initial state: ${journey.initialStateId}` : "",
     );
+    for (const state of activeStates) {
+      if (state.instructions) lines.push(`State ${state.id} instructions: ${state.instructions}`);
+    }
     if (stateMachineTurn) lines.push(`Journey context: ${JSON.stringify(stateMachineTurn.journeyContext)}`);
   }
   return lines.filter(Boolean).join("\n");

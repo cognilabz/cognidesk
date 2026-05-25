@@ -130,6 +130,8 @@ export interface CompiledState {
   type: "state" | "parallel" | "final";
   instructions?: string;
   summary?: string;
+  tools: AnyTool[];
+  knowledge: KnowledgeSource[];
   collected: Array<{
     path: string;
     required: boolean;
@@ -581,13 +583,21 @@ export class StateBuilder<
     return this;
   }
 
-  compile(parentId?: string): CompiledState[] {
+  compile(
+    parentId?: string,
+    inheritedTools: AnyTool[] = [],
+    inheritedKnowledge: KnowledgeSource[] = [],
+  ): CompiledState[] {
+    const tools = this.tools.list(inheritedTools);
+    const knowledge = this.knowledge.list(inheritedKnowledge);
     const own: CompiledState = {
       id: this.id,
       type: this.stateType,
       ...(parentId ? { parentId } : {}),
       ...(this.stateInstructions ? { instructions: this.stateInstructions } : {}),
       ...(this.stateSummary ? { summary: this.stateSummary } : {}),
+      tools,
+      knowledge,
       collected: this.collectedFields,
       transitions: this.transitions.map((transition) => ({
         kind: transition.kind,
@@ -613,7 +623,7 @@ export class StateBuilder<
       })),
       requiresVisit: this.visitRequirement !== null,
     };
-    return [own, ...this.children.flatMap((child) => child.compile(this.id))];
+    return [own, ...this.children.flatMap((child) => child.compile(this.id, tools, knowledge))];
   }
 }
 

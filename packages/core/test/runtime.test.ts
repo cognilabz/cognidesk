@@ -531,6 +531,74 @@ describe("runtime turn pipeline", () => {
     ]);
   });
 
+  it("exposes active state-scoped tools and knowledge to the response turn", async () => {
+    const getSeatMap = tool("getSeatMap", {
+      description: "Get the available seat map.",
+      input: z.object({}),
+      output: z.object({ seats: z.array(z.string()) }),
+      execute: async () => ({ seats: ["12A"] }),
+    });
+    const stateFaq = knowledgeSource("seat-faq", {
+      query: z.object({ query: z.string() }),
+      metadata: z.object({ source: z.string() }),
+      retrieve: async () => ({
+        items: [{
+          id: "seat-map",
+          content: "Seat 12A is a window seat near the front.",
+          metadata: { source: "faq" },
+        }],
+      }),
+    });
+    const responseCalls: TextGenerationInput[] = [];
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const seating = agentBuilder.stateMachineJourney("seat-selection", {
+      condition: "Customer wants help selecting a seat",
+      context: z.object({}),
+    });
+    const parent = seating.state("seatSupport");
+    parent.tools.add(getSeatMap);
+    const selectSeat = parent.state("selectSeat").instructions("Use seat-specific support context.");
+    selectSeat.knowledge.add(stateFaq);
+    seating.initial(selectSeat);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      response: {
+        provider: "test",
+        model: "response",
+        generateText: async (input: TextGenerationInput) => {
+          responseCalls.push(input);
+          return { text: "Seat 12A is available using seat-map." };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you help me pick a seat?",
+    });
+
+    const responseCall = responseCalls.at(-1);
+    const systemPrompt = responseCall?.messages.find((message) => message.role === "system")?.content ?? "";
+    expect(responseCall?.tools?.map((toolDefinition) => toolDefinition.name)).toEqual(["getSeatMap"]);
+    expect(systemPrompt).toContain("State selectSeat instructions: Use seat-specific support context.");
+    expect(systemPrompt).toContain("[K1:seat-map]");
+    expect((await runtime.listEvents(conversation.id)).find((event) => event.type === "knowledge.retrieved")).toMatchObject({
+      data: {
+        sourceName: "seat-faq",
+        itemIds: ["seat-map"],
+      },
+    });
+  });
+
   it("retries retryable model-requested tools and emits an intermediate notice", async () => {
     let attempts = 0;
     const getTicketStatus = tool("getTicketStatus", {
