@@ -1596,7 +1596,7 @@ export class CognideskRuntime {
 
   private stateRequirementsSatisfied(state: CompiledJourney["states"][number], context: Record<string, unknown>) {
     return state.collected
-      .filter((field) => field.required)
+      .filter((field) => isFieldRequired(field, context))
       .every((field) => hasUsableValue(getPathValue(context, field.path)));
   }
 
@@ -2277,6 +2277,14 @@ function createToolResultMessage(call: ModelToolCall, output: unknown): ModelMes
 function findJourneyState(journey: CompiledJourney, stateId: string | undefined) {
   if (!stateId) return undefined;
   return journey.states.find((state) => state.id === stateId);
+}
+
+function isFieldRequired(
+  field: CompiledJourney["states"][number]["collected"][number],
+  context: Record<string, unknown>,
+) {
+  if (field.requiredWhen) return field.requiredWhen({ context });
+  return field.required;
 }
 
 function hasEventTransition(state: CompiledJourney["states"][number], eventName: string) {

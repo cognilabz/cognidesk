@@ -129,7 +129,12 @@ export interface CompiledState {
   type: "state" | "parallel" | "final";
   instructions?: string;
   summary?: string;
-  collected: Array<{ path: string; required: boolean; extract: boolean }>;
+  collected: Array<{
+    path: string;
+    required: boolean;
+    extract: boolean;
+    requiredWhen?: (args: { context: unknown }) => boolean;
+  }>;
   transitions: CompiledTransition[];
   actions: Array<{ type: "entry" | "exit" | "transition"; name: string }>;
   toolRuns: CompiledToolRun[];
@@ -358,7 +363,12 @@ export class StateBuilder<
   readonly children: StateBuilder<string, TContextSchema>[] = [];
   readonly transitions: InternalTransition[] = [];
   readonly toolRuns: InternalToolRun[] = [];
-  readonly collectedFields: Array<{ path: string; required: boolean; extract: boolean }> = [];
+  readonly collectedFields: Array<{
+    path: string;
+    required: boolean;
+    extract: boolean;
+    requiredWhen?: (args: { context: unknown }) => boolean;
+  }> = [];
   readonly stateActions: Array<{ type: "entry" | "exit" | "transition"; name: string; requiresVisit?: boolean }> = [];
   private visitRequirement: string | null = null;
   private stateInstructions?: string;
@@ -386,6 +396,7 @@ export class StateBuilder<
       path,
       required: options.required ?? true,
       extract: options.extract ?? true,
+      ...(options.requiredWhen ? { requiredWhen: options.requiredWhen as (args: { context: unknown }) => boolean } : {}),
     });
     if (options.widget || options.confirm) this.requiresVisit("field collection requires user-visible handling");
     return this;
@@ -860,7 +871,11 @@ function sanitizeGraph(graph: JourneyGraph): JourneyGraph {
       ...(state.parentId ? { parentId: state.parentId } : {}),
       ...(state.instructions ? { instructions: state.instructions } : {}),
       ...(state.summary ? { summary: state.summary } : {}),
-      collected: state.collected,
+      collected: state.collected.map((field) => ({
+        path: field.path,
+        required: field.required,
+        extract: field.extract,
+      })),
       transitions: state.transitions.map((transition) => ({
         kind: transition.kind,
         targetId: transition.targetId,

@@ -1049,6 +1049,51 @@ describe("runtime turn pipeline", () => {
     ]));
   });
 
+  it("uses requiredWhen to skip conditionally unnecessary collected fields", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agentBuilder.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context: z.object({
+        destinationType: z.enum(["domestic", "international"]).optional(),
+        passportNumber: z.string().optional(),
+      }),
+    });
+    const collectDetails = booking.state("collectDetails")
+      .collect("destinationType")
+      .collect("passportNumber", {
+        requiredWhen: ({ context }) => context.destinationType === "international",
+      });
+    const done = booking.final("done");
+    booking.initial(collectDetails);
+    collectDetails.transitionTo(done);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      extraction: {
+        provider: "test",
+        model: "extraction",
+        generateText: async () => {
+          const structured = { values: { destinationType: "domestic" } };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Book a domestic flight.",
+    });
+
+    expect(result.snapshot.activeJourneyId).toBeUndefined();
+    expect(result.snapshot.activeStateIds).toEqual([]);
+    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toContain("journey.completed");
+  });
+
   it("moves to handoff when the confirmed built-in handoff tool runs", async () => {
     const agentBuilder = createAgent("flight-service", {
       instructions: "Help customers with flights.",
