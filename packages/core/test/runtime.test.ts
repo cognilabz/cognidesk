@@ -212,6 +212,78 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("includes the full conversation transcript in response model calls", async () => {
+    const calls: TextGenerationInput[] = [];
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        calls.push(input);
+        return { text: `Answer ${calls.length}` };
+      },
+    };
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "First question.",
+    });
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Second question.",
+    });
+
+    expect(calls[1]?.messages.filter((message) => message.role !== "system")).toEqual([
+      { role: "user", content: "First question." },
+      { role: "assistant", content: "Answer 1" },
+      { role: "user", content: "Second question." },
+    ]);
+  });
+
+  it("includes compacted conversation memory in response model calls", async () => {
+    let systemPrompt = "";
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        systemPrompt = input.messages.find((message) => message.role === "system")?.content ?? "";
+        return { text: "Ready." };
+      },
+    };
+    const storage = new RecordingStorage();
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage,
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await storage.saveSnapshot({
+      conversationId: conversation.id,
+      lifecycle: "active",
+      activeStateIds: [],
+      compactionSummary: {
+        summary: "Customer already shared booking ABC123.",
+        stableFacts: ["Booking ABC123"],
+      },
+      updatedAt: new Date().toISOString(),
+    });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you continue?",
+    });
+
+    expect(systemPrompt).toContain("Conversation memory:");
+    expect(systemPrompt).toContain("Customer already shared booking ABC123.");
+  });
+
   it("interrupts an active generation when a new user message arrives by default", async () => {
     const firstResponseStarted = deferred<void>();
     let responseCalls = 0;

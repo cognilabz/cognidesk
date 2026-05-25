@@ -168,6 +168,11 @@ interface VisibleCustomEventContext {
   data: unknown;
 }
 
+interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 interface ActiveTurn {
   id: string;
   conversationId: string;
@@ -414,13 +419,16 @@ export class CognideskRuntime {
       });
       this.throwIfTurnInterrupted(turn);
       const visibleCustomEvents = await this.listVisibleCustomEventContext(agent, conversation.id);
+      const history = await this.listConversationMessages(conversation.id);
       const modelMessages = await this.redactModelMessages(conversation, this.createResponseMessages({
         agent,
         journey: selectedJourney,
         stateMachineTurn,
         userText,
+        history,
         knowledge,
         visibleCustomEvents,
+        compactionSummary: previousSnapshot?.compactionSummary,
       }));
       const availableTools = this.resolveAvailableModelTools(agent, selectedJourney);
       const modelTools = availableTools.map(toModelToolDefinition);
@@ -1815,13 +1823,43 @@ export class CognideskRuntime {
       }));
   }
 
+  private async listConversationMessages(conversationId: string): Promise<ConversationMessage[]> {
+    const events = await this.options.storage.listEvents({ conversationId });
+    const messages: ConversationMessage[] = [];
+    let pendingRole: ConversationMessage["role"] | null = null;
+    for (const event of events) {
+      if (event.type === "message.started") {
+        pendingRole = event.data.role;
+        continue;
+      }
+      if (event.type === "message.aborted") {
+        pendingRole = null;
+        continue;
+      }
+      if (event.type !== "message.completed") continue;
+      if (event.data.intermediate) {
+        pendingRole = null;
+        continue;
+      }
+      if (!pendingRole) continue;
+      messages.push({
+        role: pendingRole,
+        content: event.data.text,
+      });
+      pendingRole = null;
+    }
+    return messages;
+  }
+
   private createResponseMessages(args: {
     agent: CompiledAgent;
     journey: CompiledJourney | null;
     stateMachineTurn: StateMachineTurnResult | null;
     userText: string;
+    history: ConversationMessage[];
     knowledge: Array<KnowledgeItem>;
     visibleCustomEvents: VisibleCustomEventContext[];
+    compactionSummary?: unknown;
   }): ModelMessage[] {
     const journeyContext = args.journey
       ? renderJourneyRuntimeContext(args.journey, args.stateMachineTurn)
@@ -1837,12 +1875,21 @@ export class CognideskRuntime {
           .map((event) => `[${event.offset}:${event.type}]\n${JSON.stringify(event.data)}`)
           .join("\n\n")
       : "No visible custom events.";
+    const memoryContext = args.compactionSummary !== undefined
+      ? JSON.stringify(args.compactionSummary)
+      : "No compacted conversation memory.";
+    const history = args.history.length > 0
+      ? args.history
+      : [{ role: "user" as const, content: args.userText }];
 
     return [
       {
         role: "system",
         content: [
           args.agent.instructions,
+          "",
+          "Conversation memory:",
+          memoryContext,
           "",
           journeyContext,
           "",
@@ -1854,7 +1901,10 @@ export class CognideskRuntime {
           customEventContext,
         ].join("\n"),
       },
-      { role: "user", content: args.userText },
+      ...history.map((message): ModelMessage => ({
+        role: message.role,
+        content: message.content,
+      })),
     ];
   }
 
