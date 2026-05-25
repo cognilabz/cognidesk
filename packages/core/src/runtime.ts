@@ -34,6 +34,7 @@ export interface RuntimeOptions {
   privacy?: PrivacyHooks;
   observability?: ObservabilityHooks;
   compaction?: {
+    beforeTurn?: boolean;
     afterTurn?: boolean;
     minEvents?: number;
     schemaVersion?: string;
@@ -324,6 +325,15 @@ export class CognideskRuntime {
       return stored;
     };
 
+    if (this.options.compaction?.beforeTurn) {
+      const compaction = await this.compactIfNeeded({
+        conversationId: conversation.id,
+        ...(this.options.compaction.schemaVersion ? { schemaVersion: this.options.compaction.schemaVersion } : {}),
+        ...(input.signal ? { signal: input.signal } : {}),
+      });
+      if (compaction) emitted.push(...compaction.events);
+    }
+
     await emit({
       conversationId: conversation.id,
       type: "message.started",
@@ -420,15 +430,12 @@ export class CognideskRuntime {
     await this.options.storage.saveSnapshot(snapshot);
 
     if (this.options.compaction?.afterTurn) {
-      const allEvents = await this.options.storage.listEvents({ conversationId: conversation.id });
-      if (allEvents.length >= (this.options.compaction.minEvents ?? 50)) {
-        const compaction = await this.compactConversation({
-          conversationId: conversation.id,
-          ...(this.options.compaction.schemaVersion ? { schemaVersion: this.options.compaction.schemaVersion } : {}),
-          ...(input.signal ? { signal: input.signal } : {}),
-        });
-        emitted.push(...compaction.events);
-      }
+      const compaction = await this.compactIfNeeded({
+        conversationId: conversation.id,
+        ...(this.options.compaction.schemaVersion ? { schemaVersion: this.options.compaction.schemaVersion } : {}),
+        ...(input.signal ? { signal: input.signal } : {}),
+      });
+      if (compaction) emitted.push(...compaction.events);
     }
 
     return {
@@ -526,6 +533,20 @@ export class CognideskRuntime {
     });
     emitted.push(completed);
     return { summary, snapshot, events: emitted };
+  }
+
+  private async compactIfNeeded(input: {
+    conversationId: string;
+    schemaVersion?: string;
+    signal?: AbortSignal;
+  }) {
+    const allEvents = await this.options.storage.listEvents({ conversationId: input.conversationId });
+    if (allEvents.length < (this.options.compaction?.minEvents ?? 50)) return null;
+    return this.compactConversation({
+      conversationId: input.conversationId,
+      ...(input.schemaVersion ? { schemaVersion: input.schemaVersion } : {}),
+      ...(input.signal ? { signal: input.signal } : {}),
+    });
   }
 
   private requireAgent() {
