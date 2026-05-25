@@ -1719,7 +1719,7 @@ export class CognideskRuntime {
                 "Extract state-machine context fields from the latest user message.",
                 "Return only fields that are explicitly supported by the message.",
                 `State: ${args.state.id}`,
-                args.state.instructions ? `State instructions: ${args.state.instructions}` : "",
+                renderStateInstructionStack(args.journey, args.state),
                 `Fields: ${fields.map((field) => field.path).join(", ")}`,
                 `Current context: ${JSON.stringify(args.context)}`,
               ].filter(Boolean).join("\n"),
@@ -3231,12 +3231,28 @@ function renderJourneyRuntimeContext(journey: CompiledJourney, stateMachineTurn:
         ? `Active state: ${stateMachineTurn.activeStateIds.join(", ")}`
         : journey.initialStateId ? `Initial state: ${journey.initialStateId}` : "",
     );
+    const renderedInstructions = new Set<string>();
     for (const state of activeStates) {
-      if (state.instructions) lines.push(`State ${state.id} instructions: ${state.instructions}`);
+      for (const line of renderStateInstructionStack(journey, state).split("\n").filter(Boolean)) {
+        if (renderedInstructions.has(line)) continue;
+        renderedInstructions.add(line);
+        lines.push(line);
+      }
     }
     if (stateMachineTurn) lines.push(`Journey context: ${JSON.stringify(stateMachineTurn.journeyContext)}`);
   }
   return lines.filter(Boolean).join("\n");
+}
+
+function renderStateInstructionStack(journey: CompiledJourney, state: CompiledJourney["states"][number]) {
+  const stateById = new Map(journey.states.map((candidate) => [candidate.id, candidate]));
+  const stack: string[] = [];
+  let current: CompiledJourney["states"][number] | undefined = state;
+  while (current) {
+    if (current.instructions) stack.unshift(`State ${current.id} instructions: ${current.instructions}`);
+    current = current.parentId ? stateById.get(current.parentId) : undefined;
+  }
+  return stack.join("\n");
 }
 
 function parseKnowledgeQuery(source: KnowledgeSource, message: string): z.infer<KnowledgeSource["query"]> | null {

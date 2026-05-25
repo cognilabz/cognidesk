@@ -629,7 +629,7 @@ describe("runtime turn pipeline", () => {
       condition: "Customer wants help selecting a seat",
       context: z.object({}),
     });
-    const parent = seating.state("seatSupport");
+    const parent = seating.state("seatSupport").instructions("Keep the customer in the seat-selection support context.");
     parent.tools.add(getSeatMap);
     const selectSeat = parent.state("selectSeat").instructions("Use seat-specific support context.");
     selectSeat.knowledge.add(stateFaq);
@@ -664,6 +664,7 @@ describe("runtime turn pipeline", () => {
     const responseCall = responseCalls.at(-1);
     const systemPrompt = responseCall?.messages.find((message) => message.role === "system")?.content ?? "";
     expect(responseCall?.tools?.map((toolDefinition) => toolDefinition.name)).toEqual(["getSeatMap"]);
+    expect(systemPrompt).toContain("State seatSupport instructions: Keep the customer in the seat-selection support context.");
     expect(systemPrompt).toContain("State selectSeat instructions: Use seat-specific support context.");
     expect(systemPrompt).toContain("[K1:seat-map]");
     expect((await runtime.listEvents(conversation.id)).find((event) => event.type === "knowledge.retrieved")).toMatchObject({
