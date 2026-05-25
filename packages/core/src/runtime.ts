@@ -86,6 +86,15 @@ const citationPostProcessingSchema = z.object({
   })),
 });
 
+const stateExtractionSchema = z.object({
+  values: z.record(z.string(), z.unknown()).default({}),
+});
+
+interface StateMachineTurnResult {
+  activeStateIds: string[];
+  journeyContext: Record<string, unknown>;
+}
+
 export class CognideskRuntime {
   constructor(private readonly options: RuntimeOptions) {}
 
@@ -167,6 +176,17 @@ export class CognideskRuntime {
       userText,
       emit,
     });
+    const stateMachineTurn = selectedJourney?.kind === "stateMachine"
+      ? await this.executeStateMachineTurn({
+          journey: selectedJourney,
+          models,
+          conversation,
+          previousSnapshot,
+          userText,
+          emit,
+          ...(input.signal ? { signal: input.signal } : {}),
+        })
+      : null;
     const knowledge = await this.retrieveKnowledge({
       agent,
       journey: selectedJourney,
@@ -178,6 +198,7 @@ export class CognideskRuntime {
     const modelMessages = await this.redactModelMessages(conversation, this.createResponseMessages({
       agent,
       journey: selectedJourney,
+      stateMachineTurn,
       userText,
       knowledge,
     }));
@@ -213,6 +234,7 @@ export class CognideskRuntime {
       conversationId: conversation.id,
       previousSnapshot,
       selectedJourney,
+      stateMachineTurn,
     });
     await this.options.storage.saveSnapshot(snapshot);
 
@@ -442,9 +464,276 @@ export class CognideskRuntime {
     return items;
   }
 
+  private async executeStateMachineTurn(args: {
+    journey: CompiledJourney;
+    models: AgentModelSet;
+    conversation: ConversationRecord;
+    previousSnapshot: RuntimeSnapshot | null;
+    userText: string;
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }): Promise<StateMachineTurnResult> {
+    const stateById = new Map(args.journey.states.map((state) => [state.id, state]));
+    const sameJourney = args.previousSnapshot?.activeJourneyId === args.journey.id;
+    const firstStateId = sameJourney
+      ? args.previousSnapshot?.activeStateIds[0] ?? args.journey.initialStateId
+      : args.journey.initialStateId;
+    const initialState = firstStateId ? stateById.get(firstStateId) : undefined;
+    const context = sameJourney && isRecord(args.previousSnapshot?.journeyContext)
+      ? structuredClone(args.previousSnapshot.journeyContext)
+      : {};
+    if (!initialState) return { activeStateIds: [], journeyContext: context };
+
+    const activeState = await this.applyStateExtraction({
+      ...args,
+      state: initialState,
+      context,
+    });
+    const finalState = await this.advanceStateMachine({
+      ...args,
+      stateById,
+      state: activeState,
+      context,
+    });
+
+    return {
+      activeStateIds: [finalState.id],
+      journeyContext: context,
+    };
+  }
+
+  private async applyStateExtraction(args: {
+    journey: CompiledJourney;
+    models: AgentModelSet;
+    conversation: ConversationRecord;
+    state: CompiledJourney["states"][number];
+    context: Record<string, unknown>;
+    userText: string;
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const fields = args.state.collected.filter((field) => field.extract);
+    if (fields.length === 0) return args.state;
+    try {
+      const output = await args.models.extraction.generateText({
+        role: "extraction",
+        messages: [
+          {
+            role: "system",
+            content: [
+              "Extract state-machine context fields from the latest user message.",
+              "Return only fields that are explicitly supported by the message.",
+              `State: ${args.state.id}`,
+              args.state.instructions ? `State instructions: ${args.state.instructions}` : "",
+              `Fields: ${fields.map((field) => field.path).join(", ")}`,
+              `Current context: ${JSON.stringify(args.context)}`,
+            ].filter(Boolean).join("\n"),
+          },
+          { role: "user", content: args.userText },
+        ],
+        responseFormat: stateExtractionSchema,
+        ...(args.signal ? { signal: args.signal } : {}),
+      });
+      const extracted = stateExtractionSchema.parse(output.structured ?? JSON.parse(output.text));
+      const allowedPaths = new Set(fields.map((field) => field.path));
+      const acceptedFields = Object.entries(extracted.values)
+        .filter(([path, value]) => allowedPaths.has(path) && hasUsableValue(value));
+      if (acceptedFields.length === 0) return args.state;
+
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "journey.extraction.proposed",
+        data: {
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+          fields: acceptedFields.map(([path]) => path),
+        },
+      });
+      for (const [path, value] of acceptedFields) setPathValue(args.context, path, value);
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "journey.extraction.accepted",
+        data: {
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+          fields: acceptedFields.map(([path]) => path),
+        },
+      });
+    } catch (error) {
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "error",
+        data: {
+          code: "journey_extraction_failed",
+          message: error instanceof Error ? error.message : "Journey extraction failed.",
+        },
+      });
+    }
+    return args.state;
+  }
+
+  private async advanceStateMachine(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    stateById: Map<string, CompiledJourney["states"][number]>;
+    state: CompiledJourney["states"][number];
+    context: Record<string, unknown>;
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    let state = args.state;
+    const visited = new Set<string>();
+    while (!visited.has(state.id)) {
+      visited.add(state.id);
+      if (!this.stateRequirementsSatisfied(state, args.context)) return state;
+      if (state.requiresVisit) return state;
+
+      const toolTargetId = await this.runStateToolRuns({
+        ...args,
+        state,
+        actionType: "transition",
+      });
+      const transition = toolTargetId
+        ? { targetId: toolTargetId }
+        : await this.selectTransition({
+            journey: args.journey,
+            state,
+            context: args.context,
+          });
+      if (!transition) return state;
+
+      const nextState = args.stateById.get(transition.targetId);
+      if (!nextState) return state;
+      state = nextState;
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "journey.state.entered",
+        data: { journeyId: args.journey.id, stateId: state.id },
+      });
+      await this.runStateToolRuns({
+        ...args,
+        state,
+        actionType: "entry",
+      });
+    }
+    return state;
+  }
+
+  private stateRequirementsSatisfied(state: CompiledJourney["states"][number], context: Record<string, unknown>) {
+    return state.collected
+      .filter((field) => field.required)
+      .every((field) => hasUsableValue(getPathValue(context, field.path)));
+  }
+
+  private async selectTransition(args: {
+    journey: CompiledJourney;
+    state: CompiledJourney["states"][number];
+    context: Record<string, unknown>;
+  }) {
+    const transitions = [...args.state.transitions]
+      .filter((transition) => transition.kind === "conversational")
+      .sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0));
+    for (const transition of transitions) {
+      if (!transition.guard) return transition;
+      const result = await transition.guard({
+        app: this.options.app ?? {},
+        context: args.context,
+      });
+      if (guardAllows(result)) return transition;
+    }
+    return null;
+  }
+
+  private async runStateToolRuns(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    state: CompiledJourney["states"][number];
+    context: Record<string, unknown>;
+    actionType: "entry" | "exit" | "transition";
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }): Promise<string | null> {
+    const toolRuns = args.state.toolRuns.filter((toolRun) => toolRun.actionType === args.actionType && !toolRun.confirm);
+    for (const toolRun of toolRuns) {
+      const rawInput = toolRun.input ? toolRun.input({ context: args.context }) : {};
+      const parsedInput = toolRun.tool.input.safeParse(rawInput);
+      if (!parsedInput.success) {
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "tool.completed",
+          data: {
+            toolName: toolRun.tool.name,
+            success: false,
+            journeyId: args.journey.id,
+            stateId: args.state.id,
+            error: parsedInput.error.message,
+          },
+        });
+        return toolRun.onValidationErrorId ?? null;
+      }
+
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "tool.started",
+        data: {
+          toolName: toolRun.tool.name,
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+        },
+      });
+      try {
+        const idempotencyKey = toolRun.tool.idempotencyKey?.({
+          input: parsedInput.data,
+          conversationId: args.conversation.id,
+        });
+        const output = await toolRun.tool.execute({
+          input: parsedInput.data,
+          app: this.options.app ?? {},
+          conversationId: args.conversation.id,
+          ...(idempotencyKey ? { idempotencyKey } : {}),
+          ...(args.signal ? { signal: args.signal } : {}),
+        });
+        const parsedOutput = toolRun.tool.output.parse(output);
+        for (const assignment of toolRun.assign) {
+          setPathValue(args.context, assignment.path, assignment.value({
+            output: parsedOutput,
+            context: args.context,
+          }));
+        }
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "tool.completed",
+          data: {
+            toolName: toolRun.tool.name,
+            success: true,
+            journeyId: args.journey.id,
+            stateId: args.state.id,
+            result: parsedOutput,
+          },
+        });
+        if (toolRun.onSuccessId) return toolRun.onSuccessId;
+      } catch (error) {
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "tool.completed",
+          data: {
+            toolName: toolRun.tool.name,
+            success: false,
+            journeyId: args.journey.id,
+            stateId: args.state.id,
+            error: error instanceof Error ? error.message : "Tool execution failed.",
+          },
+        });
+        return toolRun.onFailureId ?? null;
+      }
+    }
+    return null;
+  }
+
   private createResponseMessages(args: {
     agent: CompiledAgent;
     journey: CompiledJourney | null;
+    stateMachineTurn: StateMachineTurnResult | null;
     userText: string;
     knowledge: Array<KnowledgeItem>;
   }): ModelMessage[] {
@@ -452,7 +741,10 @@ export class CognideskRuntime {
       ? [
           `Active journey: ${args.journey.id}`,
           `Journey condition: ${args.journey.condition}`,
-          args.journey.initialStateId ? `Initial state: ${args.journey.initialStateId}` : "",
+          args.stateMachineTurn?.activeStateIds.length
+            ? `Active state: ${args.stateMachineTurn.activeStateIds.join(", ")}`
+            : args.journey.initialStateId ? `Initial state: ${args.journey.initialStateId}` : "",
+          args.stateMachineTurn ? `Journey context: ${JSON.stringify(args.stateMachineTurn.journeyContext)}` : "",
         ].filter(Boolean).join("\n")
       : "No active journey.";
     const knowledgeContext = args.knowledge.length > 0
@@ -533,14 +825,18 @@ export class CognideskRuntime {
     conversationId: string;
     previousSnapshot: RuntimeSnapshot | null;
     selectedJourney: CompiledJourney | null;
+    stateMachineTurn: StateMachineTurnResult | null;
   }): RuntimeSnapshot {
     return {
       conversationId: args.conversationId,
       lifecycle: "active",
-      activeStateIds: args.selectedJourney?.initialStateId ? [args.selectedJourney.initialStateId] : [],
+      activeStateIds: args.stateMachineTurn?.activeStateIds
+        ?? (args.selectedJourney?.initialStateId ? [args.selectedJourney.initialStateId] : []),
       updatedAt: new Date().toISOString(),
       ...(args.selectedJourney ? { activeJourneyId: args.selectedJourney.id } : {}),
-      ...(args.previousSnapshot?.journeyContext !== undefined ? { journeyContext: args.previousSnapshot.journeyContext } : {}),
+      ...(args.stateMachineTurn
+        ? { journeyContext: args.stateMachineTurn.journeyContext }
+        : args.previousSnapshot?.journeyContext !== undefined ? { journeyContext: args.previousSnapshot.journeyContext } : {}),
       ...(args.previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: args.previousSnapshot.compactionSummary } : {}),
       ...(this.options.journeyIndex ? { definitionHash: this.options.journeyIndex.definitionHash } : {}),
     };
@@ -607,4 +903,41 @@ function renderEventsForCompaction(events: RuntimeEvent[]) {
     data: event.data,
     createdAt: event.createdAt,
   })).join("\n");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getPathValue(context: Record<string, unknown>, path: string) {
+  let current: unknown = context;
+  for (const part of path.split(".")) {
+    if (!isRecord(current)) return undefined;
+    current = current[part];
+  }
+  return current;
+}
+
+function setPathValue(context: Record<string, unknown>, path: string, value: unknown) {
+  const parts = path.split(".");
+  let current = context;
+  for (const part of parts.slice(0, -1)) {
+    const next = current[part];
+    if (!isRecord(next)) current[part] = {};
+    current = current[part] as Record<string, unknown>;
+  }
+  const last = parts.at(-1);
+  if (last) current[last] = value;
+}
+
+function hasUsableValue(value: unknown) {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+}
+
+function guardAllows(result: Awaited<ReturnType<NonNullable<CompiledJourney["states"][number]["transitions"][number]["guard"]>>>) {
+  if (typeof result === "boolean") return result;
+  return result.allow;
 }

@@ -203,7 +203,7 @@ export type RuntimeEvent =
   | RuntimeEventBase<"journey.extraction.proposed", { journeyId: string; stateId: string; fields: string[] }>
   | RuntimeEventBase<"journey.extraction.accepted", { journeyId: string; stateId: string; fields: string[] }>
   | RuntimeEventBase<"tool.started", { toolName: string; journeyId?: string; stateId?: string }>
-  | RuntimeEventBase<"tool.completed", { toolName: string; success: boolean; result?: unknown; error?: string }>
+  | RuntimeEventBase<"tool.completed", { toolName: string; success: boolean; journeyId?: string; stateId?: string; result?: unknown; error?: string }>
   | RuntimeEventBase<"knowledge.retrieved", { sourceName: string; itemIds: string[] }>
   | RuntimeEventBase<"ui.prompted", { promptId: string; widgetKind: string; input: unknown }>
   | RuntimeEventBase<"ui.submitted", { promptId: string; widgetKind: string; output: unknown }>

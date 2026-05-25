@@ -107,6 +107,7 @@ export interface CompiledJourney {
   always?: JourneyActivationPredicate;
   matcher?: JourneyActivationPredicate;
   knowledge: KnowledgeSource[];
+  context?: ObjectSchema;
   states: CompiledState[];
   initialStateId?: string;
   toGraph(): JourneyGraph;
@@ -115,6 +116,38 @@ export interface CompiledJourney {
 }
 
 export interface CompiledState {
+  id: string;
+  parentId?: string;
+  type: "state" | "parallel" | "final";
+  instructions?: string;
+  summary?: string;
+  collected: Array<{ path: string; required: boolean; extract: boolean }>;
+  transitions: CompiledTransition[];
+  actions: Array<{ type: "entry" | "exit" | "transition"; name: string }>;
+  toolRuns: CompiledToolRun[];
+  requiresVisit: boolean;
+}
+
+export interface CompiledTransition<TContext = unknown> {
+  kind: "event" | "conversational";
+  targetId: string;
+  description?: string;
+  priority?: number;
+  guard?: (context: GuardContext<unknown, TContext>) => MaybePromise<GuardResult>;
+}
+
+export interface CompiledToolRun<TContext = unknown> {
+  tool: AnyTool;
+  confirm?: ConfirmationPolicy;
+  actionType: "entry" | "exit" | "transition";
+  input?: (args: { context: TContext }) => unknown;
+  assign: Array<{ path: string; value: (args: { output: unknown; context: TContext }) => unknown }>;
+  onSuccessId?: string;
+  onFailureId?: string;
+  onValidationErrorId?: string;
+}
+
+export interface JourneyGraphState {
   id: string;
   parentId?: string;
   type: "state" | "parallel" | "final";
@@ -130,7 +163,7 @@ export interface JourneyGraph {
   id: string;
   kind: "stateMachine" | "delegation";
   initialStateId?: string;
-  states: CompiledState[];
+  states: JourneyGraphState[];
 }
 
 export type JourneyActivationPredicate<TApp = unknown, TConversation = unknown, TTurn = unknown> = (
@@ -145,12 +178,18 @@ interface InternalTransition {
   target: StateBuilder<string, ObjectSchema>;
   description?: string;
   priority?: number;
+  guard?: (context: GuardContext<unknown, unknown>) => MaybePromise<GuardResult>;
 }
 
 interface InternalToolRun {
   tool: AnyTool;
   confirm?: ConfirmationPolicy;
   actionType: "entry" | "exit" | "transition";
+  input?: (args: { context: unknown }) => unknown;
+  assign: Array<{ path: string; value: (args: { output: unknown; context: unknown }) => unknown }>;
+  onSuccess?: StateBuilder<string, ObjectSchema>;
+  onFailure?: StateBuilder<string, ObjectSchema>;
+  onValidationError?: StateBuilder<string, ObjectSchema>;
 }
 
 interface TransitionTargetBuilder<TContextSchema extends ObjectSchema, TReturn> {
@@ -349,6 +388,7 @@ export class StateBuilder<
           target: state,
           description,
           ...(options.priority !== undefined ? { priority: options.priority } : {}),
+          ...(options.guard ? { guard: options.guard as (context: GuardContext<unknown, unknown>) => MaybePromise<GuardResult> } : {}),
         });
         return this;
       },
@@ -366,6 +406,7 @@ export class StateBuilder<
           target: state,
           description: event.name,
           ...(options.priority !== undefined ? { priority: options.priority } : {}),
+          ...(options.guard ? { guard: options.guard as (context: GuardContext<unknown, unknown>) => MaybePromise<GuardResult> } : {}),
         });
         return this;
       },
@@ -378,6 +419,7 @@ export class StateBuilder<
       target: state,
       ...(options.priority !== undefined ? { priority: options.priority } : {}),
       ...(options.description ? { description: options.description } : {}),
+      ...(options.guard ? { guard: options.guard as (context: GuardContext<unknown, unknown>) => MaybePromise<GuardResult> } : {}),
     });
     return this;
   }
@@ -387,6 +429,11 @@ export class StateBuilder<
       tool: toolDefinition,
       actionType: "entry",
       ...(options.confirm ? { confirm: options.confirm } : {}),
+      ...(options.input ? { input: options.input as (args: { context: unknown }) => unknown } : {}),
+      assign: compileAssignments(options.assign),
+      ...(options.onSuccess ? { onSuccess: options.onSuccess as StateBuilder<string, ObjectSchema> } : {}),
+      ...(options.onFailure ? { onFailure: options.onFailure as StateBuilder<string, ObjectSchema> } : {}),
+      ...(options.onValidationError ? { onValidationError: options.onValidationError as StateBuilder<string, ObjectSchema> } : {}),
     });
     this.stateActions.push({ type: "entry", name: toolDefinition.name });
     if (toolDefinition.sideEffect || options.confirm) this.requiresVisit("entry action requires visit");
@@ -398,6 +445,11 @@ export class StateBuilder<
       tool: toolDefinition,
       actionType: "exit",
       ...(options.confirm ? { confirm: options.confirm } : {}),
+      ...(options.input ? { input: options.input as (args: { context: unknown }) => unknown } : {}),
+      assign: compileAssignments(options.assign),
+      ...(options.onSuccess ? { onSuccess: options.onSuccess as StateBuilder<string, ObjectSchema> } : {}),
+      ...(options.onFailure ? { onFailure: options.onFailure as StateBuilder<string, ObjectSchema> } : {}),
+      ...(options.onValidationError ? { onValidationError: options.onValidationError as StateBuilder<string, ObjectSchema> } : {}),
     });
     this.stateActions.push({ type: "exit", name: toolDefinition.name });
     if (toolDefinition.sideEffect || options.confirm) this.requiresVisit("exit action requires visit");
@@ -409,6 +461,11 @@ export class StateBuilder<
       tool: toolDefinition,
       actionType: "transition",
       ...(options.confirm ? { confirm: options.confirm } : {}),
+      ...(options.input ? { input: options.input as (args: { context: unknown }) => unknown } : {}),
+      assign: compileAssignments(options.assign),
+      ...(options.onSuccess ? { onSuccess: options.onSuccess as StateBuilder<string, ObjectSchema> } : {}),
+      ...(options.onFailure ? { onFailure: options.onFailure as StateBuilder<string, ObjectSchema> } : {}),
+      ...(options.onValidationError ? { onValidationError: options.onValidationError as StateBuilder<string, ObjectSchema> } : {}),
     });
     this.stateActions.push({ type: "transition", name: toolDefinition.name });
     if (toolDefinition.sideEffect || options.confirm) this.requiresVisit("tool action requires visit");
@@ -448,10 +505,21 @@ export class StateBuilder<
         targetId: transition.target.id,
         ...(transition.description ? { description: transition.description } : {}),
         ...(transition.priority !== undefined ? { priority: transition.priority } : {}),
+        ...(transition.guard ? { guard: transition.guard } : {}),
       })),
       actions: this.stateActions.map((stateAction) => ({
         type: stateAction.type,
         name: stateAction.name,
+      })),
+      toolRuns: this.toolRuns.map((toolRun) => ({
+        tool: toolRun.tool,
+        actionType: toolRun.actionType,
+        assign: toolRun.assign,
+        ...(toolRun.confirm ? { confirm: toolRun.confirm } : {}),
+        ...(toolRun.input ? { input: toolRun.input } : {}),
+        ...(toolRun.onSuccess ? { onSuccessId: toolRun.onSuccess.id } : {}),
+        ...(toolRun.onFailure ? { onFailureId: toolRun.onFailure.id } : {}),
+        ...(toolRun.onValidationError ? { onValidationErrorId: toolRun.onValidationError.id } : {}),
       })),
       requiresVisit: this.visitRequirement !== null,
     };
@@ -571,10 +639,11 @@ export class StateMachineJourneyBuilder<
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       knowledge: this.knowledge.list(),
+      context: this.options.context,
       states,
       initialStateId: this.initialState.id,
-      toGraph: () => graph,
-      toJSON: () => graph,
+      toGraph: () => sanitizeGraph(graph),
+      toJSON: () => sanitizeGraph(graph),
       toMermaid: () => graphToMermaid(graph),
     };
   }
@@ -678,6 +747,38 @@ function graphToMermaid(graph: JourneyGraph) {
     }
   }
   return lines.join("\n");
+}
+
+function compileAssignments<TContext>(
+  assign: ToolRunOptions<AnyTool, TContext>["assign"] | undefined,
+): Array<{ path: string; value: (args: { output: unknown; context: unknown }) => unknown }> {
+  if (!assign) return [];
+  return Object.entries(assign).map(([path, value]) => ({
+    path,
+    value: value as (args: { output: unknown; context: unknown }) => unknown,
+  }));
+}
+
+function sanitizeGraph(graph: JourneyGraph): JourneyGraph {
+  return {
+    ...graph,
+    states: graph.states.map((state) => ({
+      id: state.id,
+      type: state.type,
+      ...(state.parentId ? { parentId: state.parentId } : {}),
+      ...(state.instructions ? { instructions: state.instructions } : {}),
+      ...(state.summary ? { summary: state.summary } : {}),
+      collected: state.collected,
+      transitions: state.transitions.map((transition) => ({
+        kind: transition.kind,
+        targetId: transition.targetId,
+        ...(transition.description ? { description: transition.description } : {}),
+        ...(transition.priority !== undefined ? { priority: transition.priority } : {}),
+      })),
+      actions: state.actions,
+      requiresVisit: state.requiresVisit,
+    })),
+  };
 }
 
 export type { DefinitionError };

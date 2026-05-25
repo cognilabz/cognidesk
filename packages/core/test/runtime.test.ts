@@ -5,6 +5,7 @@ import {
   createAgent,
   createRuntime,
   knowledgeSource,
+  tool,
 } from "../src/index.js";
 import type {
   AgentModelSet,
@@ -71,10 +72,13 @@ describe("runtime turn pipeline", () => {
       "journey.matched",
       "journey.activated",
       "journey.state.entered",
+      "journey.extraction.proposed",
+      "journey.extraction.accepted",
       "knowledge.retrieved",
       "message.started",
       "message.completed",
     ]);
+    expect(result.snapshot.journeyContext).toEqual({ bookingReference: "ABC123" });
     expect(events.at(-1)?.data).toMatchObject({
       segments: [{
         id: "segment_1",
@@ -126,6 +130,97 @@ describe("runtime turn pipeline", () => {
     const events = await runtime.listEvents(conversation.id);
     expect(events.find((event) => event.type === "error")).toBeUndefined();
     expect(events.at(-1)?.data).toEqual({ text: "Use faq-ticket-status for the current ticket status." });
+  });
+
+  it("extracts context, skips satisfied states, runs transition tools, and stores the final active state", async () => {
+    const searchFlights = tool("searchFlights", {
+      input: z.object({ origin: z.string(), destination: z.string() }),
+      output: z.object({ flights: z.array(z.object({ id: z.string() })) }),
+      execute: async () => ({ flights: [{ id: "OS123" }] }),
+    });
+    const context = z.object({
+      origin: z.string().optional(),
+      destination: z.string().optional(),
+      flightCount: z.number().optional(),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agentBuilder.stateMachineJourney("book-flight", {
+      condition: "Customer wants to search flights",
+      context,
+    });
+    const collectRoute = booking.state("collectRoute")
+      .collect("origin")
+      .collect("destination");
+    const search = booking.state("search")
+      .runTool(searchFlights, {
+        input: ({ context: journeyContext }) => ({
+          origin: journeyContext.origin ?? "",
+          destination: journeyContext.destination ?? "",
+        }),
+        assign: {
+          flightCount: ({ output }) => output.flights.length,
+        },
+      });
+    const completed = booking.final("completed");
+    booking.initial(collectRoute);
+    collectRoute.transitionTo(search);
+    search.transitionTo(completed);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      extraction: {
+        provider: "test",
+        model: "extraction",
+        generateText: async () => {
+          const structured = {
+            values: {
+              origin: "Vienna",
+              destination: "Berlin",
+            },
+          };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+      response: {
+        provider: "test",
+        model: "response",
+        generateText: async () => ({ text: "I found one flight." }),
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Find flights from Vienna to Berlin.",
+    });
+
+    expect(result.snapshot.activeStateIds).toEqual(["completed"]);
+    expect(result.snapshot.journeyContext).toEqual({
+      origin: "Vienna",
+      destination: "Berlin",
+      flightCount: 1,
+    });
+    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual([
+      "custom.conversation.created",
+      "message.started",
+      "message.completed",
+      "journey.candidates.retrieved",
+      "journey.matched",
+      "journey.activated",
+      "journey.state.entered",
+      "journey.extraction.proposed",
+      "journey.extraction.accepted",
+      "journey.state.entered",
+      "tool.started",
+      "tool.completed",
+      "journey.state.entered",
+      "message.started",
+      "message.completed",
+    ]);
   });
 
   it("applies privacy hooks before storage, model calls, and returned assistant text", async () => {
@@ -239,6 +334,14 @@ function createModels(overrides: Partial<AgentModelSet> = {}): AgentModelSet {
     model: "response",
     generateText: async () => ({ text: "Use faq-ticket-status for the current ticket status." }),
   };
+  const extraction = {
+    provider: "test",
+    model: "extraction",
+    generateText: async (_input: TextGenerationInput) => {
+      const structured = { values: { bookingReference: "ABC123" } };
+      return { text: JSON.stringify(structured), structured };
+    },
+  };
   const citationPostProcessing = {
     provider: "test",
     model: "citation",
@@ -265,7 +368,7 @@ function createModels(overrides: Partial<AgentModelSet> = {}): AgentModelSet {
   return {
     response,
     matcher: response,
-    extraction: response,
+    extraction,
     citationPostProcessing,
     journeyEmbedding: embedding,
     compaction: response,
