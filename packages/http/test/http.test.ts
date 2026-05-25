@@ -6,6 +6,7 @@ import type {
   HandleUserMessageInput,
   HandleUserMessageResult,
   RuntimeEvent,
+  SubmitWidgetInput,
 } from "@cognidesk/core";
 
 describe("HTTP adapter", () => {
@@ -65,6 +66,25 @@ describe("HTTP adapter", () => {
     expect(decoded).toContain("event: event");
     expect(decoded).toContain("message.completed");
   });
+
+  it("posts widget submissions to the runtime", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+
+    const response = await handler.handle(new Request("http://localhost/conversations/conversation_1/widgets/prompt_1/submissions", {
+      method: "POST",
+      body: JSON.stringify({ widgetKind: "confirmation", output: { confirmed: true } }),
+    }));
+    const body = await response.json() as { event: RuntimeEvent };
+
+    expect(response.status).toBe(200);
+    expect(body.event.type).toBe("ui.submitted");
+    expect(body.event.data).toEqual({
+      promptId: "prompt_1",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
+  });
 });
 
 class FakeRuntime implements CognideskHttpRuntime {
@@ -108,5 +128,22 @@ class FakeRuntime implements CognideskHttpRuntime {
 
   async listEvents(_conversationId: string, afterOffset = 0) {
     return this.events.filter((event) => event.offset > afterOffset);
+  }
+
+  async submitWidget(input: SubmitWidgetInput): Promise<RuntimeEvent> {
+    const event = {
+      id: `event_${this.events.length + 1}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 1,
+      type: "ui.submitted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        promptId: input.promptId,
+        widgetKind: input.widgetKind,
+        output: input.output,
+      },
+    } satisfies RuntimeEvent;
+    this.events.push(event);
+    return event;
   }
 }

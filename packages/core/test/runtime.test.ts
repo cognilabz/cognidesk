@@ -132,6 +132,30 @@ describe("runtime turn pipeline", () => {
     expect(events.at(-1)?.data).toEqual({ text: "Use faq-ticket-status for the current ticket status." });
   });
 
+  it("stores submitted widget output as a conversation event", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const event = await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "prompt_1",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
+
+    expect(event.type).toBe("ui.submitted");
+    expect((await runtime.listEvents(conversation.id)).at(-1)?.data).toEqual({
+      promptId: "prompt_1",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
+  });
+
   it("extracts context, skips satisfied states, runs transition tools, and stores the final active state", async () => {
     const searchFlights = tool("searchFlights", {
       input: z.object({ origin: z.string(), destination: z.string() }),

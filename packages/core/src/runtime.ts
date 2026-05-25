@@ -64,6 +64,13 @@ export interface CompactConversationInput {
   signal?: AbortSignal;
 }
 
+export interface SubmitWidgetInput {
+  conversationId: string;
+  promptId: string;
+  widgetKind: string;
+  output: unknown;
+}
+
 export interface CompactConversationResult {
   summary: ConversationCompactionSummary;
   snapshot: RuntimeSnapshot;
@@ -134,6 +141,19 @@ export class CognideskRuntime {
     return this.options.storage.listEvents({
       conversationId,
       ...(afterOffset !== undefined ? { afterOffset } : {}),
+    });
+  }
+
+  async submitWidget(input: SubmitWidgetInput): Promise<RuntimeEvent> {
+    await this.requireConversation(input.conversationId);
+    return await this.emit({
+      conversationId: input.conversationId,
+      type: "ui.submitted",
+      data: {
+        promptId: input.promptId,
+        widgetKind: input.widgetKind,
+        output: input.output,
+      },
     });
   }
 

@@ -29,6 +29,7 @@ export interface SendMessageResult {
 export interface CognideskClient {
   createConversation(input?: { agentId?: string; context?: unknown; id?: string }): Promise<CreateConversationResult>;
   sendMessage(conversationId: string, message: string, options?: { turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
+  submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
   listEvents(conversationId: string, options?: { afterOffset?: number }): Promise<{ events: RuntimeEvent[] }>;
   streamEvents(conversationId: string, handlers: { onEvent(event: RuntimeEvent): void; onError?(error: Event): void }, options?: { afterOffset?: number }): () => void;
 }
@@ -111,6 +112,18 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
       const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/events${suffix}`);
       if (!response.ok) throw new Error(`Failed to list events: ${response.status}`);
       return await response.json() as { events: RuntimeEvent[] };
+    },
+    async submitWidget(conversationId, input) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/widgets/${encodeURIComponent(input.promptId)}/submissions`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          widgetKind: input.widgetKind,
+          output: input.output,
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to submit widget: ${response.status}`);
+      return await response.json() as { event: RuntimeEvent };
     },
     streamEvents(conversationId, handlers, streamOptions = {}) {
       const eventSourceConstructor = options.EventSource ?? globalThis.EventSource;
@@ -265,7 +278,15 @@ export function ChatWidget(props: ChatWidgetProps) {
                 input: prompt.input,
                 submit: (output) => {
                   props.onWidgetSubmit?.({ promptId: prompt.promptId, kind: prompt.kind, output });
-                  chat.clearPrompt(prompt.promptId);
+                  if (!chat.conversationId) {
+                    chat.clearPrompt(prompt.promptId);
+                    return;
+                  }
+                  void props.client.submitWidget(chat.conversationId, {
+                    promptId: prompt.promptId,
+                    widgetKind: prompt.kind,
+                    output,
+                  }).finally(() => chat.clearPrompt(prompt.promptId));
                 },
               })}
             </div>

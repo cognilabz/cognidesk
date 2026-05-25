@@ -5,11 +5,13 @@ import type {
   HandleUserMessageInput,
   HandleUserMessageResult,
   RuntimeEvent,
+  SubmitWidgetInput,
 } from "@cognidesk/core";
 
 export interface CognideskHttpRuntime {
   createConversation(input: CreateRuntimeConversationInput): Promise<ConversationRecord>;
   handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult>;
+  submitWidget?(input: SubmitWidgetInput): Promise<RuntimeEvent>;
   listEvents(conversationId: string, afterOffset?: number): Promise<RuntimeEvent[]>;
 }
 
@@ -68,6 +70,22 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           return json(result, 200, options);
         }
 
+        const widgetSubmissionMatch = path.match(/^\/conversations\/([^/]+)\/widgets\/([^/]+)\/submissions$/);
+        if (request.method === "POST" && widgetSubmissionMatch) {
+          if (!options.runtime.submitWidget) return json({ error: "Widget submissions are not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(widgetSubmissionMatch[1] ?? "");
+          const promptId = decodeURIComponent(widgetSubmissionMatch[2] ?? "");
+          const body = await readJson<CreateWidgetSubmissionBody>(request);
+          if (!body.widgetKind) return json({ error: "widgetKind is required" }, 400, options);
+          const event = await options.runtime.submitWidget({
+            conversationId,
+            promptId,
+            widgetKind: body.widgetKind,
+            output: body.output,
+          });
+          return json({ event }, 200, options);
+        }
+
         const eventsMatch = path.match(/^\/conversations\/([^/]+)\/events$/);
         if (request.method === "GET" && eventsMatch) {
           const conversationId = decodeURIComponent(eventsMatch[1] ?? "");
@@ -111,6 +129,11 @@ interface CreateMessageBody {
   text?: string;
   turn?: unknown;
   app?: unknown;
+}
+
+interface CreateWidgetSubmissionBody {
+  widgetKind?: string;
+  output?: unknown;
 }
 
 function streamEvents(options: {

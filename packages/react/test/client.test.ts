@@ -21,12 +21,29 @@ describe("createCognideskClient", () => {
             },
           });
         }
+        if (String(url).endsWith("/widgets/prompt_1/submissions")) {
+          return Response.json({
+            event: {
+              id: "event_1",
+              conversationId: "conversation_1",
+              offset: 1,
+              type: "ui.submitted",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: JSON.parse(String(init?.body ?? "{}")) as unknown,
+            },
+          });
+        }
         return Response.json({ text: "ok", events: [], activeJourneyId: "ticket-status" });
       },
     });
 
     const created = await client.createConversation({ agentId: "flight-service", context: { locale: "en" } });
     const sent = await client.sendMessage(created.conversation.id, "hello", { turn: { source: "test" } });
+    await client.submitWidget(created.conversation.id, {
+      promptId: "prompt_1",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
 
     expect(requests).toEqual([
       {
@@ -36,6 +53,10 @@ describe("createCognideskClient", () => {
       {
         url: "http://localhost/api/conversations/conversation_1/messages",
         body: { message: "hello", turn: { source: "test" } },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/widgets/prompt_1/submissions",
+        body: { widgetKind: "confirmation", output: { confirmed: true } },
       },
     ]);
     expect(sent.activeJourneyId).toBe("ticket-status");
