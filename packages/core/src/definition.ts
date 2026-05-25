@@ -118,6 +118,7 @@ export interface CompiledJourney {
   always?: JourneyActivationPredicate;
   includeWhen?: (args: { app: unknown }) => boolean;
   matcher?: JourneyActivationPredicate;
+  guard?: JourneyGuardPredicate;
   knowledge: KnowledgeSource[];
   tools: AnyTool[];
   context?: ObjectSchema;
@@ -213,6 +214,14 @@ export type JourneyActivationPredicate<TApp = unknown, TConversation = unknown, 
     activeJourneyId?: string;
   },
 ) => MaybePromise<boolean>;
+
+export type JourneyGuardPredicate<TApp = unknown, TConversation = unknown, TTurn = unknown> = (
+  args: ApplicationContextParts<TConversation, TTurn> & {
+    app: TApp;
+    activeJourneyId?: string;
+    journeyId: string;
+  },
+) => MaybePromise<GuardResult>;
 
 interface InternalTransition {
   kind: "event" | "conversational";
@@ -701,6 +710,7 @@ export interface ActivationMetadata {
   alwaysInclude?: boolean;
   includeWhen?: (args: { app: unknown }) => boolean;
   matcher?: JourneyActivationPredicate;
+  guard?: JourneyGuardPredicate;
 }
 
 export interface StateMachineJourneyOptions<TContextSchema extends ObjectSchema> extends ActivationMetadata {
@@ -840,6 +850,7 @@ export class StateMachineJourneyBuilder<
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
       ...(this.options.includeWhen ? { includeWhen: this.options.includeWhen } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
+      ...(this.options.guard ? { guard: this.options.guard } : {}),
       knowledge: this.knowledge.list(),
       tools: this.tools.list(),
       context: this.options.context,
@@ -880,6 +891,7 @@ export class DelegationJourneyBuilder<const TId extends string> {
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
       ...(this.options.includeWhen ? { includeWhen: this.options.includeWhen } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
+      ...(this.options.guard ? { guard: this.options.guard } : {}),
       knowledge: this.options.specialist.knowledge ?? [],
       tools: [],
       delegation: {

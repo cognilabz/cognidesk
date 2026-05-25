@@ -1614,6 +1614,68 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("applies journey guards before activation", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const journey = agentBuilder.stateMachineJourney("secured-ticket-review", {
+      condition: "Customer wants secured ticket review information",
+      context: z.object({}),
+      guard: ({ app }) => {
+        const authenticated = typeof app === "object" && app !== null && "authenticated" in app
+          ? app.authenticated
+          : false;
+        return authenticated === true
+          ? { allow: true }
+          : {
+              allow: false,
+              code: "auth_required",
+              message: "The customer must authenticate before this journey can start.",
+              prompt: widgetPrompt(textInputWidget, {
+                label: "Authentication code",
+              }),
+            };
+      },
+    });
+    journey.initial(journey.state("reviewTicket"));
+
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+      app: { authenticated: false },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const turn = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "I need a secured ticket review.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+    const denial = events.find((event) => event.type === "journey.guard.denied");
+    const prompt = events.find((event) => event.type === "ui.prompted");
+
+    expect(turn.snapshot.activeJourneyId).toBeUndefined();
+    expect(turn.snapshot.activeStateIds).toEqual([]);
+    expect(events.map((event) => event.type)).not.toContain("journey.activated");
+    expect(denial?.data).toEqual({
+      journeyId: "secured-ticket-review",
+      code: "auth_required",
+      message: "The customer must authenticate before this journey can start.",
+    });
+    expect(prompt?.data).toEqual({
+      promptId: "guard:secured-ticket-review:journey:auth_required",
+      widgetKind: "text-input",
+      input: {
+        label: "Authentication code",
+      },
+    });
+  });
+
   it("applies widget submissions to the matching active parallel state", async () => {
     const agentBuilder = createAgent("flight-service", {
       instructions: "Help customers with flights.",

@@ -262,6 +262,7 @@ function journeyRoutingProjection(journey: CompiledJourney) {
     hasAlwaysPredicate: typeof journey.always === "function",
     hasIncludeWhenPredicate: typeof journey.includeWhen === "function",
     hasMatcherPredicate: typeof journey.matcher === "function",
+    hasGuardPredicate: typeof journey.guard === "function",
     initialStateId: journey.initialStateId,
     states: journey.states.map((state) => ({
       id: state.id,

@@ -1353,7 +1353,14 @@ export class CognideskRuntime {
       },
     });
 
-    const selected = rankedCandidates[0]?.journey ?? null;
+    const selected = await this.selectAllowedJourney({
+      candidates: rankedCandidates,
+      conversation: args.conversation,
+      turn: args.input.turn ?? {},
+      app: args.input.app ?? this.options.app ?? {},
+      ...(args.previousSnapshot?.activeJourneyId ? { activeJourneyId: args.previousSnapshot.activeJourneyId } : {}),
+      emit: args.emit,
+    });
     if (selected && selected.id !== args.previousSnapshot?.activeJourneyId) {
       await args.emit({
         conversationId: args.conversation.id,
@@ -1372,6 +1379,35 @@ export class CognideskRuntime {
       }
     }
     return selected;
+  }
+
+  private async selectAllowedJourney(args: {
+    candidates: RankedJourneyCandidate[];
+    conversation: ConversationRecord;
+    turn: unknown;
+    app: unknown;
+    activeJourneyId?: string;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    for (const candidate of args.candidates) {
+      const guard = candidate.journey.guard;
+      if (!guard) return candidate.journey;
+      const result = await guard({
+        app: args.app,
+        conversation: args.conversation,
+        turn: args.turn,
+        journeyId: candidate.journey.id,
+        ...(args.activeJourneyId ? { activeJourneyId: args.activeJourneyId } : {}),
+      });
+      if (guardAllows(result)) return candidate.journey;
+      await this.emitGuardDenial({
+        journey: candidate.journey,
+        conversation: args.conversation,
+        result,
+        emit: args.emit,
+      });
+    }
+    return null;
   }
 
   private async rankJourneyCandidates(args: {
@@ -2145,7 +2181,7 @@ export class CognideskRuntime {
   private async emitGuardDenial(args: {
     journey: CompiledJourney;
     conversation: ConversationRecord;
-    state: CompiledJourney["states"][number];
+    state?: CompiledJourney["states"][number];
     result: GuardResult;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
@@ -2156,7 +2192,7 @@ export class CognideskRuntime {
       type: "journey.guard.denied",
       data: {
         journeyId: args.journey.id,
-        stateId: args.state.id,
+        ...(args.state ? { stateId: args.state.id } : {}),
         code: args.result.code,
         ...(args.result.message ? { message: args.result.message } : {}),
         ...(args.result.metadata ? { metadata: args.result.metadata } : {}),
@@ -2164,7 +2200,7 @@ export class CognideskRuntime {
     });
 
     if (!args.result.prompt) return;
-    const promptId = createGuardPromptId(args.journey.id, args.state.id, args.result.code);
+    const promptId = createGuardPromptId(args.journey.id, args.state?.id, args.result.code);
     const existing = await this.options.storage.listEvents({ conversationId: args.conversation.id });
     const hasOpenPrompt = existing.some((event) => (
       event.type === "ui.prompted" && event.data.promptId === promptId
@@ -3088,8 +3124,8 @@ function createToolConfirmationPromptId(journeyId: string, stateId: string, tool
   return `confirm:${journeyId}:${stateId}:${toolName}`;
 }
 
-function createGuardPromptId(journeyId: string, stateId: string, code: string) {
-  return `guard:${journeyId}:${stateId}:${encodeURIComponent(code)}`;
+function createGuardPromptId(journeyId: string, stateId: string | undefined, code: string) {
+  return `guard:${journeyId}:${stateId ?? "journey"}:${encodeURIComponent(code)}`;
 }
 
 function createFieldPromptId(journeyId: string, stateId: string, path: string) {
