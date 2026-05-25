@@ -160,6 +160,35 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("emits programmatic intermediate assistant messages", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text: "I am checking that now.",
+      traceId: "trace_1",
+    });
+
+    expect(result.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);
+    expect(result.events[0]?.traceId).toBe("trace_1");
+    expect(result.events[1]?.data).toEqual({
+      text: "I am checking that now.",
+      intermediate: true,
+    });
+
+    await runtime.closeConversation(conversation.id, "done");
+    await expect(runtime.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text: "This should not be emitted.",
+    })).rejects.toThrow("is 'closed'");
+  });
+
   it("validates declared custom runtime events and exposes only visible ones to the model", async () => {
     const leadCaptured = customRuntimeEvent("lead.captured", {
       payload: z.object({ email: z.string().email(), source: z.string() }),

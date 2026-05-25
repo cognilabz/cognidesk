@@ -72,6 +72,12 @@ export interface SubmitWidgetInput {
   output: unknown;
 }
 
+export interface EmitIntermediateMessageInput {
+  conversationId: string;
+  text: string;
+  traceId?: string;
+}
+
 export interface EmitCustomEventInput<TEvent extends CustomRuntimeEventDefinition = CustomRuntimeEventDefinition> {
   conversationId: string;
   event: TEvent;
@@ -182,6 +188,29 @@ export class CognideskRuntime {
       id: event.id ?? randomUUID(),
       createdAt: event.createdAt ?? new Date().toISOString(),
     });
+  }
+
+  async emitIntermediateMessage(input: EmitIntermediateMessageInput): Promise<{ events: RuntimeEvent[] }> {
+    await this.requireConversation(input.conversationId);
+    const events: RuntimeEvent[] = [];
+    const started = await this.emit({
+      conversationId: input.conversationId,
+      type: "message.started",
+      data: { role: "assistant" },
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    });
+    events.push(started);
+    const completed = await this.emit({
+      conversationId: input.conversationId,
+      type: "message.completed",
+      data: {
+        text: input.text,
+        intermediate: true,
+      },
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    });
+    events.push(completed);
+    return { events };
   }
 
   async emitCustomEvent<TEvent extends CustomRuntimeEventDefinition>(

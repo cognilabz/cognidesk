@@ -206,7 +206,7 @@ export type SupportReference =
 export type RuntimeEvent =
   | RuntimeEventBase<"message.started", { role: "assistant" | "user" }>
   | RuntimeEventBase<"message.delta", { textDelta: string }>
-  | RuntimeEventBase<"message.completed", { text: string; segments?: MessageSegment[]; usage?: UsageRecord }>
+  | RuntimeEventBase<"message.completed", { text: string; segments?: MessageSegment[]; usage?: UsageRecord; intermediate?: boolean }>
   | RuntimeEventBase<"message.aborted", { reason: string; partialText?: string }>
   | RuntimeEventBase<"journey.candidates.retrieved", { journeyIds: string[] }>
   | RuntimeEventBase<"journey.matched", { candidates: Array<{ journeyId: string; confidence: number; reason?: string }> }>
