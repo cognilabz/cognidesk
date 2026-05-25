@@ -39,6 +39,28 @@ export interface RuntimeSnapshotResult {
   } | null;
 }
 
+export interface ReplayConversationResult {
+  conversation: CreateConversationResult["conversation"];
+  snapshot: RuntimeSnapshotResult["snapshot"];
+  events: RuntimeEvent[];
+  messages: Array<{
+    id: string;
+    offset: number;
+    role: "user" | "assistant";
+    text: string;
+    intermediate: boolean;
+    aborted: boolean;
+    reason?: string;
+    segments?: MessageSegment[];
+  }>;
+  openPrompts: Array<{
+    promptId: string;
+    offset: number;
+    widgetKind: string;
+    input: unknown;
+  }>;
+}
+
 export interface CognideskClient {
   createConversation(input?: { agentId?: string; context?: unknown; id?: string }): Promise<CreateConversationResult>;
   sendMessage(conversationId: string, message: string, options?: { turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
@@ -49,6 +71,7 @@ export interface CognideskClient {
   closeConversation(conversationId: string, input?: { reason?: string }): Promise<{ conversation: CreateConversationResult["conversation"] }>;
   requestHandoff(conversationId: string, input: { reason: string; summary?: string; payload?: unknown }): Promise<{ conversation: CreateConversationResult["conversation"]; event: RuntimeEvent }>;
   resumeConversation(conversationId: string, input?: { reason?: string; payload?: unknown }): Promise<{ conversation: CreateConversationResult["conversation"]; event: RuntimeEvent }>;
+  replayConversation(conversationId: string, options?: { afterOffset?: number }): Promise<ReplayConversationResult>;
   getSnapshot(conversationId: string): Promise<RuntimeSnapshotResult>;
   listEvents(conversationId: string, options?: { afterOffset?: number }): Promise<{ events: RuntimeEvent[] }>;
   streamEvents(conversationId: string, handlers: { onEvent(event: RuntimeEvent): void; onError?(error: Event): void }, options?: { afterOffset?: number }): () => void;
@@ -231,6 +254,14 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
       const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/snapshot`);
       if (!response.ok) throw new Error(`Failed to get snapshot: ${response.status}`);
       return await response.json() as RuntimeSnapshotResult;
+    },
+    async replayConversation(conversationId, replayOptions = {}) {
+      const params = new URLSearchParams();
+      if (replayOptions.afterOffset !== undefined) params.set("after", String(replayOptions.afterOffset));
+      const suffix = params.size > 0 ? `?${params.toString()}` : "";
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/replay${suffix}`);
+      if (!response.ok) throw new Error(`Failed to replay conversation: ${response.status}`);
+      return await response.json() as ReplayConversationResult;
     },
     streamEvents(conversationId, handlers, streamOptions = {}) {
       const eventSourceConstructor = options.EventSource ?? globalThis.EventSource;

@@ -9,6 +9,8 @@ import type {
   HandleUserMessageInput,
   HandleUserMessageResult,
   RequestHandoffInput,
+  ReplayConversationInput,
+  ReplayConversationResult,
   ResumeConversationInput,
   RuntimeEvent,
   RuntimeSnapshot,
@@ -25,6 +27,7 @@ export interface CognideskHttpRuntime {
   closeConversation?(conversationId: string, reason?: string): Promise<ConversationRecord>;
   requestHandoff?(input: RequestHandoffInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
   resumeConversation?(input: ResumeConversationInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
+  replayConversation?(input: ReplayConversationInput): Promise<ReplayConversationResult>;
   getSnapshot?(conversationId: string): Promise<RuntimeSnapshot | null>;
   listEvents(conversationId: string, afterOffset?: number): Promise<RuntimeEvent[]>;
 }
@@ -190,6 +193,18 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           const conversationId = decodeURIComponent(snapshotMatch[1] ?? "");
           const snapshot = await options.runtime.getSnapshot(conversationId);
           return json({ snapshot }, 200, options);
+        }
+
+        const replayMatch = path.match(/^\/conversations\/([^/]+)\/replay$/);
+        if (request.method === "GET" && replayMatch) {
+          if (!options.runtime.replayConversation) return json({ error: "Event replay is not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(replayMatch[1] ?? "");
+          const afterOffset = parseOptionalInteger(url.searchParams.get("after"));
+          const replay = await options.runtime.replayConversation({
+            conversationId,
+            ...(afterOffset !== undefined ? { afterOffset } : {}),
+          });
+          return json(replay, 200, options);
         }
 
         const eventsMatch = path.match(/^\/conversations\/([^/]+)\/events$/);

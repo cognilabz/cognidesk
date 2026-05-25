@@ -122,6 +122,22 @@ describe("createCognideskClient", () => {
             },
           });
         }
+        if (String(url).includes("/replay")) {
+          return Response.json({
+            conversation: {
+              id: "conversation_1",
+              agentId: "flight-service",
+              lifecycle: "active",
+              context: {},
+              createdAt: "2026-05-25T00:00:00.000Z",
+              updatedAt: "2026-05-25T00:00:00.000Z",
+            },
+            snapshot: null,
+            events: [],
+            messages: [],
+            openPrompts: [],
+          });
+        }
         if (String(url).endsWith("/close")) {
           return Response.json({
             conversation: {
@@ -168,6 +184,7 @@ describe("createCognideskClient", () => {
       schemaVersion: "test.v1",
     });
     await client.getSnapshot(created.conversation.id);
+    await client.replayConversation(created.conversation.id, { afterOffset: 0 });
     await client.closeConversation(created.conversation.id, {
       reason: "Resolved",
     });
@@ -207,6 +224,10 @@ describe("createCognideskClient", () => {
       },
       {
         url: "http://localhost/api/conversations/conversation_1/snapshot",
+        body: {},
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/replay?after=0",
         body: {},
       },
       {

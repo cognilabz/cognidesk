@@ -1077,6 +1077,80 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("replays runtime events into inspectable messages and open prompts", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "message.started",
+      data: { role: "user" },
+    });
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "message.completed",
+      data: { text: "Check booking ABC123." },
+    });
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "ui.prompted",
+      data: {
+        promptId: "prompt_1",
+        widgetKind: "confirmation",
+        input: { title: "Confirm", message: "Proceed?" },
+      },
+    });
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "message.started",
+      data: { role: "assistant" },
+    });
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "message.aborted",
+      data: { reason: "interrupted_by_new_message", partialText: "Checking" },
+    });
+
+    const replay = await runtime.replayConversation({ conversationId: conversation.id });
+
+    expect(replay.conversation.id).toBe(conversation.id);
+    expect(replay.messages).toEqual([
+      expect.objectContaining({
+        offset: 3,
+        role: "user",
+        text: "Check booking ABC123.",
+        intermediate: false,
+        aborted: false,
+      }),
+      expect.objectContaining({
+        offset: 6,
+        role: "assistant",
+        text: "Checking",
+        intermediate: false,
+        aborted: true,
+        reason: "interrupted_by_new_message",
+      }),
+    ]);
+    expect(replay.openPrompts).toEqual([{
+      promptId: "prompt_1",
+      offset: 4,
+      widgetKind: "confirmation",
+      input: { title: "Confirm", message: "Proceed?" },
+    }]);
+    expect(replay.events.map((event) => event.type)).toEqual([
+      "custom.conversation.created",
+      "message.started",
+      "message.completed",
+      "ui.prompted",
+      "message.started",
+      "message.aborted",
+    ]);
+  });
+
   it("emits programmatic intermediate assistant messages", async () => {
     const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({

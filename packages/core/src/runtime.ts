@@ -80,6 +80,37 @@ export interface CompactConversationInput {
   signal?: AbortSignal;
 }
 
+export interface ReplayConversationInput {
+  conversationId: string;
+  afterOffset?: number;
+}
+
+export interface ReplayedMessage {
+  id: string;
+  offset: number;
+  role: "user" | "assistant";
+  text: string;
+  intermediate: boolean;
+  aborted: boolean;
+  reason?: string;
+  segments?: MessageSegment[];
+}
+
+export interface ReplayedPrompt {
+  promptId: string;
+  offset: number;
+  widgetKind: string;
+  input: unknown;
+}
+
+export interface ReplayConversationResult {
+  conversation: ConversationRecord;
+  snapshot: RuntimeSnapshot | null;
+  events: RuntimeEvent[];
+  messages: ReplayedMessage[];
+  openPrompts: ReplayedPrompt[];
+}
+
 export interface SubmitWidgetInput {
   conversationId: string;
   promptId: string;
@@ -379,6 +410,23 @@ export class CognideskRuntime {
       conversationId,
       ...(afterOffset !== undefined ? { afterOffset } : {}),
     });
+  }
+
+  async replayConversation(input: ReplayConversationInput): Promise<ReplayConversationResult> {
+    const conversation = await this.requireConversationRecord(input.conversationId);
+    const events = await this.listAllEvents({
+      conversationId: input.conversationId,
+      ...(input.afterOffset !== undefined ? { afterOffset: input.afterOffset } : {}),
+    });
+    const snapshot = await this.options.storage.getSnapshot(input.conversationId);
+    const replayed = replayRuntimeEvents(events);
+    return {
+      conversation,
+      snapshot,
+      events,
+      messages: replayed.messages,
+      openPrompts: replayed.openPrompts,
+    };
   }
 
   async submitWidget(input: SubmitWidgetInput): Promise<RuntimeEvent> {
@@ -704,6 +752,25 @@ export class CognideskRuntime {
       ...(input.schemaVersion ? { schemaVersion: input.schemaVersion } : {}),
       ...(input.signal ? { signal: input.signal } : {}),
     });
+  }
+
+  private async listAllEvents(input: {
+    conversationId: string;
+    afterOffset?: number;
+  }) {
+    const events: RuntimeEvent[] = [];
+    let afterOffset = input.afterOffset ?? 0;
+    const pageSize = 500;
+    while (true) {
+      const page = await this.options.storage.listEvents({
+        conversationId: input.conversationId,
+        afterOffset,
+        limit: pageSize,
+      });
+      events.push(...page);
+      if (page.length < pageSize) return events;
+      afterOffset = page[page.length - 1]?.offset ?? afterOffset;
+    }
   }
 
   private async beginUserTurn(args: {
@@ -2787,6 +2854,76 @@ function renderEventsForCompaction(events: RuntimeEvent[]) {
     data: event.data,
     createdAt: event.createdAt,
   })).join("\n");
+}
+
+function replayRuntimeEvents(events: RuntimeEvent[]) {
+  const messages: ReplayedMessage[] = [];
+  const openPrompts = new Map<string, ReplayedPrompt>();
+  let pendingRole: ReplayedMessage["role"] | null = null;
+  let pendingStarted: RuntimeEvent | null = null;
+
+  for (const event of events) {
+    if (event.type === "message.started") {
+      pendingRole = event.data.role;
+      pendingStarted = event;
+      continue;
+    }
+    if (event.type === "message.completed") {
+      if (!pendingRole) continue;
+      messages.push({
+        id: event.id,
+        offset: event.offset,
+        role: pendingRole,
+        text: event.data.text,
+        intermediate: event.data.intermediate ?? false,
+        aborted: false,
+        ...(event.data.segments ? { segments: event.data.segments } : {}),
+      });
+      pendingRole = null;
+      pendingStarted = null;
+      continue;
+    }
+    if (event.type === "message.aborted") {
+      messages.push({
+        id: event.id,
+        offset: event.offset,
+        role: pendingRole ?? "assistant",
+        text: event.data.partialText ?? "",
+        intermediate: false,
+        aborted: true,
+        reason: event.data.reason,
+      });
+      pendingRole = null;
+      pendingStarted = null;
+      continue;
+    }
+    if (event.type === "ui.prompted") {
+      openPrompts.set(event.data.promptId, {
+        promptId: event.data.promptId,
+        offset: event.offset,
+        widgetKind: event.data.widgetKind,
+        input: event.data.input,
+      });
+      continue;
+    }
+    if (event.type === "ui.submitted") {
+      openPrompts.delete(event.data.promptId);
+    }
+  }
+
+  if (pendingStarted && pendingRole) {
+    messages.push({
+      id: pendingStarted.id,
+      offset: pendingStarted.offset,
+      role: pendingRole,
+      text: "",
+      intermediate: false,
+      aborted: true,
+      reason: "missing_message_completion",
+    });
+  }
+
+  return { messages, openPrompts: [...openPrompts.values()] };
 }
 
 function createGeneratedPreambleMessages(args: {

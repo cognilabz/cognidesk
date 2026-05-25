@@ -6,6 +6,8 @@ import type {
   HandleUserMessageInput,
   HandleUserMessageResult,
   RequestHandoffInput,
+  ReplayConversationInput,
+  ReplayConversationResult,
   ResumeConversationInput,
   RuntimeEvent,
   RuntimeSnapshot,
@@ -158,6 +160,9 @@ describe("HTTP adapter", () => {
     const snapshotResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/snapshot"));
     const snapshotBody = await snapshotResponse.json() as { snapshot: RuntimeSnapshot | null };
 
+    const replayResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/replay?after=0"));
+    const replay = await replayResponse.json() as ReplayConversationResult;
+
     const closeResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/close", {
       method: "POST",
       body: JSON.stringify({ reason: "Resolved" }),
@@ -173,6 +178,9 @@ describe("HTTP adapter", () => {
     expect(compacted.summary).toEqual({ summary: "Compacted." });
     expect(snapshotResponse.status).toBe(200);
     expect(snapshotBody.snapshot?.compactionSummary).toEqual({ summary: "Compacted." });
+    expect(replayResponse.status).toBe(200);
+    expect(replay.events.length).toBeGreaterThan(0);
+    expect(replay.openPrompts).toEqual([]);
     expect(closeResponse.status).toBe(200);
     expect(closed.conversation.lifecycle).toBe("closed");
   });
@@ -363,6 +371,16 @@ class FakeRuntime implements CognideskHttpRuntime {
 
   async getSnapshot(_conversationId: string): Promise<RuntimeSnapshot | null> {
     return this.snapshot;
+  }
+
+  async replayConversation(input: ReplayConversationInput): Promise<ReplayConversationResult> {
+    return {
+      conversation: await this.createConversation({ agentId: "flight-service", context: {} }),
+      snapshot: this.snapshot,
+      events: this.events.filter((event) => event.offset > (input.afterOffset ?? 0)),
+      messages: [],
+      openPrompts: [],
+    };
   }
 
   private snapshot: RuntimeSnapshot | null = null;
