@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCognideskClient } from "../src/index.js";
+import { createCognideskClient, formatSupportReferences } from "../src/index.js";
 import type { RuntimeEvent } from "@cognidesk/core";
 
 describe("createCognideskClient", () => {
@@ -65,6 +65,13 @@ describe("createCognideskClient", () => {
     expect(FakeEventSource.last?.url).toBe("http://localhost/conversations/conversation_1/events/stream?after=4");
     expect(FakeEventSource.last?.closed).toBe(true);
     expect(events[0]?.type).toBe("message.completed");
+  });
+
+  it("formats support references for citation hovers", () => {
+    expect(formatSupportReferences([
+      { type: "knowledge", id: "policy-bags" },
+      { type: "toolResult", id: "tool_1" },
+    ])).toBe("Knowledge: policy-bags\nTool result: tool_1");
   });
 });
 

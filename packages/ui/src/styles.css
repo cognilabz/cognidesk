@@ -73,6 +73,14 @@
   color: var(--cd-color-primary-contrast);
 }
 
+.cd-message-source-segment {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--cd-color-primary) 55%, transparent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+  cursor: help;
+}
+
 .cd-widget-outlet {
   display: flex;
   flex-direction: column;

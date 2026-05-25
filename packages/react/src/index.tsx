@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import type { RuntimeEvent } from "@cognidesk/core";
+import type { MessageSegment, RuntimeEvent, SupportReference } from "@cognidesk/core";
 import type { AppearanceConfiguration } from "@cognidesk/ui";
 import { elementKeys, resolveElementClassName, resolveInlineStyle } from "@cognidesk/ui";
 
@@ -37,6 +37,7 @@ export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   text: string;
+  segments?: MessageSegment[];
   status: "sending" | "sent" | "failed";
 }
 
@@ -157,6 +158,7 @@ export function useChat(options: UseChatOptions) {
     lastOffsetRef.current = Math.max(lastOffsetRef.current, event.offset);
     if (event.type === "message.completed") {
       setMessages((current) => {
+        if (current.some((message) => message.id === event.id)) return current;
         const role = inferMessageRole(event, current);
         if (role !== "assistant") return current;
         return [
@@ -165,6 +167,7 @@ export function useChat(options: UseChatOptions) {
             id: event.id,
             role,
             text: event.data.text,
+            ...(event.data.segments ? { segments: event.data.segments } : {}),
             status: "sent",
           },
         ];
@@ -246,7 +249,7 @@ export function ChatWidget(props: ChatWidgetProps) {
             style={resolveInlineStyle(message.role === "user" ? elementKeys.messageUser : elementKeys.messageAssistant, appearance)}
             data-status={message.status}
           >
-            {message.text}
+            <MessageContent message={message} appearance={appearance} />
           </div>
         ))}
       </div>
@@ -290,6 +293,36 @@ export function ChatWidget(props: ChatWidgetProps) {
       {chat.error ? <div className="cd-error">{chat.error.message}</div> : null}
     </div>
   );
+}
+
+function MessageContent(props: { message: ChatMessage; appearance: AppearanceConfiguration | undefined }) {
+  if (!props.message.segments?.length) return <>{props.message.text}</>;
+  return (
+    <>
+      {props.message.segments.map((segment) => {
+        const title = formatSupportReferences(segment.references);
+        if (!title) return <span key={segment.id}>{segment.text}</span>;
+        return (
+          <span
+            key={segment.id}
+            className={resolveElementClassName(elementKeys.messageSourceSegment, props.appearance)}
+            style={resolveInlineStyle(elementKeys.messageSourceSegment, props.appearance)}
+            title={title}
+          >
+            {segment.text}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+export function formatSupportReferences(references: SupportReference[] | undefined) {
+  if (!references?.length) return "";
+  return references.map((reference) => {
+    if (reference.type === "knowledge") return `Knowledge: ${reference.id}`;
+    return `Tool result: ${reference.id}`;
+  }).join("\n");
 }
 
 function inferMessageRole(event: Extract<RuntimeEvent, { type: "message.completed" }>, messages: ChatMessage[]) {
