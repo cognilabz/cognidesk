@@ -19,6 +19,7 @@ import { DefinitionError as CognideskDefinitionError } from "./types.js";
 
 type InferObject<TSchema extends ObjectSchema> = z.infer<TSchema>;
 type MaybePromise<T> = T | Promise<T>;
+type FieldWidgetOption = WidgetDefinition | WidgetPromptDefinition;
 
 export interface ConfirmationPolicy {
   message?: string;
@@ -32,14 +33,14 @@ export interface FieldCollectionOptions<TContext> {
   requiredWhen?: (args: { context: TContext }) => boolean;
   extract?: boolean;
   confirm?: boolean | "beforeAction" | ConfirmationPolicy;
-  widget?: WidgetDefinition;
+  widget?: FieldWidgetOption;
 }
 
 export interface ListCollectionOptions<TContext, TItemSchema extends z.ZodType> {
   item: TItemSchema;
   countFrom?: ContextPath<TContext>;
   prompt?: string;
-  widget?: WidgetDefinition;
+  widget?: FieldWidgetOption;
 }
 
 export interface TransitionOptions<TContext> {
@@ -135,6 +136,7 @@ export interface CompiledState {
     extract: boolean;
     prompt?: string;
     widget?: WidgetDefinition;
+    widgetInput?: unknown;
     requiredWhen?: (args: { context: unknown }) => boolean;
   }>;
   transitions: CompiledTransition[];
@@ -222,6 +224,17 @@ interface TransitionTargetBuilder<TContextSchema extends ObjectSchema, TReturn> 
 
 function pushUnique<T>(items: T[], item: T) {
   if (!items.includes(item)) items.push(item);
+}
+
+function resolveFieldWidget(widgetOption: FieldWidgetOption | undefined) {
+  if (!widgetOption) return null;
+  if ("widget" in widgetOption) {
+    return {
+      widget: widgetOption.widget,
+      input: widgetOption.input,
+    };
+  }
+  return { widget: widgetOption };
 }
 
 function assertUniqueNames(items: Array<{ name: string }>, label: string) {
@@ -371,6 +384,7 @@ export class StateBuilder<
     extract: boolean;
     prompt?: string;
     widget?: WidgetDefinition;
+    widgetInput?: unknown;
     requiredWhen?: (args: { context: unknown }) => boolean;
   }> = [];
   readonly stateActions: Array<{ type: "entry" | "exit" | "transition"; name: string; requiresVisit?: boolean }> = [];
@@ -396,12 +410,14 @@ export class StateBuilder<
   }
 
   collect(path: ContextPath<InferObject<TContextSchema>>, options: FieldCollectionOptions<InferObject<TContextSchema>> = {}) {
+    const widgetDefinition = resolveFieldWidget(options.widget);
     this.collectedFields.push({
       path,
       required: options.required ?? true,
       extract: options.extract ?? true,
       ...(options.prompt ? { prompt: options.prompt } : {}),
-      ...(options.widget ? { widget: options.widget } : {}),
+      ...(widgetDefinition ? { widget: widgetDefinition.widget } : {}),
+      ...(widgetDefinition?.input !== undefined ? { widgetInput: widgetDefinition.input } : {}),
       ...(options.requiredWhen ? { requiredWhen: options.requiredWhen as (args: { context: unknown }) => boolean } : {}),
     });
     if (options.widget || options.confirm) this.requiresVisit("field collection requires user-visible handling");
@@ -412,13 +428,14 @@ export class StateBuilder<
     path: ContextPath<InferObject<TContextSchema>>,
     options: ListCollectionOptions<InferObject<TContextSchema>, TItemSchema>,
   ) {
-    void options;
+    const widgetDefinition = resolveFieldWidget(options.widget);
     this.collectedFields.push({
       path,
       required: true,
       extract: true,
       ...(options.prompt ? { prompt: options.prompt } : {}),
-      ...(options.widget ? { widget: options.widget } : {}),
+      ...(widgetDefinition ? { widget: widgetDefinition.widget } : {}),
+      ...(widgetDefinition?.input !== undefined ? { widgetInput: widgetDefinition.input } : {}),
     });
     this.requiresVisit("list collection requires user-visible handling");
     return this;

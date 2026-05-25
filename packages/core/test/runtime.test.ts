@@ -11,6 +11,7 @@ import {
   knowledgeSource,
   textInputWidget,
   tool,
+  widgetPrompt,
 } from "../src/index.js";
 import type {
   AgentModelSet,
@@ -1106,8 +1107,10 @@ describe("runtime turn pipeline", () => {
       }),
     });
     const collectEmail = profile.state("collectEmail").collect("email", {
-      prompt: "Email address",
-      widget: textInputWidget,
+      widget: widgetPrompt(textInputWidget, {
+        label: "Email address",
+        placeholder: "alex@example.com",
+      }),
     });
     const done = profile.final("done");
     profile.initial(collectEmail);
@@ -1138,7 +1141,10 @@ describe("runtime turn pipeline", () => {
     expect(prompted?.data).toEqual({
       promptId: "field:traveller-profile:collectEmail:email",
       widgetKind: "text-input",
-      input: { label: "Email address" },
+      input: {
+        label: "Email address",
+        placeholder: "alex@example.com",
+      },
     });
 
     await runtime.submitWidget({

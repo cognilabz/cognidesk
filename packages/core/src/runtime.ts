@@ -1846,7 +1846,7 @@ export class CognideskRuntime {
         data: {
           promptId,
           widgetKind: field.widget?.kind ?? "text-input",
-          input: {
+          input: field.widgetInput ?? {
             label: field.prompt ?? field.path,
           },
         },
