@@ -133,6 +133,8 @@ export interface CompiledState {
     path: string;
     required: boolean;
     extract: boolean;
+    prompt?: string;
+    widget?: WidgetDefinition;
     requiredWhen?: (args: { context: unknown }) => boolean;
   }>;
   transitions: CompiledTransition[];
@@ -367,6 +369,8 @@ export class StateBuilder<
     path: string;
     required: boolean;
     extract: boolean;
+    prompt?: string;
+    widget?: WidgetDefinition;
     requiredWhen?: (args: { context: unknown }) => boolean;
   }> = [];
   readonly stateActions: Array<{ type: "entry" | "exit" | "transition"; name: string; requiresVisit?: boolean }> = [];
@@ -396,6 +400,8 @@ export class StateBuilder<
       path,
       required: options.required ?? true,
       extract: options.extract ?? true,
+      ...(options.prompt ? { prompt: options.prompt } : {}),
+      ...(options.widget ? { widget: options.widget } : {}),
       ...(options.requiredWhen ? { requiredWhen: options.requiredWhen as (args: { context: unknown }) => boolean } : {}),
     });
     if (options.widget || options.confirm) this.requiresVisit("field collection requires user-visible handling");
@@ -407,7 +413,13 @@ export class StateBuilder<
     options: ListCollectionOptions<InferObject<TContextSchema>, TItemSchema>,
   ) {
     void options;
-    this.collectedFields.push({ path, required: true, extract: true });
+    this.collectedFields.push({
+      path,
+      required: true,
+      extract: true,
+      ...(options.prompt ? { prompt: options.prompt } : {}),
+      ...(options.widget ? { widget: options.widget } : {}),
+    });
     this.requiresVisit("list collection requires user-visible handling");
     return this;
   }

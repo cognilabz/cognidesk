@@ -9,6 +9,7 @@ import {
   handoffTool,
   journeyContextViewerTool,
   knowledgeSource,
+  textInputWidget,
   tool,
 } from "../src/index.js";
 import type {
@@ -1092,6 +1093,69 @@ describe("runtime turn pipeline", () => {
     expect(result.snapshot.activeJourneyId).toBeUndefined();
     expect(result.snapshot.activeStateIds).toEqual([]);
     expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toContain("journey.completed");
+  });
+
+  it("prompts for missing collected fields and applies widget submissions to journey context", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const profile = agentBuilder.stateMachineJourney("traveller-profile", {
+      condition: "Customer needs to update traveller profile",
+      context: z.object({
+        email: z.string().email().optional(),
+      }),
+    });
+    const collectEmail = profile.state("collectEmail").collect("email", {
+      prompt: "Email address",
+      widget: textInputWidget,
+    });
+    const done = profile.final("done");
+    profile.initial(collectEmail);
+    collectEmail.transitionTo(done);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      extraction: {
+        provider: "test",
+        model: "extraction",
+        generateText: async () => {
+          const structured = { values: {} };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const turn = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Update my traveller profile.",
+    });
+    const prompted = (await runtime.listEvents(conversation.id)).find((event) => event.type === "ui.prompted");
+
+    expect(turn.snapshot.activeStateIds).toEqual(["collectEmail"]);
+    expect(prompted?.data).toEqual({
+      promptId: "field:traveller-profile:collectEmail:email",
+      widgetKind: "text-input",
+      input: { label: "Email address" },
+    });
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "field:traveller-profile:collectEmail:email",
+      widgetKind: "text-input",
+      output: { value: "alex@example.com" },
+    });
+
+    const snapshot = await runtime.getSnapshot(conversation.id);
+    expect(snapshot?.activeJourneyId).toBeUndefined();
+    expect(snapshot?.activeStateIds).toEqual([]);
+    expect(snapshot?.journeyContext).toBeUndefined();
+    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual(expect.arrayContaining([
+      "ui.submitted",
+      "journey.completed",
+    ]));
   });
 
   it("moves to handoff when the confirmed built-in handoff tool runs", async () => {

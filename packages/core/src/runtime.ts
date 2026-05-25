@@ -1555,10 +1555,13 @@ export class CognideskRuntime {
       visited.add(state.id);
       const lifecycle = await this.requireConversationRecord(args.conversation.id);
       if (lifecycle.lifecycle !== "active") return state;
-      if (!this.stateRequirementsSatisfied(state, args.context)) return state;
-      if (state.requiresVisit) {
-        await this.emitConfirmationPrompts({ ...args, state });
+      if (!this.stateRequirementsSatisfied(state, args.context)) {
+        await this.emitFieldPrompts({ ...args, state });
         return state;
+      }
+      if (state.requiresVisit) {
+        const promptCount = await this.emitConfirmationPrompts({ ...args, state });
+        if (promptCount > 0) return state;
       }
 
       const toolTargetId = await this.runStateToolRuns({
@@ -1816,6 +1819,43 @@ export class CognideskRuntime {
     return null;
   }
 
+  private async emitFieldPrompts(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    state: CompiledJourney["states"][number];
+    context: Record<string, unknown>;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const missingFields = args.state.collected.filter((field) => (
+      isFieldRequired(field, args.context) && !hasUsableValue(getPathValue(args.context, field.path))
+    ));
+    if (missingFields.length === 0) return 0;
+    const existing = await this.options.storage.listEvents({ conversationId: args.conversation.id });
+    let prompted = 0;
+    for (const field of missingFields) {
+      const promptId = createFieldPromptId(args.journey.id, args.state.id, field.path);
+      const hasOpenPrompt = existing.some((event) => (
+        event.type === "ui.prompted" && event.data.promptId === promptId
+      )) && !existing.some((event) => (
+        event.type === "ui.submitted" && event.data.promptId === promptId
+      ));
+      if (hasOpenPrompt) continue;
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "ui.prompted",
+        data: {
+          promptId,
+          widgetKind: field.widget?.kind ?? "text-input",
+          input: {
+            label: field.prompt ?? field.path,
+          },
+        },
+      });
+      prompted += 1;
+    }
+    return prompted;
+  }
+
   private async emitConfirmationPrompts(args: {
     journey: CompiledJourney;
     conversation: ConversationRecord;
@@ -1826,8 +1866,9 @@ export class CognideskRuntime {
     const confirmableToolRuns = args.state.toolRuns.filter((toolRun) => (
       toolRun.actionType === "transition" && toolRun.confirm
     ));
-    if (confirmableToolRuns.length === 0) return;
+    if (confirmableToolRuns.length === 0) return 0;
     const existing = await this.options.storage.listEvents({ conversationId: args.conversation.id });
+    let prompted = 0;
     for (const toolRun of confirmableToolRuns) {
       const promptId = createToolConfirmationPromptId(args.journey.id, args.state.id, toolRun.tool.name);
       const hasOpenPrompt = existing.some((event) => (
@@ -1850,7 +1891,9 @@ export class CognideskRuntime {
           },
         },
       });
+      prompted += 1;
     }
+    return prompted;
   }
 
   private async processWidgetSubmission(args: {
@@ -1858,8 +1901,6 @@ export class CognideskRuntime {
     promptId: string;
     output: unknown;
   }) {
-    const confirmed = z.object({ confirmed: z.boolean() }).safeParse(args.output);
-    if (!confirmed.success || !confirmed.data.confirmed) return;
     const agent = this.options.agent;
     if (!agent) return;
     const snapshot = await this.options.storage.getSnapshot(args.conversation.id);
@@ -1872,6 +1913,43 @@ export class CognideskRuntime {
     const state = stateId ? stateById.get(stateId) : undefined;
     if (!state) return;
     const context = isRecord(snapshot?.journeyContext) ? structuredClone(snapshot.journeyContext) : {};
+    const fieldPrompt = parseFieldPromptId(args.promptId);
+    if (fieldPrompt && fieldPrompt.journeyId === journey.id && fieldPrompt.stateId === state.id) {
+      const field = state.collected.find((candidate) => candidate.path === fieldPrompt.path);
+      if (!field) return;
+      setPathValue(context, field.path, extractWidgetFieldValue(args.output));
+      const finalState = await this.advanceStateMachine({
+        journey,
+        conversation: args.conversation,
+        stateById,
+        state,
+        context,
+        emit: (event) => this.emit(event),
+      });
+      const completed = finalState.type === "final"
+        ? { journeyId: journey.id, stateId: finalState.id }
+        : undefined;
+      if (completed) {
+        await this.emit({
+          conversationId: args.conversation.id,
+          type: "journey.completed",
+          data: completed,
+        });
+      }
+      await this.options.storage.saveSnapshot({
+        conversationId: args.conversation.id,
+        lifecycle: args.conversation.lifecycle,
+        activeStateIds: completed ? [] : [finalState.id],
+        updatedAt: new Date().toISOString(),
+        ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
+        ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
+        ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
+      });
+      return;
+    }
+
+    const confirmed = z.object({ confirmed: z.boolean() }).safeParse(args.output);
+    if (!confirmed.success || !confirmed.data.confirmed) return;
     const toolTargetId = await this.runStateToolRuns({
       journey,
       conversation: args.conversation,
@@ -2402,6 +2480,25 @@ function createJourneyContextView(input: unknown, context: Record<string, unknow
 
 function createToolConfirmationPromptId(journeyId: string, stateId: string, toolName: string) {
   return `confirm:${journeyId}:${stateId}:${toolName}`;
+}
+
+function createFieldPromptId(journeyId: string, stateId: string, path: string) {
+  return `field:${journeyId}:${stateId}:${encodeURIComponent(path)}`;
+}
+
+function parseFieldPromptId(promptId: string) {
+  const [kind, journeyId, stateId, encodedPath] = promptId.split(":");
+  if (kind !== "field" || !journeyId || !stateId || !encodedPath) return null;
+  return {
+    journeyId,
+    stateId,
+    path: decodeURIComponent(encodedPath),
+  };
+}
+
+function extractWidgetFieldValue(output: unknown) {
+  if (isRecord(output) && "value" in output) return output.value;
+  return output;
 }
 
 class AbortError extends Error {
