@@ -1445,6 +1445,23 @@ export class CognideskRuntime {
       : {};
     if (!initialState) return { activeStateIds: [], journeyContext: context };
 
+    if (!sameJourney) {
+      await this.runStateActionRuns({
+        ...args,
+        state: initialState,
+        context,
+        actionType: "entry",
+      });
+      await this.runStateToolRuns({
+        ...args,
+        state: initialState,
+        context,
+        actionType: "entry",
+      });
+      const lifecycle = await this.requireConversationRecord(args.conversation.id);
+      if (lifecycle.lifecycle !== "active") return { activeStateIds: [initialState.id], journeyContext: context };
+    }
+
     const activeState = await this.applyStateExtraction({
       ...args,
       state: initialState,
@@ -1573,6 +1590,11 @@ export class CognideskRuntime {
         if (promptCount > 0) return state;
       }
 
+      await this.runStateActionRuns({
+        ...args,
+        state,
+        actionType: "transition",
+      });
       const toolTargetId = await this.runStateToolRuns({
         ...args,
         state,
@@ -1591,11 +1613,28 @@ export class CognideskRuntime {
 
       const nextState = args.stateById.get(transition.targetId);
       if (!nextState) return state;
+      await this.runStateActionRuns({
+        ...args,
+        state,
+        actionType: "exit",
+      });
+      await this.runStateToolRuns({
+        ...args,
+        state,
+        actionType: "exit",
+      });
+      const lifecycleAfterExit = await this.requireConversationRecord(args.conversation.id);
+      if (lifecycleAfterExit.lifecycle !== "active") return state;
       state = nextState;
       await args.emit({
         conversationId: args.conversation.id,
         type: "journey.state.entered",
         data: { journeyId: args.journey.id, stateId: state.id },
+      });
+      await this.runStateActionRuns({
+        ...args,
+        state,
+        actionType: "entry",
       });
       await this.runStateToolRuns({
         ...args,
@@ -1696,6 +1735,115 @@ export class CognideskRuntime {
       if (guardAllows(result)) return transition;
     }
     return null;
+  }
+
+  private async runStateActionRuns(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    state: CompiledJourney["states"][number];
+    context: Record<string, unknown>;
+    actionType: "entry" | "exit" | "transition";
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const actionRuns = args.state.actionRuns.filter((actionRun) => actionRun.actionType === args.actionType);
+    for (const actionRun of actionRuns) {
+      const rawInput = actionRun.input ? actionRun.input({ context: args.context }) : {};
+      const parsedInput = actionRun.action.input.safeParse(rawInput);
+      if (!parsedInput.success) {
+        const error = parsedInput.error.message;
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "action.completed",
+          data: {
+            actionName: actionRun.action.name,
+            success: false,
+            journeyId: args.journey.id,
+            stateId: args.state.id,
+            error,
+          },
+        });
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "error",
+          data: {
+            code: "state_action_validation_failed",
+            message: error,
+          },
+        });
+        continue;
+      }
+
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "action.started",
+        data: {
+          actionName: actionRun.action.name,
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+        },
+      });
+      await this.trace({
+        type: "action.started",
+        conversationId: args.conversation.id,
+        actionName: actionRun.action.name,
+        journeyId: args.journey.id,
+        stateId: args.state.id,
+      });
+      try {
+        if (args.signal?.aborted) throw args.signal.reason ?? new AbortError("aborted");
+        await actionRun.action.run({ input: parsedInput.data });
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "action.completed",
+          data: {
+            actionName: actionRun.action.name,
+            success: true,
+            journeyId: args.journey.id,
+            stateId: args.state.id,
+          },
+        });
+        await this.trace({
+          type: "action.completed",
+          conversationId: args.conversation.id,
+          actionName: actionRun.action.name,
+          success: true,
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+        });
+      } catch (error) {
+        if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+        const message = error instanceof Error ? error.message : "State action failed.";
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "action.completed",
+          data: {
+            actionName: actionRun.action.name,
+            success: false,
+            journeyId: args.journey.id,
+            stateId: args.state.id,
+            error: message,
+          },
+        });
+        await this.trace({
+          type: "action.completed",
+          conversationId: args.conversation.id,
+          actionName: actionRun.action.name,
+          success: false,
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+          error: message,
+        });
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "error",
+          data: {
+            code: "state_action_failed",
+            message,
+          },
+        });
+      }
+    }
   }
 
   private async runStateToolRuns(args: {
@@ -1979,10 +2127,44 @@ export class CognideskRuntime {
       : undefined;
     const activeStateIds = completed ? [] : nextState ? [nextState.id] : [state.id];
     if (nextState) {
+      await this.runStateActionRuns({
+        journey,
+        conversation: args.conversation,
+        state,
+        context,
+        actionType: "exit",
+        emit: (event) => this.emit(event),
+      });
+      await this.runStateToolRuns({
+        journey,
+        conversation: args.conversation,
+        state,
+        context,
+        actionType: "exit",
+        emit: (event) => this.emit(event),
+      });
+      const lifecycleAfterExit = await this.requireConversationRecord(args.conversation.id);
+      if (lifecycleAfterExit.lifecycle !== "active") return;
       await this.emit({
         conversationId: args.conversation.id,
         type: "journey.state.entered",
         data: { journeyId: journey.id, stateId: nextState.id },
+      });
+      await this.runStateActionRuns({
+        journey,
+        conversation: args.conversation,
+        state: nextState,
+        context,
+        actionType: "entry",
+        emit: (event) => this.emit(event),
+      });
+      await this.runStateToolRuns({
+        journey,
+        conversation: args.conversation,
+        state: nextState,
+        context,
+        actionType: "entry",
+        emit: (event) => this.emit(event),
       });
     }
     if (completed) {
@@ -2039,6 +2221,26 @@ export class CognideskRuntime {
 
     const nextState = stateById.get(transition.targetId);
     if (!nextState) return previousSnapshot;
+    await this.runStateActionRuns({
+      journey: route.journey,
+      conversation: args.conversation,
+      state: route.state,
+      context,
+      actionType: "exit",
+      emit: args.emit,
+      ...(args.signal ? { signal: args.signal } : {}),
+    });
+    await this.runStateToolRuns({
+      journey: route.journey,
+      conversation: args.conversation,
+      state: route.state,
+      context,
+      actionType: "exit",
+      emit: args.emit,
+      ...(args.signal ? { signal: args.signal } : {}),
+    });
+    const lifecycleAfterExit = await this.requireConversationRecord(args.conversation.id);
+    if (lifecycleAfterExit.lifecycle !== "active") return previousSnapshot;
     if (route.journey.id !== previousSnapshot?.activeJourneyId) {
       await args.emit({
         conversationId: args.conversation.id,
@@ -2053,6 +2255,15 @@ export class CognideskRuntime {
       conversationId: args.conversation.id,
       type: "journey.state.entered",
       data: { journeyId: route.journey.id, stateId: nextState.id },
+    });
+    await this.runStateActionRuns({
+      journey: route.journey,
+      conversation: args.conversation,
+      state: nextState,
+      context,
+      actionType: "entry",
+      emit: args.emit,
+      ...(args.signal ? { signal: args.signal } : {}),
     });
     await this.runStateToolRuns({
       journey: route.journey,

@@ -30,6 +30,22 @@ export type TraceEvent =
       error: string;
     }
   | {
+      type: "action.started";
+      conversationId: string;
+      actionName: string;
+      journeyId?: string;
+      stateId?: string;
+    }
+  | {
+      type: "action.completed";
+      conversationId: string;
+      actionName: string;
+      success: boolean;
+      journeyId?: string;
+      stateId?: string;
+      error?: string;
+    }
+  | {
       type: "tool.started";
       conversationId: string;
       toolName: string;

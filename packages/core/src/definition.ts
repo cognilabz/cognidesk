@@ -62,6 +62,11 @@ export type ToolRunOptionsFor<TTool extends AnyTool, TContext> =
     ? ToolRunOptions<TTool, TContext> & { confirm: ConfirmationPolicy }
     : ToolRunOptions<TTool, TContext> & { confirm?: ConfirmationPolicy };
 
+export interface StateActionUseOptions<TAction extends ActionDefinition, TContext> {
+  type?: "entry" | "exit" | "transition";
+  input?: (args: { context: TContext }) => z.infer<TAction["input"]>;
+}
+
 export interface ActionDefinition<
   TName extends string = string,
   TInputSchema extends z.ZodType = z.ZodType,
@@ -143,6 +148,7 @@ export interface CompiledState {
   }>;
   transitions: CompiledTransition[];
   actions: Array<{ type: "entry" | "exit" | "transition"; name: string }>;
+  actionRuns: CompiledActionRun[];
   toolRuns: CompiledToolRun[];
   requiresVisit: boolean;
 }
@@ -165,6 +171,12 @@ export interface CompiledToolRun<TContext = unknown> {
   onSuccessId?: string;
   onFailureId?: string;
   onValidationErrorId?: string;
+}
+
+export interface CompiledActionRun<TContext = unknown> {
+  action: ActionDefinition;
+  actionType: "entry" | "exit" | "transition";
+  input?: (args: { context: TContext }) => unknown;
 }
 
 export interface CompiledDelegation {
@@ -218,6 +230,12 @@ interface InternalToolRun {
   onSuccess?: StateBuilder<string, ObjectSchema>;
   onFailure?: StateBuilder<string, ObjectSchema>;
   onValidationError?: StateBuilder<string, ObjectSchema>;
+}
+
+interface InternalActionRun {
+  action: ActionDefinition;
+  actionType: "entry" | "exit" | "transition";
+  input?: (args: { context: unknown }) => unknown;
 }
 
 interface TransitionTargetBuilder<TContextSchema extends ObjectSchema, TReturn> {
@@ -380,6 +398,7 @@ export class StateBuilder<
   readonly children: StateBuilder<string, TContextSchema>[] = [];
   readonly transitions: InternalTransition[] = [];
   readonly toolRuns: InternalToolRun[] = [];
+  readonly actionRuns: InternalActionRun[] = [];
   readonly collectedFields: Array<{
     path: string;
     required: boolean;
@@ -563,9 +582,19 @@ export class StateBuilder<
     return this;
   }
 
-  useAction(actionDefinition: ActionDefinition, type: "entry" | "exit" | "transition" = "transition") {
+  useAction<TAction extends ActionDefinition>(
+    actionDefinition: TAction,
+    options: StateActionUseOptions<TAction, InferObject<TContextSchema>> | "entry" | "exit" | "transition" = "transition",
+  ) {
+    const actionType = typeof options === "string" ? options : options.type ?? "transition";
+    const input = typeof options === "string" ? undefined : options.input;
+    this.actionRuns.push({
+      action: actionDefinition,
+      actionType,
+      ...(input ? { input: input as (args: { context: unknown }) => unknown } : {}),
+    });
     this.stateActions.push({
-      type,
+      type: actionType,
       name: actionDefinition.name,
       ...(actionDefinition.requiresVisit !== undefined ? { requiresVisit: actionDefinition.requiresVisit } : {}),
     });
@@ -610,6 +639,11 @@ export class StateBuilder<
       actions: this.stateActions.map((stateAction) => ({
         type: stateAction.type,
         name: stateAction.name,
+      })),
+      actionRuns: this.actionRuns.map((actionRun) => ({
+        action: actionRun.action,
+        actionType: actionRun.actionType,
+        ...(actionRun.input ? { input: actionRun.input } : {}),
       })),
       toolRuns: this.toolRuns.map((toolRun) => ({
         tool: toolRun.tool,

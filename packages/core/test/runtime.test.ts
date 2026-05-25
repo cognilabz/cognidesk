@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
+  action,
   buildJourneyIndex,
   createAgent,
   createRuntime,
@@ -597,6 +598,81 @@ describe("runtime turn pipeline", () => {
         itemIds: ["seat-map"],
       },
     });
+  });
+
+  it("executes typed state actions on entry, transition, and exit", async () => {
+    const executed: string[] = [];
+    const recordAction = action("recordAction", {
+      input: z.object({ label: z.string() }),
+      run: ({ input }) => {
+        executed.push(input.label);
+      },
+    });
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const journey = agentBuilder.stateMachineJourney("action-test", {
+      condition: "Customer triggers a deterministic action test",
+      context: z.object({}),
+    });
+    const start = journey.state("start")
+      .useAction(recordAction, {
+        type: "entry",
+        input: () => ({ label: "entry:start" }),
+      })
+      .useAction(recordAction, {
+        type: "transition",
+        input: () => ({ label: "transition:start" }),
+      })
+      .useAction(recordAction, {
+        type: "exit",
+        input: () => ({ label: "exit:start" }),
+      });
+    const done = journey.final("done")
+      .useAction(recordAction, {
+        type: "entry",
+        input: () => ({ label: "entry:done" }),
+      });
+    journey.initial(start);
+    start.transitionTo(done);
+
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Run the deterministic action test.",
+    });
+
+    expect(executed).toEqual([
+      "entry:start",
+      "transition:start",
+      "exit:start",
+      "entry:done",
+    ]);
+    const actionEvents = (await runtime.listEvents(conversation.id)).filter((event) => event.type.startsWith("action."));
+    expect(actionEvents.map((event) => event.type)).toEqual([
+      "action.started",
+      "action.completed",
+      "action.started",
+      "action.completed",
+      "action.started",
+      "action.completed",
+      "action.started",
+      "action.completed",
+    ]);
+    expect(actionEvents.filter((event) => event.type === "action.completed").map((event) => event.data)).toEqual([
+      { actionName: "recordAction", success: true, journeyId: "action-test", stateId: "start" },
+      { actionName: "recordAction", success: true, journeyId: "action-test", stateId: "start" },
+      { actionName: "recordAction", success: true, journeyId: "action-test", stateId: "start" },
+      { actionName: "recordAction", success: true, journeyId: "action-test", stateId: "done" },
+    ]);
   });
 
   it("retries retryable model-requested tools and emits an intermediate notice", async () => {
