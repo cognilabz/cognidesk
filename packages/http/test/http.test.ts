@@ -3,8 +3,10 @@ import { createCognideskHttpHandler, type CognideskHttpRuntime } from "../src/in
 import type {
   ConversationRecord,
   CreateRuntimeConversationInput,
+  CustomRuntimeEventDefinition,
   HandleUserMessageInput,
   HandleUserMessageResult,
+  JourneyEventDefinition,
   RequestHandoffInput,
   ReplayConversationInput,
   ReplayConversationResult,
@@ -89,6 +91,58 @@ describe("HTTP adapter", () => {
       widgetKind: "confirmation",
       output: { confirmed: true },
     });
+  });
+
+  it("posts custom and journey events to the runtime", async () => {
+    const runtime = new FakeRuntime();
+    const payload = { parse: (value: unknown) => value };
+    const leadCaptured = {
+      kind: "customRuntimeEvent",
+      name: "lead.captured",
+      payload,
+      visibleToModel: true,
+    } as unknown as CustomRuntimeEventDefinition;
+    const ticketSynced = {
+      kind: "journeyEvent",
+      name: "ticket.synced",
+      payload,
+      routing: "targeted",
+    } as unknown as JourneyEventDefinition;
+    const handler = createCognideskHttpHandler({
+      runtime,
+      agentId: "flight-service",
+      customEvents: [leadCaptured],
+      journeyEvents: [ticketSynced],
+    });
+
+    const customResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/custom-events/lead.captured", {
+      method: "POST",
+      body: JSON.stringify({ payload: { email: "alex@example.com" }, traceId: "trace_1" }),
+    }));
+    const custom = await customResponse.json() as { event: RuntimeEvent };
+
+    const journeyResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/journey-events/ticket.synced", {
+      method: "POST",
+      body: JSON.stringify({
+        payload: { bookingReference: "ABC123" },
+        target: { journeyId: "ticket-status", stateId: "wait" },
+      }),
+    }));
+    const journey = await journeyResponse.json() as { event: RuntimeEvent; snapshot: RuntimeSnapshot | null; events: RuntimeEvent[] };
+
+    expect(customResponse.status).toBe(200);
+    expect(custom.event.type).toBe("custom.lead.captured");
+    expect(custom.event.data).toEqual({ email: "alex@example.com" });
+    expect(custom.event.traceId).toBe("trace_1");
+    expect(journeyResponse.status).toBe(200);
+    expect(journey.event.type).toBe("journey.event.emitted");
+    expect(journey.event.data).toEqual({
+      name: "ticket.synced",
+      payload: { bookingReference: "ABC123" },
+      routing: "targeted",
+      target: { journeyId: "ticket-status", stateId: "wait" },
+    });
+    expect(journey.snapshot?.activeJourneyId).toBe("ticket-status");
   });
 
   it("requests handoff through the runtime", async () => {
@@ -227,6 +281,48 @@ class FakeRuntime implements CognideskHttpRuntime {
 
   async listEvents(_conversationId: string, afterOffset = 0) {
     return this.events.filter((event) => event.offset > afterOffset);
+  }
+
+  async emitCustomEvent(input: Parameters<NonNullable<CognideskHttpRuntime["emitCustomEvent"]>>[0]): Promise<RuntimeEvent> {
+    const event = {
+      id: `event_${this.events.length + 1}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 1,
+      type: `custom.${input.event.name}`,
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: input.payload,
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    } satisfies RuntimeEvent;
+    this.events.push(event);
+    return event;
+  }
+
+  async emitJourneyEvent(input: Parameters<NonNullable<CognideskHttpRuntime["emitJourneyEvent"]>>[0]) {
+    const event = {
+      id: `event_${this.events.length + 1}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 1,
+      type: "journey.event.emitted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        name: input.event.name,
+        payload: input.payload,
+        routing: input.routing ?? input.event.routing ?? "activeJourneyOnly",
+        ...(input.target ? { target: input.target } : {}),
+      },
+    } satisfies RuntimeEvent;
+    this.events.push(event);
+    return {
+      event,
+      snapshot: {
+        conversationId: input.conversationId,
+        lifecycle: "active" as const,
+        activeStateIds: input.target?.stateId ? [input.target.stateId] : [],
+        updatedAt: "2026-05-25T00:00:00.000Z",
+        ...(input.target?.journeyId ? { activeJourneyId: input.target.journeyId } : {}),
+      },
+      events: [event],
+    };
   }
 
   async submitWidget(input: SubmitWidgetInput): Promise<RuntimeEvent> {

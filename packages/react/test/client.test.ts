@@ -150,6 +150,32 @@ describe("createCognideskClient", () => {
             },
           });
         }
+        if (String(url).includes("/custom-events/")) {
+          return Response.json({
+            event: {
+              id: "event_custom",
+              conversationId: "conversation_1",
+              offset: 2,
+              type: "custom.lead.captured",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: {},
+            },
+          });
+        }
+        if (String(url).includes("/journey-events/")) {
+          return Response.json({
+            event: {
+              id: "event_journey",
+              conversationId: "conversation_1",
+              offset: 3,
+              type: "journey.event.emitted",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: {},
+            },
+            snapshot: null,
+            events: [],
+          });
+        }
         return Response.json({ text: "ok", events: [], activeJourneyId: "ticket-status" });
       },
     });
@@ -160,6 +186,15 @@ describe("createCognideskClient", () => {
       promptId: "prompt_1",
       widgetKind: "confirmation",
       output: { confirmed: true },
+    });
+    await client.emitCustomEvent(created.conversation.id, "lead.captured", {
+      payload: { email: "alex@example.com" },
+      traceId: "trace_custom",
+    });
+    await client.emitJourneyEvent(created.conversation.id, "ticket.synced", {
+      payload: { bookingReference: "ABC123" },
+      routing: "targeted",
+      target: { journeyId: "ticket-status", stateId: "wait" },
     });
     await client.requestHandoff(created.conversation.id, {
       reason: "Customer wants a human",
@@ -201,6 +236,18 @@ describe("createCognideskClient", () => {
       {
         url: "http://localhost/api/conversations/conversation_1/widgets/prompt_1/submissions",
         body: { widgetKind: "confirmation", output: { confirmed: true } },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/custom-events/lead.captured",
+        body: { payload: { email: "alex@example.com" }, traceId: "trace_custom" },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/journey-events/ticket.synced",
+        body: {
+          payload: { bookingReference: "ABC123" },
+          routing: "targeted",
+          target: { journeyId: "ticket-status", stateId: "wait" },
+        },
       },
       {
         url: "http://localhost/api/conversations/conversation_1/handoff",

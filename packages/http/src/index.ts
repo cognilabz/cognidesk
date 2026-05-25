@@ -4,10 +4,13 @@ import type {
   CompactConversationResult,
   ConversationRecord,
   CreateRuntimeConversationInput,
+  CustomRuntimeEventDefinition,
   EmitGeneratedPreambleInput,
   EmitIntermediateMessageInput,
+  EmitJourneyEventResult,
   HandleUserMessageInput,
   HandleUserMessageResult,
+  JourneyEventDefinition,
   RequestHandoffInput,
   ReplayConversationInput,
   ReplayConversationResult,
@@ -21,6 +24,8 @@ export interface CognideskHttpRuntime {
   createConversation(input: CreateRuntimeConversationInput): Promise<ConversationRecord>;
   handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult>;
   submitWidget?(input: SubmitWidgetInput): Promise<RuntimeEvent>;
+  emitCustomEvent?(input: { conversationId: string; event: CustomRuntimeEventDefinition; payload: unknown; traceId?: string }): Promise<RuntimeEvent>;
+  emitJourneyEvent?(input: { conversationId: string; event: JourneyEventDefinition; payload: unknown; routing?: "none" | "activeJourneyOnly" | "full" | "targeted"; target?: { journeyId?: string; stateId?: string }; app?: unknown; traceId?: string; signal?: AbortSignal }): Promise<EmitJourneyEventResult>;
   emitIntermediateMessage?(input: EmitIntermediateMessageInput): Promise<{ events: RuntimeEvent[] }>;
   emitGeneratedPreamble?(input: EmitGeneratedPreambleInput): Promise<{ text: string; events: RuntimeEvent[] }>;
   compactConversation?(input: CompactConversationInput): Promise<CompactConversationResult<unknown>>;
@@ -36,6 +41,8 @@ export interface CognideskHttpHandlerOptions {
   runtime: CognideskHttpRuntime | CognideskRuntime;
   basePath?: string;
   agentId?: string;
+  customEvents?: CustomRuntimeEventDefinition[];
+  journeyEvents?: JourneyEventDefinition[];
   ssePollIntervalMs?: number;
   cors?: boolean;
 }
@@ -82,6 +89,44 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             text,
             ...(body.turn !== undefined ? { turn: body.turn } : {}),
             ...(body.app !== undefined ? { app: body.app } : {}),
+            signal: request.signal,
+          });
+          return json(result, 200, options);
+        }
+
+        const customEventMatch = path.match(/^\/conversations\/([^/]+)\/custom-events\/([^/]+)$/);
+        if (request.method === "POST" && customEventMatch) {
+          if (!options.runtime.emitCustomEvent) return json({ error: "Custom events are not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(customEventMatch[1] ?? "");
+          const eventName = decodeURIComponent(customEventMatch[2] ?? "");
+          const event = options.customEvents?.find((candidate) => candidate.name === eventName);
+          if (!event) return json({ error: `Custom event '${eventName}' is not registered with the HTTP handler` }, 404, options);
+          const body = await readJson<CreateRuntimeEventBody>(request);
+          const emitted = await options.runtime.emitCustomEvent({
+            conversationId,
+            event,
+            payload: body.payload,
+            ...(body.traceId ? { traceId: body.traceId } : {}),
+          });
+          return json({ event: emitted }, 200, options);
+        }
+
+        const journeyEventMatch = path.match(/^\/conversations\/([^/]+)\/journey-events\/([^/]+)$/);
+        if (request.method === "POST" && journeyEventMatch) {
+          if (!options.runtime.emitJourneyEvent) return json({ error: "Journey events are not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(journeyEventMatch[1] ?? "");
+          const eventName = decodeURIComponent(journeyEventMatch[2] ?? "");
+          const event = options.journeyEvents?.find((candidate) => candidate.name === eventName);
+          if (!event) return json({ error: `Journey event '${eventName}' is not registered with the HTTP handler` }, 404, options);
+          const body = await readJson<CreateJourneyEventBody>(request);
+          const result = await options.runtime.emitJourneyEvent({
+            conversationId,
+            event,
+            payload: body.payload,
+            ...(body.routing ? { routing: body.routing } : {}),
+            ...(body.target ? { target: body.target } : {}),
+            ...(body.app !== undefined ? { app: body.app } : {}),
+            ...(body.traceId ? { traceId: body.traceId } : {}),
             signal: request.signal,
           });
           return json(result, 200, options);
@@ -255,6 +300,20 @@ interface CreateMessageBody {
 interface CreateWidgetSubmissionBody {
   widgetKind?: string;
   output?: unknown;
+}
+
+interface CreateRuntimeEventBody {
+  payload?: unknown;
+  traceId?: string;
+}
+
+interface CreateJourneyEventBody extends CreateRuntimeEventBody {
+  routing?: "none" | "activeJourneyOnly" | "full" | "targeted";
+  target?: {
+    journeyId?: string;
+    stateId?: string;
+  };
+  app?: unknown;
 }
 
 interface CreateHandoffBody {

@@ -65,6 +65,8 @@ export interface CognideskClient {
   createConversation(input?: { agentId?: string; context?: unknown; id?: string }): Promise<CreateConversationResult>;
   sendMessage(conversationId: string, message: string, options?: { turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
+  emitCustomEvent(conversationId: string, eventName: string, input?: { payload?: unknown; traceId?: string }): Promise<{ event: RuntimeEvent }>;
+  emitJourneyEvent(conversationId: string, eventName: string, input?: { payload?: unknown; routing?: "none" | "activeJourneyOnly" | "full" | "targeted"; target?: { journeyId?: string; stateId?: string }; app?: unknown; traceId?: string }): Promise<{ event: RuntimeEvent; snapshot: RuntimeSnapshotResult["snapshot"]; events: RuntimeEvent[] }>;
   emitIntermediateMessage(conversationId: string, input: { text: string; traceId?: string }): Promise<{ events: RuntimeEvent[] }>;
   emitGeneratedPreamble(conversationId: string, input?: { purpose?: string; maxWords?: number; traceId?: string }): Promise<{ text: string; events: RuntimeEvent[] }>;
   compactConversation(conversationId: string, input?: { fromOffset?: number; toOffset?: number; schemaVersion?: string }): Promise<{ summary: unknown; snapshot: NonNullable<RuntimeSnapshotResult["snapshot"]>; events: RuntimeEvent[] }>;
@@ -175,6 +177,33 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
       });
       if (!response.ok) throw new Error(`Failed to submit widget: ${response.status}`);
       return await response.json() as { event: RuntimeEvent };
+    },
+    async emitCustomEvent(conversationId, eventName, input = {}) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/custom-events/${encodeURIComponent(eventName)}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...(input.payload !== undefined ? { payload: input.payload } : {}),
+          ...(input.traceId ? { traceId: input.traceId } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to emit custom event: ${response.status}`);
+      return await response.json() as { event: RuntimeEvent };
+    },
+    async emitJourneyEvent(conversationId, eventName, input = {}) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/journey-events/${encodeURIComponent(eventName)}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...(input.payload !== undefined ? { payload: input.payload } : {}),
+          ...(input.routing ? { routing: input.routing } : {}),
+          ...(input.target ? { target: input.target } : {}),
+          ...(input.app !== undefined ? { app: input.app } : {}),
+          ...(input.traceId ? { traceId: input.traceId } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to emit journey event: ${response.status}`);
+      return await response.json() as { event: RuntimeEvent; snapshot: RuntimeSnapshotResult["snapshot"]; events: RuntimeEvent[] };
     },
     async emitIntermediateMessage(conversationId, input) {
       const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/intermediate-messages`, {
