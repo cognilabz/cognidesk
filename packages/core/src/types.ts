@@ -261,9 +261,19 @@ export interface RuntimeSnapshot {
   activeJourneyId?: string;
   activeStateIds: string[];
   journeyContext?: unknown;
+  journeySummaries?: JourneySummary[];
   compactionSummary?: unknown;
   definitionHash?: string;
   updatedAt: string;
+}
+
+export interface JourneySummary {
+  journeyId: string;
+  kind: "stateMachine" | "delegation";
+  summary: string;
+  completedAt: string;
+  stateId?: string;
+  reason?: string;
 }
 
 export class DefinitionError extends Error {

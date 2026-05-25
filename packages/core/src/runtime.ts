@@ -14,6 +14,7 @@ import type {
   AnyTool,
   CustomRuntimeEventDefinition,
   GuardResult,
+  JourneySummary,
   KnowledgeItem,
   KnowledgeSource,
   MessageSegment,
@@ -549,6 +550,7 @@ export class CognideskRuntime {
         knowledge,
         visibleCustomEvents,
         compactionSummary: previousSnapshot?.compactionSummary,
+        journeySummaries: previousSnapshot?.journeySummaries ?? [],
       }));
       const availableTools = this.resolveAvailableModelTools(agent, selectedJourney, stateMachineTurn);
       const modelTools = availableTools.map(toModelToolDefinition);
@@ -725,6 +727,7 @@ export class CognideskRuntime {
       compactionSummary: summary,
       ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
       ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
+      ...(currentSnapshot?.journeySummaries ? { journeySummaries: currentSnapshot.journeySummaries } : {}),
       ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
     };
     await this.options.storage.saveSnapshot(snapshot);
@@ -1265,6 +1268,7 @@ export class CognideskRuntime {
       updatedAt,
       ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
       ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
+      ...(currentSnapshot?.journeySummaries ? { journeySummaries: currentSnapshot.journeySummaries } : {}),
       ...(currentSnapshot?.compactionSummary !== undefined ? { compactionSummary: currentSnapshot.compactionSummary } : {}),
       ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
     });
@@ -2339,12 +2343,22 @@ export class CognideskRuntime {
           data: completed,
         });
       }
+      const journeySummaries = appendJourneySummary(
+        snapshot?.journeySummaries ?? [],
+        completed ? createJourneySummary({
+          journey,
+          completedAt: new Date().toISOString(),
+          stateMachineTurn: { activeStateIds: [], journeyContext: context, completed },
+          delegationCompletion: null,
+        }) : null,
+      );
       await this.options.storage.saveSnapshot({
         conversationId: args.conversation.id,
         lifecycle: args.conversation.lifecycle,
         activeStateIds: completed ? [] : activeStates.map((activeState) => activeState.id),
         updatedAt: new Date().toISOString(),
         ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
+        ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
         ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
         ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
       });
@@ -2426,12 +2440,22 @@ export class CognideskRuntime {
         data: completed,
       });
     }
+    const journeySummaries = appendJourneySummary(
+      snapshot?.journeySummaries ?? [],
+      completed ? createJourneySummary({
+        journey,
+        completedAt: new Date().toISOString(),
+        stateMachineTurn: { activeStateIds: [], journeyContext: context, completed },
+        delegationCompletion: null,
+      }) : null,
+    );
     await this.options.storage.saveSnapshot({
       conversationId: args.conversation.id,
       lifecycle: args.conversation.lifecycle,
       activeStateIds,
       updatedAt: new Date().toISOString(),
       ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
+      ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
       ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
       ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
     });
@@ -2553,12 +2577,22 @@ export class CognideskRuntime {
         data: completed,
       });
     }
+    const journeySummaries = appendJourneySummary(
+      previousSnapshot?.journeySummaries ?? [],
+      completed ? createJourneySummary({
+        journey: route.journey,
+        completedAt: new Date().toISOString(),
+        stateMachineTurn: { activeStateIds: [], journeyContext: context, completed },
+        delegationCompletion: null,
+      }) : null,
+    );
     const snapshot: RuntimeSnapshot = {
       conversationId: args.conversation.id,
       lifecycle: args.conversation.lifecycle,
       activeStateIds: completed ? [] : activeStates.map((activeState) => activeState.id),
       updatedAt: new Date().toISOString(),
       ...(completed ? {} : { activeJourneyId: route.journey.id, journeyContext: context }),
+      ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
       ...(previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: previousSnapshot.compactionSummary } : {}),
       ...(previousSnapshot?.definitionHash ? { definitionHash: previousSnapshot.definitionHash } : {}),
     };
@@ -2620,6 +2654,7 @@ export class CognideskRuntime {
     knowledge: Array<KnowledgeItem>;
     visibleCustomEvents: VisibleCustomEventContext[];
     compactionSummary?: unknown;
+    journeySummaries: JourneySummary[];
   }): ModelMessage[] {
     const journeyContext = args.journey
       ? renderJourneyRuntimeContext(args.journey, args.stateMachineTurn)
@@ -2638,6 +2673,17 @@ export class CognideskRuntime {
     const memoryContext = args.compactionSummary !== undefined
       ? JSON.stringify(args.compactionSummary)
       : "No compacted conversation memory.";
+    const journeySummaryContext = args.journeySummaries.length > 0
+      ? args.journeySummaries
+          .map((summary) => [
+            `journey:${summary.journeyId}`,
+            `kind:${summary.kind}`,
+            summary.stateId ? `state:${summary.stateId}` : "",
+            summary.reason ? `reason:${summary.reason}` : "",
+            `summary:${summary.summary}`,
+          ].filter(Boolean).join(" "))
+          .join("\n")
+      : "No completed journey summaries.";
     const history = args.history.length > 0
       ? args.history
       : [{ role: "user" as const, content: args.userText }];
@@ -2650,6 +2696,9 @@ export class CognideskRuntime {
           "",
           "Conversation memory:",
           memoryContext,
+          "",
+          "Completed journey summaries:",
+          journeySummaryContext,
           "",
           journeyContext,
           "",
@@ -2734,6 +2783,17 @@ export class CognideskRuntime {
   }): RuntimeSnapshot {
     const journeyCompleted = Boolean(args.stateMachineTurn?.completed)
       || Boolean(args.delegationCompletion);
+    const journeySummaries = appendJourneySummary(
+      args.previousSnapshot?.journeySummaries ?? [],
+      args.selectedJourney && journeyCompleted
+        ? createJourneySummary({
+            journey: args.selectedJourney,
+            completedAt: new Date().toISOString(),
+            stateMachineTurn: args.stateMachineTurn,
+            delegationCompletion: args.delegationCompletion,
+          })
+        : null,
+    );
     return {
       conversationId: args.conversationId,
       lifecycle: "active",
@@ -2744,6 +2804,7 @@ export class CognideskRuntime {
       ...(!journeyCompleted && args.stateMachineTurn
         ? { journeyContext: args.stateMachineTurn.journeyContext }
         : !journeyCompleted && args.previousSnapshot?.journeyContext !== undefined ? { journeyContext: args.previousSnapshot.journeyContext } : {}),
+      ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
       ...(args.previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: args.previousSnapshot.compactionSummary } : {}),
       ...(this.options.journeyIndex ? { definitionHash: this.options.journeyIndex.definitionHash } : {}),
     };
@@ -2878,6 +2939,37 @@ function createJourneyCompletion(journeyId: string, activeStates: CompiledJourne
   return {
     journeyId,
     ...(onlyState ? { stateId: onlyState.id } : {}),
+  };
+}
+
+function appendJourneySummary(existing: JourneySummary[], next: JourneySummary | null) {
+  if (!next) return existing;
+  return [
+    ...existing.filter((summary) => summary.journeyId !== next.journeyId),
+    next,
+  ];
+}
+
+function createJourneySummary(args: {
+  journey: CompiledJourney;
+  completedAt: string;
+  stateMachineTurn: StateMachineTurnResult | null;
+  delegationCompletion: { journeyId: string; reason?: string } | null;
+}): JourneySummary {
+  const completed = args.stateMachineTurn?.completed;
+  const context = args.stateMachineTurn?.journeyContext;
+  const contextSummary = context && Object.keys(context).length > 0
+    ? ` Context: ${JSON.stringify(context)}`
+    : "";
+  const reason = args.delegationCompletion?.reason;
+  return {
+    journeyId: args.journey.id,
+    kind: args.journey.kind,
+    completedAt: args.completedAt,
+    summary: reason
+      ?? `${args.journey.condition}${completed?.stateId ? ` Completed at state '${completed.stateId}'.` : ""}${contextSummary}`,
+    ...(completed?.stateId ? { stateId: completed.stateId } : {}),
+    ...(reason ? { reason } : {}),
   };
 }
 

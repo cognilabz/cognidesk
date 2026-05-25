@@ -411,6 +411,13 @@ describe("runtime turn pipeline", () => {
         summary: "Customer already shared booking ABC123.",
         stableFacts: ["Booking ABC123"],
       },
+      journeySummaries: [{
+        journeyId: "ticket-status",
+        kind: "stateMachine",
+        completedAt: "2026-05-26T00:00:00.000Z",
+        stateId: "done",
+        summary: "Ticket status journey completed with booking ABC123.",
+      }],
       updatedAt: new Date().toISOString(),
     });
 
@@ -421,6 +428,8 @@ describe("runtime turn pipeline", () => {
 
     expect(systemPrompt).toContain("Conversation memory:");
     expect(systemPrompt).toContain("Customer already shared booking ABC123.");
+    expect(systemPrompt).toContain("Completed journey summaries:");
+    expect(systemPrompt).toContain("Ticket status journey completed with booking ABC123.");
   });
 
   it("interrupts an active generation when a new user message arrives by default", async () => {
@@ -1889,6 +1898,14 @@ describe("runtime turn pipeline", () => {
     expect(result.snapshot.activeJourneyId).toBeUndefined();
     expect(result.snapshot.activeStateIds).toEqual([]);
     expect(result.snapshot.journeyContext).toBeUndefined();
+    expect(result.snapshot.journeySummaries).toEqual([
+      expect.objectContaining({
+        journeyId: "book-flight",
+        kind: "stateMachine",
+        stateId: "completed",
+        summary: expect.stringContaining('"origin":"Vienna"'),
+      }),
+    ]);
     expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual([
       "custom.conversation.created",
       "message.started",
