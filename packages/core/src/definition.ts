@@ -110,6 +110,7 @@ export interface CompiledJourney {
   stickiness: "low" | "medium" | "high";
   alwaysInclude: boolean;
   always?: JourneyActivationPredicate;
+  includeWhen?: (args: { app: unknown }) => boolean;
   matcher?: JourneyActivationPredicate;
   knowledge: KnowledgeSource[];
   tools: AnyTool[];
@@ -702,6 +703,7 @@ export class StateMachineJourneyBuilder<
       stickiness: this.options.stickiness ?? "medium",
       alwaysInclude: this.options.always === true || this.options.alwaysInclude === true,
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
+      ...(this.options.includeWhen ? { includeWhen: this.options.includeWhen } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       knowledge: this.knowledge.list(),
       tools: this.tools.list(),
@@ -741,6 +743,7 @@ export class DelegationJourneyBuilder<const TId extends string> {
       stickiness: this.options.stickiness ?? "medium",
       alwaysInclude: this.options.always === true || this.options.alwaysInclude === true,
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
+      ...(this.options.includeWhen ? { includeWhen: this.options.includeWhen } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       knowledge: this.options.specialist.knowledge ?? [],
       tools: [],

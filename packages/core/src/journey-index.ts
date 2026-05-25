@@ -137,6 +137,7 @@ export async function selectJourneyCandidates<TApp, TConversation, TTurn>(
   for (const entry of options.index.entries) {
     const journey = journeyById.get(entry.journeyId);
     if (!journey) continue;
+    if (journey.includeWhen && !journey.includeWhen({ app: options.app })) continue;
     const similarity = cosineSimilarity(queryEmbedding.embedding, entry.embedding.vector);
     const score = similarity + priorityBoost(journey) + stickinessBoost(journey, options.activeJourneyId);
     candidates.push({
@@ -259,6 +260,7 @@ function journeyRoutingProjection(journey: CompiledJourney) {
     stickiness: journey.stickiness,
     alwaysInclude: journey.alwaysInclude,
     hasAlwaysPredicate: typeof journey.always === "function",
+    hasIncludeWhenPredicate: typeof journey.includeWhen === "function",
     hasMatcherPredicate: typeof journey.matcher === "function",
     initialStateId: journey.initialStateId,
     states: journey.states.map((state) => ({

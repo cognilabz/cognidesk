@@ -91,6 +91,41 @@ describe("journey index", () => {
       "vip-review",
     ]);
   });
+
+  it("applies includeWhen as a hard candidate filter", async () => {
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const status = agent.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status information",
+      context,
+    });
+    status.initial(status.state("identifyTicket"));
+    agent.delegationJourney("internal-review", {
+      condition: "Internal review is required",
+      always: true,
+      includeWhen: ({ app }) => (app as { internal?: boolean }).internal === true,
+      specialist: {
+        goal: "Review internal support notes.",
+      },
+    });
+    const compiled = agent.compile();
+    const index = await buildJourneyIndex(compiled, { embeddingModel });
+
+    const candidates = await selectJourneyCandidates({
+      agent: compiled,
+      index,
+      embeddingModel,
+      message: "Can you check ticket ABC123?",
+      app: { internal: false },
+      conversation: { id: "conversation_1" },
+      turn: {},
+      activeJourneyId: "internal-review",
+      topK: 2,
+    });
+
+    expect(candidates.map((candidate) => candidate.journeyId)).toEqual(["ticket-status"]);
+  });
 });
 
 function createRoutingAgent(statusCondition: string) {
