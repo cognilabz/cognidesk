@@ -177,7 +177,7 @@ interface StateMachineTurnResult {
   journeyContext: Record<string, unknown>;
   completed?: {
     journeyId: string;
-    stateId: string;
+    stateId?: string;
   };
 }
 
@@ -1442,46 +1442,40 @@ export class CognideskRuntime {
   }): Promise<StateMachineTurnResult> {
     const stateById = new Map(args.journey.states.map((state) => [state.id, state]));
     const sameJourney = args.previousSnapshot?.activeJourneyId === args.journey.id;
-    const firstStateId = sameJourney
-      ? args.previousSnapshot?.activeStateIds[0] ?? args.journey.initialStateId
-      : args.journey.initialStateId;
-    const initialState = firstStateId ? stateById.get(firstStateId) : undefined;
     const context = sameJourney && isRecord(args.previousSnapshot?.journeyContext)
       ? structuredClone(args.previousSnapshot.journeyContext)
       : {};
-    if (!initialState) return { activeStateIds: [], journeyContext: context };
+    const activeStates = sameJourney
+      ? (args.previousSnapshot?.activeStateIds ?? [])
+        .map((stateId) => stateById.get(stateId))
+        .filter((state): state is CompiledJourney["states"][number] => Boolean(state))
+      : args.journey.initialStateId
+        ? await this.enterStateTree({
+            ...args,
+            stateById,
+            state: stateById.get(args.journey.initialStateId),
+            context,
+            emitSelf: false,
+          })
+        : [];
+    if (activeStates.length === 0) return { activeStateIds: [], journeyContext: context };
 
-    if (!sameJourney) {
-      await this.runStateActionRuns({
+    const nextActiveStates: CompiledJourney["states"] = [];
+    for (const state of activeStates) {
+      const activeState = await this.applyStateExtraction({
         ...args,
-        state: initialState,
+        state,
         context,
-        actionType: "entry",
       });
-      await this.runStateToolRuns({
+      nextActiveStates.push(...await this.advanceStateMachine({
         ...args,
-        state: initialState,
+        stateById,
+        state: activeState,
         context,
-        actionType: "entry",
-      });
-      const lifecycle = await this.requireConversationRecord(args.conversation.id);
-      if (lifecycle.lifecycle !== "active") return { activeStateIds: [initialState.id], journeyContext: context };
+      }));
     }
 
-    const activeState = await this.applyStateExtraction({
-      ...args,
-      state: initialState,
-      context,
-    });
-    const finalState = await this.advanceStateMachine({
-      ...args,
-      stateById,
-      state: activeState,
-      context,
-    });
-    const completed = finalState.type === "final"
-      ? { journeyId: args.journey.id, stateId: finalState.id }
-      : undefined;
+    const completed = createJourneyCompletion(args.journey.id, nextActiveStates);
     if (completed) {
       await args.emit({
         conversationId: args.conversation.id,
@@ -1491,7 +1485,7 @@ export class CognideskRuntime {
     }
 
     return {
-      activeStateIds: completed ? [] : [finalState.id],
+      activeStateIds: completed ? [] : nextActiveStates.map((state) => state.id),
       journeyContext: context,
       ...(completed ? { completed } : {}),
     };
@@ -1586,14 +1580,14 @@ export class CognideskRuntime {
     while (!visited.has(state.id)) {
       visited.add(state.id);
       const lifecycle = await this.requireConversationRecord(args.conversation.id);
-      if (lifecycle.lifecycle !== "active") return state;
+      if (lifecycle.lifecycle !== "active") return [state];
       if (!this.stateRequirementsSatisfied(state, args.context)) {
         await this.emitFieldPrompts({ ...args, state });
-        return state;
+        return [state];
       }
       if (state.requiresVisit) {
         const promptCount = await this.emitConfirmationPrompts({ ...args, state });
-        if (promptCount > 0) return state;
+        if (promptCount > 0) return [state];
       }
 
       await this.runStateActionRuns({
@@ -1607,7 +1601,7 @@ export class CognideskRuntime {
         actionType: "transition",
       });
       const latestConversation = await this.requireConversationRecord(args.conversation.id);
-      if (latestConversation.lifecycle !== "active") return state;
+      if (latestConversation.lifecycle !== "active") return [state];
       const transition = toolTargetId
         ? { targetId: toolTargetId }
         : await this.selectTransition({
@@ -1615,10 +1609,10 @@ export class CognideskRuntime {
             state,
             context: args.context,
           });
-      if (!transition) return state;
+      if (!transition) return [state];
 
       const nextState = args.stateById.get(transition.targetId);
-      if (!nextState) return state;
+      if (!nextState) return [state];
       await this.runStateActionRuns({
         ...args,
         state,
@@ -1630,25 +1624,65 @@ export class CognideskRuntime {
         actionType: "exit",
       });
       const lifecycleAfterExit = await this.requireConversationRecord(args.conversation.id);
-      if (lifecycleAfterExit.lifecycle !== "active") return state;
-      state = nextState;
+      if (lifecycleAfterExit.lifecycle !== "active") return [state];
+      const enteredStates = await this.enterStateTree({
+        ...args,
+        state: nextState,
+        emitSelf: true,
+      });
+      if (enteredStates.length !== 1) return enteredStates;
+      state = enteredStates[0] ?? nextState;
+    }
+    return [state];
+  }
+
+  private async enterStateTree(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    stateById: Map<string, CompiledJourney["states"][number]>;
+    state: CompiledJourney["states"][number] | undefined;
+    context: Record<string, unknown>;
+    emitSelf: boolean;
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }): Promise<CompiledJourney["states"]> {
+    if (!args.state) return [];
+    if (args.emitSelf) {
       await args.emit({
         conversationId: args.conversation.id,
         type: "journey.state.entered",
-        data: { journeyId: args.journey.id, stateId: state.id },
-      });
-      await this.runStateActionRuns({
-        ...args,
-        state,
-        actionType: "entry",
-      });
-      await this.runStateToolRuns({
-        ...args,
-        state,
-        actionType: "entry",
+        data: { journeyId: args.journey.id, stateId: args.state.id },
       });
     }
-    return state;
+    await this.runStateActionRuns({
+      ...args,
+      state: args.state,
+      actionType: "entry",
+    });
+    await this.runStateToolRuns({
+      ...args,
+      state: args.state,
+      actionType: "entry",
+    });
+    const lifecycle = await this.requireConversationRecord(args.conversation.id);
+    if (lifecycle.lifecycle !== "active") return [args.state];
+
+    const children = args.journey.states.filter((state) => state.parentId === args.state?.id);
+    if (children.length === 0) return [args.state];
+    const childEntryStates = args.state.type === "parallel"
+      ? children
+      : args.state.initialStateId
+        ? [args.stateById.get(args.state.initialStateId)].filter((state): state is CompiledJourney["states"][number] => Boolean(state))
+        : [];
+    const activeStates: CompiledJourney["states"] = [];
+    for (const child of childEntryStates) {
+      activeStates.push(...await this.enterStateTree({
+        ...args,
+        state: child,
+        emitSelf: true,
+      }));
+    }
+    return activeStates.length > 0 ? activeStates : [args.state];
   }
 
   private stateRequirementsSatisfied(state: CompiledJourney["states"][number], context: Record<string, unknown>) {
@@ -2081,7 +2115,7 @@ export class CognideskRuntime {
       const field = state.collected.find((candidate) => candidate.path === fieldPrompt.path);
       if (!field) return;
       setPathValue(context, field.path, extractWidgetFieldValue(args.output));
-      const finalState = await this.advanceStateMachine({
+      const finalStates = await this.advanceStateMachine({
         journey,
         conversation: args.conversation,
         stateById,
@@ -2089,9 +2123,7 @@ export class CognideskRuntime {
         context,
         emit: (event) => this.emit(event),
       });
-      const completed = finalState.type === "final"
-        ? { journeyId: journey.id, stateId: finalState.id }
-        : undefined;
+      const completed = createJourneyCompletion(journey.id, finalStates);
       if (completed) {
         await this.emit({
           conversationId: args.conversation.id,
@@ -2102,7 +2134,7 @@ export class CognideskRuntime {
       await this.options.storage.saveSnapshot({
         conversationId: args.conversation.id,
         lifecycle: args.conversation.lifecycle,
-        activeStateIds: completed ? [] : [finalState.id],
+        activeStateIds: completed ? [] : finalStates.map((activeState) => activeState.id),
         updatedAt: new Date().toISOString(),
         ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
         ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
@@ -2280,7 +2312,7 @@ export class CognideskRuntime {
       emit: args.emit,
       ...(args.signal ? { signal: args.signal } : {}),
     });
-    const finalState = await this.advanceStateMachine({
+    const finalStates = await this.advanceStateMachine({
       journey: route.journey,
       conversation: args.conversation,
       stateById,
@@ -2289,9 +2321,7 @@ export class CognideskRuntime {
       emit: args.emit,
       ...(args.signal ? { signal: args.signal } : {}),
     });
-    const completed = finalState.type === "final"
-      ? { journeyId: route.journey.id, stateId: finalState.id }
-      : undefined;
+    const completed = createJourneyCompletion(route.journey.id, finalStates);
     if (completed) {
       await args.emit({
         conversationId: args.conversation.id,
@@ -2302,7 +2332,7 @@ export class CognideskRuntime {
     const snapshot: RuntimeSnapshot = {
       conversationId: args.conversation.id,
       lifecycle: args.conversation.lifecycle,
-      activeStateIds: completed ? [] : [finalState.id],
+      activeStateIds: completed ? [] : finalStates.map((activeState) => activeState.id),
       updatedAt: new Date().toISOString(),
       ...(completed ? {} : { activeJourneyId: route.journey.id, journeyContext: context }),
       ...(previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: previousSnapshot.compactionSummary } : {}),
@@ -2586,6 +2616,15 @@ function createToolResultMessage(call: ModelToolCall, output: unknown): ModelMes
 function findJourneyState(journey: CompiledJourney, stateId: string | undefined) {
   if (!stateId) return undefined;
   return journey.states.find((state) => state.id === stateId);
+}
+
+function createJourneyCompletion(journeyId: string, activeStates: CompiledJourney["states"]): StateMachineTurnResult["completed"] | undefined {
+  if (activeStates.length === 0 || activeStates.some((state) => state.type !== "final")) return undefined;
+  const onlyState = activeStates.length === 1 ? activeStates[0] : undefined;
+  return {
+    journeyId,
+    ...(onlyState ? { stateId: onlyState.id } : {}),
+  };
 }
 
 function resolveActiveStates(journey: CompiledJourney | null, stateMachineTurn: StateMachineTurnResult | null) {

@@ -618,6 +618,7 @@ describe("runtime turn pipeline", () => {
     parent.tools.add(getSeatMap);
     const selectSeat = parent.state("selectSeat").instructions("Use seat-specific support context.");
     selectSeat.knowledge.add(stateFaq);
+    parent.initial(selectSeat);
     seating.initial(selectSeat);
 
     const agent = agentBuilder.compile();
@@ -656,6 +657,73 @@ describe("runtime turn pipeline", () => {
         itemIds: ["seat-map"],
       },
     });
+  });
+
+  it("enters logical parallel child states and coordinates one response", async () => {
+    const seatMap = tool("seatMap", {
+      description: "Get available seats.",
+      input: z.object({}),
+      output: z.object({ seats: z.array(z.string()) }),
+      execute: async () => ({ seats: ["12A"] }),
+    });
+    const baggageFaq = knowledgeSource("baggage-faq", {
+      query: z.object({ query: z.string() }),
+      metadata: z.object({ source: z.string() }),
+      retrieve: async () => ({
+        items: [{
+          id: "baggage-policy",
+          content: "Economy tickets include one cabin bag.",
+          metadata: { source: "faq" },
+        }],
+      }),
+    });
+    const responseCalls: TextGenerationInput[] = [];
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const journey = agentBuilder.stateMachineJourney("trip-prep", {
+      condition: "Customer wants help preparing for a trip",
+      context: z.object({}),
+    });
+    const prep = journey.parallel("prepareTrip");
+    const baggage = prep.state("baggage").instructions("Explain baggage rules.");
+    baggage.knowledge.add(baggageFaq);
+    const seating = prep.state("seating").instructions("Help select seats.");
+    seating.tools.add(seatMap);
+    journey.initial(prep);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      response: {
+        provider: "test",
+        model: "response",
+        generateText: async (input: TextGenerationInput) => {
+          responseCalls.push(input);
+          return { text: "One coordinated trip preparation answer." };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you help with baggage and seats?",
+    });
+
+    const responseCall = responseCalls.at(-1);
+    const systemPrompt = responseCall?.messages.find((message) => message.role === "system")?.content ?? "";
+    expect(result.snapshot.activeStateIds.sort()).toEqual(["baggage", "seating"]);
+    expect(responseCall?.tools?.map((toolDefinition) => toolDefinition.name)).toEqual(["seatMap"]);
+    expect(systemPrompt).toContain("Active state: baggage, seating");
+    expect(systemPrompt).toContain("State baggage instructions: Explain baggage rules.");
+    expect(systemPrompt).toContain("State seating instructions: Help select seats.");
+    expect(systemPrompt).toContain("[K1:baggage-policy]");
+    expect((await runtime.listEvents(conversation.id)).filter((event) => event.type === "message.completed" && !event.data.intermediate)).toHaveLength(2);
   });
 
   it("executes typed state actions on entry, transition, and exit", async () => {

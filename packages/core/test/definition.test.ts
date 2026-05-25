@@ -158,4 +158,40 @@ describe("definition builders", () => {
 
     expect(agent.compile().journeys[0]?.toMermaid()).toContain("search --> chooseFlight");
   });
+
+  it("requires hierarchical states to declare their initial child", () => {
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agent.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context: bookingContext,
+    });
+    const parent = booking.state("traveller");
+    parent.state("name");
+    booking.initial(parent);
+
+    expect(() => agent.compile()).toThrow("State 'traveller' has child states and must declare an initial child state.");
+  });
+
+  it("compiles hierarchical initial child state metadata", () => {
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agent.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context: bookingContext,
+    });
+    const parent = booking.state("traveller");
+    const name = parent.state("name");
+    parent.initial(name);
+    booking.initial(parent);
+
+    const graph = agent.compile().journeys[0]?.toGraph();
+
+    expect(graph?.states.find((state) => state.id === "traveller")).toMatchObject({
+      id: "traveller",
+      initialStateId: "name",
+    });
+  });
 });

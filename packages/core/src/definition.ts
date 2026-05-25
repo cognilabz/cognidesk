@@ -132,6 +132,7 @@ export interface CompiledJourney {
 export interface CompiledState {
   id: string;
   parentId?: string;
+  initialStateId?: string;
   type: "state" | "parallel" | "final";
   instructions?: string;
   summary?: string;
@@ -189,6 +190,7 @@ export interface CompiledDelegation {
 export interface JourneyGraphState {
   id: string;
   parentId?: string;
+  initialStateId?: string;
   type: "state" | "parallel" | "final";
   instructions?: string;
   summary?: string;
@@ -413,6 +415,7 @@ export class StateBuilder<
   private stateInstructions?: string;
   private stateSummary?: string;
   private stateType: "state" | "parallel" | "final" = "state";
+  private initialChildState?: StateBuilder<string, TContextSchema>;
 
   constructor(
     readonly id: TId,
@@ -470,7 +473,7 @@ export class StateBuilder<
 
   parallel<const TChildId extends string>(id: TChildId) {
     const child = this.state(id);
-    child.stateType = "parallel";
+    child.markParallel();
     return child;
   }
 
@@ -480,9 +483,22 @@ export class StateBuilder<
     return child;
   }
 
+  initial(state: StateBuilder<string, TContextSchema>) {
+    if (state.parent !== this) {
+      throw new CognideskDefinitionError(`State '${state.id}' is not a direct child of '${this.id}'.`);
+    }
+    this.initialChildState = state;
+    return this;
+  }
+
   markFinal() {
     this.stateType = "final";
     this.requiresVisit("final state marks journey completion");
+    return this;
+  }
+
+  markParallel() {
+    this.stateType = "parallel";
     return this;
   }
 
@@ -623,6 +639,7 @@ export class StateBuilder<
       id: this.id,
       type: this.stateType,
       ...(parentId ? { parentId } : {}),
+      ...(this.initialChildState ? { initialStateId: this.initialChildState.id } : {}),
       ...(this.stateInstructions ? { instructions: this.stateInstructions } : {}),
       ...(this.stateSummary ? { summary: this.stateSummary } : {}),
       tools,
@@ -735,6 +752,12 @@ export class StateMachineJourneyBuilder<
     return this.states.add(id);
   }
 
+  parallel<const TStateId extends string>(id: TStateId) {
+    const state = this.states.add(id);
+    state.markParallel();
+    return state;
+  }
+
   defineStates<const TStateIds extends readonly [string, ...string[]]>(...ids: TStateIds) {
     for (const id of ids) this.states.add(id);
     return new TypedStateRegistry<TStateIds[number], TContextSchema>(this.states);
@@ -764,7 +787,21 @@ export class StateMachineJourneyBuilder<
     }
     const states = this.states.list().flatMap((state) => state.compile());
     const stateIds = new Set(states.map((state) => state.id));
+    const childrenByParentId = new Map<string, CompiledState[]>();
     for (const state of states) {
+      if (!state.parentId) continue;
+      const siblings = childrenByParentId.get(state.parentId) ?? [];
+      siblings.push(state);
+      childrenByParentId.set(state.parentId, siblings);
+    }
+    for (const state of states) {
+      const children = childrenByParentId.get(state.id) ?? [];
+      if (children.length > 0 && state.type === "state" && !state.initialStateId) {
+        throw new CognideskDefinitionError(`State '${state.id}' has child states and must declare an initial child state.`);
+      }
+      if (state.initialStateId && !children.some((child) => child.id === state.initialStateId)) {
+        throw new CognideskDefinitionError(`State '${state.id}' declares unknown initial child state '${state.initialStateId}'.`);
+      }
       for (const transition of state.transitions) {
         if (!stateIds.has(transition.targetId)) {
           throw new CognideskDefinitionError(`State '${state.id}' targets unknown state '${transition.targetId}'.`);
@@ -942,6 +979,7 @@ function sanitizeGraph(graph: JourneyGraph): JourneyGraph {
       id: state.id,
       type: state.type,
       ...(state.parentId ? { parentId: state.parentId } : {}),
+      ...(state.initialStateId ? { initialStateId: state.initialStateId } : {}),
       ...(state.instructions ? { instructions: state.instructions } : {}),
       ...(state.summary ? { summary: state.summary } : {}),
       collected: state.collected.map((field) => ({
