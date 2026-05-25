@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isValidElement } from "react";
-import { createCognideskClient, defaultWidgetRenderers, formatSupportReferences } from "../src/index.js";
+import { createCognideskClient, defaultWidgetRenderers, formatSupportReferences, reduceChatRuntimeEvent } from "../src/index.js";
 import type { RuntimeEvent } from "@cognidesk/core";
 
 describe("createCognideskClient", () => {
@@ -250,6 +250,65 @@ describe("createCognideskClient", () => {
     ])).toBe("Knowledge: policy-bags\nTool result: tool_1");
   });
 
+  it("reduces runtime events into headless chat state", () => {
+    const prompted = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "ui.prompted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        promptId: "prompt_1",
+        widgetKind: "confirmation",
+        input: { title: "Confirm", message: "Proceed?" },
+      },
+    });
+    const completed = reduceChatRuntimeEvent(prompted, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: "I can help." },
+    });
+    const aborted = reduceChatRuntimeEvent(completed, {
+      id: "event_3",
+      conversationId: "conversation_1",
+      offset: 3,
+      type: "message.aborted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { reason: "interrupted_by_new_message", partialText: "Sensitive partial" },
+    });
+    const submitted = reduceChatRuntimeEvent(aborted, {
+      id: "event_4",
+      conversationId: "conversation_1",
+      offset: 4,
+      type: "ui.submitted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { promptId: "prompt_1", widgetKind: "confirmation", output: { confirmed: true } },
+    });
+
+    expect(prompted.prompts).toEqual([{
+      promptId: "prompt_1",
+      kind: "confirmation",
+      input: { title: "Confirm", message: "Proceed?" },
+    }]);
+    expect(completed.messages).toEqual([{
+      id: "event_2",
+      role: "assistant",
+      text: "I can help.",
+      status: "sent",
+    }]);
+    expect(aborted.messages.at(-1)).toEqual({
+      id: "event_3",
+      role: "assistant",
+      text: "Response interrupted.",
+      status: "aborted",
+    });
+    expect(submitted.prompts).toEqual([]);
+    expect(submitted.lastOffset).toBe(4);
+  });
+
   it("exports default renderers for built-in widgets", () => {
     const confirmation = defaultWidgetRenderers.confirmation;
     expect(confirmation).toBeDefined();
@@ -273,6 +332,10 @@ describe("createCognideskClient", () => {
     ]);
   });
 });
+
+function emptyChatState() {
+  return { messages: [], prompts: [], lastOffset: 0 };
+}
 
 class FakeEventSource {
   static last: FakeEventSource | null = null;

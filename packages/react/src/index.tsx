@@ -59,7 +59,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   text: string;
   segments?: MessageSegment[];
-  status: "sending" | "sent" | "failed";
+  status: "sending" | "sent" | "failed" | "aborted";
 }
 
 export interface WidgetRendererProps {
@@ -98,6 +98,12 @@ export interface PromptState {
   promptId: string;
   kind: string;
   input: unknown;
+}
+
+export interface ChatEventReducerState {
+  messages: ChatMessage[];
+  prompts: PromptState[];
+  lastOffset: number;
 }
 
 export function createCognideskClient(options: CognideskClientOptions): CognideskClient {
@@ -242,6 +248,66 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
   };
 }
 
+export function reduceChatRuntimeEvent(
+  state: ChatEventReducerState,
+  event: RuntimeEvent,
+): ChatEventReducerState {
+  const lastOffset = Math.max(state.lastOffset, event.offset);
+  if (event.type === "message.completed") {
+    if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset };
+    const role = inferMessageRole(event, state.messages);
+    if (role !== "assistant") return { ...state, lastOffset };
+    return {
+      ...state,
+      lastOffset,
+      messages: [
+        ...state.messages,
+        {
+          id: event.id,
+          role,
+          text: event.data.text,
+          ...(event.data.segments ? { segments: event.data.segments } : {}),
+          status: "sent",
+        },
+      ],
+    };
+  }
+  if (event.type === "message.aborted") {
+    if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset };
+    return {
+      ...state,
+      lastOffset,
+      messages: [
+        ...state.messages,
+        {
+          id: event.id,
+          role: "assistant",
+          text: "Response interrupted.",
+          status: "aborted",
+        },
+      ],
+    };
+  }
+  if (event.type === "ui.prompted") {
+    return {
+      ...state,
+      lastOffset,
+      prompts: [
+        ...state.prompts.filter((prompt) => prompt.promptId !== event.data.promptId),
+        { promptId: event.data.promptId, kind: event.data.widgetKind, input: event.data.input },
+      ],
+    };
+  }
+  if (event.type === "ui.submitted") {
+    return {
+      ...state,
+      lastOffset,
+      prompts: state.prompts.filter((prompt) => prompt.promptId !== event.data.promptId),
+    };
+  }
+  return { ...state, lastOffset };
+}
+
 export function useChat(options: UseChatOptions) {
   const [conversationId, setConversationId] = useState(options.conversationId ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -270,29 +336,16 @@ export function useChat(options: UseChatOptions) {
 
   const applyEvent = useCallback((event: RuntimeEvent) => {
     lastOffsetRef.current = Math.max(lastOffsetRef.current, event.offset);
-    if (event.type === "message.completed") {
-      setMessages((current) => {
-        if (current.some((message) => message.id === event.id)) return current;
-        const role = inferMessageRole(event, current);
-        if (role !== "assistant") return current;
-        return [
-          ...current,
-          {
-            id: event.id,
-            role,
-            text: event.data.text,
-            ...(event.data.segments ? { segments: event.data.segments } : {}),
-            status: "sent",
-          },
-        ];
-      });
-    }
-    if (event.type === "ui.prompted") {
-      setPrompts((current) => [
-        ...current.filter((prompt) => prompt.promptId !== event.data.promptId),
-        { promptId: event.data.promptId, kind: event.data.widgetKind, input: event.data.input },
-      ]);
-    }
+    setMessages((current) => reduceChatRuntimeEvent({
+      messages: current,
+      prompts: [],
+      lastOffset: lastOffsetRef.current,
+    }, event).messages);
+    setPrompts((current) => reduceChatRuntimeEvent({
+      messages: [],
+      prompts: current,
+      lastOffset: lastOffsetRef.current,
+    }, event).prompts);
   }, []);
 
   const sendMessage = useCallback(async (text: string) => {
