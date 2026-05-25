@@ -310,6 +310,12 @@ export class CognideskRuntime {
           ...(input.signal ? { signal: input.signal } : {}),
         })
       : null;
+    const interruptedByLifecycle = await this.createLifecycleInterruptionResult({
+      conversationId: conversation.id,
+      events: emitted,
+    });
+    if (interruptedByLifecycle) return interruptedByLifecycle;
+
     const knowledge = await this.retrieveKnowledge({
       agent,
       journey: selectedJourney,
@@ -385,50 +391,19 @@ export class CognideskRuntime {
   }
 
   async closeConversation(conversationId: string, reason?: string) {
-    const conversation = await this.options.storage.updateConversationLifecycle(conversationId, "closed");
-    const currentSnapshot = await this.options.storage.getSnapshot(conversationId);
-    await this.options.storage.saveSnapshot({
+    const result = await this.applyConversationClosure({
       conversationId,
-      lifecycle: "closed",
-      activeStateIds: currentSnapshot?.activeStateIds ?? [],
-      updatedAt: new Date().toISOString(),
-      ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
-      ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
-      ...(currentSnapshot?.compactionSummary !== undefined ? { compactionSummary: currentSnapshot.compactionSummary } : {}),
-      ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
+      ...(reason ? { reason } : {}),
+      emit: (event) => this.emit(event),
     });
-    await this.emit({
-      conversationId,
-      type: "conversation.closed",
-      data: reason ? { reason } : {},
-    });
-    return conversation;
+    return result.conversation;
   }
 
   async requestHandoff(input: RequestHandoffInput) {
-    const conversation = await this.options.storage.updateConversationLifecycle(input.conversationId, "handoff");
-    if (!conversation) throw new Error(`Conversation '${input.conversationId}' does not exist.`);
-    const currentSnapshot = await this.options.storage.getSnapshot(input.conversationId);
-    await this.options.storage.saveSnapshot({
-      conversationId: input.conversationId,
-      lifecycle: "handoff",
-      activeStateIds: currentSnapshot?.activeStateIds ?? [],
-      updatedAt: new Date().toISOString(),
-      ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
-      ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
-      ...(currentSnapshot?.compactionSummary !== undefined ? { compactionSummary: currentSnapshot.compactionSummary } : {}),
-      ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
+    return this.applyHandoffRequest({
+      ...input,
+      emit: (event) => this.emit(event),
     });
-    const event = await this.emit({
-      conversationId: input.conversationId,
-      type: "handoff.requested",
-      data: {
-        reason: input.reason,
-        ...(input.summary ? { summary: input.summary } : {}),
-        ...(input.payload !== undefined ? { payload: input.payload } : {}),
-      },
-    });
-    return { conversation, event };
   }
 
   async compactConversation(input: CompactConversationInput): Promise<CompactConversationResult> {
@@ -524,6 +499,108 @@ export class CognideskRuntime {
     const conversation = await this.options.storage.getConversation(conversationId);
     if (!conversation) throw new Error(`Conversation '${conversationId}' does not exist.`);
     return conversation;
+  }
+
+  private async createLifecycleInterruptionResult(args: {
+    conversationId: string;
+    events: RuntimeEvent[];
+  }): Promise<HandleUserMessageResult | null> {
+    const conversation = await this.requireConversationRecord(args.conversationId);
+    if (conversation.lifecycle === "active") return null;
+    const snapshot = await this.options.storage.getSnapshot(args.conversationId) ?? {
+      conversationId: args.conversationId,
+      lifecycle: conversation.lifecycle,
+      activeStateIds: [],
+      updatedAt: conversation.updatedAt,
+    };
+    return {
+      conversation,
+      snapshot,
+      events: args.events,
+      text: "",
+      ...(snapshot.activeJourneyId ? { activeJourneyId: snapshot.activeJourneyId } : {}),
+    };
+  }
+
+  private async applyConversationClosure(args: {
+    conversationId: string;
+    reason?: string;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const conversation = await this.options.storage.updateConversationLifecycle(args.conversationId, "closed");
+    if (!conversation) throw new Error(`Conversation '${args.conversationId}' does not exist.`);
+    await this.saveLifecycleSnapshot(args.conversationId, "closed", conversation.updatedAt);
+    const event = await args.emit({
+      conversationId: args.conversationId,
+      type: "conversation.closed",
+      data: args.reason ? { reason: args.reason } : {},
+    });
+    return { conversation, event };
+  }
+
+  private async applyHandoffRequest(args: RequestHandoffInput & {
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const conversation = await this.options.storage.updateConversationLifecycle(args.conversationId, "handoff");
+    if (!conversation) throw new Error(`Conversation '${args.conversationId}' does not exist.`);
+    await this.saveLifecycleSnapshot(args.conversationId, "handoff", conversation.updatedAt);
+    const event = await args.emit({
+      conversationId: args.conversationId,
+      type: "handoff.requested",
+      data: {
+        reason: args.reason,
+        ...(args.summary ? { summary: args.summary } : {}),
+        ...(args.payload !== undefined ? { payload: args.payload } : {}),
+      },
+    });
+    return { conversation, event };
+  }
+
+  private async saveLifecycleSnapshot(
+    conversationId: string,
+    lifecycle: RuntimeSnapshot["lifecycle"],
+    updatedAt: string,
+  ) {
+    const currentSnapshot = await this.options.storage.getSnapshot(conversationId);
+    await this.options.storage.saveSnapshot({
+      conversationId,
+      lifecycle,
+      activeStateIds: currentSnapshot?.activeStateIds ?? [],
+      updatedAt,
+      ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
+      ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
+      ...(currentSnapshot?.compactionSummary !== undefined ? { compactionSummary: currentSnapshot.compactionSummary } : {}),
+      ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
+    });
+  }
+
+  private async applyBuiltInLifecycleTool(args: {
+    toolName: string;
+    input: unknown;
+    conversationId: string;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    if (args.toolName === "cognidesk.handoff") {
+      const input = args.input as { reason: string; summary?: string; payload?: unknown };
+      await this.applyHandoffRequest({
+        conversationId: args.conversationId,
+        reason: input.reason,
+        ...(input.summary ? { summary: input.summary } : {}),
+        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+        emit: args.emit,
+      });
+      return true;
+    }
+    if (args.toolName === "cognidesk.endConversation") {
+      const input = args.input as { reason?: string };
+      await this.applyConversationClosure({
+        conversationId: args.conversationId,
+        ...(input.reason ? { reason: input.reason } : {}),
+        emit: args.emit,
+      });
+      return true;
+    }
+    return false;
   }
 
   private async selectJourney<TTurn>(args: {
@@ -746,6 +823,8 @@ export class CognideskRuntime {
     const visited = new Set<string>();
     while (!visited.has(state.id)) {
       visited.add(state.id);
+      const lifecycle = await this.requireConversationRecord(args.conversation.id);
+      if (lifecycle.lifecycle !== "active") return state;
       if (!this.stateRequirementsSatisfied(state, args.context)) return state;
       if (state.requiresVisit) {
         await this.emitConfirmationPrompts({ ...args, state });
@@ -757,6 +836,8 @@ export class CognideskRuntime {
         state,
         actionType: "transition",
       });
+      const latestConversation = await this.requireConversationRecord(args.conversation.id);
+      if (latestConversation.lifecycle !== "active") return state;
       const transition = toolTargetId
         ? { targetId: toolTargetId }
         : await this.selectTransition({
@@ -953,6 +1034,13 @@ export class CognideskRuntime {
             result: parsedOutput,
           },
         });
+        const lifecycleApplied = await this.applyBuiltInLifecycleTool({
+          toolName: toolRun.tool.name,
+          input: parsedInput.data,
+          conversationId: args.conversation.id,
+          emit: args.emit,
+        });
+        if (lifecycleApplied) return null;
         if (toolRun.onSuccessId) return toolRun.onSuccessId;
       } catch (error) {
         await args.emit({
@@ -1037,6 +1125,8 @@ export class CognideskRuntime {
       confirmedPromptId: args.promptId,
       emit: (event) => this.emit(event),
     });
+    const latestConversation = await this.requireConversationRecord(args.conversation.id);
+    if (latestConversation.lifecycle !== "active") return;
     const next = toolTargetId
       ? { targetId: toolTargetId }
       : await this.selectTransition({ journey, state, context });
