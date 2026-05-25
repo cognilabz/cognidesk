@@ -14,6 +14,7 @@ import type {
   AnyTool,
   CustomRuntimeEventDefinition,
   GuardResult,
+  JourneyContextRecord,
   JourneySummary,
   KnowledgeItem,
   KnowledgeSource,
@@ -727,6 +728,7 @@ export class CognideskRuntime {
       compactionSummary: summary,
       ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
       ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
+      ...(currentSnapshot?.journeyContexts ? { journeyContexts: currentSnapshot.journeyContexts } : {}),
       ...(currentSnapshot?.journeySummaries ? { journeySummaries: currentSnapshot.journeySummaries } : {}),
       ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
     };
@@ -1096,7 +1098,8 @@ export class CognideskRuntime {
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       try {
         if (args.tool.name === "cognidesk.viewJourneyContext") {
-          return createJourneyContextView(args.input, args.journeyContext);
+          const snapshot = await this.options.storage.getSnapshot(args.conversationId);
+          return createJourneyContextView(args.input, args.journeyContext, snapshot?.journeyContexts ?? []);
         }
         return await args.tool.execute({
           input: args.input,
@@ -1268,6 +1271,7 @@ export class CognideskRuntime {
       updatedAt,
       ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
       ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
+      ...(currentSnapshot?.journeyContexts ? { journeyContexts: currentSnapshot.journeyContexts } : {}),
       ...(currentSnapshot?.journeySummaries ? { journeySummaries: currentSnapshot.journeySummaries } : {}),
       ...(currentSnapshot?.compactionSummary !== undefined ? { compactionSummary: currentSnapshot.compactionSummary } : {}),
       ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
@@ -2352,12 +2356,22 @@ export class CognideskRuntime {
           delegationCompletion: null,
         }) : null,
       );
+      const journeyContexts = appendJourneyContext(
+        snapshot?.journeyContexts ?? [],
+        completed ? createJourneyContextRecord({
+          journeyId: journey.id,
+          completed,
+          context,
+          updatedAt: new Date().toISOString(),
+        }) : null,
+      );
       await this.options.storage.saveSnapshot({
         conversationId: args.conversation.id,
         lifecycle: args.conversation.lifecycle,
         activeStateIds: completed ? [] : activeStates.map((activeState) => activeState.id),
         updatedAt: new Date().toISOString(),
         ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
+        ...(journeyContexts.length > 0 ? { journeyContexts } : {}),
         ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
         ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
         ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
@@ -2449,12 +2463,22 @@ export class CognideskRuntime {
         delegationCompletion: null,
       }) : null,
     );
+    const journeyContexts = appendJourneyContext(
+      snapshot?.journeyContexts ?? [],
+      completed ? createJourneyContextRecord({
+        journeyId: journey.id,
+        completed,
+        context,
+        updatedAt: new Date().toISOString(),
+      }) : null,
+    );
     await this.options.storage.saveSnapshot({
       conversationId: args.conversation.id,
       lifecycle: args.conversation.lifecycle,
       activeStateIds,
       updatedAt: new Date().toISOString(),
       ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
+      ...(journeyContexts.length > 0 ? { journeyContexts } : {}),
       ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
       ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
       ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
@@ -2586,12 +2610,22 @@ export class CognideskRuntime {
         delegationCompletion: null,
       }) : null,
     );
+    const journeyContexts = appendJourneyContext(
+      previousSnapshot?.journeyContexts ?? [],
+      completed ? createJourneyContextRecord({
+        journeyId: route.journey.id,
+        completed,
+        context,
+        updatedAt: new Date().toISOString(),
+      }) : null,
+    );
     const snapshot: RuntimeSnapshot = {
       conversationId: args.conversation.id,
       lifecycle: args.conversation.lifecycle,
       activeStateIds: completed ? [] : activeStates.map((activeState) => activeState.id),
       updatedAt: new Date().toISOString(),
       ...(completed ? {} : { activeJourneyId: route.journey.id, journeyContext: context }),
+      ...(journeyContexts.length > 0 ? { journeyContexts } : {}),
       ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
       ...(previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: previousSnapshot.compactionSummary } : {}),
       ...(previousSnapshot?.definitionHash ? { definitionHash: previousSnapshot.definitionHash } : {}),
@@ -2794,6 +2828,17 @@ export class CognideskRuntime {
           })
         : null,
     );
+    const journeyContexts = appendJourneyContext(
+      args.previousSnapshot?.journeyContexts ?? [],
+      args.selectedJourney && args.stateMachineTurn?.completed
+        ? createJourneyContextRecord({
+            journeyId: args.selectedJourney.id,
+            completed: args.stateMachineTurn.completed,
+            context: args.stateMachineTurn.journeyContext,
+            updatedAt: new Date().toISOString(),
+          })
+        : null,
+    );
     return {
       conversationId: args.conversationId,
       lifecycle: "active",
@@ -2804,6 +2849,7 @@ export class CognideskRuntime {
       ...(!journeyCompleted && args.stateMachineTurn
         ? { journeyContext: args.stateMachineTurn.journeyContext }
         : !journeyCompleted && args.previousSnapshot?.journeyContext !== undefined ? { journeyContext: args.previousSnapshot.journeyContext } : {}),
+      ...(journeyContexts.length > 0 ? { journeyContexts } : {}),
       ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
       ...(args.previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: args.previousSnapshot.compactionSummary } : {}),
       ...(this.options.journeyIndex ? { definitionHash: this.options.journeyIndex.definitionHash } : {}),
@@ -2948,6 +2994,28 @@ function appendJourneySummary(existing: JourneySummary[], next: JourneySummary |
     ...existing.filter((summary) => summary.journeyId !== next.journeyId),
     next,
   ];
+}
+
+function appendJourneyContext(existing: JourneyContextRecord[], next: JourneyContextRecord | null) {
+  if (!next) return existing;
+  return [
+    ...existing.filter((record) => record.journeyId !== next.journeyId),
+    next,
+  ];
+}
+
+function createJourneyContextRecord(args: {
+  journeyId: string;
+  completed: NonNullable<StateMachineTurnResult["completed"]>;
+  context: Record<string, unknown>;
+  updatedAt: string;
+}): JourneyContextRecord {
+  return {
+    journeyId: args.journeyId,
+    context: structuredClone(args.context),
+    updatedAt: args.updatedAt,
+    ...(args.completed.stateId ? { stateId: args.completed.stateId } : {}),
+  };
 }
 
 function createJourneySummary(args: {
@@ -3190,11 +3258,17 @@ function isStructuredGuardDenial(result: GuardResult): result is Extract<GuardRe
   return typeof result === "object" && result !== null && result.allow === false;
 }
 
-function createJourneyContextView(input: unknown, context: Record<string, unknown>) {
+function createJourneyContextView(
+  input: unknown,
+  activeContext: Record<string, unknown>,
+  storedContexts: JourneyContextRecord[],
+) {
   const parsed = z.object({
     journeyId: z.string(),
     fields: z.array(z.string()).optional(),
   }).parse(input);
+  const stored = storedContexts.find((record) => record.journeyId === parsed.journeyId);
+  const context = isRecord(stored?.context) ? stored.context : activeContext;
   if (!parsed.fields?.length) {
     return {
       journeyId: parsed.journeyId,

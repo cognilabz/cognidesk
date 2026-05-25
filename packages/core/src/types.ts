@@ -261,6 +261,7 @@ export interface RuntimeSnapshot {
   activeJourneyId?: string;
   activeStateIds: string[];
   journeyContext?: unknown;
+  journeyContexts?: JourneyContextRecord[];
   journeySummaries?: JourneySummary[];
   compactionSummary?: unknown;
   definitionHash?: string;
@@ -274,6 +275,13 @@ export interface JourneySummary {
   completedAt: string;
   stateId?: string;
   reason?: string;
+}
+
+export interface JourneyContextRecord {
+  journeyId: string;
+  context: unknown;
+  updatedAt: string;
+  stateId?: string;
 }
 
 export class DefinitionError extends Error {

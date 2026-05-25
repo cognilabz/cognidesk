@@ -2107,6 +2107,55 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("lets an exposed built-in tool view exact stored journey context", async () => {
+    const calls: TextGenerationInput[] = [];
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        calls.push(input);
+        if (!input.messages.some((message) => message.role === "tool")) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_1",
+              name: "cognidesk.viewJourneyContext",
+              input: { journeyId: "ticket-status", fields: ["bookingReference"] },
+            }],
+          };
+        }
+        return { text: `Context ${input.messages.at(-1)?.content}` };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(journeyContextViewerTool);
+    const agent = agentBuilder.compile();
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({ storage, agent, models: createModels({ response }) });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await storage.saveSnapshot({
+      conversationId: conversation.id,
+      lifecycle: "active",
+      activeStateIds: [],
+      journeyContexts: [{
+        journeyId: "ticket-status",
+        context: { bookingReference: "ABC123", internalNote: "not requested" },
+        updatedAt: "2026-05-26T00:00:00.000Z",
+        stateId: "done",
+      }],
+      updatedAt: new Date().toISOString(),
+    });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "What booking reference did I share?",
+    });
+
+    expect(result.text).toContain('"bookingReference":"ABC123"');
+    expect(result.text).not.toContain("internalNote");
+    expect(calls).toHaveLength(2);
+  });
+
   it("adds delegation goal, instructions, and tools to the response prompt", async () => {
     let systemPrompt = "";
     const summarize = tool("summarizeHandoff", {
