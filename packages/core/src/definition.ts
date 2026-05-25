@@ -260,12 +260,25 @@ function resolveFieldWidget(widgetOption: FieldWidgetOption | undefined) {
 }
 
 function assertUniqueNames(items: Array<{ name: string }>, label: string) {
+  assertUniqueValues(items, label, (item) => item.name);
+}
+
+function assertUniqueIds(items: Array<{ id: string }>, label: string) {
+  assertUniqueValues(items, label, (item) => item.id);
+}
+
+function assertUniqueKinds(items: Array<{ kind: string }>, label: string) {
+  assertUniqueValues(items, label, (item) => item.kind);
+}
+
+function assertUniqueValues<T>(items: T[], label: string, value: (item: T) => string) {
   const seen = new Set<string>();
   for (const item of items) {
-    if (seen.has(item.name)) {
-      throw new CognideskDefinitionError(`${label} '${item.name}' is already registered.`);
+    const key = value(item);
+    if (seen.has(key)) {
+      throw new CognideskDefinitionError(`${label} '${key}' is already registered.`);
     }
-    seen.add(item.name);
+    seen.add(key);
   }
 }
 
@@ -786,6 +799,7 @@ export class StateMachineJourneyBuilder<
       throw new CognideskDefinitionError(`Journey '${this.id}' must declare an initial state.`);
     }
     const states = this.states.list().flatMap((state) => state.compile());
+    assertUniqueIds(states, "State");
     const stateIds = new Set(states.map((state) => state.id));
     const childrenByParentId = new Map<string, CompiledState[]>();
     for (const state of states) {
@@ -930,8 +944,12 @@ export class AgentBuilder<const TId extends string> {
 
   compile(): CompiledAgent {
     const compiledJourneys = this.journeys.map((journey) => journey.compile());
+    assertUniqueIds(compiledJourneys, "Journey");
+    assertUniqueNames(this.tools.list(), "Tool");
+    assertUniqueNames(this.knowledge.list(), "Knowledge source");
     const customEvents = this.customEvents.list();
     assertUniqueNames(customEvents, "Custom runtime event");
+    assertUniqueKinds(this.widgets, "Widget");
     return {
       id: this.id,
       instructions: this.options.instructions,
