@@ -1,0 +1,17 @@
+services:
+  flight-demo:
+    build:
+      context: .
+    command: sh -c "pnpm --filter @cognidesk/flight-demo dev:server & pnpm --filter @cognidesk/flight-demo dev --host 0.0.0.0"
+    environment:
+      PORT: "8787"
+      VITE_COGNIDESK_API_URL: "http://localhost:8787/api"
+      SQLITE_PATH: "/app/apps/flight-demo/.data/flight-demo.sqlite"
+    ports:
+      - "5173:5173"
+      - "8787:8787"
+    volumes:
+      - flight_demo_data:/app/apps/flight-demo/.data
+
+volumes:
+  flight_demo_data:
