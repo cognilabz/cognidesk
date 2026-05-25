@@ -169,6 +169,18 @@ export interface KnowledgeSource<
   }): Promise<{ items: Array<KnowledgeItem<z.infer<TMetadataSchema>>> }>;
 }
 
+export interface CustomRuntimeEventDefinition<
+  TName extends string = string,
+  TPayloadSchema extends z.ZodType = z.ZodType,
+> {
+  kind: "customRuntimeEvent";
+  name: TName;
+  payload: TPayloadSchema;
+  visibleToModel?: boolean;
+}
+
+export type AnyCustomRuntimeEvent = CustomRuntimeEventDefinition<string, z.ZodType>;
+
 export interface RuntimeEventBase<TType extends string, TData> {
   id: string;
   conversationId: string;

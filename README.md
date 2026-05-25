@@ -12,6 +12,7 @@ import {
   buildJourneyIndex,
   createAgent,
   createRuntime,
+  customRuntimeEvent,
   knowledgeSource,
   tool,
 } from "@cognidesk/core";
@@ -36,11 +37,17 @@ const faq = knowledgeSource("support-faq", {
   }),
 });
 
+const leadCaptured = customRuntimeEvent("lead.captured", {
+  payload: z.object({ email: z.string().email(), source: z.string() }),
+  visibleToModel: true,
+});
+
 const agentBuilder = createAgent("flight-support", {
   instructions: "You are a concise customer support agent.",
 });
 agentBuilder.tools.add(findTicket);
 agentBuilder.knowledge.add(faq);
+agentBuilder.customEvents.add(leadCaptured);
 
 const status = agentBuilder.stateMachineJourney("ticket-status", {
   condition: "Customer wants ticket status",
@@ -64,6 +71,12 @@ const storage = createSqliteStorage({ filename: "support.sqlite" });
 const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
 const runtime = createRuntime({ storage, agent, models, journeyIndex });
 await runtime.initialize();
+const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+await runtime.emitCustomEvent({
+  conversationId: conversation.id,
+  event: leadCaptured,
+  payload: { email: "customer@example.com", source: "pricing-page" },
+});
 
 const http = createCognideskHttpHandler({ runtime, agentId: agent.id, basePath: "/api" });
 ```

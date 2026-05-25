@@ -1,8 +1,10 @@
 import { z } from "zod";
 import type {
   ApplicationContextParts,
+  AnyCustomRuntimeEvent,
   AnyTool,
   ContextPath,
+  CustomRuntimeEventDefinition,
   DefinitionError,
   GuardContext,
   GuardResult,
@@ -93,6 +95,7 @@ export interface CompiledAgent {
   tools: AnyTool[];
   knowledge: KnowledgeSource[];
   widgets: WidgetDefinition[];
+  customEvents: AnyCustomRuntimeEvent[];
 }
 
 export interface CompiledJourney {
@@ -208,6 +211,16 @@ function pushUnique<T>(items: T[], item: T) {
   if (!items.includes(item)) items.push(item);
 }
 
+function assertUniqueNames(items: Array<{ name: string }>, label: string) {
+  const seen = new Set<string>();
+  for (const item of items) {
+    if (seen.has(item.name)) {
+      throw new CognideskDefinitionError(`${label} '${item.name}' is already registered.`);
+    }
+    seen.add(item.name);
+  }
+}
+
 export function tool<
   const TName extends string,
   TInputSchema extends z.ZodType,
@@ -287,6 +300,21 @@ export function journeyEvent<const TName extends string, TPayloadSchema extends 
   },
 ): JourneyEventDefinition<TName, TPayloadSchema> {
   return { kind: "journeyEvent", name, ...config };
+}
+
+export function customRuntimeEvent<const TName extends string, TPayloadSchema extends z.ZodType>(
+  name: TName,
+  config: {
+    payload: TPayloadSchema;
+    visibleToModel?: boolean;
+  },
+): CustomRuntimeEventDefinition<TName, TPayloadSchema> {
+  return {
+    kind: "customRuntimeEvent",
+    name,
+    payload: config.payload,
+    ...(config.visibleToModel !== undefined ? { visibleToModel: config.visibleToModel } : {}),
+  };
 }
 
 export class CapabilityScope<TItem> {
@@ -723,6 +751,7 @@ export interface AgentOptions {
 export class AgentBuilder<const TId extends string> {
   readonly tools = new CapabilityScope<AnyTool>();
   readonly knowledge = new CapabilityScope<KnowledgeSource>();
+  readonly customEvents = new CapabilityScope<AnyCustomRuntimeEvent>();
   readonly widgets: WidgetDefinition[] = [];
   private readonly journeys: Array<StateMachineJourneyBuilder<string, ObjectSchema> | DelegationJourneyBuilder<string>> = [];
 
@@ -753,6 +782,8 @@ export class AgentBuilder<const TId extends string> {
 
   compile(): CompiledAgent {
     const compiledJourneys = this.journeys.map((journey) => journey.compile());
+    const customEvents = this.customEvents.list();
+    assertUniqueNames(customEvents, "Custom runtime event");
     return {
       id: this.id,
       instructions: this.options.instructions,
@@ -760,6 +791,7 @@ export class AgentBuilder<const TId extends string> {
       tools: this.tools.list(),
       knowledge: this.knowledge.list(),
       widgets: this.widgets,
+      customEvents,
     };
   }
 }

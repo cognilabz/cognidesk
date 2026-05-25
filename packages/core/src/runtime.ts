@@ -10,6 +10,7 @@ import type { PrivacyHooks } from "./privacy.js";
 import type { ConversationRecord, CreateConversationInput, RuntimeEventInput, StorageAdapter } from "./storage.js";
 import type {
   AgentModelSet,
+  CustomRuntimeEventDefinition,
   KnowledgeItem,
   KnowledgeSource,
   MessageSegment,
@@ -71,6 +72,13 @@ export interface SubmitWidgetInput {
   output: unknown;
 }
 
+export interface EmitCustomEventInput<TEvent extends CustomRuntimeEventDefinition = CustomRuntimeEventDefinition> {
+  conversationId: string;
+  event: TEvent;
+  payload: z.infer<TEvent["payload"]>;
+  traceId?: string;
+}
+
 export interface RequestHandoffInput {
   conversationId: string;
   reason: string;
@@ -109,6 +117,12 @@ interface StateMachineTurnResult {
   journeyContext: Record<string, unknown>;
 }
 
+interface VisibleCustomEventContext {
+  type: string;
+  offset: number;
+  data: unknown;
+}
+
 export class CognideskRuntime {
   constructor(private readonly options: RuntimeOptions) {}
 
@@ -141,6 +155,20 @@ export class CognideskRuntime {
       ...event,
       id: event.id ?? randomUUID(),
       createdAt: event.createdAt ?? new Date().toISOString(),
+    });
+  }
+
+  async emitCustomEvent<TEvent extends CustomRuntimeEventDefinition>(
+    input: EmitCustomEventInput<TEvent>,
+  ): Promise<RuntimeEvent> {
+    await this.requireConversationRecord(input.conversationId);
+    const definition = this.resolveCustomRuntimeEvent(input.event);
+    const payload = definition.payload.parse(input.payload);
+    return this.emit({
+      conversationId: input.conversationId,
+      type: `custom.${definition.name}`,
+      data: payload,
+      ...(input.traceId ? { traceId: input.traceId } : {}),
     });
   }
 
@@ -228,12 +256,14 @@ export class CognideskRuntime {
       emit,
       ...(input.signal ? { signal: input.signal } : {}),
     });
+    const visibleCustomEvents = await this.listVisibleCustomEventContext(agent, conversation.id);
     const modelMessages = await this.redactModelMessages(conversation, this.createResponseMessages({
       agent,
       journey: selectedJourney,
       stateMachineTurn,
       userText,
       knowledge,
+      visibleCustomEvents,
     }));
     const response = await models.response.generateText({
       role: "response",
@@ -408,6 +438,16 @@ export class CognideskRuntime {
   private requireModels() {
     if (!this.options.models) throw new Error("Runtime requires models to handle messages.");
     return this.options.models;
+  }
+
+  private resolveCustomRuntimeEvent<TEvent extends CustomRuntimeEventDefinition>(event: TEvent) {
+    const agent = this.options.agent;
+    if (!agent) return event;
+    const registered = agent.customEvents.find((candidate) => candidate.name === event.name);
+    if (!registered) {
+      throw new Error(`Custom runtime event '${event.name}' is not registered on agent '${agent.id}'.`);
+    }
+    return registered;
   }
 
   private async requireConversation(conversationId: string) {
@@ -892,12 +932,30 @@ export class CognideskRuntime {
     });
   }
 
+  private async listVisibleCustomEventContext(agent: CompiledAgent, conversationId: string): Promise<VisibleCustomEventContext[]> {
+    const visibleTypes = new Set(
+      agent.customEvents
+        .filter((event) => event.visibleToModel)
+        .map((event) => `custom.${event.name}`),
+    );
+    if (visibleTypes.size === 0) return [];
+    const events = await this.options.storage.listEvents({ conversationId });
+    return events
+      .filter((event) => visibleTypes.has(event.type))
+      .map((event) => ({
+        type: event.type,
+        offset: event.offset,
+        data: event.data,
+      }));
+  }
+
   private createResponseMessages(args: {
     agent: CompiledAgent;
     journey: CompiledJourney | null;
     stateMachineTurn: StateMachineTurnResult | null;
     userText: string;
     knowledge: Array<KnowledgeItem>;
+    visibleCustomEvents: VisibleCustomEventContext[];
   }): ModelMessage[] {
     const journeyContext = args.journey
       ? renderJourneyRuntimeContext(args.journey, args.stateMachineTurn)
@@ -908,6 +966,11 @@ export class CognideskRuntime {
           return `[K${index + 1}:${item.id}${title}]\n${item.content}`;
         }).join("\n\n")
       : "No retrieved knowledge.";
+    const customEventContext = args.visibleCustomEvents.length > 0
+      ? args.visibleCustomEvents
+          .map((event) => `[${event.offset}:${event.type}]\n${JSON.stringify(event.data)}`)
+          .join("\n\n")
+      : "No visible custom events.";
 
     return [
       {
@@ -920,6 +983,9 @@ export class CognideskRuntime {
           "Use retrieved knowledge when relevant. If knowledge is used, make the supporting text cite the source id in prose.",
           "",
           knowledgeContext,
+          "",
+          "Visible custom events:",
+          customEventContext,
         ].join("\n"),
       },
       { role: "user", content: args.userText },

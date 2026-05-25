@@ -4,6 +4,7 @@ import {
   buildJourneyIndex,
   createAgent,
   createRuntime,
+  customRuntimeEvent,
   journeyContextViewerTool,
   knowledgeSource,
   tool,
@@ -155,6 +156,87 @@ describe("runtime turn pipeline", () => {
       widgetKind: "confirmation",
       output: { confirmed: true },
     });
+  });
+
+  it("validates declared custom runtime events and exposes only visible ones to the model", async () => {
+    const leadCaptured = customRuntimeEvent("lead.captured", {
+      payload: z.object({ email: z.string().email(), source: z.string() }),
+      visibleToModel: true,
+    });
+    const internalMetric = customRuntimeEvent("metric.logged", {
+      payload: z.object({ name: z.string() }),
+    });
+    let systemPrompt = "";
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.customEvents.add(leadCaptured, internalMetric);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async ({ messages }) => {
+            systemPrompt = messages.find((message) => message.role === "system")?.content ?? "";
+            return { text: "I can help with that lead." };
+          },
+        },
+      }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const event = await runtime.emitCustomEvent({
+      conversationId: conversation.id,
+      event: leadCaptured,
+      payload: { email: "phil@example.com", source: "chat" },
+    });
+    await runtime.emitCustomEvent({
+      conversationId: conversation.id,
+      event: internalMetric,
+      payload: { name: "widget.opened" },
+    });
+    await expect(runtime.emitCustomEvent({
+      conversationId: conversation.id,
+      event: leadCaptured,
+      payload: { email: "not-an-email", source: "chat" },
+    })).rejects.toThrow();
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Use the current lead.",
+    });
+
+    expect(event.type).toBe("custom.lead.captured");
+    expect(event.data).toEqual({ email: "phil@example.com", source: "chat" });
+    expect(systemPrompt).toContain("custom.lead.captured");
+    expect(systemPrompt).toContain("phil@example.com");
+    expect(systemPrompt).not.toContain("custom.metric.logged");
+    expect(systemPrompt).not.toContain("widget.opened");
+  });
+
+  it("rejects custom runtime events that are not registered on the agent", async () => {
+    const registered = customRuntimeEvent("registered", {
+      payload: z.object({ ok: z.boolean() }),
+    });
+    const unregistered = customRuntimeEvent("unregistered", {
+      payload: z.object({ ok: z.boolean() }),
+    });
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.customEvents.add(registered);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await expect(runtime.emitCustomEvent({
+      conversationId: conversation.id,
+      event: unregistered,
+      payload: { ok: true },
+    })).rejects.toThrow("Custom runtime event 'unregistered' is not registered on agent 'flight-service'.");
   });
 
   it("moves a conversation into handoff lifecycle and stores a handoff event", async () => {
