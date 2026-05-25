@@ -91,7 +91,13 @@ describe("runtime turn pipeline", () => {
       segments: [{
         id: "segment_1",
         text: "Use faq-ticket-status for the current ticket status.",
-        references: [{ type: "knowledge", id: "faq-ticket-status" }],
+        references: [{
+          type: "knowledge",
+          id: "faq-ticket-status",
+          sourceName: "flight-faq",
+          title: "Ticket status",
+          metadata: { source: "faq" },
+        }],
       }],
     });
   });

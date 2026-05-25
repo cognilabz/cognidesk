@@ -29,6 +29,10 @@ import type {
   TextGenerationOutput,
 } from "./types.js";
 
+type RetrievedKnowledgeItem = KnowledgeItem & {
+  sourceName: string;
+};
+
 export interface RuntimeOptions {
   storage: StorageAdapter;
   agent?: CompiledAgent;
@@ -1506,7 +1510,7 @@ export class CognideskRuntime {
       ...(args.journey?.knowledge ?? []),
       ...activeStates.flatMap((state) => state.knowledge),
     ]);
-    const items: Array<KnowledgeItem> = [];
+    const items: RetrievedKnowledgeItem[] = [];
     for (const source of sources) {
       const query = parseKnowledgeQuery(source, args.message);
       if (query === null) continue;
@@ -1514,7 +1518,9 @@ export class CognideskRuntime {
         query,
         ...(args.signal ? { signal: args.signal } : {}),
       });
-      const limited = result.items.slice(0, this.options.knowledgeLimit ?? 5);
+      const limited = result.items
+        .slice(0, this.options.knowledgeLimit ?? 5)
+        .map((item) => ({ ...item, sourceName: source.name }));
       items.push(...limited);
       await this.trace({
         type: "knowledge.retrieved",
@@ -2817,7 +2823,7 @@ export class CognideskRuntime {
     stateMachineTurn: StateMachineTurnResult | null;
     userText: string;
     history: ConversationMessage[];
-    knowledge: Array<KnowledgeItem>;
+    knowledge: RetrievedKnowledgeItem[];
     visibleCustomEvents: VisibleCustomEventContext[];
     compactionSummary?: unknown;
     journeySummaries: JourneySummary[];
@@ -2887,7 +2893,7 @@ export class CognideskRuntime {
     agent: CompiledAgent;
     conversation: ConversationRecord;
     text: string;
-    knowledge: Array<KnowledgeItem>;
+    knowledge: RetrievedKnowledgeItem[];
     signal?: AbortSignal;
   }): Promise<MessageSegment[] | null> {
     if (args.knowledge.length === 0) return null;
@@ -2921,10 +2927,20 @@ export class CognideskRuntime {
         },
       });
       const structured = citationPostProcessingSchema.parse(output.structured ?? JSON.parse(output.text));
+      const knowledgeById = new Map(args.knowledge.map((item) => [item.id, item]));
       return structured.segments.map((segment, index) => ({
         id: `segment_${index + 1}`,
         text: segment.text,
-        references: segment.knowledgeIds.map((id) => ({ type: "knowledge" as const, id })),
+        references: segment.knowledgeIds.map((id) => {
+          const item = knowledgeById.get(id);
+          return {
+            type: "knowledge" as const,
+            id,
+            ...(item?.sourceName ? { sourceName: item.sourceName } : {}),
+            ...(item?.title ? { title: item.title } : {}),
+            ...(item?.metadata !== undefined ? { metadata: item.metadata } : {}),
+          };
+        }),
       }));
     } catch (error) {
       if (isAbortLikeError(error) && args.signal?.aborted) throw error;

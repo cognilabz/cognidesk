@@ -218,7 +218,7 @@ export interface MessageSegment {
 }
 
 export type SupportReference =
-  | { type: "knowledge"; id: string }
+  | { type: "knowledge"; id: string; sourceName?: string; title?: string; metadata?: unknown }
   | { type: "toolResult"; id: string };
 
 export type RuntimeEvent =

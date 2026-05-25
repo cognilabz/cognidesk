@@ -313,9 +313,9 @@ describe("createCognideskClient", () => {
 
   it("formats support references for citation hovers", () => {
     expect(formatSupportReferences([
-      { type: "knowledge", id: "policy-bags" },
+      { type: "knowledge", id: "policy-bags", sourceName: "flight-faq", title: "Baggage policy", metadata: { section: "bags" } },
       { type: "toolResult", id: "tool_1" },
-    ])).toBe("Knowledge: policy-bags\nTool result: tool_1");
+    ])).toBe("Knowledge: Baggage policy (flight-faq)\nsection: bags\nTool result: tool_1");
   });
 
   it("reduces runtime events into headless chat state", () => {
