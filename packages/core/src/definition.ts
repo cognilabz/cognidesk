@@ -111,6 +111,7 @@ export interface CompiledJourney {
   always?: JourneyActivationPredicate;
   matcher?: JourneyActivationPredicate;
   knowledge: KnowledgeSource[];
+  tools: AnyTool[];
   context?: ObjectSchema;
   delegation?: CompiledDelegation;
   states: CompiledState[];
@@ -697,6 +698,7 @@ export class StateMachineJourneyBuilder<
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       knowledge: this.knowledge.list(),
+      tools: this.tools.list(),
       context: this.options.context,
       states,
       initialStateId: this.initialState.id,
@@ -735,6 +737,7 @@ export class DelegationJourneyBuilder<const TId extends string> {
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       knowledge: this.options.specialist.knowledge ?? [],
+      tools: [],
       delegation: {
         goal: this.options.specialist.goal,
         ...(this.options.specialist.instructions ? { instructions: this.options.specialist.instructions } : {}),

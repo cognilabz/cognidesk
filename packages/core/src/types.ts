@@ -29,18 +29,36 @@ export interface ModelMessage {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
   name?: string;
+  toolCallId?: string;
+  toolCalls?: ModelToolCall[];
+}
+
+export interface ModelToolDefinition {
+  name: string;
+  description?: string;
+  input: z.ZodType;
+}
+
+export interface ModelToolCall {
+  id: string;
+  name: string;
+  input: unknown;
+  providerMetadata?: Record<string, unknown>;
 }
 
 export interface TextGenerationInput {
   role: ModelRole;
   messages: ModelMessage[];
   responseFormat?: z.ZodType;
+  tools?: ModelToolDefinition[];
+  toolChoice?: "auto" | "none" | "required";
   signal?: AbortSignal;
 }
 
 export interface TextGenerationOutput<T = unknown> {
   text: string;
   structured?: T;
+  toolCalls?: ModelToolCall[];
   usage?: UsageRecord;
   providerMetadata?: Record<string, unknown>;
 }

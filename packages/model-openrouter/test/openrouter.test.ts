@@ -64,4 +64,55 @@ describe("openRouterModel", () => {
     expect(embedding.model).toBe("openai/text-embedding-3-small");
     expect(embedding.dimensions).toBe(3);
   });
+
+  it("sends tool definitions and parses tool calls", async () => {
+    const requests: Array<{ body: unknown }> = [];
+    const model = openRouterModel({
+      model: "openai/gpt-4.1-mini",
+      apiKey: "test-key",
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) as unknown });
+        return Response.json({
+          id: "gen_1",
+          model: "openai/gpt-4.1-mini",
+          choices: [{
+            message: {
+              role: "assistant",
+              content: "",
+              tool_calls: [{
+                id: "call_1",
+                type: "function",
+                function: {
+                  name: "getTicketStatus",
+                  arguments: JSON.stringify({ bookingReference: "ABC123" }),
+                },
+              }],
+            },
+          }],
+        });
+      },
+    });
+
+    const result = await model.generateText({
+      role: "response",
+      messages: [{ role: "user", content: "status?" }],
+      tools: [{
+        name: "getTicketStatus",
+        description: "Get status.",
+        input: z.object({ bookingReference: z.string() }),
+      }],
+      toolChoice: "auto",
+    });
+
+    expect(requests[0]?.body).toMatchObject({
+      tools: [{ type: "function", function: { name: "getTicketStatus" } }],
+      tool_choice: "auto",
+    });
+    expect(result.toolCalls).toEqual([{
+      id: "call_1",
+      name: "getTicketStatus",
+      input: { bookingReference: "ABC123" },
+      providerMetadata: { type: "function" },
+    }]);
+  });
 });

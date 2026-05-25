@@ -11,12 +11,15 @@ import type { PrivacyHooks } from "./privacy.js";
 import type { ConversationRecord, CreateConversationInput, RuntimeEventInput, StorageAdapter } from "./storage.js";
 import type {
   AgentModelSet,
+  AnyTool,
   CustomRuntimeEventDefinition,
   KnowledgeItem,
   KnowledgeSource,
   MessageSegment,
   ModelAdapter,
   ModelMessage,
+  ModelToolCall,
+  ModelToolDefinition,
   RuntimeEvent,
   RuntimeSnapshot,
   TextGenerationInput,
@@ -415,17 +418,28 @@ export class CognideskRuntime {
         knowledge,
         visibleCustomEvents,
       }));
+      const availableTools = this.resolveAvailableModelTools(agent, selectedJourney);
+      const modelTools = availableTools.map(toModelToolDefinition);
       this.throwIfTurnInterrupted(turn);
-      const response = await this.generateTextWithTrace({
-        conversationId: conversation.id,
+      const response = await this.generateResponseWithTools({
+        conversation,
         model: models.response,
-        input: {
-          role: "response",
-          messages: modelMessages,
-          signal: turn.controller.signal,
-        },
+        messages: modelMessages,
+        tools: availableTools,
+        modelTools,
+        selectedJourney,
+        stateMachineTurn,
+        emit,
+        signal: turn.controller.signal,
       });
       this.throwIfTurnInterrupted(turn);
+      if (response.providerMetadata?.interruptedByLifecycle) {
+        const interrupted = await this.createLifecycleInterruptionResult({
+          conversationId: conversation.id,
+          events: emitted,
+        });
+        if (interrupted) return interrupted;
+      }
       const assistantText = await this.redactAssistantMessage(conversation, response.text);
       this.throwIfTurnInterrupted(turn);
       const segments = await this.createCitationSegments({
@@ -707,6 +721,189 @@ export class CognideskRuntime {
       });
       throw error;
     }
+  }
+
+  private async generateResponseWithTools(args: {
+    conversation: ConversationRecord;
+    model: ModelAdapter;
+    messages: ModelMessage[];
+    tools: AnyTool[];
+    modelTools: ModelToolDefinition[];
+    selectedJourney: CompiledJourney | null;
+    stateMachineTurn: StateMachineTurnResult | null;
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }): Promise<TextGenerationOutput> {
+    const messages = [...args.messages];
+    const maxToolRounds = 4;
+    for (let round = 0; round <= maxToolRounds; round += 1) {
+      const response = await this.generateTextWithTrace({
+        conversationId: args.conversation.id,
+        model: args.model,
+        input: {
+          role: "response",
+          messages,
+          ...(args.modelTools.length > 0 ? { tools: args.modelTools, toolChoice: "auto" as const } : {}),
+          ...(args.signal ? { signal: args.signal } : {}),
+        },
+      });
+      if (!response.toolCalls?.length) return response;
+      if (round === maxToolRounds) {
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "error",
+          data: {
+            code: "tool_round_limit_exceeded",
+            message: `Model requested tools after ${maxToolRounds} tool rounds.`,
+          },
+        });
+        return { ...response, toolCalls: [] };
+      }
+
+      messages.push({
+        role: "assistant",
+        content: response.text,
+        toolCalls: response.toolCalls,
+      });
+      const results = await this.executeModelToolCalls({
+        conversation: args.conversation,
+        calls: response.toolCalls,
+        tools: args.tools,
+        selectedJourney: args.selectedJourney,
+        stateMachineTurn: args.stateMachineTurn,
+        emit: args.emit,
+        ...(args.signal ? { signal: args.signal } : {}),
+      });
+      messages.push(...results);
+      const lifecycle = await this.requireConversationRecord(args.conversation.id);
+      if (lifecycle.lifecycle !== "active") {
+        return { text: "", providerMetadata: { interruptedByLifecycle: true } };
+      }
+    }
+    return { text: "" };
+  }
+
+  private async executeModelToolCalls(args: {
+    conversation: ConversationRecord;
+    calls: ModelToolCall[];
+    tools: AnyTool[];
+    selectedJourney: CompiledJourney | null;
+    stateMachineTurn: StateMachineTurnResult | null;
+    signal?: AbortSignal;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }): Promise<ModelMessage[]> {
+    const byName = new Map(args.tools.map((toolDefinition) => [toolDefinition.name, toolDefinition]));
+    const messages: ModelMessage[] = [];
+    for (const call of args.calls) {
+      const toolDefinition = byName.get(call.name);
+      if (!toolDefinition) {
+        const error = `Tool '${call.name}' is not available in the active tool scope.`;
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "tool.completed",
+          data: { toolName: call.name, success: false, error },
+        });
+        messages.push(createToolResultMessage(call, { error }));
+        continue;
+      }
+
+      const parsedInput = toolDefinition.input.safeParse(call.input);
+      if (!parsedInput.success) {
+        const error = parsedInput.error.message;
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "tool.completed",
+          data: { toolName: toolDefinition.name, success: false, error },
+        });
+        messages.push(createToolResultMessage(call, { error }));
+        continue;
+      }
+
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "tool.started",
+        data: {
+          toolName: toolDefinition.name,
+          ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+        },
+      });
+      await this.trace({
+        type: "tool.started",
+        conversationId: args.conversation.id,
+        toolName: toolDefinition.name,
+        ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+      });
+      try {
+        const idempotencyKey = toolDefinition.idempotencyKey?.({
+          input: parsedInput.data,
+          conversationId: args.conversation.id,
+        });
+        const output = toolDefinition.name === "cognidesk.viewJourneyContext"
+          ? createJourneyContextView(parsedInput.data, args.stateMachineTurn?.journeyContext ?? {})
+          : await toolDefinition.execute({
+              input: parsedInput.data,
+              app: this.options.app ?? {},
+              conversationId: args.conversation.id,
+              ...(idempotencyKey ? { idempotencyKey } : {}),
+              ...(args.signal ? { signal: args.signal } : {}),
+            });
+        const parsedOutput = toolDefinition.output.parse(output);
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "tool.completed",
+          data: {
+            toolName: toolDefinition.name,
+            success: true,
+            ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+            result: parsedOutput,
+          },
+        });
+        await this.trace({
+          type: "tool.completed",
+          conversationId: args.conversation.id,
+          toolName: toolDefinition.name,
+          success: true,
+          ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+        });
+        await this.applyBuiltInLifecycleTool({
+          toolName: toolDefinition.name,
+          input: parsedInput.data,
+          conversationId: args.conversation.id,
+          emit: args.emit,
+        });
+        messages.push(createToolResultMessage(call, parsedOutput));
+      } catch (error) {
+        if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+        const message = error instanceof Error ? error.message : "Tool execution failed.";
+        await args.emit({
+          conversationId: args.conversation.id,
+          type: "tool.completed",
+          data: {
+            toolName: toolDefinition.name,
+            success: false,
+            ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+            error: message,
+          },
+        });
+        await this.trace({
+          type: "tool.completed",
+          conversationId: args.conversation.id,
+          toolName: toolDefinition.name,
+          success: false,
+          ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+          error: message,
+        });
+        messages.push(createToolResultMessage(call, { error: message }));
+      }
+    }
+    return messages;
+  }
+
+  private resolveAvailableModelTools(agent: CompiledAgent, journey: CompiledJourney | null) {
+    const scoped = journey?.kind === "delegation"
+      ? journey.delegation?.tools ?? []
+      : journey?.tools ?? [];
+    return uniqueTools([...agent.tools, ...scoped]);
   }
 
   private async trace(event: TraceEvent) {
@@ -1709,6 +1906,29 @@ function uniqueKnowledgeSources(sources: KnowledgeSource[]) {
   const byName = new Map<string, KnowledgeSource>();
   for (const source of sources) byName.set(source.name, source);
   return [...byName.values()];
+}
+
+function uniqueTools(tools: AnyTool[]) {
+  const byName = new Map<string, AnyTool>();
+  for (const toolDefinition of tools) byName.set(toolDefinition.name, toolDefinition);
+  return [...byName.values()];
+}
+
+function toModelToolDefinition(toolDefinition: AnyTool): ModelToolDefinition {
+  return {
+    name: toolDefinition.name,
+    input: toolDefinition.input,
+    ...(toolDefinition.description ? { description: toolDefinition.description } : {}),
+  };
+}
+
+function createToolResultMessage(call: ModelToolCall, output: unknown): ModelMessage {
+  return {
+    role: "tool",
+    name: call.name,
+    toolCallId: call.id,
+    content: JSON.stringify(output),
+  };
 }
 
 function findJourneyState(journey: CompiledJourney, stateId: string | undefined) {

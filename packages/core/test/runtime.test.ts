@@ -318,6 +318,109 @@ describe("runtime turn pipeline", () => {
     expect(events.map((event) => event.type)).not.toContain("message.aborted");
   });
 
+  it("executes base agent tools requested by the response model", async () => {
+    const getTicketStatus = tool("getTicketStatus", {
+      description: "Get mocked ticket status.",
+      input: z.object({ bookingReference: z.string() }),
+      output: z.object({ status: z.string() }),
+      execute: async ({ input }) => ({ status: `${input.bookingReference}:confirmed` }),
+    });
+    const calls: TextGenerationInput[] = [];
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        calls.push(input);
+        if (calls.length === 1) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_1",
+              name: "getTicketStatus",
+              input: { bookingReference: "ABC123" },
+            }],
+          };
+        }
+        return { text: `Tool said ${input.messages.at(-1)?.content}` };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(getTicketStatus);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "What is ticket ABC123 doing?",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(calls[0]?.tools?.map((toolDefinition) => toolDefinition.name)).toEqual(["getTicketStatus"]);
+    expect(calls[1]?.messages).toContainEqual(expect.objectContaining({
+      role: "tool",
+      name: "getTicketStatus",
+      toolCallId: "call_1",
+      content: JSON.stringify({ status: "ABC123:confirmed" }),
+    }));
+    expect(result.text).toContain("ABC123:confirmed");
+    expect(events.map((event) => event.type)).toEqual([
+      "custom.conversation.created",
+      "message.started",
+      "message.completed",
+      "tool.started",
+      "tool.completed",
+      "message.started",
+      "message.completed",
+    ]);
+  });
+
+  it("applies built-in lifecycle tools requested by the response model", async () => {
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async () => ({
+        text: "",
+        toolCalls: [{
+          id: "call_handoff",
+          name: "cognidesk.handoff",
+          input: {
+            reason: "customer requested a person",
+            summary: "Customer wants human support.",
+          },
+        }],
+      }),
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(handoffTool);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "I need a person.",
+    });
+
+    expect(result.text).toBe("");
+    expect(result.conversation.lifecycle).toBe("handoff");
+    expect(result.events.map((event) => event.type)).toEqual([
+      "message.started",
+      "message.completed",
+      "tool.started",
+      "tool.completed",
+      "handoff.requested",
+    ]);
+  });
+
   it("can disable citation post-processing when knowledge is used", async () => {
     const knowledge = knowledgeSource("flight-faq", {
       query: z.object({ query: z.string() }),

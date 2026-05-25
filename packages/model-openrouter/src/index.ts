@@ -4,6 +4,8 @@ import type {
   EmbeddingOutput,
   ModelAdapter,
   ModelMessage,
+  ModelToolCall,
+  ModelToolDefinition,
   TextGenerationInput,
   TextGenerationOutput,
   UsageRecord,
@@ -45,6 +47,8 @@ export function openRouterModel(options: OpenRouterModelOptions): ModelAdapter {
           ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
           ...(options.maxTokens !== undefined ? { max_tokens: options.maxTokens } : {}),
           ...(input.responseFormat ? { response_format: toChatResponseFormat(input.responseFormat, options) } : {}),
+          ...(input.tools?.length ? { tools: input.tools.map(toOpenRouterTool) } : {}),
+          ...(input.toolChoice ? { tool_choice: input.toolChoice } : {}),
         },
         ...(input.signal ? { signal: input.signal } : {}),
       });
@@ -52,6 +56,7 @@ export function openRouterModel(options: OpenRouterModelOptions): ModelAdapter {
       return {
         text,
         ...(input.responseFormat ? { structured: parseStructuredOutput(input.responseFormat, text) } : {}),
+        ...(extractToolCalls(response).length > 0 ? { toolCalls: extractToolCalls(response) } : {}),
         ...(response.usage ? { usage: mapUsage(response.usage) } : {}),
         providerMetadata: { id: response.id, model: response.model },
       };
@@ -86,7 +91,18 @@ interface OpenRouterChatResponse {
   id?: string;
   model?: string;
   choices: Array<{
-    message?: { role?: string; content?: string };
+    message?: {
+      role?: string;
+      content?: string;
+      tool_calls?: Array<{
+        id?: string;
+        type?: string;
+        function?: {
+          name?: string;
+          arguments?: string;
+        };
+      }>;
+    };
     finish_reason?: string;
   }>;
   usage?: {
@@ -105,10 +121,52 @@ interface OpenRouterEmbeddingResponse {
 }
 
 function toChatMessage(message: ModelMessage) {
+  if (message.role === "tool") {
+    return {
+      role: "tool",
+      content: message.content,
+      tool_call_id: message.toolCallId ?? message.name ?? "tool_call",
+      ...(message.name ? { name: message.name } : {}),
+    };
+  }
   return {
-    role: message.role === "tool" ? "user" : message.role,
-    content: message.content,
+    role: message.role,
+    content: message.content || null,
     ...(message.name ? { name: message.name } : {}),
+    ...(message.toolCalls?.length ? {
+      tool_calls: message.toolCalls.map((toolCall) => ({
+        id: toolCall.id,
+        type: "function",
+        function: {
+          name: toolCall.name,
+          arguments: JSON.stringify(toolCall.input),
+        },
+      })),
+    } : {}),
+  };
+}
+
+function extractToolCalls(response: OpenRouterChatResponse): ModelToolCall[] {
+  return response.choices[0]?.message?.tool_calls
+    ?.filter((toolCall) => toolCall.function?.name)
+    .map((toolCall, index) => ({
+      id: toolCall.id ?? `tool_call_${index + 1}`,
+      name: toolCall.function?.name ?? "",
+      input: parseJsonObject(toolCall.function?.arguments ?? "{}"),
+      providerMetadata: {
+        ...(toolCall.type ? { type: toolCall.type } : {}),
+      },
+    })) ?? [];
+}
+
+function toOpenRouterTool(tool: ModelToolDefinition) {
+  return {
+    type: "function",
+    function: {
+      name: tool.name,
+      ...(tool.description ? { description: tool.description } : {}),
+      parameters: z.toJSONSchema(tool.input),
+    },
   };
 }
 
@@ -126,6 +184,10 @@ function toChatResponseFormat(schema: z.ZodType, options: OpenRouterModelOptions
 function parseStructuredOutput(schema: z.ZodType, text: string) {
   const parsedJson = JSON.parse(text) as unknown;
   return schema.parse(parsedJson);
+}
+
+function parseJsonObject(text: string) {
+  return JSON.parse(text) as unknown;
 }
 
 function createHeaders(options: OpenRouterModelOptions): Record<string, string> {

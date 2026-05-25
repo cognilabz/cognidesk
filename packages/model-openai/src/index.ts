@@ -4,6 +4,8 @@ import type {
   EmbeddingOutput,
   ModelAdapter,
   ModelMessage,
+  ModelToolCall,
+  ModelToolDefinition,
   TextGenerationInput,
   TextGenerationOutput,
   UsageRecord,
@@ -36,10 +38,12 @@ export function openaiModel(options: OpenAIModelOptions): ModelAdapter {
     async generateText(input: TextGenerationInput): Promise<TextGenerationOutput> {
       const body = {
         model: options.model,
-        input: input.messages.map(toOpenAIMessage),
+        input: input.messages.flatMap(toOpenAIMessage),
         ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
         ...(options.maxOutputTokens !== undefined ? { max_output_tokens: options.maxOutputTokens } : {}),
         ...(input.responseFormat ? { text: { format: toResponsesTextFormat(input.responseFormat, options) } } : {}),
+        ...(input.tools?.length ? { tools: input.tools.map((tool) => toOpenAITool(tool, options)) } : {}),
+        ...(input.toolChoice ? { tool_choice: input.toolChoice } : {}),
       };
       const response = await postJson<OpenAIResponse>({
         fetcher,
@@ -53,6 +57,7 @@ export function openaiModel(options: OpenAIModelOptions): ModelAdapter {
       return {
         text,
         ...(input.responseFormat ? { structured: parseStructuredOutput(input.responseFormat, text) } : {}),
+        ...(extractToolCalls(response).length > 0 ? { toolCalls: extractToolCalls(response) } : {}),
         ...(response.usage ? { usage: mapOpenAIUsage(response.usage) } : {}),
         providerMetadata: { id: response.id, model: response.model },
       };
@@ -89,6 +94,10 @@ interface OpenAIResponse {
   output_text?: string;
   output?: Array<{
     type?: string;
+    id?: string;
+    call_id?: string;
+    name?: string;
+    arguments?: string;
     content?: Array<{
       type?: string;
       text?: string;
@@ -110,12 +119,27 @@ interface OpenAIEmbeddingResponse {
   usage?: { prompt_tokens?: number; total_tokens?: number };
 }
 
-function toOpenAIMessage(message: ModelMessage) {
-  return {
+function toOpenAIMessage(message: ModelMessage): unknown[] {
+  if (message.role === "tool") {
+    return [{
+      type: "function_call_output",
+      call_id: message.toolCallId ?? message.name ?? "tool_call",
+      output: message.content,
+    }];
+  }
+  if (message.role === "assistant" && message.toolCalls?.length) {
+    return message.toolCalls.map((toolCall) => ({
+      type: "function_call",
+      call_id: toolCall.id,
+      name: toolCall.name,
+      arguments: JSON.stringify(toolCall.input),
+    }));
+  }
+  return [{
     role: message.role,
     content: message.content,
     ...(message.name ? { name: message.name } : {}),
-  };
+  }];
 }
 
 function toResponsesTextFormat(schema: z.ZodType, options: OpenAIModelOptions) {
@@ -136,9 +160,37 @@ function extractResponseText(response: OpenAIResponse) {
   return textParts.join("");
 }
 
+function extractToolCalls(response: OpenAIResponse): ModelToolCall[] {
+  return response.output
+    ?.filter((item) => item.type === "function_call" && item.name && item.arguments)
+    .map((item) => ({
+      id: item.call_id ?? item.id ?? `${item.name}_call`,
+      name: item.name ?? "",
+      input: parseJsonObject(item.arguments ?? "{}"),
+      providerMetadata: {
+        ...(item.id ? { id: item.id } : {}),
+        ...(item.call_id ? { callId: item.call_id } : {}),
+      },
+    })) ?? [];
+}
+
+function toOpenAITool(tool: ModelToolDefinition, options: OpenAIModelOptions) {
+  return {
+    type: "function",
+    name: tool.name,
+    ...(tool.description ? { description: tool.description } : {}),
+    parameters: z.toJSONSchema(tool.input),
+    strict: options.strictStructuredOutputs ?? true,
+  };
+}
+
 function parseStructuredOutput(schema: z.ZodType, text: string) {
   const parsedJson = JSON.parse(text) as unknown;
   return schema.parse(parsedJson);
+}
+
+function parseJsonObject(text: string) {
+  return JSON.parse(text) as unknown;
 }
 
 function createHeaders(options: OpenAIModelOptions): Record<string, string> {
