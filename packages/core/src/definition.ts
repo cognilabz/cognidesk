@@ -76,6 +76,7 @@ export interface ActionDefinition<
   input: TInputSchema;
   run: (args: { input: z.infer<TInputSchema> }) => MaybePromise<void>;
   requiresVisit?: boolean;
+  retry?: false | { maxAttempts?: number; notice?: string };
 }
 
 export interface JourneyEventDefinition<
@@ -378,6 +379,7 @@ export function action<const TName extends string, TInputSchema extends z.ZodTyp
     input: TInputSchema;
     run: (args: { input: z.infer<TInputSchema> }) => MaybePromise<void>;
     requiresVisit?: boolean;
+    retry?: false | { maxAttempts?: number; notice?: string };
   },
 ): ActionDefinition<TName, TInputSchema> {
   return { kind: "action", name, ...config };

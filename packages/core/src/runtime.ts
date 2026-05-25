@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import type { CompiledAgent, CompiledJourney, EventRoutingMode, JourneyEventDefinition } from "./definition.js";
+import type { ActionDefinition, CompiledAgent, CompiledJourney, EventRoutingMode, JourneyEventDefinition } from "./definition.js";
 import {
   selectJourneyCandidates,
   type JourneyCandidate,
@@ -1144,9 +1144,10 @@ export class CognideskRuntime {
   private async emitRetryNotice(args: {
     conversationId: string;
     toolName: string;
+    notice?: string;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
-    const text = this.options.toolRetry?.notice ?? `I hit a temporary issue while running ${args.toolName}; retrying now.`;
+    const text = args.notice ?? this.options.toolRetry?.notice ?? `I hit a temporary issue while running ${args.toolName}; retrying now.`;
     await args.emit({
       conversationId: args.conversationId,
       type: "message.started",
@@ -2140,9 +2141,31 @@ export class CognideskRuntime {
         journeyId: args.journey.id,
         stateId: args.state.id,
       });
+      const maxAttempts = this.actionExecutionMaxAttempts(actionRun.action);
+      let lastError: unknown = null;
       try {
-        if (args.signal?.aborted) throw args.signal.reason ?? new AbortError("aborted");
-        await actionRun.action.run({ input: parsedInput.data });
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+          try {
+            if (args.signal?.aborted) throw args.signal.reason ?? new AbortError("aborted");
+            await actionRun.action.run({ input: parsedInput.data });
+            lastError = null;
+            break;
+          } catch (error) {
+            if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+            lastError = error;
+            if (attempt >= maxAttempts) break;
+            const retryNotice = actionRun.action.retry && typeof actionRun.action.retry === "object"
+              ? actionRun.action.retry.notice
+              : undefined;
+            await this.emitRetryNotice({
+              conversationId: args.conversation.id,
+              toolName: actionRun.action.name,
+              ...(retryNotice ? { notice: retryNotice } : {}),
+              emit: args.emit,
+            });
+          }
+        }
+        if (lastError) throw lastError;
         await args.emit({
           conversationId: args.conversation.id,
           type: "action.completed",
@@ -2194,6 +2217,14 @@ export class CognideskRuntime {
         });
       }
     }
+  }
+
+  private actionExecutionMaxAttempts(actionDefinition: ActionDefinition) {
+    if (actionDefinition.retry === false) return 1;
+    if (actionDefinition.retry && typeof actionDefinition.retry === "object" && actionDefinition.retry.maxAttempts !== undefined) {
+      return Math.max(1, actionDefinition.retry.maxAttempts);
+    }
+    return Math.max(1, this.options.toolRetry?.maxAttempts ?? 2);
   }
 
   private async runStateToolRuns(args: {

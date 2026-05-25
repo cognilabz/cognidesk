@@ -817,6 +817,63 @@ describe("runtime turn pipeline", () => {
     ]);
   });
 
+  it("retries retryable state actions and emits an intermediate notice", async () => {
+    let attempts = 0;
+    const retryAction = action("retryAction", {
+      input: z.object({}),
+      retry: { maxAttempts: 2, notice: "Retrying deterministic action." },
+      run: () => {
+        attempts += 1;
+        if (attempts === 1) throw new Error("temporary action outage");
+      },
+    });
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const journey = agentBuilder.stateMachineJourney("action-test", {
+      condition: "Customer triggers a deterministic action retry",
+      context: z.object({}),
+    });
+    const start = journey.state("start").useAction(retryAction, "transition");
+    const done = journey.final("done");
+    journey.initial(start);
+    start.transitionTo(done);
+
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Run the deterministic action retry.",
+    });
+
+    const events = await runtime.listEvents(conversation.id);
+    expect(attempts).toBe(2);
+    expect(events).toContainEqual(expect.objectContaining({
+      type: "message.completed",
+      data: expect.objectContaining({
+        text: "Retrying deterministic action.",
+        intermediate: true,
+      }),
+    }));
+    expect(events).toContainEqual(expect.objectContaining({
+      type: "action.completed",
+      data: {
+        actionName: "retryAction",
+        success: true,
+        journeyId: "action-test",
+        stateId: "start",
+      },
+    }));
+    expect(events.map((event) => event.type)).not.toContain("error");
+  });
+
   it("retries retryable model-requested tools and emits an intermediate notice", async () => {
     let attempts = 0;
     const getTicketStatus = tool("getTicketStatus", {
