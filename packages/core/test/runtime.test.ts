@@ -267,6 +267,34 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("resumes a handoff conversation back to active lifecycle", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await runtime.requestHandoff({
+      conversationId: conversation.id,
+      reason: "Human review",
+    });
+
+    const result = await runtime.resumeConversation({
+      conversationId: conversation.id,
+      reason: "Human finished review",
+      payload: { ticketId: "T-1" },
+    });
+
+    expect(result.conversation.lifecycle).toBe("active");
+    expect(result.event.type).toBe("handoff.resumed");
+    expect(await runtime.getSnapshot(conversation.id)).toMatchObject({ lifecycle: "active" });
+    expect((await runtime.listEvents(conversation.id)).at(-1)?.data).toEqual({
+      reason: "Human finished review",
+      payload: { ticketId: "T-1" },
+    });
+  });
+
   it("prompts for side-effect tool confirmation and executes it after widget submission", async () => {
     const bookTicket = tool("bookTicket", {
       input: z.object({ passengerName: z.string() }),

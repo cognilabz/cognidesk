@@ -6,6 +6,7 @@ import type {
   HandleUserMessageInput,
   HandleUserMessageResult,
   RequestHandoffInput,
+  ResumeConversationInput,
   RuntimeEvent,
   SubmitWidgetInput,
 } from "@cognidesk/core";
@@ -108,6 +109,28 @@ describe("HTTP adapter", () => {
       summary: "Ticket exception review.",
     });
   });
+
+  it("resumes handoff through the runtime", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+
+    const response = await handler.handle(new Request("http://localhost/conversations/conversation_1/resume", {
+      method: "POST",
+      body: JSON.stringify({
+        reason: "Human review finished",
+        payload: { ticketId: "T-1" },
+      }),
+    }));
+    const body = await response.json() as { conversation: ConversationRecord; event: RuntimeEvent };
+
+    expect(response.status).toBe(200);
+    expect(body.conversation.lifecycle).toBe("active");
+    expect(body.event.type).toBe("handoff.resumed");
+    expect(body.event.data).toEqual({
+      reason: "Human review finished",
+      payload: { ticketId: "T-1" },
+    });
+  });
 });
 
 class FakeRuntime implements CognideskHttpRuntime {
@@ -184,6 +207,26 @@ class FakeRuntime implements CognideskHttpRuntime {
       data: {
         reason: input.reason,
         ...(input.summary ? { summary: input.summary } : {}),
+        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+      },
+    } satisfies RuntimeEvent;
+    this.events.push(event);
+    return { conversation, event };
+  }
+
+  async resumeConversation(input: ResumeConversationInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }> {
+    const conversation = {
+      ...await this.createConversation({ agentId: "flight-service", context: {} }),
+      lifecycle: "active" as const,
+    };
+    const event = {
+      id: `event_${this.events.length + 1}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 1,
+      type: "handoff.resumed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        ...(input.reason ? { reason: input.reason } : {}),
         ...(input.payload !== undefined ? { payload: input.payload } : {}),
       },
     } satisfies RuntimeEvent;

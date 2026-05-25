@@ -228,6 +228,7 @@ export type RuntimeEvent =
   | RuntimeEventBase<"conversation.compaction.started", { fromOffset: number; toOffset: number }>
   | RuntimeEventBase<"conversation.compaction.completed", { fromOffset: number; toOffset: number; schemaVersion: string }>
   | RuntimeEventBase<"handoff.requested", { reason: string; summary?: string; payload?: unknown }>
+  | RuntimeEventBase<"handoff.resumed", { reason?: string; payload?: unknown }>
   | RuntimeEventBase<"conversation.closed", { reason?: string }>
   | RuntimeEventBase<"error", { code: string; message: string; details?: unknown }>
   | RuntimeEventBase<`custom.${string}`, unknown>;

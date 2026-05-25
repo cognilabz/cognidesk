@@ -106,6 +106,12 @@ export interface RequestHandoffInput {
   payload?: unknown;
 }
 
+export interface ResumeConversationInput {
+  conversationId: string;
+  reason?: string;
+  payload?: unknown;
+}
+
 export interface CompactConversationResult {
   summary: ConversationCompactionSummary;
   snapshot: RuntimeSnapshot;
@@ -406,6 +412,13 @@ export class CognideskRuntime {
     });
   }
 
+  async resumeConversation(input: ResumeConversationInput) {
+    return this.applyConversationResume({
+      ...input,
+      emit: (event) => this.emit(event),
+    });
+  }
+
   async compactConversation(input: CompactConversationInput): Promise<CompactConversationResult> {
     const models = this.requireModels();
     const conversation = await this.requireConversationRecord(input.conversationId);
@@ -550,6 +563,29 @@ export class CognideskRuntime {
       data: {
         reason: args.reason,
         ...(args.summary ? { summary: args.summary } : {}),
+        ...(args.payload !== undefined ? { payload: args.payload } : {}),
+      },
+    });
+    return { conversation, event };
+  }
+
+  private async applyConversationResume(args: ResumeConversationInput & {
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const current = await this.requireConversationRecord(args.conversationId);
+    if (current.lifecycle === "closed") {
+      throw new Error(`Conversation '${args.conversationId}' is closed and cannot be resumed.`);
+    }
+    const conversation = current.lifecycle === "active"
+      ? current
+      : await this.options.storage.updateConversationLifecycle(args.conversationId, "active");
+    if (!conversation) throw new Error(`Conversation '${args.conversationId}' does not exist.`);
+    await this.saveLifecycleSnapshot(args.conversationId, "active", conversation.updatedAt);
+    const event = await args.emit({
+      conversationId: args.conversationId,
+      type: "handoff.resumed",
+      data: {
+        ...(args.reason ? { reason: args.reason } : {}),
         ...(args.payload !== undefined ? { payload: args.payload } : {}),
       },
     });

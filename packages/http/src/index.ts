@@ -5,6 +5,7 @@ import type {
   HandleUserMessageInput,
   HandleUserMessageResult,
   RequestHandoffInput,
+  ResumeConversationInput,
   RuntimeEvent,
   SubmitWidgetInput,
 } from "@cognidesk/core";
@@ -14,6 +15,7 @@ export interface CognideskHttpRuntime {
   handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult>;
   submitWidget?(input: SubmitWidgetInput): Promise<RuntimeEvent>;
   requestHandoff?(input: RequestHandoffInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
+  resumeConversation?(input: ResumeConversationInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
   listEvents(conversationId: string, afterOffset?: number): Promise<RuntimeEvent[]>;
 }
 
@@ -82,6 +84,19 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             conversationId,
             reason: body.reason,
             ...(body.summary ? { summary: body.summary } : {}),
+            ...(body.payload !== undefined ? { payload: body.payload } : {}),
+          });
+          return json(result, 200, options);
+        }
+
+        const resumeMatch = path.match(/^\/conversations\/([^/]+)\/resume$/);
+        if (request.method === "POST" && resumeMatch) {
+          if (!options.runtime.resumeConversation) return json({ error: "Conversation resume is not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(resumeMatch[1] ?? "");
+          const body = await readJson<CreateResumeBody>(request);
+          const result = await options.runtime.resumeConversation({
+            conversationId,
+            ...(body.reason ? { reason: body.reason } : {}),
             ...(body.payload !== undefined ? { payload: body.payload } : {}),
           });
           return json(result, 200, options);
@@ -156,6 +171,11 @@ interface CreateWidgetSubmissionBody {
 interface CreateHandoffBody {
   reason?: string;
   summary?: string;
+  payload?: unknown;
+}
+
+interface CreateResumeBody {
+  reason?: string;
   payload?: unknown;
 }
 
