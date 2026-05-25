@@ -1393,13 +1393,6 @@ export class CognideskRuntime {
           ...(args.previousSnapshot?.activeJourneyId ? { previousJourneyId: args.previousSnapshot.activeJourneyId } : {}),
         },
       });
-      if (selected.initialStateId) {
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "journey.state.entered",
-          data: { journeyId: selected.id, stateId: selected.initialStateId },
-        });
-      }
     }
     return selected;
   }
@@ -1627,9 +1620,13 @@ export class CognideskRuntime {
         ? await this.enterStateTree({
             ...args,
             stateById,
-            state: stateById.get(args.journey.initialStateId),
+            state: await this.resolveJourneyEntryState({
+              ...args,
+              stateById,
+              context,
+            }),
             context,
-            emitSelf: false,
+            emitSelf: true,
           })
         : [];
     if (activeStates.length === 0) return { activeStateIds: [], journeyContext: context };
@@ -1693,6 +1690,33 @@ export class CognideskRuntime {
     return policy.fields?.length
       ? selectContextFields(previousContext, policy.fields)
       : previousContext;
+  }
+
+  private async resolveJourneyEntryState(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    previousSnapshot: RuntimeSnapshot | null;
+    stateById: Map<string, CompiledJourney["states"][number]>;
+    context: Record<string, unknown>;
+    turn: unknown;
+    app: unknown;
+  }) {
+    const entries = [...args.journey.alternateEntries]
+      .sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0));
+    for (const entry of entries) {
+      const state = args.stateById.get(entry.stateId);
+      if (!state || !this.stateRequirementsSatisfied(state, args.context)) continue;
+      const matches = await entry.when({
+        app: args.app,
+        conversation: args.conversation,
+        turn: args.turn,
+        context: args.context,
+        journeyId: args.journey.id,
+        ...(args.previousSnapshot?.activeJourneyId ? { activeJourneyId: args.previousSnapshot.activeJourneyId } : {}),
+      });
+      if (matches) return state;
+    }
+    return args.journey.initialStateId ? args.stateById.get(args.journey.initialStateId) : undefined;
   }
 
   private async applyStateExtraction(args: {

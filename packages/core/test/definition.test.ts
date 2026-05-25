@@ -93,6 +93,40 @@ describe("definition builders", () => {
     expect(compiled.journeys[0]?.toMermaid()).toContain("search --> chooseFlight");
   });
 
+  it("compiles alternate journey entries into the graph", () => {
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agent.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status",
+      context: z.object({ bookingReference: z.string().optional() }),
+    });
+    const identify = booking.state("identifyTicket").collect("bookingReference");
+    const lookup = booking.final("lookupTicket");
+
+    booking.initial(identify);
+    identify.transitionTo(lookup);
+    booking.alternateEntry(lookup, {
+      description: "Use when the booking reference is already known.",
+      priority: 20,
+      when: ({ context }) => context.bookingReference !== undefined,
+    });
+
+    const compiled = agent.compile();
+    expect(compiled.journeys[0]?.alternateEntries).toEqual([
+      expect.objectContaining({
+        stateId: "lookupTicket",
+        description: "Use when the booking reference is already known.",
+        priority: 20,
+      }),
+    ]);
+    expect(compiled.journeys[0]?.toGraph().alternateEntries).toEqual([{
+      stateId: "lookupTicket",
+      description: "Use when the booking reference is already known.",
+      priority: 20,
+    }]);
+  });
+
   it("rejects journeys without initial state", () => {
     const agent = createAgent("flight-service", {
       instructions: "Help customers with flights.",

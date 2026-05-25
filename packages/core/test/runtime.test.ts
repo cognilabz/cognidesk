@@ -2146,6 +2146,75 @@ describe("runtime turn pipeline", () => {
     expect(noReuse.events.map((event) => event.type)).toContain("ui.prompted");
   });
 
+  it("can enter an activated journey through an alternate state when reused context is sufficient", async () => {
+    const context = z.object({
+      bookingReference: z.string().optional(),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const status = agentBuilder.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status information",
+      context,
+      contextReuse: {
+        fields: ["bookingReference"],
+        when: ({ previousContext }) => previousContext.bookingReference === "ABC123",
+      },
+    });
+    const identify = status.state("identifyTicket").collect("bookingReference");
+    const lookup = status.final("lookupTicket");
+    status.initial(identify);
+    identify.transitionTo(lookup);
+    status.alternateEntry(lookup, {
+      description: "Skip identification when the booking reference was reused.",
+      priority: 10,
+      when: ({ context }) => context.bookingReference === "ABC123",
+    });
+
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({ storage, agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await storage.saveSnapshot({
+      conversationId: conversation.id,
+      lifecycle: "active",
+      activeStateIds: [],
+      journeyContexts: [{
+        journeyId: "ticket-status",
+        context: { bookingReference: "ABC123" },
+        updatedAt: "2026-05-26T00:00:00.000Z",
+        stateId: "lookupTicket",
+      }],
+      updatedAt: "2026-05-26T00:00:00.000Z",
+    });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you check my ticket again?",
+    });
+
+    expect(result.snapshot.activeJourneyId).toBeUndefined();
+    expect(result.snapshot.activeStateIds).toEqual([]);
+    expect(result.snapshot.journeySummaries?.at(-1)?.summary).toContain('"bookingReference":"ABC123"');
+    expect(result.events.map((event) => event.type)).toEqual([
+      "message.started",
+      "message.completed",
+      "journey.candidates.retrieved",
+      "journey.matched",
+      "journey.activated",
+      "journey.state.entered",
+      "journey.completed",
+      "message.started",
+      "message.completed",
+    ]);
+    expect(result.events.find((event) => event.type === "journey.state.entered")?.data).toEqual({
+      journeyId: "ticket-status",
+      stateId: "lookupTicket",
+    });
+  });
+
   it("uses the matcher to choose among multiple conversational transitions", async () => {
     const agentBuilder = createAgent("flight-service", {
       instructions: "Help customers with flights.",

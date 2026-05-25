@@ -127,6 +127,7 @@ export interface CompiledJourney {
   delegation?: CompiledDelegation;
   states: CompiledState[];
   initialStateId?: string;
+  alternateEntries: CompiledJourneyEntry[];
   toGraph(): JourneyGraph;
   toJSON(): JourneyGraph;
   toMermaid(): string;
@@ -191,6 +192,13 @@ export interface CompiledDelegation {
   completeWhen: string[];
 }
 
+export interface CompiledJourneyEntry<TContext = unknown> {
+  stateId: string;
+  description?: string;
+  priority?: number;
+  when: JourneyEntryPredicate<unknown, unknown, unknown, TContext>;
+}
+
 export interface JourneyGraphState {
   id: string;
   parentId?: string;
@@ -208,6 +216,7 @@ export interface JourneyGraph {
   id: string;
   kind: "stateMachine" | "delegation";
   initialStateId?: string;
+  alternateEntries?: Array<{ stateId: string; description?: string; priority?: number }>;
   states: JourneyGraphState[];
 }
 
@@ -234,6 +243,21 @@ export type ContextReusePredicate<TApp = unknown, TConversation = unknown, TTurn
     previousContext: TContext;
   },
 ) => MaybePromise<boolean>;
+
+export type JourneyEntryPredicate<TApp = unknown, TConversation = unknown, TTurn = unknown, TContext = unknown> = (
+  args: ApplicationContextParts<TConversation, TTurn> & {
+    app: TApp;
+    context: TContext;
+    journeyId: string;
+    activeJourneyId?: string;
+  },
+) => MaybePromise<boolean>;
+
+export interface JourneyEntryOptions<TContext> {
+  description?: string;
+  priority?: number;
+  when: JourneyEntryPredicate<unknown, unknown, unknown, TContext>;
+}
 
 export interface ContextReusePolicy<TContext> {
   fields?: Array<ContextPath<TContext>>;
@@ -807,6 +831,12 @@ export class StateMachineJourneyBuilder<
   readonly states: StateCollection<TContextSchema>;
   readonly tools = new CapabilityScope<AnyTool>();
   readonly knowledge = new CapabilityScope<KnowledgeSource>();
+  private readonly alternateEntryStates: Array<{
+    state: StateBuilder<string, TContextSchema>;
+    description?: string;
+    priority?: number;
+    when: JourneyEntryPredicate<unknown, unknown, unknown, InferObject<TContextSchema>>;
+  }> = [];
   private initialState?: StateBuilder<string, TContextSchema>;
 
   constructor(
@@ -849,6 +879,19 @@ export class StateMachineJourneyBuilder<
     return this;
   }
 
+  alternateEntry(
+    state: StateBuilder<string, TContextSchema>,
+    options: JourneyEntryOptions<InferObject<TContextSchema>>,
+  ) {
+    this.alternateEntryStates.push({
+      state,
+      ...(options.description ? { description: options.description } : {}),
+      ...(options.priority !== undefined ? { priority: options.priority } : {}),
+      when: options.when,
+    });
+    return this;
+  }
+
   initial(state: StateBuilder<string, TContextSchema>) {
     this.initialState = state;
     return this;
@@ -861,6 +904,11 @@ export class StateMachineJourneyBuilder<
     const states = this.states.list().flatMap((state) => state.compile());
     assertUniqueIds(states, "State");
     const stateIds = new Set(states.map((state) => state.id));
+    for (const entry of this.alternateEntryStates) {
+      if (!stateIds.has(entry.state.id)) {
+        throw new CognideskDefinitionError(`Journey '${this.id}' declares unknown alternate entry state '${entry.state.id}'.`);
+      }
+    }
     const childrenByParentId = new Map<string, CompiledState[]>();
     for (const state of states) {
       if (!state.parentId) continue;
@@ -886,6 +934,13 @@ export class StateMachineJourneyBuilder<
       id: this.id,
       kind: "stateMachine",
       initialStateId: this.initialState.id,
+      ...(this.alternateEntryStates.length > 0 ? {
+        alternateEntries: this.alternateEntryStates.map((entry) => ({
+          stateId: entry.state.id,
+          ...(entry.description ? { description: entry.description } : {}),
+          ...(entry.priority !== undefined ? { priority: entry.priority } : {}),
+        })),
+      } : {}),
       states,
     };
     return {
@@ -912,6 +967,12 @@ export class StateMachineJourneyBuilder<
       context: this.options.context,
       states,
       initialStateId: this.initialState.id,
+      alternateEntries: this.alternateEntryStates.map((entry) => ({
+        stateId: entry.state.id,
+        ...(entry.description ? { description: entry.description } : {}),
+        ...(entry.priority !== undefined ? { priority: entry.priority } : {}),
+        when: entry.when as JourneyEntryPredicate,
+      })),
       toGraph: () => sanitizeGraph(graph),
       toJSON: () => sanitizeGraph(graph),
       toMermaid: () => graphToMermaid(graph),
@@ -957,6 +1018,7 @@ export class DelegationJourneyBuilder<const TId extends string> {
         completeWhen: this.options.completeWhen ?? [],
       },
       states: [],
+      alternateEntries: [],
       toGraph: () => graph,
       toJSON: () => graph,
       toMermaid: () => `stateDiagram-v2\n  [*] --> ${this.id}`,
@@ -1109,6 +1171,7 @@ function sanitizeGraph(graph: JourneyGraph): JourneyGraph {
       actions: state.actions,
       requiresVisit: state.requiresVisit,
     })),
+    ...(graph.alternateEntries ? { alternateEntries: graph.alternateEntries } : {}),
   };
 }
 
