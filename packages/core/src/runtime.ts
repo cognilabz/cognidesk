@@ -152,8 +152,8 @@ export class CognideskRuntime {
   }
 
   async submitWidget(input: SubmitWidgetInput): Promise<RuntimeEvent> {
-    await this.requireConversation(input.conversationId);
-    return await this.emit({
+    const conversation = await this.requireConversation(input.conversationId);
+    const submitted = await this.emit({
       conversationId: input.conversationId,
       type: "ui.submitted",
       data: {
@@ -162,6 +162,12 @@ export class CognideskRuntime {
         output: input.output,
       },
     });
+    await this.processWidgetSubmission({
+      conversation,
+      promptId: input.promptId,
+      output: input.output,
+    });
+    return submitted;
   }
 
   async getSnapshot(conversationId: string): Promise<RuntimeSnapshot | null> {
@@ -639,7 +645,10 @@ export class CognideskRuntime {
     while (!visited.has(state.id)) {
       visited.add(state.id);
       if (!this.stateRequirementsSatisfied(state, args.context)) return state;
-      if (state.requiresVisit) return state;
+      if (state.requiresVisit) {
+        await this.emitConfirmationPrompts({ ...args, state });
+        return state;
+      }
 
       const toolTargetId = await this.runStateToolRuns({
         ...args,
@@ -703,10 +712,19 @@ export class CognideskRuntime {
     state: CompiledJourney["states"][number];
     context: Record<string, unknown>;
     actionType: "entry" | "exit" | "transition";
+    confirmedPromptId?: string;
     signal?: AbortSignal;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }): Promise<string | null> {
-    const toolRuns = args.state.toolRuns.filter((toolRun) => toolRun.actionType === args.actionType && !toolRun.confirm);
+    const toolRuns = args.state.toolRuns.filter((toolRun) => {
+      if (toolRun.actionType !== args.actionType) return false;
+      if (args.confirmedPromptId) {
+        return Boolean(toolRun.confirm)
+          && args.confirmedPromptId === createToolConfirmationPromptId(args.journey.id, args.state.id, toolRun.tool.name);
+      }
+      if (!toolRun.confirm) return true;
+      return false;
+    });
     for (const toolRun of toolRuns) {
       const rawInput = toolRun.input ? toolRun.input({ context: args.context }) : {};
       const parsedInput = toolRun.tool.input.safeParse(rawInput);
@@ -783,6 +801,95 @@ export class CognideskRuntime {
       }
     }
     return null;
+  }
+
+  private async emitConfirmationPrompts(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    state: CompiledJourney["states"][number];
+    context: Record<string, unknown>;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const confirmableToolRuns = args.state.toolRuns.filter((toolRun) => (
+      toolRun.actionType === "transition" && toolRun.confirm
+    ));
+    if (confirmableToolRuns.length === 0) return;
+    const existing = await this.options.storage.listEvents({ conversationId: args.conversation.id });
+    for (const toolRun of confirmableToolRuns) {
+      const promptId = createToolConfirmationPromptId(args.journey.id, args.state.id, toolRun.tool.name);
+      const hasOpenPrompt = existing.some((event) => (
+        event.type === "ui.prompted" && event.data.promptId === promptId
+      )) && !existing.some((event) => (
+        event.type === "ui.submitted" && event.data.promptId === promptId
+      ));
+      if (hasOpenPrompt) continue;
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "ui.prompted",
+        data: {
+          promptId,
+          widgetKind: toolRun.confirm?.widget?.kind ?? "confirmation",
+          input: {
+            title: toolRun.confirm?.message ?? `Confirm ${toolRun.tool.name}`,
+            message: toolRun.confirm?.reason ?? toolRun.confirm?.message ?? `Confirm ${toolRun.tool.name}.`,
+            confirmLabel: "Confirm",
+            cancelLabel: "Cancel",
+          },
+        },
+      });
+    }
+  }
+
+  private async processWidgetSubmission(args: {
+    conversation: ConversationRecord;
+    promptId: string;
+    output: unknown;
+  }) {
+    const confirmed = z.object({ confirmed: z.boolean() }).safeParse(args.output);
+    if (!confirmed.success || !confirmed.data.confirmed) return;
+    const agent = this.options.agent;
+    if (!agent) return;
+    const snapshot = await this.options.storage.getSnapshot(args.conversation.id);
+    const journey = snapshot?.activeJourneyId
+      ? agent.journeys.find((candidate) => candidate.id === snapshot.activeJourneyId)
+      : undefined;
+    if (!journey || journey.kind !== "stateMachine") return;
+    const stateById = new Map(journey.states.map((state) => [state.id, state]));
+    const stateId = snapshot?.activeStateIds[0];
+    const state = stateId ? stateById.get(stateId) : undefined;
+    if (!state) return;
+    const context = isRecord(snapshot?.journeyContext) ? structuredClone(snapshot.journeyContext) : {};
+    const toolTargetId = await this.runStateToolRuns({
+      journey,
+      conversation: args.conversation,
+      state,
+      context,
+      actionType: "transition",
+      confirmedPromptId: args.promptId,
+      emit: (event) => this.emit(event),
+    });
+    const next = toolTargetId
+      ? { targetId: toolTargetId }
+      : await this.selectTransition({ journey, state, context });
+    const nextState = next ? stateById.get(next.targetId) : null;
+    const activeStateIds = nextState ? [nextState.id] : [state.id];
+    if (nextState) {
+      await this.emit({
+        conversationId: args.conversation.id,
+        type: "journey.state.entered",
+        data: { journeyId: journey.id, stateId: nextState.id },
+      });
+    }
+    await this.options.storage.saveSnapshot({
+      conversationId: args.conversation.id,
+      lifecycle: args.conversation.lifecycle,
+      activeJourneyId: journey.id,
+      activeStateIds,
+      journeyContext: context,
+      updatedAt: new Date().toISOString(),
+      ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
+      ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
+    });
   }
 
   private createResponseMessages(args: {
@@ -1036,4 +1143,8 @@ function createJourneyContextView(input: unknown, context: Record<string, unknow
     journeyId: parsed.journeyId,
     context: selected,
   };
+}
+
+function createToolConfirmationPromptId(journeyId: string, stateId: string, toolName: string) {
+  return `confirm:${journeyId}:${stateId}:${toolName}`;
 }

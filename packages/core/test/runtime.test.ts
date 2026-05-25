@@ -183,6 +183,85 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("prompts for side-effect tool confirmation and executes it after widget submission", async () => {
+    const bookTicket = tool("bookTicket", {
+      input: z.object({ passengerName: z.string() }),
+      output: z.object({ bookingReference: z.string() }),
+      sideEffect: true,
+      execute: async ({ input }) => ({ bookingReference: `BOOKED-${input.passengerName}` }),
+    });
+    const context = z.object({
+      passengerName: z.string().optional(),
+      bookingReference: z.string().optional(),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agentBuilder.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context,
+    });
+    const identify = booking.state("identifyPassenger").collect("passengerName");
+    const book = booking.state("book").runTool(bookTicket, {
+      confirm: { message: "Confirm booking" },
+      input: ({ context: journeyContext }) => ({ passengerName: journeyContext.passengerName ?? "" }),
+      assign: {
+        bookingReference: ({ output }) => output.bookingReference,
+      },
+    });
+    const done = booking.final("done");
+    booking.initial(identify);
+    identify.transitionTo(book);
+    book.transitionTo(done);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      extraction: {
+        provider: "test",
+        model: "extraction",
+        generateText: async () => {
+          const structured = { values: { passengerName: "Alex" } };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const turn = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Book this for Alex.",
+    });
+    expect(turn.snapshot.activeStateIds).toEqual(["book"]);
+    const prompted = (await runtime.listEvents(conversation.id)).find((event) => event.type === "ui.prompted");
+    expect(prompted?.data).toEqual({
+      promptId: "confirm:book-flight:book:bookTicket",
+      widgetKind: "confirmation",
+      input: {
+        title: "Confirm booking",
+        message: "Confirm booking",
+        confirmLabel: "Confirm",
+        cancelLabel: "Cancel",
+      },
+    });
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "confirm:book-flight:book:bookTicket",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
+
+    const snapshot = await runtime.getSnapshot(conversation.id);
+    expect(snapshot?.activeStateIds).toEqual(["done"]);
+    expect(snapshot?.journeyContext).toMatchObject({
+      passengerName: "Alex",
+      bookingReference: "BOOKED-Alex",
+    });
+    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toContain("tool.completed");
+  });
+
   it("extracts context, skips satisfied states, runs transition tools, and stores the final active state", async () => {
     const searchFlights = tool("searchFlights", {
       input: z.object({ origin: z.string(), destination: z.string() }),
