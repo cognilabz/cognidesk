@@ -6,6 +6,7 @@ import {
   type JourneyCandidate,
   type JourneyIndex,
 } from "./journey-index.js";
+import type { PrivacyHooks } from "./privacy.js";
 import type { ConversationRecord, CreateConversationInput, RuntimeEventInput, StorageAdapter } from "./storage.js";
 import type {
   AgentModelSet,
@@ -24,6 +25,7 @@ export interface RuntimeOptions {
   topKJourneys?: number;
   app?: unknown;
   knowledgeLimit?: number;
+  privacy?: PrivacyHooks;
 }
 
 export interface CreateRuntimeConversationInput<TConversationContext = unknown>
@@ -97,6 +99,7 @@ export class CognideskRuntime {
     const agent = this.requireAgent();
     const models = this.requireModels();
     const conversation = await this.requireConversation(input.conversationId);
+    const userText = await this.redactUserMessage(conversation, input.text);
     const emitted: RuntimeEvent[] = [];
     const emit = async <TEvent extends RuntimeEventInput>(event: TEvent) => {
       const stored = await this.emit(event);
@@ -112,7 +115,7 @@ export class CognideskRuntime {
     await emit({
       conversationId: conversation.id,
       type: "message.completed",
-      data: { text: input.text },
+      data: { text: userText },
     });
 
     const previousSnapshot = await this.options.storage.getSnapshot(conversation.id);
@@ -122,26 +125,29 @@ export class CognideskRuntime {
       conversation,
       previousSnapshot,
       input,
+      userText,
       emit,
     });
     const knowledge = await this.retrieveKnowledge({
       agent,
       journey: selectedJourney,
       conversationId: conversation.id,
-      message: input.text,
+      message: userText,
       emit,
       ...(input.signal ? { signal: input.signal } : {}),
     });
+    const modelMessages = await this.redactModelMessages(conversation, this.createResponseMessages({
+      agent,
+      journey: selectedJourney,
+      userText,
+      knowledge,
+    }));
     const response = await models.response.generateText({
       role: "response",
-      messages: this.createResponseMessages({
-        agent,
-        journey: selectedJourney,
-        userText: input.text,
-        knowledge,
-      }),
+      messages: modelMessages,
       ...(input.signal ? { signal: input.signal } : {}),
     });
+    const assistantText = await this.redactAssistantMessage(conversation, response.text);
 
     await emit({
       conversationId: conversation.id,
@@ -152,7 +158,7 @@ export class CognideskRuntime {
       conversationId: conversation.id,
       type: "message.completed",
       data: {
-        text: response.text,
+        text: assistantText,
         ...(response.usage ? { usage: response.usage } : {}),
       },
     });
@@ -168,7 +174,7 @@ export class CognideskRuntime {
       conversation,
       snapshot,
       events: emitted,
-      text: response.text,
+      text: assistantText,
       ...(selectedJourney ? { activeJourneyId: selectedJourney.id } : {}),
     };
   }
@@ -219,6 +225,7 @@ export class CognideskRuntime {
     conversation: ConversationRecord;
     previousSnapshot: RuntimeSnapshot | null;
     input: HandleUserMessageInput<TTurn>;
+    userText: string;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
     if (!this.options.journeyIndex) {
@@ -231,7 +238,7 @@ export class CognideskRuntime {
       agent: args.agent,
       index: this.options.journeyIndex,
       embeddingModel: args.models.journeyEmbedding,
-      message: args.input.text,
+      message: args.userText,
       app: args.input.app ?? this.options.app ?? {},
       conversation: args.conversation,
       turn: args.input.turn ?? {},
@@ -363,6 +370,30 @@ export class CognideskRuntime {
       ...(args.previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: args.previousSnapshot.compactionSummary } : {}),
       ...(this.options.journeyIndex ? { definitionHash: this.options.journeyIndex.definitionHash } : {}),
     };
+  }
+
+  private async redactUserMessage(conversation: ConversationRecord, text: string) {
+    return await this.options.privacy?.redactUserMessage?.({
+      conversationId: conversation.id,
+      agentId: conversation.agentId,
+      text,
+    }) ?? text;
+  }
+
+  private async redactModelMessages(conversation: ConversationRecord, messages: ModelMessage[]) {
+    return await this.options.privacy?.redactModelMessages?.({
+      conversationId: conversation.id,
+      agentId: conversation.agentId,
+      messages,
+    }) ?? messages;
+  }
+
+  private async redactAssistantMessage(conversation: ConversationRecord, text: string) {
+    return await this.options.privacy?.redactAssistantMessage?.({
+      conversationId: conversation.id,
+      agentId: conversation.agentId,
+      text,
+    }) ?? text;
   }
 }
 

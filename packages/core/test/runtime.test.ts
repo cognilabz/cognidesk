@@ -74,6 +74,60 @@ describe("runtime turn pipeline", () => {
       "message.completed",
     ]);
   });
+
+  it("applies privacy hooks before storage, model calls, and returned assistant text", async () => {
+    let modelPrompt = "";
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async ({ messages }: { messages: Array<{ content: string }> }) => {
+        modelPrompt = messages.map((message) => message.content).join("\n");
+        return { text: "Reach phil@example.com for details." };
+      },
+    };
+    const embedding = {
+      provider: "test",
+      model: "embedding",
+      generateText: response.generateText,
+      embed: async () => ({ embedding: [0], model: "embedding", dimensions: 1 }),
+    };
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: {
+        response,
+        matcher: response,
+        extraction: response,
+        citationPostProcessing: response,
+        journeyEmbedding: embedding,
+        compaction: response,
+      },
+      privacy: {
+        redactUserMessage: ({ text }) => text.replace("phil@example.com", "[email]"),
+        redactModelMessages: ({ messages }) => messages.map((message) => ({
+          ...message,
+          content: message.content.replace("secret", "[secret]"),
+        })),
+        redactAssistantMessage: ({ text }) => text.replace("phil@example.com", "[email]"),
+      },
+    });
+
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "My email is phil@example.com and the code is secret.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(events.find((event) => event.type === "message.completed")?.data).toEqual({
+      text: "My email is [email] and the code is secret.",
+    });
+    expect(modelPrompt).toContain("[email]");
+    expect(modelPrompt).toContain("[secret]");
+    expect(result.text).toBe("Reach [email] for details.");
+    expect(events.at(-1)?.data).toMatchObject({ text: "Reach [email] for details." });
+  });
 });
 
 function createModels(): AgentModelSet {
