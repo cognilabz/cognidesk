@@ -1,0 +1,11 @@
+:root {
+  --cd-color-primary: #111827;
+  --cd-color-surface: #ffffff;
+  --cd-color-border: #e5e7eb;
+  --cd-radius: 0.5rem;
+}
+
+.cd-root {
+  color: #111827;
+  background: var(--cd-color-surface);
+}
