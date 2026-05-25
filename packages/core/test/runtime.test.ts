@@ -18,6 +18,7 @@ import type {
   CreateConversationInput,
   ListEventsOptions,
   TextGenerationInput,
+  TraceEvent,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,
@@ -89,6 +90,125 @@ describe("runtime turn pipeline", () => {
         text: "Use faq-ticket-status for the current ticket status.",
         references: [{ type: "knowledge", id: "faq-ticket-status" }],
       }],
+    });
+  });
+
+  it("emits provider-neutral trace events without storing them as runtime events", async () => {
+    const traces: TraceEvent[] = [];
+    const searchFlights = tool("searchFlights", {
+      input: z.object({ origin: z.string(), destination: z.string() }),
+      output: z.object({ flights: z.array(z.object({ id: z.string() })) }),
+      execute: async () => ({ flights: [{ id: "OS123" }] }),
+    });
+    const knowledge = knowledgeSource("flight-faq", {
+      query: z.object({ query: z.string() }),
+      metadata: z.object({ source: z.string() }),
+      retrieve: async () => ({
+        items: [{
+          id: "faq-routes",
+          content: "Route searches need an origin and destination.",
+          metadata: { source: "faq" },
+        }],
+      }),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    agentBuilder.knowledge.add(knowledge);
+    const booking = agentBuilder.stateMachineJourney("book-flight", {
+      condition: "Customer wants to search flights",
+      context: z.object({
+        origin: z.string().optional(),
+        destination: z.string().optional(),
+        flightCount: z.number().optional(),
+      }),
+    });
+    const route = booking.state("route").collect("origin").collect("destination");
+    const search = booking.state("search").runTool(searchFlights, {
+      input: ({ context }) => ({
+        origin: context.origin ?? "",
+        destination: context.destination ?? "",
+      }),
+      assign: {
+        flightCount: ({ output }) => output.flights.length,
+      },
+    });
+    booking.initial(route);
+    route.transitionTo(search);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      response: {
+        provider: "test",
+        model: "response",
+        generateText: async () => ({
+          text: "I found one route using faq-routes.",
+          usage: { totalTokens: 12 },
+        }),
+      },
+      extraction: {
+        provider: "test",
+        model: "extraction",
+        generateText: async () => {
+          const structured = { values: { origin: "Vienna", destination: "Berlin" } };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+      observability: {
+        onTraceEvent: (event) => {
+          traces.push(event);
+        },
+      },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Find flights from Vienna to Berlin.",
+    });
+
+    expect(traces.map((event) => event.type)).toEqual(expect.arrayContaining([
+      "runtime.event",
+      "model.started",
+      "model.completed",
+      "tool.started",
+      "tool.completed",
+      "knowledge.retrieved",
+    ]));
+    expect(traces.some((event) => event.type === "model.completed" && event.role === "response" && event.usage?.totalTokens === 12)).toBe(true);
+    expect(traces.some((event) => event.type === "tool.completed" && event.toolName === "searchFlights" && event.success)).toBe(true);
+    expect((await runtime.listEvents(conversation.id)).some((event) => event.type === "custom.observability")).toBe(false);
+  });
+
+  it("ignores observability hook failures", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+      observability: {
+        onTraceEvent: () => {
+          throw new Error("trace sink unavailable");
+        },
+      },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await expect(runtime.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text: "Still working.",
+    })).resolves.toMatchObject({
+      events: [
+        { type: "message.started" },
+        { type: "message.completed" },
+      ],
     });
   });
 

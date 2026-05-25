@@ -6,6 +6,7 @@ import {
   type JourneyCandidate,
   type JourneyIndex,
 } from "./journey-index.js";
+import type { ObservabilityHooks, TraceEvent } from "./observability.js";
 import type { PrivacyHooks } from "./privacy.js";
 import type { ConversationRecord, CreateConversationInput, RuntimeEventInput, StorageAdapter } from "./storage.js";
 import type {
@@ -14,9 +15,12 @@ import type {
   KnowledgeItem,
   KnowledgeSource,
   MessageSegment,
+  ModelAdapter,
   ModelMessage,
   RuntimeEvent,
   RuntimeSnapshot,
+  TextGenerationInput,
+  TextGenerationOutput,
 } from "./types.js";
 
 export interface RuntimeOptions {
@@ -28,6 +32,7 @@ export interface RuntimeOptions {
   app?: unknown;
   knowledgeLimit?: number;
   privacy?: PrivacyHooks;
+  observability?: ObservabilityHooks;
   compaction?: {
     afterTurn?: boolean;
     minEvents?: number;
@@ -183,11 +188,17 @@ export class CognideskRuntime {
   }
 
   async emit<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {
-    return this.options.storage.appendEvent({
+    const stored = await this.options.storage.appendEvent({
       ...event,
       id: event.id ?? randomUUID(),
       createdAt: event.createdAt ?? new Date().toISOString(),
     });
+    await this.trace({
+      type: "runtime.event",
+      conversationId: stored.conversationId,
+      event: stored,
+    });
+    return stored;
   }
 
   async emitIntermediateMessage(input: EmitIntermediateMessageInput): Promise<{ events: RuntimeEvent[] }> {
@@ -368,10 +379,14 @@ export class CognideskRuntime {
       knowledge,
       visibleCustomEvents,
     }));
-    const response = await models.response.generateText({
-      role: "response",
-      messages: modelMessages,
-      ...(input.signal ? { signal: input.signal } : {}),
+    const response = await this.generateTextWithTrace({
+      conversationId: conversation.id,
+      model: models.response,
+      input: {
+        role: "response",
+        messages: modelMessages,
+        ...(input.signal ? { signal: input.signal } : {}),
+      },
     });
     const assistantText = await this.redactAssistantMessage(conversation, response.text);
     const segments = await this.createCitationSegments({
@@ -468,20 +483,24 @@ export class CognideskRuntime {
     });
     emitted.push(started);
 
-    const output = await models.compaction.generateText({
-      role: "compaction",
-      messages: [
-        {
-          role: "system",
-          content: "Compact the conversation events into a concise structured memory. Preserve stable facts, open questions, and active commitments.",
-        },
-        {
-          role: "user",
-          content: renderEventsForCompaction(selectedEvents),
-        },
-      ],
-      responseFormat: conversationCompactionSummarySchema,
-      ...(input.signal ? { signal: input.signal } : {}),
+    const output = await this.generateTextWithTrace({
+      conversationId: input.conversationId,
+      model: models.compaction,
+      input: {
+        role: "compaction",
+        messages: [
+          {
+            role: "system",
+            content: "Compact the conversation events into a concise structured memory. Preserve stable facts, open questions, and active commitments.",
+          },
+          {
+            role: "user",
+            content: renderEventsForCompaction(selectedEvents),
+          },
+        ],
+        responseFormat: conversationCompactionSummarySchema,
+        ...(input.signal ? { signal: input.signal } : {}),
+      },
     });
     const summary = conversationCompactionSummarySchema.parse(output.structured ?? JSON.parse(output.text));
     const currentSnapshot = await this.options.storage.getSnapshot(input.conversationId);
@@ -517,6 +536,50 @@ export class CognideskRuntime {
   private requireModels() {
     if (!this.options.models) throw new Error("Runtime requires models to handle messages.");
     return this.options.models;
+  }
+
+  private async generateTextWithTrace(input: {
+    conversationId: string;
+    model: ModelAdapter;
+    input: TextGenerationInput;
+  }): Promise<TextGenerationOutput> {
+    await this.trace({
+      type: "model.started",
+      conversationId: input.conversationId,
+      role: input.input.role,
+      provider: input.model.provider,
+      model: input.model.model,
+    });
+    try {
+      const output = await input.model.generateText(input.input);
+      await this.trace({
+        type: "model.completed",
+        conversationId: input.conversationId,
+        role: input.input.role,
+        provider: input.model.provider,
+        model: input.model.model,
+        ...(output.usage ? { usage: output.usage } : {}),
+      });
+      return output;
+    } catch (error) {
+      await this.trace({
+        type: "model.failed",
+        conversationId: input.conversationId,
+        role: input.input.role,
+        provider: input.model.provider,
+        model: input.model.model,
+        error: error instanceof Error ? error.message : "Model call failed.",
+      });
+      throw error;
+    }
+  }
+
+  private async trace(event: TraceEvent) {
+    try {
+      await this.options.observability?.onTraceEvent?.(event);
+    } catch {
+      // Observability hooks must not affect conversation execution.
+    }
   }
 
   private resolveCustomRuntimeEvent<TEvent extends CustomRuntimeEventDefinition>(event: TEvent) {
@@ -755,6 +818,12 @@ export class CognideskRuntime {
       });
       const limited = result.items.slice(0, this.options.knowledgeLimit ?? 5);
       items.push(...limited);
+      await this.trace({
+        type: "knowledge.retrieved",
+        conversationId: args.conversationId,
+        sourceName: source.name,
+        itemIds: limited.map((item) => item.id),
+      });
       await args.emit({
         conversationId: args.conversationId,
         type: "knowledge.retrieved",
@@ -818,24 +887,28 @@ export class CognideskRuntime {
     const fields = args.state.collected.filter((field) => field.extract);
     if (fields.length === 0) return args.state;
     try {
-      const output = await args.models.extraction.generateText({
-        role: "extraction",
-        messages: [
-          {
-            role: "system",
-            content: [
-              "Extract state-machine context fields from the latest user message.",
-              "Return only fields that are explicitly supported by the message.",
-              `State: ${args.state.id}`,
-              args.state.instructions ? `State instructions: ${args.state.instructions}` : "",
-              `Fields: ${fields.map((field) => field.path).join(", ")}`,
-              `Current context: ${JSON.stringify(args.context)}`,
-            ].filter(Boolean).join("\n"),
-          },
-          { role: "user", content: args.userText },
-        ],
-        responseFormat: stateExtractionSchema,
-        ...(args.signal ? { signal: args.signal } : {}),
+      const output = await this.generateTextWithTrace({
+        conversationId: args.conversation.id,
+        model: args.models.extraction,
+        input: {
+          role: "extraction",
+          messages: [
+            {
+              role: "system",
+              content: [
+                "Extract state-machine context fields from the latest user message.",
+                "Return only fields that are explicitly supported by the message.",
+                `State: ${args.state.id}`,
+                args.state.instructions ? `State instructions: ${args.state.instructions}` : "",
+                `Fields: ${fields.map((field) => field.path).join(", ")}`,
+                `Current context: ${JSON.stringify(args.context)}`,
+              ].filter(Boolean).join("\n"),
+            },
+            { role: "user", content: args.userText },
+          ],
+          responseFormat: stateExtractionSchema,
+          ...(args.signal ? { signal: args.signal } : {}),
+        },
       });
       const extracted = stateExtractionSchema.parse(output.structured ?? JSON.parse(output.text));
       const allowedPaths = new Set(fields.map((field) => field.path));
@@ -1067,6 +1140,13 @@ export class CognideskRuntime {
           stateId: args.state.id,
         },
       });
+      await this.trace({
+        type: "tool.started",
+        conversationId: args.conversation.id,
+        toolName: toolRun.tool.name,
+        journeyId: args.journey.id,
+        stateId: args.state.id,
+      });
       try {
         const idempotencyKey = toolRun.tool.idempotencyKey?.({
           input: parsedInput.data,
@@ -1099,6 +1179,14 @@ export class CognideskRuntime {
             result: parsedOutput,
           },
         });
+        await this.trace({
+          type: "tool.completed",
+          conversationId: args.conversation.id,
+          toolName: toolRun.tool.name,
+          success: true,
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+        });
         const lifecycleApplied = await this.applyBuiltInLifecycleTool({
           toolName: toolRun.tool.name,
           input: parsedInput.data,
@@ -1108,6 +1196,7 @@ export class CognideskRuntime {
         if (lifecycleApplied) return null;
         if (toolRun.onSuccessId) return toolRun.onSuccessId;
       } catch (error) {
+        const message = error instanceof Error ? error.message : "Tool execution failed.";
         await args.emit({
           conversationId: args.conversation.id,
           type: "tool.completed",
@@ -1116,8 +1205,17 @@ export class CognideskRuntime {
             success: false,
             journeyId: args.journey.id,
             stateId: args.state.id,
-            error: error instanceof Error ? error.message : "Tool execution failed.",
+            error: message,
           },
+        });
+        await this.trace({
+          type: "tool.completed",
+          conversationId: args.conversation.id,
+          toolName: toolRun.tool.name,
+          success: false,
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+          error: message,
         });
         return toolRun.onFailureId ?? null;
       }
@@ -1369,26 +1467,30 @@ export class CognideskRuntime {
     if (this.options.postProcessing?.citations === false) return null;
     const models = this.requireModels();
     try {
-      const output = await models.citationPostProcessing.generateText({
-        role: "citationPostProcessing",
-        messages: [
-          {
-            role: "system",
-            content: "Split the assistant answer into citation segments. Attach knowledgeIds only where the segment uses that source.",
-          },
-          {
-            role: "user",
-            content: [
-              "Knowledge:",
-              ...args.knowledge.map((item) => `[${item.id}] ${item.content}`),
-              "",
-              "Assistant answer:",
-              args.text,
-            ].join("\n"),
-          },
-        ],
-        responseFormat: citationPostProcessingSchema,
-        ...(args.signal ? { signal: args.signal } : {}),
+      const output = await this.generateTextWithTrace({
+        conversationId: args.conversation.id,
+        model: models.citationPostProcessing,
+        input: {
+          role: "citationPostProcessing",
+          messages: [
+            {
+              role: "system",
+              content: "Split the assistant answer into citation segments. Attach knowledgeIds only where the segment uses that source.",
+            },
+            {
+              role: "user",
+              content: [
+                "Knowledge:",
+                ...args.knowledge.map((item) => `[${item.id}] ${item.content}`),
+                "",
+                "Assistant answer:",
+                args.text,
+              ].join("\n"),
+            },
+          ],
+          responseFormat: citationPostProcessingSchema,
+          ...(args.signal ? { signal: args.signal } : {}),
+        },
       });
       const structured = citationPostProcessingSchema.parse(output.structured ?? JSON.parse(output.text));
       return structured.segments.map((segment, index) => ({
