@@ -91,6 +91,7 @@ export interface StateReference<TId extends string = string> {
 export interface CompiledAgent {
   id: string;
   instructions: string;
+  behavior: AgentBehaviorOptions;
   journeys: CompiledJourney[];
   tools: AnyTool[];
   knowledge: KnowledgeSource[];
@@ -748,8 +749,13 @@ export class DelegationJourneyBuilder<const TId extends string> {
   }
 }
 
+export interface AgentBehaviorOptions {
+  interruptOnNewMessage?: boolean;
+}
+
 export interface AgentOptions {
   instructions: string;
+  behavior?: AgentBehaviorOptions;
 }
 
 export class AgentBuilder<const TId extends string> {
@@ -791,6 +797,7 @@ export class AgentBuilder<const TId extends string> {
     return {
       id: this.id,
       instructions: this.options.instructions,
+      behavior: this.options.behavior ?? {},
       journeys: compiledJourneys,
       tools: this.tools.list(),
       knowledge: this.knowledge.list(),

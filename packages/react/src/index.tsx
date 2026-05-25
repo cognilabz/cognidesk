@@ -327,13 +327,13 @@ export function ChatWidget(props: ChatWidgetProps) {
           value={draft}
           placeholder={props.placeholder ?? "Message..."}
           onChange={(event) => setDraft(event.currentTarget.value)}
-          disabled={chat.status === "starting" || chat.status === "sending"}
+          disabled={chat.status === "starting"}
         />
         <button
           className={resolveElementClassName(elementKeys.composerSendButton, appearance)}
           style={resolveInlineStyle(elementKeys.composerSendButton, appearance)}
           type="submit"
-          disabled={chat.status === "starting" || chat.status === "sending" || draft.trim().length === 0}
+          disabled={chat.status === "starting" || draft.trim().length === 0}
         >
           Send
         </button>

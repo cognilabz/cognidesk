@@ -212,6 +212,112 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("interrupts an active generation when a new user message arrives by default", async () => {
+    const firstResponseStarted = deferred<void>();
+    let responseCalls = 0;
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (input.role !== "response") return { text: "{}" };
+        responseCalls += 1;
+        if (responseCalls === 1) {
+          firstResponseStarted.resolve();
+          await new Promise((_resolve, reject) => {
+            input.signal?.addEventListener("abort", () => reject(new AbortError()), { once: true });
+          });
+        }
+        return { text: "Second answer." };
+      },
+    };
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const first = runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "First question.",
+    });
+    await firstResponseStarted.promise;
+    const second = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Second question.",
+    });
+    const firstResult = await first;
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(firstResult.text).toBe("");
+    expect(firstResult.events.map((event) => event.type)).toContain("message.aborted");
+    expect(second.events[0]).toMatchObject({
+      type: "message.aborted",
+      data: { reason: "interrupted_by_new_message" },
+    });
+    expect(events.map((event) => event.type)).toEqual([
+      "custom.conversation.created",
+      "message.started",
+      "message.completed",
+      "message.aborted",
+      "message.started",
+      "message.completed",
+      "message.started",
+      "message.completed",
+    ]);
+  });
+
+  it("can opt out of interrupting active generations at the agent level", async () => {
+    const firstResponseStarted = deferred<void>();
+    const releaseFirstResponse = deferred<void>();
+    let firstSignal: AbortSignal | undefined;
+    let responseCalls = 0;
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (input.role !== "response") return { text: "{}" };
+        responseCalls += 1;
+        if (responseCalls === 1) {
+          firstSignal = input.signal;
+          firstResponseStarted.resolve();
+          await releaseFirstResponse.promise;
+          return { text: "First answer." };
+        }
+        return { text: "Second answer." };
+      },
+    };
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+      behavior: { interruptOnNewMessage: false },
+    }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const first = runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "First question.",
+    });
+    await firstResponseStarted.promise;
+    const second = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Second question.",
+    });
+    releaseFirstResponse.resolve();
+    const firstResult = await first;
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(firstSignal?.aborted).toBe(false);
+    expect(firstResult.text).toBe("First answer.");
+    expect(second.text).toBe("Second answer.");
+    expect(events.map((event) => event.type)).not.toContain("message.aborted");
+  });
+
   it("can disable citation post-processing when knowledge is used", async () => {
     const knowledge = knowledgeSource("flight-faq", {
       query: z.object({ query: z.string() }),
@@ -1104,6 +1210,23 @@ function createModels(overrides: Partial<AgentModelSet> = {}): AgentModelSet {
     compaction: response,
     ...overrides,
   };
+}
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+  return { promise, resolve, reject };
+}
+
+class AbortError extends Error {
+  constructor() {
+    super("aborted");
+    this.name = "AbortError";
+  }
 }
 
 class RecordingStorage implements StorageAdapter {

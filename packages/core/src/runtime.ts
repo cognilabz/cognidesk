@@ -161,7 +161,19 @@ interface VisibleCustomEventContext {
   data: unknown;
 }
 
+interface ActiveTurn {
+  id: string;
+  conversationId: string;
+  controller: AbortController;
+  interruptedByNewMessage: boolean;
+  abortEvent?: Promise<RuntimeEvent>;
+  interruptedEvent?: RuntimeEvent;
+  cleanup(): void;
+}
+
 export class CognideskRuntime {
+  private readonly activeTurns = new Map<string, ActiveTurn>();
+
   constructor(private readonly options: RuntimeOptions) {}
 
   async initialize() {
@@ -317,134 +329,165 @@ export class CognideskRuntime {
     const agent = this.requireAgent();
     const models = this.requireModels();
     const conversation = await this.requireConversation(input.conversationId);
+    const turn = await this.beginUserTurn({
+      conversationId: conversation.id,
+      agent,
+      ...(input.signal ? { signal: input.signal } : {}),
+    });
     const userText = await this.redactUserMessage(conversation, input.text);
     const emitted: RuntimeEvent[] = [];
+    if (turn.interruptedEvent) emitted.push(turn.interruptedEvent);
     const emit = async <TEvent extends RuntimeEventInput>(event: TEvent) => {
       const stored = await this.emit(event);
       emitted.push(stored);
       return stored;
     };
 
-    if (this.options.compaction?.beforeTurn) {
-      const compaction = await this.compactIfNeeded({
+    try {
+      if (this.options.compaction?.beforeTurn) {
+        const compaction = await this.compactIfNeeded({
+          conversationId: conversation.id,
+          ...(this.options.compaction.schemaVersion ? { schemaVersion: this.options.compaction.schemaVersion } : {}),
+          signal: turn.controller.signal,
+        });
+        this.throwIfTurnInterrupted(turn);
+        if (compaction) emitted.push(...compaction.events);
+      }
+
+      await emit({
         conversationId: conversation.id,
-        ...(this.options.compaction.schemaVersion ? { schemaVersion: this.options.compaction.schemaVersion } : {}),
-        ...(input.signal ? { signal: input.signal } : {}),
+        type: "message.started",
+        data: { role: "user" },
       });
-      if (compaction) emitted.push(...compaction.events);
-    }
+      await emit({
+        conversationId: conversation.id,
+        type: "message.completed",
+        data: { text: userText },
+      });
 
-    await emit({
-      conversationId: conversation.id,
-      type: "message.started",
-      data: { role: "user" },
-    });
-    await emit({
-      conversationId: conversation.id,
-      type: "message.completed",
-      data: { text: userText },
-    });
+      const previousSnapshot = await this.options.storage.getSnapshot(conversation.id);
+      const selectedJourney = await this.selectJourney({
+        agent,
+        models,
+        conversation,
+        previousSnapshot,
+        input: {
+          ...input,
+          signal: turn.controller.signal,
+        },
+        userText,
+        emit,
+      });
+      this.throwIfTurnInterrupted(turn);
+      const stateMachineTurn = selectedJourney?.kind === "stateMachine"
+        ? await this.executeStateMachineTurn({
+            journey: selectedJourney,
+            models,
+            conversation,
+            previousSnapshot,
+            userText,
+            emit,
+            signal: turn.controller.signal,
+          })
+        : null;
+      this.throwIfTurnInterrupted(turn);
+      const interruptedByLifecycle = await this.createLifecycleInterruptionResult({
+        conversationId: conversation.id,
+        events: emitted,
+      });
+      if (interruptedByLifecycle) return interruptedByLifecycle;
 
-    const previousSnapshot = await this.options.storage.getSnapshot(conversation.id);
-    const selectedJourney = await this.selectJourney({
-      agent,
-      models,
-      conversation,
-      previousSnapshot,
-      input,
-      userText,
-      emit,
-    });
-    const stateMachineTurn = selectedJourney?.kind === "stateMachine"
-      ? await this.executeStateMachineTurn({
-          journey: selectedJourney,
-          models,
-          conversation,
-          previousSnapshot,
-          userText,
-          emit,
-          ...(input.signal ? { signal: input.signal } : {}),
-        })
-      : null;
-    const interruptedByLifecycle = await this.createLifecycleInterruptionResult({
-      conversationId: conversation.id,
-      events: emitted,
-    });
-    if (interruptedByLifecycle) return interruptedByLifecycle;
-
-    const knowledge = await this.retrieveKnowledge({
-      agent,
-      journey: selectedJourney,
-      conversationId: conversation.id,
-      message: userText,
-      emit,
-      ...(input.signal ? { signal: input.signal } : {}),
-    });
-    const visibleCustomEvents = await this.listVisibleCustomEventContext(agent, conversation.id);
-    const modelMessages = await this.redactModelMessages(conversation, this.createResponseMessages({
-      agent,
-      journey: selectedJourney,
-      stateMachineTurn,
-      userText,
-      knowledge,
-      visibleCustomEvents,
-    }));
-    const response = await this.generateTextWithTrace({
-      conversationId: conversation.id,
-      model: models.response,
-      input: {
-        role: "response",
-        messages: modelMessages,
-        ...(input.signal ? { signal: input.signal } : {}),
-      },
-    });
-    const assistantText = await this.redactAssistantMessage(conversation, response.text);
-    const segments = await this.createCitationSegments({
-      conversation,
-      text: assistantText,
-      knowledge,
-      ...(input.signal ? { signal: input.signal } : {}),
-    });
-
-    await emit({
-      conversationId: conversation.id,
-      type: "message.started",
-      data: { role: "assistant" },
-    });
-    await emit({
-      conversationId: conversation.id,
-      type: "message.completed",
-      data: {
+      const knowledge = await this.retrieveKnowledge({
+        agent,
+        journey: selectedJourney,
+        conversationId: conversation.id,
+        message: userText,
+        emit,
+        signal: turn.controller.signal,
+      });
+      this.throwIfTurnInterrupted(turn);
+      const visibleCustomEvents = await this.listVisibleCustomEventContext(agent, conversation.id);
+      const modelMessages = await this.redactModelMessages(conversation, this.createResponseMessages({
+        agent,
+        journey: selectedJourney,
+        stateMachineTurn,
+        userText,
+        knowledge,
+        visibleCustomEvents,
+      }));
+      this.throwIfTurnInterrupted(turn);
+      const response = await this.generateTextWithTrace({
+        conversationId: conversation.id,
+        model: models.response,
+        input: {
+          role: "response",
+          messages: modelMessages,
+          signal: turn.controller.signal,
+        },
+      });
+      this.throwIfTurnInterrupted(turn);
+      const assistantText = await this.redactAssistantMessage(conversation, response.text);
+      this.throwIfTurnInterrupted(turn);
+      const segments = await this.createCitationSegments({
+        conversation,
         text: assistantText,
-        ...(segments ? { segments } : {}),
-        ...(response.usage ? { usage: response.usage } : {}),
-      },
-    });
-
-    const snapshot = this.nextSnapshot({
-      conversationId: conversation.id,
-      previousSnapshot,
-      selectedJourney,
-      stateMachineTurn,
-    });
-    await this.options.storage.saveSnapshot(snapshot);
-
-    if (this.options.compaction?.afterTurn) {
-      const compaction = await this.compactIfNeeded({
-        conversationId: conversation.id,
-        ...(this.options.compaction.schemaVersion ? { schemaVersion: this.options.compaction.schemaVersion } : {}),
-        ...(input.signal ? { signal: input.signal } : {}),
+        knowledge,
+        signal: turn.controller.signal,
       });
-      if (compaction) emitted.push(...compaction.events);
-    }
+      this.throwIfTurnInterrupted(turn);
 
-    return {
-      conversation,
-      snapshot,
-      events: emitted,
-      text: assistantText,
-      ...(selectedJourney ? { activeJourneyId: selectedJourney.id } : {}),
-    };
+      await emit({
+        conversationId: conversation.id,
+        type: "message.started",
+        data: { role: "assistant" },
+      });
+      await emit({
+        conversationId: conversation.id,
+        type: "message.completed",
+        data: {
+          text: assistantText,
+          ...(segments ? { segments } : {}),
+          ...(response.usage ? { usage: response.usage } : {}),
+        },
+      });
+
+      const snapshot = this.nextSnapshot({
+        conversationId: conversation.id,
+        previousSnapshot,
+        selectedJourney,
+        stateMachineTurn,
+      });
+      await this.options.storage.saveSnapshot(snapshot);
+
+      if (this.options.compaction?.afterTurn) {
+        const compaction = await this.compactIfNeeded({
+          conversationId: conversation.id,
+          ...(this.options.compaction.schemaVersion ? { schemaVersion: this.options.compaction.schemaVersion } : {}),
+          signal: turn.controller.signal,
+        });
+        this.throwIfTurnInterrupted(turn);
+        if (compaction) emitted.push(...compaction.events);
+      }
+
+      return {
+        conversation,
+        snapshot,
+        events: emitted,
+        text: assistantText,
+        ...(selectedJourney ? { activeJourneyId: selectedJourney.id } : {}),
+      };
+    } catch (error) {
+      if (turn.interruptedByNewMessage && isAbortLikeError(error)) {
+        return this.createAbortedTurnResult({
+          conversation,
+          turn,
+          events: emitted,
+        });
+      }
+      throw error;
+    } finally {
+      this.finishUserTurn(turn);
+    }
   }
 
   async closeConversation(conversationId: string, reason?: string) {
@@ -547,6 +590,77 @@ export class CognideskRuntime {
       ...(input.schemaVersion ? { schemaVersion: input.schemaVersion } : {}),
       ...(input.signal ? { signal: input.signal } : {}),
     });
+  }
+
+  private async beginUserTurn(args: {
+    conversationId: string;
+    agent: CompiledAgent;
+    signal?: AbortSignal;
+  }): Promise<ActiveTurn> {
+    const previous = this.activeTurns.get(args.conversationId);
+    const shouldInterrupt = args.agent.behavior?.interruptOnNewMessage !== false;
+    let interruptedEvent: RuntimeEvent | undefined;
+    if (previous && shouldInterrupt) {
+      previous.interruptedByNewMessage = true;
+      previous.controller.abort(new Error("interrupted_by_new_message"));
+      previous.abortEvent ??= this.emit({
+        conversationId: args.conversationId,
+        type: "message.aborted",
+        data: { reason: "interrupted_by_new_message" },
+      });
+      interruptedEvent = await previous.abortEvent;
+    }
+
+    const controller = new AbortController();
+    const abortFromParent = () => controller.abort(args.signal?.reason ?? new Error("aborted"));
+    if (args.signal?.aborted) abortFromParent();
+    else args.signal?.addEventListener("abort", abortFromParent, { once: true });
+
+    const turn: ActiveTurn = {
+      id: randomUUID(),
+      conversationId: args.conversationId,
+      controller,
+      interruptedByNewMessage: false,
+      ...(interruptedEvent ? { interruptedEvent } : {}),
+      cleanup: () => args.signal?.removeEventListener("abort", abortFromParent),
+    };
+    this.activeTurns.set(args.conversationId, turn);
+    return turn;
+  }
+
+  private finishUserTurn(turn: ActiveTurn) {
+    turn.cleanup();
+    if (this.activeTurns.get(turn.conversationId)?.id === turn.id) {
+      this.activeTurns.delete(turn.conversationId);
+    }
+  }
+
+  private throwIfTurnInterrupted(turn: ActiveTurn) {
+    if (turn.interruptedByNewMessage) throw new AbortError("interrupted_by_new_message");
+  }
+
+  private async createAbortedTurnResult(args: {
+    conversation: ConversationRecord;
+    turn: ActiveTurn;
+    events: RuntimeEvent[];
+  }): Promise<HandleUserMessageResult> {
+    const abortEvent = await args.turn.abortEvent;
+    if (abortEvent && !args.events.some((event) => event.id === abortEvent.id)) {
+      args.events.push(abortEvent);
+    }
+    const snapshot = await this.options.storage.getSnapshot(args.conversation.id) ?? {
+      conversationId: args.conversation.id,
+      lifecycle: args.conversation.lifecycle,
+      activeStateIds: [],
+      updatedAt: new Date().toISOString(),
+    };
+    return {
+      conversation: args.conversation,
+      snapshot,
+      events: args.events,
+      text: "",
+      ...(snapshot.activeJourneyId ? { activeJourneyId: snapshot.activeJourneyId } : {}),
+    };
   }
 
   private requireAgent() {
@@ -957,6 +1071,7 @@ export class CognideskRuntime {
         },
       });
     } catch (error) {
+      if (isAbortLikeError(error) && args.signal?.aborted) throw error;
       await args.emit({
         conversationId: args.conversation.id,
         type: "error",
@@ -1217,6 +1332,7 @@ export class CognideskRuntime {
         if (lifecycleApplied) return null;
         if (toolRun.onSuccessId) return toolRun.onSuccessId;
       } catch (error) {
+        if (isAbortLikeError(error) && args.signal?.aborted) throw error;
         const message = error instanceof Error ? error.message : "Tool execution failed.";
         await args.emit({
           conversationId: args.conversation.id,
@@ -1520,6 +1636,7 @@ export class CognideskRuntime {
         references: segment.knowledgeIds.map((id) => ({ type: "knowledge" as const, id })),
       }));
     } catch (error) {
+      if (isAbortLikeError(error) && args.signal?.aborted) throw error;
       await this.emit({
         conversationId: args.conversation.id,
         type: "error",
@@ -1714,4 +1831,18 @@ function createJourneyContextView(input: unknown, context: Record<string, unknow
 
 function createToolConfirmationPromptId(journeyId: string, stateId: string, toolName: string) {
   return `confirm:${journeyId}:${stateId}:${toolName}`;
+}
+
+class AbortError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AbortError";
+  }
+}
+
+function isAbortLikeError(error: unknown) {
+  if (error instanceof Error) {
+    return error.name === "AbortError" || error.message === "interrupted_by_new_message";
+  }
+  return false;
 }
