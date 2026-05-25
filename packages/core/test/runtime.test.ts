@@ -4,6 +4,7 @@ import {
   buildJourneyIndex,
   createAgent,
   createRuntime,
+  journeyContextViewerTool,
   knowledgeSource,
   tool,
 } from "../src/index.js";
@@ -271,6 +272,47 @@ describe("runtime turn pipeline", () => {
       "message.started",
       "message.completed",
     ]);
+  });
+
+  it("lets an exposed built-in tool view the active journey context", async () => {
+    const context = z.object({
+      bookingReference: z.string().optional(),
+      viewedContext: z.unknown().optional(),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const status = agentBuilder.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status",
+      context,
+    });
+    const identify = status.state("identify").collect("bookingReference");
+    const inspect = status.state("inspect").runTool(journeyContextViewerTool, {
+      input: () => ({ journeyId: "ticket-status", fields: ["bookingReference"] }),
+      assign: {
+        viewedContext: ({ output }) => output.context,
+      },
+    });
+    const done = status.final("done");
+    status.initial(identify);
+    identify.transitionTo(inspect);
+    inspect.transitionTo(done);
+
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you check ticket ABC123?",
+    });
+
+    expect(result.snapshot.journeyContext).toMatchObject({
+      bookingReference: "ABC123",
+      viewedContext: { bookingReference: "ABC123" },
+    });
   });
 
   it("adds delegation goal, instructions, and tools to the response prompt", async () => {

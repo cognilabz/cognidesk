@@ -739,13 +739,15 @@ export class CognideskRuntime {
           input: parsedInput.data,
           conversationId: args.conversation.id,
         });
-        const output = await toolRun.tool.execute({
-          input: parsedInput.data,
-          app: this.options.app ?? {},
-          conversationId: args.conversation.id,
-          ...(idempotencyKey ? { idempotencyKey } : {}),
-          ...(args.signal ? { signal: args.signal } : {}),
-        });
+        const output = toolRun.tool.name === "cognidesk.viewJourneyContext"
+          ? createJourneyContextView(parsedInput.data, args.context)
+          : await toolRun.tool.execute({
+              input: parsedInput.data,
+              app: this.options.app ?? {},
+              conversationId: args.conversation.id,
+              ...(idempotencyKey ? { idempotencyKey } : {}),
+              ...(args.signal ? { signal: args.signal } : {}),
+            });
         const parsedOutput = toolRun.tool.output.parse(output);
         for (const assignment of toolRun.assign) {
           setPathValue(args.context, assignment.path, assignment.value({
@@ -1012,4 +1014,26 @@ function hasUsableValue(value: unknown) {
 function guardAllows(result: Awaited<ReturnType<NonNullable<CompiledJourney["states"][number]["transitions"][number]["guard"]>>>) {
   if (typeof result === "boolean") return result;
   return result.allow;
+}
+
+function createJourneyContextView(input: unknown, context: Record<string, unknown>) {
+  const parsed = z.object({
+    journeyId: z.string(),
+    fields: z.array(z.string()).optional(),
+  }).parse(input);
+  if (!parsed.fields?.length) {
+    return {
+      journeyId: parsed.journeyId,
+      context: structuredClone(context),
+    };
+  }
+  const selected: Record<string, unknown> = {};
+  for (const field of parsed.fields) {
+    const value = getPathValue(context, field);
+    if (value !== undefined) setPathValue(selected, field, structuredClone(value));
+  }
+  return {
+    journeyId: parsed.journeyId,
+    context: selected,
+  };
 }

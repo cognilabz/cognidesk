@@ -224,6 +224,7 @@ export function tool<
   }) => string;
   execute: (context: {
     input: z.infer<TInputSchema>;
+    app: unknown;
     conversationId: string;
     idempotencyKey?: string;
     signal?: AbortSignal;
