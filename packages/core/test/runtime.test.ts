@@ -12,6 +12,7 @@ import type {
   ConversationRecord,
   CreateConversationInput,
   ListEventsOptions,
+  TextGenerationInput,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,
@@ -61,7 +62,8 @@ describe("runtime turn pipeline", () => {
     expect(result.activeJourneyId).toBe("ticket-status");
     expect(result.text).toContain("faq-ticket-status");
     expect(result.snapshot.activeStateIds).toEqual(["identifyTicket"]);
-    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual([
+    const events = await runtime.listEvents(conversation.id);
+    expect(events.map((event) => event.type)).toEqual([
       "custom.conversation.created",
       "message.started",
       "message.completed",
@@ -73,6 +75,57 @@ describe("runtime turn pipeline", () => {
       "message.started",
       "message.completed",
     ]);
+    expect(events.at(-1)?.data).toMatchObject({
+      segments: [{
+        id: "segment_1",
+        text: "Use faq-ticket-status for the current ticket status.",
+        references: [{ type: "knowledge", id: "faq-ticket-status" }],
+      }],
+    });
+  });
+
+  it("can disable citation post-processing when knowledge is used", async () => {
+    const knowledge = knowledgeSource("flight-faq", {
+      query: z.object({ query: z.string() }),
+      metadata: z.object({ source: z.string() }),
+      retrieve: async () => ({
+        items: [{
+          id: "faq-ticket-status",
+          content: "Ticket status is available with the booking reference.",
+          metadata: { source: "faq" },
+        }],
+      }),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    agentBuilder.knowledge.add(knowledge);
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      citationPostProcessing: {
+        provider: "test",
+        model: "citation",
+        generateText: async () => {
+          throw new Error("Citation post-processing should be disabled.");
+        },
+      },
+    });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      postProcessing: { citations: false },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "How can I check a ticket?",
+    });
+
+    const events = await runtime.listEvents(conversation.id);
+    expect(events.find((event) => event.type === "error")).toBeUndefined();
+    expect(events.at(-1)?.data).toEqual({ text: "Use faq-ticket-status for the current ticket status." });
   });
 
   it("applies privacy hooks before storage, model calls, and returned assistant text", async () => {
@@ -180,11 +233,24 @@ describe("runtime turn pipeline", () => {
   });
 });
 
-function createModels(): AgentModelSet {
+function createModels(overrides: Partial<AgentModelSet> = {}): AgentModelSet {
   const response = {
     provider: "test",
     model: "response",
     generateText: async () => ({ text: "Use faq-ticket-status for the current ticket status." }),
+  };
+  const citationPostProcessing = {
+    provider: "test",
+    model: "citation",
+    generateText: async (_input: TextGenerationInput) => {
+      const structured = {
+        segments: [{
+          text: "Use faq-ticket-status for the current ticket status.",
+          knowledgeIds: ["faq-ticket-status"],
+        }],
+      };
+      return { text: JSON.stringify(structured), structured };
+    },
   };
   const embedding = {
     provider: "test",
@@ -200,9 +266,10 @@ function createModels(): AgentModelSet {
     response,
     matcher: response,
     extraction: response,
-    citationPostProcessing: response,
+    citationPostProcessing,
     journeyEmbedding: embedding,
     compaction: response,
+    ...overrides,
   };
 }
 

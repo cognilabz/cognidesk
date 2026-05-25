@@ -12,6 +12,7 @@ import type {
   AgentModelSet,
   KnowledgeItem,
   KnowledgeSource,
+  MessageSegment,
   ModelMessage,
   RuntimeEvent,
   RuntimeSnapshot,
@@ -30,6 +31,9 @@ export interface RuntimeOptions {
     afterTurn?: boolean;
     minEvents?: number;
     schemaVersion?: string;
+  };
+  postProcessing?: {
+    citations?: boolean;
   };
 }
 
@@ -74,6 +78,13 @@ export const conversationCompactionSummarySchema = z.object({
 });
 
 export type ConversationCompactionSummary = z.infer<typeof conversationCompactionSummarySchema>;
+
+const citationPostProcessingSchema = z.object({
+  segments: z.array(z.object({
+    text: z.string(),
+    knowledgeIds: z.array(z.string()).default([]),
+  })),
+});
 
 export class CognideskRuntime {
   constructor(private readonly options: RuntimeOptions) {}
@@ -176,6 +187,12 @@ export class CognideskRuntime {
       ...(input.signal ? { signal: input.signal } : {}),
     });
     const assistantText = await this.redactAssistantMessage(conversation, response.text);
+    const segments = await this.createCitationSegments({
+      conversation,
+      text: assistantText,
+      knowledge,
+      ...(input.signal ? { signal: input.signal } : {}),
+    });
 
     await emit({
       conversationId: conversation.id,
@@ -187,6 +204,7 @@ export class CognideskRuntime {
       type: "message.completed",
       data: {
         text: assistantText,
+        ...(segments ? { segments } : {}),
         ...(response.usage ? { usage: response.usage } : {}),
       },
     });
@@ -459,6 +477,56 @@ export class CognideskRuntime {
       },
       { role: "user", content: args.userText },
     ];
+  }
+
+  private async createCitationSegments(args: {
+    conversation: ConversationRecord;
+    text: string;
+    knowledge: Array<KnowledgeItem>;
+    signal?: AbortSignal;
+  }): Promise<MessageSegment[] | null> {
+    if (args.knowledge.length === 0) return null;
+    if (this.options.postProcessing?.citations === false) return null;
+    const models = this.requireModels();
+    try {
+      const output = await models.citationPostProcessing.generateText({
+        role: "citationPostProcessing",
+        messages: [
+          {
+            role: "system",
+            content: "Split the assistant answer into citation segments. Attach knowledgeIds only where the segment uses that source.",
+          },
+          {
+            role: "user",
+            content: [
+              "Knowledge:",
+              ...args.knowledge.map((item) => `[${item.id}] ${item.content}`),
+              "",
+              "Assistant answer:",
+              args.text,
+            ].join("\n"),
+          },
+        ],
+        responseFormat: citationPostProcessingSchema,
+        ...(args.signal ? { signal: args.signal } : {}),
+      });
+      const structured = citationPostProcessingSchema.parse(output.structured ?? JSON.parse(output.text));
+      return structured.segments.map((segment, index) => ({
+        id: `segment_${index + 1}`,
+        text: segment.text,
+        references: segment.knowledgeIds.map((id) => ({ type: "knowledge" as const, id })),
+      }));
+    } catch (error) {
+      await this.emit({
+        conversationId: args.conversation.id,
+        type: "error",
+        data: {
+          code: "citation_post_processing_failed",
+          message: error instanceof Error ? error.message : "Citation post-processing failed.",
+        },
+      });
+      return null;
+    }
   }
 
   private nextSnapshot(args: {
