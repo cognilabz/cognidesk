@@ -223,6 +223,53 @@ describe("runtime turn pipeline", () => {
     ]);
   });
 
+  it("adds delegation goal, instructions, and tools to the response prompt", async () => {
+    let systemPrompt = "";
+    const summarize = tool("summarizeHandoff", {
+      input: z.object({ issue: z.string() }),
+      output: z.object({ summary: z.string() }),
+      execute: async ({ input }) => ({ summary: input.issue }),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    agentBuilder.delegationJourney("human-handoff", {
+      condition: "Customer asks for a human specialist",
+      specialist: {
+        goal: "Collect a concise handoff summary and stop automated troubleshooting.",
+        instructions: "Ask only for missing handoff details.",
+        tools: [summarize],
+      },
+      completeWhen: ["booking reference is known", "issue summary is known"],
+    });
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      response: {
+        provider: "test",
+        model: "response",
+        generateText: async ({ messages }) => {
+          systemPrompt = messages.find((message) => message.role === "system")?.content ?? "";
+          return { text: "I can prepare a handoff." };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "I need a human agent.",
+    });
+
+    expect(result.activeJourneyId).toBe("human-handoff");
+    expect(systemPrompt).toContain("Journey kind: delegation");
+    expect(systemPrompt).toContain("Delegation goal: Collect a concise handoff summary");
+    expect(systemPrompt).toContain("Delegation instructions: Ask only for missing handoff details.");
+    expect(systemPrompt).toContain("Delegation completion criteria: booking reference is known; issue summary is known");
+    expect(systemPrompt).toContain("Delegation tools: summarizeHandoff");
+  });
+
   it("applies privacy hooks before storage, model calls, and returned assistant text", async () => {
     let modelPrompt = "";
     const response = {

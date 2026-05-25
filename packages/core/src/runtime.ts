@@ -738,14 +738,7 @@ export class CognideskRuntime {
     knowledge: Array<KnowledgeItem>;
   }): ModelMessage[] {
     const journeyContext = args.journey
-      ? [
-          `Active journey: ${args.journey.id}`,
-          `Journey condition: ${args.journey.condition}`,
-          args.stateMachineTurn?.activeStateIds.length
-            ? `Active state: ${args.stateMachineTurn.activeStateIds.join(", ")}`
-            : args.journey.initialStateId ? `Initial state: ${args.journey.initialStateId}` : "",
-          args.stateMachineTurn ? `Journey context: ${JSON.stringify(args.stateMachineTurn.journeyContext)}` : "",
-        ].filter(Boolean).join("\n")
+      ? renderJourneyRuntimeContext(args.journey, args.stateMachineTurn)
       : "No active journey.";
     const knowledgeContext = args.knowledge.length > 0
       ? args.knowledge.map((item, index) => {
@@ -881,6 +874,32 @@ function uniqueKnowledgeSources(sources: KnowledgeSource[]) {
   const byName = new Map<string, KnowledgeSource>();
   for (const source of sources) byName.set(source.name, source);
   return [...byName.values()];
+}
+
+function renderJourneyRuntimeContext(journey: CompiledJourney, stateMachineTurn: StateMachineTurnResult | null) {
+  const lines = [
+    `Active journey: ${journey.id}`,
+    `Journey kind: ${journey.kind}`,
+    `Journey condition: ${journey.condition}`,
+  ];
+  if (journey.kind === "delegation" && journey.delegation) {
+    lines.push(`Delegation goal: ${journey.delegation.goal}`);
+    if (journey.delegation.instructions) lines.push(`Delegation instructions: ${journey.delegation.instructions}`);
+    if (journey.delegation.completeWhen.length > 0) {
+      lines.push(`Delegation completion criteria: ${journey.delegation.completeWhen.join("; ")}`);
+    }
+    if (journey.delegation.tools.length > 0) {
+      lines.push(`Delegation tools: ${journey.delegation.tools.map((toolDefinition) => toolDefinition.name).join(", ")}`);
+    }
+  } else {
+    lines.push(
+      stateMachineTurn?.activeStateIds.length
+        ? `Active state: ${stateMachineTurn.activeStateIds.join(", ")}`
+        : journey.initialStateId ? `Initial state: ${journey.initialStateId}` : "",
+    );
+    if (stateMachineTurn) lines.push(`Journey context: ${JSON.stringify(stateMachineTurn.journeyContext)}`);
+  }
+  return lines.filter(Boolean).join("\n");
 }
 
 function parseKnowledgeQuery(source: KnowledgeSource, message: string): z.infer<KnowledgeSource["query"]> | null {

@@ -108,6 +108,7 @@ export interface CompiledJourney {
   matcher?: JourneyActivationPredicate;
   knowledge: KnowledgeSource[];
   context?: ObjectSchema;
+  delegation?: CompiledDelegation;
   states: CompiledState[];
   initialStateId?: string;
   toGraph(): JourneyGraph;
@@ -145,6 +146,13 @@ export interface CompiledToolRun<TContext = unknown> {
   onSuccessId?: string;
   onFailureId?: string;
   onValidationErrorId?: string;
+}
+
+export interface CompiledDelegation {
+  goal: string;
+  instructions?: string;
+  tools: AnyTool[];
+  completeWhen: string[];
 }
 
 export interface JourneyGraphState {
@@ -677,6 +685,12 @@ export class DelegationJourneyBuilder<const TId extends string> {
       ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
       ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       knowledge: this.options.specialist.knowledge ?? [],
+      delegation: {
+        goal: this.options.specialist.goal,
+        ...(this.options.specialist.instructions ? { instructions: this.options.specialist.instructions } : {}),
+        tools: this.options.specialist.tools ?? [],
+        completeWhen: this.options.completeWhen ?? [],
+      },
       states: [],
       toGraph: () => graph,
       toJSON: () => graph,
