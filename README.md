@@ -81,7 +81,24 @@ await runtime.emitCustomEvent({
 const http = createCognideskHttpHandler({ runtime, agentId: agent.id, basePath: "/api" });
 ```
 
-Core remains transport-neutral. The HTTP package exposes POST message submission, widget submissions, intermediate messages, generated wait-time preambles, handoff requests, event history, Event Replay, and SSE event streaming. The React package provides `createCognideskClient`, `useChat`, and `ChatWidget`; assistant message segments can carry knowledge/tool references for source hovers.
+Core remains transport-neutral. The HTTP package exposes POST message submission, widget submissions, custom events, Journey Events, intermediate messages, generated wait-time preambles, handoff requests, event history, Event Replay, and SSE event streaming. The React package provides `createCognideskClient`, `useChat`, and `ChatWidget`; assistant message segments can carry knowledge/tool references for source hovers.
+
+Journey guards can block activation or continuation with structured remediation:
+
+```ts
+const secured = agentBuilder.stateMachineJourney("secured-ticket-review", {
+  condition: "Customer needs secured ticket review",
+  context: z.object({}),
+  guard: ({ app }) => app.authenticated === true
+    ? { allow: true }
+    : {
+        allow: false,
+        code: "auth_required",
+        message: "Authenticate before starting secured review.",
+      },
+});
+secured.initial(secured.state("review"));
+```
 
 State-machine journeys can also declare typed Journey Events for app-driven state changes:
 
@@ -96,6 +113,14 @@ await runtime.emitJourneyEvent({
   conversationId: conversation.id,
   event: ticketSynced,
   payload: { bookingReference: "ABC123" },
+});
+
+const httpWithEvents = createCognideskHttpHandler({
+  runtime,
+  agentId: agent.id,
+  basePath: "/api",
+  customEvents: [leadCaptured],
+  journeyEvents: [ticketSynced],
 });
 ```
 
