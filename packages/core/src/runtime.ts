@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { z } from "zod";
+import { z } from "zod";
 import type { CompiledAgent, CompiledJourney } from "./definition.js";
 import {
   selectJourneyCandidates,
@@ -26,6 +26,11 @@ export interface RuntimeOptions {
   app?: unknown;
   knowledgeLimit?: number;
   privacy?: PrivacyHooks;
+  compaction?: {
+    afterTurn?: boolean;
+    minEvents?: number;
+    schemaVersion?: string;
+  };
 }
 
 export interface CreateRuntimeConversationInput<TConversationContext = unknown>
@@ -46,6 +51,29 @@ export interface HandleUserMessageResult {
   text: string;
   activeJourneyId?: string;
 }
+
+export interface CompactConversationInput {
+  conversationId: string;
+  fromOffset?: number;
+  toOffset?: number;
+  schemaVersion?: string;
+  signal?: AbortSignal;
+}
+
+export interface CompactConversationResult {
+  summary: ConversationCompactionSummary;
+  snapshot: RuntimeSnapshot;
+  events: RuntimeEvent[];
+}
+
+export const conversationCompactionSummarySchema = z.object({
+  summary: z.string(),
+  stableFacts: z.array(z.string()).default([]),
+  openQuestions: z.array(z.string()).default([]),
+  activeCommitments: z.array(z.string()).default([]),
+});
+
+export type ConversationCompactionSummary = z.infer<typeof conversationCompactionSummarySchema>;
 
 export class CognideskRuntime {
   constructor(private readonly options: RuntimeOptions) {}
@@ -170,6 +198,18 @@ export class CognideskRuntime {
     });
     await this.options.storage.saveSnapshot(snapshot);
 
+    if (this.options.compaction?.afterTurn) {
+      const allEvents = await this.options.storage.listEvents({ conversationId: conversation.id });
+      if (allEvents.length >= (this.options.compaction.minEvents ?? 50)) {
+        const compaction = await this.compactConversation({
+          conversationId: conversation.id,
+          ...(this.options.compaction.schemaVersion ? { schemaVersion: this.options.compaction.schemaVersion } : {}),
+          ...(input.signal ? { signal: input.signal } : {}),
+        });
+        emitted.push(...compaction.events);
+      }
+    }
+
     return {
       conversation,
       snapshot,
@@ -200,6 +240,67 @@ export class CognideskRuntime {
     return conversation;
   }
 
+  async compactConversation(input: CompactConversationInput): Promise<CompactConversationResult> {
+    const models = this.requireModels();
+    const conversation = await this.requireConversationRecord(input.conversationId);
+    const fromOffset = input.fromOffset ?? 1;
+    const allEvents = await this.options.storage.listEvents({ conversationId: input.conversationId });
+    const selectedEvents = allEvents.filter((event) => (
+      event.offset >= fromOffset && (input.toOffset === undefined || event.offset <= input.toOffset)
+    ));
+    if (selectedEvents.length === 0) {
+      throw new Error(`No events found to compact for conversation '${input.conversationId}'.`);
+    }
+    const toOffset = input.toOffset ?? selectedEvents[selectedEvents.length - 1]?.offset ?? fromOffset;
+    const emitted: RuntimeEvent[] = [];
+    const started = await this.emit({
+      conversationId: input.conversationId,
+      type: "conversation.compaction.started",
+      data: { fromOffset, toOffset },
+    });
+    emitted.push(started);
+
+    const output = await models.compaction.generateText({
+      role: "compaction",
+      messages: [
+        {
+          role: "system",
+          content: "Compact the conversation events into a concise structured memory. Preserve stable facts, open questions, and active commitments.",
+        },
+        {
+          role: "user",
+          content: renderEventsForCompaction(selectedEvents),
+        },
+      ],
+      responseFormat: conversationCompactionSummarySchema,
+      ...(input.signal ? { signal: input.signal } : {}),
+    });
+    const summary = conversationCompactionSummarySchema.parse(output.structured ?? JSON.parse(output.text));
+    const currentSnapshot = await this.options.storage.getSnapshot(input.conversationId);
+    const snapshot: RuntimeSnapshot = {
+      conversationId: input.conversationId,
+      lifecycle: conversation.lifecycle,
+      activeStateIds: currentSnapshot?.activeStateIds ?? [],
+      updatedAt: new Date().toISOString(),
+      compactionSummary: summary,
+      ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
+      ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
+      ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
+    };
+    await this.options.storage.saveSnapshot(snapshot);
+    const completed = await this.emit({
+      conversationId: input.conversationId,
+      type: "conversation.compaction.completed",
+      data: {
+        fromOffset,
+        toOffset,
+        schemaVersion: input.schemaVersion ?? this.options.compaction?.schemaVersion ?? "cognidesk.compaction.v1",
+      },
+    });
+    emitted.push(completed);
+    return { summary, snapshot, events: emitted };
+  }
+
   private requireAgent() {
     if (!this.options.agent) throw new Error("Runtime requires an agent to handle messages.");
     return this.options.agent;
@@ -211,11 +312,16 @@ export class CognideskRuntime {
   }
 
   private async requireConversation(conversationId: string) {
-    const conversation = await this.options.storage.getConversation(conversationId);
-    if (!conversation) throw new Error(`Conversation '${conversationId}' does not exist.`);
+    const conversation = await this.requireConversationRecord(conversationId);
     if (conversation.lifecycle !== "active") {
       throw new Error(`Conversation '${conversationId}' is '${conversation.lifecycle}' and cannot receive user messages.`);
     }
+    return conversation;
+  }
+
+  private async requireConversationRecord(conversationId: string) {
+    const conversation = await this.options.storage.getConversation(conversationId);
+    if (!conversation) throw new Error(`Conversation '${conversationId}' does not exist.`);
     return conversation;
   }
 
@@ -424,4 +530,13 @@ function parseKnowledgeQuery(source: KnowledgeSource, message: string): z.infer<
     if (parsed.success) return parsed.data;
   }
   return null;
+}
+
+function renderEventsForCompaction(events: RuntimeEvent[]) {
+  return events.map((event) => JSON.stringify({
+    offset: event.offset,
+    type: event.type,
+    data: event.data,
+    createdAt: event.createdAt,
+  })).join("\n");
 }

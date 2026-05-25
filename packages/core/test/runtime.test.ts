@@ -128,6 +128,56 @@ describe("runtime turn pipeline", () => {
     expect(result.text).toBe("Reach [email] for details.");
     expect(events.at(-1)?.data).toMatchObject({ text: "Reach [email] for details." });
   });
+
+  it("compacts conversation events into the runtime snapshot", async () => {
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async ({ role }: { role: string }) => {
+        if (role === "compaction") {
+          const structured = {
+            summary: "Customer asked about ticket status.",
+            stableFacts: ["Booking reference ABC123"],
+            openQuestions: [],
+            activeCommitments: ["Check ticket status"],
+          };
+          return { text: JSON.stringify(structured), structured };
+        }
+        return { text: "Ticket ABC123 is confirmed." };
+      },
+    };
+    const embedding = {
+      provider: "test",
+      model: "embedding",
+      generateText: response.generateText,
+      embed: async () => ({ embedding: [0], model: "embedding", dimensions: 1 }),
+    };
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: {
+        response,
+        matcher: response,
+        extraction: response,
+        citationPostProcessing: response,
+        journeyEmbedding: embedding,
+        compaction: response,
+      },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await runtime.handleUserMessage({ conversationId: conversation.id, text: "Status for ABC123?" });
+
+    const result = await runtime.compactConversation({ conversationId: conversation.id });
+    const snapshot = await runtime.getSnapshot(conversation.id);
+
+    expect(result.summary.stableFacts).toEqual(["Booking reference ABC123"]);
+    expect(snapshot?.compactionSummary).toEqual(result.summary);
+    expect(result.events.map((event) => event.type)).toEqual([
+      "conversation.compaction.started",
+      "conversation.compaction.completed",
+    ]);
+  });
 });
 
 function createModels(): AgentModelSet {
