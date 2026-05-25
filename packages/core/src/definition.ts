@@ -144,6 +144,7 @@ export interface CompiledState {
     path: string;
     required: boolean;
     extract: boolean;
+    confirm?: true | "beforeAction" | ConfirmationPolicy;
     prompt?: string;
     widget?: WidgetDefinition;
     widgetInput?: unknown;
@@ -447,6 +448,7 @@ export class StateBuilder<
     path: string;
     required: boolean;
     extract: boolean;
+    confirm?: true | "beforeAction" | ConfirmationPolicy;
     prompt?: string;
     widget?: WidgetDefinition;
     widgetInput?: unknown;
@@ -481,6 +483,7 @@ export class StateBuilder<
       path,
       required: options.required ?? true,
       extract: options.extract ?? true,
+      ...(options.confirm ? { confirm: options.confirm === true ? true : options.confirm } : {}),
       ...(options.prompt ? { prompt: options.prompt } : {}),
       ...(widgetDefinition ? { widget: widgetDefinition.widget } : {}),
       ...(widgetDefinition?.input !== undefined ? { widgetInput: widgetDefinition.input } : {}),

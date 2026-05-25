@@ -1460,6 +1460,72 @@ describe("runtime turn pipeline", () => {
     ]));
   });
 
+  it("prompts for collected field confirmation before continuing", async () => {
+    const context = z.object({
+      bookingReference: z.string().optional(),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const status = agentBuilder.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status information",
+      context,
+    });
+    const identify = status.state("identify")
+      .collect("bookingReference", { confirm: { message: "Confirm booking reference" } });
+    const done = status.final("done");
+    status.initial(identify);
+    identify.transitionTo(done);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      extraction: {
+        provider: "test",
+        model: "extraction",
+        generateText: async () => {
+          const structured = { values: { bookingReference: "ABC123" } };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const turn = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you check ticket ABC123?",
+    });
+    const prompted = (await runtime.listEvents(conversation.id)).find((event) => event.type === "ui.prompted");
+
+    expect(turn.snapshot.activeStateIds).toEqual(["identify"]);
+    expect(prompted?.data).toEqual({
+      promptId: "confirm-field:ticket-status:identify:bookingReference",
+      widgetKind: "confirmation",
+      input: {
+        title: "Confirm booking reference",
+        message: "Confirm booking reference",
+        confirmLabel: "Confirm",
+        cancelLabel: "Edit",
+      },
+    });
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "confirm-field:ticket-status:identify:bookingReference",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
+
+    const snapshot = await runtime.getSnapshot(conversation.id);
+    expect(snapshot?.activeJourneyId).toBeUndefined();
+    expect(snapshot?.activeStateIds).toEqual([]);
+    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual(expect.arrayContaining([
+      "ui.submitted",
+      "journey.completed",
+    ]));
+  });
+
   it("uses requiredWhen to skip conditionally unnecessary collected fields", async () => {
     const agentBuilder = createAgent("flight-service", {
       instructions: "Help customers with flights.",

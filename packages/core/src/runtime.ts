@@ -1790,6 +1790,8 @@ export class CognideskRuntime {
         await this.emitFieldPrompts({ ...args, state });
         return [state];
       }
+      const fieldConfirmationCount = await this.emitFieldConfirmationPrompts({ ...args, state });
+      if (fieldConfirmationCount > 0) return [state];
       if (state.requiresVisit) {
         const promptCount = await this.emitConfirmationPrompts({ ...args, state });
         if (promptCount > 0) return [state];
@@ -2403,6 +2405,50 @@ export class CognideskRuntime {
     return prompted;
   }
 
+  private async emitFieldConfirmationPrompts(args: {
+    journey: CompiledJourney;
+    conversation: ConversationRecord;
+    state: CompiledJourney["states"][number];
+    context: Record<string, unknown>;
+    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+  }) {
+    const confirmableFields = args.state.collected.filter((field) => (
+      field.confirm && hasUsableValue(getPathValue(args.context, field.path))
+    ));
+    if (confirmableFields.length === 0) return 0;
+    const existing = await this.options.storage.listEvents({ conversationId: args.conversation.id });
+    let prompted = 0;
+    for (const field of confirmableFields) {
+      const promptId = createFieldConfirmationPromptId(args.journey.id, args.state.id, field.path);
+      const hasSubmission = existing.some((event) => (
+        event.type === "ui.submitted" && event.data.promptId === promptId
+      ));
+      if (hasSubmission) continue;
+      const hasOpenPrompt = existing.some((event) => (
+        event.type === "ui.prompted" && event.data.promptId === promptId
+      ));
+      if (hasOpenPrompt) continue;
+      const policy = typeof field.confirm === "object" ? field.confirm : {};
+      const value = getPathValue(args.context, field.path);
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "ui.prompted",
+        data: {
+          promptId,
+          widgetKind: policy.widget?.kind ?? "confirmation",
+          input: {
+            title: policy.message ?? `Confirm ${field.path}`,
+            message: policy.reason ?? policy.message ?? `Please confirm ${field.path}: ${String(value)}.`,
+            confirmLabel: "Confirm",
+            cancelLabel: "Edit",
+          },
+        },
+      });
+      prompted += 1;
+    }
+    return prompted;
+  }
+
   private async emitConfirmationPrompts(args: {
     journey: CompiledJourney;
     conversation: ConversationRecord;
@@ -2464,10 +2510,26 @@ export class CognideskRuntime {
       (snapshot?.activeStateIds ?? []).filter((stateId) => stateId !== state.id),
     );
     const fieldPrompt = parseFieldPromptId(args.promptId);
-    if (fieldPrompt && fieldPrompt.journeyId === journey.id && fieldPrompt.stateId === state.id) {
-      const field = state.collected.find((candidate) => candidate.path === fieldPrompt.path);
+    const fieldConfirmationPrompt = parseFieldConfirmationPromptId(args.promptId);
+    const fieldPromptTarget = fieldPrompt && fieldPrompt.journeyId === journey.id && fieldPrompt.stateId === state.id
+      ? fieldPrompt
+      : null;
+    const fieldConfirmationTarget = fieldConfirmationPrompt
+      && fieldConfirmationPrompt.journeyId === journey.id
+      && fieldConfirmationPrompt.stateId === state.id
+      ? fieldConfirmationPrompt
+      : null;
+    if (fieldPromptTarget || fieldConfirmationTarget) {
+      const target = fieldPromptTarget ?? fieldConfirmationTarget;
+      if (!target) return;
+      const field = state.collected.find((candidate) => candidate.path === target.path);
       if (!field) return;
-      setPathValue(context, field.path, extractWidgetFieldValue(args.output));
+      if (fieldPromptTarget) {
+        setPathValue(context, field.path, extractWidgetFieldValue(args.output));
+      } else {
+        const confirmed = z.object({ confirmed: z.boolean() }).safeParse(args.output);
+        if (!confirmed.success || !confirmed.data.confirmed) return;
+      }
       const branchStates = await this.advanceStateMachine({
         journey,
         conversation: args.conversation,
@@ -3120,6 +3182,14 @@ function resolveWidgetPromptState(
   if (fieldPrompt && fieldPrompt.journeyId === journey.id && activeStateIds.has(fieldPrompt.stateId)) {
     return findJourneyState(journey, fieldPrompt.stateId);
   }
+  const fieldConfirmationPrompt = parseFieldConfirmationPromptId(promptId);
+  if (
+    fieldConfirmationPrompt
+    && fieldConfirmationPrompt.journeyId === journey.id
+    && activeStateIds.has(fieldConfirmationPrompt.stateId)
+  ) {
+    return findJourneyState(journey, fieldConfirmationPrompt.stateId);
+  }
   const confirmationPrompt = parseToolConfirmationPromptId(promptId);
   if (confirmationPrompt && confirmationPrompt.journeyId === journey.id && activeStateIds.has(confirmationPrompt.stateId)) {
     return findJourneyState(journey, confirmationPrompt.stateId);
@@ -3471,9 +3541,23 @@ function createFieldPromptId(journeyId: string, stateId: string, path: string) {
   return `field:${journeyId}:${stateId}:${encodeURIComponent(path)}`;
 }
 
+function createFieldConfirmationPromptId(journeyId: string, stateId: string, path: string) {
+  return `confirm-field:${journeyId}:${stateId}:${encodeURIComponent(path)}`;
+}
+
 function parseFieldPromptId(promptId: string) {
   const [kind, journeyId, stateId, encodedPath] = promptId.split(":");
   if (kind !== "field" || !journeyId || !stateId || !encodedPath) return null;
+  return {
+    journeyId,
+    stateId,
+    path: decodeURIComponent(encodedPath),
+  };
+}
+
+function parseFieldConfirmationPromptId(promptId: string) {
+  const [kind, journeyId, stateId, encodedPath] = promptId.split(":");
+  if (kind !== "confirm-field" || !journeyId || !stateId || !encodedPath) return null;
   return {
     journeyId,
     stateId,
