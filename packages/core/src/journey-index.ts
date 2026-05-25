@@ -49,6 +49,10 @@ export interface JourneyIndexValidationResult {
   errors: string[];
 }
 
+export interface ValidateJourneyIndexOptions {
+  embeddingModel?: Pick<ModelAdapter, "provider" | "model">;
+}
+
 export interface SelectJourneyCandidatesOptions<TApp = unknown, TConversation = unknown, TTurn = unknown> {
   agent: CompiledAgent;
   index: JourneyIndex;
@@ -121,7 +125,11 @@ export async function selectJourneyCandidates<TApp, TConversation, TTurn>(
   if (topK < 1) throw new Error("topK must be at least 1.");
   assertEmbeddingModel(options.embeddingModel);
 
-  const validation = validateJourneyIndex(options.agent, options.index);
+  const validation = validateJourneyIndex(options.agent, options.index, { embeddingModel: options.embeddingModel });
+  const compatibilityErrors = validation.errors.filter((error) => error.startsWith("Index embedding "));
+  if (compatibilityErrors.length > 0) {
+    throw new Error(`Journey index embedding model is incompatible: ${compatibilityErrors.join("; ")}`);
+  }
   if (!validation.ok && !options.allowStaleIndex) {
     throw new Error(`Journey index is stale or invalid: ${validation.errors.join("; ")}`);
   }
@@ -132,6 +140,15 @@ export async function selectJourneyCandidates<TApp, TConversation, TTurn>(
     text: options.message,
     ...(options.signal ? { signal: options.signal } : {}),
   });
+  const dimensionMismatch = options.index.entries.find((entry) => (
+    entry.embedding.dimensions !== queryEmbedding.dimensions
+    || entry.embedding.vector.length !== queryEmbedding.embedding.length
+  ));
+  if (dimensionMismatch) {
+    throw new Error(
+      `Journey index embedding dimensions do not match runtime model for journey '${dimensionMismatch.journeyId}'.`,
+    );
+  }
 
   const candidates: JourneyCandidate[] = [];
   for (const entry of options.index.entries) {
@@ -171,7 +188,11 @@ export async function selectJourneyCandidates<TApp, TConversation, TTurn>(
   return [...included.values()].sort(compareCandidates);
 }
 
-export function validateJourneyIndex(agent: CompiledAgent, index: JourneyIndex): JourneyIndexValidationResult {
+export function validateJourneyIndex(
+  agent: CompiledAgent,
+  index: JourneyIndex,
+  options: ValidateJourneyIndexOptions = {},
+): JourneyIndexValidationResult {
   const parsed = journeyIndexSchema.safeParse(index);
   const errors: string[] = [];
   if (!parsed.success) {
@@ -182,6 +203,14 @@ export function validateJourneyIndex(agent: CompiledAgent, index: JourneyIndex):
   if (index.agentId !== agent.id) errors.push(`Index agent '${index.agentId}' does not match '${agent.id}'.`);
   if (index.definitionHash !== hashAgentRoutingDefinition(agent)) {
     errors.push("Agent routing definition hash does not match the generated index.");
+  }
+  if (options.embeddingModel) {
+    if (index.embeddingProvider !== options.embeddingModel.provider) {
+      errors.push(`Index embedding provider '${index.embeddingProvider}' does not match '${options.embeddingModel.provider}'.`);
+    }
+    if (index.embeddingModel !== options.embeddingModel.model) {
+      errors.push(`Index embedding model '${index.embeddingModel}' does not match '${options.embeddingModel.model}'.`);
+    }
   }
 
   const entryById = new Map(index.entries.map((entry) => [entry.journeyId, entry]));

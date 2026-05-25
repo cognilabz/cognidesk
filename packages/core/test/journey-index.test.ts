@@ -126,6 +126,53 @@ describe("journey index", () => {
 
     expect(candidates.map((candidate) => candidate.journeyId)).toEqual(["ticket-status"]);
   });
+
+  it("rejects incompatible runtime embedding models", async () => {
+    const compiled = createRoutingAgent("ticket status").compile();
+    const index = await buildJourneyIndex(compiled, { embeddingModel });
+    const otherModel: ModelAdapter = {
+      ...embeddingModel,
+      provider: "other",
+      model: "other-embedding",
+    };
+
+    expect(validateJourneyIndex(compiled, index, { embeddingModel: otherModel }).errors).toEqual([
+      "Index embedding provider 'test' does not match 'other'.",
+      "Index embedding model 'keyword-embedding' does not match 'other-embedding'.",
+    ]);
+    await expect(selectJourneyCandidates({
+      agent: compiled,
+      index,
+      embeddingModel: otherModel,
+      message: "Can you check ticket ABC123?",
+      app: {},
+      conversation: { id: "conversation_1" },
+      turn: {},
+    })).rejects.toThrow("embedding provider");
+  });
+
+  it("rejects embedding dimension mismatches", async () => {
+    const compiled = createRoutingAgent("ticket status").compile();
+    const index = await buildJourneyIndex(compiled, { embeddingModel });
+    const wrongDimensions: ModelAdapter = {
+      ...embeddingModel,
+      embed: async () => ({
+        embedding: [1, 0],
+        model: "keyword-embedding",
+        dimensions: 2,
+      }),
+    };
+
+    await expect(selectJourneyCandidates({
+      agent: compiled,
+      index,
+      embeddingModel: wrongDimensions,
+      message: "Can you check ticket ABC123?",
+      app: {},
+      conversation: { id: "conversation_1" },
+      turn: {},
+    })).rejects.toThrow("embedding dimensions");
+  });
 });
 
 function createRoutingAgent(statusCondition: string) {
