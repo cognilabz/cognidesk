@@ -1577,6 +1577,65 @@ describe("runtime turn pipeline", () => {
     ]);
   });
 
+  it("supports custom compaction instructions and summary schema", async () => {
+    let compactionPrompt = "";
+    const customSummarySchema = z.object({
+      handoffSummary: z.string(),
+      riskLevel: z.enum(["low", "medium", "high"]),
+    });
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async ({ role, messages }: TextGenerationInput) => {
+        if (role === "compaction") {
+          compactionPrompt = messages.find((message) => message.role === "system")?.content ?? "";
+          const structured = {
+            handoffSummary: "Customer asked for a status check.",
+            riskLevel: "low" as const,
+          };
+          return { text: JSON.stringify(structured), structured };
+        }
+        return { text: "Ticket ABC123 is confirmed." };
+      },
+    };
+    const embedding = {
+      provider: "test",
+      model: "embedding",
+      generateText: response.generateText,
+      embed: async () => ({ embedding: [0], model: "embedding", dimensions: 1 }),
+    };
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: {
+        response,
+        matcher: response,
+        extraction: response,
+        citationPostProcessing: response,
+        journeyEmbedding: embedding,
+        compaction: response,
+      },
+      compaction: {
+        instructions: "Create a handoff-focused support memory.",
+        summarySchema: customSummarySchema,
+      },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await runtime.handleUserMessage({ conversationId: conversation.id, text: "Status for ABC123?" });
+
+    const result = await runtime.compactConversation<z.infer<typeof customSummarySchema>>({
+      conversationId: conversation.id,
+    });
+
+    expect(compactionPrompt).toBe("Create a handoff-focused support memory.");
+    expect(result.summary.riskLevel).toBe("low");
+    expect((await runtime.getSnapshot(conversation.id))?.compactionSummary).toEqual({
+      handoffSummary: "Customer asked for a status check.",
+      riskLevel: "low",
+    });
+  });
+
   it("can compact before processing the next user turn", async () => {
     const response = {
       provider: "test",

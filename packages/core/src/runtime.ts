@@ -41,6 +41,8 @@ export interface RuntimeOptions {
     afterTurn?: boolean;
     minEvents?: number;
     schemaVersion?: string;
+    instructions?: string;
+    summarySchema?: z.ZodType;
   };
   postProcessing?: {
     citations?: boolean;
@@ -131,8 +133,8 @@ export interface ResumeConversationInput {
   payload?: unknown;
 }
 
-export interface CompactConversationResult {
-  summary: ConversationCompactionSummary;
+export interface CompactConversationResult<TSummary = ConversationCompactionSummary> {
+  summary: TSummary;
   snapshot: RuntimeSnapshot;
   events: RuntimeEvent[];
 }
@@ -573,9 +575,14 @@ export class CognideskRuntime {
     });
   }
 
-  async compactConversation(input: CompactConversationInput): Promise<CompactConversationResult> {
+  async compactConversation<TSummary = ConversationCompactionSummary>(
+    input: CompactConversationInput,
+  ): Promise<CompactConversationResult<TSummary>> {
     const models = this.requireModels();
     const conversation = await this.requireConversationRecord(input.conversationId);
+    const summarySchema = this.options.compaction?.summarySchema ?? conversationCompactionSummarySchema;
+    const instructions = this.options.compaction?.instructions
+      ?? "Compact the conversation events into a concise structured memory. Preserve stable facts, open questions, and active commitments.";
     const fromOffset = input.fromOffset ?? 1;
     const allEvents = await this.options.storage.listEvents({ conversationId: input.conversationId });
     const selectedEvents = allEvents.filter((event) => (
@@ -601,18 +608,18 @@ export class CognideskRuntime {
         messages: [
           {
             role: "system",
-            content: "Compact the conversation events into a concise structured memory. Preserve stable facts, open questions, and active commitments.",
+            content: instructions,
           },
           {
             role: "user",
             content: renderEventsForCompaction(selectedEvents),
           },
         ],
-        responseFormat: conversationCompactionSummarySchema,
+        responseFormat: summarySchema,
         ...(input.signal ? { signal: input.signal } : {}),
       },
     });
-    const summary = conversationCompactionSummarySchema.parse(output.structured ?? JSON.parse(output.text));
+    const summary = summarySchema.parse(output.structured ?? JSON.parse(output.text)) as TSummary;
     const currentSnapshot = await this.options.storage.getSnapshot(input.conversationId);
     const snapshot: RuntimeSnapshot = {
       conversationId: input.conversationId,
