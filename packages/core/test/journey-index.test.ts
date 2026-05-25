@@ -68,6 +68,29 @@ describe("journey index", () => {
       "embedding",
     ]);
   });
+
+  it("keeps the active journey in the candidate set outside topK", async () => {
+    const compiled = createRoutingAgent("ticket status").compile();
+    const index = await buildJourneyIndex(compiled, { embeddingModel });
+
+    const candidates = await selectJourneyCandidates({
+      agent: compiled,
+      index,
+      embeddingModel,
+      message: "Can you check the status of ticket ABC123?",
+      app: {},
+      conversation: { id: "conversation_1" },
+      turn: {},
+      activeJourneyId: "vip-review",
+      topK: 1,
+    });
+
+    expect(candidates.map((candidate) => candidate.journeyId)).toEqual([
+      "handoff",
+      "ticket-status",
+      "vip-review",
+    ]);
+  });
 });
 
 function createRoutingAgent(statusCondition: string) {

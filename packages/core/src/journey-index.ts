@@ -160,7 +160,14 @@ export async function selectJourneyCandidates<TApp, TConversation, TTurn>(
     .sort(compareCandidates)
     .slice(0, topK);
 
-  return [...forced.values(), ...ranked].sort(compareCandidates);
+  const included = new Map<string, JourneyCandidate>();
+  for (const candidate of [...forced.values(), ...ranked]) included.set(candidate.journeyId, candidate);
+  if (options.activeJourneyId && !included.has(options.activeJourneyId)) {
+    const activeCandidate = candidates.find((candidate) => candidate.journeyId === options.activeJourneyId);
+    if (activeCandidate) included.set(activeCandidate.journeyId, activeCandidate);
+  }
+
+  return [...included.values()].sort(compareCandidates);
 }
 
 export function validateJourneyIndex(agent: CompiledAgent, index: JourneyIndex): JourneyIndexValidationResult {
