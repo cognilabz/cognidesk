@@ -158,6 +158,14 @@ const delegationCompletionSchema = z.object({
   reason: z.string().optional(),
 });
 
+const journeyMatchSchema = z.object({
+  candidates: z.array(z.object({
+    journeyId: z.string(),
+    confidence: z.number().optional(),
+    reason: z.string().optional(),
+  })).default([]),
+});
+
 const stateExtractionSchema = z.object({
   values: z.record(z.string(), z.unknown()).default({}),
 });
@@ -181,6 +189,11 @@ interface ConversationMessage {
   role: "user" | "assistant";
   content: string;
 }
+
+type RankedJourneyCandidate = JourneyCandidate & {
+  matchConfidence?: number;
+  matchReason?: string;
+};
 
 interface ActiveTurn {
   id: string;
@@ -1191,19 +1204,27 @@ export class CognideskRuntime {
       type: "journey.candidates.retrieved",
       data: { journeyIds: candidates.map((candidate) => candidate.journeyId) },
     });
+    const rankedCandidates = await this.rankJourneyCandidates({
+      candidates,
+      models: args.models,
+      conversation: args.conversation,
+      userText: args.userText,
+      ...(args.previousSnapshot?.activeJourneyId ? { activeJourneyId: args.previousSnapshot.activeJourneyId } : {}),
+      ...(args.input.signal ? { signal: args.input.signal } : {}),
+    });
     await args.emit({
       conversationId: args.conversation.id,
       type: "journey.matched",
       data: {
-        candidates: candidates.map((candidate) => ({
+        candidates: rankedCandidates.map((candidate) => ({
           journeyId: candidate.journeyId,
           confidence: normalizeConfidence(candidate),
-          reason: candidate.reason,
+          reason: candidate.matchReason ?? candidate.reason,
         })),
       },
     });
 
-    const selected = candidates[0]?.journey ?? null;
+    const selected = rankedCandidates[0]?.journey ?? null;
     if (selected && selected.id !== args.previousSnapshot?.activeJourneyId) {
       await args.emit({
         conversationId: args.conversation.id,
@@ -1222,6 +1243,66 @@ export class CognideskRuntime {
       }
     }
     return selected;
+  }
+
+  private async rankJourneyCandidates(args: {
+    candidates: JourneyCandidate[];
+    models: AgentModelSet;
+    conversation: ConversationRecord;
+    userText: string;
+    activeJourneyId?: string;
+    signal?: AbortSignal;
+  }): Promise<RankedJourneyCandidate[]> {
+    if (args.candidates.length === 0) return [];
+    try {
+      const output = await this.generateTextWithTrace({
+        conversationId: args.conversation.id,
+        model: args.models.matcher,
+        input: {
+          role: "matcher",
+          messages: [
+            {
+              role: "system",
+              content: [
+                "Rank only the provided candidate journeys for the latest user message.",
+                "Return candidates that should be active now, ordered from best to worst.",
+                "Return an empty candidates array when the base agent should stay active without a journey.",
+                "Prefer keeping the active journey for vague follow-up messages when it still fits.",
+              ].join("\n"),
+            },
+            {
+              role: "user",
+              content: [
+                `Latest user message: ${args.userText}`,
+                `Active journey: ${args.activeJourneyId ?? "none"}`,
+                "Candidates:",
+                ...args.candidates.map((candidate) => renderJourneyCandidateForMatcher(candidate)),
+              ].join("\n\n"),
+            },
+          ],
+          responseFormat: journeyMatchSchema,
+          ...(args.signal ? { signal: args.signal } : {}),
+        },
+      });
+      const structured = journeyMatchSchema.parse(output.structured ?? JSON.parse(output.text));
+      const byId = new Map(args.candidates.map((candidate) => [candidate.journeyId, candidate]));
+      const seen = new Set<string>();
+      const ranked: RankedJourneyCandidate[] = [];
+      for (const item of structured.candidates) {
+        const candidate = byId.get(item.journeyId);
+        if (!candidate || seen.has(item.journeyId)) continue;
+        seen.add(item.journeyId);
+        ranked.push({
+          ...candidate,
+          ...(item.confidence !== undefined ? { matchConfidence: clampConfidence(item.confidence) } : {}),
+          ...(item.reason ? { matchReason: item.reason } : {}),
+        });
+      }
+      return ranked;
+    } catch (error) {
+      if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+      return args.candidates;
+    }
   }
 
   private async retrieveKnowledge(args: {
@@ -2132,10 +2213,29 @@ export function createRuntime(options: RuntimeOptions) {
   return new CognideskRuntime(options);
 }
 
-function normalizeConfidence(candidate: JourneyCandidate) {
+function normalizeConfidence(candidate: RankedJourneyCandidate) {
+  if (candidate.matchConfidence !== undefined) return candidate.matchConfidence;
   if (candidate.reason === "always") return 1;
   if (candidate.reason === "matcher") return 0.99;
   return Math.max(0, Math.min(1, (candidate.similarity + 1) / 2));
+}
+
+function clampConfidence(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function renderJourneyCandidateForMatcher(candidate: JourneyCandidate) {
+  const journey = candidate.journey;
+  return [
+    `- journeyId: ${journey.id}`,
+    `  kind: ${journey.kind}`,
+    `  condition: ${journey.condition}`,
+    `  indexReason: ${candidate.reason}`,
+    `  indexScore: ${candidate.score.toFixed(4)}`,
+    `  stickiness: ${journey.stickiness}`,
+    journey.tags.length > 0 ? `  tags: ${journey.tags.join(", ")}` : "",
+    journey.examples.length > 0 ? `  examples: ${journey.examples.join(" | ")}` : "",
+  ].filter(Boolean).join("\n");
 }
 
 function uniqueKnowledgeSources(sources: KnowledgeSource[]) {

@@ -93,6 +93,84 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("lets the matcher rank only retrieved journey candidates", async () => {
+    let matcherPrompt = "";
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const context = z.object({ bookingReference: z.string().optional() });
+    const ticket = agentBuilder.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status information",
+      priority: 20,
+      context,
+    });
+    ticket.initial(ticket.state("identifyTicket"));
+    const refund = agentBuilder.stateMachineJourney("refund-status", {
+      condition: "Customer wants refund status information",
+      context,
+    });
+    refund.initial(refund.state("identifyRefund"));
+    const booking = agentBuilder.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context,
+    });
+    booking.initial(booking.state("collectBooking"));
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      matcher: {
+        provider: "test",
+        model: "matcher",
+        generateText: async ({ messages }) => {
+          matcherPrompt = messages.map((message) => message.content).join("\n");
+          const structured = {
+            candidates: [{
+              journeyId: "refund-status",
+              confidence: 0.91,
+              reason: "The user asks about a refund.",
+            }],
+          };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+      journeyEmbedding: {
+        provider: "test",
+        model: "embedding",
+        generateText: async () => ({ text: "" }),
+        embed: async ({ text }: { text: string }) => ({
+          embedding: vectorForMatcherTest(text),
+          model: "embedding",
+          dimensions: 2,
+        }),
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+      topKJourneys: 2,
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you check my refund?",
+    });
+
+    expect(result.activeJourneyId).toBe("refund-status");
+    expect(matcherPrompt).toContain("journeyId: ticket-status");
+    expect(matcherPrompt).toContain("journeyId: refund-status");
+    expect(matcherPrompt).not.toContain("journeyId: book-flight");
+    const matched = (await runtime.listEvents(conversation.id)).find((event) => event.type === "journey.matched");
+    expect(matched?.data.candidates).toEqual([{
+      journeyId: "refund-status",
+      confidence: 0.91,
+      reason: "The user asks about a refund.",
+    }]);
+  });
+
   it("emits provider-neutral trace events without storing them as runtime events", async () => {
     const traces: TraceEvent[] = [];
     const searchFlights = tool("searchFlights", {
@@ -1359,7 +1437,14 @@ describe("runtime turn pipeline", () => {
         provider: "test",
         model: "matcher",
         generateText: async ({ messages }) => {
-          completionPrompt = messages.map((message) => message.content).join("\n");
+          const prompt = messages.map((message) => message.content).join("\n");
+          if (prompt.includes("Rank only the provided candidate journeys")) {
+            const structured = {
+              candidates: [{ journeyId: "human-handoff", confidence: 0.9 }],
+            };
+            return { text: JSON.stringify(structured), structured };
+          }
+          completionPrompt = prompt;
           const structured = { complete: true, reason: "All handoff details are known." };
           return { text: JSON.stringify(structured), structured };
         },
@@ -1606,6 +1691,15 @@ function createModels(overrides: Partial<AgentModelSet> = {}): AgentModelSet {
     compaction: response,
     ...overrides,
   };
+}
+
+function vectorForMatcherTest(text: string) {
+  const lower = text.toLowerCase();
+  if (lower.includes("book-flight") || lower.includes("book a flight")) return [0, 1];
+  if (lower.includes("ticket-status")) return [1, 0];
+  if (lower.includes("refund-status")) return [1, 0];
+  if (lower.includes("refund")) return [1, 0];
+  return [0, 0];
 }
 
 function deferred<T>() {
