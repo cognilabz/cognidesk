@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type {
+  ApplicationContextParts,
   AnyTool,
   ContextPath,
   DefinitionError,
@@ -99,6 +100,11 @@ export interface CompiledJourney {
   condition: string;
   examples: string[];
   tags: string[];
+  priority: number;
+  stickiness: "low" | "medium" | "high";
+  alwaysInclude: boolean;
+  always?: JourneyActivationPredicate;
+  matcher?: JourneyActivationPredicate;
   states: CompiledState[];
   initialStateId?: string;
   toGraph(): JourneyGraph;
@@ -124,6 +130,13 @@ export interface JourneyGraph {
   initialStateId?: string;
   states: CompiledState[];
 }
+
+export type JourneyActivationPredicate<TApp = unknown, TConversation = unknown, TTurn = unknown> = (
+  args: ApplicationContextParts<TConversation, TTurn> & {
+    app: TApp;
+    activeJourneyId?: string;
+  },
+) => MaybePromise<boolean>;
 
 interface InternalTransition {
   kind: "event" | "conversational";
@@ -450,8 +463,10 @@ export interface ActivationMetadata {
   tags?: string[];
   priority?: number;
   stickiness?: "low" | "medium" | "high";
+  always?: boolean | JourneyActivationPredicate;
   alwaysInclude?: boolean;
   includeWhen?: (args: { app: unknown }) => boolean;
+  matcher?: JourneyActivationPredicate;
 }
 
 export interface StateMachineJourneyOptions<TContextSchema extends ObjectSchema> extends ActivationMetadata {
@@ -548,6 +563,11 @@ export class StateMachineJourneyBuilder<
       condition: this.options.condition,
       examples: this.options.examples ?? [],
       tags: this.options.tags ?? [],
+      priority: this.options.priority ?? 0,
+      stickiness: this.options.stickiness ?? "medium",
+      alwaysInclude: this.options.always === true || this.options.alwaysInclude === true,
+      ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
+      ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       states,
       initialStateId: this.initialState.id,
       toGraph: () => graph,
@@ -579,6 +599,11 @@ export class DelegationJourneyBuilder<const TId extends string> {
       condition: this.options.condition,
       examples: this.options.examples ?? [],
       tags: this.options.tags ?? [],
+      priority: this.options.priority ?? 0,
+      stickiness: this.options.stickiness ?? "medium",
+      alwaysInclude: this.options.always === true || this.options.alwaysInclude === true,
+      ...(typeof this.options.always === "function" ? { always: this.options.always } : {}),
+      ...(this.options.matcher ? { matcher: this.options.matcher } : {}),
       states: [],
       toGraph: () => graph,
       toJSON: () => graph,
