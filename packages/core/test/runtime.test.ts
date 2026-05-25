@@ -2016,6 +2016,53 @@ describe("runtime turn pipeline", () => {
     expect(noReuse.events.map((event) => event.type)).toContain("ui.prompted");
   });
 
+  it("uses the matcher to choose among multiple conversational transitions", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const journey = agentBuilder.stateMachineJourney("ticket-help", {
+      condition: "Customer needs ticket help",
+      context: z.object({}),
+    });
+    const classify = journey.state("classify");
+    const refund = journey.final("refund");
+    const status = journey.final("status");
+    journey.initial(classify);
+    classify.when("Customer wants a refund").target(refund);
+    classify.when("Customer wants ticket status").target(status);
+
+    const agent = agentBuilder.compile();
+    const matcherPrompts: string[] = [];
+    const matcher = {
+      provider: "test",
+      model: "matcher",
+      generateText: async (input: TextGenerationInput) => {
+        const prompt = input.messages.map((message) => message.content).join("\n");
+        matcherPrompts.push(prompt);
+        if (prompt.includes("state transition candidates")) {
+          const structured = { candidates: [{ id: "transition_2", confidence: 0.95 }] };
+          return { text: JSON.stringify(structured), structured };
+        }
+        const structured = { candidates: [{ journeyId: "ticket-help", confidence: 0.9 }] };
+        return { text: JSON.stringify(structured), structured };
+      },
+    };
+    const models = createModels({ matcher });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you check my ticket status?",
+    });
+    const completed = result.events.find((event) => event.type === "journey.completed");
+
+    expect(completed?.data).toEqual({ journeyId: "ticket-help", stateId: "status" });
+    expect(matcherPrompts.some((prompt) => prompt.includes("targetId: status"))).toBe(true);
+    expect(matcherPrompts.some((prompt) => prompt.includes("targetId: refund"))).toBe(true);
+  });
+
   it("validates journey events and routes them through the active state machine", async () => {
     const context = z.object({ bookingReference: z.string().optional() });
     const agentBuilder = createAgent("flight-service", {

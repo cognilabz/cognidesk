@@ -215,6 +215,14 @@ const journeyMatchSchema = z.object({
   })).default([]),
 });
 
+const transitionMatchSchema = z.object({
+  candidates: z.array(z.object({
+    id: z.string(),
+    confidence: z.number().optional(),
+    reason: z.string().optional(),
+  })).default([]),
+});
+
 const stateExtractionSchema = z.object({
   values: z.record(z.string(), z.unknown()).default({}),
 });
@@ -1757,10 +1765,12 @@ export class CognideskRuntime {
 
   private async advanceStateMachine(args: {
     journey: CompiledJourney;
+    models?: AgentModelSet;
     conversation: ConversationRecord;
     stateById: Map<string, CompiledJourney["states"][number]>;
     state: CompiledJourney["states"][number];
     context: Record<string, unknown>;
+    userText?: string;
     signal?: AbortSignal;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
@@ -1798,6 +1808,9 @@ export class CognideskRuntime {
             conversation: args.conversation,
             state,
             context: args.context,
+            ...(args.models ? { models: args.models } : {}),
+            ...(args.userText ? { userText: args.userText } : {}),
+            ...(args.signal ? { signal: args.signal } : {}),
             emit: args.emit,
           });
       if (!transition) return [state];
@@ -1887,12 +1900,16 @@ export class CognideskRuntime {
     conversation: ConversationRecord;
     state: CompiledJourney["states"][number];
     context: Record<string, unknown>;
+    models?: AgentModelSet;
+    userText?: string;
+    signal?: AbortSignal;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
     const transitions = [...args.state.transitions]
       .filter((transition) => transition.kind === "conversational")
       .sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0));
-    for (const transition of transitions) {
+    const rankedTransitions = await this.rankConversationalTransitions(args, transitions);
+    for (const transition of rankedTransitions) {
       if (!transition.guard) return transition;
       const result = await transition.guard({
         app: this.options.app ?? {},
@@ -1902,6 +1919,89 @@ export class CognideskRuntime {
       await this.emitGuardDenial({ ...args, result });
     }
     return null;
+  }
+
+  private async rankConversationalTransitions(
+    args: {
+      journey: CompiledJourney;
+      conversation: ConversationRecord;
+      state: CompiledJourney["states"][number];
+      context: Record<string, unknown>;
+      models?: AgentModelSet;
+      userText?: string;
+      signal?: AbortSignal;
+      emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
+    },
+    transitions: CompiledJourney["states"][number]["transitions"],
+  ) {
+    if (transitions.length <= 1) return transitions;
+    if (!args.models || !args.userText) return transitions;
+
+    const candidates = transitions.map((transition, index) => ({
+      id: `transition_${index + 1}`,
+      transition,
+    }));
+    try {
+      const output = await this.generateTextWithTrace({
+        conversationId: args.conversation.id,
+        model: args.models.matcher,
+        input: {
+          role: "matcher",
+          messages: [
+            {
+              role: "system",
+              content: [
+                "Rank only the provided state transition candidates for the latest user message.",
+                "Return candidates that should fire now, ordered from best to worst.",
+                "Return an empty candidates array when no transition should fire.",
+                "Prefer higher priority only when the latest message fits multiple transitions equally.",
+              ].join("\n"),
+            },
+            {
+              role: "user",
+              content: [
+                `Journey: ${args.journey.id}`,
+                `State: ${args.state.id}`,
+                `Latest user message: ${args.userText}`,
+                `Current context: ${JSON.stringify(args.context)}`,
+                "Candidates:",
+                ...candidates.map(({ id, transition }) => [
+                  `id: ${id}`,
+                  `targetId: ${transition.targetId}`,
+                  transition.description ? `description: ${transition.description}` : "description: transition is allowed when current state requirements are satisfied",
+                  `priority: ${transition.priority ?? 0}`,
+                ].join("\n")),
+              ].join("\n\n"),
+            },
+          ],
+          responseFormat: transitionMatchSchema,
+          ...(args.signal ? { signal: args.signal } : {}),
+        },
+      });
+      const structured = transitionMatchSchema.parse(output.structured ?? JSON.parse(output.text));
+      const byId = new Map(candidates.map((candidate) => [candidate.id, candidate.transition]));
+      const seen = new Set<string>();
+      const ranked = structured.candidates
+        .map((candidate) => {
+          const transition = byId.get(candidate.id);
+          if (!transition || seen.has(candidate.id)) return null;
+          seen.add(candidate.id);
+          return transition;
+        })
+        .filter((transition): transition is CompiledJourney["states"][number]["transitions"][number] => Boolean(transition));
+      return ranked;
+    } catch (error) {
+      if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "error",
+        data: {
+          code: "transition_matching_failed",
+          message: error instanceof Error ? error.message : "Transition matching failed.",
+        },
+      });
+      return transitions;
+    }
   }
 
   private async resolveJourneyEventRoute(args: {
