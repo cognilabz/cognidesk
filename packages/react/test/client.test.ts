@@ -74,6 +74,53 @@ describe("createCognideskClient", () => {
             },
           });
         }
+        if (String(url).endsWith("/intermediate-messages")) {
+          return Response.json({
+            events: [{
+              id: "event_4",
+              conversationId: "conversation_1",
+              offset: 4,
+              type: "message.completed",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: { text: "Still checking.", intermediate: true },
+            }],
+          });
+        }
+        if (String(url).endsWith("/compact")) {
+          return Response.json({
+            summary: { summary: "Compacted." },
+            snapshot: {
+              conversationId: "conversation_1",
+              lifecycle: "active",
+              activeStateIds: [],
+              compactionSummary: { summary: "Compacted." },
+              updatedAt: "2026-05-25T00:00:00.000Z",
+            },
+            events: [],
+          });
+        }
+        if (String(url).endsWith("/snapshot")) {
+          return Response.json({
+            snapshot: {
+              conversationId: "conversation_1",
+              lifecycle: "active",
+              activeStateIds: [],
+              updatedAt: "2026-05-25T00:00:00.000Z",
+            },
+          });
+        }
+        if (String(url).endsWith("/close")) {
+          return Response.json({
+            conversation: {
+              id: "conversation_1",
+              agentId: "flight-service",
+              lifecycle: "closed",
+              context: {},
+              createdAt: "2026-05-25T00:00:00.000Z",
+              updatedAt: "2026-05-25T00:00:00.000Z",
+            },
+          });
+        }
         return Response.json({ text: "ok", events: [], activeJourneyId: "ticket-status" });
       },
     });
@@ -92,6 +139,19 @@ describe("createCognideskClient", () => {
     await client.resumeConversation(created.conversation.id, {
       reason: "Human finished review",
       payload: { ticketId: "T-1" },
+    });
+    await client.emitIntermediateMessage(created.conversation.id, {
+      text: "Still checking.",
+      traceId: "trace_1",
+    });
+    await client.compactConversation(created.conversation.id, {
+      fromOffset: 1,
+      toOffset: 4,
+      schemaVersion: "test.v1",
+    });
+    await client.getSnapshot(created.conversation.id);
+    await client.closeConversation(created.conversation.id, {
+      reason: "Resolved",
     });
 
     expect(requests).toEqual([
@@ -114,6 +174,22 @@ describe("createCognideskClient", () => {
       {
         url: "http://localhost/api/conversations/conversation_1/resume",
         body: { reason: "Human finished review", payload: { ticketId: "T-1" } },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/intermediate-messages",
+        body: { text: "Still checking.", traceId: "trace_1" },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/compact",
+        body: { fromOffset: 1, toOffset: 4, schemaVersion: "test.v1" },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/snapshot",
+        body: {},
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/close",
+        body: { reason: "Resolved" },
       },
     ]);
     expect(sent.activeJourneyId).toBe("ticket-status");

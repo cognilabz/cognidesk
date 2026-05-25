@@ -8,6 +8,7 @@ import type {
   RequestHandoffInput,
   ResumeConversationInput,
   RuntimeEvent,
+  RuntimeSnapshot,
   SubmitWidgetInput,
 } from "@cognidesk/core";
 
@@ -131,6 +132,41 @@ describe("HTTP adapter", () => {
       payload: { ticketId: "T-1" },
     });
   });
+
+  it("exposes lifecycle, intermediate message, compaction, and snapshot controls", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+
+    const intermediateResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/intermediate-messages", {
+      method: "POST",
+      body: JSON.stringify({ text: "Still checking.", traceId: "trace_1" }),
+    }));
+    const intermediate = await intermediateResponse.json() as { events: RuntimeEvent[] };
+
+    const compactResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/compact", {
+      method: "POST",
+      body: JSON.stringify({ fromOffset: 1, toOffset: 3, schemaVersion: "test.v1" }),
+    }));
+    const compacted = await compactResponse.json() as { summary: unknown; snapshot: RuntimeSnapshot; events: RuntimeEvent[] };
+
+    const snapshotResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/snapshot"));
+    const snapshotBody = await snapshotResponse.json() as { snapshot: RuntimeSnapshot | null };
+
+    const closeResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/close", {
+      method: "POST",
+      body: JSON.stringify({ reason: "Resolved" }),
+    }));
+    const closed = await closeResponse.json() as { conversation: ConversationRecord };
+
+    expect(intermediateResponse.status).toBe(200);
+    expect(intermediate.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);
+    expect(compactResponse.status).toBe(200);
+    expect(compacted.summary).toEqual({ summary: "Compacted." });
+    expect(snapshotResponse.status).toBe(200);
+    expect(snapshotBody.snapshot?.compactionSummary).toEqual({ summary: "Compacted." });
+    expect(closeResponse.status).toBe(200);
+    expect(closed.conversation.lifecycle).toBe("closed");
+  });
 });
 
 class FakeRuntime implements CognideskHttpRuntime {
@@ -233,4 +269,82 @@ class FakeRuntime implements CognideskHttpRuntime {
     this.events.push(event);
     return { conversation, event };
   }
+
+  async closeConversation(conversationId: string, reason?: string): Promise<ConversationRecord> {
+    const event = {
+      id: `event_${this.events.length + 1}`,
+      conversationId,
+      offset: this.events.length + 1,
+      type: "conversation.closed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: reason ? { reason } : {},
+    } satisfies RuntimeEvent;
+    this.events.push(event);
+    return {
+      ...await this.createConversation({ agentId: "flight-service", context: {} }),
+      lifecycle: "closed" as const,
+    };
+  }
+
+  async emitIntermediateMessage(input: { conversationId: string; text: string; traceId?: string }): Promise<{ events: RuntimeEvent[] }> {
+    const started = {
+      id: `event_${this.events.length + 1}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 1,
+      type: "message.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { role: "assistant" as const },
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    } satisfies RuntimeEvent;
+    const completed = {
+      id: `event_${this.events.length + 2}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 2,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: input.text, intermediate: true },
+      ...(input.traceId ? { traceId: input.traceId } : {}),
+    } satisfies RuntimeEvent;
+    this.events.push(started, completed);
+    return { events: [started, completed] };
+  }
+
+  async compactConversation(input: { conversationId: string; fromOffset?: number; toOffset?: number; schemaVersion?: string }) {
+    const snapshot = {
+      conversationId: input.conversationId,
+      lifecycle: "active" as const,
+      activeStateIds: [],
+      compactionSummary: { summary: "Compacted." },
+      updatedAt: "2026-05-25T00:00:00.000Z",
+    } satisfies RuntimeSnapshot;
+    this.snapshot = snapshot;
+    const started = {
+      id: `event_${this.events.length + 1}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 1,
+      type: "conversation.compaction.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { fromOffset: input.fromOffset ?? 1, toOffset: input.toOffset ?? this.events.length },
+    } satisfies RuntimeEvent;
+    const completed = {
+      id: `event_${this.events.length + 2}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 2,
+      type: "conversation.compaction.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        fromOffset: input.fromOffset ?? 1,
+        toOffset: input.toOffset ?? this.events.length,
+        schemaVersion: input.schemaVersion ?? "test.v1",
+      },
+    } satisfies RuntimeEvent;
+    this.events.push(started, completed);
+    return { summary: { summary: "Compacted." }, snapshot, events: [started, completed] };
+  }
+
+  async getSnapshot(_conversationId: string): Promise<RuntimeSnapshot | null> {
+    return this.snapshot;
+  }
+
+  private snapshot: RuntimeSnapshot | null = null;
 }

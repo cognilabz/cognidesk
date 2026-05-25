@@ -1,12 +1,16 @@
 import type {
   CognideskRuntime,
+  CompactConversationInput,
+  CompactConversationResult,
   ConversationRecord,
   CreateRuntimeConversationInput,
+  EmitIntermediateMessageInput,
   HandleUserMessageInput,
   HandleUserMessageResult,
   RequestHandoffInput,
   ResumeConversationInput,
   RuntimeEvent,
+  RuntimeSnapshot,
   SubmitWidgetInput,
 } from "@cognidesk/core";
 
@@ -14,8 +18,12 @@ export interface CognideskHttpRuntime {
   createConversation(input: CreateRuntimeConversationInput): Promise<ConversationRecord>;
   handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult>;
   submitWidget?(input: SubmitWidgetInput): Promise<RuntimeEvent>;
+  emitIntermediateMessage?(input: EmitIntermediateMessageInput): Promise<{ events: RuntimeEvent[] }>;
+  compactConversation?(input: CompactConversationInput): Promise<CompactConversationResult<unknown>>;
+  closeConversation?(conversationId: string, reason?: string): Promise<ConversationRecord>;
   requestHandoff?(input: RequestHandoffInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
   resumeConversation?(input: ResumeConversationInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
+  getSnapshot?(conversationId: string): Promise<RuntimeSnapshot | null>;
   listEvents(conversationId: string, afterOffset?: number): Promise<RuntimeEvent[]>;
 }
 
@@ -89,6 +97,18 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           return json(result, 200, options);
         }
 
+        const closeMatch = path.match(/^\/conversations\/([^/]+)\/close$/);
+        if (request.method === "POST" && closeMatch) {
+          if (!options.runtime.closeConversation) return json({ error: "Conversation closure is not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(closeMatch[1] ?? "");
+          const body = await readJson<CreateCloseBody>(request);
+          const conversation = await options.runtime.closeConversation(
+            conversationId,
+            body.reason,
+          );
+          return json({ conversation }, 200, options);
+        }
+
         const resumeMatch = path.match(/^\/conversations\/([^/]+)\/resume$/);
         if (request.method === "POST" && resumeMatch) {
           if (!options.runtime.resumeConversation) return json({ error: "Conversation resume is not supported by this runtime" }, 501, options);
@@ -98,6 +118,35 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             conversationId,
             ...(body.reason ? { reason: body.reason } : {}),
             ...(body.payload !== undefined ? { payload: body.payload } : {}),
+          });
+          return json(result, 200, options);
+        }
+
+        const intermediateMessageMatch = path.match(/^\/conversations\/([^/]+)\/intermediate-messages$/);
+        if (request.method === "POST" && intermediateMessageMatch) {
+          if (!options.runtime.emitIntermediateMessage) return json({ error: "Intermediate messages are not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(intermediateMessageMatch[1] ?? "");
+          const body = await readJson<CreateIntermediateMessageBody>(request);
+          if (!body.text) return json({ error: "text is required" }, 400, options);
+          const result = await options.runtime.emitIntermediateMessage({
+            conversationId,
+            text: body.text,
+            ...(body.traceId ? { traceId: body.traceId } : {}),
+          });
+          return json(result, 200, options);
+        }
+
+        const compactionMatch = path.match(/^\/conversations\/([^/]+)\/compact$/);
+        if (request.method === "POST" && compactionMatch) {
+          if (!options.runtime.compactConversation) return json({ error: "Conversation compaction is not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(compactionMatch[1] ?? "");
+          const body = await readJson<CreateCompactionBody>(request);
+          const result = await options.runtime.compactConversation({
+            conversationId,
+            ...(body.fromOffset !== undefined ? { fromOffset: body.fromOffset } : {}),
+            ...(body.toOffset !== undefined ? { toOffset: body.toOffset } : {}),
+            ...(body.schemaVersion ? { schemaVersion: body.schemaVersion } : {}),
+            signal: request.signal,
           });
           return json(result, 200, options);
         }
@@ -116,6 +165,14 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             output: body.output,
           });
           return json({ event }, 200, options);
+        }
+
+        const snapshotMatch = path.match(/^\/conversations\/([^/]+)\/snapshot$/);
+        if (request.method === "GET" && snapshotMatch) {
+          if (!options.runtime.getSnapshot) return json({ error: "Snapshots are not supported by this runtime" }, 501, options);
+          const conversationId = decodeURIComponent(snapshotMatch[1] ?? "");
+          const snapshot = await options.runtime.getSnapshot(conversationId);
+          return json({ snapshot }, 200, options);
         }
 
         const eventsMatch = path.match(/^\/conversations\/([^/]+)\/events$/);
@@ -177,6 +234,21 @@ interface CreateHandoffBody {
 interface CreateResumeBody {
   reason?: string;
   payload?: unknown;
+}
+
+interface CreateCloseBody {
+  reason?: string;
+}
+
+interface CreateIntermediateMessageBody {
+  text?: string;
+  traceId?: string;
+}
+
+interface CreateCompactionBody {
+  fromOffset?: number;
+  toOffset?: number;
+  schemaVersion?: string;
 }
 
 function streamEvents(options: {

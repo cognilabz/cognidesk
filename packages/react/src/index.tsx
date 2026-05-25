@@ -26,12 +26,29 @@ export interface SendMessageResult {
   activeJourneyId?: string;
 }
 
+export interface RuntimeSnapshotResult {
+  snapshot: {
+    conversationId: string;
+    lifecycle: string;
+    activeJourneyId?: string;
+    activeStateIds: string[];
+    journeyContext?: unknown;
+    compactionSummary?: unknown;
+    definitionHash?: string;
+    updatedAt: string;
+  } | null;
+}
+
 export interface CognideskClient {
   createConversation(input?: { agentId?: string; context?: unknown; id?: string }): Promise<CreateConversationResult>;
   sendMessage(conversationId: string, message: string, options?: { turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
+  emitIntermediateMessage(conversationId: string, input: { text: string; traceId?: string }): Promise<{ events: RuntimeEvent[] }>;
+  compactConversation(conversationId: string, input?: { fromOffset?: number; toOffset?: number; schemaVersion?: string }): Promise<{ summary: unknown; snapshot: NonNullable<RuntimeSnapshotResult["snapshot"]>; events: RuntimeEvent[] }>;
+  closeConversation(conversationId: string, input?: { reason?: string }): Promise<{ conversation: CreateConversationResult["conversation"] }>;
   requestHandoff(conversationId: string, input: { reason: string; summary?: string; payload?: unknown }): Promise<{ conversation: CreateConversationResult["conversation"]; event: RuntimeEvent }>;
   resumeConversation(conversationId: string, input?: { reason?: string; payload?: unknown }): Promise<{ conversation: CreateConversationResult["conversation"]; event: RuntimeEvent }>;
+  getSnapshot(conversationId: string): Promise<RuntimeSnapshotResult>;
   listEvents(conversationId: string, options?: { afterOffset?: number }): Promise<{ events: RuntimeEvent[] }>;
   streamEvents(conversationId: string, handlers: { onEvent(event: RuntimeEvent): void; onError?(error: Event): void }, options?: { afterOffset?: number }): () => void;
 }
@@ -129,6 +146,42 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
       if (!response.ok) throw new Error(`Failed to submit widget: ${response.status}`);
       return await response.json() as { event: RuntimeEvent };
     },
+    async emitIntermediateMessage(conversationId, input) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/intermediate-messages`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          text: input.text,
+          ...(input.traceId ? { traceId: input.traceId } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to emit intermediate message: ${response.status}`);
+      return await response.json() as { events: RuntimeEvent[] };
+    },
+    async compactConversation(conversationId, input = {}) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/compact`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...(input.fromOffset !== undefined ? { fromOffset: input.fromOffset } : {}),
+          ...(input.toOffset !== undefined ? { toOffset: input.toOffset } : {}),
+          ...(input.schemaVersion ? { schemaVersion: input.schemaVersion } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to compact conversation: ${response.status}`);
+      return await response.json() as { summary: unknown; snapshot: NonNullable<RuntimeSnapshotResult["snapshot"]>; events: RuntimeEvent[] };
+    },
+    async closeConversation(conversationId, input = {}) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/close`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...(input.reason ? { reason: input.reason } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to close conversation: ${response.status}`);
+      return await response.json() as { conversation: CreateConversationResult["conversation"] };
+    },
     async requestHandoff(conversationId, input) {
       const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/handoff`, {
         method: "POST",
@@ -153,6 +206,11 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
       });
       if (!response.ok) throw new Error(`Failed to resume conversation: ${response.status}`);
       return await response.json() as { conversation: CreateConversationResult["conversation"]; event: RuntimeEvent };
+    },
+    async getSnapshot(conversationId) {
+      const response = await fetcher(`${baseUrl}/conversations/${encodeURIComponent(conversationId)}/snapshot`);
+      if (!response.ok) throw new Error(`Failed to get snapshot: ${response.status}`);
+      return await response.json() as RuntimeSnapshotResult;
     },
     streamEvents(conversationId, handlers, streamOptions = {}) {
       const eventSourceConstructor = options.EventSource ?? globalThis.EventSource;
