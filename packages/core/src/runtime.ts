@@ -459,6 +459,7 @@ export class CognideskRuntime {
       const assistantText = await this.redactAssistantMessage(conversation, response.text);
       this.throwIfTurnInterrupted(turn);
       const segments = await this.createCitationSegments({
+        agent,
         conversation,
         text: assistantText,
         knowledge,
@@ -1942,12 +1943,14 @@ export class CognideskRuntime {
   }
 
   private async createCitationSegments(args: {
+    agent: CompiledAgent;
     conversation: ConversationRecord;
     text: string;
     knowledge: Array<KnowledgeItem>;
     signal?: AbortSignal;
   }): Promise<MessageSegment[] | null> {
     if (args.knowledge.length === 0) return null;
+    if (args.agent.postProcessing?.citations === false) return null;
     if (this.options.postProcessing?.citations === false) return null;
     const models = this.requireModels();
     try {

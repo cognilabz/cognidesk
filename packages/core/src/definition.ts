@@ -92,6 +92,7 @@ export interface CompiledAgent {
   id: string;
   instructions: string;
   behavior: AgentBehaviorOptions;
+  postProcessing: AgentPostProcessingOptions;
   journeys: CompiledJourney[];
   tools: AnyTool[];
   knowledge: KnowledgeSource[];
@@ -761,9 +762,14 @@ export interface AgentBehaviorOptions {
   interruptOnNewMessage?: boolean;
 }
 
+export interface AgentPostProcessingOptions {
+  citations?: boolean;
+}
+
 export interface AgentOptions {
   instructions: string;
   behavior?: AgentBehaviorOptions;
+  postProcessing?: AgentPostProcessingOptions;
 }
 
 export class AgentBuilder<const TId extends string> {
@@ -806,6 +812,7 @@ export class AgentBuilder<const TId extends string> {
       id: this.id,
       instructions: this.options.instructions,
       behavior: this.options.behavior ?? {},
+      postProcessing: this.options.postProcessing ?? {},
       journeys: compiledJourneys,
       tools: this.tools.list(),
       knowledge: this.knowledge.list(),

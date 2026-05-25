@@ -656,6 +656,53 @@ describe("runtime turn pipeline", () => {
     expect(events.at(-1)?.data).toEqual({ text: "Use faq-ticket-status for the current ticket status." });
   });
 
+  it("can disable citation post-processing on the agent definition", async () => {
+    let citationCalls = 0;
+    const knowledge = knowledgeSource("flight-faq", {
+      query: z.object({ query: z.string() }),
+      metadata: z.object({ source: z.string() }),
+      retrieve: async () => ({
+        items: [{
+          id: "faq-ticket-status",
+          content: "Ticket status is available with the booking reference.",
+          metadata: { source: "faq" },
+        }],
+      }),
+    });
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+      postProcessing: { citations: false },
+    });
+    agentBuilder.knowledge.add(knowledge);
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      citationPostProcessing: {
+        provider: "test",
+        model: "citation",
+        generateText: async () => {
+          citationCalls += 1;
+          return { text: JSON.stringify({ segments: [] }), structured: { segments: [] } };
+        },
+      },
+    });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "How can I check a ticket?",
+    });
+
+    const events = await runtime.listEvents(conversation.id);
+    expect(citationCalls).toBe(0);
+    expect(events.find((event) => event.type === "error")).toBeUndefined();
+    expect(events.at(-1)?.data).toEqual({ text: "Use faq-ticket-status for the current ticket status." });
+  });
+
   it("stores submitted widget output as a conversation event", async () => {
     const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
