@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   confirmationWidget,
   createAgent,
+  journeyFragment,
   knowledgeSource,
   tool,
   widget,
@@ -216,6 +217,63 @@ describe("definition builders", () => {
       { path: "passenger.email", required: true, extract: true },
       { path: "passenger.firstName", required: true, extract: true },
     ]);
+  });
+
+  it("composes reusable journey fragments into a state-machine journey", () => {
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const passengerLookup = tool("lookupPassenger", {
+      input: z.object({ email: z.string().email() }),
+      output: z.object({ known: z.boolean() }),
+      execute: async () => ({ known: true }),
+    });
+    const passengerFragment = journeyFragment("passenger-details", {
+      context: bookingContext,
+      tools: [passengerLookup],
+      define: (journey) => {
+        const collectPassenger = journey.state("collectPassenger")
+          .collect("passenger.email")
+          .runTool(passengerLookup, {
+            input: ({ context }) => ({ email: context.passenger.email ?? "" }),
+          });
+        const passengerReady = journey.state("passengerReady");
+        collectPassenger.transitionTo(passengerReady);
+      },
+    });
+    const booking = agent.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context: bookingContext,
+    });
+    booking.use(passengerFragment);
+    const search = booking.state("search").collect("destination");
+    booking.initial(search);
+    search.transitionTo(booking.states.get("collectPassenger"));
+    booking.states.get("passengerReady").transitionTo(booking.final("done"));
+
+    const compiled = agent.compile();
+    const graph = compiled.journeys[0]?.toGraph();
+
+    expect(compiled.journeys[0]?.tools.map((toolDefinition) => toolDefinition.name)).toEqual(["lookupPassenger"]);
+    expect(graph?.states.map((state) => state.id)).toEqual(expect.arrayContaining([
+      "search",
+      "collectPassenger",
+      "passengerReady",
+      "done",
+    ]));
+    expect(compiled.journeys[0]?.toMermaid()).toContain("collectPassenger --> passengerReady");
+
+    const wrongContext = z.object({ other: z.string().optional() });
+    const wrongFragment = journeyFragment("wrong", {
+      context: wrongContext,
+      define: (journey) => {
+        journey.state("wrong").collect("other");
+      },
+    });
+    if (false) {
+      // @ts-expect-error fragments are typed to the journey context schema
+      booking.use(wrongFragment);
+    }
   });
 
   it("rejects duplicate runtime definition identifiers", () => {

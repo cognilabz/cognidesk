@@ -746,6 +746,23 @@ export interface StateMachineJourneyOptions<TContextSchema extends ObjectSchema>
   contextReuse?: ContextReusePolicy<InferObject<TContextSchema>>;
 }
 
+export interface JourneyFragment<
+  TName extends string = string,
+  TContextSchema extends ObjectSchema = ObjectSchema,
+> {
+  kind: "journeyFragment";
+  name: TName;
+  context: TContextSchema;
+  apply(journey: StateMachineJourneyBuilder<string, TContextSchema>): void;
+}
+
+export interface JourneyFragmentOptions<TContextSchema extends ObjectSchema> {
+  context: TContextSchema;
+  tools?: AnyTool[];
+  knowledge?: KnowledgeSource[];
+  define: (journey: StateMachineJourneyBuilder<string, TContextSchema>) => void;
+}
+
 export class StateCollection<TContextSchema extends ObjectSchema> {
   private readonly states = new Map<string, StateBuilder<string, TContextSchema>>();
 
@@ -825,6 +842,11 @@ export class StateMachineJourneyBuilder<
     config: { payload: TPayloadSchema; routing?: EventRoutingMode },
   ) {
     return journeyEvent(name, config);
+  }
+
+  use(fragment: JourneyFragment<string, TContextSchema>) {
+    fragment.apply(this);
+    return this;
   }
 
   initial(state: StateBuilder<string, TContextSchema>) {
@@ -940,6 +962,22 @@ export class DelegationJourneyBuilder<const TId extends string> {
       toMermaid: () => `stateDiagram-v2\n  [*] --> ${this.id}`,
     };
   }
+}
+
+export function journeyFragment<const TName extends string, TContextSchema extends ObjectSchema>(
+  name: TName,
+  options: JourneyFragmentOptions<TContextSchema>,
+): JourneyFragment<TName, TContextSchema> {
+  return {
+    kind: "journeyFragment",
+    name,
+    context: options.context,
+    apply(journey) {
+      if (options.tools?.length) journey.tools.add(...options.tools);
+      if (options.knowledge?.length) journey.knowledge.add(...options.knowledge);
+      options.define(journey);
+    },
+  };
 }
 
 export interface AgentBehaviorOptions {
