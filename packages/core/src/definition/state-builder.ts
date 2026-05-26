@@ -1,62 +1,11 @@
 import { z } from "zod";
 import { CapabilityScope } from "./capability-scope.js";
-import type {
-  ActionDefinition,
-  ConfirmationPolicy,
-  FieldCollectionOptions,
-  JourneyEventDefinition,
-  ListCollectionOptions,
-  MaybePromise,
-  StateActionUseOptions,
-  ToolRunOptions,
-  ToolRunOptionsFor,
-  TransitionOptions,
-} from "./primitives.js";
-import type { CompiledState, StateReference } from "../definition.js";
-import type {
-  AnyTool,
-  ContextPath,
-  GuardContext,
-  GuardResult,
-  KnowledgeSource,
-  ObjectSchema,
-  WidgetDefinition,
-  WidgetPromptDefinition,
-} from "../types.js";
+import type { ActionDefinition, FieldCollectionOptions, JourneyEventDefinition, ListCollectionOptions, MaybePromise, StateActionUseOptions, ToolRunOptionsFor, TransitionOptions } from "./primitives.js";
+import type { CompiledState, StateReference } from "./compiled-types.js";
+import type { AnyTool, ContextPath, GuardContext, GuardResult, KnowledgeSource, ObjectSchema, WidgetDefinition } from "../types.js";
 import { DefinitionError as CognideskDefinitionError } from "../types.js";
-
-type InferObject<TSchema extends ObjectSchema> = z.infer<TSchema>;
-type FieldWidgetOption = WidgetDefinition | WidgetPromptDefinition;
-
-interface InternalTransition {
-  kind: "event" | "conversational";
-  target: StateBuilder<string, ObjectSchema>;
-  eventName?: string;
-  description?: string;
-  priority?: number;
-  guard?: (context: GuardContext<unknown, unknown>) => MaybePromise<GuardResult>;
-}
-
-interface InternalToolRun {
-  tool: AnyTool;
-  confirm?: ConfirmationPolicy;
-  actionType: "entry" | "exit" | "transition";
-  input?: (args: { context: unknown }) => unknown;
-  assign: Array<{ path: string; value: (args: { output: unknown; context: unknown }) => unknown }>;
-  onSuccess?: StateBuilder<string, ObjectSchema>;
-  onFailure?: StateBuilder<string, ObjectSchema>;
-  onValidationError?: StateBuilder<string, ObjectSchema>;
-}
-
-interface InternalActionRun {
-  action: ActionDefinition;
-  actionType: "entry" | "exit" | "transition";
-  input?: (args: { context: unknown }) => unknown;
-}
-
-interface TransitionTargetBuilder<TContextSchema extends ObjectSchema, TReturn> {
-  target(state: StateBuilder<string, TContextSchema>): TReturn;
-}
+import { compileAssignments, mergeCollectedFields, resolveFieldWidget } from "./state-builder-utils.js";
+import type { CollectedField, InferObject, InternalActionRun, InternalToolRun, InternalTransition, StateActionRecord, TransitionTargetBuilder } from "./state-builder-types.js";
 
 export class StateBuilder<
   const TId extends string,
@@ -68,17 +17,8 @@ export class StateBuilder<
   readonly transitions: InternalTransition[] = [];
   readonly toolRuns: InternalToolRun[] = [];
   readonly actionRuns: InternalActionRun[] = [];
-  readonly collectedFields: Array<{
-    path: string;
-    required: boolean;
-    extract: boolean;
-    confirm?: true | "beforeAction" | ConfirmationPolicy;
-    prompt?: string;
-    widget?: WidgetDefinition;
-    widgetInput?: unknown;
-    requiredWhen?: (args: { context: unknown }) => boolean;
-  }> = [];
-  readonly stateActions: Array<{ type: "entry" | "exit" | "transition"; name: string; requiresVisit?: boolean }> = [];
+  readonly collectedFields: CollectedField[] = [];
+  readonly stateActions: StateActionRecord[] = [];
   private visitRequirement: string | null = null;
   private stateInstructions?: string;
   private stateSummary?: string;
@@ -220,41 +160,26 @@ export class StateBuilder<
   }
 
   entry<TTool extends AnyTool>(toolDefinition: TTool, options: ToolRunOptionsFor<TTool, InferObject<TContextSchema>>) {
-    this.toolRuns.push({
-      tool: toolDefinition,
-      actionType: "entry",
-      ...(options.confirm ? { confirm: options.confirm } : {}),
-      ...(options.input ? { input: options.input as (args: { context: unknown }) => unknown } : {}),
-      assign: compileAssignments(options.assign),
-      ...(options.onSuccess ? { onSuccess: options.onSuccess as StateBuilder<string, ObjectSchema> } : {}),
-      ...(options.onFailure ? { onFailure: options.onFailure as StateBuilder<string, ObjectSchema> } : {}),
-      ...(options.onValidationError ? { onValidationError: options.onValidationError as StateBuilder<string, ObjectSchema> } : {}),
-    });
-    this.stateActions.push({ type: "entry", name: toolDefinition.name });
-    if (toolDefinition.sideEffect || options.confirm) this.requiresVisit("entry action requires visit");
-    return this;
+    return this.registerToolRun("entry", toolDefinition, options, "entry action requires visit");
   }
 
   exit<TTool extends AnyTool>(toolDefinition: TTool, options: ToolRunOptionsFor<TTool, InferObject<TContextSchema>>) {
-    this.toolRuns.push({
-      tool: toolDefinition,
-      actionType: "exit",
-      ...(options.confirm ? { confirm: options.confirm } : {}),
-      ...(options.input ? { input: options.input as (args: { context: unknown }) => unknown } : {}),
-      assign: compileAssignments(options.assign),
-      ...(options.onSuccess ? { onSuccess: options.onSuccess as StateBuilder<string, ObjectSchema> } : {}),
-      ...(options.onFailure ? { onFailure: options.onFailure as StateBuilder<string, ObjectSchema> } : {}),
-      ...(options.onValidationError ? { onValidationError: options.onValidationError as StateBuilder<string, ObjectSchema> } : {}),
-    });
-    this.stateActions.push({ type: "exit", name: toolDefinition.name });
-    if (toolDefinition.sideEffect || options.confirm) this.requiresVisit("exit action requires visit");
-    return this;
+    return this.registerToolRun("exit", toolDefinition, options, "exit action requires visit");
   }
 
   runTool<TTool extends AnyTool>(toolDefinition: TTool, options: ToolRunOptionsFor<TTool, InferObject<TContextSchema>>) {
+    return this.registerToolRun("transition", toolDefinition, options, "tool action requires visit");
+  }
+
+  private registerToolRun<TTool extends AnyTool>(
+    actionType: "entry" | "exit" | "transition",
+    toolDefinition: TTool,
+    options: ToolRunOptionsFor<TTool, InferObject<TContextSchema>>,
+    visitReason: string,
+  ) {
     this.toolRuns.push({
       tool: toolDefinition,
-      actionType: "transition",
+      actionType,
       ...(options.confirm ? { confirm: options.confirm } : {}),
       ...(options.input ? { input: options.input as (args: { context: unknown }) => unknown } : {}),
       assign: compileAssignments(options.assign),
@@ -262,8 +187,8 @@ export class StateBuilder<
       ...(options.onFailure ? { onFailure: options.onFailure as StateBuilder<string, ObjectSchema> } : {}),
       ...(options.onValidationError ? { onValidationError: options.onValidationError as StateBuilder<string, ObjectSchema> } : {}),
     });
-    this.stateActions.push({ type: "transition", name: toolDefinition.name });
-    if (toolDefinition.sideEffect || options.confirm) this.requiresVisit("tool action requires visit");
+    this.stateActions.push({ type: actionType, name: toolDefinition.name });
+    if (toolDefinition.sideEffect || options.confirm) this.requiresVisit(visitReason);
     return this;
   }
 
@@ -347,35 +272,4 @@ export class StateBuilder<
     };
     return [own, ...this.children.flatMap((child) => child.compile(this.id, tools, knowledge, collected))];
   }
-}
-
-function resolveFieldWidget(widgetOption: FieldWidgetOption | undefined) {
-  if (!widgetOption) return null;
-  if ("widget" in widgetOption) {
-    return {
-      widget: widgetOption.widget,
-      input: widgetOption.input,
-    };
-  }
-  return { widget: widgetOption };
-}
-
-function compileAssignments<TContext>(
-  assign: ToolRunOptions<AnyTool, TContext>["assign"] | undefined,
-): Array<{ path: string; value: (args: { output: unknown; context: unknown }) => unknown }> {
-  if (!assign) return [];
-  return Object.entries(assign).map(([path, value]) => ({
-    path,
-    value: value as (args: { output: unknown; context: unknown }) => unknown,
-  }));
-}
-
-function mergeCollectedFields<TContextSchema extends ObjectSchema>(
-  inherited: StateBuilder<string, TContextSchema>["collectedFields"],
-  own: StateBuilder<string, TContextSchema>["collectedFields"],
-) {
-  const byPath = new Map<string, StateBuilder<string, TContextSchema>["collectedFields"][number]>();
-  for (const field of inherited) byPath.set(field.path, field);
-  for (const field of own) byPath.set(field.path, field);
-  return [...byPath.values()];
 }
