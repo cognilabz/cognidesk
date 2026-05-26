@@ -54,6 +54,9 @@ export interface RuntimeOptions {
   postProcessing?: {
     citations?: boolean;
   };
+  streaming?: {
+    syntheticDeltas?: boolean;
+  };
   toolRetry?: {
     maxAttempts?: number;
     notice?: string;
@@ -319,6 +322,15 @@ export class CognideskRuntime {
       ...(input.traceId ? { traceId: input.traceId } : {}),
     });
     events.push(started);
+    if (this.options.streaming?.syntheticDeltas && input.text.length > 0) {
+      const delta = await this.emit({
+        conversationId: input.conversationId,
+        type: "message.delta",
+        data: { textDelta: input.text },
+        ...(input.traceId ? { traceId: input.traceId } : {}),
+      });
+      events.push(delta);
+    }
     const completed = await this.emit({
       conversationId: input.conversationId,
       type: "message.completed",
@@ -605,6 +617,13 @@ export class CognideskRuntime {
         type: "message.started",
         data: { role: "assistant" },
       });
+      if (this.options.streaming?.syntheticDeltas && assistantText.length > 0) {
+        await emit({
+          conversationId: conversation.id,
+          type: "message.delta",
+          data: { textDelta: assistantText },
+        });
+      }
       await emit({
         conversationId: conversation.id,
         type: "message.completed",

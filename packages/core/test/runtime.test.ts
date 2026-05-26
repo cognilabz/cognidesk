@@ -102,6 +102,51 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("can emit synthetic assistant text deltas for streaming clients", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async () => ({ text: "Ticket ABC123 is confirmed." }),
+        },
+      }),
+      streaming: { syntheticDeltas: true },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Check ticket ABC123.",
+    });
+    const intermediate = await runtime.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text: "Still checking.",
+    });
+
+    expect(result.events.map((event) => event.type)).toEqual([
+      "message.started",
+      "message.completed",
+      "message.started",
+      "message.delta",
+      "message.completed",
+    ]);
+    expect(result.events.find((event) => event.type === "message.delta")?.data).toEqual({
+      textDelta: "Ticket ABC123 is confirmed.",
+    });
+    expect(intermediate.events.map((event) => event.type)).toEqual([
+      "message.started",
+      "message.delta",
+      "message.completed",
+    ]);
+  });
+
   it("lets the matcher rank only retrieved journey candidates", async () => {
     let matcherPrompt = "";
     const agentBuilder = createAgent("flight-service", {
