@@ -20,6 +20,9 @@ const runtime = createRuntime({
   models,
   journeyIndex,
   topKJourneys: 3,
+  streaming: {
+    syntheticDeltas: true,
+  },
 });
 await runtime.initialize();
 
@@ -91,7 +94,7 @@ function toWebRequest(request: IncomingMessage, port: number) {
   }
   const method = request.method ?? "GET";
   const controller = new AbortController();
-  request.on("close", () => {
+  request.on("aborted", () => {
     controller.abort();
   });
   const init: RequestInit & { duplex?: "half" } = {

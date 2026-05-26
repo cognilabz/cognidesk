@@ -84,6 +84,7 @@ export interface HandleUserMessageDeps<TTurn> {
     selectedJourney: CompiledJourney | null;
     stateMachineTurn: StateMachineTurnResult | null;
     signal?: AbortSignal;
+    onTextDelta?(textDelta: string): Promise<void> | void;
     emit: RuntimeEmit;
   }): Promise<TextGenerationOutput>;
   redactAssistantMessage(conversation: ConversationRecord, text: string): Promise<string>;

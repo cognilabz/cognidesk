@@ -84,6 +84,7 @@ export async function generateResponseWithTools(args: {
   selectedJourney: CompiledJourney | null;
   stateMachineTurn: StateMachineTurnResult | null;
   signal?: AbortSignal;
+  onTextDelta?(textDelta: string): Promise<void> | void;
   emit: RuntimeEventEmitter;
 }): Promise<TextGenerationOutput> {
   const messages = [...args.messages];
@@ -106,6 +107,7 @@ export async function generateResponseWithTools(args: {
         },
         messages,
         ...(args.modelTools.length > 0 ? { tools: args.modelTools, toolChoice: "auto" as const } : {}),
+        ...(args.onTextDelta ? { onTextDelta: args.onTextDelta } : {}),
         ...(args.signal ? { signal: args.signal } : {}),
       },
     });

@@ -3,8 +3,8 @@
     "provider": "openai",
     "apiKeyEnv": "OPENAI_API_KEY",
     "roles": {
-      "response": "gpt-5.5",
-      "compaction": "gpt-5.5",
+      "response": "gpt-5.4-mini",
+      "compaction": "gpt-5.4-mini",
       "matcher": "gpt-5.4-mini",
       "extraction": "gpt-5.4-mini",
       "citationPostProcessing": "gpt-5.4-mini",

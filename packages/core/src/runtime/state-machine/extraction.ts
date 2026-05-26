@@ -7,7 +7,7 @@ import {
 } from "../context.js";
 import { isAbortLikeError } from "../errors.js";
 import { renderStateInstructionStack } from "../rendering.js";
-import { stateExtractionSchema } from "../schemas.js";
+import { createStateExtractionSchema } from "../schemas.js";
 import type {
   RuntimeEmit,
   StateMachineDeps,
@@ -25,6 +25,7 @@ export async function applyStateExtraction(args: StateMachineDeps & {
 }) {
   const fields = args.state.collected.filter((field) => field.extract);
   if (fields.length === 0) return args.state;
+  const extractionSchema = createStateExtractionSchema(fields.map((field) => field.path));
   try {
     const output = await args.generateTextWithTrace({
       conversationId: args.conversation.id,
@@ -65,11 +66,14 @@ export async function applyStateExtraction(args: StateMachineDeps & {
           },
           { role: "user", content: args.userText },
         ],
-        responseFormat: stateExtractionSchema,
+        responseFormat: extractionSchema,
         ...(args.signal ? { signal: args.signal } : {}),
       },
     });
-    const extracted = stateExtractionSchema.parse(output.structured ?? JSON.parse(output.text));
+    const extracted = extractionSchema.parse(normalizeExtractionOutput(
+      output.structured ?? JSON.parse(output.text),
+      fields.map((field) => field.path),
+    ));
     const allowedPaths = new Set(fields.map((field) => field.path));
     const acceptedFields = Object.entries(extracted.values)
       .filter(([path, value]) => allowedPaths.has(path) && hasUsableValue(value));
@@ -106,4 +110,17 @@ export async function applyStateExtraction(args: StateMachineDeps & {
     });
   }
   return args.state;
+}
+
+function normalizeExtractionOutput(output: unknown, paths: string[]) {
+  if (!isRecord(output)) return output;
+  const values = isRecord(output.values) ? { ...output.values } : {};
+  for (const path of paths) {
+    if (!(path in values)) values[path] = null;
+  }
+  return { ...output, values };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }

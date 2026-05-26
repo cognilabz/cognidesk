@@ -167,6 +167,7 @@ export function createRuntimeCore(options: RuntimeOptions) {
       selectedJourney: CompiledJourney | null;
       stateMachineTurn: StateMachineTurnResult | null;
       signal?: AbortSignal;
+      onTextDelta?(textDelta: string): Promise<void> | void;
       emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
     }): Promise<TextGenerationOutput> {
       return generateRuntimeResponseWithTools(

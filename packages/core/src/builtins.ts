@@ -55,8 +55,12 @@ export const formWidget = widget("form", {
     fields: z.array(z.object({
       path: z.string(),
       label: z.string(),
+      description: z.string().optional(),
       type: z.enum(["text", "email", "date", "number", "choice"]),
       required: z.boolean().default(true),
+      placeholder: z.string().optional(),
+      min: z.string().optional(),
+      max: z.string().optional(),
       options: z.array(z.object({ id: z.string(), label: z.string() })).optional(),
     })),
   }),

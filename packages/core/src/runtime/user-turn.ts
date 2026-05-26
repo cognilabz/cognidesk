@@ -122,6 +122,17 @@ export async function handleUserMessage<TTurn>(
     const availableTools = resolveAvailableModelTools(agent, selectedJourney, stateMachineTurn);
     const modelTools = availableTools.map(toModelToolDefinition);
     throwIfTurnInterrupted(turn);
+    let assistantStarted = false;
+    const ensureAssistantStarted = async () => {
+      if (assistantStarted) return;
+      await emit({
+        conversationId: conversation.id,
+        type: "message.started",
+        data: { role: "assistant" },
+      });
+      assistantStarted = true;
+    };
+    let streamedTextLength = 0;
     const response = await args.generateResponseWithTools({
       conversation,
       model: models.response,
@@ -141,6 +152,17 @@ export async function handleUserMessage<TTurn>(
       selectedJourney,
       stateMachineTurn,
       emit,
+      ...(args.options.streaming?.syntheticDeltas ? {
+        onTextDelta: async (textDelta: string) => {
+          await ensureAssistantStarted();
+          streamedTextLength += textDelta.length;
+          await emit({
+            conversationId: conversation.id,
+            type: "message.delta",
+            data: { textDelta },
+          });
+        },
+      } : {}),
       signal: turn.controller.signal,
     });
     throwIfTurnInterrupted(turn);
@@ -162,12 +184,8 @@ export async function handleUserMessage<TTurn>(
     });
     throwIfTurnInterrupted(turn);
 
-    await emit({
-      conversationId: conversation.id,
-      type: "message.started",
-      data: { role: "assistant" },
-    });
-    if (args.options.streaming?.syntheticDeltas && assistantText.length > 0) {
+    await ensureAssistantStarted();
+    if (args.options.streaming?.syntheticDeltas && assistantText.length > 0 && streamedTextLength === 0) {
       await emit({
         conversationId: conversation.id,
         type: "message.delta",

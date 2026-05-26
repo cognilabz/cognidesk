@@ -7,8 +7,10 @@ import {
   getPathValue,
   hasUsableValue,
   isStructuredGuardDenial,
+  isRecord,
 } from "./context.js";
 import {
+  createFieldGroupPromptId,
   createFieldConfirmationPromptId,
   createFieldPromptId,
   createGuardPromptId,
@@ -73,6 +75,28 @@ export async function emitFieldPrompts(args: {
   ));
   if (missingFields.length === 0) return 0;
   const existing = await args.storage.listEvents({ conversationId: args.conversation.id });
+  if (missingFields.length > 1) {
+    const promptId = createFieldGroupPromptId(args.journey.id, args.state.id);
+    const hasOpenPrompt = existing.some((event) => (
+      event.type === "ui.prompted" && event.data.promptId === promptId
+    )) && !existing.some((event) => (
+      event.type === "ui.submitted" && event.data.promptId === promptId
+    ));
+    if (hasOpenPrompt) return 0;
+    await args.emit({
+      conversationId: args.conversation.id,
+      type: "ui.prompted",
+      data: {
+        promptId,
+        widgetKind: "form",
+        input: {
+          title: "Missing details",
+          fields: missingFields.map(formFieldFromCollectedField),
+        },
+      },
+    });
+    return 1;
+  }
   let prompted = 0;
   for (const field of missingFields) {
     const promptId = createFieldPromptId(args.journey.id, args.state.id, field.path);
@@ -96,6 +120,22 @@ export async function emitFieldPrompts(args: {
     prompted += 1;
   }
   return prompted;
+}
+
+function formFieldFromCollectedField(field: CompiledJourney["states"][number]["collected"][number]) {
+  const input = isRecord(field.widgetInput) ? field.widgetInput : {};
+  const widgetKind = field.widget?.kind;
+  return {
+    path: field.path,
+    label: typeof input.label === "string" ? input.label : field.prompt ?? field.path,
+    ...(typeof input.description === "string" ? { description: input.description } : {}),
+    type: widgetKind === "date-picker" ? "date" : widgetKind === "choice" ? "choice" : "text",
+    required: field.required,
+    ...(typeof input.placeholder === "string" ? { placeholder: input.placeholder } : {}),
+    ...(typeof input.min === "string" ? { min: input.min } : {}),
+    ...(typeof input.max === "string" ? { max: input.max } : {}),
+    ...(Array.isArray(input.options) ? { options: input.options } : {}),
+  };
 }
 
 export async function emitFieldConfirmationPrompts(args: {

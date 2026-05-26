@@ -27,6 +27,10 @@ export function resolveWidgetPromptState(
   promptId: string,
 ) {
   const activeStateIds = new Set(snapshot?.activeStateIds ?? []);
+  const fieldGroupPrompt = parseFieldGroupPromptId(promptId);
+  if (fieldGroupPrompt && fieldGroupPrompt.journeyId === journey.id && activeStateIds.has(fieldGroupPrompt.stateId)) {
+    return findJourneyState(journey, fieldGroupPrompt.stateId);
+  }
   const fieldPrompt = parseFieldPromptId(promptId);
   if (fieldPrompt && fieldPrompt.journeyId === journey.id && activeStateIds.has(fieldPrompt.stateId)) {
     return findJourneyState(journey, fieldPrompt.stateId);
@@ -140,8 +144,21 @@ export function createFieldPromptId(journeyId: string, stateId: string, path: st
   return `field:${journeyId}:${stateId}:${encodeURIComponent(path)}`;
 }
 
+export function createFieldGroupPromptId(journeyId: string, stateId: string) {
+  return `fields:${journeyId}:${stateId}`;
+}
+
 export function createFieldConfirmationPromptId(journeyId: string, stateId: string, path: string) {
   return `confirm-field:${journeyId}:${stateId}:${encodeURIComponent(path)}`;
+}
+
+export function parseFieldGroupPromptId(promptId: string) {
+  const [kind, journeyId, stateId] = promptId.split(":");
+  if (kind !== "fields" || !journeyId || !stateId) return null;
+  return {
+    journeyId,
+    stateId,
+  };
 }
 
 export function parseFieldPromptId(promptId: string) {

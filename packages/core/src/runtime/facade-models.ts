@@ -90,6 +90,7 @@ export function generateRuntimeResponseWithTools(
     selectedJourney: CompiledJourney | null;
     stateMachineTurn: StateMachineTurnResult | null;
     signal?: AbortSignal;
+    onTextDelta?(textDelta: string): Promise<void> | void;
     emit: RuntimeEventEmitter;
   },
 ): Promise<TextGenerationOutput> {

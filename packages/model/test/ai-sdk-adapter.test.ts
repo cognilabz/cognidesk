@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { MockEmbeddingModelV3, MockLanguageModelV3 } from "ai/test";
 import {
@@ -108,6 +108,48 @@ describe("cognideskModel", () => {
     });
 
     expect(JSON.stringify(languageModel.doGenerateCalls[0])).toContain("I will look that up before answering.");
+  });
+
+  it("passes system prompts through the AI SDK system option without warnings", async () => {
+    const languageModel = new MockLanguageModelV3({
+      provider: "test",
+      modelId: "test-language",
+      doGenerate: {
+        content: [{ type: "text", text: "ok" }],
+        finishReason: { unified: "stop", raw: "stop" },
+        usage: {
+          inputTokens: {
+            total: 1,
+            noCache: 1,
+            cacheRead: undefined,
+            cacheWrite: undefined,
+          },
+          outputTokens: {
+            total: 1,
+            text: 1,
+            reasoning: undefined,
+          },
+        },
+        warnings: [],
+      },
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const model = cognideskModel({ model: languageModel });
+
+    await model.generateText({
+      role: "response",
+      messages: [
+        { role: "system", content: "System instructions" },
+        { role: "user", content: "hello" },
+      ],
+    });
+
+    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining("System messages in the prompt or messages fields"));
+    expect(languageModel.doGenerateCalls[0]?.prompt).toEqual([
+      { role: "system", content: "System instructions" },
+      { role: "user", content: [{ type: "text", text: "hello" }] },
+    ]);
+    warn.mockRestore();
   });
 
 

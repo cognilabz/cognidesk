@@ -194,4 +194,42 @@ describe("runtime turn pipeline 01", () => {
       "message.completed",
     ]);
   });
+
+  it("forwards model text deltas before assistant completion when the adapter streams", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async (input) => {
+            await input.onTextDelta?.("Ticket ");
+            await input.onTextDelta?.("confirmed.");
+            return { text: "Ticket confirmed." };
+          },
+        },
+      }),
+      streaming: { syntheticDeltas: true },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Check ticket ABC123.",
+    });
+    const assistantStartedIndex = result.events.findIndex((event) => event.type === "message.started" && event.data.role === "assistant");
+    const completedIndex = result.events.findIndex((event) => event.type === "message.completed" && event.data.text === "Ticket confirmed.");
+    const deltas = result.events.filter((event) => event.type === "message.delta");
+
+    expect(deltas.map((event) => event.data.textDelta)).toEqual(["Ticket ", "confirmed."]);
+    expect(assistantStartedIndex).toBeGreaterThan(-1);
+    expect(completedIndex).toBeGreaterThan(assistantStartedIndex);
+    expect(result.events.findIndex((event) => event === deltas[0])).toBeGreaterThan(assistantStartedIndex);
+    expect(result.events.findIndex((event) => event === deltas[1])).toBeLessThan(completedIndex);
+  });
 });

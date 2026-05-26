@@ -16,6 +16,9 @@ export function addTicketStatusJourney(agent: ReturnType<typeof createAgent>, to
     input: ({ context }) => ({
       bookingReference: context.bookingReference ?? "",
     }),
+    assign: {
+      ticketStatus: ({ output }) => output,
+    },
   });
   const lookupFlight = status.state("lookupFlight").runTool(tools.getFlightInfo, {
     input: ({ context }) => ({

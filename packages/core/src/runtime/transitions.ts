@@ -138,7 +138,7 @@ async function rankConversationalTransitions(
         ...(args.signal ? { signal: args.signal } : {}),
       },
     });
-    const structured = transitionMatchSchema.parse(output.structured ?? JSON.parse(output.text));
+    const structured = transitionMatchSchema.parse(normalizeTransitionMatchOutput(output.structured ?? JSON.parse(output.text)));
     const byId = new Map(candidates.map((candidate) => [candidate.id, candidate.transition]));
     const seen = new Set<string>();
     const ranked = structured.candidates
@@ -162,6 +162,25 @@ async function rankConversationalTransitions(
     });
     return transitions;
   }
+}
+
+function normalizeTransitionMatchOutput(output: unknown) {
+  if (!isRecord(output) || !Array.isArray(output.candidates)) return output;
+  return {
+    ...output,
+    candidates: output.candidates.map((candidate) => {
+      if (!isRecord(candidate)) return candidate;
+      return {
+        ...candidate,
+        confidence: typeof candidate.confidence === "number" ? candidate.confidence : 1,
+        reason: typeof candidate.reason === "string" ? candidate.reason : "",
+      };
+    }),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 export function resolveJourneyEventRoute(args: {

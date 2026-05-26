@@ -6,6 +6,7 @@ import {
   createAgent,
   createRuntime,
   customRuntimeEvent,
+  datePickerWidget,
   endConversationTool,
   handoffTool,
   journeyContextViewerTool,
@@ -219,6 +220,89 @@ describe("runtime UI and lifecycle events 03", () => {
     expect(snapshot?.activeJourneyId).toBeUndefined();
     expect(snapshot?.activeStateIds).toEqual([]);
     expect(snapshot?.journeyContext).toBeUndefined();
+    expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual(expect.arrayContaining([
+      "ui.submitted",
+      "journey.completed",
+    ]));
+  });
+
+  it("groups multiple missing fields into one form prompt and applies all submitted values", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const booking = agentBuilder.stateMachineJourney("booking", {
+      condition: "Customer needs route details",
+      context: z.object({
+        origin: z.string().optional(),
+        destination: z.string().optional(),
+        departureDate: z.string().optional(),
+      }),
+    });
+    const collectRoute = booking.state("collectRoute")
+      .collect("origin", {
+        widget: widgetPrompt(textInputWidget, { label: "Origin city", placeholder: "Vienna" }),
+      })
+      .collect("destination", {
+        widget: widgetPrompt(textInputWidget, { label: "Destination city", placeholder: "Berlin" }),
+      })
+      .collect("departureDate", {
+        widget: widgetPrompt(datePickerWidget, { label: "Departure date", min: "2026-05-26" }),
+      });
+    const done = booking.final("done");
+    booking.initial(collectRoute);
+    collectRoute.transitionTo(done);
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      extraction: {
+        provider: "test",
+        model: "extraction",
+        generateText: async () => {
+          const structured = { values: {} };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({ storage: new RecordingStorage(), agent, models, journeyIndex });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const turn = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Book a flight.",
+    });
+    const prompted = (await runtime.listEvents(conversation.id)).find((event) => event.type === "ui.prompted");
+
+    expect(turn.snapshot.activeStateIds).toEqual(["collectRoute"]);
+    expect(prompted?.data).toEqual({
+      promptId: "fields:booking:collectRoute",
+      widgetKind: "form",
+      input: {
+        title: "Missing details",
+        fields: [
+          { path: "origin", label: "Origin city", type: "text", required: true, placeholder: "Vienna" },
+          { path: "destination", label: "Destination city", type: "text", required: true, placeholder: "Berlin" },
+          { path: "departureDate", label: "Departure date", type: "date", required: true, min: "2026-05-26" },
+        ],
+      },
+    });
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "fields:booking:collectRoute",
+      widgetKind: "form",
+      output: {
+        values: {
+          origin: "Vienna",
+          destination: "Berlin",
+          departureDate: "2026-05-27",
+        },
+      },
+    });
+
+    const snapshot = await runtime.getSnapshot(conversation.id);
+    expect(snapshot?.activeJourneyId).toBeUndefined();
+    expect(snapshot?.activeStateIds).toEqual([]);
     expect((await runtime.listEvents(conversation.id)).map((event) => event.type)).toEqual(expect.arrayContaining([
       "ui.submitted",
       "journey.completed",

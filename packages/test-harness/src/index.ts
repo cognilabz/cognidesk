@@ -8,6 +8,7 @@ import type {
   HarnessAgentClient,
   HarnessScenario,
   ScenarioResult,
+  ScriptedUserTurn,
   TestHarnessOptions,
   TranscriptTurn,
 } from "./types.js";
@@ -32,6 +33,15 @@ export function runtimeHarnessClient(runtime: CognideskRuntime): HarnessAgentCli
     },
     async sendMessage(input) {
       return await runtime.handleUserMessage(input);
+    },
+    async submitWidget(input) {
+      const before = await runtime.listEvents(input.conversationId);
+      const event = await runtime.submitWidget(input);
+      const after = await runtime.listEvents(input.conversationId);
+      return {
+        event,
+        events: after.filter((candidate) => candidate.offset > (before.at(-1)?.offset ?? 0)),
+      };
     },
   };
 }
@@ -59,28 +69,43 @@ export class CognideskTestHarness {
 
       for (let turnIndex = 0; turnIndex < maxTurns; turnIndex += 1) {
         throwIfAborted(controller.signal);
-        const userMessage = await withDeadline(
-          this.nextUserMessage({ scenario, transcript, turnIndex, signal: controller.signal }),
+        const userAction = await withDeadline(
+          this.nextUserAction({ scenario, transcript, events, turnIndex, signal: controller.signal }),
           deadline,
         );
-        if (!userMessage) break;
-        transcript.push({ role: "user", content: userMessage });
-        const response = await withDeadline(this.options.client.sendMessage({
+        if (!userAction) break;
+        if (typeof userAction === "string" || userAction.type === "message") {
+          const userMessage = typeof userAction === "string" ? userAction : userAction.text;
+          transcript.push({ role: "user", content: userMessage });
+          const response = await withDeadline(this.options.client.sendMessage({
+            conversationId: conversation.id,
+            text: userMessage,
+            turn: {
+              simulatedUser: scenario.user.identity,
+              turnIndex,
+            },
+            signal: controller.signal,
+          }), deadline);
+          transcript.push({ role: "assistant", content: response.text });
+          events.push(...response.events);
+          if (response.activeJourneyId) activeJourneyIds.push(response.activeJourneyId);
+          if (response.events.some((event) => event.type === "conversation.closed")) break;
+          if (scenario.user.stopWhen && response.text.toLowerCase().includes(scenario.user.stopWhen.toLowerCase())) {
+            break;
+          }
+          continue;
+        }
+        if (!this.options.client.submitWidget) throw new Error("Scenario widget turns require client.submitWidget.");
+        const prompt = resolveScriptedWidgetPrompt(events, userAction);
+        transcript.push({ role: "user", content: `[submitted ${prompt.widgetKind} widget ${prompt.promptId}]` });
+        const response = await withDeadline(this.options.client.submitWidget({
           conversationId: conversation.id,
-          text: userMessage,
-          turn: {
-            simulatedUser: scenario.user.identity,
-            turnIndex,
-          },
+          promptId: prompt.promptId,
+          widgetKind: prompt.widgetKind,
+          output: userAction.output,
           signal: controller.signal,
         }), deadline);
-        transcript.push({ role: "assistant", content: response.text });
-        events.push(...response.events);
-        if (response.activeJourneyId) activeJourneyIds.push(response.activeJourneyId);
-        if (response.events.some((event) => event.type === "conversation.closed")) break;
-        if (scenario.user.stopWhen && response.text.toLowerCase().includes(scenario.user.stopWhen.toLowerCase())) {
-          break;
-        }
+        events.push(...(response.events ?? [response.event]));
       }
 
       if (transcript.filter((turn) => turn.role === "user").length === 0) {
@@ -134,12 +159,13 @@ export class CognideskTestHarness {
     }
   }
 
-  private async nextUserMessage(args: {
+  private async nextUserAction(args: {
     scenario: HarnessScenario;
     transcript: TranscriptTurn[];
+    events: ScenarioResult["events"];
     turnIndex: number;
     signal?: AbortSignal;
-  }) {
+  }): Promise<ScriptedUserTurn | null> {
     const scripted = args.scenario.user.scriptedTurns?.[args.turnIndex];
     if (scripted) return scripted;
     if (!this.options.simulatedUserModel) return null;
@@ -200,6 +226,29 @@ export class CognideskTestHarness {
   private async redactEvents(scenario: HarnessScenario, events: ScenarioResult["events"]) {
     return await this.options.privacy?.redactEvents?.({ scenario, events }) ?? events;
   }
+}
+
+function resolveScriptedWidgetPrompt(events: ScenarioResult["events"], turn: Extract<ScriptedUserTurn, { type: "widget" }>) {
+  if (turn.promptId && turn.widgetKind) return { promptId: turn.promptId, widgetKind: turn.widgetKind };
+  const submitted = new Set(events
+    .filter((event) => event.type === "ui.submitted")
+    .map((event) => event.data.promptId));
+  const latestOpenPrompt = [...events]
+    .reverse()
+    .find((event): event is Extract<ScenarioResult["events"][number], { type: "ui.prompted" }> => (
+      event.type === "ui.prompted" && !submitted.has(event.data.promptId)
+    ));
+  if (!latestOpenPrompt) throw new Error("Scenario widget turn could not find an open prompt.");
+  if (turn.promptId && latestOpenPrompt.data.promptId !== turn.promptId) {
+    throw new Error(`Scenario expected prompt '${turn.promptId}', but latest open prompt is '${latestOpenPrompt.data.promptId}'.`);
+  }
+  if (turn.widgetKind && latestOpenPrompt.data.widgetKind !== turn.widgetKind) {
+    throw new Error(`Scenario expected widget '${turn.widgetKind}', but latest open prompt uses '${latestOpenPrompt.data.widgetKind}'.`);
+  }
+  return {
+    promptId: latestOpenPrompt.data.promptId,
+    widgetKind: latestOpenPrompt.data.widgetKind,
+  };
 }
 
 function createDeadline(timeoutMs: number | undefined, controller: AbortController) {

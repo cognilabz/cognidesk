@@ -51,6 +51,18 @@ input {
   border: 1px solid var(--cd-color-border);
   border-radius: 6px;
   background: #ffffff;
+  color: var(--cd-color-text);
   cursor: pointer;
   padding: 8px 10px;
+}
+
+.demo-confirmation-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.demo-confirmation-actions .demo-confirmation-primary {
+  border-color: var(--cd-color-primary);
+  background: var(--cd-color-primary);
+  color: var(--cd-color-primary-contrast);
 }

@@ -28,22 +28,22 @@ OPENROUTER_KEY=sk-or-...
 
 The demo server and ingestion script load `.env` automatically from the repository root and from `apps/flight-demo/.env`.
 
-Default role mapping:
+Default text role mapping:
 
-- `response`: `gpt-5.5`
-- `compaction`: `gpt-5.5`
+- `response`: `gpt-5.4-mini`
+- `compaction`: `gpt-5.4-mini`
 - `matcher`: `gpt-5.4-mini`
 - `extraction`: `gpt-5.4-mini`
 - `citationPostProcessing`: `gpt-5.4-mini`
 - `journeyEmbedding`: `text-embedding-3-small`
 
-OpenRouter role mapping in `config.openrouter.example.json`:
+OpenRouter text role mapping in `config.openrouter.example.json`:
 
-- `response`: `openai/gpt-5.5`
-- `compaction`: `openai/gpt-5.4-nano`
-- `matcher`: `openai/gpt-5.4-nano`
-- `extraction`: `openai/gpt-5.4-nano`
-- `citationPostProcessing`: `openai/gpt-5.4-nano`
+- `response`: `openai/gpt-5.4-mini`
+- `compaction`: `openai/gpt-5.4-mini`
+- `matcher`: `openai/gpt-5.4-mini`
+- `extraction`: `openai/gpt-5.4-mini`
+- `citationPostProcessing`: `openai/gpt-5.4-mini`
 - `journeyEmbedding`: `openai/text-embedding-3-small`
 
 ## Knowledge Ingestion

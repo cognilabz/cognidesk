@@ -17,12 +17,22 @@ export const bookingContext = z.object({
   selectedFlightId: z.string().optional(),
   bookingReference: z.string().optional(),
   availableFlights: z.array(flightSchema).optional(),
+  routeAlternativeFlights: z.array(flightSchema).optional(),
+  allAvailableFlights: z.array(flightSchema).optional(),
+  lastSearchOrigin: z.string().optional(),
+  lastSearchDestination: z.string().optional(),
+  lastSearchDepartureDate: z.string().optional(),
 });
 
 export const statusContext = z.object({
   bookingReference: z.string().optional(),
   flightNumber: z.string().optional(),
   flightInfo: flightSchema.optional(),
+  ticketStatus: z.object({
+    bookingReference: z.string(),
+    status: z.enum(["confirmed", "checked-in", "cancelled"]),
+    nextStep: z.string(),
+  }).optional(),
 });
 
 export type Flight = z.infer<typeof flightSchema>;

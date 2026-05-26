@@ -7,6 +7,7 @@ import {
   extractWidgetFieldValue,
   findJourneyStates,
   mergeActiveStates,
+  parseFieldGroupPromptId,
   parseFieldConfirmationPromptId,
   parseFieldPromptId,
   parseToolConfirmationPromptId,
@@ -70,7 +71,11 @@ export async function processWidgetSubmission(args: StateInteractionDeps & {
     (snapshot?.activeStateIds ?? []).filter((stateId) => stateId !== state.id),
   );
   const fieldPrompt = parseFieldPromptId(args.promptId);
+  const fieldGroupPrompt = parseFieldGroupPromptId(args.promptId);
   const fieldConfirmationPrompt = parseFieldConfirmationPromptId(args.promptId);
+  const fieldGroupTarget = fieldGroupPrompt && fieldGroupPrompt.journeyId === journey.id && fieldGroupPrompt.stateId === state.id
+    ? fieldGroupPrompt
+    : null;
   const fieldPromptTarget = fieldPrompt && fieldPrompt.journeyId === journey.id && fieldPrompt.stateId === state.id
     ? fieldPrompt
     : null;
@@ -79,6 +84,32 @@ export async function processWidgetSubmission(args: StateInteractionDeps & {
     && fieldConfirmationPrompt.stateId === state.id
     ? fieldConfirmationPrompt
     : null;
+  if (fieldGroupTarget) {
+    const values = z.object({ values: z.record(z.string(), z.unknown()) }).safeParse(args.output);
+    if (!values.success) return;
+    for (const field of state.collected) {
+      if (field.path in values.data.values) {
+        setPathValue(context, field.path, values.data.values[field.path]);
+      }
+    }
+    const branchStates = await args.advanceStateMachine({
+      journey,
+      conversation: args.conversation,
+      stateById,
+      state,
+      context,
+      emit: args.emit,
+    });
+    await saveStateMachineProgress({
+      ...args,
+      previousSnapshot: snapshot,
+      journey,
+      activeStates: mergeActiveStates(siblingActiveStates, branchStates),
+      context,
+    });
+    return;
+  }
+
   if (fieldPromptTarget || fieldConfirmationTarget) {
     const target = fieldPromptTarget ?? fieldConfirmationTarget;
     if (!target) return;
@@ -184,6 +215,11 @@ function resolveStatePromptWidget(
   if (!journey || journey.kind !== "stateMachine") return null;
   const state = resolveWidgetPromptState(journey, snapshot, promptId);
   if (!state) return null;
+
+  const fieldGroupPrompt = parseFieldGroupPromptId(promptId);
+  if (fieldGroupPrompt && fieldGroupPrompt.journeyId === journey.id && fieldGroupPrompt.stateId === state.id) {
+    return builtInWidgets.formWidget;
+  }
 
   const fieldPrompt = parseFieldPromptId(promptId);
   if (fieldPrompt && fieldPrompt.journeyId === journey.id && fieldPrompt.stateId === state.id) {

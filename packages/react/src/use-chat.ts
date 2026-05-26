@@ -13,17 +13,39 @@ export function useChat(options: UseChatOptions) {
   const [error, setError] = useState<Error | null>(null);
   const lastOffsetRef = useRef(0);
   const createConversationRef = useRef<Promise<string> | null>(null);
+  const stopStreamRef = useRef<(() => void) | null>(null);
+  const streamConversationIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    setConversationId(options.conversationId ?? null);
-    lastOffsetRef.current = 0;
-    createConversationRef.current = null;
-    setChatState({ messages: [], prompts: [], lastOffset: 0 });
-    setError(null);
-  }, [options.conversationId]);
+  const applyEvent = useCallback((event: Parameters<typeof reduceChatRuntimeEvent>[1]) => {
+    setChatState((current) => {
+      const next = reduceChatRuntimeEvent(current, event);
+      lastOffsetRef.current = next.lastOffset;
+      return next;
+    });
+  }, []);
+
+  const stopStream = useCallback(() => {
+    stopStreamRef.current?.();
+    stopStreamRef.current = null;
+    streamConversationIdRef.current = null;
+  }, []);
+
+  const startStream = useCallback((id: string) => {
+    if (streamConversationIdRef.current === id && stopStreamRef.current) return;
+    stopStream();
+    streamConversationIdRef.current = id;
+    setStatus((current) => current === "idle" ? "streaming" : current);
+    stopStreamRef.current = options.client.streamEvents(id, {
+      onEvent: applyEvent,
+      onError: () => setStatus("error"),
+    }, { afterOffset: lastOffsetRef.current });
+  }, [applyEvent, options.client, stopStream]);
 
   const ensureConversation = useCallback(async () => {
-    if (conversationId) return conversationId;
+    if (conversationId) {
+      startStream(conversationId);
+      return conversationId;
+    }
     if (createConversationRef.current) return createConversationRef.current;
     if (!options.agentId) throw new Error("agentId is required when conversationId is not provided.");
     setStatus("starting");
@@ -33,21 +55,22 @@ export function useChat(options: UseChatOptions) {
     }).then((result) => {
       setConversationId(result.conversation.id);
       options.onConversationCreated?.(result.conversation.id);
+      startStream(result.conversation.id);
       return result.conversation.id;
     }).finally(() => {
       createConversationRef.current = null;
-      setStatus("idle");
     });
     return createConversationRef.current;
-  }, [conversationId, options]);
+  }, [conversationId, options, startStream]);
 
-  const applyEvent = useCallback((event: Parameters<typeof reduceChatRuntimeEvent>[1]) => {
-    setChatState((current) => {
-      const next = reduceChatRuntimeEvent(current, event);
-      lastOffsetRef.current = next.lastOffset;
-      return next;
-    });
-  }, []);
+  useEffect(() => {
+    stopStream();
+    setConversationId(options.conversationId ?? null);
+    lastOffsetRef.current = 0;
+    createConversationRef.current = null;
+    setChatState({ messages: [], prompts: [], lastOffset: 0 });
+    setError(null);
+  }, [options.conversationId, stopStream]);
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -61,6 +84,7 @@ export function useChat(options: UseChatOptions) {
     setError(null);
     try {
       const idToUse = await ensureConversation();
+      setStatus("sending");
       const result = await options.client.sendMessage(idToUse, trimmed);
       setChatState((current) => ({
         ...current,
@@ -86,9 +110,11 @@ export function useChat(options: UseChatOptions) {
   const submitWidget = useCallback(async (input: { promptId: string; widgetKind: string; output: unknown }) => {
     if (!conversationId) throw new Error("A conversation is required before submitting widgets.");
     setError(null);
+    setStatus("sending");
     try {
       const result = await options.client.submitWidget(conversationId, input);
       applyEvent(result.event);
+      setStatus("idle");
       return result;
     } catch (caught) {
       const nextError = caught instanceof Error ? caught : new Error("Failed to submit widget.");
@@ -100,12 +126,9 @@ export function useChat(options: UseChatOptions) {
 
   useEffect(() => {
     if (!conversationId) return undefined;
-    setStatus((current) => current === "idle" ? "streaming" : current);
-    return options.client.streamEvents(conversationId, {
-      onEvent: applyEvent,
-      onError: () => setStatus("error"),
-    }, { afterOffset: lastOffsetRef.current });
-  }, [applyEvent, conversationId, options.client]);
+    startStream(conversationId);
+    return stopStream;
+  }, [conversationId, startStream, stopStream]);
 
   return useMemo(() => ({
     conversationId,

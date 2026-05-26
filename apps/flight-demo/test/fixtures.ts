@@ -7,8 +7,8 @@ export const testConfig: FlightDemoConfig = {
     provider: "openai",
     apiKeyEnv: "OPENAI_API_KEY",
     roles: {
-      response: "gpt-5.5",
-      compaction: "gpt-5.5",
+      response: "gpt-5.4-mini",
+      compaction: "gpt-5.4-mini",
       matcher: "gpt-5.4-mini",
       extraction: "gpt-5.4-mini",
       citationPostProcessing: "gpt-5.4-mini",
@@ -86,7 +86,15 @@ function createTestMatcher(messages: ModelMessage[]) {
   const latestUser = prompt.match(/latest user message:\s*([^\n]+)/)?.[1] ?? prompt;
   if (prompt.includes("state transition candidates")) {
     const candidates = [];
-    if (latestUser.match(/\bcd-[a-z0-9-]+-\d{4}\b/i) || latestUser.includes("booking")) {
+    const mentionsAvailableFlights = prompt.includes("availableflights");
+    const hasNoFlights = mentionsAvailableFlights && prompt.includes("[]");
+    if (prompt.includes("state: noflights") && latestUser.includes("try")) {
+      candidates.push({ id: "transition_1", confidence: 0.8, reason: "Customer wants a different search." });
+    } else if (prompt.includes("targetid: noflights") && hasNoFlights) {
+      candidates.push({ id: "transition_2", confidence: 0.95, reason: "No mocked flights are available." });
+    } else if (prompt.includes("targetid: selectflight") && mentionsAvailableFlights && !hasNoFlights) {
+      candidates.push({ id: "transition_1", confidence: 0.95, reason: "Mocked flights are available." });
+    } else if (latestUser.match(/\bcd-[a-z0-9-]+-\d{4}\b/i) || latestUser.includes("booking")) {
       candidates.push({ id: "transition_1", confidence: 0.95, reason: "Booking reference is present." });
     } else if (latestUser.match(/\bcl\d{3}\b/i)) {
       candidates.push({ id: "transition_2", confidence: 0.95, reason: "Flight number is present." });
@@ -99,7 +107,19 @@ function createTestMatcher(messages: ModelMessage[]) {
   if (prompt.includes("ticket-status") && (statusIntent || latestUser.includes("status"))) {
     candidates.push({ journeyId: "ticket-status", confidence: 0.9, reason: "Status request." });
   }
-  if (prompt.includes("book-flight") && !statusIntent && (latestUser.includes("find flights") || /\bbook\b/.test(latestUser) || latestUser.includes("ticket to"))) {
+  if (prompt.includes("human-handoff") && (latestUser.includes("human") || latestUser.includes("person") || latestUser.includes("cancelled"))) {
+    candidates.push({ journeyId: "human-handoff", confidence: 0.92, reason: "Human handoff request." });
+  }
+  if (
+    prompt.includes("book-flight")
+    && !statusIntent
+    && (
+      latestUser.includes("find flights")
+      || /\bbook\b/.test(latestUser)
+      || latestUser.includes("ticket to")
+      || (prompt.includes("active journey: book-flight") && (latestUser.includes("available flights") || latestUser.includes("any dates")))
+    )
+  ) {
     candidates.push({ journeyId: "book-flight", confidence: 0.95, reason: "Booking request." });
   }
   const structured = { candidates };
@@ -156,15 +176,25 @@ function createTestCompaction(messages: ModelMessage[]) {
 }
 
 function createTestAnswer(messages: ModelMessage[]) {
+  const system = messages.find((message) => message.role === "system")?.content.toLowerCase() ?? "";
   const user = [...messages].reverse().find((message) => message.role === "user")?.content.toLowerCase() ?? "";
+  if (system.includes("active state: noflights") && (user.includes("available flights") || user.includes("any dates"))) {
+    return "There are no mocked Berlin to Paris flights on any date. Available mocked flights include CL102 Vienna to Berlin and CL204 Vienna to Paris.";
+  }
+  if (system.includes('"availableflights":[]')) {
+    return "There are no mocked flights for that route and date. I can suggest available mocked flights or check a different route.";
+  }
+  if (user.includes("human") || user.includes("person")) {
+    return "I can collect a short summary for human support so the customer can be handed off.";
+  }
   if (user.includes("book") || user.includes("ticket to") || user.includes("flight to")) {
     return "I can help book a mocked flight. Tell me the origin, destination, travel date, and passenger name. For example, Vienna to Berlin tomorrow for Alex Morgan.";
   }
-  if (user.includes("status") || user.includes("check") || user.includes("cl")) {
-    return "Your mocked ticket is confirmed. Check-in opens 24 hours before departure. Source: test-checkin.";
-  }
   if (user.includes("bag")) {
     return "Economy tickets include one cabin bag. Source: test-baggage.";
+  }
+  if (user.includes("status") || user.includes("check") || /\bcl\d{3}\b/.test(user)) {
+    return "Your mocked ticket is confirmed. Check-in opens 24 hours before departure. Source: test-checkin.";
   }
   return "I can help with mocked flight booking, ticket status, flight information, check-in, baggage, or handoff.";
 }

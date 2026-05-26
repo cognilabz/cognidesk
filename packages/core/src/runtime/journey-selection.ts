@@ -206,7 +206,7 @@ async function rankJourneyCandidates(args: {
         ...(args.signal ? { signal: args.signal } : {}),
       },
     });
-    const structured = journeyMatchSchema.parse(output.structured ?? JSON.parse(output.text));
+    const structured = journeyMatchSchema.parse(normalizeJourneyMatchOutput(output.structured ?? JSON.parse(output.text)));
     const byId = new Map(args.candidates.map((candidate) => [candidate.journeyId, candidate]));
     const seen = new Set<string>();
     const ranked: RankedJourneyCandidate[] = [];
@@ -225,4 +225,23 @@ async function rankJourneyCandidates(args: {
     if (isAbortLikeError(error) && args.signal?.aborted) throw error;
     return args.candidates;
   }
+}
+
+function normalizeJourneyMatchOutput(output: unknown) {
+  if (!isRecord(output) || !Array.isArray(output.candidates)) return output;
+  return {
+    ...output,
+    candidates: output.candidates.map((candidate) => {
+      if (!isRecord(candidate)) return candidate;
+      return {
+        ...candidate,
+        confidence: typeof candidate.confidence === "number" ? candidate.confidence : 1,
+        reason: typeof candidate.reason === "string" ? candidate.reason : "",
+      };
+    }),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }

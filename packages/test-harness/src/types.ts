@@ -8,13 +8,33 @@ import type {
 export interface HarnessAgentClient {
   createConversation(input: CreateRuntimeConversationInput): Promise<{ id: string }>;
   sendMessage(input: { conversationId: string; text: string; turn?: unknown; signal?: AbortSignal }): Promise<Pick<HandleUserMessageResult, "text" | "events" | "activeJourneyId">>;
+  submitWidget?(input: {
+    conversationId: string;
+    promptId: string;
+    widgetKind: string;
+    output: unknown;
+    signal?: AbortSignal;
+  }): Promise<{ event: RuntimeEvent; events?: RuntimeEvent[] }>;
 }
+
+export type ScriptedUserTurn =
+  | string
+  | {
+      type: "message";
+      text: string;
+    }
+  | {
+      type: "widget";
+      promptId?: string;
+      widgetKind?: string;
+      output: unknown;
+    };
 
 export interface SimulatedUserDefinition {
   identity: string;
   goal: string;
   background?: string;
-  scriptedTurns?: string[];
+  scriptedTurns?: ScriptedUserTurn[];
   stopWhen?: string;
 }
 

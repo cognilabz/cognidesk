@@ -48,7 +48,7 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
   });
   agent.tools.add(
     flightTools.searchFlights,
-    flightTools.bookFlight,
+    flightTools.suggestFlightOptions,
     flightTools.getTicketStatus,
     flightTools.getFlightInfo,
   );

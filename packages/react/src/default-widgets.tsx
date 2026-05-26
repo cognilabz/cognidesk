@@ -7,7 +7,7 @@ import {
 import type { WidgetRendererMap } from "./types.js";
 
 export const defaultWidgetRenderers: WidgetRendererMap = {
-  confirmation: ({ input, submit, kind, appearance }) => {
+  confirmation: ({ input, submit, kind, appearance, disabled }) => {
     const data = asRecord(input);
     return (
       <div className={widgetClassName(kind, widgetElementKeys.panel, appearance)} style={widgetStyle(kind, widgetElementKeys.panel, appearance)}>
@@ -22,31 +22,32 @@ export const defaultWidgetRenderers: WidgetRendererMap = {
           </div>
         ) : null}
         <div className={widgetClassName(kind, widgetElementKeys.actions, appearance)} style={widgetStyle(kind, widgetElementKeys.actions, appearance)}>
-          <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="button" onClick={() => submit({ confirmed: true })}>
+          <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="button" disabled={disabled} onClick={() => submit({ confirmed: true })}>
             {typeof data.confirmLabel === "string" ? data.confirmLabel : "Confirm"}
           </button>
-          <button className={widgetClassName(kind, widgetElementKeys.button, appearance)} style={widgetStyle(kind, widgetElementKeys.button, appearance)} type="button" onClick={() => submit({ confirmed: false })}>
+          <button className={widgetClassName(kind, widgetElementKeys.button, appearance)} style={widgetStyle(kind, widgetElementKeys.button, appearance)} type="button" disabled={disabled} onClick={() => submit({ confirmed: false })}>
             {typeof data.cancelLabel === "string" ? data.cancelLabel : "Cancel"}
           </button>
         </div>
       </div>
     );
   },
-  "text-input": ({ input, submit, kind, appearance }) => {
+  "text-input": ({ promptId, input, submit, kind, appearance, disabled }) => {
     const data = asRecord(input);
+    const inputId = `${promptId}-value`;
     return (
       <form className={widgetClassName(kind, widgetElementKeys.panel, appearance)} style={widgetStyle(kind, widgetElementKeys.panel, appearance)} onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         submit({ value: String(form.get("value") ?? "") });
       }}>
-        <WidgetLabel input={data} kind={kind} appearance={appearance} />
-        <input className={widgetClassName(kind, widgetElementKeys.input, appearance)} style={widgetStyle(kind, widgetElementKeys.input, appearance)} name="value" placeholder={typeof data.placeholder === "string" ? data.placeholder : undefined} />
-        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit">Submit</button>
+        <WidgetLabel input={data} kind={kind} appearance={appearance} htmlFor={inputId} />
+        <input id={inputId} className={widgetClassName(kind, widgetElementKeys.input, appearance)} style={widgetStyle(kind, widgetElementKeys.input, appearance)} name="value" placeholder={typeof data.placeholder === "string" ? data.placeholder : undefined} required disabled={disabled} />
+        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit" disabled={disabled}>Submit</button>
       </form>
     );
   },
-  choice: ({ input, submit, kind, appearance }) => {
+  choice: ({ input, submit, kind, appearance, disabled }) => {
     const data = asRecord(input);
     const options = Array.isArray(data.options) ? data.options.map(asRecord) : [];
     return (
@@ -56,7 +57,7 @@ export const defaultWidgetRenderers: WidgetRendererMap = {
           {options.map((option) => {
             const id = typeof option.id === "string" ? option.id : "";
             return (
-              <button key={id} className={widgetClassName(kind, widgetElementKeys.choice, appearance)} style={widgetStyle(kind, widgetElementKeys.choice, appearance)} type="button" onClick={() => submit({ selectedId: id })}>
+              <button key={id} className={widgetClassName(kind, widgetElementKeys.choice, appearance)} style={widgetStyle(kind, widgetElementKeys.choice, appearance)} type="button" disabled={disabled} onClick={() => submit({ selectedId: id })}>
                 <span className={widgetClassName(kind, widgetElementKeys.choiceLabel, appearance)} style={widgetStyle(kind, widgetElementKeys.choiceLabel, appearance)}>{typeof option.label === "string" ? option.label : id}</span>
                 {typeof option.description === "string" ? (
                   <span className={widgetClassName(kind, widgetElementKeys.choiceDescription, appearance)} style={widgetStyle(kind, widgetElementKeys.choiceDescription, appearance)}>
@@ -70,28 +71,32 @@ export const defaultWidgetRenderers: WidgetRendererMap = {
       </div>
     );
   },
-  "date-picker": ({ input, submit, kind, appearance }) => {
+  "date-picker": ({ promptId, input, submit, kind, appearance, disabled }) => {
     const data = asRecord(input);
+    const inputId = `${promptId}-value`;
     return (
       <form className={widgetClassName(kind, widgetElementKeys.panel, appearance)} style={widgetStyle(kind, widgetElementKeys.panel, appearance)} onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         submit({ value: String(form.get("value") ?? "") });
       }}>
-        <WidgetLabel input={data} kind={kind} appearance={appearance} />
+        <WidgetLabel input={data} kind={kind} appearance={appearance} htmlFor={inputId} />
         <input
+          id={inputId}
           className={widgetClassName(kind, widgetElementKeys.input, appearance)}
           style={widgetStyle(kind, widgetElementKeys.input, appearance)}
           name="value"
           type="date"
           min={typeof data.min === "string" ? data.min : undefined}
           max={typeof data.max === "string" ? data.max : undefined}
+          required
+          disabled={disabled}
         />
-        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit">Submit</button>
+        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit" disabled={disabled}>Submit</button>
       </form>
     );
   },
-  form: ({ input, submit, kind, appearance }) => {
+  form: ({ input, submit, kind, appearance, disabled }) => {
     const data = asRecord(input);
     const fields = Array.isArray(data.fields) ? data.fields.map(asRecord) : [];
     return (
@@ -112,19 +117,19 @@ export const defaultWidgetRenderers: WidgetRendererMap = {
           </div>
         ) : null}
         <div className={widgetClassName(kind, widgetElementKeys.fields, appearance)} style={widgetStyle(kind, widgetElementKeys.fields, appearance)}>
-          {fields.map((field) => renderFormField(field, kind, appearance))}
+          {fields.map((field) => renderFormField(field, kind, appearance, Boolean(disabled)))}
         </div>
-        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit">Submit</button>
+        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit" disabled={disabled}>Submit</button>
       </form>
     );
   },
 };
 
-function WidgetLabel(props: { input: Record<string, unknown>; kind: string; appearance?: AppearanceConfiguration | undefined }) {
+function WidgetLabel(props: { input: Record<string, unknown>; kind: string; appearance?: AppearanceConfiguration | undefined; htmlFor?: string }) {
   return (
     <div>
       {typeof props.input.label === "string" ? (
-        <label className={widgetClassName(props.kind, widgetElementKeys.title, props.appearance)} style={widgetStyle(props.kind, widgetElementKeys.title, props.appearance)}>
+        <label htmlFor={props.htmlFor} className={widgetClassName(props.kind, widgetElementKeys.title, props.appearance)} style={widgetStyle(props.kind, widgetElementKeys.title, props.appearance)}>
           {props.input.label}
         </label>
       ) : null}
@@ -137,17 +142,22 @@ function WidgetLabel(props: { input: Record<string, unknown>; kind: string; appe
   );
 }
 
-function renderFormField(field: Record<string, unknown>, kind: string, appearance: AppearanceConfiguration | undefined) {
+function renderFormField(field: Record<string, unknown>, kind: string, appearance: AppearanceConfiguration | undefined, disabled: boolean) {
   const path = typeof field.path === "string" ? field.path : "";
   const label = typeof field.label === "string" ? field.label : path;
+  const description = typeof field.description === "string" ? field.description : "";
   const type = typeof field.type === "string" ? field.type : "text";
   const required = field.required !== false;
+  const placeholder = typeof field.placeholder === "string" ? field.placeholder : undefined;
+  const min = typeof field.min === "string" ? field.min : undefined;
+  const max = typeof field.max === "string" ? field.max : undefined;
   if (type === "choice") {
     const options = Array.isArray(field.options) ? field.options.map(asRecord) : [];
     return (
       <label key={path} className={widgetClassName(kind, widgetElementKeys.field, appearance)} style={widgetStyle(kind, widgetElementKeys.field, appearance)}>
         <span className={widgetClassName(kind, widgetElementKeys.fieldLabel, appearance)} style={widgetStyle(kind, widgetElementKeys.fieldLabel, appearance)}>{label}</span>
-        <select className={widgetClassName(kind, widgetElementKeys.input, appearance)} style={widgetStyle(kind, widgetElementKeys.input, appearance)} name={path} required={required}>
+        {description ? <span className={widgetClassName(kind, widgetElementKeys.description, appearance)} style={widgetStyle(kind, widgetElementKeys.description, appearance)}>{description}</span> : null}
+        <select className={widgetClassName(kind, widgetElementKeys.input, appearance)} style={widgetStyle(kind, widgetElementKeys.input, appearance)} name={path} required={required} disabled={disabled}>
           {options.map((option) => {
             const id = typeof option.id === "string" ? option.id : "";
             return <option key={id} value={id}>{typeof option.label === "string" ? option.label : id}</option>;
@@ -159,7 +169,18 @@ function renderFormField(field: Record<string, unknown>, kind: string, appearanc
   return (
     <label key={path} className={widgetClassName(kind, widgetElementKeys.field, appearance)} style={widgetStyle(kind, widgetElementKeys.field, appearance)}>
       <span className={widgetClassName(kind, widgetElementKeys.fieldLabel, appearance)} style={widgetStyle(kind, widgetElementKeys.fieldLabel, appearance)}>{label}</span>
-      <input className={widgetClassName(kind, widgetElementKeys.input, appearance)} style={widgetStyle(kind, widgetElementKeys.input, appearance)} name={path} type={toHtmlInputType(type)} required={required} />
+      {description ? <span className={widgetClassName(kind, widgetElementKeys.description, appearance)} style={widgetStyle(kind, widgetElementKeys.description, appearance)}>{description}</span> : null}
+      <input
+        className={widgetClassName(kind, widgetElementKeys.input, appearance)}
+        style={widgetStyle(kind, widgetElementKeys.input, appearance)}
+        name={path}
+        type={toHtmlInputType(type)}
+        placeholder={placeholder}
+        min={min}
+        max={max}
+        required={required}
+        disabled={disabled}
+      />
     </label>
   );
 }

@@ -13,10 +13,29 @@ export const searchFlights = tool("searchFlights", {
   output: z.object({ flights: z.array(flightSchema) }),
   execute: async ({ input }) => ({
     flights: flights.filter((candidate) => (
-      candidate.origin.toLowerCase() === input.origin.toLowerCase()
-        && candidate.destination.toLowerCase() === input.destination.toLowerCase()
-        && candidate.departureTime.slice(0, 10) === input.departureDate
+      normalizeText(candidate.origin) === normalizeText(input.origin)
+        && normalizeText(candidate.destination) === normalizeText(input.destination)
+        && candidate.departureTime.slice(0, 10) === input.departureDate.trim()
     )),
+  }),
+});
+
+export const suggestFlightOptions = tool("suggestFlightOptions", {
+  description: "List mocked flight alternatives for a route and the whole demo inventory.",
+  input: z.object({
+    origin: z.string().optional(),
+    destination: z.string().optional(),
+  }),
+  output: z.object({
+    routeFlights: z.array(flightSchema),
+    allFlights: z.array(flightSchema),
+  }),
+  execute: async ({ input }) => ({
+    routeFlights: flights.filter((candidate) => (
+      (!input.origin || normalizeText(candidate.origin) === normalizeText(input.origin))
+        && (!input.destination || normalizeText(candidate.destination) === normalizeText(input.destination))
+    )),
+    allFlights: [...flights],
   }),
 });
 
@@ -30,12 +49,13 @@ export const bookFlight = tool("bookFlight", {
     bookingReference: z.string(),
   }),
   sideEffect: true,
-  idempotencyKey: ({ conversationId, input }) => `${conversationId}:${input.selectedFlightId}`,
+  idempotencyKey: ({ conversationId, input }) => `${conversationId}:${normalizeFlightId(input.selectedFlightId)}`,
   execute: async ({ input }) => {
-    const flight = flights.find((candidate) => candidate.id === input.selectedFlightId);
+    const selectedFlightId = normalizeFlightId(input.selectedFlightId);
+    const flight = flights.find((candidate) => candidate.id === selectedFlightId);
     if (!flight) throw new Error(`Unknown mocked flight '${input.selectedFlightId}'.`);
     if (!input.passengerName.trim()) throw new Error("Passenger name is required.");
-    return { bookingReference: `CD-${input.selectedFlightId}-4821` };
+    return { bookingReference: `CD-${selectedFlightId}-4821` };
   },
 });
 
@@ -69,9 +89,18 @@ export const getFlightInfo = tool("getFlightInfo", {
 
 export const flightTools = {
   searchFlights,
+  suggestFlightOptions,
   bookFlight,
   getTicketStatus,
   getFlightInfo,
 };
 
 export type FlightTools = typeof flightTools;
+
+function normalizeText(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function normalizeFlightId(value: string) {
+  return value.trim().toUpperCase();
+}

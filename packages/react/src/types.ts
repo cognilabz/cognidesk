@@ -83,6 +83,7 @@ export interface WidgetRendererProps {
   kind: string;
   input: unknown;
   appearance?: AppearanceConfiguration | undefined;
+  disabled?: boolean;
   submit(output: unknown): void;
 }
 

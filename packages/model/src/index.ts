@@ -2,6 +2,7 @@ import {
   embed,
   generateText,
   Output,
+  streamText,
   tool as aiTool,
   type EmbeddingModel,
   type LanguageModel,
@@ -109,9 +110,15 @@ export function cognideskModel(options: CognideskModelOptions): ModelAdapter {
     model: metadata.modelId,
     promptProfile,
     async generateText(input: TextGenerationInput): Promise<TextGenerationOutput> {
+      if (input.onTextDelta && !input.responseFormat) {
+        return streamCognideskText(options, input);
+      }
+      const prompt = splitSystemMessages(input.messages);
       const result = await generateText({
         model: options.model,
-        messages: input.messages.map(toAiMessage),
+        ...(prompt.system ? { system: prompt.system } : {}),
+        messages: prompt.messages.map(toAiMessage),
+        allowSystemInMessages: false,
         ...(input.responseFormat ? { output: Output.object({ schema: input.responseFormat, name: "cognidesk_response" }) } : {}),
         ...(input.tools?.length ? { tools: toAiTools(input.tools) } : {}),
         ...(input.toolChoice ? { toolChoice: input.toolChoice } : {}),
@@ -135,6 +142,51 @@ export function cognideskModel(options: CognideskModelOptions): ModelAdapter {
           ...(result.finishReason ? { finishReason: result.finishReason } : {}),
         },
       };
+    },
+  };
+}
+
+async function streamCognideskText(
+  options: CognideskModelOptions,
+  input: TextGenerationInput,
+): Promise<TextGenerationOutput> {
+  const prompt = splitSystemMessages(input.messages);
+  const result = streamText({
+    model: options.model,
+    ...(prompt.system ? { system: prompt.system } : {}),
+    messages: prompt.messages.map(toAiMessage),
+    allowSystemInMessages: false,
+    ...(input.tools?.length ? { tools: toAiTools(input.tools) } : {}),
+    ...(input.toolChoice ? { toolChoice: input.toolChoice } : {}),
+    ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
+    ...(options.maxOutputTokens !== undefined ? { maxOutputTokens: options.maxOutputTokens } : {}),
+    ...(options.headers ? { headers: options.headers } : {}),
+    ...(options.providerOptions ? { providerOptions: options.providerOptions } : {}),
+    ...(input.signal ? { abortSignal: input.signal } : {}),
+  } as unknown as Parameters<typeof streamText>[0]);
+
+  let text = "";
+  for await (const delta of result.textStream) {
+    text += delta;
+    await input.onTextDelta?.(delta);
+  }
+  const [toolCalls, usage, providerMetadata, response, finishReason] = await Promise.all([
+    result.toolCalls,
+    result.totalUsage,
+    result.providerMetadata,
+    result.response,
+    result.finishReason,
+  ]);
+
+  return {
+    text,
+    ...(toolCalls.length > 0 ? { toolCalls: toolCalls.map(toModelToolCall) } : {}),
+    usage: mapLanguageUsage(usage),
+    providerMetadata: {
+      ...(response.id ? { id: response.id } : {}),
+      ...(response.modelId ? { model: response.modelId } : {}),
+      ...(providerMetadata ? { provider: providerMetadata } : {}),
+      ...(finishReason ? { finishReason } : {}),
     },
   };
 }
@@ -204,6 +256,18 @@ function normalizeEmbeddingRoleEntry(entry: EmbeddingModelRoleEntry): CognideskE
 
 function isConfiguredRoleEntry(entry: unknown): entry is { model: unknown } {
   return typeof entry === "object" && entry !== null && "model" in entry;
+}
+
+function splitSystemMessages(messages: ModelMessage[]) {
+  const system = messages
+    .filter((message) => message.role === "system")
+    .map((message) => message.content.trim())
+    .filter(Boolean)
+    .join("\n\n");
+  return {
+    ...(system ? { system } : {}),
+    messages: messages.filter((message) => message.role !== "system"),
+  };
 }
 
 function inferModelMetadata(

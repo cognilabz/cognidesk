@@ -38,6 +38,7 @@ export interface TextGenerationInput {
   responseFormat?: z.ZodType;
   tools?: ModelToolDefinition[];
   toolChoice?: "auto" | "none" | "required";
+  onTextDelta?(delta: string): void | Promise<void>;
   signal?: AbortSignal;
 }
 

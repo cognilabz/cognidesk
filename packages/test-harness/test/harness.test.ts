@@ -126,6 +126,102 @@ describe("CognideskTestHarness", () => {
     expect(result.passed).toBe(true);
   });
 
+  it("can run scripted widget submissions against an open prompt", async () => {
+    const sentWidgets: unknown[] = [];
+    const harness = createTestHarness({
+      client: {
+        createConversation: async () => ({ id: "conversation_1" }),
+        sendMessage: async () => ({
+          text: "Please use the form.",
+          activeJourneyId: "book-flight",
+          events: [{
+            id: "event_1",
+            conversationId: "conversation_1",
+            offset: 1,
+            type: "ui.prompted",
+            createdAt: "2026-05-25T00:00:00.000Z",
+            data: {
+              promptId: "fields:book-flight:collectRoute",
+              widgetKind: "form",
+              input: { title: "Missing details", fields: [] },
+            },
+          }],
+        }),
+        submitWidget: async (input) => {
+          sentWidgets.push(input.output);
+          return {
+            event: {
+              id: "event_2",
+              conversationId: "conversation_1",
+              offset: 2,
+              type: "ui.submitted",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: {
+                promptId: input.promptId,
+                widgetKind: input.widgetKind,
+                output: input.output,
+              },
+            },
+            events: [{
+              id: "event_2",
+              conversationId: "conversation_1",
+              offset: 2,
+              type: "ui.submitted",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: {
+                promptId: input.promptId,
+                widgetKind: input.widgetKind,
+                output: input.output,
+              },
+            }, {
+              id: "event_3",
+              conversationId: "conversation_1",
+              offset: 3,
+              type: "tool.completed",
+              createdAt: "2026-05-25T00:00:00.000Z",
+              data: { toolName: "searchFlights", success: true, result: { flights: [{ id: "CL102" }] } },
+            }],
+          };
+        },
+      },
+    });
+
+    const result = await harness.runScenario({
+      id: "widget-route-form",
+      agentId: "flight-service",
+      user: {
+        identity: "Traveller",
+        goal: "Submit route details",
+        scriptedTurns: [
+          "I need to book a flight.",
+          {
+            type: "widget",
+            output: {
+              values: {
+                origin: "Vienna",
+                destination: "Berlin",
+                departureDate: "2026-05-27",
+              },
+            },
+          },
+        ],
+      },
+      assertions: [
+        { id: "form-submitted", type: "eventEmitted", eventType: "ui.submitted" },
+        { id: "search-completed", type: "eventEmitted", eventType: "tool.completed" },
+      ],
+    });
+
+    expect(sentWidgets).toEqual([{
+      values: {
+        origin: "Vienna",
+        destination: "Berlin",
+        departureDate: "2026-05-27",
+      },
+    }]);
+    expect(result.passed).toBe(true);
+  });
+
   it("marks invalid scenarios as errors instead of false-green passes", async () => {
     const harness = createTestHarness({
       client: {

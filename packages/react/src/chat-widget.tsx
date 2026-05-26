@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
+import { Streamdown } from "streamdown";
 import type { AppearanceConfiguration } from "@cognidesk/ui";
 import {
   elementKeys,
@@ -15,6 +16,7 @@ export function ChatWidget(props: ChatWidgetProps) {
   const chat = useChat(props);
   const [draft, setDraft] = useState("");
   const appearance = props.appearance;
+  const busy = chat.status === "starting" || chat.status === "sending";
   const widgets = useMemo(() => ({
     ...defaultWidgetRenderers,
     ...props.widgets,
@@ -34,7 +36,13 @@ export function ChatWidget(props: ChatWidgetProps) {
           {props.title}
         </div>
       ) : null}
-      <div className={resolveElementClassName(elementKeys.messageList, appearance)} style={resolveInlineStyle(elementKeys.messageList, appearance)}>
+      <div
+        className={resolveElementClassName(elementKeys.messageList, appearance)}
+        style={resolveInlineStyle(elementKeys.messageList, appearance)}
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions text"
+      >
         {chat.messages.map((message) => (
           <div
             key={message.id}
@@ -60,6 +68,7 @@ export function ChatWidget(props: ChatWidgetProps) {
                 promptId: prompt.promptId,
                 kind: prompt.kind,
                 input: prompt.input,
+                disabled: busy,
                 ...(appearance ? { appearance } : {}),
                 submit: (output) => {
                   void chat.submitWidget({
@@ -80,15 +89,16 @@ export function ChatWidget(props: ChatWidgetProps) {
           className={resolveElementClassName(elementKeys.composerInput, appearance)}
           style={resolveInlineStyle(elementKeys.composerInput, appearance)}
           value={draft}
+          aria-label="Message"
           placeholder={props.placeholder ?? "Message..."}
           onChange={(event) => setDraft(event.currentTarget.value)}
-          disabled={chat.status === "starting"}
+          disabled={busy}
         />
         <button
           className={resolveElementClassName(elementKeys.composerSendButton, appearance)}
           style={resolveInlineStyle(elementKeys.composerSendButton, appearance)}
           type="submit"
-          disabled={chat.status === "starting" || draft.trim().length === 0}
+          disabled={busy || draft.trim().length === 0}
         >
           Send
         </button>
@@ -103,12 +113,26 @@ export function ChatWidget(props: ChatWidgetProps) {
 }
 
 function MessageContent(props: { message: ChatMessage; appearance: AppearanceConfiguration | undefined }) {
-  if (!props.message.segments?.length) return <>{props.message.text}</>;
+  if (props.message.role === "user") return <>{props.message.text}</>;
+  const isAnimating = props.message.role === "assistant" && props.message.status === "streaming";
+  if (!props.message.segments?.length) {
+    return (
+      <Streamdown isAnimating={isAnimating}>
+        {props.message.text}
+      </Streamdown>
+    );
+  }
   return (
     <>
       {props.message.segments.map((segment) => {
         const title = formatSupportReferences(segment.references);
-        if (!title) return <span key={segment.id}>{segment.text}</span>;
+        if (!title) {
+          return (
+            <Streamdown key={segment.id} isAnimating={isAnimating}>
+              {segment.text}
+            </Streamdown>
+          );
+        }
         return (
           <span
             key={segment.id}
@@ -116,7 +140,9 @@ function MessageContent(props: { message: ChatMessage; appearance: AppearanceCon
             style={resolveInlineStyle(elementKeys.messageSourceSegment, props.appearance)}
             title={title}
           >
-            {segment.text}
+            <Streamdown isAnimating={isAnimating}>
+              {segment.text}
+            </Streamdown>
           </span>
         );
       })}

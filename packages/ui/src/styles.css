@@ -71,12 +71,47 @@
 .cd-message-assistant {
   align-self: flex-start;
   background: var(--cd-color-message-assistant);
+  white-space: normal;
 }
 
 .cd-message-user {
   align-self: flex-end;
   background: var(--cd-color-message-user);
   color: var(--cd-color-primary-contrast);
+  white-space: pre-wrap;
+}
+
+.cd-message p,
+.cd-message ul,
+.cd-message ol,
+.cd-message pre {
+  margin-block: 0.35rem;
+}
+
+.cd-message p:first-child,
+.cd-message ul:first-child,
+.cd-message ol:first-child,
+.cd-message pre:first-child {
+  margin-top: 0;
+}
+
+.cd-message p:last-child,
+.cd-message ul:last-child,
+.cd-message ol:last-child,
+.cd-message pre:last-child {
+  margin-bottom: 0;
+}
+
+.cd-message ul,
+.cd-message ol {
+  padding-left: 1.25rem;
+}
+
+.cd-message code {
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--cd-color-border) 55%, transparent);
+  padding: 0.05rem 0.2rem;
+  font-size: 0.875em;
 }
 
 .cd-message-source-segment {
@@ -143,6 +178,13 @@
   border-color: var(--cd-color-primary);
   background: var(--cd-color-primary);
   color: var(--cd-color-primary-contrast);
+}
+
+.cd-widget-button:disabled,
+.cd-widget-choice:disabled,
+.cd-widget-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .cd-widget-input {
