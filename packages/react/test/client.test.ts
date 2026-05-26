@@ -453,10 +453,20 @@ describe("createCognideskClient", () => {
         title: "Confirm booking",
         message: "Book flight OS123?",
       },
+      appearance: {
+        widgets: {
+          confirmation: {
+            elements: {
+              panel: "custom-panel",
+            },
+          },
+        },
+      },
       submit: () => {},
     });
 
     expect(isValidElement(rendered)).toBe(true);
+    expect(isValidElement(rendered) ? String((rendered.props as { className?: string }).className) : "").toContain("custom-panel");
     expect(Object.keys(defaultWidgetRenderers).sort()).toEqual([
       "choice",
       "confirmation",

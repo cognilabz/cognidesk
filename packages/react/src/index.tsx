@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { MessageSegment, RuntimeEvent, SupportReference } from "@cognidesk/core";
 import type { AppearanceConfiguration } from "@cognidesk/ui";
-import { elementKeys, resolveElementClassName, resolveInlineStyle } from "@cognidesk/ui";
+import {
+  elementKeys,
+  resolveElementClassName,
+  resolveInlineStyle,
+  resolveWidgetElementClassName,
+  resolveWidgetInlineStyle,
+  widgetElementKeys,
+} from "@cognidesk/ui";
 
 export interface CognideskClientOptions {
   baseUrl: string;
@@ -91,6 +98,7 @@ export interface WidgetRendererProps {
   promptId: string;
   kind: string;
   input: unknown;
+  appearance?: AppearanceConfiguration | undefined;
   submit(output: unknown): void;
 }
 
@@ -551,7 +559,11 @@ export function ChatWidget(props: ChatWidgetProps) {
 
   return (
     <div className={resolveElementClassName(elementKeys.root, appearance)} style={resolveInlineStyle(elementKeys.root, appearance)}>
-      {props.title ? <div className="cd-header">{props.title}</div> : null}
+      {props.title ? (
+        <div className={resolveElementClassName(elementKeys.header, appearance)} style={resolveInlineStyle(elementKeys.header, appearance)}>
+          {props.title}
+        </div>
+      ) : null}
       <div className={resolveElementClassName(elementKeys.messageList, appearance)} style={resolveInlineStyle(elementKeys.messageList, appearance)}>
         {chat.messages.map((message) => (
           <div
@@ -569,11 +581,16 @@ export function ChatWidget(props: ChatWidgetProps) {
           const Widget = widgets[prompt.kind];
           if (!Widget) return null;
           return (
-            <div key={prompt.promptId} className="cd-widget">
+            <div
+              key={prompt.promptId}
+              className={resolveElementClassName(elementKeys.widgetContainer, appearance)}
+              style={resolveInlineStyle(elementKeys.widgetContainer, appearance)}
+            >
               {Widget({
                 promptId: prompt.promptId,
                 kind: prompt.kind,
                 input: prompt.input,
+                ...(appearance ? { appearance } : {}),
                 submit: (output) => {
                   props.onWidgetSubmit?.({ promptId: prompt.promptId, kind: prompt.kind, output });
                   if (!chat.conversationId) {
@@ -609,56 +626,72 @@ export function ChatWidget(props: ChatWidgetProps) {
           Send
         </button>
       </form>
-      {chat.error ? <div className="cd-error">{chat.error.message}</div> : null}
+      {chat.error ? (
+        <div className={resolveElementClassName(elementKeys.error, appearance)} style={resolveInlineStyle(elementKeys.error, appearance)}>
+          {chat.error.message}
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export const defaultWidgetRenderers: WidgetRendererMap = {
-  confirmation: ({ input, submit }) => {
+  confirmation: ({ input, submit, kind, appearance }) => {
     const data = asRecord(input);
     return (
-      <div className="cd-widget-panel">
-        {typeof data.title === "string" ? <div className="cd-widget-title">{data.title}</div> : null}
-        {typeof data.message === "string" ? <div className="cd-widget-description">{data.message}</div> : null}
-        <div className="cd-widget-actions">
-          <button className="cd-widget-button cd-widget-button-primary" type="button" onClick={() => submit({ confirmed: true })}>
+      <div className={widgetClassName(kind, widgetElementKeys.panel, appearance)} style={widgetStyle(kind, widgetElementKeys.panel, appearance)}>
+        {typeof data.title === "string" ? (
+          <div className={widgetClassName(kind, widgetElementKeys.title, appearance)} style={widgetStyle(kind, widgetElementKeys.title, appearance)}>
+            {data.title}
+          </div>
+        ) : null}
+        {typeof data.message === "string" ? (
+          <div className={widgetClassName(kind, widgetElementKeys.description, appearance)} style={widgetStyle(kind, widgetElementKeys.description, appearance)}>
+            {data.message}
+          </div>
+        ) : null}
+        <div className={widgetClassName(kind, widgetElementKeys.actions, appearance)} style={widgetStyle(kind, widgetElementKeys.actions, appearance)}>
+          <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="button" onClick={() => submit({ confirmed: true })}>
             {typeof data.confirmLabel === "string" ? data.confirmLabel : "Confirm"}
           </button>
-          <button className="cd-widget-button" type="button" onClick={() => submit({ confirmed: false })}>
+          <button className={widgetClassName(kind, widgetElementKeys.button, appearance)} style={widgetStyle(kind, widgetElementKeys.button, appearance)} type="button" onClick={() => submit({ confirmed: false })}>
             {typeof data.cancelLabel === "string" ? data.cancelLabel : "Cancel"}
           </button>
         </div>
       </div>
     );
   },
-  "text-input": ({ input, submit }) => {
+  "text-input": ({ input, submit, kind, appearance }) => {
     const data = asRecord(input);
     return (
-      <form className="cd-widget-panel" onSubmit={(event) => {
+      <form className={widgetClassName(kind, widgetElementKeys.panel, appearance)} style={widgetStyle(kind, widgetElementKeys.panel, appearance)} onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         submit({ value: String(form.get("value") ?? "") });
       }}>
-        <WidgetLabel input={data} />
-        <input className="cd-widget-input" name="value" placeholder={typeof data.placeholder === "string" ? data.placeholder : undefined} />
-        <button className="cd-widget-button cd-widget-button-primary" type="submit">Submit</button>
+        <WidgetLabel input={data} kind={kind} appearance={appearance} />
+        <input className={widgetClassName(kind, widgetElementKeys.input, appearance)} style={widgetStyle(kind, widgetElementKeys.input, appearance)} name="value" placeholder={typeof data.placeholder === "string" ? data.placeholder : undefined} />
+        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit">Submit</button>
       </form>
     );
   },
-  choice: ({ input, submit }) => {
+  choice: ({ input, submit, kind, appearance }) => {
     const data = asRecord(input);
     const options = Array.isArray(data.options) ? data.options.map(asRecord) : [];
     return (
-      <div className="cd-widget-panel">
-        <WidgetLabel input={data} />
-        <div className="cd-widget-choice-list">
+      <div className={widgetClassName(kind, widgetElementKeys.panel, appearance)} style={widgetStyle(kind, widgetElementKeys.panel, appearance)}>
+        <WidgetLabel input={data} kind={kind} appearance={appearance} />
+        <div className={widgetClassName(kind, widgetElementKeys.choiceList, appearance)} style={widgetStyle(kind, widgetElementKeys.choiceList, appearance)}>
           {options.map((option) => {
             const id = typeof option.id === "string" ? option.id : "";
             return (
-              <button key={id} className="cd-widget-choice" type="button" onClick={() => submit({ selectedId: id })}>
-                <span className="cd-widget-choice-label">{typeof option.label === "string" ? option.label : id}</span>
-                {typeof option.description === "string" ? <span className="cd-widget-choice-description">{option.description}</span> : null}
+              <button key={id} className={widgetClassName(kind, widgetElementKeys.choice, appearance)} style={widgetStyle(kind, widgetElementKeys.choice, appearance)} type="button" onClick={() => submit({ selectedId: id })}>
+                <span className={widgetClassName(kind, widgetElementKeys.choiceLabel, appearance)} style={widgetStyle(kind, widgetElementKeys.choiceLabel, appearance)}>{typeof option.label === "string" ? option.label : id}</span>
+                {typeof option.description === "string" ? (
+                  <span className={widgetClassName(kind, widgetElementKeys.choiceDescription, appearance)} style={widgetStyle(kind, widgetElementKeys.choiceDescription, appearance)}>
+                    {option.description}
+                  </span>
+                ) : null}
               </button>
             );
           })}
@@ -666,31 +699,32 @@ export const defaultWidgetRenderers: WidgetRendererMap = {
       </div>
     );
   },
-  "date-picker": ({ input, submit }) => {
+  "date-picker": ({ input, submit, kind, appearance }) => {
     const data = asRecord(input);
     return (
-      <form className="cd-widget-panel" onSubmit={(event) => {
+      <form className={widgetClassName(kind, widgetElementKeys.panel, appearance)} style={widgetStyle(kind, widgetElementKeys.panel, appearance)} onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         submit({ value: String(form.get("value") ?? "") });
       }}>
-        <WidgetLabel input={data} />
+        <WidgetLabel input={data} kind={kind} appearance={appearance} />
         <input
-          className="cd-widget-input"
+          className={widgetClassName(kind, widgetElementKeys.input, appearance)}
+          style={widgetStyle(kind, widgetElementKeys.input, appearance)}
           name="value"
           type="date"
           min={typeof data.min === "string" ? data.min : undefined}
           max={typeof data.max === "string" ? data.max : undefined}
         />
-        <button className="cd-widget-button cd-widget-button-primary" type="submit">Submit</button>
+        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit">Submit</button>
       </form>
     );
   },
-  form: ({ input, submit }) => {
+  form: ({ input, submit, kind, appearance }) => {
     const data = asRecord(input);
     const fields = Array.isArray(data.fields) ? data.fields.map(asRecord) : [];
     return (
-      <form className="cd-widget-panel" onSubmit={(event) => {
+      <form className={widgetClassName(kind, widgetElementKeys.panel, appearance)} style={widgetStyle(kind, widgetElementKeys.panel, appearance)} onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         const values: Record<string, unknown> = {};
@@ -701,11 +735,15 @@ export const defaultWidgetRenderers: WidgetRendererMap = {
         }
         submit({ values });
       }}>
-        {typeof data.title === "string" ? <div className="cd-widget-title">{data.title}</div> : null}
-        <div className="cd-widget-fields">
-          {fields.map((field) => renderFormField(field))}
+        {typeof data.title === "string" ? (
+          <div className={widgetClassName(kind, widgetElementKeys.title, appearance)} style={widgetStyle(kind, widgetElementKeys.title, appearance)}>
+            {data.title}
+          </div>
+        ) : null}
+        <div className={widgetClassName(kind, widgetElementKeys.fields, appearance)} style={widgetStyle(kind, widgetElementKeys.fields, appearance)}>
+          {fields.map((field) => renderFormField(field, kind, appearance))}
         </div>
-        <button className="cd-widget-button cd-widget-button-primary" type="submit">Submit</button>
+        <button className={widgetClassName(kind, widgetElementKeys.primaryButton, appearance)} style={widgetStyle(kind, widgetElementKeys.primaryButton, appearance)} type="submit">Submit</button>
       </form>
     );
   },
@@ -733,16 +771,24 @@ function MessageContent(props: { message: ChatMessage; appearance: AppearanceCon
   );
 }
 
-function WidgetLabel(props: { input: Record<string, unknown> }) {
+function WidgetLabel(props: { input: Record<string, unknown>; kind: string; appearance?: AppearanceConfiguration | undefined }) {
   return (
     <div>
-      {typeof props.input.label === "string" ? <label className="cd-widget-title">{props.input.label}</label> : null}
-      {typeof props.input.description === "string" ? <div className="cd-widget-description">{props.input.description}</div> : null}
+      {typeof props.input.label === "string" ? (
+        <label className={widgetClassName(props.kind, widgetElementKeys.title, props.appearance)} style={widgetStyle(props.kind, widgetElementKeys.title, props.appearance)}>
+          {props.input.label}
+        </label>
+      ) : null}
+      {typeof props.input.description === "string" ? (
+        <div className={widgetClassName(props.kind, widgetElementKeys.description, props.appearance)} style={widgetStyle(props.kind, widgetElementKeys.description, props.appearance)}>
+          {props.input.description}
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function renderFormField(field: Record<string, unknown>) {
+function renderFormField(field: Record<string, unknown>, kind: string, appearance: AppearanceConfiguration | undefined) {
   const path = typeof field.path === "string" ? field.path : "";
   const label = typeof field.label === "string" ? field.label : path;
   const type = typeof field.type === "string" ? field.type : "text";
@@ -750,9 +796,9 @@ function renderFormField(field: Record<string, unknown>) {
   if (type === "choice") {
     const options = Array.isArray(field.options) ? field.options.map(asRecord) : [];
     return (
-      <label key={path} className="cd-widget-field">
-        <span className="cd-widget-field-label">{label}</span>
-        <select className="cd-widget-input" name={path} required={required}>
+      <label key={path} className={widgetClassName(kind, widgetElementKeys.field, appearance)} style={widgetStyle(kind, widgetElementKeys.field, appearance)}>
+        <span className={widgetClassName(kind, widgetElementKeys.fieldLabel, appearance)} style={widgetStyle(kind, widgetElementKeys.fieldLabel, appearance)}>{label}</span>
+        <select className={widgetClassName(kind, widgetElementKeys.input, appearance)} style={widgetStyle(kind, widgetElementKeys.input, appearance)} name={path} required={required}>
           {options.map((option) => {
             const id = typeof option.id === "string" ? option.id : "";
             return <option key={id} value={id}>{typeof option.label === "string" ? option.label : id}</option>;
@@ -762,11 +808,19 @@ function renderFormField(field: Record<string, unknown>) {
     );
   }
   return (
-    <label key={path} className="cd-widget-field">
-      <span className="cd-widget-field-label">{label}</span>
-      <input className="cd-widget-input" name={path} type={toHtmlInputType(type)} required={required} />
+    <label key={path} className={widgetClassName(kind, widgetElementKeys.field, appearance)} style={widgetStyle(kind, widgetElementKeys.field, appearance)}>
+      <span className={widgetClassName(kind, widgetElementKeys.fieldLabel, appearance)} style={widgetStyle(kind, widgetElementKeys.fieldLabel, appearance)}>{label}</span>
+      <input className={widgetClassName(kind, widgetElementKeys.input, appearance)} style={widgetStyle(kind, widgetElementKeys.input, appearance)} name={path} type={toHtmlInputType(type)} required={required} />
     </label>
   );
+}
+
+function widgetClassName(kind: string, key: keyof typeof widgetElementKeys, appearance: AppearanceConfiguration | undefined) {
+  return resolveWidgetElementClassName(kind, key, appearance);
+}
+
+function widgetStyle(kind: string, key: keyof typeof widgetElementKeys, appearance: AppearanceConfiguration | undefined) {
+  return resolveWidgetInlineStyle(kind, key, appearance);
 }
 
 function toHtmlInputType(type: string) {

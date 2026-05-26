@@ -1,13 +1,16 @@
+export type AppearanceElementValue = string | Record<string, string | number>;
+
 export type AppearanceConfiguration = {
   variables?: Record<string, string>;
-  elements?: Record<string, string | Record<string, string | number>>;
+  elements?: Partial<Record<ElementKey | WidgetElementKey, AppearanceElementValue>>;
   widgets?: Record<string, {
-    elements?: Record<string, string | Record<string, string | number>>;
+    elements?: Partial<Record<WidgetElementKey, AppearanceElementValue>>;
   }>;
 };
 
 export const elementKeys = {
   root: "root",
+  header: "header",
   messageList: "messageList",
   messageAssistant: "messageAssistant",
   messageSourceSegment: "messageSourceSegment",
@@ -16,12 +19,34 @@ export const elementKeys = {
   composerInput: "composerInput",
   composerSendButton: "composerSendButton",
   widgetOutlet: "widgetOutlet",
+  widgetContainer: "widgetContainer",
+  error: "error",
 } as const;
 
 export type ElementKey = keyof typeof elementKeys;
 
+export const widgetElementKeys = {
+  panel: "panel",
+  title: "title",
+  description: "description",
+  actions: "actions",
+  button: "button",
+  primaryButton: "primaryButton",
+  input: "input",
+  choiceList: "choiceList",
+  choice: "choice",
+  choiceLabel: "choiceLabel",
+  choiceDescription: "choiceDescription",
+  fields: "fields",
+  field: "field",
+  fieldLabel: "fieldLabel",
+} as const;
+
+export type WidgetElementKey = keyof typeof widgetElementKeys;
+
 const defaultClassNames: Record<ElementKey, string> = {
   root: "cd-root",
+  header: "cd-header",
   messageList: "cd-message-list",
   messageAssistant: "cd-message cd-message-assistant",
   messageSourceSegment: "cd-message-source-segment",
@@ -30,15 +55,32 @@ const defaultClassNames: Record<ElementKey, string> = {
   composerInput: "cd-composer-input",
   composerSendButton: "cd-composer-send-button",
   widgetOutlet: "cd-widget-outlet",
+  widgetContainer: "cd-widget",
+  error: "cd-error",
+};
+
+const defaultWidgetClassNames: Record<WidgetElementKey, string> = {
+  panel: "cd-widget-panel",
+  title: "cd-widget-title",
+  description: "cd-widget-description",
+  actions: "cd-widget-actions",
+  button: "cd-widget-button",
+  primaryButton: "cd-widget-button cd-widget-button-primary",
+  input: "cd-widget-input",
+  choiceList: "cd-widget-choice-list",
+  choice: "cd-widget-choice",
+  choiceLabel: "cd-widget-choice-label",
+  choiceDescription: "cd-widget-choice-description",
+  fields: "cd-widget-fields",
+  field: "cd-widget-field",
+  fieldLabel: "cd-widget-field-label",
 };
 
 export function resolveElementClassName(
   key: ElementKey,
   appearance?: AppearanceConfiguration,
 ) {
-  const configured = appearance?.elements?.[key];
-  if (typeof configured === "string") return `${defaultClassNames[key]} ${configured}`;
-  return defaultClassNames[key];
+  return resolveClassName(defaultClassNames[key], appearance?.elements?.[key]);
 }
 
 export function resolveInlineStyle(
@@ -46,9 +88,48 @@ export function resolveInlineStyle(
   appearance?: AppearanceConfiguration,
 ) {
   const configured = appearance?.elements?.[key];
-  const elementStyle = typeof configured === "object" ? configured : {};
+  return resolveStyle(appearance, configured);
+}
+
+export function resolveWidgetElementClassName(
+  widgetKind: string,
+  key: WidgetElementKey,
+  appearance?: AppearanceConfiguration,
+) {
+  return resolveClassName(
+    defaultWidgetClassNames[key],
+    appearance?.elements?.[key],
+    appearance?.widgets?.[widgetKind]?.elements?.[key],
+  );
+}
+
+export function resolveWidgetInlineStyle(
+  widgetKind: string,
+  key: WidgetElementKey,
+  appearance?: AppearanceConfiguration,
+) {
+  return resolveStyle(
+    appearance,
+    appearance?.elements?.[key],
+    appearance?.widgets?.[widgetKind]?.elements?.[key],
+  );
+}
+
+function resolveClassName(defaultClassName: string, ...values: Array<AppearanceElementValue | undefined>) {
+  const configuredClassNames = values.filter((value): value is string => typeof value === "string");
+  return configuredClassNames.length > 0
+    ? [defaultClassName, ...configuredClassNames].join(" ")
+    : defaultClassName;
+}
+
+function resolveStyle(
+  appearance: AppearanceConfiguration | undefined,
+  ...values: Array<AppearanceElementValue | undefined>
+) {
   return {
     ...appearance?.variables,
-    ...elementStyle,
+    ...Object.assign({}, ...values.filter((value): value is Record<string, string | number> => (
+      typeof value === "object" && value !== null
+    ))),
   };
 }
