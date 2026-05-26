@@ -84,7 +84,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   text: string;
   segments?: MessageSegment[];
-  status: "sending" | "sent" | "failed" | "aborted";
+  status: "sending" | "streaming" | "sent" | "failed" | "aborted";
 }
 
 export interface WidgetRendererProps {
@@ -313,10 +313,74 @@ export function reduceChatRuntimeEvent(
   event: RuntimeEvent,
 ): ChatEventReducerState {
   const lastOffset = Math.max(state.lastOffset, event.offset);
+  if (event.type === "message.started" && event.data.role === "assistant") {
+    if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset };
+    const last = state.messages.at(-1);
+    if (last?.role === "assistant" && last.status === "streaming") return { ...state, lastOffset };
+    return {
+      ...state,
+      lastOffset,
+      messages: [
+        ...state.messages,
+        {
+          id: event.id,
+          role: "assistant",
+          text: "",
+          status: "streaming",
+        },
+      ],
+    };
+  }
+  if (event.type === "message.delta") {
+    const last = state.messages.at(-1);
+    if (last?.role === "assistant" && last.status === "streaming") {
+      return {
+        ...state,
+        lastOffset,
+        messages: [
+          ...state.messages.slice(0, -1),
+          {
+            ...last,
+            text: `${last.text}${event.data.textDelta}`,
+          },
+        ],
+      };
+    }
+    return {
+      ...state,
+      lastOffset,
+      messages: [
+        ...state.messages,
+        {
+          id: event.id,
+          role: "assistant",
+          text: event.data.textDelta,
+          status: "streaming",
+        },
+      ],
+    };
+  }
   if (event.type === "message.completed") {
     if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset };
     const role = inferMessageRole(event, state.messages);
     if (role !== "assistant") return { ...state, lastOffset };
+    const last = state.messages.at(-1);
+    if (last?.role === "assistant" && last.status === "streaming") {
+      return {
+        ...state,
+        lastOffset,
+        messages: [
+          ...state.messages.slice(0, -1),
+          {
+            id: event.id,
+            role,
+            text: event.data.text,
+            ...(event.data.segments ? { segments: event.data.segments } : {}),
+            status: "sent",
+          },
+        ],
+      };
+    }
     return {
       ...state,
       lastOffset,
@@ -334,6 +398,22 @@ export function reduceChatRuntimeEvent(
   }
   if (event.type === "message.aborted") {
     if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset };
+    const last = state.messages.at(-1);
+    if (last?.role === "assistant" && last.status === "streaming") {
+      return {
+        ...state,
+        lastOffset,
+        messages: [
+          ...state.messages.slice(0, -1),
+          {
+            id: event.id,
+            role: "assistant",
+            text: "Response interrupted.",
+            status: "aborted",
+          },
+        ],
+      };
+    }
     return {
       ...state,
       lastOffset,

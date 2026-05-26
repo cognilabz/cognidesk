@@ -377,6 +377,72 @@ describe("createCognideskClient", () => {
     expect(submitted.lastOffset).toBe(4);
   });
 
+  it("reduces assistant message deltas into one streaming message", () => {
+    const started = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "message.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { role: "assistant" },
+    });
+    const firstDelta = reduceChatRuntimeEvent(started, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "message.delta",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { textDelta: "Ticket " },
+    });
+    const secondDelta = reduceChatRuntimeEvent(firstDelta, {
+      id: "event_3",
+      conversationId: "conversation_1",
+      offset: 3,
+      type: "message.delta",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { textDelta: "confirmed." },
+    });
+    const completed = reduceChatRuntimeEvent(secondDelta, {
+      id: "event_4",
+      conversationId: "conversation_1",
+      offset: 4,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        text: "Ticket confirmed.",
+        segments: [{
+          id: "segment_1",
+          text: "Ticket confirmed.",
+          references: [{ type: "knowledge", id: "faq-ticket-status" }],
+        }],
+      },
+    });
+
+    expect(started.messages).toEqual([{
+      id: "event_1",
+      role: "assistant",
+      text: "",
+      status: "streaming",
+    }]);
+    expect(secondDelta.messages).toEqual([{
+      id: "event_1",
+      role: "assistant",
+      text: "Ticket confirmed.",
+      status: "streaming",
+    }]);
+    expect(completed.messages).toEqual([{
+      id: "event_4",
+      role: "assistant",
+      text: "Ticket confirmed.",
+      segments: [{
+        id: "segment_1",
+        text: "Ticket confirmed.",
+        references: [{ type: "knowledge", id: "faq-ticket-status" }],
+      }],
+      status: "sent",
+    }]);
+  });
+
   it("exports default renderers for built-in widgets", () => {
     const confirmation = defaultWidgetRenderers.confirmation;
     expect(confirmation).toBeDefined();
