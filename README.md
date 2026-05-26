@@ -51,10 +51,19 @@ agentBuilder.customEvents.add(leadCaptured);
 
 const status = agentBuilder.stateMachineJourney("ticket-status", {
   condition: "Customer wants ticket status",
+  examples: ["Can you check ticket ABC123?"],
+  includeWhen: ({ app, turn }) => app.channel !== "public-kiosk" && turn.allowTicketStatus !== false,
   context: z.object({
     bookingReference: z.string().optional(),
     ticketStatus: z.string().optional(),
   }),
+  contextReuse: {
+    fields: ["bookingReference"],
+    when: ({ previousContext, turn }) => (
+      previousContext.bookingReference !== undefined
+      && turn.reusePreviousTicket === true
+    ),
+  },
 });
 const states = status.defineStates("identify", "lookup");
 const identify = states.get("identify").collect("bookingReference");
@@ -64,12 +73,23 @@ const lookup = states.get("lookup").runTool(findTicket, {
 });
 status.initial(identify);
 identify.transitionTo(lookup);
+status.alternateEntry(lookup, {
+  description: "Skip identification when the ticket reference was safely reused.",
+  priority: 10,
+  when: ({ context }) => context.bookingReference !== undefined,
+});
 
 const agent = agentBuilder.compile();
 const models = /* OpenAI, OpenRouter, or app-provided ModelAdapter set */;
 const storage = createSqliteStorage({ filename: "support.sqlite" });
 const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
-const runtime = createRuntime({ storage, agent, models, journeyIndex });
+const runtime = createRuntime({
+  storage,
+  agent,
+  models,
+  journeyIndex,
+  streaming: { syntheticDeltas: true },
+});
 await runtime.initialize();
 const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
 await runtime.emitCustomEvent({
@@ -81,7 +101,7 @@ await runtime.emitCustomEvent({
 const http = createCognideskHttpHandler({ runtime, agentId: agent.id, basePath: "/api" });
 ```
 
-Core remains transport-neutral. The HTTP package exposes POST message submission, widget submissions, custom events, Journey Events, intermediate messages, generated wait-time preambles, handoff requests, event history, Event Replay, and SSE event streaming. The React package provides `createCognideskClient`, `useChat`, and `ChatWidget`; assistant message segments can carry knowledge/tool references for source hovers.
+Core remains transport-neutral. The HTTP package exposes POST message submission, widget submissions, custom events, Journey Events, intermediate messages, generated wait-time preambles, handoff requests, event history, Event Replay, and SSE event streaming. The React package provides `createCognideskClient`, `useChat`, and `ChatWidget`; assistant message segments can carry knowledge/tool references for source hovers, and optional `message.delta` events let clients render streaming text before final citation segments arrive.
 
 Journey guards can block activation or continuation with structured remediation:
 
@@ -122,6 +142,32 @@ const httpWithEvents = createCognideskHttpHandler({
   customEvents: [leadCaptured],
   journeyEvents: [ticketSynced],
 });
+```
+
+React widgets can be replaced by kind and styled through an Appearance Configuration:
+
+```tsx
+<ChatWidget
+  client={client}
+  agentId="flight-support"
+  appearance={{
+    variables: { "--cd-color-primary": "#0f172a" },
+    elements: { root: "shadow-lg" },
+    widgets: {
+      confirmation: {
+        elements: {
+          panel: "rounded-md border p-3",
+          primaryButton: "bg-emerald-700",
+        },
+      },
+    },
+  }}
+  widgets={{
+    "seat-map": ({ input, submit }) => (
+      <SeatMap value={input} onSelect={(seatId) => submit({ seatId })} />
+    ),
+  }}
+/>
 ```
 
 ## Flight Demo
