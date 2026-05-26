@@ -1,29 +1,108 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import type { ActionDefinition, CompiledAgent, CompiledJourney, EventRoutingMode, JourneyEventDefinition } from "./definition.js";
+import type { CompiledAgent, CompiledJourney, EventRoutingMode, JourneyEventDefinition } from "./definition.js";
 import {
   selectJourneyCandidates,
   type JourneyCandidate,
-  type JourneyIndex,
 } from "./journey-index.js";
-import type { ObservabilityHooks, TraceEvent } from "./observability.js";
-import type { PrivacyHooks } from "./privacy.js";
+import type { TraceEvent } from "./observability.js";
 import { applyModelPromptProfiles } from "./runtime/prompt-profiles.js";
-import { replayRuntimeEvents, type ReplayedMessage, type ReplayedPrompt } from "./runtime/replay.js";
-import type { ConversationRecord, CreateConversationInput, RuntimeEventInput, StorageAdapter } from "./storage.js";
+import { replayRuntimeEvents } from "./runtime/replay.js";
+import type {
+  ActiveTurn,
+  CompactConversationInput,
+  CompactConversationResult,
+  ConversationMessage,
+  CreateRuntimeConversationInput,
+  EmitCustomEventInput,
+  EmitGeneratedPreambleInput,
+  EmitGeneratedPreambleResult,
+  EmitIntermediateMessageInput,
+  EmitJourneyEventInput,
+  EmitJourneyEventResult,
+  HandleUserMessageInput,
+  HandleUserMessageResult,
+  RankedJourneyCandidate,
+  ReplayConversationInput,
+  ReplayConversationResult,
+  RequestHandoffInput,
+  ResumeConversationInput,
+  RetrievedKnowledgeItem,
+  RuntimeOptions,
+  StateMachineTurnResult,
+  SubmitWidgetInput,
+} from "./runtime/types.js";
+import {
+  citationPostProcessingSchema,
+  conversationCompactionSummarySchema,
+  delegationCompletionSchema,
+  journeyMatchSchema,
+  stateExtractionSchema,
+  transitionMatchSchema,
+  type ConversationCompactionSummary,
+} from "./runtime/schemas.js";
+import {
+  createFieldConfirmationPromptId,
+  createFieldPromptId,
+  createGuardPromptId,
+  createJourneyCompletion,
+  createToolConfirmationPromptId,
+  extractWidgetFieldValue,
+  findJourneyState,
+  findJourneyStates,
+  hasEventTransition,
+  isFieldRequired,
+  mergeActiveStates,
+  parseFieldConfirmationPromptId,
+  parseFieldPromptId,
+  parseToolConfirmationPromptId,
+  resolveActiveStates,
+  resolveWidgetPromptState,
+} from "./runtime/journey-state.js";
+import {
+  clampConfidence,
+  createGeneratedPreambleMessages,
+  normalizeConfidence,
+  normalizeGeneratedPreamble,
+  renderConversationTranscript,
+  renderEventsForCompaction,
+  renderJourneyCandidateForMatcher,
+  renderStateInstructionStack,
+} from "./runtime/rendering.js";
+import { listConversationMessages, listVisibleCustomEventContext } from "./runtime/history.js";
+import { createResponseMessages } from "./runtime/response-messages.js";
+import { createLifecycleSnapshot, createNextSnapshot, createStateMachineSnapshot } from "./runtime/snapshots.js";
+import {
+  executeToolWithRetry,
+  runStateActionRuns as runStateActionRunsWithDeps,
+  runStateToolRuns as runStateToolRunsWithDeps,
+} from "./runtime/state-runners.js";
+import {
+  getPathValue,
+  guardAllows,
+  hasUsableValue,
+  isRecord,
+  isStructuredGuardDenial,
+  selectContextFields,
+  setPathValue,
+} from "./runtime/context.js";
+import {
+  createToolResultMessage,
+  parseKnowledgeQuery,
+  toModelToolDefinition,
+  uniqueKnowledgeSources,
+  uniqueTools,
+} from "./runtime/tools.js";
+import { AbortError, isAbortLikeError } from "./runtime/errors.js";
+import type { ConversationRecord, RuntimeEventInput } from "./storage.js";
 import type {
   AgentModelSet,
   AnyTool,
   CustomRuntimeEventDefinition,
   GuardResult,
-  JourneyContextRecord,
-  JourneySummary,
-  KnowledgeItem,
-  KnowledgeSource,
   MessageSegment,
   ModelAdapter,
   ModelMessage,
-  ModelPromptProfile,
   ModelToolCall,
   ModelToolDefinition,
   RuntimeEvent,
@@ -32,230 +111,29 @@ import type {
   TextGenerationOutput,
 } from "./types.js";
 
-type RetrievedKnowledgeItem = KnowledgeItem & {
-  sourceName: string;
-};
-
-export interface RuntimeOptions {
-  storage: StorageAdapter;
-  agent?: CompiledAgent;
-  models?: AgentModelSet;
-  journeyIndex?: JourneyIndex;
-  topKJourneys?: number;
-  app?: unknown;
-  knowledgeLimit?: number;
-  privacy?: PrivacyHooks;
-  observability?: ObservabilityHooks;
-  promptProfile?: ModelPromptProfile;
-  compaction?: {
-    beforeTurn?: boolean;
-    afterTurn?: boolean;
-    minEvents?: number;
-    schemaVersion?: string;
-    instructions?: string;
-    summarySchema?: z.ZodType;
-  };
-  postProcessing?: {
-    citations?: boolean;
-  };
-  streaming?: {
-    syntheticDeltas?: boolean;
-  };
-  toolRetry?: {
-    maxAttempts?: number;
-    notice?: string;
-  };
-}
-
-export interface CreateRuntimeConversationInput<TConversationContext = unknown>
-  extends CreateConversationInput<TConversationContext> {}
-
-export interface HandleUserMessageInput<TTurn = unknown> {
-  conversationId: string;
-  text: string;
-  turn?: TTurn;
-  app?: unknown;
-  signal?: AbortSignal;
-}
-
-export interface HandleUserMessageResult {
-  conversation: ConversationRecord;
-  snapshot: RuntimeSnapshot;
-  events: RuntimeEvent[];
-  text: string;
-  activeJourneyId?: string;
-}
-
-export interface CompactConversationInput {
-  conversationId: string;
-  fromOffset?: number;
-  toOffset?: number;
-  schemaVersion?: string;
-  signal?: AbortSignal;
-}
-
-export interface ReplayConversationInput {
-  conversationId: string;
-  afterOffset?: number;
-}
-
-export interface ReplayConversationResult {
-  conversation: ConversationRecord;
-  snapshot: RuntimeSnapshot | null;
-  events: RuntimeEvent[];
-  messages: ReplayedMessage[];
-  openPrompts: ReplayedPrompt[];
-}
-
-export interface SubmitWidgetInput {
-  conversationId: string;
-  promptId: string;
-  widgetKind: string;
-  output: unknown;
-}
-
-export interface EmitIntermediateMessageInput {
-  conversationId: string;
-  text: string;
-  traceId?: string;
-}
-
-export interface EmitGeneratedPreambleInput {
-  conversationId: string;
-  purpose?: string;
-  maxWords?: number;
-  traceId?: string;
-  signal?: AbortSignal;
-}
-
-export interface EmitGeneratedPreambleResult {
-  text: string;
-  events: RuntimeEvent[];
-}
-
-export interface EmitCustomEventInput<TEvent extends CustomRuntimeEventDefinition = CustomRuntimeEventDefinition> {
-  conversationId: string;
-  event: TEvent;
-  payload: z.infer<TEvent["payload"]>;
-  traceId?: string;
-}
-
-export interface EmitJourneyEventInput<TEvent extends JourneyEventDefinition = JourneyEventDefinition> {
-  conversationId: string;
-  event: TEvent;
-  payload: z.infer<TEvent["payload"]>;
-  routing?: EventRoutingMode;
-  target?: {
-    journeyId?: string;
-    stateId?: string;
-  };
-  app?: unknown;
-  traceId?: string;
-  signal?: AbortSignal;
-}
-
-export interface EmitJourneyEventResult {
-  event: RuntimeEvent;
-  snapshot: RuntimeSnapshot | null;
-  events: RuntimeEvent[];
-}
-
-export interface RequestHandoffInput {
-  conversationId: string;
-  reason: string;
-  summary?: string;
-  payload?: unknown;
-}
-
-export interface ResumeConversationInput {
-  conversationId: string;
-  reason?: string;
-  payload?: unknown;
-}
-
-export interface CompactConversationResult<TSummary = ConversationCompactionSummary> {
-  summary: TSummary;
-  snapshot: RuntimeSnapshot;
-  events: RuntimeEvent[];
-}
-
-export const conversationCompactionSummarySchema = z.object({
-  summary: z.string(),
-  stableFacts: z.array(z.string()).default([]),
-  openQuestions: z.array(z.string()).default([]),
-  activeCommitments: z.array(z.string()).default([]),
-});
-
-export type ConversationCompactionSummary = z.infer<typeof conversationCompactionSummarySchema>;
-
-const citationPostProcessingSchema = z.object({
-  segments: z.array(z.object({
-    text: z.string(),
-    knowledgeIds: z.array(z.string()).default([]),
-  })),
-});
-
-const delegationCompletionSchema = z.object({
-  complete: z.boolean(),
-  reason: z.string().optional(),
-});
-
-const journeyMatchSchema = z.object({
-  candidates: z.array(z.object({
-    journeyId: z.string(),
-    confidence: z.number().optional(),
-    reason: z.string().optional(),
-  })).default([]),
-});
-
-const transitionMatchSchema = z.object({
-  candidates: z.array(z.object({
-    id: z.string(),
-    confidence: z.number().optional(),
-    reason: z.string().optional(),
-  })).default([]),
-});
-
-const stateExtractionSchema = z.object({
-  values: z.record(z.string(), z.unknown()).default({}),
-});
-
-interface StateMachineTurnResult {
-  activeStateIds: string[];
-  journeyContext: Record<string, unknown>;
-  completed?: {
-    journeyId: string;
-    stateId?: string;
-  };
-}
-
-interface VisibleCustomEventContext {
-  type: string;
-  offset: number;
-  data: unknown;
-}
-
-interface ConversationMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-type RankedJourneyCandidate = JourneyCandidate & {
-  matchConfidence?: number;
-  matchReason?: string;
-};
-
-export type { ReplayedMessage, ReplayedPrompt } from "./runtime/replay.js";
-
-interface ActiveTurn {
-  id: string;
-  conversationId: string;
-  controller: AbortController;
-  interruptedByNewMessage: boolean;
-  abortEvent?: Promise<RuntimeEvent>;
-  interruptedEvent?: RuntimeEvent;
-  cleanup(): void;
-}
+export { conversationCompactionSummarySchema } from "./runtime/schemas.js";
+export type { ConversationCompactionSummary } from "./runtime/schemas.js";
+export type {
+  CompactConversationInput,
+  CompactConversationResult,
+  CreateRuntimeConversationInput,
+  EmitCustomEventInput,
+  EmitGeneratedPreambleInput,
+  EmitGeneratedPreambleResult,
+  EmitIntermediateMessageInput,
+  EmitJourneyEventInput,
+  EmitJourneyEventResult,
+  HandleUserMessageInput,
+  HandleUserMessageResult,
+  ReplayConversationInput,
+  ReplayConversationResult,
+  RequestHandoffInput,
+  ResumeConversationInput,
+  RuntimeOptions,
+  SubmitWidgetInput,
+  ReplayedMessage,
+  ReplayedPrompt,
+} from "./runtime/types.js";
 
 export class CognideskRuntime {
   private readonly activeTurns = new Map<string, ActiveTurn>();
@@ -336,7 +214,7 @@ export class CognideskRuntime {
     const agent = this.requireAgent();
     const models = this.requireModels();
     const conversation = await this.requireConversation(input.conversationId);
-    const history = await this.listConversationMessages(conversation.id);
+    const history = await listConversationMessages(this.options.storage, conversation.id);
     const messages = await this.redactModelMessages(conversation, createGeneratedPreambleMessages({
       agent,
       history,
@@ -510,7 +388,7 @@ export class CognideskRuntime {
         data: { text: userText },
       });
 
-      const history = await this.listConversationMessages(conversation.id);
+      const history = await listConversationMessages(this.options.storage, conversation.id);
       const previousSnapshot = await this.options.storage.getSnapshot(conversation.id);
       const selectedJourney = await this.selectJourney({
         agent,
@@ -556,8 +434,8 @@ export class CognideskRuntime {
         signal: turn.controller.signal,
       });
       this.throwIfTurnInterrupted(turn);
-      const visibleCustomEvents = await this.listVisibleCustomEventContext(agent, conversation.id);
-      const modelMessages = await this.redactModelMessages(conversation, this.createResponseMessages({
+      const visibleCustomEvents = await listVisibleCustomEventContext(this.options.storage, agent, conversation.id);
+      const modelMessages = await this.redactModelMessages(conversation, createResponseMessages({
         agent,
         journey: selectedJourney,
         stateMachineTurn,
@@ -633,12 +511,13 @@ export class CognideskRuntime {
       });
       this.throwIfTurnInterrupted(turn);
 
-      const snapshot = this.nextSnapshot({
+      const snapshot = createNextSnapshot({
         conversationId: conversation.id,
         previousSnapshot,
         selectedJourney,
         stateMachineTurn,
         delegationCompletion,
+        ...(this.options.journeyIndex ? { definitionHash: this.options.journeyIndex.definitionHash } : {}),
       });
       await this.options.storage.saveSnapshot(snapshot);
 
@@ -1042,7 +921,8 @@ export class CognideskRuntime {
           input: parsedInput.data,
           conversationId: args.conversation.id,
         });
-        const output = await this.executeToolWithRetry({
+        const output = await executeToolWithRetry({
+          options: this.options,
           tool: toolDefinition,
           input: parsedInput.data,
           conversationId: args.conversation.id,
@@ -1113,71 +993,6 @@ export class CognideskRuntime {
       : journey?.tools ?? [];
     const stateTools = resolveActiveStates(journey, stateMachineTurn).flatMap((state) => state.tools);
     return uniqueTools([...agent.tools, ...scoped, ...stateTools]);
-  }
-
-  private async executeToolWithRetry(args: {
-    tool: AnyTool;
-    input: unknown;
-    conversationId: string;
-    idempotencyKey?: string;
-    journeyContext: Record<string, unknown>;
-    signal?: AbortSignal;
-    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
-  }) {
-    const maxAttempts = this.toolExecutionMaxAttempts(args.tool, args.idempotencyKey);
-    let lastError: unknown;
-    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-      try {
-        if (args.tool.name === "cognidesk.viewJourneyContext") {
-          const snapshot = await this.options.storage.getSnapshot(args.conversationId);
-          return createJourneyContextView(args.input, args.journeyContext, snapshot?.journeyContexts ?? []);
-        }
-        return await args.tool.execute({
-          input: args.input,
-          app: this.options.app ?? {},
-          conversationId: args.conversationId,
-          ...(args.idempotencyKey ? { idempotencyKey: args.idempotencyKey } : {}),
-          ...(args.signal ? { signal: args.signal } : {}),
-        });
-      } catch (error) {
-        if (isAbortLikeError(error) && args.signal?.aborted) throw error;
-        lastError = error;
-        if (attempt >= maxAttempts) break;
-        await this.emitRetryNotice({
-          conversationId: args.conversationId,
-          toolName: args.tool.name,
-          emit: args.emit,
-        });
-      }
-    }
-    throw lastError instanceof Error ? lastError : new Error("Tool execution failed.");
-  }
-
-  private toolExecutionMaxAttempts(toolDefinition: AnyTool, idempotencyKey: string | undefined) {
-    if (toolDefinition.sideEffect && !idempotencyKey) return 1;
-    return Math.max(1, this.options.toolRetry?.maxAttempts ?? 2);
-  }
-
-  private async emitRetryNotice(args: {
-    conversationId: string;
-    toolName: string;
-    notice?: string;
-    emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
-  }) {
-    const text = args.notice ?? this.options.toolRetry?.notice ?? `I hit a temporary issue while running ${args.toolName}; retrying now.`;
-    await args.emit({
-      conversationId: args.conversationId,
-      type: "message.started",
-      data: { role: "assistant" },
-    });
-    await args.emit({
-      conversationId: args.conversationId,
-      type: "message.completed",
-      data: {
-        text,
-        intermediate: true,
-      },
-    });
   }
 
   private async trace(event: TraceEvent) {
@@ -1296,18 +1111,12 @@ export class CognideskRuntime {
     updatedAt: string,
   ) {
     const currentSnapshot = await this.options.storage.getSnapshot(conversationId);
-    await this.options.storage.saveSnapshot({
+    await this.options.storage.saveSnapshot(createLifecycleSnapshot({
       conversationId,
       lifecycle,
-      activeStateIds: currentSnapshot?.activeStateIds ?? [],
       updatedAt,
-      ...(currentSnapshot?.activeJourneyId ? { activeJourneyId: currentSnapshot.activeJourneyId } : {}),
-      ...(currentSnapshot?.journeyContext !== undefined ? { journeyContext: currentSnapshot.journeyContext } : {}),
-      ...(currentSnapshot?.journeyContexts ? { journeyContexts: currentSnapshot.journeyContexts } : {}),
-      ...(currentSnapshot?.journeySummaries ? { journeySummaries: currentSnapshot.journeySummaries } : {}),
-      ...(currentSnapshot?.compactionSummary !== undefined ? { compactionSummary: currentSnapshot.compactionSummary } : {}),
-      ...(currentSnapshot?.definitionHash ? { definitionHash: currentSnapshot.definitionHash } : {}),
-    });
+      currentSnapshot,
+    }));
   }
 
   private async applyBuiltInLifecycleTool(args: {
@@ -2138,134 +1947,11 @@ export class CognideskRuntime {
     signal?: AbortSignal;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }) {
-    const actionRuns = args.state.actionRuns.filter((actionRun) => actionRun.actionType === args.actionType);
-    for (const actionRun of actionRuns) {
-      const rawInput = actionRun.input ? actionRun.input({ context: args.context }) : {};
-      const parsedInput = actionRun.action.input.safeParse(rawInput);
-      if (!parsedInput.success) {
-        const error = parsedInput.error.message;
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "action.completed",
-          data: {
-            actionName: actionRun.action.name,
-            success: false,
-            journeyId: args.journey.id,
-            stateId: args.state.id,
-            error,
-          },
-        });
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "error",
-          data: {
-            code: "state_action_validation_failed",
-            message: error,
-          },
-        });
-        continue;
-      }
-
-      await args.emit({
-        conversationId: args.conversation.id,
-        type: "action.started",
-        data: {
-          actionName: actionRun.action.name,
-          journeyId: args.journey.id,
-          stateId: args.state.id,
-        },
-      });
-      await this.trace({
-        type: "action.started",
-        conversationId: args.conversation.id,
-        actionName: actionRun.action.name,
-        journeyId: args.journey.id,
-        stateId: args.state.id,
-      });
-      const maxAttempts = this.actionExecutionMaxAttempts(actionRun.action);
-      let lastError: unknown = null;
-      try {
-        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-          try {
-            if (args.signal?.aborted) throw args.signal.reason ?? new AbortError("aborted");
-            await actionRun.action.run({ input: parsedInput.data });
-            lastError = null;
-            break;
-          } catch (error) {
-            if (isAbortLikeError(error) && args.signal?.aborted) throw error;
-            lastError = error;
-            if (attempt >= maxAttempts) break;
-            const retryNotice = actionRun.action.retry && typeof actionRun.action.retry === "object"
-              ? actionRun.action.retry.notice
-              : undefined;
-            await this.emitRetryNotice({
-              conversationId: args.conversation.id,
-              toolName: actionRun.action.name,
-              ...(retryNotice ? { notice: retryNotice } : {}),
-              emit: args.emit,
-            });
-          }
-        }
-        if (lastError) throw lastError;
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "action.completed",
-          data: {
-            actionName: actionRun.action.name,
-            success: true,
-            journeyId: args.journey.id,
-            stateId: args.state.id,
-          },
-        });
-        await this.trace({
-          type: "action.completed",
-          conversationId: args.conversation.id,
-          actionName: actionRun.action.name,
-          success: true,
-          journeyId: args.journey.id,
-          stateId: args.state.id,
-        });
-      } catch (error) {
-        if (isAbortLikeError(error) && args.signal?.aborted) throw error;
-        const message = error instanceof Error ? error.message : "State action failed.";
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "action.completed",
-          data: {
-            actionName: actionRun.action.name,
-            success: false,
-            journeyId: args.journey.id,
-            stateId: args.state.id,
-            error: message,
-          },
-        });
-        await this.trace({
-          type: "action.completed",
-          conversationId: args.conversation.id,
-          actionName: actionRun.action.name,
-          success: false,
-          journeyId: args.journey.id,
-          stateId: args.state.id,
-          error: message,
-        });
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "error",
-          data: {
-            code: "state_action_failed",
-            message,
-          },
-        });
-      }
-    }
-  }
-
-  private actionExecutionMaxAttempts(actionDefinition: ActionDefinition) {
-    if (actionDefinition.retry === false) return 1;
-    if (actionDefinition.retry && typeof actionDefinition.retry === "object" && actionDefinition.retry.maxAttempts !== undefined) {
-      return Math.max(1, actionDefinition.retry.maxAttempts);
-    }
-    return Math.max(1, this.options.toolRetry?.maxAttempts ?? 2);
+    return runStateActionRunsWithDeps({
+      ...args,
+      options: this.options,
+      trace: (event) => this.trace(event),
+    });
   }
 
   private async runStateToolRuns(args: {
@@ -2278,124 +1964,12 @@ export class CognideskRuntime {
     signal?: AbortSignal;
     emit: <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
   }): Promise<string | null> {
-    const toolRuns = args.state.toolRuns.filter((toolRun) => {
-      if (toolRun.actionType !== args.actionType) return false;
-      if (args.confirmedPromptId) {
-        return Boolean(toolRun.confirm)
-          && args.confirmedPromptId === createToolConfirmationPromptId(args.journey.id, args.state.id, toolRun.tool.name);
-      }
-      if (!toolRun.confirm) return true;
-      return false;
+    return runStateToolRunsWithDeps({
+      ...args,
+      options: this.options,
+      trace: (event) => this.trace(event),
+      applyBuiltInLifecycleTool: (input) => this.applyBuiltInLifecycleTool(input),
     });
-    for (const toolRun of toolRuns) {
-      const rawInput = toolRun.input ? toolRun.input({ context: args.context }) : {};
-      const parsedInput = toolRun.tool.input.safeParse(rawInput);
-      if (!parsedInput.success) {
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "tool.completed",
-          data: {
-            toolName: toolRun.tool.name,
-            success: false,
-            journeyId: args.journey.id,
-            stateId: args.state.id,
-            error: parsedInput.error.message,
-          },
-        });
-        return toolRun.onValidationErrorId ?? null;
-      }
-
-      await args.emit({
-        conversationId: args.conversation.id,
-        type: "tool.started",
-        data: {
-          toolName: toolRun.tool.name,
-          journeyId: args.journey.id,
-          stateId: args.state.id,
-        },
-      });
-      await this.trace({
-        type: "tool.started",
-        conversationId: args.conversation.id,
-        toolName: toolRun.tool.name,
-        journeyId: args.journey.id,
-        stateId: args.state.id,
-      });
-      try {
-        const idempotencyKey = toolRun.tool.idempotencyKey?.({
-          input: parsedInput.data,
-          conversationId: args.conversation.id,
-        });
-        const output = await this.executeToolWithRetry({
-          tool: toolRun.tool,
-          input: parsedInput.data,
-          conversationId: args.conversation.id,
-          journeyContext: args.context,
-          emit: args.emit,
-          ...(idempotencyKey ? { idempotencyKey } : {}),
-          ...(args.signal ? { signal: args.signal } : {}),
-        });
-        const parsedOutput = toolRun.tool.output.parse(output);
-        for (const assignment of toolRun.assign) {
-          setPathValue(args.context, assignment.path, assignment.value({
-            output: parsedOutput,
-            context: args.context,
-          }));
-        }
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "tool.completed",
-          data: {
-            toolName: toolRun.tool.name,
-            success: true,
-            journeyId: args.journey.id,
-            stateId: args.state.id,
-            result: parsedOutput,
-          },
-        });
-        await this.trace({
-          type: "tool.completed",
-          conversationId: args.conversation.id,
-          toolName: toolRun.tool.name,
-          success: true,
-          journeyId: args.journey.id,
-          stateId: args.state.id,
-        });
-        const lifecycleApplied = await this.applyBuiltInLifecycleTool({
-          toolName: toolRun.tool.name,
-          input: parsedInput.data,
-          conversationId: args.conversation.id,
-          emit: args.emit,
-        });
-        if (lifecycleApplied) return null;
-        if (toolRun.onSuccessId) return toolRun.onSuccessId;
-      } catch (error) {
-        if (isAbortLikeError(error) && args.signal?.aborted) throw error;
-        const message = error instanceof Error ? error.message : "Tool execution failed.";
-        await args.emit({
-          conversationId: args.conversation.id,
-          type: "tool.completed",
-          data: {
-            toolName: toolRun.tool.name,
-            success: false,
-            journeyId: args.journey.id,
-            stateId: args.state.id,
-            error: message,
-          },
-        });
-        await this.trace({
-          type: "tool.completed",
-          conversationId: args.conversation.id,
-          toolName: toolRun.tool.name,
-          success: false,
-          journeyId: args.journey.id,
-          stateId: args.state.id,
-          error: message,
-        });
-        return toolRun.onFailureId ?? null;
-      }
-    }
-    return null;
   }
 
   private async emitGuardDenial(args: {
@@ -2619,35 +2193,15 @@ export class CognideskRuntime {
           data: completed,
         });
       }
-      const journeySummaries = appendJourneySummary(
-        snapshot?.journeySummaries ?? [],
-        completed ? createJourneySummary({
-          journey,
-          completedAt: new Date().toISOString(),
-          stateMachineTurn: { activeStateIds: [], journeyContext: context, completed },
-          delegationCompletion: null,
-        }) : null,
-      );
-      const journeyContexts = appendJourneyContext(
-        snapshot?.journeyContexts ?? [],
-        completed ? createJourneyContextRecord({
-          journeyId: journey.id,
-          completed,
-          context,
-          updatedAt: new Date().toISOString(),
-        }) : null,
-      );
-      await this.options.storage.saveSnapshot({
-        conversationId: args.conversation.id,
-        lifecycle: args.conversation.lifecycle,
-        activeStateIds: completed ? [] : activeStates.map((activeState) => activeState.id),
+      await this.options.storage.saveSnapshot(createStateMachineSnapshot({
+        conversation: args.conversation,
+        previousSnapshot: snapshot,
+        journey,
+        activeStates,
+        context,
+        completed,
         updatedAt: new Date().toISOString(),
-        ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
-        ...(journeyContexts.length > 0 ? { journeyContexts } : {}),
-        ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
-        ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
-        ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
-      });
+      }));
       return;
     }
 
@@ -2677,7 +2231,6 @@ export class CognideskRuntime {
     const branchStates = nextState ? [nextState] : [state];
     const activeStates = mergeActiveStates(siblingActiveStates, branchStates);
     const completed = createJourneyCompletion(journey.id, activeStates);
-    const activeStateIds = completed ? [] : activeStates.map((activeState) => activeState.id);
     if (nextState) {
       await this.runStateActionRuns({
         journey,
@@ -2726,35 +2279,15 @@ export class CognideskRuntime {
         data: completed,
       });
     }
-    const journeySummaries = appendJourneySummary(
-      snapshot?.journeySummaries ?? [],
-      completed ? createJourneySummary({
-        journey,
-        completedAt: new Date().toISOString(),
-        stateMachineTurn: { activeStateIds: [], journeyContext: context, completed },
-        delegationCompletion: null,
-      }) : null,
-    );
-    const journeyContexts = appendJourneyContext(
-      snapshot?.journeyContexts ?? [],
-      completed ? createJourneyContextRecord({
-        journeyId: journey.id,
-        completed,
-        context,
-        updatedAt: new Date().toISOString(),
-      }) : null,
-    );
-    await this.options.storage.saveSnapshot({
-      conversationId: args.conversation.id,
-      lifecycle: args.conversation.lifecycle,
-      activeStateIds,
+    await this.options.storage.saveSnapshot(createStateMachineSnapshot({
+      conversation: args.conversation,
+      previousSnapshot: snapshot,
+      journey,
+      activeStates,
+      context,
+      completed,
       updatedAt: new Date().toISOString(),
-      ...(completed ? {} : { activeJourneyId: journey.id, journeyContext: context }),
-      ...(journeyContexts.length > 0 ? { journeyContexts } : {}),
-      ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
-      ...(snapshot?.compactionSummary !== undefined ? { compactionSummary: snapshot.compactionSummary } : {}),
-      ...(snapshot?.definitionHash ? { definitionHash: snapshot.definitionHash } : {}),
-    });
+    }));
   }
 
   private async processJourneyEvent(args: {
@@ -2873,154 +2406,17 @@ export class CognideskRuntime {
         data: completed,
       });
     }
-    const journeySummaries = appendJourneySummary(
-      previousSnapshot?.journeySummaries ?? [],
-      completed ? createJourneySummary({
-        journey: route.journey,
-        completedAt: new Date().toISOString(),
-        stateMachineTurn: { activeStateIds: [], journeyContext: context, completed },
-        delegationCompletion: null,
-      }) : null,
-    );
-    const journeyContexts = appendJourneyContext(
-      previousSnapshot?.journeyContexts ?? [],
-      completed ? createJourneyContextRecord({
-        journeyId: route.journey.id,
-        completed,
-        context,
-        updatedAt: new Date().toISOString(),
-      }) : null,
-    );
-    const snapshot: RuntimeSnapshot = {
-      conversationId: args.conversation.id,
-      lifecycle: args.conversation.lifecycle,
-      activeStateIds: completed ? [] : activeStates.map((activeState) => activeState.id),
+    const snapshot = createStateMachineSnapshot({
+      conversation: args.conversation,
+      previousSnapshot,
+      journey: route.journey,
+      activeStates,
+      context,
+      completed,
       updatedAt: new Date().toISOString(),
-      ...(completed ? {} : { activeJourneyId: route.journey.id, journeyContext: context }),
-      ...(journeyContexts.length > 0 ? { journeyContexts } : {}),
-      ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
-      ...(previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: previousSnapshot.compactionSummary } : {}),
-      ...(previousSnapshot?.definitionHash ? { definitionHash: previousSnapshot.definitionHash } : {}),
-    };
+    });
     await this.options.storage.saveSnapshot(snapshot);
     return snapshot;
-  }
-
-  private async listVisibleCustomEventContext(agent: CompiledAgent, conversationId: string): Promise<VisibleCustomEventContext[]> {
-    const visibleTypes = new Set(
-      agent.customEvents
-        .filter((event) => event.visibleToModel)
-        .map((event) => `custom.${event.name}`),
-    );
-    if (visibleTypes.size === 0) return [];
-    const events = await this.options.storage.listEvents({ conversationId });
-    return events
-      .filter((event) => visibleTypes.has(event.type))
-      .map((event) => ({
-        type: event.type,
-        offset: event.offset,
-        data: event.data,
-      }));
-  }
-
-  private async listConversationMessages(conversationId: string): Promise<ConversationMessage[]> {
-    const events = await this.options.storage.listEvents({ conversationId });
-    const messages: ConversationMessage[] = [];
-    let pendingRole: ConversationMessage["role"] | null = null;
-    for (const event of events) {
-      if (event.type === "message.started") {
-        pendingRole = event.data.role;
-        continue;
-      }
-      if (event.type === "message.aborted") {
-        pendingRole = null;
-        continue;
-      }
-      if (event.type !== "message.completed") continue;
-      if (event.data.intermediate) {
-        pendingRole = null;
-        continue;
-      }
-      if (!pendingRole) continue;
-      messages.push({
-        role: pendingRole,
-        content: event.data.text,
-      });
-      pendingRole = null;
-    }
-    return messages;
-  }
-
-  private createResponseMessages(args: {
-    agent: CompiledAgent;
-    journey: CompiledJourney | null;
-    stateMachineTurn: StateMachineTurnResult | null;
-    userText: string;
-    history: ConversationMessage[];
-    knowledge: RetrievedKnowledgeItem[];
-    visibleCustomEvents: VisibleCustomEventContext[];
-    compactionSummary?: unknown;
-    journeySummaries: JourneySummary[];
-  }): ModelMessage[] {
-    const journeyContext = args.journey
-      ? renderJourneyRuntimeContext(args.journey, args.stateMachineTurn)
-      : "No active journey.";
-    const knowledgeContext = args.knowledge.length > 0
-      ? args.knowledge.map((item, index) => {
-          const title = item.title ? ` (${item.title})` : "";
-          return `[K${index + 1}:${item.id}${title}]\n${item.content}`;
-        }).join("\n\n")
-      : "No retrieved knowledge.";
-    const customEventContext = args.visibleCustomEvents.length > 0
-      ? args.visibleCustomEvents
-          .map((event) => `[${event.offset}:${event.type}]\n${JSON.stringify(event.data)}`)
-          .join("\n\n")
-      : "No visible custom events.";
-    const memoryContext = args.compactionSummary !== undefined
-      ? JSON.stringify(args.compactionSummary)
-      : "No compacted conversation memory.";
-    const journeySummaryContext = args.journeySummaries.length > 0
-      ? args.journeySummaries
-          .map((summary) => [
-            `journey:${summary.journeyId}`,
-            `kind:${summary.kind}`,
-            summary.stateId ? `state:${summary.stateId}` : "",
-            summary.reason ? `reason:${summary.reason}` : "",
-            `summary:${summary.summary}`,
-          ].filter(Boolean).join(" "))
-          .join("\n")
-      : "No completed journey summaries.";
-    const history = args.history.length > 0
-      ? args.history
-      : [{ role: "user" as const, content: args.userText }];
-
-    return [
-      {
-        role: "system",
-        content: [
-          args.agent.instructions,
-          "",
-          "Conversation memory:",
-          memoryContext,
-          "",
-          "Completed journey summaries:",
-          journeySummaryContext,
-          "",
-          journeyContext,
-          "",
-          "Use retrieved knowledge when relevant. If knowledge is used, make the supporting text cite the source id in prose.",
-          "",
-          knowledgeContext,
-          "",
-          "Visible custom events:",
-          customEventContext,
-        ].join("\n"),
-      },
-      ...history.map((message): ModelMessage => ({
-        role: message.role,
-        content: message.content,
-      })),
-    ];
   }
 
   private async createCitationSegments(args: {
@@ -3090,54 +2486,6 @@ export class CognideskRuntime {
     }
   }
 
-  private nextSnapshot(args: {
-    conversationId: string;
-    previousSnapshot: RuntimeSnapshot | null;
-    selectedJourney: CompiledJourney | null;
-    stateMachineTurn: StateMachineTurnResult | null;
-    delegationCompletion: { journeyId: string; reason?: string } | null;
-  }): RuntimeSnapshot {
-    const journeyCompleted = Boolean(args.stateMachineTurn?.completed)
-      || Boolean(args.delegationCompletion);
-    const journeySummaries = appendJourneySummary(
-      args.previousSnapshot?.journeySummaries ?? [],
-      args.selectedJourney && journeyCompleted
-        ? createJourneySummary({
-            journey: args.selectedJourney,
-            completedAt: new Date().toISOString(),
-            stateMachineTurn: args.stateMachineTurn,
-            delegationCompletion: args.delegationCompletion,
-          })
-        : null,
-    );
-    const journeyContexts = appendJourneyContext(
-      args.previousSnapshot?.journeyContexts ?? [],
-      args.selectedJourney && args.stateMachineTurn?.completed
-        ? createJourneyContextRecord({
-            journeyId: args.selectedJourney.id,
-            completed: args.stateMachineTurn.completed,
-            context: args.stateMachineTurn.journeyContext,
-            updatedAt: new Date().toISOString(),
-          })
-        : null,
-    );
-    return {
-      conversationId: args.conversationId,
-      lifecycle: "active",
-      activeStateIds: journeyCompleted ? [] : args.stateMachineTurn?.activeStateIds
-        ?? (args.selectedJourney?.initialStateId ? [args.selectedJourney.initialStateId] : []),
-      updatedAt: new Date().toISOString(),
-      ...(!journeyCompleted && args.selectedJourney ? { activeJourneyId: args.selectedJourney.id } : {}),
-      ...(!journeyCompleted && args.stateMachineTurn
-        ? { journeyContext: args.stateMachineTurn.journeyContext }
-        : !journeyCompleted && args.previousSnapshot?.journeyContext !== undefined ? { journeyContext: args.previousSnapshot.journeyContext } : {}),
-      ...(journeyContexts.length > 0 ? { journeyContexts } : {}),
-      ...(journeySummaries.length > 0 ? { journeySummaries } : {}),
-      ...(args.previousSnapshot?.compactionSummary !== undefined ? { compactionSummary: args.previousSnapshot.compactionSummary } : {}),
-      ...(this.options.journeyIndex ? { definitionHash: this.options.journeyIndex.definitionHash } : {}),
-    };
-  }
-
   private async redactUserMessage(conversation: ConversationRecord, text: string) {
     return await this.options.privacy?.redactUserMessage?.({
       conversationId: conversation.id,
@@ -3165,434 +2513,4 @@ export class CognideskRuntime {
 
 export function createRuntime(options: RuntimeOptions) {
   return new CognideskRuntime(options);
-}
-
-function normalizeConfidence(candidate: RankedJourneyCandidate) {
-  if (candidate.matchConfidence !== undefined) return candidate.matchConfidence;
-  if (candidate.reason === "always") return 1;
-  if (candidate.reason === "matcher") return 0.99;
-  return Math.max(0, Math.min(1, (candidate.similarity + 1) / 2));
-}
-
-function clampConfidence(value: number) {
-  return Math.max(0, Math.min(1, value));
-}
-
-function renderJourneyCandidateForMatcher(candidate: JourneyCandidate) {
-  const journey = candidate.journey;
-  return [
-    `- journeyId: ${journey.id}`,
-    `  kind: ${journey.kind}`,
-    `  condition: ${journey.condition}`,
-    `  indexReason: ${candidate.reason}`,
-    `  indexScore: ${candidate.score.toFixed(4)}`,
-    `  stickiness: ${journey.stickiness}`,
-    journey.tags.length > 0 ? `  tags: ${journey.tags.join(", ")}` : "",
-    journey.examples.length > 0 ? `  examples: ${journey.examples.join(" | ")}` : "",
-  ].filter(Boolean).join("\n");
-}
-
-function renderConversationTranscript(history: ConversationMessage[]) {
-  if (history.length === 0) return "No prior conversation messages.";
-  return history.map((message) => `${message.role}: ${message.content}`).join("\n");
-}
-
-function uniqueKnowledgeSources(sources: KnowledgeSource[]) {
-  const byName = new Map<string, KnowledgeSource>();
-  for (const source of sources) byName.set(source.name, source);
-  return [...byName.values()];
-}
-
-function uniqueTools(tools: AnyTool[]) {
-  const byName = new Map<string, AnyTool>();
-  for (const toolDefinition of tools) byName.set(toolDefinition.name, toolDefinition);
-  return [...byName.values()];
-}
-
-function toModelToolDefinition(toolDefinition: AnyTool): ModelToolDefinition {
-  return {
-    name: toolDefinition.name,
-    input: toolDefinition.input,
-    ...(toolDefinition.description ? { description: toolDefinition.description } : {}),
-  };
-}
-
-function createToolResultMessage(call: ModelToolCall, output: unknown): ModelMessage {
-  return {
-    role: "tool",
-    name: call.name,
-    toolCallId: call.id,
-    content: JSON.stringify(output),
-  };
-}
-
-function findJourneyState(journey: CompiledJourney, stateId: string | undefined) {
-  if (!stateId) return undefined;
-  return journey.states.find((state) => state.id === stateId);
-}
-
-function findJourneyStates(journey: CompiledJourney, stateIds: string[]) {
-  const stateById = new Map(journey.states.map((state) => [state.id, state]));
-  return stateIds
-    .map((stateId) => stateById.get(stateId))
-    .filter((state): state is CompiledJourney["states"][number] => Boolean(state));
-}
-
-function mergeActiveStates(...stateGroups: CompiledJourney["states"][]) {
-  const byId = new Map<string, CompiledJourney["states"][number]>();
-  for (const state of stateGroups.flat()) byId.set(state.id, state);
-  return [...byId.values()];
-}
-
-function resolveWidgetPromptState(
-  journey: CompiledJourney,
-  snapshot: RuntimeSnapshot | null,
-  promptId: string,
-) {
-  const activeStateIds = new Set(snapshot?.activeStateIds ?? []);
-  const fieldPrompt = parseFieldPromptId(promptId);
-  if (fieldPrompt && fieldPrompt.journeyId === journey.id && activeStateIds.has(fieldPrompt.stateId)) {
-    return findJourneyState(journey, fieldPrompt.stateId);
-  }
-  const fieldConfirmationPrompt = parseFieldConfirmationPromptId(promptId);
-  if (
-    fieldConfirmationPrompt
-    && fieldConfirmationPrompt.journeyId === journey.id
-    && activeStateIds.has(fieldConfirmationPrompt.stateId)
-  ) {
-    return findJourneyState(journey, fieldConfirmationPrompt.stateId);
-  }
-  const confirmationPrompt = parseToolConfirmationPromptId(promptId);
-  if (confirmationPrompt && confirmationPrompt.journeyId === journey.id && activeStateIds.has(confirmationPrompt.stateId)) {
-    return findJourneyState(journey, confirmationPrompt.stateId);
-  }
-  return findJourneyState(journey, snapshot?.activeStateIds[0]);
-}
-
-function createJourneyCompletion(journeyId: string, activeStates: CompiledJourney["states"]): StateMachineTurnResult["completed"] | undefined {
-  if (activeStates.length === 0 || activeStates.some((state) => state.type !== "final")) return undefined;
-  const onlyState = activeStates.length === 1 ? activeStates[0] : undefined;
-  return {
-    journeyId,
-    ...(onlyState ? { stateId: onlyState.id } : {}),
-  };
-}
-
-function appendJourneySummary(existing: JourneySummary[], next: JourneySummary | null) {
-  if (!next) return existing;
-  return [
-    ...existing.filter((summary) => summary.journeyId !== next.journeyId),
-    next,
-  ];
-}
-
-function appendJourneyContext(existing: JourneyContextRecord[], next: JourneyContextRecord | null) {
-  if (!next) return existing;
-  return [
-    ...existing.filter((record) => record.journeyId !== next.journeyId),
-    next,
-  ];
-}
-
-function createJourneyContextRecord(args: {
-  journeyId: string;
-  completed: NonNullable<StateMachineTurnResult["completed"]>;
-  context: Record<string, unknown>;
-  updatedAt: string;
-}): JourneyContextRecord {
-  return {
-    journeyId: args.journeyId,
-    context: structuredClone(args.context),
-    updatedAt: args.updatedAt,
-    ...(args.completed.stateId ? { stateId: args.completed.stateId } : {}),
-  };
-}
-
-function createJourneySummary(args: {
-  journey: CompiledJourney;
-  completedAt: string;
-  stateMachineTurn: StateMachineTurnResult | null;
-  delegationCompletion: { journeyId: string; reason?: string } | null;
-}): JourneySummary {
-  const completed = args.stateMachineTurn?.completed;
-  const context = args.stateMachineTurn?.journeyContext;
-  const contextSummary = context && Object.keys(context).length > 0
-    ? ` Context: ${JSON.stringify(context)}`
-    : "";
-  const reason = args.delegationCompletion?.reason;
-  return {
-    journeyId: args.journey.id,
-    kind: args.journey.kind,
-    completedAt: args.completedAt,
-    summary: reason
-      ?? `${args.journey.condition}${completed?.stateId ? ` Completed at state '${completed.stateId}'.` : ""}${contextSummary}`,
-    ...(completed?.stateId ? { stateId: completed.stateId } : {}),
-    ...(reason ? { reason } : {}),
-  };
-}
-
-function resolveActiveStates(journey: CompiledJourney | null, stateMachineTurn: StateMachineTurnResult | null) {
-  if (!journey || journey.kind !== "stateMachine" || !stateMachineTurn) return [];
-  const activeStateIds = new Set(stateMachineTurn.activeStateIds);
-  return journey.states.filter((state) => activeStateIds.has(state.id));
-}
-
-function isFieldRequired(
-  field: CompiledJourney["states"][number]["collected"][number],
-  context: Record<string, unknown>,
-) {
-  if (field.requiredWhen) return field.requiredWhen({ context });
-  return field.required;
-}
-
-function hasEventTransition(state: CompiledJourney["states"][number], eventName: string) {
-  return state.transitions.some((transition) => (
-    transition.kind === "event" && (transition.eventName ?? transition.description) === eventName
-  ));
-}
-
-function renderJourneyRuntimeContext(journey: CompiledJourney, stateMachineTurn: StateMachineTurnResult | null) {
-  const lines = [
-    `Active journey: ${journey.id}`,
-    `Journey kind: ${journey.kind}`,
-    `Journey condition: ${journey.condition}`,
-  ];
-  if (journey.kind === "delegation" && journey.delegation) {
-    lines.push(`Delegation goal: ${journey.delegation.goal}`);
-    if (journey.delegation.instructions) lines.push(`Delegation instructions: ${journey.delegation.instructions}`);
-    if (journey.delegation.completeWhen.length > 0) {
-      lines.push(`Delegation completion criteria: ${journey.delegation.completeWhen.join("; ")}`);
-    }
-    if (journey.delegation.tools.length > 0) {
-      lines.push(`Delegation tools: ${journey.delegation.tools.map((toolDefinition) => toolDefinition.name).join(", ")}`);
-    }
-  } else {
-    const activeStates = resolveActiveStates(journey, stateMachineTurn);
-    lines.push(
-      stateMachineTurn?.activeStateIds.length
-        ? `Active state: ${stateMachineTurn.activeStateIds.join(", ")}`
-        : journey.initialStateId ? `Initial state: ${journey.initialStateId}` : "",
-    );
-    const renderedInstructions = new Set<string>();
-    for (const state of activeStates) {
-      for (const line of renderStateInstructionStack(journey, state).split("\n").filter(Boolean)) {
-        if (renderedInstructions.has(line)) continue;
-        renderedInstructions.add(line);
-        lines.push(line);
-      }
-    }
-    if (stateMachineTurn) lines.push(`Journey context: ${JSON.stringify(stateMachineTurn.journeyContext)}`);
-  }
-  return lines.filter(Boolean).join("\n");
-}
-
-function renderStateInstructionStack(journey: CompiledJourney, state: CompiledJourney["states"][number]) {
-  const stateById = new Map(journey.states.map((candidate) => [candidate.id, candidate]));
-  const stack: string[] = [];
-  let current: CompiledJourney["states"][number] | undefined = state;
-  while (current) {
-    if (current.instructions) stack.unshift(`State ${current.id} instructions: ${current.instructions}`);
-    current = current.parentId ? stateById.get(current.parentId) : undefined;
-  }
-  return stack.join("\n");
-}
-
-function parseKnowledgeQuery(source: KnowledgeSource, message: string): z.infer<KnowledgeSource["query"]> | null {
-  const candidates = [
-    { query: message },
-    { text: message },
-    message,
-  ];
-  for (const candidate of candidates) {
-    const parsed = source.query.safeParse(candidate);
-    if (parsed.success) return parsed.data;
-  }
-  return null;
-}
-
-function renderEventsForCompaction(events: RuntimeEvent[]) {
-  return events.map((event) => JSON.stringify({
-    offset: event.offset,
-    type: event.type,
-    data: event.data,
-    createdAt: event.createdAt,
-  })).join("\n");
-}
-
-function createGeneratedPreambleMessages(args: {
-  agent: CompiledAgent;
-  history: ConversationMessage[];
-  purpose?: string;
-  maxWords: number;
-}): ModelMessage[] {
-  return [
-    {
-      role: "system",
-      content: [
-        args.agent.instructions,
-        `Write one brief wait-time preamble for the customer in ${args.maxWords} words or fewer.`,
-        "Acknowledge that work is continuing, but do not claim a result, policy, tool output, queue status, or completion.",
-        "Return only the customer-facing sentence.",
-        args.purpose ? `Current work: ${args.purpose}` : "",
-      ].filter(Boolean).join("\n"),
-    },
-    {
-      role: "user",
-      content: args.history.length > 0
-        ? args.history.map((message) => `${message.role}: ${message.content}`).join("\n")
-        : "No prior customer-visible conversation messages.",
-    },
-  ];
-}
-
-function normalizeGeneratedPreamble(text: string, maxWords: number) {
-  const singleLine = text.replace(/\s+/g, " ").trim();
-  if (!singleLine) return "I am still checking that for you.";
-  const words = singleLine.split(" ");
-  const clipped = words.length > maxWords ? words.slice(0, maxWords).join(" ") : singleLine;
-  return clipped.replace(/["']$/g, "");
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function getPathValue(context: Record<string, unknown>, path: string) {
-  let current: unknown = context;
-  for (const part of path.split(".")) {
-    if (!isRecord(current)) return undefined;
-    current = current[part];
-  }
-  return current;
-}
-
-function setPathValue(context: Record<string, unknown>, path: string, value: unknown) {
-  const parts = path.split(".");
-  let current = context;
-  for (const part of parts.slice(0, -1)) {
-    const next = current[part];
-    if (!isRecord(next)) current[part] = {};
-    current = current[part] as Record<string, unknown>;
-  }
-  const last = parts.at(-1);
-  if (last) current[last] = value;
-}
-
-function selectContextFields(context: Record<string, unknown>, fields: string[]) {
-  const selected: Record<string, unknown> = {};
-  for (const field of fields) {
-    const value = getPathValue(context, field);
-    if (value !== undefined) setPathValue(selected, field, structuredClone(value));
-  }
-  return selected;
-}
-
-function hasUsableValue(value: unknown) {
-  if (value === undefined || value === null) return false;
-  if (typeof value === "string") return value.trim().length > 0;
-  if (Array.isArray(value)) return value.length > 0;
-  return true;
-}
-
-function guardAllows(result: GuardResult) {
-  if (typeof result === "boolean") return result;
-  return result.allow;
-}
-
-function isStructuredGuardDenial(result: GuardResult): result is Extract<GuardResult, { allow: false }> {
-  return typeof result === "object" && result !== null && result.allow === false;
-}
-
-function createJourneyContextView(
-  input: unknown,
-  activeContext: Record<string, unknown>,
-  storedContexts: JourneyContextRecord[],
-) {
-  const parsed = z.object({
-    journeyId: z.string(),
-    fields: z.array(z.string()).optional(),
-  }).parse(input);
-  const stored = storedContexts.find((record) => record.journeyId === parsed.journeyId);
-  const context = isRecord(stored?.context) ? stored.context : activeContext;
-  if (!parsed.fields?.length) {
-    return {
-      journeyId: parsed.journeyId,
-      context: structuredClone(context),
-    };
-  }
-  const selected: Record<string, unknown> = {};
-  for (const field of parsed.fields) {
-    const value = getPathValue(context, field);
-    if (value !== undefined) setPathValue(selected, field, structuredClone(value));
-  }
-  return {
-    journeyId: parsed.journeyId,
-    context: selected,
-  };
-}
-
-function createToolConfirmationPromptId(journeyId: string, stateId: string, toolName: string) {
-  return `confirm:${journeyId}:${stateId}:${toolName}`;
-}
-
-function createGuardPromptId(journeyId: string, stateId: string | undefined, code: string) {
-  return `guard:${journeyId}:${stateId ?? "journey"}:${encodeURIComponent(code)}`;
-}
-
-function createFieldPromptId(journeyId: string, stateId: string, path: string) {
-  return `field:${journeyId}:${stateId}:${encodeURIComponent(path)}`;
-}
-
-function createFieldConfirmationPromptId(journeyId: string, stateId: string, path: string) {
-  return `confirm-field:${journeyId}:${stateId}:${encodeURIComponent(path)}`;
-}
-
-function parseFieldPromptId(promptId: string) {
-  const [kind, journeyId, stateId, encodedPath] = promptId.split(":");
-  if (kind !== "field" || !journeyId || !stateId || !encodedPath) return null;
-  return {
-    journeyId,
-    stateId,
-    path: decodeURIComponent(encodedPath),
-  };
-}
-
-function parseFieldConfirmationPromptId(promptId: string) {
-  const [kind, journeyId, stateId, encodedPath] = promptId.split(":");
-  if (kind !== "confirm-field" || !journeyId || !stateId || !encodedPath) return null;
-  return {
-    journeyId,
-    stateId,
-    path: decodeURIComponent(encodedPath),
-  };
-}
-
-function parseToolConfirmationPromptId(promptId: string) {
-  const [kind, journeyId, stateId, ...toolNameParts] = promptId.split(":");
-  const toolName = toolNameParts.join(":");
-  if (kind !== "confirm" || !journeyId || !stateId || !toolName) return null;
-  return {
-    journeyId,
-    stateId,
-    toolName,
-  };
-}
-
-function extractWidgetFieldValue(output: unknown) {
-  if (isRecord(output) && "value" in output) return output.value;
-  return output;
-}
-
-class AbortError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AbortError";
-  }
-}
-
-function isAbortLikeError(error: unknown) {
-  if (error instanceof Error) {
-    return error.name === "AbortError" || error.message === "interrupted_by_new_message";
-  }
-  return false;
 }
