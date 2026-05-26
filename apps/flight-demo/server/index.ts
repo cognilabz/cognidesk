@@ -1,17 +1,17 @@
 import { createServer, type IncomingMessage } from "node:http";
 import { mkdir } from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createRuntime } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";
 
-const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const sqlitePath = process.env.SQLITE_PATH ?? join(root, ".data", "flight-demo.sqlite");
+const config = await loadFlightDemoConfig();
+const sqlitePath = resolveFlightDemoPath(config.storage.sqlitePath);
 await mkdir(dirname(sqlitePath), { recursive: true });
 
-const { agent, models, journeyIndex } = await createFlightDemoRuntimeParts();
+const { agent, models, journeyIndex } = await createFlightDemoRuntimeParts({ config });
 const storage = createSqliteStorage({ filename: sqlitePath });
 const runtime = createRuntime({
   storage,

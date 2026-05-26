@@ -2,10 +2,17 @@ import { describe, expect, it } from "vitest";
 import { createRuntime } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage-sqlite";
 import { createFlightDemoRuntimeParts } from "../server/flight-agent.js";
+import { createTestKnowledgeIndex, createTestModelSet, testConfig } from "./fixtures.js";
 
 describe("flight demo agent", () => {
   it("handles a booking search turn without runtime errors", async () => {
-    const { agent, models, journeyIndex } = await createFlightDemoRuntimeParts();
+    const models = createTestModelSet();
+    const knowledgeIndex = await createTestKnowledgeIndex(models);
+    const { agent, journeyIndex } = await createFlightDemoRuntimeParts({
+      config: testConfig,
+      models,
+      knowledgeIndex,
+    });
     const runtime = createRuntime({
       storage: createSqliteStorage({ filename: ":memory:" }),
       agent,

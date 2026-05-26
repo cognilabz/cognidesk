@@ -36,6 +36,10 @@ _Avoid_: Single model for every task
 The complete set of production Model Role configurations for an Agent. Journeys and states do not override the Agent Model Set in v1; Test Harness judge and simulated-user models are configured separately.
 _Avoid_: Per-journey model override
 
+**Model Prompt Profile**:
+The role-specific prompt set used with a model family or concrete model in an Agent Model Set. The Runtime SDK selects defaults from the configured model when possible, while applications may override individual role prompts or replace the full Model Prompt Profile when they intentionally take ownership of that prompt behavior.
+_Avoid_: One universal prompt, app-local extractor prompt, scattered role prompts
+
 **OpenAI Model Adapter**:
 The Cognidesk Model Adapter for OpenAI-backed model execution. It may use OpenAI provider SDKs internally but exposes only Cognidesk abstractions.
 _Avoid_: Public OpenAI SDK object
@@ -65,8 +69,8 @@ The starter Vite React application that uses the Browser Client, ChatWidget, and
 _Avoid_: Next.js-first frontend
 
 **Flight Service Demo**:
-The non-A1 sample domain for demonstrating Cognidesk. It covers flight booking, ticket status, flight information, customer support tools, Knowledge, Widgets, and eval scenarios using mocked integrations.
-_Avoid_: Telecom demo, A1-like demo
+The non-A1 sample domain for demonstrating Cognidesk. It covers flight booking, ticket status, flight information, customer support tools, Knowledge, Widgets, and eval scenarios using real Cognidesk runtime modules, app-owned demo Knowledge, and mocked flight-service integrations.
+_Avoid_: Telecom demo, A1-like demo, fully mocked SDK demo
 
 **Demo Data**:
 Mocked data used only by the Flight Service Demo. Demo Data lives inside the demo application and is not a reusable SDK package.
@@ -645,6 +649,18 @@ Domain expert: "Applications configure Model Roles explicitly and documentation 
 Developer: "Can each Journey choose its own response model?"
 
 Domain expert: "No. An Agent has one Agent Model Set because prompts are coupled to the configured models."
+
+Developer: "Where do model-specific prompts live?"
+
+Domain expert: "In Model Prompt Profiles. The SDK owns defaults for each Model Role, and an application can override them deliberately at the Agent Model Set boundary."
+
+Developer: "Can the Flight Service Demo fall back to mock models when provider credentials are missing?"
+
+Domain expert: "No. The demo runtime should fail startup without real model-provider configuration; mock models belong in explicit tests, not the running demo."
+
+Developer: "Does v1 need a native Cognidesk Knowledge database package?"
+
+Domain expert: "No. Cognidesk owns the Knowledge Source contract; concrete vector stores and demo document ingestion can remain app-owned in v1."
 
 Developer: "Is the Test Harness mainly for deterministic CI?"
 

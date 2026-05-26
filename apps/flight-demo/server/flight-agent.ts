@@ -5,9 +5,21 @@ import {
   knowledgeSource,
   tool,
   type AgentModelSet,
-  type ModelAdapter,
-  type ModelMessage,
 } from "@cognidesk/core";
+import { openaiModel } from "@cognidesk/model-openai";
+import {
+  loadFlightDemoConfig,
+  requireConfiguredApiKey,
+  resolveFlightDemoPath,
+  type FlightDemoConfig,
+} from "./config.js";
+import {
+  assertCompatibleKnowledgeIndex,
+  loadFlightKnowledgeIndex,
+  searchFlightKnowledgeIndex,
+  type FlightKnowledgeIndex,
+  type FlightKnowledgeMetadata,
+} from "./knowledge-index.js";
 
 const flight = z.object({
   id: z.string(),
@@ -91,38 +103,53 @@ const getFlightInfo = tool("getFlightInfo", {
   execute: async ({ input }) => flights.find((candidate) => candidate.id.toLowerCase() === input.flightNumber.toLowerCase()),
 });
 
-const flightKnowledge = knowledgeSource("flight-policies", {
+function createFlightKnowledgeSource(args: {
+  index: FlightKnowledgeIndex;
+  embeddingModel: AgentModelSet["journeyEmbedding"];
+}) {
+  return knowledgeSource("flight-policies", {
   query: z.object({ query: z.string() }),
-  metadata: z.object({ category: z.string() }),
-  retrieve: async ({ query }) => {
-    const text = query.query.toLowerCase();
-    const items = [
-      {
-        id: "policy-checkin",
-        title: "Check-in",
-        content: "Online check-in opens 24 hours before departure and closes 45 minutes before departure.",
-        metadata: { category: "check-in" },
-      },
-      {
-        id: "policy-bags",
-        title: "Baggage",
-        content: "Economy tickets include one cabin bag. Checked baggage can be added after booking.",
-        metadata: { category: "baggage" },
-      },
-      {
-        id: "policy-changes",
-        title: "Changes",
-        content: "Ticket changes depend on fare rules. Flexible fares can be changed without a service fee.",
-        metadata: { category: "changes" },
-      },
-    ];
+  metadata: z.object({
+    documentId: z.string(),
+    category: z.string(),
+  }),
+  retrieve: async ({ query, signal }) => {
+    // Demo-only infrastructure: this app-local JSON index is not a Cognidesk v1 Knowledge database package.
+    const items = await searchFlightKnowledgeIndex({
+      index: args.index,
+      embeddingModel: args.embeddingModel,
+      query: query.query,
+      ...(signal ? { signal } : {}),
+    });
     return {
-      items: items.filter((item) => text.includes(item.metadata.category) || text.includes("ticket") || text.includes("flight")),
+      items: items as Array<{
+        id: string;
+        title?: string;
+        content: string;
+        score?: number;
+        metadata: FlightKnowledgeMetadata;
+      }>,
     };
   },
 });
+}
 
-export async function createFlightDemoRuntimeParts() {
+export interface CreateFlightDemoRuntimePartsOptions {
+  config?: FlightDemoConfig;
+  models?: AgentModelSet;
+  knowledgeIndex?: FlightKnowledgeIndex;
+}
+
+export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRuntimePartsOptions = {}) {
+  const config = options.config ?? await loadFlightDemoConfig();
+  const models = options.models ?? createOpenAIModelSet(config, requireConfiguredApiKey(config));
+  const knowledgeIndex = options.knowledgeIndex
+    ?? await loadFlightKnowledgeIndex(resolveFlightDemoPath(config.storage.knowledgeIndexPath));
+  assertCompatibleKnowledgeIndex(knowledgeIndex, models.journeyEmbedding);
+  const flightKnowledge = createFlightKnowledgeSource({
+    index: knowledgeIndex,
+    embeddingModel: models.journeyEmbedding,
+  });
   const agent = createAgent("flight-service", {
     instructions: [
       "You are a concise customer support agent for a mocked flight service.",
@@ -200,137 +227,21 @@ export async function createFlightDemoRuntimeParts() {
   });
 
   const compiledAgent = agent.compile();
-  const models = createMockModelSet();
   const journeyIndex = await buildJourneyIndex(compiledAgent, { embeddingModel: models.journeyEmbedding });
   return { agent: compiledAgent, models, journeyIndex };
 }
 
-function createMockModelSet(): AgentModelSet {
-  const response: ModelAdapter = {
-    provider: "mock",
-    model: "flight-demo-response",
-    generateText: async ({ role, messages }) => {
-      if (role === "extraction") return createMockExtraction(messages);
-      if (role === "citationPostProcessing") return createMockCitationSegments(messages);
-      if (role === "compaction") return createMockCompaction(messages);
-      return {
-        text: createMockAnswer(messages),
-        usage: {
-          inputTokens: messages.reduce((sum, message) => sum + Math.ceil(message.content.length / 4), 0),
-          outputTokens: 40,
-          totalTokens: 40,
-        },
-      };
-    },
-  };
-  const embedding: ModelAdapter = {
-    provider: "mock",
-    model: "flight-demo-embedding",
-    generateText: response.generateText,
-    embed: async ({ text }) => ({
-      embedding: keywordEmbedding(text),
-      model: "flight-demo-embedding",
-      dimensions: 6,
+function createOpenAIModelSet(config: FlightDemoConfig, apiKey: string): AgentModelSet {
+  return {
+    response: openaiModel({ model: config.models.roles.response, apiKey }),
+    matcher: openaiModel({ model: config.models.roles.matcher, apiKey }),
+    extraction: openaiModel({ model: config.models.roles.extraction, apiKey }),
+    citationPostProcessing: openaiModel({ model: config.models.roles.citationPostProcessing, apiKey }),
+    compaction: openaiModel({ model: config.models.roles.compaction, apiKey }),
+    journeyEmbedding: openaiModel({
+      model: config.models.roles.journeyEmbedding,
+      embeddingModel: config.models.roles.journeyEmbedding,
+      apiKey,
     }),
   };
-  return {
-    response,
-    matcher: response,
-    extraction: response,
-    citationPostProcessing: response,
-    journeyEmbedding: embedding,
-    compaction: response,
-  };
-}
-
-function createMockExtraction(messages: ModelMessage[]) {
-  const system = messages.find((message) => message.role === "system")?.content ?? "";
-  const user = [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
-  const lower = user.toLowerCase();
-  const values: Record<string, unknown> = {};
-  const wants = (path: string) => system.includes(path);
-  const route = lower.match(/from\s+([a-z\s]+?)\s+to\s+([a-z\s]+?)(?:\s+today|\s+tomorrow|\.|$)/i);
-  const toOnly = lower.match(/(?:to|for)\s+(vienna|berlin|paris)/i);
-  if (wants("origin") && route?.[1]) values.origin = titleCase(route[1].trim());
-  if (wants("destination") && route?.[2]) values.destination = titleCase(route[2].trim());
-  if (wants("destination") && !values.destination && toOnly?.[1]) values.destination = titleCase(toOnly[1]);
-  if (wants("departureDate")) {
-    if (lower.includes("tomorrow")) values.departureDate = "2026-05-26";
-    if (lower.includes("today")) values.departureDate = "2026-05-25";
-  }
-  const passenger = user.match(/(?:for|passenger)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
-  if (wants("passengerName") && passenger?.[1]) values.passengerName = passenger[1];
-  const bookingReference = user.match(/\b(?:CD-[A-Z0-9-]+|ABC\d{3,})\b/i)?.[0];
-  if (wants("bookingReference") && bookingReference) values.bookingReference = bookingReference.toUpperCase();
-  const flightNumber = user.match(/\bCL\d{3}\b/i)?.[0];
-  if (wants("flightNumber") && flightNumber) values.flightNumber = flightNumber.toUpperCase();
-  const structured = { values };
-  return { text: JSON.stringify(structured), structured };
-}
-
-function createMockCitationSegments(messages: ModelMessage[]) {
-  const user = [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
-  const answer = user.split("Assistant answer:\n").at(-1)?.trim() ?? "";
-  const knowledgeIds = [...user.matchAll(/^\[([^\]]+)\]/gm)].map((match) => match[1]).filter((id): id is string => Boolean(id));
-  const usedIds = knowledgeIds.filter((id) => answer.includes(id));
-  const structured = {
-    segments: [{
-      text: answer,
-      knowledgeIds: usedIds.length > 0 ? usedIds : knowledgeIds.slice(0, answer.includes("Source:") ? 1 : 0),
-    }],
-  };
-  return { text: JSON.stringify(structured), structured };
-}
-
-function createMockCompaction(messages: ModelMessage[]) {
-  const structured = {
-    summary: messages.at(-1)?.content.slice(0, 240) ?? "No conversation events.",
-    stableFacts: [],
-    openQuestions: [],
-    activeCommitments: [],
-  };
-  return { text: JSON.stringify(structured), structured };
-}
-
-function createMockAnswer(messages: ModelMessage[]) {
-  const user = [...messages].reverse().find((message) => message.role === "user")?.content.toLowerCase() ?? "";
-  if (user.includes("book") || user.includes("ticket to") || user.includes("flight to")) {
-    return "I can help book a mocked flight. Tell me the origin, destination, travel date, and passenger name. For example, Vienna to Berlin tomorrow for Alex Morgan.";
-  }
-  if (user.includes("status") || user.includes("check") || user.includes("cl")) {
-    const flightMatch = user.match(/cl\d{3}/i)?.[0]?.toUpperCase();
-    if (flightMatch) {
-      const found = flights.find((flight) => flight.id === flightMatch);
-      return found
-        ? `${found.id} from ${found.origin} to ${found.destination} is currently ${found.status}. Departure: ${found.departureTime}. Source: policy-checkin.`
-        : `I could not find ${flightMatch} in the mocked flight data.`;
-    }
-    return "Your mocked ticket is confirmed. Check-in opens 24 hours before departure. Source: policy-checkin.";
-  }
-  if (user.includes("bag")) {
-    return "Economy tickets include one cabin bag, and checked baggage can be added after booking. Source: policy-bags.";
-  }
-  if (user.includes("human") || user.includes("agent")) {
-    return "I can prepare a handoff summary for a human agent. Please share the booking reference and the issue.";
-  }
-  return "I can help with mocked flight booking, ticket status, flight information, check-in, baggage, or handoff.";
-}
-
-function titleCase(value: string) {
-  return value.split(/\s+/)
-    .filter(Boolean)
-    .map((part) => `${part[0]?.toUpperCase() ?? ""}${part.slice(1).toLowerCase()}`)
-    .join(" ");
-}
-
-function keywordEmbedding(text: string) {
-  const lower = text.toLowerCase();
-  return [
-    lower.includes("book") || lower.includes("ticket to") ? 1 : 0,
-    lower.includes("status") || lower.includes("check") ? 1 : 0,
-    lower.includes("flight") || lower.includes("cl") ? 1 : 0,
-    lower.includes("bag") ? 1 : 0,
-    lower.includes("human") || lower.includes("handoff") ? 1 : 0,
-    lower.includes("change") ? 1 : 0,
-  ];
 }

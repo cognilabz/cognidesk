@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173",
     "dev:server": "tsx server/index.ts",
+    "ingest:knowledge": "tsx server/ingest-knowledge.ts",
     "build": "vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
@@ -14,6 +15,7 @@
   "dependencies": {
     "@cognidesk/core": "workspace:*",
     "@cognidesk/http": "workspace:*",
+    "@cognidesk/model-openai": "workspace:*",
     "@cognidesk/react": "workspace:*",
     "@cognidesk/storage-sqlite": "workspace:*",
     "@cognidesk/ui": "workspace:*",

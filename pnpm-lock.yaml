@@ -35,6 +35,9 @@ importers:
       '@cognidesk/http':
         specifier: workspace:*
         version: link:../../packages/http
+      '@cognidesk/model-openai':
+        specifier: workspace:*
+        version: link:../../packages/model-openai
       '@cognidesk/react':
         specifier: workspace:*
         version: link:../../packages/react
