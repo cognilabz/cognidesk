@@ -48,6 +48,7 @@ export interface ModelToolCall {
 
 export interface TextGenerationInput {
   role: ModelRole;
+  promptProfileRole?: PromptProfileRole;
   messages: ModelMessage[];
   responseFormat?: z.ZodType;
   tools?: ModelToolDefinition[];
@@ -85,15 +86,42 @@ export type ModelRole =
   | "journeyEmbedding"
   | "compaction";
 
+export type PromptProfileRole = Exclude<ModelRole, "journeyEmbedding"> | "generatedPreamble";
+
+export interface ModelPromptProfileTransformInput {
+  role: PromptProfileRole;
+  model: {
+    provider: string;
+    model: string;
+  };
+  messages: ModelMessage[];
+}
+
+export type ModelPromptProfileTransform = (
+  input: ModelPromptProfileTransformInput,
+) => ModelMessage[] | Promise<ModelMessage[]>;
+
+export interface ModelPromptProfile {
+  readonly id: string;
+  readonly description?: string;
+  transformMessages?: ModelPromptProfileTransform;
+  roleTransforms?: Partial<Record<PromptProfileRole, ModelPromptProfileTransform>>;
+}
+
 export interface ModelAdapter {
   readonly provider: string;
   readonly model: string;
+  readonly promptProfile?: ModelPromptProfile;
   generateText(input: TextGenerationInput): Promise<TextGenerationOutput>;
   embed?(input: EmbeddingInput): Promise<EmbeddingOutput>;
 }
 
-export type AgentModelSet = {
+export type AgentModelAdapters = {
   [Role in ModelRole]: ModelAdapter;
+};
+
+export type AgentModelSet = AgentModelAdapters & {
+  promptProfile?: ModelPromptProfile;
 };
 
 export interface ApplicationContextParts<TConversation, TTurn> {

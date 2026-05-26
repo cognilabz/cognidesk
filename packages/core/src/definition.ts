@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CapabilityScope } from "./definition/capability-scope.js";
 import type {
   ApplicationContextParts,
   AnyCustomRuntimeEvent,
@@ -16,6 +17,8 @@ import type {
   WidgetPromptDefinition,
 } from "./types.js";
 import { DefinitionError as CognideskDefinitionError } from "./types.js";
+
+export { CapabilityScope } from "./definition/capability-scope.js";
 
 type InferObject<TSchema extends ObjectSchema> = z.infer<TSchema>;
 type MaybePromise<T> = T | Promise<T>;
@@ -439,32 +442,6 @@ export function customRuntimeEvent<const TName extends string, TPayloadSchema ex
     payload: config.payload,
     ...(config.visibleToModel !== undefined ? { visibleToModel: config.visibleToModel } : {}),
   };
-}
-
-export class CapabilityScope<TItem> {
-  private readonly items: TItem[] = [];
-  private onlyItems: TItem[] | null = null;
-  private readonly excludedItems: TItem[] = [];
-
-  add(...items: TItem[]) {
-    for (const item of items) pushUnique(this.items, item);
-    return this;
-  }
-
-  only(...items: TItem[]) {
-    this.onlyItems = [...items];
-    return this;
-  }
-
-  exclude(...items: TItem[]) {
-    for (const item of items) pushUnique(this.excludedItems, item);
-    return this;
-  }
-
-  list(inherited: TItem[] = []) {
-    const base = this.onlyItems ?? [...inherited, ...this.items];
-    return base.filter((item) => !this.excludedItems.includes(item));
-  }
 }
 
 export class StateBuilder<

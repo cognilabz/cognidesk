@@ -19,6 +19,8 @@ import type {
   RuntimeSnapshot,
   SubmitWidgetInput,
 } from "@cognidesk/core";
+import { emptyResponse, json, readJson } from "./responses.js";
+import { streamEvents } from "./sse.js";
 
 export interface CognideskHttpRuntime {
   createConversation(input: CreateRuntimeConversationInput): Promise<ConversationRecord>;
@@ -270,7 +272,7 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             afterOffset,
             pollIntervalMs,
             signal: request.signal,
-            handlerOptions: options,
+            responseOptions: options,
           });
         }
 
@@ -346,108 +348,6 @@ interface CreateCompactionBody {
   fromOffset?: number;
   toOffset?: number;
   schemaVersion?: string;
-}
-
-function streamEvents(options: {
-  runtime: CognideskHttpRuntime | CognideskRuntime;
-  conversationId: string;
-  afterOffset: number | undefined;
-  pollIntervalMs: number;
-  signal: AbortSignal;
-  handlerOptions: CognideskHttpHandlerOptions;
-}) {
-  const encoder = new TextEncoder();
-  let offset = options.afterOffset ?? 0;
-  let closed = false;
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      const close = () => {
-        if (closed) return;
-        closed = true;
-        controller.close();
-      };
-      options.signal.addEventListener("abort", close, { once: true });
-
-      const poll = async () => {
-        if (closed) return;
-        try {
-          const events = await options.runtime.listEvents(options.conversationId, offset);
-          for (const event of events) {
-            offset = event.offset;
-            controller.enqueue(encoder.encode(formatSseEvent(event)));
-          }
-        } catch (error) {
-          controller.enqueue(encoder.encode(formatSseError(error)));
-        }
-        if (!closed) setTimeout(poll, options.pollIntervalMs);
-      };
-
-      controller.enqueue(encoder.encode(": cognidesk stream ready\n\n"));
-      void poll();
-    },
-    cancel() {
-      closed = true;
-    },
-  });
-
-  return new Response(stream, {
-    status: 200,
-    headers: withCors({
-      "content-type": "text/event-stream; charset=utf-8",
-      "cache-control": "no-cache, no-transform",
-      connection: "keep-alive",
-    }, options.handlerOptions),
-  });
-}
-
-function formatSseEvent(event: RuntimeEvent) {
-  return [
-    `id: ${event.offset}`,
-    "event: event",
-    `data: ${JSON.stringify(event)}`,
-    "",
-    "",
-  ].join("\n");
-}
-
-function formatSseError(error: unknown) {
-  return [
-    "event: error",
-    `data: ${JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" })}`,
-    "",
-    "",
-  ].join("\n");
-}
-
-async function readJson<T>(request: Request): Promise<T> {
-  if (!request.body) return {} as T;
-  return await request.json() as T;
-}
-
-function json(body: unknown, status: number, options: CognideskHttpHandlerOptions) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: withCors({
-      "content-type": "application/json; charset=utf-8",
-    }, options),
-  });
-}
-
-function emptyResponse(status: number, options: CognideskHttpHandlerOptions) {
-  return new Response(null, {
-    status,
-    headers: withCors({}, options),
-  });
-}
-
-function withCors(headers: Record<string, string>, options: CognideskHttpHandlerOptions) {
-  if (!options.cors) return headers;
-  return {
-    ...headers,
-    "access-control-allow-origin": "*",
-    "access-control-allow-methods": "GET,POST,OPTIONS",
-    "access-control-allow-headers": "content-type,authorization",
-  };
 }
 
 function normalizeBasePath(basePath: string) {

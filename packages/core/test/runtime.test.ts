@@ -102,6 +102,63 @@ describe("runtime turn pipeline", () => {
     });
   });
 
+  it("applies model, Agent Model Set, and runtime prompt profiles before model calls", async () => {
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    }).compile();
+    let capturedSystem = "";
+    const response = {
+      provider: "test",
+      model: "profiled-response",
+      promptProfile: {
+        id: "model-profile",
+        transformMessages: ({ messages }: { messages: TextGenerationInput["messages"] }) => [
+          { role: "system" as const, content: "model profile" },
+          ...messages,
+        ],
+      },
+      generateText: async (input: TextGenerationInput) => {
+        capturedSystem = input.messages
+          .filter((message) => message.role === "system")
+          .map((message) => message.content)
+          .join("\n");
+        return { text: "Profiled answer." };
+      },
+    };
+    const models = createModels({ response });
+    models.promptProfile = {
+      id: "set-profile",
+      roleTransforms: {
+        response: ({ messages }: { messages: TextGenerationInput["messages"] }) => [
+          { role: "system", content: "set response profile" },
+          ...messages,
+        ],
+      },
+    };
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      promptProfile: {
+        id: "runtime-profile",
+        transformMessages: ({ messages }: { messages: TextGenerationInput["messages"] }) => [
+          { role: "system", content: "runtime profile" },
+          ...messages,
+        ],
+      },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Hello",
+    });
+
+    expect(capturedSystem).toContain("model profile");
+    expect(capturedSystem).toContain("set response profile");
+    expect(capturedSystem).toContain("runtime profile");
+  });
+
   it("can emit synthetic assistant text deltas for streaming clients", async () => {
     const agentBuilder = createAgent("flight-service", {
       instructions: "Help customers with flights.",

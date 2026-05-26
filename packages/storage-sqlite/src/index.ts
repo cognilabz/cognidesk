@@ -2,14 +2,21 @@ import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 import type {
   ConversationLifecycle,
-  RuntimeEvent,
   RuntimeSnapshot,
   StorageAdapter,
   CreateConversationInput,
   ConversationRecord,
-  RuntimeEventInput,
   ListEventsOptions,
+  RuntimeEvent,
+  RuntimeEventInput,
 } from "@cognidesk/core";
+import {
+  conversationFromRow,
+  eventFromRow,
+  runtimeEventFromParts,
+  snapshotFromRow,
+  type RowRecord,
+} from "./rows.js";
 
 const require = createRequire(import.meta.url);
 const { DatabaseSync } = require("node:sqlite") as typeof import("node:sqlite");
@@ -18,14 +25,8 @@ export interface SqliteStorageOptions {
   filename: string;
 }
 
-type RowRecord = Record<string, unknown>;
-
 function nowIso() {
   return new Date().toISOString();
-}
-
-function parseJson<T>(value: unknown): T {
-  return JSON.parse(String(value)) as T;
 }
 
 export class SqliteStorageAdapter implements StorageAdapter {
@@ -172,7 +173,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
   async getSnapshot(conversationId: string): Promise<RuntimeSnapshot | null> {
     const row = this.db.prepare("SELECT snapshot_json FROM runtime_snapshots WHERE conversation_id = ?").get(conversationId) as RowRecord | undefined;
-    return row ? parseJson<RuntimeSnapshot>(row.snapshot_json) : null;
+    return row ? snapshotFromRow(row) : null;
   }
 }
 
@@ -180,44 +181,4 @@ export function createSqliteStorage(options: SqliteStorageOptions) {
   const adapter = new SqliteStorageAdapter(options);
   adapter.initialize();
   return adapter;
-}
-
-function conversationFromRow<TConversationContext>(row: RowRecord): ConversationRecord<TConversationContext> {
-  return {
-    id: String(row.id),
-    agentId: String(row.agent_id),
-    lifecycle: row.lifecycle as ConversationLifecycle,
-    context: parseJson<TConversationContext>(row.context_json),
-    createdAt: String(row.created_at),
-    updatedAt: String(row.updated_at),
-  };
-}
-
-function eventFromRow(row: RowRecord): RuntimeEvent {
-  return {
-    id: String(row.id),
-    conversationId: String(row.conversation_id),
-    offset: Number(row.offset),
-    type: String(row.type) as RuntimeEvent["type"],
-    createdAt: String(row.created_at),
-    traceId: typeof row.trace_id === "string" ? row.trace_id : undefined,
-    data: parseJson(row.data_json),
-  } as RuntimeEvent;
-}
-
-function runtimeEventFromParts(
-  input: RuntimeEventInput,
-  id: string,
-  offset: number,
-  createdAt: string,
-): RuntimeEvent {
-  return {
-    id,
-    conversationId: input.conversationId,
-    offset,
-    type: input.type,
-    createdAt,
-    traceId: input.traceId,
-    data: input.data,
-  } as RuntimeEvent;
 }

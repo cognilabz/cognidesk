@@ -8,6 +8,8 @@ import {
 } from "./journey-index.js";
 import type { ObservabilityHooks, TraceEvent } from "./observability.js";
 import type { PrivacyHooks } from "./privacy.js";
+import { applyModelPromptProfiles } from "./runtime/prompt-profiles.js";
+import { replayRuntimeEvents, type ReplayedMessage, type ReplayedPrompt } from "./runtime/replay.js";
 import type { ConversationRecord, CreateConversationInput, RuntimeEventInput, StorageAdapter } from "./storage.js";
 import type {
   AgentModelSet,
@@ -21,6 +23,7 @@ import type {
   MessageSegment,
   ModelAdapter,
   ModelMessage,
+  ModelPromptProfile,
   ModelToolCall,
   ModelToolDefinition,
   RuntimeEvent,
@@ -43,6 +46,7 @@ export interface RuntimeOptions {
   knowledgeLimit?: number;
   privacy?: PrivacyHooks;
   observability?: ObservabilityHooks;
+  promptProfile?: ModelPromptProfile;
   compaction?: {
     beforeTurn?: boolean;
     afterTurn?: boolean;
@@ -93,24 +97,6 @@ export interface CompactConversationInput {
 export interface ReplayConversationInput {
   conversationId: string;
   afterOffset?: number;
-}
-
-export interface ReplayedMessage {
-  id: string;
-  offset: number;
-  role: "user" | "assistant";
-  text: string;
-  intermediate: boolean;
-  aborted: boolean;
-  reason?: string;
-  segments?: MessageSegment[];
-}
-
-export interface ReplayedPrompt {
-  promptId: string;
-  offset: number;
-  widgetKind: string;
-  input: unknown;
 }
 
 export interface ReplayConversationResult {
@@ -259,6 +245,8 @@ type RankedJourneyCandidate = JourneyCandidate & {
   matchReason?: string;
 };
 
+export type { ReplayedMessage, ReplayedPrompt } from "./runtime/replay.js";
+
 interface ActiveTurn {
   id: string;
   conversationId: string;
@@ -360,6 +348,7 @@ export class CognideskRuntime {
       model: models.response,
       input: {
         role: "response",
+        promptProfileRole: "generatedPreamble",
         messages,
         ...(input.signal ? { signal: input.signal } : {}),
       },
@@ -906,7 +895,16 @@ export class CognideskRuntime {
       model: input.model.model,
     });
     try {
-      const output = await input.model.generateText(input.input);
+      const output = await input.model.generateText({
+        ...input.input,
+        messages: await applyModelPromptProfiles({
+          model: input.model,
+          ...(this.options.models ? { models: this.options.models } : {}),
+          ...(this.options.promptProfile ? { runtimeProfile: this.options.promptProfile } : {}),
+          role: input.input.promptProfileRole ?? input.input.role,
+          messages: input.input.messages,
+        }),
+      });
       await this.trace({
         type: "model.completed",
         conversationId: input.conversationId,
@@ -3419,76 +3417,6 @@ function renderEventsForCompaction(events: RuntimeEvent[]) {
     data: event.data,
     createdAt: event.createdAt,
   })).join("\n");
-}
-
-function replayRuntimeEvents(events: RuntimeEvent[]) {
-  const messages: ReplayedMessage[] = [];
-  const openPrompts = new Map<string, ReplayedPrompt>();
-  let pendingRole: ReplayedMessage["role"] | null = null;
-  let pendingStarted: RuntimeEvent | null = null;
-
-  for (const event of events) {
-    if (event.type === "message.started") {
-      pendingRole = event.data.role;
-      pendingStarted = event;
-      continue;
-    }
-    if (event.type === "message.completed") {
-      if (!pendingRole) continue;
-      messages.push({
-        id: event.id,
-        offset: event.offset,
-        role: pendingRole,
-        text: event.data.text,
-        intermediate: event.data.intermediate ?? false,
-        aborted: false,
-        ...(event.data.segments ? { segments: event.data.segments } : {}),
-      });
-      pendingRole = null;
-      pendingStarted = null;
-      continue;
-    }
-    if (event.type === "message.aborted") {
-      messages.push({
-        id: event.id,
-        offset: event.offset,
-        role: pendingRole ?? "assistant",
-        text: event.data.partialText ?? "",
-        intermediate: false,
-        aborted: true,
-        reason: event.data.reason,
-      });
-      pendingRole = null;
-      pendingStarted = null;
-      continue;
-    }
-    if (event.type === "ui.prompted") {
-      openPrompts.set(event.data.promptId, {
-        promptId: event.data.promptId,
-        offset: event.offset,
-        widgetKind: event.data.widgetKind,
-        input: event.data.input,
-      });
-      continue;
-    }
-    if (event.type === "ui.submitted") {
-      openPrompts.delete(event.data.promptId);
-    }
-  }
-
-  if (pendingStarted && pendingRole) {
-    messages.push({
-      id: pendingStarted.id,
-      offset: pendingStarted.offset,
-      role: pendingRole,
-      text: "",
-      intermediate: false,
-      aborted: true,
-      reason: "missing_message_completion",
-    });
-  }
-
-  return { messages, openPrompts: [...openPrompts.values()] };
 }
 
 function createGeneratedPreambleMessages(args: {
