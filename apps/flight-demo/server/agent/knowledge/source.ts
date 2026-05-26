@@ -21,6 +21,8 @@ export function createFlightKnowledgeSource(args: {
         index: args.index,
         embeddingModel: args.embeddingModel,
         query: query.query,
+        limit: 3,
+        minScore: 0.2,
         ...(signal ? { signal } : {}),
       });
       return {

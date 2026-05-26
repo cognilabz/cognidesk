@@ -83,12 +83,24 @@ export async function createTestKnowledgeIndex(models: AgentModelSet) {
 
 function createTestMatcher(messages: ModelMessage[]) {
   const prompt = messages.map((message) => message.content).join("\n").toLowerCase();
-  const candidates = [];
-  if (prompt.includes("book-flight") && (prompt.includes("find flights") || prompt.includes("book") || prompt.includes("ticket to"))) {
-    candidates.push({ journeyId: "book-flight", confidence: 0.95, reason: "Booking request." });
+  const latestUser = prompt.match(/latest user message:\s*([^\n]+)/)?.[1] ?? prompt;
+  if (prompt.includes("state transition candidates")) {
+    const candidates = [];
+    if (latestUser.match(/\bcd-[a-z0-9-]+-\d{4}\b/i) || latestUser.includes("booking")) {
+      candidates.push({ id: "transition_1", confidence: 0.95, reason: "Booking reference is present." });
+    } else if (latestUser.match(/\bcl\d{3}\b/i)) {
+      candidates.push({ id: "transition_2", confidence: 0.95, reason: "Flight number is present." });
+    }
+    const structured = { candidates };
+    return { text: JSON.stringify(structured), structured };
   }
-  if (prompt.includes("ticket-status") && (prompt.includes("status") || prompt.includes("check in") || prompt.includes("cl"))) {
+  const candidates = [];
+  const statusIntent = latestUser.includes("status of booking") || latestUser.includes("check in") || /\bcl\d{3}\b/.test(latestUser);
+  if (prompt.includes("ticket-status") && (statusIntent || latestUser.includes("status"))) {
     candidates.push({ journeyId: "ticket-status", confidence: 0.9, reason: "Status request." });
+  }
+  if (prompt.includes("book-flight") && !statusIntent && (latestUser.includes("find flights") || /\bbook\b/.test(latestUser) || latestUser.includes("ticket to"))) {
+    candidates.push({ journeyId: "book-flight", confidence: 0.95, reason: "Booking request." });
   }
   const structured = { candidates };
   return { text: JSON.stringify(structured), structured };
@@ -106,8 +118,8 @@ function createTestExtraction(messages: ModelMessage[]) {
   if (wants("destination") && route?.[2]) values.destination = titleCase(route[2].trim());
   if (wants("destination") && !values.destination && toOnly?.[1]) values.destination = titleCase(toOnly[1]);
   if (wants("departureDate")) {
-    if (lower.includes("tomorrow")) values.departureDate = "2026-05-26";
-    if (lower.includes("today")) values.departureDate = "2026-05-25";
+    if (lower.includes("tomorrow")) values.departureDate = "2026-05-27";
+    if (lower.includes("today")) values.departureDate = "2026-05-26";
   }
   const passenger = user.match(/(?:for|passenger)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
   if (wants("passengerName") && passenger?.[1]) values.passengerName = passenger[1];
@@ -115,6 +127,7 @@ function createTestExtraction(messages: ModelMessage[]) {
   if (wants("bookingReference") && bookingReference) values.bookingReference = bookingReference.toUpperCase();
   const flightNumber = user.match(/\bCL\d{3}\b/i)?.[0];
   if (wants("flightNumber") && flightNumber) values.flightNumber = flightNumber.toUpperCase();
+  if (wants("selectedFlightId") && flightNumber) values.selectedFlightId = flightNumber.toUpperCase();
   const structured = { values };
   return { text: JSON.stringify(structured), structured };
 }

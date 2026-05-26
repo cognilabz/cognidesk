@@ -62,16 +62,13 @@ export function ChatWidget(props: ChatWidgetProps) {
                 input: prompt.input,
                 ...(appearance ? { appearance } : {}),
                 submit: (output) => {
-                  props.onWidgetSubmit?.({ promptId: prompt.promptId, kind: prompt.kind, output });
-                  if (!chat.conversationId) {
-                    chat.clearPrompt(prompt.promptId);
-                    return;
-                  }
-                  void props.client.submitWidget(chat.conversationId, {
+                  void chat.submitWidget({
                     promptId: prompt.promptId,
                     widgetKind: prompt.kind,
                     output,
-                  }).finally(() => chat.clearPrompt(prompt.promptId));
+                  }).then(() => {
+                    props.onWidgetSubmit?.({ promptId: prompt.promptId, kind: prompt.kind, output });
+                  });
                 },
               })}
             </div>

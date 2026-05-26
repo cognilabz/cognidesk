@@ -12,7 +12,7 @@ export const promptTasks = [
 ] as const satisfies readonly PromptTask[];
 
 export const promptTemplateFields = {
-  response: ["selectedJourneyId", "activeStateIds", "journeyContext", "tools"],
+  response: ["selectedJourneyId", "activeStateIds", "journeyContext", "tools", "structuredOutput"],
   "journey-matcher": ["latestUserMessage", "activeJourneyId", "conversationTranscript", "candidates", "structuredOutput"],
   "transition-matcher": ["journey", "state", "latestUserMessage", "currentContext", "candidates", "structuredOutput"],
   "delegation-completion": ["journey", "conversationTranscript", "structuredOutput"],

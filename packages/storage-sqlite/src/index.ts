@@ -23,6 +23,8 @@ const { DatabaseSync } = require("node:sqlite") as typeof import("node:sqlite");
 
 export interface SqliteStorageOptions {
   filename: string;
+  busyTimeoutMs?: number;
+  journalMode?: "delete" | "wal" | "memory";
 }
 
 function nowIso() {
@@ -35,6 +37,12 @@ export class SqliteStorageAdapter implements StorageAdapter {
   constructor(readonly options: SqliteStorageOptions) {
     this.db = new DatabaseSync(options.filename);
     this.db.exec("PRAGMA foreign_keys = ON");
+    this.db.exec(`PRAGMA busy_timeout = ${Math.max(0, options.busyTimeoutMs ?? 5000)}`);
+    if (options.journalMode) {
+      this.db.exec(`PRAGMA journal_mode = ${options.journalMode.toUpperCase()}`);
+    } else if (options.filename !== ":memory:") {
+      this.db.exec("PRAGMA journal_mode = WAL");
+    }
   }
 
   initialize() {
@@ -42,7 +50,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
       CREATE TABLE IF NOT EXISTS conversations (
         id TEXT PRIMARY KEY,
         agent_id TEXT NOT NULL,
-        lifecycle TEXT NOT NULL,
+        lifecycle TEXT NOT NULL CHECK (lifecycle IN ('active', 'handoff', 'closed')),
         context_json TEXT NOT NULL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
@@ -51,7 +59,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
       CREATE TABLE IF NOT EXISTS runtime_events (
         id TEXT PRIMARY KEY,
         conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-        offset INTEGER NOT NULL,
+        offset INTEGER NOT NULL CHECK (offset > 0),
         type TEXT NOT NULL,
         trace_id TEXT,
         data_json TEXT NOT NULL,
@@ -150,13 +158,18 @@ export class SqliteStorageAdapter implements StorageAdapter {
   }
 
   async listEvents(options: ListEventsOptions): Promise<RuntimeEvent[]> {
-    const limit = options.limit ?? 500;
-    const rows = this.db.prepare(`
-      SELECT * FROM runtime_events
-      WHERE conversation_id = ? AND offset > ?
-      ORDER BY offset ASC
-      LIMIT ?
-    `).all(options.conversationId, options.afterOffset ?? 0, limit) as RowRecord[];
+    const rows = options.limit === undefined
+      ? this.db.prepare(`
+        SELECT * FROM runtime_events
+        WHERE conversation_id = ? AND offset > ?
+        ORDER BY offset ASC
+      `).all(options.conversationId, options.afterOffset ?? 0) as RowRecord[]
+      : this.db.prepare(`
+        SELECT * FROM runtime_events
+        WHERE conversation_id = ? AND offset > ?
+        ORDER BY offset ASC
+        LIMIT ?
+      `).all(options.conversationId, options.afterOffset ?? 0, options.limit) as RowRecord[];
     return rows.map(eventFromRow);
   }
 
@@ -174,6 +187,10 @@ export class SqliteStorageAdapter implements StorageAdapter {
   async getSnapshot(conversationId: string): Promise<RuntimeSnapshot | null> {
     const row = this.db.prepare("SELECT snapshot_json FROM runtime_snapshots WHERE conversation_id = ?").get(conversationId) as RowRecord | undefined;
     return row ? snapshotFromRow(row) : null;
+  }
+
+  close() {
+    this.db.close();
   }
 }
 

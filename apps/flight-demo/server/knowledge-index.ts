@@ -98,6 +98,7 @@ export async function searchFlightKnowledgeIndex(options: {
   embeddingModel: ModelAdapter;
   query: string;
   limit?: number;
+  minScore?: number;
   signal?: AbortSignal;
 }): Promise<Array<KnowledgeItem<FlightKnowledgeMetadata>>> {
   assertEmbeddingModel(options.embeddingModel);
@@ -107,12 +108,14 @@ export async function searchFlightKnowledgeIndex(options: {
     text: options.query,
     ...(options.signal ? { signal: options.signal } : {}),
   });
-  const limit = options.limit ?? 5;
+  const limit = options.limit ?? 3;
+  const minScore = options.minScore ?? 0.2;
   return options.index.entries
     .map((entry) => ({
       entry,
       score: cosineSimilarity(queryEmbedding.embedding, entry.embedding),
     }))
+    .filter(({ score }) => score >= minScore)
     .sort((left, right) => right.score - left.score)
     .slice(0, limit)
     .map(({ entry, score }) => ({

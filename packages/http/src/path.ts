@@ -12,6 +12,9 @@ export function stripBasePath(pathname: string, basePath: string) {
 
 export function parseOptionalInteger(value: string | null) {
   if (value === null || value === "") return undefined;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : undefined;
+  if (!/^(0|[1-9]\d*)$/.test(value)) {
+    throw new HttpInputError("after must be a non-negative integer.");
+  }
+  return Number(value);
 }
+import { HttpInputError } from "./responses.js";

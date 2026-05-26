@@ -69,6 +69,7 @@ describe("CognideskTestHarness", () => {
     ]);
     expect(result.score).toBe(0.9);
     expect(result.passed).toBe(true);
+    expect(result.status).toBe("passed");
   });
 
   it("fails scenarios when deterministic assertions fail", async () => {
@@ -96,6 +97,7 @@ describe("CognideskTestHarness", () => {
       reasoning: "Assistant transcript did not contain 'confirmed'.",
     }]);
     expect(result.passed).toBe(false);
+    expect(result.status).toBe("failed");
   });
 
   it("can use a model-backed simulated user when no script is provided", async () => {
@@ -122,6 +124,144 @@ describe("CognideskTestHarness", () => {
 
     expect(result.transcript[0]).toEqual({ role: "user", content: "I need to book a flight to Berlin." });
     expect(result.passed).toBe(true);
+  });
+
+  it("marks invalid scenarios as errors instead of false-green passes", async () => {
+    const harness = createTestHarness({
+      client: {
+        createConversation: async () => ({ id: "conversation_1" }),
+        sendMessage: async () => ({ text: "unreachable", events: [] }),
+      },
+    });
+
+    const noUser = await harness.runScenario({
+      id: "no-user",
+      agentId: "flight-service",
+      user: {
+        identity: "Traveller",
+        goal: "No turns",
+      },
+    });
+    const noJudge = await harness.runScenario({
+      id: "no-judge",
+      agentId: "flight-service",
+      user: {
+        identity: "Traveller",
+        goal: "Judge me",
+        scriptedTurns: ["Hello"],
+      },
+      criteria: [{ id: "quality", description: "Quality" }],
+    });
+
+    expect(noUser).toMatchObject({
+      status: "error",
+      passed: false,
+      error: "Scenario requires scriptedTurns or a simulatedUserModel.",
+    });
+    expect(noJudge).toMatchObject({
+      status: "error",
+      passed: false,
+      error: "Scenario criteria require a judgeModel.",
+    });
+  });
+
+  it("redacts transcript and events before assertions, judging, and output", async () => {
+    let judgedContent = "";
+    const client: HarnessAgentClient = {
+      createConversation: async () => ({ id: "conversation_1" }),
+      sendMessage: async () => ({
+        text: "Assistant saw raw-secret",
+        events: [{
+          id: "event_1",
+          conversationId: "conversation_1",
+          offset: 1,
+          type: "message.completed",
+          createdAt: new Date().toISOString(),
+          data: { text: "raw-secret" },
+        }],
+      }),
+    };
+    const judge: ModelAdapter = {
+      provider: "test",
+      model: "judge",
+      generateText: async ({ messages }) => {
+        judgedContent = messages.map((message) => message.content).join("\n");
+        return {
+          text: JSON.stringify({ score: 1, passed: true, reasoning: "Redacted." }),
+          structured: { score: 1, passed: true, reasoning: "Redacted." },
+        };
+      },
+    };
+    const harness = createTestHarness({
+      client,
+      judgeModel: judge,
+      privacy: {
+        redactTranscript: ({ transcript }) => transcript.map((turn) => ({
+          ...turn,
+          content: turn.content.replace("raw-secret", "[secret]"),
+        })),
+        redactEvents: ({ events }) => events.map((event) => event.type === "message.completed"
+          ? { ...event, data: { text: "[secret]" } }
+          : event),
+      },
+    });
+
+    const result = await harness.runScenario({
+      id: "privacy",
+      agentId: "flight-service",
+      user: {
+        identity: "Traveller",
+        goal: "Protect transcript",
+        scriptedTurns: ["raw-secret"],
+      },
+      assertions: [{ id: "redacted", type: "assistantContains", text: "[secret]" }],
+      criteria: [{ id: "privacy", description: "Transcript is redacted." }],
+    });
+
+    expect(result.passed).toBe(true);
+    expect(result.transcript).toEqual([
+      { role: "user", content: "[secret]" },
+      { role: "assistant", content: "Assistant saw [secret]" },
+    ]);
+    expect(result.events[0]?.data).toEqual({ text: "[secret]" });
+    expect(judgedContent).toContain("[secret]");
+    expect(judgedContent).not.toContain("raw-secret");
+  });
+
+  it("stops after a conversation is closed", async () => {
+    const sent: string[] = [];
+    const harness = createTestHarness({
+      client: {
+        createConversation: async () => ({ id: "conversation_1" }),
+        sendMessage: async ({ text }) => {
+          sent.push(text);
+          return {
+            text: "Closed.",
+            events: [{
+              id: "event_1",
+              conversationId: "conversation_1",
+              offset: 1,
+              type: "conversation.closed",
+              createdAt: new Date().toISOString(),
+              data: { reason: "done" },
+            }],
+          };
+        },
+      },
+    });
+
+    const result = await harness.runScenario({
+      id: "closed",
+      agentId: "flight-service",
+      user: {
+        identity: "Traveller",
+        goal: "Stop after closure",
+        scriptedTurns: ["First", "Second"],
+      },
+    });
+
+    expect(sent).toEqual(["First"]);
+    expect(result.transcript).toHaveLength(2);
   });
 
   it("runs scenarios from the eval CLI config and returns non-zero on failures", async () => {
@@ -189,5 +329,55 @@ describe("CognideskTestHarness", () => {
     });
 
     expect(failingExitCode).toBe(1);
+  });
+
+  it("prints help with a zero exit code and isolates CLI scenario crashes", async () => {
+    let helpOutput = "";
+    const helpExitCode = await runEvalCli(["--help"], {
+      stdout: { write: (chunk: string) => { helpOutput += chunk; return true; } },
+      stderr: { write: () => true },
+    });
+    expect(helpExitCode).toBe(0);
+    expect(helpOutput).toContain("Usage: cognidesk-eval");
+
+    const directory = await mkdtemp(join(tmpdir(), "cognidesk-eval-"));
+    const configFile = join(directory, "crash.config.mjs");
+    await writeFile(configFile, `
+      export const scenarios = [
+        { id: "throws", agentId: "flight-service", user: { identity: "Traveller", goal: "Throw", scriptedTurns: ["Hi"] } },
+        { id: "passes", agentId: "flight-service", user: { identity: "Traveller", goal: "Pass", scriptedTurns: ["Hi"] } }
+      ];
+      export const harness = {
+        async runScenario(scenario) {
+          if (scenario.id === "throws") throw new Error("boom");
+          return {
+            scenarioId: scenario.id,
+            conversationId: "conversation_2",
+            status: "passed",
+            transcript: [],
+            events: [],
+            assertions: [],
+            judgements: [],
+            score: 1,
+            passed: true
+          };
+        }
+      };
+    `, "utf8");
+
+    let output = "";
+    const exitCode = await runEvalCli(["--config", configFile], {
+      stdout: { write: (chunk: string) => { output += chunk; return true; } },
+      stderr: { write: () => true },
+    });
+
+    expect(exitCode).toBe(1);
+    expect(JSON.parse(output)).toMatchObject({
+      passed: false,
+      results: [
+        { scenarioId: "throws", status: "error", passed: false, error: "boom" },
+        { scenarioId: "passes", status: "passed", passed: true },
+      ],
+    });
   });
 });

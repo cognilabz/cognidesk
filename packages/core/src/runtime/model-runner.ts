@@ -15,6 +15,7 @@ import type {
 import { isAbortLikeError } from "./errors.js";
 import { resolveActiveStates } from "./journey-state.js";
 import { applyModelPromptProfile } from "./prompt-profiles.js";
+import { redactModelInput } from "./privacy.js";
 import { executeToolWithRetry } from "./state-runners.js";
 import { createToolResultMessage, uniqueTools } from "./tools.js";
 import type { RuntimeEventEmitter, RuntimeOptions, StateMachineTurnResult } from "./types.js";
@@ -34,11 +35,12 @@ export async function generateTextWithTrace(args: {
     model: args.model.model,
   });
   try {
+    const redactedInput = await redactModelInput(args.options, args.conversationId, args.input);
     const output = await args.model.generateText({
-      ...args.input,
+      ...redactedInput,
       messages: await applyModelPromptProfile({
         model: args.model,
-        input: args.input,
+        input: redactedInput,
       }),
     });
     await args.trace({

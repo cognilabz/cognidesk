@@ -1,4 +1,4 @@
-import type { createAgent } from "@cognidesk/core";
+import { textInputWidget, widgetPrompt, type createAgent } from "@cognidesk/core";
 import { bookingContext } from "../domain/schemas.js";
 import type { FlightTools } from "../tools/flight-tools.js";
 
@@ -24,16 +24,37 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
       availableFlights: ({ output }) => output.flights,
     },
   });
+  const selectFlight = booking.state("selectFlight").collect("selectedFlightId", {
+    prompt: "Choose one of the mocked flight numbers.",
+    widget: widgetPrompt(textInputWidget, {
+      label: "Flight number",
+      description: "Use a flight number from the search results.",
+      placeholder: "CL102",
+    }),
+  });
   const confirmPassenger = booking.state("confirmPassenger").collect("passengerName");
   const book = booking.state("book").runTool(tools.bookFlight, {
     confirm: {
       message: "Confirm mocked booking",
     },
+    input: ({ context }) => ({
+      selectedFlightId: context.selectedFlightId ?? "",
+      passengerName: context.passengerName ?? "",
+    }),
+    assign: {
+      bookingReference: ({ output }) => output.bookingReference,
+    },
   });
   const booked = booking.final("booked");
   booking.initial(collectRoute);
   collectRoute.when("route and date are known").target(chooseFlight);
-  chooseFlight.when("customer selected a flight").target(confirmPassenger);
+  chooseFlight.transitionTo(selectFlight);
+  selectFlight.when("customer selected an available flight", {
+    guard: ({ context }) => Boolean(
+      context.selectedFlightId
+        && context.availableFlights?.some((flight) => flight.id === context.selectedFlightId),
+    ),
+  }).target(confirmPassenger);
   confirmPassenger.when("passenger is known").target(book);
   book.transitionTo(booked);
 }

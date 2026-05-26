@@ -94,22 +94,34 @@ export async function submitRuntimeWidget(
     promptId: string;
     output: unknown;
   }) => Promise<unknown>,
+  validateWidgetSubmission: (args: {
+    conversation: ConversationRecord;
+    promptId: string;
+    widgetKind: string;
+    output: unknown;
+  }) => Promise<{ output: unknown }>,
   input: SubmitWidgetInput,
 ): Promise<RuntimeEvent> {
   const conversation = await requireConversation(input.conversationId);
+  const validated = await validateWidgetSubmission({
+    conversation,
+    promptId: input.promptId,
+    widgetKind: input.widgetKind,
+    output: input.output,
+  });
   const submitted = await emit({
     conversationId: input.conversationId,
     type: "ui.submitted",
     data: {
       promptId: input.promptId,
       widgetKind: input.widgetKind,
-      output: input.output,
+      output: validated.output,
     },
   });
   await processWidgetSubmission({
     conversation,
     promptId: input.promptId,
-    output: input.output,
+    output: validated.output,
   });
   return submitted;
 }

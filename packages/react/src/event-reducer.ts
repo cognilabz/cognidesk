@@ -18,20 +18,26 @@ export interface ChatEventReducerState {
   messages: ChatMessage[];
   prompts: PromptState[];
   lastOffset: number;
+  pendingMessageRole?: "user" | "assistant" | undefined;
 }
 
 export function reduceChatRuntimeEvent(
   state: ChatEventReducerState,
   event: RuntimeEvent,
 ): ChatEventReducerState {
+  if (event.offset <= state.lastOffset) return state;
   const lastOffset = Math.max(state.lastOffset, event.offset);
-  if (event.type === "message.started" && event.data.role === "assistant") {
-    if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset };
+  if (event.type === "message.started") {
+    if (event.data.role === "user") {
+      return { ...state, lastOffset, pendingMessageRole: "user" };
+    }
+    if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset, pendingMessageRole: "assistant" };
     const last = state.messages.at(-1);
-    if (last?.role === "assistant" && last.status === "streaming") return { ...state, lastOffset };
+    if (last?.role === "assistant" && last.status === "streaming") return { ...state, lastOffset, pendingMessageRole: "assistant" };
     return {
       ...state,
       lastOffset,
+      pendingMessageRole: "assistant",
       messages: [
         ...state.messages,
         {
@@ -73,14 +79,29 @@ export function reduceChatRuntimeEvent(
     };
   }
   if (event.type === "message.completed") {
-    if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset };
-    const role = inferMessageRole(event, state.messages);
-    if (role !== "assistant") return { ...state, lastOffset };
+    if (state.messages.some((message) => message.id === event.id)) return { ...state, lastOffset, pendingMessageRole: undefined };
+    const role = state.pendingMessageRole ?? inferMessageRole(event, state.messages);
     const last = state.messages.at(-1);
-    if (last?.role === "assistant" && last.status === "streaming") {
+    if (role === "user" && last?.role === "user" && last.text === event.data.text && (last.status === "sending" || last.status === "sent")) {
       return {
         ...state,
         lastOffset,
+        pendingMessageRole: undefined,
+        messages: [
+          ...state.messages.slice(0, -1),
+          {
+            ...last,
+            id: last.id.startsWith("local_") ? last.id : event.id,
+            status: "sent",
+          },
+        ],
+      };
+    }
+    if (role === "assistant" && last?.role === "assistant" && last.status === "streaming") {
+      return {
+        ...state,
+        lastOffset,
+        pendingMessageRole: undefined,
         messages: [
           ...state.messages.slice(0, -1),
           {
@@ -96,6 +117,7 @@ export function reduceChatRuntimeEvent(
     return {
       ...state,
       lastOffset,
+      pendingMessageRole: undefined,
       messages: [
         ...state.messages,
         {

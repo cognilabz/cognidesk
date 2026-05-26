@@ -8,6 +8,7 @@ import type {
 } from "@cognidesk/core";
 import { bundledPromptProfiles } from "./prompt-assets.js";
 import {
+  promptTemplateFields,
   promptTasks,
   type BundledPromptProfile,
   type PromptTemplateMap,
@@ -68,7 +69,7 @@ export function createModelPromptProfile(options: PromptProfileOptions = {}): Mo
   return {
     id: profileSlug,
     description,
-    logicalModelSlug: profileSlug,
+    ...(profileSlug !== "default" ? { logicalModelSlug: profileSlug } : {}),
     renderInstruction(input: ModelPromptProfileRenderInput) {
       const template = templates[input.promptTask];
       if (!template) {
@@ -93,6 +94,7 @@ export function listBuiltInPromptProfiles() {
 function registeredProfiles(customProfiles: Iterable<ModelProfileRegistration> = []) {
   const registrations = new Map<string, ModelProfileRegistration>();
   for (const slug of Object.keys(bundledPromptProfiles)) {
+    if (slug === "default") continue;
     registrations.set(slug, { slug, aliases: builtInAliases[slug] ?? [slug] });
   }
   for (const profile of customProfiles) {
@@ -117,7 +119,11 @@ function normalizeLogicalModelSlugWithRegistrations(
   if (!providerModelId) return null;
   const normalized = providerModelId.trim();
   const aliases = aliasMap(registrations);
-  return aliases.get(normalized) ?? aliases.get(stripProviderPrefix(normalized)) ?? null;
+  const stripped = stripProviderPrefix(normalized);
+  return aliases.get(normalized)
+    ?? aliases.get(stripped)
+    ?? snapshotSlug(stripped, registrations)
+    ?? null;
 }
 
 function stripProviderPrefix(modelId: string) {
@@ -171,7 +177,7 @@ function validateOverrideRegistry(
 ) {
   if (!overrides) return;
   for (const [slug, roleOverrides] of Object.entries(overrides)) {
-    if (!registrations.has(slug)) throw new Error(`Prompt override references unregistered logical model slug '${slug}'.`);
+    if (slug !== "default" && !registrations.has(slug)) throw new Error(`Prompt override references unregistered logical model slug '${slug}'.`);
     for (const task of Object.keys(roleOverrides)) {
       if (!promptTasks.includes(task as PromptTask)) throw new Error(`Unknown prompt task '${task}' in overrides for '${slug}'.`);
     }
@@ -182,6 +188,7 @@ function validatePromptTemplates(profileSlug: string, templates: PromptTemplateM
   for (const task of promptTasks) {
     const template = templates[task];
     if (!template) throw new Error(`Prompt profile '${profileSlug}' is missing '${task}.md'.`);
+    validateTemplateFields(profileSlug, task, template);
     renderTemplate(profileSlug, task, template, sampleContext(task));
   }
 }
@@ -197,9 +204,9 @@ function renderTemplate(profileSlug: string, task: PromptTask, template: string,
 
 function renderContext(input: ModelPromptProfileRenderInput) {
   return {
+    ...input.payload,
     model: input.model,
     structuredOutput: input.structuredOutput ?? null,
-    ...input.payload,
   };
 }
 
@@ -211,12 +218,16 @@ function sampleContext(task: PromptTask): Record<string, unknown> {
   };
   const common = {
     model: { provider: "test", model: "test", logicalModelSlug: "default" },
-    structuredOutput,
   };
+  const allowedFields = promptTemplateFields[task] as readonly string[];
+  const structured = allowedFields.includes("structuredOutput")
+    ? { structuredOutput }
+    : {};
   switch (task) {
     case "response":
       return {
         ...common,
+        ...structured,
         selectedJourneyId: "journey",
         activeStateIds: ["state"],
         journeyContext: {},
@@ -225,6 +236,7 @@ function sampleContext(task: PromptTask): Record<string, unknown> {
     case "journey-matcher":
       return {
         ...common,
+        ...structured,
         latestUserMessage: "hello",
         activeJourneyId: null,
         conversationTranscript: [],
@@ -233,6 +245,7 @@ function sampleContext(task: PromptTask): Record<string, unknown> {
     case "transition-matcher":
       return {
         ...common,
+        ...structured,
         journey: {},
         state: {},
         latestUserMessage: "hello",
@@ -242,12 +255,14 @@ function sampleContext(task: PromptTask): Record<string, unknown> {
     case "delegation-completion":
       return {
         ...common,
+        ...structured,
         journey: {},
         conversationTranscript: [],
       };
     case "extraction":
       return {
         ...common,
+        ...structured,
         journey: {},
         state: {},
         latestUserMessage: "hello",
@@ -258,12 +273,14 @@ function sampleContext(task: PromptTask): Record<string, unknown> {
     case "citation-post-processing":
       return {
         ...common,
+        ...structured,
         assistantAnswer: "answer",
         knowledge: [],
       };
     case "compaction":
       return {
         ...common,
+        ...structured,
         instructions: "compact",
         fromOffset: 1,
         toOffset: 1,
@@ -272,9 +289,45 @@ function sampleContext(task: PromptTask): Record<string, unknown> {
     case "generated-preamble":
       return {
         ...common,
+        ...structured,
         purpose: null,
         maxWords: 24,
         history: [],
       };
   }
+}
+
+function snapshotSlug(
+  providerModelId: string,
+  registrations: Map<string, ModelProfileRegistration>,
+) {
+  for (const slug of registrations.keys()) {
+    if (providerModelId === slug || providerModelId.startsWith(`${slug}-`)) return slug;
+  }
+  return null;
+}
+
+function validateTemplateFields(profileSlug: string, task: PromptTask, template: string) {
+  const allowed = new Set(["model", ...promptTemplateFields[task]]);
+  const referenced = referencedTemplateFields(template);
+  const invalid = [...referenced].filter((field) => !allowed.has(field));
+  if (invalid.length > 0) {
+    throw new Error(
+      `Prompt template '${profileSlug}/${task}.md' references unsupported field(s): ${invalid.join(", ")}`,
+    );
+  }
+}
+
+function referencedTemplateFields(template: string) {
+  const fields = new Set<string>();
+  for (const match of template.matchAll(/\{\{\s*([A-Za-z_][\w]*)/g)) {
+    if (match[1]) fields.add(match[1]);
+  }
+  for (const match of template.matchAll(/\{%\s*(?:if|elif)\s+([A-Za-z_][\w]*)/g)) {
+    if (match[1]) fields.add(match[1]);
+  }
+  for (const match of template.matchAll(/\{%\s*for\s+[A-Za-z_][\w]*\s+in\s+([A-Za-z_][\w]*)/g)) {
+    if (match[1]) fields.add(match[1]);
+  }
+  return fields;
 }

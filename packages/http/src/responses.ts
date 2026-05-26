@@ -2,9 +2,17 @@ export interface ResponseOptions {
   cors?: boolean;
 }
 
-export async function readJson<T>(request: Request): Promise<T> {
+export class HttpInputError extends Error {
+  readonly status = 400;
+}
+
+export async function readJson<T = unknown>(request: Request): Promise<T> {
   if (!request.body) return {} as T;
-  return await request.json() as T;
+  try {
+    return await request.json() as T;
+  } catch {
+    throw new HttpInputError("Request body must be valid JSON.");
+  }
 }
 
 export function json(body: unknown, status: number, options: ResponseOptions) {

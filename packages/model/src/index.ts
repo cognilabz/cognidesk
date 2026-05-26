@@ -256,12 +256,15 @@ function toAiMessage(message: ModelMessage): AiModelMessage {
   if (message.role === "assistant" && message.toolCalls?.length) {
     return {
       role: "assistant",
-      content: message.toolCalls.map((toolCall) => ({
-        type: "tool-call",
-        toolCallId: toolCall.id,
-        toolName: toolCall.name,
-        input: toolCall.input,
-      })),
+      content: [
+        ...(message.content.trim() ? [{ type: "text" as const, text: message.content }] : []),
+        ...message.toolCalls.map((toolCall) => ({
+          type: "tool-call" as const,
+          toolCallId: toolCall.id,
+          toolName: toolCall.name,
+          input: toolCall.input,
+        })),
+      ],
     };
   }
   return {

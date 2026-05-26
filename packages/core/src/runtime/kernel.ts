@@ -43,6 +43,7 @@ export function createRuntimeKernel(
         core.requireConversation,
         core.emit,
         state.processWidgetSubmission,
+        state.validateWidgetSubmission,
         input,
       );
     },

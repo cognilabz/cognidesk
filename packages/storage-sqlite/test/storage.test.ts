@@ -50,4 +50,28 @@ describe("SQLite storage adapter", () => {
       expect(snapshot?.lifecycle).toBe("closed");
     });
   });
+
+  it("does not truncate event history when no limit is supplied", async () => {
+    await withStorage(async (filename) => {
+      const storage = createSqliteStorage({ filename });
+      const runtime = createRuntime({ storage });
+      await runtime.initialize();
+      const conversation = await runtime.createConversation({
+        id: "conv_many",
+        agentId: "flight-service",
+        context: {},
+      });
+
+      for (let index = 0; index < 501; index += 1) {
+        await runtime.emit({
+          conversationId: conversation.id,
+          type: "message.completed",
+          data: { text: `Event ${index}` },
+        });
+      }
+
+      expect(await runtime.listEvents(conversation.id)).toHaveLength(502);
+      expect(await storage.listEvents({ conversationId: conversation.id, limit: 500 })).toHaveLength(500);
+    });
+  });
 });

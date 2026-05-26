@@ -7,7 +7,7 @@ import type {
 
 export interface HarnessAgentClient {
   createConversation(input: CreateRuntimeConversationInput): Promise<{ id: string }>;
-  sendMessage(input: { conversationId: string; text: string; turn?: unknown }): Promise<Pick<HandleUserMessageResult, "text" | "events" | "activeJourneyId">>;
+  sendMessage(input: { conversationId: string; text: string; turn?: unknown; signal?: AbortSignal }): Promise<Pick<HandleUserMessageResult, "text" | "events" | "activeJourneyId">>;
 }
 
 export interface SimulatedUserDefinition {
@@ -79,12 +79,18 @@ export interface HarnessScenario {
     threshold?: number;
     instructions?: string;
   };
+  timeoutMs?: number;
 }
 
 export interface TestHarnessOptions {
   client: HarnessAgentClient;
   simulatedUserModel?: ModelAdapter;
   judgeModel?: ModelAdapter;
+  timeoutMs?: number;
+  privacy?: {
+    redactTranscript?(input: { scenario: HarnessScenario; transcript: TranscriptTurn[] }): TranscriptTurn[] | Promise<TranscriptTurn[]>;
+    redactEvents?(input: { scenario: HarnessScenario; events: RuntimeEvent[] }): RuntimeEvent[] | Promise<RuntimeEvent[]>;
+  };
 }
 
 export interface TranscriptTurn {
@@ -102,10 +108,12 @@ export interface CriterionJudgement {
 export interface ScenarioResult {
   scenarioId: string;
   conversationId: string;
+  status: "passed" | "failed" | "error";
   transcript: TranscriptTurn[];
   events: RuntimeEvent[];
   assertions: AssertionResult[];
   judgements: CriterionJudgement[];
   score: number;
   passed: boolean;
+  error?: string;
 }

@@ -25,11 +25,30 @@ export async function runEvalCli(argv: string[] = process.argv.slice(2), io: Eva
   const stderr = io.stderr ?? process.stderr;
   try {
     const options = parseArgs(argv);
+    if (options.help) {
+      stdout.write(`${usage()}\n`);
+      return 0;
+    }
     const config = await loadEvalConfig(options.config);
     const harness = resolveHarness(config);
     const results = [];
     for (const scenario of config.scenarios) {
-      results.push(await harness.runScenario(scenario));
+      try {
+        results.push(await harness.runScenario(scenario));
+      } catch (error) {
+        results.push({
+          scenarioId: scenario.id,
+          conversationId: "",
+          status: "error" as const,
+          transcript: [],
+          events: [],
+          assertions: [],
+          judgements: [],
+          score: 0,
+          passed: false,
+          error: error instanceof Error ? error.message : "Scenario failed.",
+        });
+      }
     }
     const output: EvalCliResult = {
       passed: results.every((result) => result.passed),
@@ -90,12 +109,16 @@ function parseArgs(argv: string[]) {
       continue;
     }
     if (arg === "--help" || arg === "-h") {
-      throw new Error("Usage: cognidesk-eval --config ./eval.config.mjs [--pretty]");
+      return { config, pretty, help: true };
     }
     throw new Error(`Unknown argument '${arg}'.`);
   }
   if (!config) throw new Error("Missing required --config path.");
-  return { config, pretty };
+  return { config, pretty, help: false };
+}
+
+function usage() {
+  return "Usage: cognidesk-eval --config ./eval.config.mjs [--pretty]";
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

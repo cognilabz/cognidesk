@@ -39,6 +39,15 @@ describe("runtime UI and lifecycle events 01", () => {
       models: createModels(),
     });
     const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "ui.prompted",
+      data: {
+        promptId: "prompt_1",
+        widgetKind: "confirmation",
+        input: { title: "Confirm", message: "Proceed?" },
+      },
+    });
 
     const event = await runtime.submitWidget({
       conversationId: conversation.id,
@@ -205,5 +214,48 @@ describe("runtime UI and lifecycle events 01", () => {
         intermediate: true,
       },
     });
+  });
+
+  it("rejects stale, mismatched, or invalid widget submissions before recording them", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await expect(runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "missing_prompt",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    })).rejects.toThrow("is not open");
+
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "ui.prompted",
+      data: {
+        promptId: "prompt_1",
+        widgetKind: "confirmation",
+        input: { title: "Confirm", message: "Proceed?" },
+      },
+    });
+
+    await expect(runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "prompt_1",
+      widgetKind: "text-input",
+      output: { value: "yes" },
+    })).rejects.toThrow("expects widget 'confirmation'");
+
+    await expect(runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "prompt_1",
+      widgetKind: "confirmation",
+      output: { value: "yes" },
+    })).rejects.toThrow("is invalid");
+
+    expect((await runtime.listEvents(conversation.id)).filter((event) => event.type === "ui.submitted")).toEqual([]);
   });
 });

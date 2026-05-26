@@ -22,6 +22,7 @@ import {
 } from "./model-runner.js";
 import {
   redactAssistantMessage as redactAssistantMessageWithOptions,
+  redactTraceEvent as redactTraceEventWithOptions,
   redactModelMessages as redactModelMessagesWithOptions,
   redactUserMessage as redactUserMessageWithOptions,
 } from "./privacy.js";
@@ -35,8 +36,10 @@ import type {
 } from "./types.js";
 
 export async function traceRuntimeEvent(options: RuntimeOptions, event: TraceEvent) {
+  const redacted = await redactTraceEventWithOptions(options, event).catch(() => null);
+  if (!redacted) return;
   try {
-    await options.observability?.onTraceEvent?.(event);
+    await options.observability?.onTraceEvent?.(redacted);
   } catch {
     // Observability hooks must not affect conversation execution.
   }

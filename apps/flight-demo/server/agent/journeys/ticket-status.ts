@@ -12,15 +12,27 @@ export function addTicketStatusJourney(agent: ReturnType<typeof createAgent>, to
     matcher: ({ turn }) => Boolean((turn as { forceStatus?: boolean }).forceStatus),
   });
   const identify = status.state("identify").collect("bookingReference", { required: false }).collect("flightNumber", { required: false });
-  const lookup = status.state("lookup").runTool(tools.getTicketStatus, {
+  const lookupBooking = status.state("lookupBooking").runTool(tools.getTicketStatus, {
     input: ({ context }) => ({
       bookingReference: context.bookingReference ?? "",
     }),
   });
+  const lookupFlight = status.state("lookupFlight").runTool(tools.getFlightInfo, {
+    input: ({ context }) => ({
+      flightNumber: context.flightNumber ?? "",
+    }),
+    assign: {
+      flightInfo: ({ output }) => output,
+    },
+  });
   const done = status.final("done");
   status.initial(identify);
-  identify.when("booking reference or flight number is known", {
+  identify.when("booking reference is known", {
     guard: ({ context }) => Boolean(context.bookingReference),
-  }).target(lookup);
-  lookup.transitionTo(done);
+  }).target(lookupBooking);
+  identify.when("flight number is known", {
+    guard: ({ context }) => Boolean(context.flightNumber),
+  }).target(lookupFlight);
+  lookupBooking.transitionTo(done);
+  lookupFlight.transitionTo(done);
 }

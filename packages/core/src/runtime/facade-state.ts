@@ -23,6 +23,7 @@ import {
 import {
   processJourneyEvent as processJourneyEventWithDeps,
   processWidgetSubmission as processWidgetSubmissionWithDeps,
+  validateWidgetSubmission as validateWidgetSubmissionWithDeps,
 } from "./state-interactions.js";
 import type {
   RuntimeEventEmitter,
@@ -211,6 +212,30 @@ export function processRuntimeWidgetSubmission(
   },
 ) {
   return processWidgetSubmissionWithDeps({
+    ...args,
+    storage: deps.options.storage,
+    ...(deps.options.agent ? { agent: deps.options.agent } : {}),
+    requireConversationRecord: deps.requireConversationRecord,
+    runStateActionRuns: deps.runStateActionRuns,
+    runStateToolRuns: deps.runStateToolRuns,
+    selectTransition: deps.selectTransition,
+    selectEventTransition: deps.selectEventTransition,
+    resolveJourneyEventRoute: deps.resolveJourneyEventRoute,
+    advanceStateMachine: deps.advanceStateMachine,
+    emit: deps.emit,
+  });
+}
+
+export function validateRuntimeWidgetSubmission(
+  deps: RuntimeStateInteractionDeps,
+  args: {
+    conversation: ConversationRecord;
+    promptId: string;
+    widgetKind: string;
+    output: unknown;
+  },
+) {
+  return validateWidgetSubmissionWithDeps({
     ...args,
     storage: deps.options.storage,
     ...(deps.options.agent ? { agent: deps.options.agent } : {}),

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
@@ -31,7 +31,7 @@ describe("journey index JSON adapter", () => {
     });
 
     expect(await loadJourneyIndex(file)).toEqual(index);
-    expect(await loadFreshJourneyIndex(file, agent)).toEqual(index);
+    expect(await loadFreshJourneyIndex(file, agent, { embeddingModel })).toEqual(index);
     expect(await readFile(file, "utf8")).toContain("\"projectionVersion\"");
   });
 
@@ -49,6 +49,35 @@ describe("journey index JSON adapter", () => {
 
     const regenerated = await ensureJourneyIndex({ file, agent: changed, embeddingModel, mode: "development" });
     expect(regenerated.definitionHash).not.toBe(index.definitionHash);
+  });
+
+  it("treats embedding model changes as stale index compatibility failures", async () => {
+    const directory = await tempDirectory();
+    const file = join(directory, "journey-index.json");
+    const agent = createIndexedAgent("ticket status").compile();
+    await ensureJourneyIndex({ file, agent, embeddingModel, mode: "development" });
+    const otherEmbeddingModel = {
+      ...embeddingModel,
+      model: "other-embedding",
+    };
+
+    await expect(ensureJourneyIndex({ file, agent, embeddingModel: otherEmbeddingModel, mode: "production" }))
+      .rejects
+      .toThrow("Index embedding model");
+
+    const regenerated = await ensureJourneyIndex({ file, agent, embeddingModel: otherEmbeddingModel, mode: "development" });
+    expect(regenerated.embeddingModel).toBe("other-embedding");
+  });
+
+  it("does not mask non-regenerable filesystem failures in development", async () => {
+    const directory = await tempDirectory();
+    const file = join(directory, "not-a-file");
+    await mkdir(file);
+    const agent = createIndexedAgent("ticket status").compile();
+
+    await expect(ensureJourneyIndex({ file, agent, embeddingModel, mode: "development" }))
+      .rejects
+      .toMatchObject({ code: "EISDIR" });
   });
 });
 

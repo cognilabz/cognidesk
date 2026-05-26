@@ -1,4 +1,11 @@
-export type AppearanceElementValue = string | Record<string, string | number>;
+export type AppearanceStyle = Record<string, string | number>;
+
+export type AppearanceElementObject = {
+  className?: string;
+  style?: AppearanceStyle;
+};
+
+export type AppearanceElementValue = string | AppearanceStyle | AppearanceElementObject;
 
 export type AppearanceConfiguration = {
   variables?: Record<string, string>;
@@ -79,14 +86,14 @@ const defaultWidgetClassNames: Record<WidgetElementKey, string> = {
 export function resolveElementClassName(
   key: ElementKey,
   appearance?: AppearanceConfiguration,
-) {
+) : string {
   return resolveClassName(defaultClassNames[key], appearance?.elements?.[key]);
 }
 
 export function resolveInlineStyle(
   key: ElementKey,
   appearance?: AppearanceConfiguration,
-) {
+): AppearanceStyle {
   const configured = appearance?.elements?.[key];
   return resolveStyle(appearance, configured);
 }
@@ -95,7 +102,7 @@ export function resolveWidgetElementClassName(
   widgetKind: string,
   key: WidgetElementKey,
   appearance?: AppearanceConfiguration,
-) {
+): string {
   return resolveClassName(
     defaultWidgetClassNames[key],
     appearance?.elements?.[key],
@@ -107,7 +114,7 @@ export function resolveWidgetInlineStyle(
   widgetKind: string,
   key: WidgetElementKey,
   appearance?: AppearanceConfiguration,
-) {
+): AppearanceStyle {
   return resolveStyle(
     appearance,
     appearance?.elements?.[key],
@@ -116,7 +123,13 @@ export function resolveWidgetInlineStyle(
 }
 
 function resolveClassName(defaultClassName: string, ...values: Array<AppearanceElementValue | undefined>) {
-  const configuredClassNames = values.filter((value): value is string => typeof value === "string");
+  const configuredClassNames = values
+    .map((value) => {
+      if (typeof value === "string") return value;
+      if (isAppearanceElementObject(value) && typeof value.className === "string") return value.className;
+      return null;
+    })
+    .filter((value): value is string => Boolean(value));
   return configuredClassNames.length > 0
     ? [defaultClassName, ...configuredClassNames].join(" ")
     : defaultClassName;
@@ -125,11 +138,23 @@ function resolveClassName(defaultClassName: string, ...values: Array<AppearanceE
 function resolveStyle(
   appearance: AppearanceConfiguration | undefined,
   ...values: Array<AppearanceElementValue | undefined>
-) {
+): AppearanceStyle {
   return {
     ...appearance?.variables,
-    ...Object.assign({}, ...values.filter((value): value is Record<string, string | number> => (
-      typeof value === "object" && value !== null
-    ))),
+    ...Object.assign({}, ...values.map(extractStyle).filter((value): value is AppearanceStyle => Boolean(value))),
   };
+}
+
+function extractStyle(value: AppearanceElementValue | undefined): AppearanceStyle | null {
+  if (!value || typeof value === "string") return null;
+  if (isAppearanceElementObject(value)) return value.style ?? null;
+  return value;
+}
+
+function isAppearanceElementObject(value: AppearanceElementValue | undefined): value is AppearanceElementObject {
+  return Boolean(
+    value
+      && typeof value === "object"
+      && ("className" in value || "style" in value),
+  );
 }

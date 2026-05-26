@@ -177,6 +177,8 @@ export function parseToolConfirmationPromptId(promptId: string) {
 
 export function extractWidgetFieldValue(output: unknown) {
   if (isRecord(output) && "value" in output) return output.value;
+  if (isRecord(output) && "selectedId" in output) return output.selectedId;
+  if (isRecord(output) && "values" in output) return output.values;
   return output;
 }
 

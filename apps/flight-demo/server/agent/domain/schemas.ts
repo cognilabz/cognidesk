@@ -22,6 +22,7 @@ export const bookingContext = z.object({
 export const statusContext = z.object({
   bookingReference: z.string().optional(),
   flightNumber: z.string().optional(),
+  flightInfo: flightSchema.optional(),
 });
 
 export type Flight = z.infer<typeof flightSchema>;

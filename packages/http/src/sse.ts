@@ -21,7 +21,11 @@ export function streamEvents(options: {
       const close = () => {
         if (closed) return;
         closed = true;
-        controller.close();
+        try {
+          controller.close();
+        } catch {
+          // The stream may already have been closed by cancel().
+        }
       };
       options.signal.addEventListener("abort", close, { once: true });
 
@@ -29,17 +33,20 @@ export function streamEvents(options: {
         if (closed) return;
         try {
           const events = await options.runtime.listEvents(options.conversationId, offset);
+          if (closed) return;
           for (const event of events) {
+            if (closed) return;
             offset = event.offset;
             controller.enqueue(encoder.encode(formatSseEvent(event)));
           }
         } catch (error) {
+          if (closed) return;
           controller.enqueue(encoder.encode(formatSseError(error)));
         }
         if (!closed) setTimeout(poll, options.pollIntervalMs);
       };
 
-      controller.enqueue(encoder.encode(": cognidesk stream ready\n\n"));
+      if (!closed) controller.enqueue(encoder.encode(": cognidesk stream ready\n\n"));
       void poll();
     },
     cancel() {

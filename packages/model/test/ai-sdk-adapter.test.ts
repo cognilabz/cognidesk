@@ -68,6 +68,49 @@ describe("cognideskModel", () => {
     expect(model.model).toBe("test-language");
   });
 
+  it("preserves assistant text when forwarding assistant tool-call messages", async () => {
+    const languageModel = new MockLanguageModelV3({
+      provider: "test",
+      modelId: "test-language",
+      doGenerate: {
+        content: [{ type: "text", text: "ok" }],
+        finishReason: { unified: "stop", raw: "stop" },
+        usage: {
+          inputTokens: {
+            total: 1,
+            noCache: 1,
+            cacheRead: undefined,
+            cacheWrite: undefined,
+          },
+          outputTokens: {
+            total: 1,
+            text: 1,
+            reasoning: undefined,
+          },
+        },
+        warnings: [],
+      },
+    });
+    const model = cognideskModel({ model: languageModel });
+
+    await model.generateText({
+      role: "response",
+      messages: [{
+        role: "assistant",
+        content: "I will look that up before answering.",
+        toolCalls: [{ id: "call_1", name: "lookup", input: { id: "ABC123" } }],
+      }, {
+        role: "tool",
+        name: "lookup",
+        toolCallId: "call_1",
+        content: JSON.stringify({ status: "confirmed" }),
+      }],
+    });
+
+    expect(JSON.stringify(languageModel.doGenerateCalls[0])).toContain("I will look that up before answering.");
+  });
+
+
   it("adapts embeddings", async () => {
     const model = cognideskEmbeddingModel({
       model: new MockEmbeddingModelV3({
@@ -100,7 +143,48 @@ describe("prompt profiles", () => {
   it("uses optimized prompts for known logical slugs and default prompts for unknown models", () => {
     expect(createModelPromptProfile({ providerModelId: "openai/gpt-5.5" }).id).toBe("gpt-5.5");
     expect(createModelPromptProfile({ providerModelId: "gpt-5.5" }).id).toBe("gpt-5.5");
-    expect(createModelPromptProfile({ providerModelId: "unknown-model" }).id).toBe("default");
+    expect(normalizeLogicalModelSlug("openai/gpt-5.5-2026-05-01")).toBe("gpt-5.5");
+    const defaultProfile = createModelPromptProfile({ providerModelId: "unknown-model" });
+    expect(defaultProfile.id).toBe("default");
+    expect(defaultProfile.logicalModelSlug).toBeUndefined();
+  });
+
+  it("rejects prompt templates that reference unsupported runtime fields", () => {
+    expect(() => createModelPromptProfile({
+      providerModelId: "gpt-5.5",
+      promptOverrides: {
+        "gpt-5.5": {
+          response: { template: "Respond using {{ applicationSecret }}." },
+        },
+      },
+    })).toThrow("references unsupported field(s): applicationSecret");
+  });
+
+  it("keeps reserved prompt render fields from being overridden by payload", async () => {
+    const profile = createModelPromptProfile({
+      providerModelId: "gpt-5.5",
+      promptOverrides: {
+        "gpt-5.5": {
+          response: { template: "{{ model.model }} {{ structuredOutput.name }}" },
+        },
+      },
+    });
+    const instruction = await profile.renderInstruction({
+      role: "response",
+      promptTask: "response",
+      model: { provider: "openai", model: "gpt-5.5", logicalModelSlug: "gpt-5.5" },
+      payload: {
+        model: { model: "payload-model" },
+        structuredOutput: { name: "payload-output" },
+        selectedJourneyId: null,
+        activeStateIds: [],
+        journeyContext: {},
+        tools: [],
+      },
+      structuredOutput: { required: false, name: "runtime-output" },
+    });
+
+    expect(instruction).toBe("gpt-5.5 runtime-output");
   });
 
   it("renders a task-specific Nunjucks prompt with structured output metadata", async () => {

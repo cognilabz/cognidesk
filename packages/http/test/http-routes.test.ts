@@ -76,6 +76,28 @@ describe("HTTP adapter routes", () => {
     expect(decoded).toContain("message.completed");
   });
 
+  it("returns 400 for malformed JSON, wrong body shapes, and invalid offsets", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+
+    const malformed = await handler.handle(new Request("http://localhost/conversations", {
+      method: "POST",
+      body: "{not json",
+    }));
+    const nonStringMessage = await handler.handle(new Request("http://localhost/conversations/conversation_1/messages", {
+      method: "POST",
+      body: JSON.stringify({ message: 123 }),
+    }));
+    const invalidOffset = await handler.handle(new Request("http://localhost/conversations/conversation_1/events?after=abc"));
+
+    expect(malformed.status).toBe(400);
+    expect(await malformed.json()).toEqual({ error: "Request body must be valid JSON." });
+    expect(nonStringMessage.status).toBe(400);
+    expect(await nonStringMessage.json()).toEqual({ error: "message must be a string." });
+    expect(invalidOffset.status).toBe(400);
+    expect(await invalidOffset.json()).toEqual({ error: "after must be a non-negative integer." });
+  });
+
   it("posts widget submissions to the runtime", async () => {
     const runtime = new FakeRuntime();
     const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });

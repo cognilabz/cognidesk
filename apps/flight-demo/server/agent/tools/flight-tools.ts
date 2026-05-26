@@ -15,6 +15,7 @@ export const searchFlights = tool("searchFlights", {
     flights: flights.filter((candidate) => (
       candidate.origin.toLowerCase() === input.origin.toLowerCase()
         && candidate.destination.toLowerCase() === input.destination.toLowerCase()
+        && candidate.departureTime.slice(0, 10) === input.departureDate
     )),
   }),
 });
@@ -30,7 +31,12 @@ export const bookFlight = tool("bookFlight", {
   }),
   sideEffect: true,
   idempotencyKey: ({ conversationId, input }) => `${conversationId}:${input.selectedFlightId}`,
-  execute: async ({ input }) => ({ bookingReference: `CD-${input.selectedFlightId}-4821` }),
+  execute: async ({ input }) => {
+    const flight = flights.find((candidate) => candidate.id === input.selectedFlightId);
+    if (!flight) throw new Error(`Unknown mocked flight '${input.selectedFlightId}'.`);
+    if (!input.passengerName.trim()) throw new Error("Passenger name is required.");
+    return { bookingReference: `CD-${input.selectedFlightId}-4821` };
+  },
 });
 
 export const getTicketStatus = tool("getTicketStatus", {
@@ -41,11 +47,17 @@ export const getTicketStatus = tool("getTicketStatus", {
     status: z.enum(["confirmed", "checked-in", "cancelled"]),
     nextStep: z.string(),
   }),
-  execute: async ({ input }) => ({
-    bookingReference: input.bookingReference,
-    status: "confirmed" as const,
-    nextStep: "Check in opens 24 hours before departure.",
-  }),
+  execute: async ({ input }) => {
+    const flightId = input.bookingReference.match(/^CD-(CL\d{3})-\d{4}$/i)?.[1]?.toUpperCase();
+    if (!flightId || !flights.some((candidate) => candidate.id === flightId)) {
+      throw new Error(`Unknown mocked booking reference '${input.bookingReference}'.`);
+    }
+    return {
+      bookingReference: input.bookingReference.toUpperCase(),
+      status: "confirmed" as const,
+      nextStep: "Check in opens 24 hours before departure.",
+    };
+  },
 });
 
 export const getFlightInfo = tool("getFlightInfo", {

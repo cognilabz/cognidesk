@@ -1,4 +1,5 @@
 import { createRuntimeKernel, type RuntimeKernel } from "./runtime/kernel.js";
+import { createPrivacyStorageAdapter } from "./runtime/privacy.js";
 import { type ConversationCompactionSummary } from "./runtime/schemas.js";
 import type {
   ActiveTurn,
@@ -55,9 +56,14 @@ export type {
 export class CognideskRuntime {
   private readonly activeTurns = new Map<string, ActiveTurn>();
   private readonly kernel: RuntimeKernel;
+  private readonly options: RuntimeOptions;
 
-  constructor(private readonly options: RuntimeOptions) {
-    this.kernel = createRuntimeKernel(options, this.activeTurns);
+  constructor(options: RuntimeOptions) {
+    this.options = {
+      ...options,
+      storage: createPrivacyStorageAdapter(options.storage, options.privacy),
+    };
+    this.kernel = createRuntimeKernel(this.options, this.activeTurns);
   }
 
   async initialize() {

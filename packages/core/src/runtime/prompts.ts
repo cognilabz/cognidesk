@@ -1,5 +1,7 @@
+import { z } from "zod";
 import type { CompiledJourney } from "../definition.js";
 import type { ConversationRecord, StorageAdapter } from "../storage.js";
+import type { RuntimeEvent } from "../types.js";
 import type { GuardResult } from "../types.js";
 import {
   getPathValue,
@@ -112,13 +114,9 @@ export async function emitFieldConfirmationPrompts(args: {
   let prompted = 0;
   for (const field of confirmableFields) {
     const promptId = createFieldConfirmationPromptId(args.journey.id, args.state.id, field.path);
-    const hasSubmission = existing.some((event) => (
-      event.type === "ui.submitted" && event.data.promptId === promptId
-    ));
-    if (hasSubmission) continue;
-    const hasOpenPrompt = existing.some((event) => (
-      event.type === "ui.prompted" && event.data.promptId === promptId
-    ));
+    const hasConfirmedSubmission = existing.some((event) => isConfirmedSubmission(event, promptId));
+    if (hasConfirmedSubmission) continue;
+    const hasOpenPrompt = isPromptOpen(existing, promptId);
     if (hasOpenPrompt) continue;
     const policy = typeof field.confirm === "object" ? field.confirm : {};
     const value = getPathValue(args.context, field.path);
@@ -139,6 +137,24 @@ export async function emitFieldConfirmationPrompts(args: {
     prompted += 1;
   }
   return prompted;
+}
+
+const confirmedWidgetOutputSchema = z.object({ confirmed: z.literal(true) });
+
+function isConfirmedSubmission(event: RuntimeEvent, promptId: string) {
+  return event.type === "ui.submitted"
+    && event.data.promptId === promptId
+    && confirmedWidgetOutputSchema.safeParse(event.data.output).success;
+}
+
+function isPromptOpen(events: RuntimeEvent[], promptId: string) {
+  let latestPromptOffset = 0;
+  let latestSubmissionOffset = 0;
+  for (const event of events) {
+    if (event.type === "ui.prompted" && event.data.promptId === promptId) latestPromptOffset = event.offset;
+    if (event.type === "ui.submitted" && event.data.promptId === promptId) latestSubmissionOffset = event.offset;
+  }
+  return latestPromptOffset > latestSubmissionOffset;
 }
 
 export async function emitConfirmationPrompts(args: {

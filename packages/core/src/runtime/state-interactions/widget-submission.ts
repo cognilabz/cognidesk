@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { builtInWidgets } from "../../builtins.js";
 import type { ConversationRecord } from "../../storage.js";
+import type { RuntimeEvent, WidgetDefinition } from "../../types.js";
 import { isRecord, setPathValue } from "../context.js";
 import {
   extractWidgetFieldValue,
@@ -7,6 +9,7 @@ import {
   mergeActiveStates,
   parseFieldConfirmationPromptId,
   parseFieldPromptId,
+  parseToolConfirmationPromptId,
   resolveWidgetPromptState,
 } from "../journey-state.js";
 import {
@@ -15,6 +18,37 @@ import {
   saveStateMachineProgress,
 } from "./state-lifecycle.js";
 import type { StateInteractionDeps } from "./types.js";
+
+type PromptedEvent = Extract<RuntimeEvent, { type: "ui.prompted" }>;
+
+const builtInWidgetsByKind = new Map<string, WidgetDefinition>(
+  Object.values(builtInWidgets).map((widget) => [widget.kind, widget]),
+);
+
+export async function validateWidgetSubmission(args: StateInteractionDeps & {
+  conversation: ConversationRecord;
+  promptId: string;
+  widgetKind: string;
+  output: unknown;
+}) {
+  const events = await args.storage.listEvents({ conversationId: args.conversation.id });
+  const prompt = findLatestOpenPrompt(events, args.promptId);
+  if (!prompt) {
+    throw new Error(`Widget prompt '${args.promptId}' is not open.`);
+  }
+  if (prompt.data.widgetKind !== args.widgetKind) {
+    throw new Error(`Widget prompt '${args.promptId}' expects widget '${prompt.data.widgetKind}', got '${args.widgetKind}'.`);
+  }
+
+  const snapshot = await args.storage.getSnapshot(args.conversation.id);
+  const widget = resolveExpectedWidget(args, snapshot, args.promptId, prompt.data.widgetKind);
+  if (!widget) return { output: args.output };
+  const parsed = widget.output.safeParse(args.output);
+  if (!parsed.success) {
+    throw new Error(`Widget output for prompt '${args.promptId}' is invalid: ${parsed.error.message}`);
+  }
+  return { output: parsed.data };
+}
 
 export async function processWidgetSubmission(args: StateInteractionDeps & {
   conversation: ConversationRecord;
@@ -112,4 +146,72 @@ export async function processWidgetSubmission(args: StateInteractionDeps & {
     activeStates,
     context,
   });
+}
+
+function findLatestOpenPrompt(events: RuntimeEvent[], promptId: string): PromptedEvent | null {
+  let latestPrompt: PromptedEvent | null = null;
+  let latestSubmissionOffset = 0;
+  for (const event of events) {
+    if (event.type === "ui.prompted" && event.data.promptId === promptId) latestPrompt = event;
+    if (event.type === "ui.submitted" && event.data.promptId === promptId) latestSubmissionOffset = event.offset;
+  }
+  if (!latestPrompt || latestSubmissionOffset > latestPrompt.offset) return null;
+  return latestPrompt;
+}
+
+function resolveExpectedWidget(
+  args: StateInteractionDeps,
+  snapshot: Awaited<ReturnType<StateInteractionDeps["storage"]["getSnapshot"]>>,
+  promptId: string,
+  widgetKind: string,
+): WidgetDefinition | null {
+  const stateWidget = resolveStatePromptWidget(args, snapshot, promptId);
+  return stateWidget
+    ?? args.agent?.widgets.find((widget) => widget.kind === widgetKind)
+    ?? builtInWidgetsByKind.get(widgetKind)
+    ?? null;
+}
+
+function resolveStatePromptWidget(
+  args: StateInteractionDeps,
+  snapshot: Awaited<ReturnType<StateInteractionDeps["storage"]["getSnapshot"]>>,
+  promptId: string,
+): WidgetDefinition | null {
+  if (!args.agent) return null;
+  const journey = snapshot?.activeJourneyId
+    ? args.agent.journeys.find((candidate) => candidate.id === snapshot.activeJourneyId)
+    : undefined;
+  if (!journey || journey.kind !== "stateMachine") return null;
+  const state = resolveWidgetPromptState(journey, snapshot, promptId);
+  if (!state) return null;
+
+  const fieldPrompt = parseFieldPromptId(promptId);
+  if (fieldPrompt && fieldPrompt.journeyId === journey.id && fieldPrompt.stateId === state.id) {
+    const field = state.collected.find((candidate) => candidate.path === fieldPrompt.path);
+    return field?.widget ?? builtInWidgets.textInputWidget;
+  }
+
+  const fieldConfirmationPrompt = parseFieldConfirmationPromptId(promptId);
+  if (
+    fieldConfirmationPrompt
+    && fieldConfirmationPrompt.journeyId === journey.id
+    && fieldConfirmationPrompt.stateId === state.id
+  ) {
+    const field = state.collected.find((candidate) => candidate.path === fieldConfirmationPrompt.path);
+    return field && typeof field.confirm === "object" && field.confirm.widget
+      ? field.confirm.widget
+      : builtInWidgets.confirmationWidget;
+  }
+
+  const toolConfirmationPrompt = parseToolConfirmationPromptId(promptId);
+  if (
+    toolConfirmationPrompt
+    && toolConfirmationPrompt.journeyId === journey.id
+    && toolConfirmationPrompt.stateId === state.id
+  ) {
+    const toolRun = state.toolRuns.find((candidate) => candidate.tool.name === toolConfirmationPrompt.toolName);
+    return toolRun?.confirm?.widget ?? builtInWidgets.confirmationWidget;
+  }
+
+  return null;
 }

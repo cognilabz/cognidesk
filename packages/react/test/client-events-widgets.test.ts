@@ -162,6 +162,53 @@ describe("React client events and widgets", () => {
     }]);
   });
 
+  it("replays completed user messages with the correct role", () => {
+    const started = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "message.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { role: "user" },
+    });
+    const completed = reduceChatRuntimeEvent(started, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: "Where is my ticket?" },
+    });
+
+    expect(completed.messages).toEqual([{
+      id: "event_2",
+      role: "user",
+      text: "Where is my ticket?",
+      status: "sent",
+    }]);
+  });
+
+  it("ignores stale event offsets", () => {
+    const state = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: "I can help." },
+    });
+    const replayed = reduceChatRuntimeEvent(state, {
+      id: "event_1_replayed",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: "I can help again." },
+    });
+
+    expect(replayed).toBe(state);
+  });
+
   it("exports default renderers for built-in widgets", () => {
     const confirmation = defaultWidgetRenderers.confirmation;
     expect(confirmation).toBeDefined();

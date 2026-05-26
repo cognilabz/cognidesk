@@ -13,11 +13,11 @@ Rank only the provided Journey candidates for the latest customer message.
 </rules>
 
 <examples>
-Input: latest message "thanks", active journey "ticket-status", candidates include ticket-status.
-Output: keep ticket-status only if the message still needs ticket-status work; otherwise return an empty list.
+Input: latest message "thanks", active journey "order-update", candidates include order-update.
+Output: keep order-update only if the message still needs order-update work; otherwise return an empty list.
 
-Input: latest message "I want to book a flight", candidates include book-flight.
-Output: include book-flight with high confidence.
+Input: latest message "I need to change my delivery address", candidates include delivery-change.
+Output: include delivery-change with high confidence.
 </examples>
 
 <schema>

@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage } from "node:http";
+import { once } from "node:events";
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createCognideskHttpHandler } from "@cognidesk/http";
@@ -26,12 +27,14 @@ const handler = createCognideskHttpHandler({
   runtime,
   basePath: "/api",
   agentId: agent.id,
-  cors: true,
+  cors: process.env.COGNIDESK_CORS === "false" ? false : true,
   ssePollIntervalMs: 300,
 });
 
 const port = Number(process.env.PORT ?? 8787);
+const host = process.env.HOST ?? "127.0.0.1";
 const server = createServer(async (nodeRequest, nodeResponse) => {
+  let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   try {
     const request = toWebRequest(nodeRequest, port);
     const response = await handler.handle(request);
@@ -44,23 +47,35 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
       nodeResponse.end();
       return;
     }
-    const reader = response.body.getReader();
+    let responseClosed = false;
+    nodeResponse.on("close", () => {
+      responseClosed = true;
+      void reader?.cancel().catch(() => undefined);
+    });
+    reader = response.body.getReader();
     while (true) {
       const chunk = await reader.read();
-      if (chunk.done) break;
-      nodeResponse.write(Buffer.from(chunk.value));
+      if (chunk.done || responseClosed) break;
+      if (!nodeResponse.write(Buffer.from(chunk.value))) {
+        await Promise.race([
+          once(nodeResponse, "drain"),
+          once(nodeResponse, "close"),
+        ]);
+      }
     }
-    nodeResponse.end();
+    if (!responseClosed) nodeResponse.end();
   } catch (error) {
     nodeResponse.writeHead(500, { "content-type": "application/json" });
     nodeResponse.end(JSON.stringify({
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal server error",
     }));
+  } finally {
+    await reader?.cancel().catch(() => undefined);
   }
 });
 
-server.listen(port, () => {
-  console.log(`Flight demo API listening on http://localhost:${port}/api`);
+server.listen(port, host, () => {
+  console.log(`Flight demo API listening on http://${host}:${port}/api`);
 });
 
 function toWebRequest(request: IncomingMessage, port: number) {
@@ -75,9 +90,14 @@ function toWebRequest(request: IncomingMessage, port: number) {
     }
   }
   const method = request.method ?? "GET";
+  const controller = new AbortController();
+  request.on("close", () => {
+    controller.abort();
+  });
   const init: RequestInit & { duplex?: "half" } = {
     method,
     headers,
+    signal: controller.signal,
   };
   if (method !== "GET" && method !== "HEAD") {
     init.body = request as unknown as BodyInit;

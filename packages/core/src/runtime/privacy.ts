@@ -1,5 +1,15 @@
-import type { ConversationRecord } from "../storage.js";
-import type { ModelMessage } from "../types.js";
+import type { TraceEvent } from "../observability.js";
+import type {
+  ConversationRecord,
+  CreateConversationInput,
+  RuntimeEventInput,
+  StorageAdapter,
+} from "../storage.js";
+import type {
+  ModelMessage,
+  RuntimeSnapshot,
+  TextGenerationInput,
+} from "../types.js";
 import type { RuntimeOptions } from "./types.js";
 
 export async function redactUserMessage(
@@ -12,6 +22,92 @@ export async function redactUserMessage(
     agentId: conversation.agentId,
     text,
   }) ?? text;
+}
+
+export function createPrivacyStorageAdapter(
+  storage: StorageAdapter,
+  privacy: RuntimeOptions["privacy"],
+): StorageAdapter {
+  if (!privacy?.redactConversationContext
+    && !privacy?.redactRuntimeEvent
+    && !privacy?.redactRuntimeSnapshot
+  ) {
+    return storage;
+  }
+
+  return {
+    initialize() {
+      return storage.initialize?.();
+    },
+    async createConversation<TConversationContext = unknown>(
+      input: CreateConversationInput<TConversationContext>,
+    ) {
+      const context = privacy.redactConversationContext
+        ? await privacy.redactConversationContext({
+          conversationId: input.id ?? "",
+          agentId: input.agentId,
+          context: input.context,
+        })
+        : input.context;
+      return storage.createConversation<TConversationContext>({
+        ...input,
+        context: context as TConversationContext,
+      });
+    },
+    getConversation<TConversationContext = unknown>(conversationId: string) {
+      return storage.getConversation<TConversationContext>(conversationId);
+    },
+    updateConversationLifecycle(conversationId, lifecycle) {
+      return storage.updateConversationLifecycle(conversationId, lifecycle);
+    },
+    async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent) {
+      if (!privacy.redactRuntimeEvent) return storage.appendEvent(event);
+      const redacted = await privacy.redactRuntimeEvent({
+        ...await privacyContextForStorage(storage, event.conversationId, event.traceId),
+        event,
+      });
+      return storage.appendEvent(redacted as TEvent);
+    },
+    listEvents(options) {
+      return storage.listEvents(options);
+    },
+    async saveSnapshot(snapshot: RuntimeSnapshot) {
+      if (!privacy.redactRuntimeSnapshot) return storage.saveSnapshot(snapshot);
+      const redacted = await privacy.redactRuntimeSnapshot({
+        ...await privacyContextForStorage(storage, snapshot.conversationId),
+        snapshot,
+      });
+      return storage.saveSnapshot(redacted);
+    },
+    getSnapshot(conversationId: string) {
+      return storage.getSnapshot(conversationId);
+    },
+  };
+}
+
+export async function redactModelInput(
+  options: RuntimeOptions,
+  conversationId: string,
+  input: TextGenerationInput,
+) {
+  const hook = options.privacy?.redactModelInput;
+  if (!hook) return input;
+  return hook({
+    ...await privacyContext(options, conversationId),
+    input,
+  });
+}
+
+export async function redactTraceEvent(
+  options: RuntimeOptions,
+  event: TraceEvent,
+) {
+  const hook = options.privacy?.redactTraceEvent;
+  if (!hook) return event;
+  return hook({
+    ...await privacyContext(options, event.conversationId),
+    event,
+  });
 }
 
 export async function redactModelMessages(
@@ -36,4 +132,25 @@ export async function redactAssistantMessage(
     agentId: conversation.agentId,
     text,
   }) ?? text;
+}
+
+async function privacyContext(
+  options: RuntimeOptions,
+  conversationId: string,
+  traceId?: string,
+) {
+  return privacyContextForStorage(options.storage, conversationId, traceId);
+}
+
+async function privacyContextForStorage(
+  storage: StorageAdapter,
+  conversationId: string,
+  traceId?: string,
+) {
+  const conversation = await storage.getConversation(conversationId).catch(() => null);
+  return {
+    conversationId,
+    agentId: conversation?.agentId ?? "",
+    ...(traceId ? { traceId } : {}),
+  };
 }

@@ -145,6 +145,95 @@ describe("runtime delegation, privacy, and compaction 01", () => {
     expect(events.at(-1)?.data).toMatchObject({ text: "Reach [email] for details." });
   });
 
+  it("applies privacy hooks at runtime persistence, model input, and trace surfaces", async () => {
+    let modelPrompt = "";
+    const traceEvents: TraceEvent[] = [];
+    const auditNote = customRuntimeEvent("audit.note", {
+      payload: z.object({ note: z.string() }),
+      visibleToModel: true,
+    });
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.customEvents.add(auditNote);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async ({ messages }) => {
+            modelPrompt = messages.map((message) => message.content).join("\n");
+            return { text: "Done." };
+          },
+        },
+      }),
+      privacy: {
+        redactConversationContext: ({ context }) => ({
+          ...(typeof context === "object" && context !== null ? context : {}),
+          secret: "[context]",
+        }),
+        redactRuntimeEvent: ({ event }) => event.type === "custom.audit.note"
+          ? { ...event, data: { note: "[event]" } }
+          : event,
+        redactRuntimeSnapshot: ({ snapshot }) => ({
+          ...snapshot,
+          definitionHash: "privacy-redacted",
+        }),
+        redactModelInput: ({ input }) => ({
+          ...input,
+          messages: input.messages.map((message) => ({
+            ...message,
+            content: message.content.replace("model-secret", "[model]"),
+          })),
+        }),
+        redactTraceEvent: ({ event }) => event.type === "runtime.event" && event.event.type === "custom.audit.note"
+          ? { ...event, event: { ...event.event, data: { note: "[trace]" } } as RuntimeEvent }
+          : event,
+      },
+      observability: {
+        onTraceEvent: (event) => {
+          traceEvents.push(event);
+        },
+      },
+    });
+
+    const conversation = await runtime.createConversation({
+      agentId: agent.id,
+      context: { secret: "raw-context" },
+    });
+    const auditEvent = await runtime.emitCustomEvent({
+      conversationId: conversation.id,
+      event: auditNote,
+      payload: { note: "raw-event" },
+    });
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "model-secret",
+    });
+
+    expect((await runtime.replayConversation({ conversationId: conversation.id })).conversation.context).toEqual({
+      secret: "[context]",
+    });
+    expect(auditEvent.data).toEqual({ note: "[event]" });
+    expect(await runtime.getSnapshot(conversation.id)).toMatchObject({
+      definitionHash: "privacy-redacted",
+    });
+    expect(modelPrompt).toContain("[model]");
+    expect(modelPrompt).not.toContain("model-secret");
+    expect((await runtime.listEvents(conversation.id)).find((event) => event.type === "custom.audit.note")?.data).toEqual({
+      note: "[event]",
+    });
+    expect(traceEvents.find((event) => (
+      event.type === "runtime.event"
+      && event.event.type === "custom.audit.note"
+    ))).toMatchObject({
+      event: {
+        data: { note: "[trace]" },
+      },
+    });
+  });
+
   it("compacts conversation events into the runtime snapshot", async () => {
     const response = {
       provider: "test",

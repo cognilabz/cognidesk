@@ -85,6 +85,21 @@ describe("runtime UI and lifecycle events 03", () => {
       conversationId: conversation.id,
       promptId: "confirm-field:ticket-status:identify:bookingReference",
       widgetKind: "confirmation",
+      output: { confirmed: false },
+    });
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Please use ABC123 after all.",
+    });
+    expect((await runtime.listEvents(conversation.id)).filter((event) => (
+      event.type === "ui.prompted"
+      && event.data.promptId === "confirm-field:ticket-status:identify:bookingReference"
+    ))).toHaveLength(2);
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "confirm-field:ticket-status:identify:bookingReference",
+      widgetKind: "confirmation",
       output: { confirmed: true },
     });
 

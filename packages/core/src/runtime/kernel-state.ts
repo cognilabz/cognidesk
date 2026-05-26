@@ -17,6 +17,7 @@ import {
   processRuntimeWidgetSubmission,
   runRuntimeStateActionRuns,
   runRuntimeStateToolRuns,
+  validateRuntimeWidgetSubmission,
 } from "./facade-state.js";
 import type { RuntimeCore } from "./kernel-core.js";
 import type { RuntimeRouting } from "./kernel-routing.js";
@@ -84,6 +85,14 @@ export function createRuntimeState(
       output: unknown;
     }) {
       return processRuntimeWidgetSubmission(state.stateInteractionDeps(), args);
+    },
+    validateWidgetSubmission(args: {
+      conversation: ConversationRecord;
+      promptId: string;
+      widgetKind: string;
+      output: unknown;
+    }) {
+      return validateRuntimeWidgetSubmission(state.stateInteractionDeps(), args);
     },
     processJourneyEvent(args: {
       conversation: ConversationRecord;

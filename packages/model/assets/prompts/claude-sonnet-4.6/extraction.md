@@ -12,12 +12,12 @@ Extract Journey State context fields from the latest customer message.
 </rules>
 
 <examples>
-Message: "Book Vienna to Paris tomorrow for Alex."
-Fields: route.origin, route.destination, travelDate, passenger.name
-Expected values: origin Vienna, destination Paris, travelDate tomorrow, passenger.name Alex.
+Message: "Ship the replacement to 42 Market Street for Alex."
+Fields: address.street, recipient.name, deliveryDate
+Expected values: address.street 42 Market Street, recipient.name Alex.
 
 Message: "Sounds good."
-Fields: passenger.email, bookingReference
+Fields: customer.email, caseReference
 Expected values: none.
 </examples>
 
