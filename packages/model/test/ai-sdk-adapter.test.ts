@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { MockEmbeddingModelV3, MockLanguageModelV3 } from "ai/test";
-import { aiSdkModel, instructionPromptProfile } from "../src/index.js";
+import {
+  cognideskEmbeddingModel,
+  cognideskModel,
+  createModelPromptProfile,
+  createModelSet,
+  normalizeLogicalModelSlug,
+} from "../src/index.js";
 
-describe("aiSdkModel", () => {
-  it("adapts text generation, structured output, tools, and usage", async () => {
+describe("cognideskModel", () => {
+  it("adapts text generation, tools, metadata, and usage", async () => {
     const languageModel = new MockLanguageModelV3({
       provider: "test",
       modelId: "test-language",
@@ -35,11 +41,7 @@ describe("aiSdkModel", () => {
         warnings: [],
       },
     });
-    const model = aiSdkModel({
-      provider: "test",
-      model: "test-language",
-      languageModel,
-    });
+    const model = cognideskModel({ model: languageModel });
 
     const result = await model.generateText({
       role: "response",
@@ -62,14 +64,13 @@ describe("aiSdkModel", () => {
       name: "lookup",
       type: "function",
     });
+    expect(model.provider).toBe("test");
+    expect(model.model).toBe("test-language");
   });
 
   it("adapts embeddings", async () => {
-    const model = aiSdkModel({
-      provider: "test",
-      model: "test-language",
-      languageModel: new MockLanguageModelV3(),
-      embeddingModel: new MockEmbeddingModelV3({
+    const model = cognideskEmbeddingModel({
+      model: new MockEmbeddingModelV3({
         provider: "test",
         modelId: "test-embedding",
         doEmbed: async () => ({
@@ -78,7 +79,6 @@ describe("aiSdkModel", () => {
           warnings: [],
         }),
       }),
-      embeddingModelId: "test-embedding",
     });
 
     const embedding = await model.embed!({ role: "journeyEmbedding", text: "routing text" });
@@ -89,25 +89,76 @@ describe("aiSdkModel", () => {
   });
 });
 
-describe("instructionPromptProfile", () => {
-  it("appends global and role-specific instructions to system messages", async () => {
-    const profile = instructionPromptProfile({
-      id: "test-profile",
-      instruction: "Global",
-      roleInstructions: { matcher: "Matcher only" },
+describe("prompt profiles", () => {
+  it("normalizes provider-specific model ids to logical prompt slugs", () => {
+    expect(normalizeLogicalModelSlug("openai/gpt-5.5")).toBe("gpt-5.5");
+    expect(normalizeLogicalModelSlug("gpt-5.5")).toBe("gpt-5.5");
+    expect(normalizeLogicalModelSlug("anthropic/claude-sonnet-4.6")).toBe("claude-sonnet-4.6");
+    expect(normalizeLogicalModelSlug("unknown/provider-model")).toBeNull();
+  });
+
+  it("uses optimized prompts for known logical slugs and default prompts for unknown models", () => {
+    expect(createModelPromptProfile({ providerModelId: "openai/gpt-5.5" }).id).toBe("gpt-5.5");
+    expect(createModelPromptProfile({ providerModelId: "gpt-5.5" }).id).toBe("gpt-5.5");
+    expect(createModelPromptProfile({ providerModelId: "unknown-model" }).id).toBe("default");
+  });
+
+  it("renders a task-specific Nunjucks prompt with structured output metadata", async () => {
+    const profile = createModelPromptProfile({ providerModelId: "openai/gpt-5.5" });
+    const instruction = await profile.renderInstruction({
+      role: "matcher",
+      promptTask: "journey-matcher",
+      model: { provider: "openai", model: "gpt-5.5", logicalModelSlug: profile.logicalModelSlug! },
+      payload: {
+        latestUserMessage: "I need to check a ticket",
+        activeJourneyId: null,
+        conversationTranscript: [{ role: "user", content: "I need to check a ticket" }],
+        candidates: [{ id: "ticket-status", condition: "Customer wants ticket status" }],
+      },
+      structuredOutput: {
+        required: true,
+        name: "journey-matcher",
+        schema: { type: "object", properties: { selectedJourneyId: { type: "string" } } },
+      },
     });
 
-    const afterGlobal = await profile.transformMessages?.({
-      role: "matcher",
-      model: { provider: "test", model: "test" },
-      messages: [{ role: "system", content: "Base" }],
-    });
-    const afterRole = await profile.roleTransforms?.matcher?.({
-      role: "matcher",
-      model: { provider: "test", model: "test" },
-      messages: afterGlobal ?? [],
+    expect(instruction).toContain("Journey matcher");
+    expect(instruction).toContain("ticket-status");
+    expect(instruction).toContain("selectedJourneyId");
+  });
+
+  it("validates and applies prompt overrides at model-set creation", async () => {
+    const languageModel = new MockLanguageModelV3({ provider: "openai.responses", modelId: "gpt-5.5" });
+    const embeddingModel = new MockEmbeddingModelV3({ provider: "openai.embedding", modelId: "text-embedding-3-small" });
+    const models = createModelSet({
+      response: languageModel,
+      matcher: languageModel,
+      extraction: languageModel,
+      citationPostProcessing: languageModel,
+      compaction: languageModel,
+      journeyEmbedding: embeddingModel,
+    }, {
+      promptOverrides: {
+        "gpt-5.5": {
+          response: { template: "Respond for {{ selectedJourneyId }} with {{ structuredOutput.name }}." },
+        },
+      },
     });
 
-    expect(afterRole?.[0]?.content).toBe("Base\nGlobal\nMatcher only");
+    expect(models.response.promptProfile?.id).toBe("gpt-5.5");
+    const instruction = await models.response.promptProfile?.renderInstruction({
+      role: "response",
+      promptTask: "response",
+      model: { provider: "openai.responses", model: "gpt-5.5", logicalModelSlug: "gpt-5.5" },
+      payload: {
+        selectedJourneyId: "ticket-status",
+        activeStateIds: [],
+        journeyContext: {},
+        tools: [],
+      },
+      structuredOutput: { required: false, name: "response" },
+    });
+
+    expect(instruction).toBe("Respond for ticket-status with response.");
   });
 });

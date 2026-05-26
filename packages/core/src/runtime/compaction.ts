@@ -56,6 +56,18 @@ export async function compactConversation<TSummary = ConversationCompactionSumma
     model: args.models.compaction,
     input: {
       role: "compaction",
+      promptTask: "compaction",
+      promptPayload: {
+        instructions,
+        events: selectedEvents.map((event) => ({
+          type: event.type,
+          offset: event.offset,
+          data: event.data,
+          createdAt: event.createdAt,
+        })),
+        fromOffset,
+        toOffset,
+      },
       messages: [
         {
           role: "system",

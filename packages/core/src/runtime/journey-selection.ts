@@ -161,6 +161,25 @@ async function rankJourneyCandidates(args: {
       model: args.models.matcher,
       input: {
         role: "matcher",
+        promptTask: "journey-matcher",
+        promptPayload: {
+          latestUserMessage: args.userText,
+          activeJourneyId: args.activeJourneyId ?? null,
+          conversationTranscript: args.history,
+          candidates: args.candidates.map((candidate) => ({
+            journeyId: candidate.journeyId,
+            reason: candidate.reason,
+            score: candidate.score,
+            journey: {
+              id: candidate.journey.id,
+              kind: candidate.journey.kind,
+              condition: candidate.journey.condition,
+              examples: candidate.journey.examples,
+              priority: candidate.journey.priority,
+              stickiness: candidate.journey.stickiness,
+            },
+          })),
+        },
         messages: [
           {
             role: "system",

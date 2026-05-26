@@ -118,7 +118,16 @@ export async function emitRuntimeGeneratedPreamble(
     model: models.response,
     input: {
       role: "response",
-      promptProfileRole: "generatedPreamble",
+      promptTask: "generated-preamble",
+      promptPayload: {
+        agent: {
+          id: agent.id,
+          instructions: agent.instructions,
+        },
+        history,
+        purpose: input.purpose ?? null,
+        maxWords: input.maxWords ?? 24,
+      },
       messages,
       ...(input.signal ? { signal: input.signal } : {}),
     },

@@ -10,6 +10,7 @@ import {
   type ToolSet,
 } from "ai";
 import type {
+  AgentModelSet,
   EmbeddingInput,
   EmbeddingOutput,
   ModelAdapter,
@@ -17,35 +18,99 @@ import type {
   ModelPromptProfile,
   ModelToolCall,
   ModelToolDefinition,
-  PromptProfileRole,
   TextGenerationInput,
   TextGenerationOutput,
   UsageRecord,
 } from "@cognidesk/core";
+import {
+  createModelPromptProfile,
+  listBuiltInPromptProfiles,
+  normalizeLogicalModelSlug,
+  type ModelProfileRegistration,
+  type PromptOverrideRegistry,
+  type PromptProfileOptions,
+} from "./prompt-profiles.js";
+export {
+  promptTemplateFields,
+  promptTasks,
+  type BundledPromptProfile,
+  type PromptProfileMetadata,
+  type PromptResearchBasis,
+  type PromptTemplateMap,
+} from "./prompt-types.js";
 
-export type RoleInstructionMap = Partial<Record<PromptProfileRole, string>>;
+export {
+  createModelPromptProfile,
+  listBuiltInPromptProfiles,
+  normalizeLogicalModelSlug,
+  type ModelProfileRegistration,
+  type PromptOverrideRegistry,
+  type PromptProfileOptions,
+};
 
-export interface AiSdkModelAdapterOptions {
-  provider: string;
-  model: string;
-  languageModel: LanguageModel;
-  embeddingModel?: EmbeddingModel;
-  embeddingModelId?: string;
+export interface CognideskModelOptions {
+  model: LanguageModel;
+  providerId?: string;
+  modelId?: string;
+  logicalModelSlug?: string;
   promptProfile?: ModelPromptProfile;
+  modelProfiles?: ModelProfileRegistration[];
+  promptOverrides?: PromptOverrideRegistry;
+  promptOverrideBaseDir?: string;
   temperature?: number;
   maxOutputTokens?: number;
   headers?: Record<string, string>;
   providerOptions?: unknown;
 }
 
-export function aiSdkModel(options: AiSdkModelAdapterOptions): ModelAdapter {
+export interface CognideskEmbeddingModelOptions {
+  model: EmbeddingModel;
+  providerId?: string;
+  modelId?: string;
+  headers?: Record<string, string>;
+  providerOptions?: unknown;
+}
+
+export type LanguageModelRole = Exclude<keyof AgentModelSet, "journeyEmbedding">;
+
+export type ModelRoleEntry =
+  | LanguageModel
+  | (Omit<CognideskModelOptions, "promptProfile" | "modelProfiles" | "promptOverrides" | "promptOverrideBaseDir"> & {
+      promptProfile?: ModelPromptProfile;
+    });
+
+export type EmbeddingModelRoleEntry =
+  | EmbeddingModel
+  | CognideskEmbeddingModelOptions;
+
+export type ModelSetDefinition = {
+  [Role in LanguageModelRole]: ModelRoleEntry;
+} & {
+  journeyEmbedding: EmbeddingModelRoleEntry;
+};
+
+export interface CreateModelSetOptions {
+  modelProfiles?: ModelProfileRegistration[];
+  promptOverrides?: PromptOverrideRegistry;
+  promptOverrideBaseDir?: string;
+}
+
+export function cognideskModel(options: CognideskModelOptions): ModelAdapter {
+  const metadata = inferModelMetadata(options.model, options);
+  const promptProfile = options.promptProfile ?? createModelPromptProfile({
+    ...(options.logicalModelSlug ? { logicalModelSlug: options.logicalModelSlug } : {}),
+    providerModelId: metadata.modelId,
+    ...(options.modelProfiles ? { modelProfiles: options.modelProfiles } : {}),
+    ...(options.promptOverrides ? { promptOverrides: options.promptOverrides } : {}),
+    ...(options.promptOverrideBaseDir ? { baseDir: options.promptOverrideBaseDir } : {}),
+  });
   return {
-    provider: options.provider,
-    model: options.model,
-    ...(options.promptProfile ? { promptProfile: options.promptProfile } : {}),
+    provider: metadata.providerId,
+    model: metadata.modelId,
+    promptProfile,
     async generateText(input: TextGenerationInput): Promise<TextGenerationOutput> {
       const result = await generateText({
-        model: options.languageModel,
+        model: options.model,
         messages: input.messages.map(toAiMessage),
         ...(input.responseFormat ? { output: Output.object({ schema: input.responseFormat, name: "cognidesk_response" }) } : {}),
         ...(input.tools?.length ? { tools: toAiTools(input.tools) } : {}),
@@ -71,12 +136,20 @@ export function aiSdkModel(options: AiSdkModelAdapterOptions): ModelAdapter {
         },
       };
     },
+  };
+}
+
+export function cognideskEmbeddingModel(options: CognideskEmbeddingModelOptions): ModelAdapter {
+  const metadata = inferModelMetadata(options.model, options);
+  return {
+    provider: metadata.providerId,
+    model: metadata.modelId,
+    async generateText(): Promise<TextGenerationOutput> {
+      throw new Error(`Embedding model '${metadata.modelId}' cannot generate text.`);
+    },
     async embed(input: EmbeddingInput): Promise<EmbeddingOutput> {
-      if (!options.embeddingModel) {
-        throw new Error(`${options.provider} model '${options.model}' does not have an embedding model configured.`);
-      }
       const result = await embed({
-        model: options.embeddingModel,
+        model: options.model,
         value: input.text,
         ...(options.headers ? { headers: options.headers } : {}),
         ...(options.providerOptions ? { providerOptions: options.providerOptions } : {}),
@@ -84,7 +157,7 @@ export function aiSdkModel(options: AiSdkModelAdapterOptions): ModelAdapter {
       } as Parameters<typeof embed>[0]);
       return {
         embedding: [...result.embedding],
-        model: options.embeddingModelId ?? options.model,
+        model: metadata.modelId,
         dimensions: result.embedding.length,
         usage: usageRecord({
           inputTokens: result.usage.tokens,
@@ -96,39 +169,63 @@ export function aiSdkModel(options: AiSdkModelAdapterOptions): ModelAdapter {
   };
 }
 
-export function instructionPromptProfile(options: {
-  id: string;
-  description?: string;
-  roleInstructions?: RoleInstructionMap;
-  instruction?: string;
-}): ModelPromptProfile {
-  const roleTransforms = Object.fromEntries(Object.entries(options.roleInstructions ?? {}).map(([role, instruction]) => [
-    role,
-    ({ messages }: { messages: ModelMessage[] }) => appendSystemInstruction(messages, instruction ?? ""),
-  ])) as ModelPromptProfile["roleTransforms"];
+export function createModelSet(definition: ModelSetDefinition, options: CreateModelSetOptions = {}): AgentModelSet {
   return {
-    id: options.id,
-    ...(options.description ? { description: options.description } : {}),
-    transformMessages: ({ messages }) => (
-      options.instruction ? appendSystemInstruction(messages, options.instruction) : messages
-    ),
-    ...(roleTransforms && Object.keys(roleTransforms).length > 0 ? { roleTransforms } : {}),
+    response: createLanguageRole(definition.response, options),
+    matcher: createLanguageRole(definition.matcher, options),
+    extraction: createLanguageRole(definition.extraction, options),
+    citationPostProcessing: createLanguageRole(definition.citationPostProcessing, options),
+    compaction: createLanguageRole(definition.compaction, options),
+    journeyEmbedding: createEmbeddingRole(definition.journeyEmbedding),
   };
 }
 
-export function appendSystemInstruction(messages: ModelMessage[], instruction: string): ModelMessage[] {
-  if (!instruction.trim()) return messages;
-  const [first, ...rest] = messages;
-  if (first?.role === "system") {
-    return [
-      {
-        ...first,
-        content: [first.content, instruction].filter(Boolean).join("\n"),
-      },
-      ...rest,
-    ];
-  }
-  return [{ role: "system", content: instruction }, ...messages];
+function createLanguageRole(entry: ModelRoleEntry, options: CreateModelSetOptions): ModelAdapter {
+  const normalized = normalizeLanguageRoleEntry(entry);
+  return cognideskModel({
+    ...normalized,
+    ...(options.modelProfiles ? { modelProfiles: options.modelProfiles } : {}),
+    ...(options.promptOverrides ? { promptOverrides: options.promptOverrides } : {}),
+    ...(options.promptOverrideBaseDir ? { promptOverrideBaseDir: options.promptOverrideBaseDir } : {}),
+  });
+}
+
+function createEmbeddingRole(entry: EmbeddingModelRoleEntry): ModelAdapter {
+  return cognideskEmbeddingModel(normalizeEmbeddingRoleEntry(entry));
+}
+
+function normalizeLanguageRoleEntry(entry: ModelRoleEntry): CognideskModelOptions {
+  return isConfiguredRoleEntry(entry) ? entry as CognideskModelOptions : { model: entry };
+}
+
+function normalizeEmbeddingRoleEntry(entry: EmbeddingModelRoleEntry): CognideskEmbeddingModelOptions {
+  return isConfiguredRoleEntry(entry) ? entry as CognideskEmbeddingModelOptions : { model: entry };
+}
+
+function isConfiguredRoleEntry(entry: unknown): entry is { model: unknown } {
+  return typeof entry === "object" && entry !== null && "model" in entry;
+}
+
+function inferModelMetadata(
+  model: LanguageModel | EmbeddingModel,
+  overrides: { providerId?: string; modelId?: string },
+) {
+  const provider = typeof model === "object" && model !== null && "provider" in model
+    ? String((model as { provider: unknown }).provider)
+    : undefined;
+  const modelId = typeof model === "object" && model !== null && "modelId" in model
+    ? String((model as { modelId: unknown }).modelId)
+    : typeof model === "string" ? model : "unknown";
+  return {
+    providerId: overrides.providerId ?? provider ?? inferProviderIdFromString(modelId),
+    modelId: overrides.modelId ?? modelId,
+  };
+}
+
+function inferProviderIdFromString(modelId: string) {
+  if (modelId.includes(":")) return modelId.slice(0, modelId.indexOf(":"));
+  if (modelId.includes("/")) return modelId.slice(0, modelId.indexOf("/"));
+  return "ai-sdk";
 }
 
 function toAiTools(tools: ModelToolDefinition[]): ToolSet {

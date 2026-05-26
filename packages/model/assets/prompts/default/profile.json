@@ -1,0 +1,20 @@
+{
+  "slug": "default",
+  "displayName": "Default",
+  "researchBasis": [
+    {
+      "source": "https://platform.openai.com/docs/guides/text-generation",
+      "note": "Generic profile uses explicit instructions, structured output contracts, and eval-friendly behavior without model-specific optimization."
+    }
+  ],
+  "taskNotes": {
+    "response": "Instruction-only generic support response prompt.",
+    "journey-matcher": "Schema-sensitive task with explicit ranking rules.",
+    "transition-matcher": "Schema-sensitive task with explicit transition ranking rules.",
+    "delegation-completion": "Schema-sensitive task for active delegation completion.",
+    "extraction": "Schema-sensitive conservative extraction prompt.",
+    "citation-post-processing": "Schema-sensitive citation segmentation prompt.",
+    "compaction": "Schema-sensitive durable-memory compaction prompt.",
+    "generated-preamble": "Short text generation prompt."
+  }
+}

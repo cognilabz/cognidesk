@@ -40,6 +40,17 @@ export async function createCitationSegments(args: {
       model: args.models.citationPostProcessing,
       input: {
         role: "citationPostProcessing",
+        promptTask: "citation-post-processing",
+        promptPayload: {
+          assistantAnswer: args.text,
+          knowledge: args.knowledge.map((item) => ({
+            id: item.id,
+            sourceName: item.sourceName,
+            title: item.title ?? null,
+            content: item.content,
+            metadata: item.metadata ?? null,
+          })),
+        },
         messages: [
           {
             role: "system",

@@ -32,7 +32,8 @@ export interface ModelToolCall {
 
 export interface TextGenerationInput {
   role: ModelRole;
-  promptProfileRole?: PromptProfileRole;
+  promptTask?: PromptTask;
+  promptPayload?: ModelVisiblePromptPayload;
   messages: ModelMessage[];
   responseFormat?: z.ZodType;
   tools?: ModelToolDefinition[];
@@ -70,26 +71,47 @@ export type ModelRole =
   | "journeyEmbedding"
   | "compaction";
 
-export type PromptProfileRole = Exclude<ModelRole, "journeyEmbedding"> | "generatedPreamble";
+export type PromptProfileRole = Exclude<ModelRole, "journeyEmbedding">;
 
-export interface ModelPromptProfileTransformInput {
+export type PromptTask =
+  | "response"
+  | "journey-matcher"
+  | "transition-matcher"
+  | "delegation-completion"
+  | "extraction"
+  | "citation-post-processing"
+  | "compaction"
+  | "generated-preamble";
+
+export type ModelVisiblePromptPayload = Record<string, unknown>;
+
+export interface StructuredOutputPromptMetadata {
+  required: boolean;
+  name: string;
+  schema?: unknown;
+}
+
+export interface ModelPromptProfileRenderInput {
   role: PromptProfileRole;
+  promptTask: PromptTask;
   model: {
     provider: string;
     model: string;
+    logicalModelSlug?: string;
   };
-  messages: ModelMessage[];
+  payload: ModelVisiblePromptPayload;
+  structuredOutput?: StructuredOutputPromptMetadata;
 }
 
-export type ModelPromptProfileTransform = (
-  input: ModelPromptProfileTransformInput,
-) => ModelMessage[] | Promise<ModelMessage[]>;
+export type ModelPromptProfileRender = (
+  input: ModelPromptProfileRenderInput,
+) => string | Promise<string>;
 
 export interface ModelPromptProfile {
   readonly id: string;
   readonly description?: string;
-  transformMessages?: ModelPromptProfileTransform;
-  roleTransforms?: Partial<Record<PromptProfileRole, ModelPromptProfileTransform>>;
+  readonly logicalModelSlug?: string;
+  renderInstruction(input: ModelPromptProfileRenderInput): string | Promise<string>;
 }
 
 export interface ModelAdapter {
@@ -104,6 +126,4 @@ export type AgentModelAdapters = {
   [Role in ModelRole]: ModelAdapter;
 };
 
-export type AgentModelSet = AgentModelAdapters & {
-  promptProfile?: ModelPromptProfile;
-};
+export type AgentModelSet = AgentModelAdapters;

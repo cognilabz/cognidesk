@@ -7,6 +7,7 @@ import type {
   ModelAdapter,
   ModelMessage,
   ModelToolDefinition,
+  ModelVisiblePromptPayload,
   RuntimeEvent,
   RuntimeSnapshot,
   TextGenerationOutput,
@@ -77,6 +78,7 @@ export interface HandleUserMessageDeps<TTurn> {
     conversation: ConversationRecord;
     model: ModelAdapter;
     messages: ModelMessage[];
+    promptPayload?: ModelVisiblePromptPayload;
     tools: AnyTool[];
     modelTools: ModelToolDefinition[];
     selectedJourney: CompiledJourney | null;

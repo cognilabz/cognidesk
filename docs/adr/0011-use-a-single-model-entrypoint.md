@@ -1,0 +1,3 @@
+# Use a single model entrypoint
+
+Cognidesk will expose model configuration through one SDK-facing model entrypoint instead of separate public OpenAI and OpenRouter adapter packages. Applications define models in the Vercel AI SDK style and pass AI SDK model values to `@cognidesk/model`, while default prompt selection is based on logical model identity so the same model receives the same Model Prompt Profile regardless of provider route. The existing OpenAI and OpenRouter packages should be deleted, their useful provider setup should move into demo/application Provider Model Configuration, and the old prompt-profile message-transform API should be replaced rather than shimmed.

@@ -1,0 +1,24 @@
+{
+  "slug": "gpt-5.5",
+  "displayName": "GPT 5.5",
+  "researchBasis": [
+    {
+      "source": "https://platform.openai.com/docs/guides/text-generation",
+      "note": "Profile uses explicit task instructions and runtime-enforced structured outputs."
+    },
+    {
+      "source": "https://platform.openai.com/docs/guides/reasoning-best-practices",
+      "note": "Profile keeps reasoning instructions direct, avoids unnecessary few-shot examples, and relies on evals for task-specific examples."
+    }
+  ],
+  "taskNotes": {
+    "response": "Instruction-only response prompt to avoid domain-biased examples.",
+    "journey-matcher": "Zero-shot schema-sensitive ranking prompt.",
+    "transition-matcher": "Zero-shot schema-sensitive ranking prompt.",
+    "delegation-completion": "Zero-shot completion check.",
+    "extraction": "Conservative zero-shot extraction prompt.",
+    "citation-post-processing": "Schema-first segmentation prompt.",
+    "compaction": "Schema-first durable-memory prompt.",
+    "generated-preamble": "Short text prompt."
+  }
+}

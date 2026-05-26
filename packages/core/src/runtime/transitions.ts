@@ -84,6 +84,27 @@ async function rankConversationalTransitions(
       model: args.models.matcher,
       input: {
         role: "matcher",
+        promptTask: "transition-matcher",
+        promptPayload: {
+          journey: {
+            id: args.journey.id,
+            kind: args.journey.kind,
+            condition: args.journey.condition,
+          },
+          state: {
+            id: args.state.id,
+            instructions: args.state.instructions ?? null,
+            summary: args.state.summary ?? null,
+          },
+          latestUserMessage: args.userText,
+          currentContext: args.context,
+          candidates: candidates.map(({ id, transition }) => ({
+            id,
+            targetId: transition.targetId,
+            description: transition.description ?? null,
+            priority: transition.priority ?? 0,
+          })),
+        },
         messages: [
           {
             role: "system",

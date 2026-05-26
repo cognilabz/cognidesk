@@ -11,7 +11,6 @@ import type {
   JourneyContextRecord,
   JourneySummary,
   KnowledgeItem,
-  ModelPromptProfile,
   RuntimeEvent,
   RuntimeSnapshot,
 } from "../types.js";
@@ -32,7 +31,6 @@ export interface RuntimeOptions {
   knowledgeLimit?: number;
   privacy?: PrivacyHooks;
   observability?: ObservabilityHooks;
-  promptProfile?: ModelPromptProfile;
   compaction?: {
     beforeTurn?: boolean;
     afterTurn?: boolean;

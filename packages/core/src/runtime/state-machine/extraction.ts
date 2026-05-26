@@ -31,6 +31,26 @@ export async function applyStateExtraction(args: StateMachineDeps & {
       model: args.models.extraction,
       input: {
         role: "extraction",
+        promptTask: "extraction",
+        promptPayload: {
+          journey: {
+            id: args.journey.id,
+            kind: args.journey.kind,
+            condition: args.journey.condition,
+          },
+          state: {
+            id: args.state.id,
+            instructions: args.state.instructions ?? null,
+            summary: args.state.summary ?? null,
+          },
+          latestUserMessage: args.userText,
+          currentContext: args.context,
+          fields: fields.map((field) => ({
+            path: field.path,
+            required: field.required,
+          })),
+          stateInstructions: renderStateInstructionStack(args.journey, args.state),
+        },
         messages: [
           {
             role: "system",

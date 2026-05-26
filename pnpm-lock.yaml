@@ -25,22 +25,22 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.0.14
-        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3))
+        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.27.7)(tsx@4.22.3))
 
   apps/flight-demo:
     dependencies:
+      '@ai-sdk/openai':
+        specifier: ^3.0.65
+        version: 3.0.65(zod@4.4.3)
       '@cognidesk/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@cognidesk/http':
         specifier: workspace:*
         version: link:../../packages/http
-      '@cognidesk/model-openai':
+      '@cognidesk/model':
         specifier: workspace:*
-        version: link:../../packages/model-openai
-      '@cognidesk/model-openrouter':
-        specifier: workspace:*
-        version: link:../../packages/model-openrouter
+        version: link:../../packages/model
       '@cognidesk/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -50,6 +50,9 @@ importers:
       '@cognidesk/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@openrouter/ai-sdk-provider':
+        specifier: ^2.9.0
+        version: 2.9.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3)
       '@vitejs/plugin-react':
         specifier: ^5.1.1
         version: 5.2.0(vite@7.3.3(@types/node@24.12.4)(lightningcss@1.32.0)(tsx@4.22.3))
@@ -96,7 +99,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.0.14
-        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.27.7)(tsx@4.22.3))
+        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3))
 
   packages/http:
     dependencies:
@@ -141,7 +144,13 @@ importers:
       ai:
         specifier: ^6.0.191
         version: 6.0.191(zod@4.4.3)
+      nunjucks:
+        specifier: ^3.2.4
+        version: 3.2.4
     devDependencies:
+      '@types/nunjucks':
+        specifier: ^3.2.6
+        version: 3.2.6
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(postcss@8.5.15)(tsx@4.22.3)(typescript@5.9.3)
@@ -154,56 +163,6 @@ importers:
       zod:
         specifier: ^4.3.6
         version: 4.4.3
-
-  packages/model-openai:
-    dependencies:
-      '@ai-sdk/openai':
-        specifier: ^3.0.65
-        version: 3.0.65(zod@4.4.3)
-      '@cognidesk/core':
-        specifier: workspace:*
-        version: link:../core
-      '@cognidesk/model':
-        specifier: workspace:*
-        version: link:../model
-      zod:
-        specifier: ^4.3.6
-        version: 4.4.3
-    devDependencies:
-      tsup:
-        specifier: ^8.5.0
-        version: 8.5.1(postcss@8.5.15)(tsx@4.22.3)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^4.0.14
-        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3))
-
-  packages/model-openrouter:
-    dependencies:
-      '@cognidesk/core':
-        specifier: workspace:*
-        version: link:../core
-      '@cognidesk/model':
-        specifier: workspace:*
-        version: link:../model
-      '@openrouter/ai-sdk-provider':
-        specifier: ^2.9.0
-        version: 2.9.0(ai@6.0.191(zod@4.4.3))(zod@4.4.3)
-      zod:
-        specifier: ^4.3.6
-        version: 4.4.3
-    devDependencies:
-      tsup:
-        specifier: ^8.5.0
-        version: 8.5.1(postcss@8.5.15)(tsx@4.22.3)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^4.0.14
-        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(tsx@4.22.3))
 
   packages/react:
     dependencies:
@@ -1049,6 +1008,9 @@ packages:
   '@types/node@24.12.4':
     resolution: {integrity: sha512-GUUEShf+PBCGW2KaXwcIt3Yk+e3pkKwWKb9GSyM9WQVE+ep2jzmHdGsHzu4wgcZy5fN9FBdVzjpBQsYlpfpgLA==}
 
+  '@types/nunjucks@3.2.6':
+    resolution: {integrity: sha512-pHiGtf83na1nCzliuAdq8GowYiXvH5l931xZ0YEHaLMNFgynpEqx+IPStlu7UaDkehfvl01e4x/9Tpwhy7Ue3w==}
+
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
@@ -1096,6 +1058,9 @@ packages:
   '@vitest/utils@4.1.7':
     resolution: {integrity: sha512-T532WBu791cBxJlCl6SO+J14l81DQx6uQHm1bQbmCDY7nqlEIgkza/UFnSBNaUtSf41unldDFjdOBYEQC4b5Hw==}
 
+  a-sync-waterfall@1.0.1:
+    resolution: {integrity: sha512-RYTOHHdWipFUliRFMCS4X2Yn2X8M87V/OpSqWzKKOGhzqyUxzyVmhHDH9sAvG+ZuQf/TAOFsLCpMw09I1ufUnA==}
+
   acorn@8.16.0:
     resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
     engines: {node: '>=0.4.0'}
@@ -1109,6 +1074,9 @@ packages:
 
   any-promise@1.3.0:
     resolution: {integrity: sha512-7UvmKalWRt1wgjL1RrGxoSJW/0QZFIegpeGvZG9kjp8vrRu55XTHbwnqq2GpXm9uLbcuhxm3IqX9OB4MZR1b2A==}
+
+  asap@2.0.6:
+    resolution: {integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==}
 
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
@@ -1147,6 +1115,10 @@ packages:
 
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
+    engines: {node: '>= 6'}
+
+  commander@5.1.0:
+    resolution: {integrity: sha512-P0CysNDQ7rtVw4QIQtm+MRxV66vKFSvlsQvGYXZWR3qFU0jlMKHZZZgw8e+8DSah4UDKMqnknRDQz+xuQXQ/Zg==}
     engines: {node: '>= 6'}
 
   confbox@0.1.8:
@@ -1355,6 +1327,16 @@ packages:
   node-releases@2.0.46:
     resolution: {integrity: sha512-GYVXHE2KnrzAfsAjl4uP++evGFCrAU1jta4ubEjIG7YWt/64Gqv66a30yKwWczVjA6j3bM4nBwH7Pk1JmDHaxQ==}
     engines: {node: '>=18'}
+
+  nunjucks@3.2.4:
+    resolution: {integrity: sha512-26XRV6BhkgK0VOxfbU5cQI+ICFUtMLixv1noZn1tGU38kQH5A5nmmbk/O45xdyBhD1esk47nKrY0mvQpZIhRjQ==}
+    engines: {node: '>= 6.9.0'}
+    hasBin: true
+    peerDependencies:
+      chokidar: ^3.3.0
+    peerDependenciesMeta:
+      chokidar:
+        optional: true
 
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
@@ -2211,6 +2193,8 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
+  '@types/nunjucks@3.2.6': {}
+
   '@types/react-dom@19.2.3(@types/react@19.2.15)':
     dependencies:
       '@types/react': 19.2.15
@@ -2290,6 +2274,8 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
+  a-sync-waterfall@1.0.1: {}
+
   acorn@8.16.0: {}
 
   ai@6.0.191(zod@4.4.3):
@@ -2301,6 +2287,8 @@ snapshots:
       zod: 4.4.3
 
   any-promise@1.3.0: {}
+
+  asap@2.0.6: {}
 
   assertion-error@2.0.1: {}
 
@@ -2330,6 +2318,8 @@ snapshots:
       readdirp: 4.1.2
 
   commander@4.1.1: {}
+
+  commander@5.1.0: {}
 
   confbox@0.1.8: {}
 
@@ -2523,6 +2513,12 @@ snapshots:
   nanoid@3.3.12: {}
 
   node-releases@2.0.46: {}
+
+  nunjucks@3.2.4:
+    dependencies:
+      a-sync-waterfall: 1.0.1
+      asap: 2.0.6
+      commander: 5.1.0
 
   object-assign@4.1.1: {}
 

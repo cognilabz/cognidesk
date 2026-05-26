@@ -1,0 +1,24 @@
+{
+  "slug": "gpt-5.4-mini",
+  "displayName": "GPT 5.4 Mini",
+  "researchBasis": [
+    {
+      "source": "https://platform.openai.com/docs/guides/text-generation",
+      "note": "Profile uses direct task framing and runtime-enforced schemas for smaller GPT-family models."
+    },
+    {
+      "source": "https://platform.openai.com/docs/guides/reasoning-best-practices",
+      "note": "Profile keeps instructions compact and explicit; few-shot examples are added only when evals show benefit."
+    }
+  ],
+  "taskNotes": {
+    "response": "Compact instruction-only response prompt.",
+    "journey-matcher": "Compact schema-sensitive ranking prompt.",
+    "transition-matcher": "Compact schema-sensitive ranking prompt.",
+    "delegation-completion": "Compact completion check.",
+    "extraction": "Conservative extraction prompt.",
+    "citation-post-processing": "Exact text preservation prompt.",
+    "compaction": "Durable-memory prompt.",
+    "generated-preamble": "Short text prompt."
+  }
+}

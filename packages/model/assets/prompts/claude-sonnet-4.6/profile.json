@@ -1,0 +1,24 @@
+{
+  "slug": "claude-sonnet-4.6",
+  "displayName": "Claude Sonnet 4.6",
+  "researchBasis": [
+    {
+      "source": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview",
+      "note": "Profile uses explicit task sections and clear context boundaries."
+    },
+    {
+      "source": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/multishot-prompting",
+      "note": "Schema-sensitive matcher and extraction tasks include compact examples where useful."
+    }
+  ],
+  "taskNotes": {
+    "response": "Structured instruction prompt without domain-specific examples.",
+    "journey-matcher": "Includes compact examples for JSON ranking decisions.",
+    "transition-matcher": "Includes compact examples for empty versus matching transition decisions.",
+    "delegation-completion": "Explicit criteria-check prompt.",
+    "extraction": "Includes examples for omission of uncertain fields.",
+    "citation-post-processing": "Exact preservation prompt.",
+    "compaction": "Structured durable-memory prompt.",
+    "generated-preamble": "Short text prompt."
+  }
+}

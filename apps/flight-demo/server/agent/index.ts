@@ -67,7 +67,7 @@ export function createConfiguredModelSet(config: FlightDemoConfig, apiKey: strin
   if (config.models.provider === "openrouter") {
     return createOpenRouterModelSet(config.models, apiKey);
   }
-  return createOpenAIModelSet(config, apiKey);
+  return createOpenAIModelSet(config.models, apiKey);
 }
 
 export { createOpenAIModelSet } from "./models/openai-model-set.js";

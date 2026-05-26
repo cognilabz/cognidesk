@@ -1,18 +1,18 @@
 import type { AgentModelSet } from "@cognidesk/core";
-import { openaiModel } from "@cognidesk/model-openai";
+import { createModelSet } from "@cognidesk/model";
+import { createOpenAI } from "@ai-sdk/openai";
 import type { FlightDemoConfig } from "../../config.js";
 
-export function createOpenAIModelSet(config: FlightDemoConfig, apiKey: string): AgentModelSet {
-  return {
-    response: openaiModel({ model: config.models.roles.response, apiKey }),
-    matcher: openaiModel({ model: config.models.roles.matcher, apiKey }),
-    extraction: openaiModel({ model: config.models.roles.extraction, apiKey }),
-    citationPostProcessing: openaiModel({ model: config.models.roles.citationPostProcessing, apiKey }),
-    compaction: openaiModel({ model: config.models.roles.compaction, apiKey }),
-    journeyEmbedding: openaiModel({
-      model: config.models.roles.journeyEmbedding,
-      embeddingModel: config.models.roles.journeyEmbedding,
-      apiKey,
-    }),
-  };
+type OpenAIConfig = Extract<FlightDemoConfig["models"], { provider: "openai" }>;
+
+export function createOpenAIModelSet(config: OpenAIConfig, apiKey: string): AgentModelSet {
+  const provider = createOpenAI({ apiKey });
+  return createModelSet({
+    response: provider.responses(config.roles.response),
+    matcher: provider.responses(config.roles.matcher),
+    extraction: provider.responses(config.roles.extraction),
+    citationPostProcessing: provider.responses(config.roles.citationPostProcessing),
+    compaction: provider.responses(config.roles.compaction),
+    journeyEmbedding: provider.embedding(config.roles.journeyEmbedding),
+  });
 }

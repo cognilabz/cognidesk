@@ -25,8 +25,40 @@ A framework-agnostic request handler used by the HTTP Adapter. Framework wrapper
 _Avoid_: Framework-specific route as core transport
 
 **Model Adapter**:
-An SDK integration that lets the runtime call a model provider through a consistent Cognidesk interface. OpenAI and OpenRouter are expected early Model Adapters.
+An SDK integration that lets the runtime call a configured model through a consistent Cognidesk interface. Model Adapters are created through the Cognidesk model entrypoint, commonly by wrapping Vercel AI SDK model handles.
 _Avoid_: Provider-specific runtime
+
+**AI SDK Model Handle**:
+A Vercel AI SDK language or embedding model object supplied by an application to the Cognidesk model entrypoint. AI SDK Model Handles are allowed at the `@cognidesk/model` boundary but are wrapped before reaching Core runtime APIs.
+_Avoid_: Provider-specific Cognidesk adapter package, raw AI SDK object in Core
+
+**AI SDK-Style Model Definition**:
+The application-facing way to configure Cognidesk models by passing Vercel AI SDK model values in the same style used by the AI SDK itself, such as `openai("gpt-5.5")`, `openrouter("openai/gpt-5.5")`, or a provider registry model id. Cognidesk wraps these definitions as Model Adapters and derives prompt identity separately.
+_Avoid_: Cognidesk-specific provider factory, duplicated OpenAI/OpenRouter options
+
+**Model Metadata Inference**:
+The Cognidesk model entrypoint's attempt to derive provider id, provider model id, and Logical Model Slug from an AI SDK-Style Model Definition. Applications provide explicit overrides only when inference is insufficient or intentionally different.
+_Avoid_: Required duplicate model id, manual provider naming for normal AI SDK handles
+
+**Logical Model Slug**:
+A provider-independent identifier for the model whose behavior a prompt profile targets, such as `gpt-5.5`, `gpt-5.4-mini`, `gpt-5.4-nano`, or `claude-sonnet-4.6`. Provider routes, aliases, and snapshot IDs are normalized to a Logical Model Slug before selecting default prompts.
+_Avoid_: Provider model id as prompt identity, package-specific prompt id
+
+**Model Profile Registration**:
+The declared mapping that introduces a Logical Model Slug to Cognidesk, including provider aliases and prompt profile availability. Applications may register additional Logical Model Slugs, but stray prompt folders do not implicitly create model profiles.
+_Avoid_: Accidental prompt folder as model support, unregistered model alias
+
+**Default Prompt Profile**:
+The generic non-model-optimized Model Prompt Profile used when a configured provider model cannot be normalized to a registered Logical Model Slug. The Default Prompt Profile keeps unknown models runnable but must not make the unknown model appear to be a known logical model.
+_Avoid_: Silent known-model fallback, pretending an unknown model is `gpt-5.5`
+
+**Built-In Logical Model Profile**:
+An SDK-shipped complete Model Prompt Profile for a registered Logical Model Slug. The v1 built-in logical model profiles target `gpt-5.5`, `gpt-5.4-mini`, `gpt-5.4-nano`, and `claude-sonnet-4.6`.
+_Avoid_: Provider route profile, partial SDK-shipped model profile
+
+**Prompt Asset Store**:
+The SDK-owned prompt file tree containing the Default Prompt Profile and built-in Logical Model Slug profiles. Prompt Assets are authored as markdown files, organized by profile slug and Prompt Task, bundled into `@cognidesk/model` for runtime use, and SDK-shipped profiles must include every required promptable task file.
+_Avoid_: Prompt constants scattered through provider bindings, app-local SDK defaults
 
 **Model Role**:
 A named runtime use of a model, such as response generation, matching, extraction, citation post-processing, Journey Index embeddings, or conversation compaction. Production Model Roles are configured as one model set for an Agent because prompts are written for the models they use.
@@ -36,17 +68,81 @@ _Avoid_: Single model for every task
 The complete set of production Model Role configurations for an Agent. Journeys and states do not override the Agent Model Set in v1; Test Harness judge and simulated-user models are configured separately.
 _Avoid_: Per-journey model override
 
+**AI SDK-Style Model Set Definition**:
+An application-facing Agent Model Set declaration that maps each Model Role to either an AI SDK-Style Model Definition or a configured role entry with generation settings and metadata overrides. Cognidesk converts this role map into Model Adapters and applies prompt profile selection for each role.
+_Avoid_: Manual adapter construction for every role, provider-specific model-set factory
+
 **Model Prompt Profile**:
-The role-specific prompt set used with a model family or concrete model in an Agent Model Set. The Runtime SDK selects defaults from the configured model when possible, while applications may override individual role prompts or replace the full Model Prompt Profile when they intentionally take ownership of that prompt behavior.
+The role-specific prompt set used with a logical model family or concrete logical model in an Agent Model Set. The Runtime SDK selects defaults from logical model identity rather than provider route, while applications may override individual role prompts or replace the full Model Prompt Profile when they intentionally take ownership of that prompt behavior.
 _Avoid_: One universal prompt, app-local extractor prompt, scattered role prompts
 
-**OpenAI Model Adapter**:
-The Cognidesk Model Adapter for OpenAI-backed model execution. It may use OpenAI provider SDKs internally but exposes only Cognidesk abstractions.
-_Avoid_: Public OpenAI SDK object
+**Prompt Template Field**:
+A named runtime value that a Model Prompt Profile prompt may reference when shaping role behavior. Prompt Template Fields are defined per Prompt Profile Role, and missing required fields fail the prompt render contract without making prompt files own the entire runtime context.
+_Avoid_: Hidden prompt variable, app-specific placeholder as SDK default
 
-**OpenRouter Model Adapter**:
-The Cognidesk Model Adapter for OpenRouter-backed model execution. It is a separate public adapter from the OpenAI Model Adapter, even if implementation code can be shared.
-_Avoid_: OpenAI adapter alias
+**Prompt Template Renderer**:
+The internal Jinja-compatible renderer used by `@cognidesk/model` to compile and render Prompt Assets and Prompt Overrides. The renderer is an implementation detail; public APIs expose Cognidesk prompt concepts rather than renderer-specific APIs.
+_Avoid_: Public Nunjucks API, ad hoc string replacement
+
+**Prompt Template Validation**:
+The startup-time validation of Prompt Assets and Prompt Overrides for known role filenames, registered Logical Model Slugs, template syntax, and allowed per-role Prompt Template Fields. Prompt Template Validation prevents prompt authoring mistakes from surfacing during live conversations.
+_Avoid_: Lazy prompt failure, unchecked template field
+
+**Prompt Research Basis**:
+The source evidence used when authoring a Built-In Logical Model Profile, including current official model prompting guidance and Cognidesk eval results. Prompt Research Basis determines whether a model-specific Prompt Task should use zero-shot instructions, few-shot examples, XML-style structure, reasoning guidance, or other model-specific techniques.
+_Avoid_: Generic prompt folklore, few-shot examples everywhere, model-specific prompt without evidence
+
+**Prompt Profile Metadata**:
+The bundled structured metadata for a Built-In Logical Model Profile that documents its Prompt Research Basis and profile-level assumptions. Prompt Profile Metadata is authored as `profile.json`, making model-specific prompt choices auditable without embedding research notes in every Prompt Task file.
+_Avoid_: Undocumented model-specific prompt, research notes scattered through prompts
+
+**Model-Visible Prompt Payload**:
+A structured prompt rendering payload assembled from runtime data after model-visibility rules and Privacy Hooks have been applied. Model-Visible Prompt Payloads give prompts rich data for reasoning without exposing unredacted internal runtime objects or unstable implementation shapes.
+_Avoid_: Raw internal object, pre-rendered-only prompt text, unfiltered event dump
+
+**Role Instruction Layer**:
+The rendered prompt text for a Prompt Profile Role that tells the model how to perform that role. A Role Instruction Layer is combined with the Model-Visible Prompt Payload and Structured Model Output contract rather than replacing runtime-owned context assembly.
+_Avoid_: Full prompt ownership by markdown file, context assembly in prompt override
+
+**Prompt Rendering Boundary**:
+The division of responsibility where Core selects Prompt Task Identity and prepares Model-Visible Prompt Payloads, while `@cognidesk/model` selects, validates, and renders Prompt Assets. This keeps runtime state ownership in Core and template asset ownership in the model package.
+_Avoid_: Core-owned prompt asset loading, model package owning runtime state
+
+**Prompt Profile Render Contract**:
+The strict current API between Core and a Model Prompt Profile for rendering a Role Instruction Layer from Prompt Task Identity, model metadata, Model-Visible Prompt Payload, and Structured Model Output metadata. The Prompt Profile Render Contract replaces the older message-transform API rather than preserving backward compatibility.
+_Avoid_: Legacy message transform, compatibility shim for old prompt profiles
+
+**Prompt Override**:
+An application-provided Role Instruction Layer that replaces the built-in prompt for one Prompt Profile Role and Logical Model Slug. Prompt Overrides are per-role replacements; roles without overrides continue to use SDK defaults unless the application deliberately requires a complete custom profile.
+_Avoid_: Additive prompt patch, ambiguous instruction priority
+
+**Prompt Override Registry**:
+Application configuration at the Agent Model Set boundary that declares Prompt Overrides by Logical Model Slug and Prompt Profile Role. Prompt Override Registries are resolved and validated when the Agent Model Set is created, keeping prompt ownership explicit without embedding prompt text inside individual role model settings.
+_Avoid_: Prompt override hidden in a role adapter, scattered override paths
+
+**Prompt Profile Role**:
+A promptable Model Role covered by a Model Prompt Profile. A Prompt Profile Role may have multiple Prompt Tasks when one model role has distinct runtime jobs, such as journey matching, transition matching, and delegation completion under the matcher model role.
+_Avoid_: Optional built-in role prompt, embedding prompt
+
+**Prompt Task**:
+A concrete prompt template used for a specific runtime job within a Prompt Profile Role. The v1 required Prompt Tasks are response, journey matcher, transition matcher, delegation completion, extraction, citation post-processing, compaction, and generated preamble; Journey Index embeddings are excluded because they do not use chat prompts.
+_Avoid_: Overloaded matcher prompt, one prompt file for unrelated JSON contracts
+
+**Prompt Task Identity**:
+The runtime-selected Prompt Task for a model call, separate from the Model Role used for model-set selection and tracing. Prompt Task Identity lets one Model Role, such as matcher, use different prompt templates for different runtime jobs.
+_Avoid_: Encoding prompt task in model role, inferring matcher subtype from message text
+
+**Response Prompt Task**:
+The Prompt Task for normal assistant response generation, including response rounds that call tools and final responses after tool results. Tool follow-up behavior belongs in the Response Prompt Task rather than a separate prompt task.
+_Avoid_: Separate tool response prompt, side-effect claim before tool success
+
+**Structured Model Output**:
+A runtime-enforced model result shape for Model Roles that produce machine-read decisions or extracted data. Matching, extraction, citation post-processing, and conversation compaction use Structured Model Output; prompt text may describe the expected shape, but validation belongs to the Runtime SDK contract for that role.
+_Avoid_: Prompt-only JSON instruction, unvalidated matcher result
+
+**Provider Model Configuration**:
+Application-owned setup that chooses a Vercel AI SDK provider and creates AI SDK Model Handles for an Agent Model Set. Provider Model Configuration belongs in applications and demos, not separate public Cognidesk provider packages.
+_Avoid_: SDK-owned OpenAI package, SDK-owned OpenRouter package, provider-specific prompt identity
 
 **Storage Adapter**:
 An SDK integration that persists conversations, Runtime Events, snapshots, and runtime state through a consistent Cognidesk interface. SQLite is the first intended Storage Adapter.
@@ -634,6 +730,18 @@ Developer: "So my app provides the model, storage, retriever, tools, and UI?"
 
 Domain expert: "Yes. The SDK owns the runtime loop and extension contracts; the app supplies infrastructure and business capabilities."
 
+Developer: "Can my app pass Vercel AI SDK model handles to Cognidesk?"
+
+Domain expert: "Yes, at the `@cognidesk/model` boundary. Core still receives Cognidesk Model Adapters rather than raw provider SDK objects."
+
+Developer: "Do I need to use Cognidesk-specific OpenAI or OpenRouter factory functions?"
+
+Domain expert: "No. Applications define models in the AI SDK style and Cognidesk wraps those model definitions."
+
+Developer: "Do I have to repeat the provider and model id when passing an AI SDK model?"
+
+Domain expert: "Normally no. Cognidesk uses Model Metadata Inference and only needs overrides for ambiguous model definitions."
+
 Developer: "Does the Runtime SDK require a specific web server?"
 
 Domain expert: "No. Cognidesk is transport-neutral, but it can provide Built-In Adapters for common integrations."
@@ -650,9 +758,81 @@ Developer: "Can each Journey choose its own response model?"
 
 Domain expert: "No. An Agent has one Agent Model Set because prompts are coupled to the configured models."
 
+Developer: "Does my app need to wrap every role model manually?"
+
+Domain expert: "No. It can use an AI SDK-Style Model Set Definition and let Cognidesk create the Agent Model Set."
+
 Developer: "Where do model-specific prompts live?"
 
 Domain expert: "In Model Prompt Profiles. The SDK owns defaults for each Model Role, and an application can override them deliberately at the Agent Model Set boundary."
+
+Developer: "Does `gpt-5.5` use different prompts when called through OpenRouter instead of OpenAI?"
+
+Domain expert: "No. Provider routing changes execution, not logical model identity. The same logical model receives the same default Model Prompt Profile."
+
+Developer: "Should Cognidesk ship separate public OpenAI and OpenRouter model packages?"
+
+Domain expert: "No. Applications choose providers through Vercel AI SDK and pass AI SDK Model Handles through the single Cognidesk model entrypoint."
+
+Developer: "What key does the SDK use to find those default prompts?"
+
+Domain expert: "A Logical Model Slug. Provider-specific model ids are normalized before prompt lookup."
+
+Developer: "Can an app add prompts for a model Cognidesk does not know yet?"
+
+Domain expert: "Yes, through Model Profile Registration. A prompt folder alone is not enough to create a supported logical model."
+
+Developer: "What if the configured model is unknown?"
+
+Domain expert: "Use the Default Prompt Profile rather than borrowing prompts from a known logical model."
+
+Developer: "Where do SDK-owned prompt files live?"
+
+Domain expert: "In the Prompt Asset Store, including a generic `default` profile and built-in logical model profiles."
+
+Developer: "Does every model prompt profile need an embedding prompt?"
+
+Domain expert: "No. Built-in Model Prompt Profiles cover promptable Prompt Tasks; Journey Index embeddings do not use chat prompts."
+
+Developer: "Can the matcher just be told in the prompt to return JSON?"
+
+Domain expert: "No. Machine-read roles use Structured Model Output; prompt text reinforces the behavior, but the Runtime SDK validates the shape."
+
+Developer: "Is there only one matcher prompt?"
+
+Domain expert: "No. The matcher Model Role can have multiple Prompt Tasks when the runtime job and Structured Model Output differ."
+
+Developer: "Do all prompt files get the same template fields?"
+
+Domain expert: "No. Prompt Template Fields are defined per Prompt Profile Role because response generation, matching, extraction, and compaction need different runtime inputs."
+
+Developer: "When are prompt templates validated?"
+
+Domain expert: "During model-set creation. Prompt Template Validation checks syntax, role names, model slugs, and per-role field usage before traffic starts."
+
+Developer: "Should every prompt include few-shot examples?"
+
+Domain expert: "No. Few-shot examples depend on the Prompt Research Basis for that logical model and task, and must be justified by prompting guidance or eval results."
+
+Developer: "Where is the research basis for a built-in profile recorded?"
+
+Domain expert: "In Prompt Profile Metadata bundled with the Built-In Logical Model Profile."
+
+Developer: "Can prompt templates receive raw runtime data so models can reason over it?"
+
+Domain expert: "They receive Model-Visible Prompt Payloads: rich structured data that has already passed model-visibility and privacy boundaries."
+
+Developer: "Does a markdown prompt replace the whole system message?"
+
+Domain expert: "No. It renders the Role Instruction Layer; runtime-owned payload assembly and Structured Model Output remain separate responsibilities."
+
+Developer: "If my app provides `matcher.md`, is it appended to the SDK matcher prompt?"
+
+Domain expert: "No. Prompt Overrides replace one role's Role Instruction Layer so instruction priority stays clear."
+
+Developer: "Where are prompt overrides declared?"
+
+Domain expert: "At the Agent Model Set boundary in a Prompt Override Registry, keyed by Logical Model Slug and Prompt Profile Role."
 
 Developer: "Can the Flight Service Demo fall back to mock models when provider credentials are missing?"
 

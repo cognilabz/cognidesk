@@ -13,24 +13,25 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.65",
     "@cognidesk/core": "workspace:*",
     "@cognidesk/http": "workspace:*",
-    "@cognidesk/model-openai": "workspace:*",
-    "@cognidesk/model-openrouter": "workspace:*",
+    "@cognidesk/model": "workspace:*",
     "@cognidesk/react": "workspace:*",
     "@cognidesk/storage-sqlite": "workspace:*",
     "@cognidesk/ui": "workspace:*",
+    "@openrouter/ai-sdk-provider": "^2.9.0",
     "@vitejs/plugin-react": "^5.1.1",
-    "vite": "^7.2.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "vite": "^7.2.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.14",
-    "tsx": "^4.20.6"
+    "vitest": "^4.0.14"
   }
 }

@@ -27,6 +27,19 @@ export async function evaluateDelegationCompletion(args: {
       model: args.models.matcher,
       input: {
         role: "matcher",
+        promptTask: "delegation-completion",
+        promptPayload: {
+          journey: {
+            id: args.journey.id,
+            kind: args.journey.kind,
+            condition: args.journey.condition,
+            delegation: {
+              goal: args.journey.delegation.goal,
+              completeWhen: args.journey.delegation.completeWhen,
+            },
+          },
+          conversationTranscript: args.history,
+        },
         messages: [
           {
             role: "system",

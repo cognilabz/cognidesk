@@ -6,6 +6,7 @@ import type {
   AnyTool,
   ModelAdapter,
   ModelMessage,
+  ModelVisiblePromptPayload,
   ModelToolCall,
   ModelToolDefinition,
   TextGenerationInput,
@@ -13,7 +14,7 @@ import type {
 } from "../types.js";
 import { isAbortLikeError } from "./errors.js";
 import { resolveActiveStates } from "./journey-state.js";
-import { applyModelPromptProfiles } from "./prompt-profiles.js";
+import { applyModelPromptProfile } from "./prompt-profiles.js";
 import { executeToolWithRetry } from "./state-runners.js";
 import { createToolResultMessage, uniqueTools } from "./tools.js";
 import type { RuntimeEventEmitter, RuntimeOptions, StateMachineTurnResult } from "./types.js";
@@ -35,12 +36,9 @@ export async function generateTextWithTrace(args: {
   try {
     const output = await args.model.generateText({
       ...args.input,
-      messages: await applyModelPromptProfiles({
+      messages: await applyModelPromptProfile({
         model: args.model,
-        ...(args.options.models ? { models: args.options.models } : {}),
-        ...(args.options.promptProfile ? { runtimeProfile: args.options.promptProfile } : {}),
-        role: args.input.promptProfileRole ?? args.input.role,
-        messages: args.input.messages,
+        input: args.input,
       }),
     });
     await args.trace({
@@ -78,6 +76,7 @@ export async function generateResponseWithTools(args: {
   conversation: ConversationRecord;
   model: ModelAdapter;
   messages: ModelMessage[];
+  promptPayload?: ModelVisiblePromptPayload;
   tools: AnyTool[];
   modelTools: ModelToolDefinition[];
   selectedJourney: CompiledJourney | null;
@@ -95,6 +94,14 @@ export async function generateResponseWithTools(args: {
       model: args.model,
       input: {
         role: "response",
+        promptTask: "response",
+        promptPayload: args.promptPayload ?? {
+          messages,
+          tools: args.modelTools.map((tool) => ({
+            name: tool.name,
+            ...(tool.description ? { description: tool.description } : {}),
+          })),
+        },
         messages,
         ...(args.modelTools.length > 0 ? { tools: args.modelTools, toolChoice: "auto" as const } : {}),
         ...(args.signal ? { signal: args.signal } : {}),

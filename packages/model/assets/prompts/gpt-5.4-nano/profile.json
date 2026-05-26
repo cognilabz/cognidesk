@@ -1,0 +1,20 @@
+{
+  "slug": "gpt-5.4-nano",
+  "displayName": "GPT 5.4 Nano",
+  "researchBasis": [
+    {
+      "source": "https://platform.openai.com/docs/guides/text-generation",
+      "note": "Profile uses short, explicit instructions and relies on runtime schemas for compact-model reliability."
+    }
+  ],
+  "taskNotes": {
+    "response": "Very compact instruction-only response prompt.",
+    "journey-matcher": "Short schema-sensitive ranking prompt.",
+    "transition-matcher": "Short schema-sensitive ranking prompt.",
+    "delegation-completion": "Short completion check.",
+    "extraction": "Conservative short extraction prompt.",
+    "citation-post-processing": "Exact text preservation prompt.",
+    "compaction": "Compact durable-memory prompt.",
+    "generated-preamble": "Short text prompt."
+  }
+}

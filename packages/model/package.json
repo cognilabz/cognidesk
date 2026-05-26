@@ -11,16 +11,18 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --sourcemap",
+    "build": "tsup src/index.ts --format esm --dts --sourcemap --loader .md=text",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@cognidesk/core": "workspace:*",
-    "ai": "^6.0.191"
+    "ai": "^6.0.191",
+    "nunjucks": "^3.2.4"
   },
   "devDependencies": {
+    "@types/nunjucks": "^3.2.6",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14",

@@ -1,3 +1,3 @@
-# Hide provider SDK objects behind Cognidesk abstractions
+# Hide provider SDK objects behind Core abstractions
 
-Cognidesk may use provider SDKs such as the OpenAI Agents SDK under the hood, but public APIs must expose Cognidesk types, definitions, models, events, tools, widgets, and adapters rather than provider-native objects. This keeps the runtime portable across OpenAI, OpenRouter, and future providers while allowing strong built-ins to use the best available provider SDK internally.
+Cognidesk Core must expose Cognidesk types, definitions, models, events, tools, widgets, and adapters rather than provider-native objects. The `@cognidesk/model` integration package is the narrow exception: it may publicly accept Vercel AI SDK model handles and wrap them as Cognidesk Model Adapters, keeping the runtime portable while letting applications own provider selection.

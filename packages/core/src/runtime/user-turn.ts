@@ -126,6 +126,16 @@ export async function handleUserMessage<TTurn>(
       conversation,
       model: models.response,
       messages: modelMessages,
+      promptPayload: {
+        messages: modelMessages,
+        tools: modelTools.map((tool) => ({
+          name: tool.name,
+          ...(tool.description ? { description: tool.description } : {}),
+        })),
+        selectedJourneyId: selectedJourney?.id ?? null,
+        activeStateIds: stateMachineTurn?.activeStateIds ?? [],
+        journeyContext: stateMachineTurn?.journeyContext ?? {},
+      },
       tools: availableTools,
       modelTools,
       selectedJourney,
