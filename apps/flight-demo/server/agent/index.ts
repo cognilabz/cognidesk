@@ -19,6 +19,7 @@ import { addHandoffJourney } from "./journeys/handoff.js";
 import { addTicketStatusJourney } from "./journeys/ticket-status.js";
 import { createFlightKnowledgeSource } from "./knowledge/source.js";
 import { createOpenAIModelSet } from "./models/openai-model-set.js";
+import { createOpenRouterModelSet } from "./models/openrouter-model-set.js";
 import { flightTools } from "./tools/flight-tools.js";
 
 export interface CreateFlightDemoRuntimePartsOptions {
@@ -29,7 +30,7 @@ export interface CreateFlightDemoRuntimePartsOptions {
 
 export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRuntimePartsOptions = {}) {
   const config = options.config ?? await loadFlightDemoConfig();
-  const models = options.models ?? createOpenAIModelSet(config, requireConfiguredApiKey(config));
+  const models = options.models ?? createConfiguredModelSet(config, requireConfiguredApiKey(config));
   const knowledgeIndex = options.knowledgeIndex
     ?? await loadFlightKnowledgeIndex(resolveFlightDemoPath(config.storage.knowledgeIndexPath));
   assertCompatibleKnowledgeIndex(knowledgeIndex, models.journeyEmbedding);
@@ -62,5 +63,13 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
   return { agent: compiledAgent, models, journeyIndex };
 }
 
+export function createConfiguredModelSet(config: FlightDemoConfig, apiKey: string): AgentModelSet {
+  if (config.models.provider === "openrouter") {
+    return createOpenRouterModelSet(config.models, apiKey);
+  }
+  return createOpenAIModelSet(config, apiKey);
+}
+
 export { createOpenAIModelSet } from "./models/openai-model-set.js";
+export { createOpenRouterModelSet } from "./models/openrouter-model-set.js";
 export { flightTools } from "./tools/flight-tools.js";

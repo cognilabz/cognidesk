@@ -1,6 +1,6 @@
 import { join } from "node:path";
-import { openaiModel } from "@cognidesk/model-openai";
 import { flightDemoRoot, loadFlightDemoConfig, requireConfiguredApiKey, resolveFlightDemoPath } from "./config.js";
+import { createConfiguredModelSet } from "./flight-agent.js";
 import {
   buildFlightKnowledgeIndex,
   loadFlightKnowledgeDocuments,
@@ -9,11 +9,7 @@ import {
 
 const config = await loadFlightDemoConfig();
 const apiKey = requireConfiguredApiKey(config);
-const embeddingModel = openaiModel({
-  model: config.models.roles.journeyEmbedding,
-  embeddingModel: config.models.roles.journeyEmbedding,
-  apiKey,
-});
+const embeddingModel = createConfiguredModelSet(config, apiKey).journeyEmbedding;
 
 const documents = await loadFlightKnowledgeDocuments(join(flightDemoRoot(), "knowledge", "documents.json"));
 const index = await buildFlightKnowledgeIndex({ documents, embeddingModel });

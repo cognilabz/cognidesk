@@ -18,7 +18,15 @@ The demo agent is split by authoring concern so it can be used as a reference sh
 
 ## Configuration
 
-Copy `config.example.json` to `config.json` and set `OPENAI_API_KEY` in your shell. The config file chooses the model for each runtime role. API keys stay in environment variables and should not be committed.
+Copy `config.example.json` or `config.openrouter.example.json` to `config.json`. The config file chooses the provider and model for each runtime role. API keys stay in environment variables and should not be committed.
+
+For OpenRouter, put this in the repository root `.env`:
+
+```sh
+OPENROUTER_KEY=sk-or-...
+```
+
+The demo server and ingestion script load `.env` automatically from the repository root and from `apps/flight-demo/.env`.
 
 Default role mapping:
 
@@ -28,6 +36,15 @@ Default role mapping:
 - `extraction`: `gpt-5.4-mini`
 - `citationPostProcessing`: `gpt-5.4-mini`
 - `journeyEmbedding`: `text-embedding-3-small`
+
+OpenRouter role mapping in `config.openrouter.example.json`:
+
+- `response`: `openai/gpt-5.5`
+- `compaction`: `openai/gpt-5.4-nano`
+- `matcher`: `openai/gpt-5.4-nano`
+- `extraction`: `openai/gpt-5.4-nano`
+- `citationPostProcessing`: `openai/gpt-5.4-nano`
+- `journeyEmbedding`: `openai/text-embedding-3-small`
 
 ## Knowledge Ingestion
 
@@ -42,3 +59,32 @@ pnpm --filter @cognidesk/flight-demo ingest:knowledge
 ```
 
 The server fails startup if the Knowledge Index is missing or was generated with a different embedding model.
+
+## Local Run
+
+```sh
+pnpm install
+pnpm --filter @cognidesk/flight-demo ingest:knowledge
+pnpm --filter @cognidesk/flight-demo dev:server
+```
+
+In a second terminal:
+
+```sh
+pnpm --filter @cognidesk/flight-demo dev
+```
+
+Open `http://localhost:5173`. The React app uses `http://localhost:8787/api` by default.
+
+## Test Prompts
+
+Use these prompts to exercise the demo agent. The expected behavior below is intentionally directional, not the exact answer text.
+
+| What to ask | What should happen |
+| --- | --- |
+| `Find flights from Vienna to Berlin tomorrow.` | The booking Journey should activate, the route/date should be extracted, and the agent should move toward showing or selecting mocked flights. |
+| `Book a ticket from Vienna to Paris tomorrow for Alex Morgan.` | The booking Journey should collect route, date, and passenger details, then ask for confirmation before creating a mocked booking. |
+| `What is the status of booking CD-CL204-4821?` | The ticket-status Journey should activate and use the mocked ticket-status tool. |
+| `Can I check in for CL204?` | The status/check-in path should activate; if a booking reference is required, the agent should ask for it rather than inventing one. |
+| `What baggage is included in economy?` | The base support agent should use Knowledge retrieval and answer with baggage policy direction plus a source reference. |
+| `My flight was cancelled and I need a person.` | The handoff Journey should activate and collect a short summary for human support. |

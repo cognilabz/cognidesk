@@ -1,0 +1,19 @@
+{
+  "models": {
+    "provider": "openrouter",
+    "apiKeyEnv": "OPENROUTER_KEY",
+    "appName": "Cognidesk Flight Demo",
+    "roles": {
+      "response": "openai/gpt-5.5",
+      "compaction": "openai/gpt-5.4-nano",
+      "matcher": "openai/gpt-5.4-nano",
+      "extraction": "openai/gpt-5.4-nano",
+      "citationPostProcessing": "openai/gpt-5.4-nano",
+      "journeyEmbedding": "openai/text-embedding-3-small"
+    }
+  },
+  "storage": {
+    "sqlitePath": ".data/flight-demo.sqlite",
+    "knowledgeIndexPath": ".data/knowledge-index.json"
+  }
+}

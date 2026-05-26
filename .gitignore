@@ -1,4 +1,5 @@
 .env
+apps/flight-demo/config.json
 node_modules/
 dist/
 .turbo/
