@@ -21,7 +21,6 @@ import type {
   CreateConversationInput,
   ListEventsOptions,
   TextGenerationInput,
-  TraceEvent,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,
@@ -31,17 +30,13 @@ import type {
 import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherTest } from "./fixtures.js";
 
 describe("runtime turn pipeline 03", () => {
-  it("ignores observability hook failures", async () => {
+  it("emits intermediate messages when telemetry is disabled", async () => {
     const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
       models: createModels(),
-      observability: {
-        onTraceEvent: () => {
-          throw new Error("trace sink unavailable");
-        },
-      },
+      telemetry: { enabled: false },
     });
     const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
 

@@ -42,7 +42,12 @@ export function eventFromRow(row: RowRecord): RuntimeEvent {
     offset,
     type: String(row.type) as RuntimeEvent["type"],
     createdAt: String(row.created_at),
-    traceId: typeof row.trace_id === "string" ? row.trace_id : undefined,
+    telemetry: typeof row.telemetry_trace_id === "string"
+      ? {
+          traceId: row.telemetry_trace_id,
+          ...(typeof row.telemetry_span_id === "string" ? { spanId: row.telemetry_span_id } : {}),
+        }
+      : undefined,
     data: parseJson(row.data_json),
   } as RuntimeEvent;
 }
@@ -59,7 +64,7 @@ export function runtimeEventFromParts(
     offset,
     type: input.type,
     createdAt,
-    traceId: input.traceId,
+    telemetry: input.telemetry,
     data: input.data,
   } as RuntimeEvent;
 }

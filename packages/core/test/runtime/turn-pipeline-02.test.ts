@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import { context, trace } from "@opentelemetry/api";
+import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-hooks";
+import { BasicTracerProvider, InMemorySpanExporter, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import {
   action,
   buildJourneyIndex,
@@ -21,7 +24,6 @@ import type {
   CreateConversationInput,
   ListEventsOptions,
   TextGenerationInput,
-  TraceEvent,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,
@@ -29,6 +31,13 @@ import type {
 } from "../../src/index.js";
 
 import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherTest } from "./fixtures.js";
+
+const spanExporter = new InMemorySpanExporter();
+const tracerProvider = new BasicTracerProvider({
+  spanProcessors: [new SimpleSpanProcessor(spanExporter)],
+});
+context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable());
+trace.setGlobalTracerProvider(tracerProvider);
 
 describe("runtime turn pipeline 02", () => {
   it("lets the matcher rank only retrieved journey candidates", async () => {
@@ -167,12 +176,12 @@ describe("runtime turn pipeline 02", () => {
     expect(matcherPrompt).toContain("user: Can you check it?");
   });
 
-  it("emits provider-neutral trace events without storing them as runtime events", async () => {
-    const traces: TraceEvent[] = [];
+  it("emits OpenTelemetry spans and attaches custom tool spans under SDK tool spans", async () => {
+    spanExporter.reset();
     const searchFlights = tool("searchFlights", {
       input: z.object({ origin: z.string(), destination: z.string() }),
       output: z.object({ flights: z.array(z.object({ id: z.string() })) }),
-      execute: async () => ({ flights: [{ id: "OS123" }] }),
+      execute: async ({ telemetry }) => telemetry.withSpan("flight.search_api", () => ({ flights: [{ id: "OS123" }] })),
     });
     const knowledge = knowledgeSource("flight-faq", {
       query: z.object({ query: z.string() }),
@@ -235,11 +244,7 @@ describe("runtime turn pipeline 02", () => {
       agent,
       models,
       journeyIndex,
-      observability: {
-        onTraceEvent: (event) => {
-          traces.push(event);
-        },
-      },
+      telemetry: { content: "full" },
     });
     const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
 
@@ -248,16 +253,22 @@ describe("runtime turn pipeline 02", () => {
       text: "Find flights from Vienna to Berlin.",
     });
 
-    expect(traces.map((event) => event.type)).toEqual(expect.arrayContaining([
-      "runtime.event",
-      "model.started",
-      "model.completed",
-      "tool.started",
-      "tool.completed",
-      "knowledge.retrieved",
+    const spans = spanExporter.getFinishedSpans();
+    expect(spans.map((span) => span.name)).toEqual(expect.arrayContaining([
+      "cognidesk.runtime.handle_user_message",
+      "cognidesk.model.generate",
+      "cognidesk.tool.execute",
+      "cognidesk.knowledge.retrieve",
+      "flight.search_api",
     ]));
-    expect(traces.some((event) => event.type === "model.completed" && event.role === "response" && event.usage?.totalTokens === 12)).toBe(true);
-    expect(traces.some((event) => event.type === "tool.completed" && event.toolName === "searchFlights" && event.success)).toBe(true);
+    const runtimeSpan = spans.find((span) => span.name === "cognidesk.runtime.handle_user_message");
+    const toolSpan = spans.find((span) => span.name === "cognidesk.tool.execute" && span.attributes["cognidesk.tool.name"] === "searchFlights");
+    const customToolSpan = spans.find((span) => span.name === "flight.search_api");
+    expect(runtimeSpan?.spanContext().traceId).toBeTruthy();
+    expect(toolSpan?.parentSpanId).toBe(runtimeSpan?.spanContext().spanId);
+    expect(customToolSpan?.parentSpanId).toBe(toolSpan?.spanContext().spanId);
+    expect(spans.some((span) => span.name === "cognidesk.model.generate" && span.attributes["cognidesk.model.usage.total_tokens"] === 12)).toBe(true);
+    expect(spans.some((span) => span.events.some((event) => event.name === "cognidesk.model.input"))).toBe(true);
     expect((await runtime.listEvents(conversation.id)).some((event) => event.type === "custom.observability")).toBe(false);
   });
 });

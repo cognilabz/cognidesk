@@ -17,6 +17,7 @@
     "@cognidesk/core": "workspace:*",
     "@cognidesk/http": "workspace:*",
     "@cognidesk/model": "workspace:*",
+    "@cognidesk/otel": "workspace:*",
     "@cognidesk/react": "workspace:*",
     "@cognidesk/storage-sqlite": "workspace:*",
     "@cognidesk/ui": "workspace:*",

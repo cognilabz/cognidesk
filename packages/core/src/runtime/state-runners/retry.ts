@@ -1,4 +1,5 @@
 import type { AnyTool } from "../../types.js";
+import { createTelemetryContext } from "../../telemetry.js";
 import { createJourneyContextView } from "../context.js";
 import { isAbortLikeError } from "../errors.js";
 import type { RuntimeEventEmitter, RuntimeOptions } from "../types.js";
@@ -25,6 +26,7 @@ export async function executeToolWithRetry(args: {
         input: args.input,
         app: args.options.app ?? {},
         conversationId: args.conversationId,
+        telemetry: createTelemetryContext(args.options),
         ...(args.idempotencyKey ? { idempotencyKey: args.idempotencyKey } : {}),
         ...(args.signal ? { signal: args.signal } : {}),
       });

@@ -1,6 +1,4 @@
 import type { CompiledAgent, CompiledJourney } from "../definition.js";
-import type { TraceEvent } from "../observability.js";
-import { logTraceEvent, runtimeLogger } from "../logging.js";
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
@@ -23,7 +21,6 @@ import {
 } from "./model-runner.js";
 import {
   redactAssistantMessage as redactAssistantMessageWithOptions,
-  redactTraceEvent as redactTraceEventWithOptions,
   redactModelMessages as redactModelMessagesWithOptions,
   redactUserMessage as redactUserMessageWithOptions,
 } from "./privacy.js";
@@ -35,20 +32,6 @@ import type {
   RuntimeOptions,
   StateMachineTurnResult,
 } from "./types.js";
-
-export async function traceRuntimeEvent(options: RuntimeOptions, event: TraceEvent) {
-  const redacted = await redactTraceEventWithOptions(options, event).catch(() => null);
-  if (!redacted) return;
-  logTraceEvent(options, redacted);
-  try {
-    await options.observability?.onTraceEvent?.(redacted);
-  } catch (error) {
-    runtimeLogger(options, { conversationId: redacted.conversationId }).error({
-      error: error instanceof Error ? error.message : "Observability hook failed.",
-    }, "Observability trace hook failed");
-    // Observability hooks must not affect conversation execution.
-  }
-}
 
 export function requireRuntimeAgent(options: RuntimeOptions) {
   if (!options.agent) throw new Error("Runtime requires an agent to handle messages.");
@@ -62,7 +45,6 @@ export function requireRuntimeModels(options: RuntimeOptions) {
 
 export function generateRuntimeTextWithTrace(
   options: RuntimeOptions,
-  trace: (event: TraceEvent) => Promise<void>,
   input: {
     conversationId: string;
     model: ModelAdapter;
@@ -72,13 +54,11 @@ export function generateRuntimeTextWithTrace(
   return generateTextWithTraceWithDeps({
     ...input,
     options,
-    trace,
   });
 }
 
 export function generateRuntimeResponseWithTools(
   options: RuntimeOptions,
-  trace: (event: TraceEvent) => Promise<void>,
   requireConversationRecord: (conversationId: string) => Promise<ConversationRecord>,
   applyBuiltInLifecycleTool: (input: {
     toolName: string;
@@ -102,7 +82,6 @@ export function generateRuntimeResponseWithTools(
   return generateResponseWithToolsWithDeps({
     ...args,
     options,
-    trace,
     requireConversationRecord,
     applyBuiltInLifecycleTool,
   });

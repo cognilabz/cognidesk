@@ -1,0 +1,119 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single", "sort": "none" } },
+      "targets": [
+        {
+          "expr": "sum(rate(cognidesk_runtime_operations_total[$__rate_interval])) by (cognidesk_operation)",
+          "legendFormat": "{{cognidesk_operation}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Runtime Operation Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single", "sort": "none" } },
+      "targets": [
+        {
+          "expr": "sum(rate(cognidesk_runtime_failures_total[$__rate_interval])) / clamp_min(sum(rate(cognidesk_runtime_operations_total[$__rate_interval])), 1)",
+          "legendFormat": "failures",
+          "refId": "A"
+        }
+      ],
+      "title": "Runtime Error Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single", "sort": "none" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(cognidesk_runtime_operation_duration_milliseconds_bucket[$__rate_interval])) by (le, cognidesk_operation))",
+          "legendFormat": "p95 {{cognidesk_operation}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Runtime Operation p95",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "calls" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "id": 4,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single", "sort": "none" } },
+      "targets": [
+        {
+          "expr": "sum(rate(cognidesk_model_calls_total[$__rate_interval])) by (cognidesk_model_role, cognidesk_model_provider, cognidesk_model_name)",
+          "legendFormat": "{{cognidesk_model_role}} {{cognidesk_model_provider}}/{{cognidesk_model_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Model Calls",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single", "sort": "none" } },
+      "targets": [
+        {
+          "expr": "sum(rate(cognidesk_tool_executions_total[$__rate_interval])) by (cognidesk_tool_name)",
+          "legendFormat": "{{cognidesk_tool_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Tool Executions",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "tokens" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "id": 6,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single", "sort": "none" } },
+      "targets": [
+        {
+          "expr": "sum(increase(cognidesk_model_tokens_sum[$__range])) by (cognidesk_token_kind)",
+          "legendFormat": "{{cognidesk_token_kind}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Token Usage",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 40,
+  "tags": ["cognidesk", "opentelemetry"],
+  "templating": { "list": [] },
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Cognidesk Runtime Overview",
+  "uid": "cognidesk-runtime-overview",
+  "version": 1,
+  "weekStart": ""
+}

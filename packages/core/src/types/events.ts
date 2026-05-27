@@ -1,4 +1,5 @@
 import type { UsageRecord } from "./model.js";
+import type { RuntimeEventTelemetry } from "../telemetry.js";
 
 export interface RuntimeEventBase<TType extends string, TData> {
   id: string;
@@ -6,7 +7,7 @@ export interface RuntimeEventBase<TType extends string, TData> {
   offset: number;
   type: TType;
   createdAt: string;
-  traceId?: string;
+  telemetry?: RuntimeEventTelemetry;
   data: TData;
 }
 

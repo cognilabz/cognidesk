@@ -1,6 +1,13 @@
 import type { CompiledAgent, CompiledJourney } from "../definition.js";
-import type { TraceEvent } from "../observability.js";
 import { runtimeLogger } from "../logging.js";
+import {
+  addTelemetryContentEvent,
+  telemetryAttributes,
+  telemetryEventNames,
+  telemetrySpanNames,
+  withTelemetrySpan,
+  type TelemetrySpanOptions,
+} from "../telemetry.js";
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
@@ -23,7 +30,6 @@ import type { RuntimeEventEmitter, RuntimeOptions, StateMachineTurnResult } from
 
 export async function generateTextWithTrace(args: {
   options: RuntimeOptions;
-  trace(event: TraceEvent): Promise<void>;
   conversationId: string;
   model: ModelAdapter;
   input: TextGenerationInput;
@@ -37,14 +43,35 @@ export async function generateTextWithTrace(args: {
     messageCount: args.input.messages.length,
     toolCount: args.input.tools?.length ?? 0,
   }, "Preparing model call");
-  await args.trace({
-    type: "model.started",
-    conversationId: args.conversationId,
-    role: args.input.role,
-    provider: args.model.provider,
-    model: args.model.model,
-  });
-  try {
+  const metric: NonNullable<TelemetrySpanOptions["metric"]> = {
+    kind: "model" as const,
+    attributes: {
+      [telemetryAttributes.modelRole]: args.input.role,
+      [telemetryAttributes.modelProvider]: args.model.provider,
+      [telemetryAttributes.modelName]: args.model.model,
+    },
+  };
+  return withTelemetrySpan(args.options, {
+    name: telemetrySpanNames.modelGenerate,
+    attributes: {
+      [telemetryAttributes.conversationId]: args.conversationId,
+      [telemetryAttributes.modelRole]: args.input.role,
+      [telemetryAttributes.modelProvider]: args.model.provider,
+      [telemetryAttributes.modelName]: args.model.model,
+      [telemetryAttributes.promptTask]: args.input.promptTask,
+    },
+    metric,
+  }, async (span) => {
+    addTelemetryContentEvent(args.options, telemetryEventNames.modelInput, {
+      "cognidesk.model.role": args.input.role,
+      "cognidesk.prompt.task": args.input.promptTask,
+      "cognidesk.model.messages": args.input.messages,
+      "cognidesk.model.prompt_payload": args.input.promptPayload,
+      "cognidesk.model.tools": args.input.tools?.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+      })),
+    });
     const redactedInput = await redactModelInput(args.options, args.conversationId, args.input);
     const output = await args.model.generateText({
       ...redactedInput,
@@ -60,37 +87,31 @@ export async function generateTextWithTrace(args: {
       outputTextLength: output.text.length,
       toolCallCount: output.toolCalls?.length ?? 0,
     }, "Model call returned");
-    await args.trace({
-      type: "model.completed",
-      conversationId: args.conversationId,
-      role: args.input.role,
-      provider: args.model.provider,
-      model: args.model.model,
-      ...(output.usage ? { usage: output.usage } : {}),
+    span.setAttribute("cognidesk.model.output_text_length", output.text.length);
+    span.setAttribute("cognidesk.model.tool_call_count", output.toolCalls?.length ?? 0);
+    if (output.usage?.totalTokens !== undefined) span.setAttribute("cognidesk.model.usage.total_tokens", output.usage.totalTokens);
+    if (output.usage) metric.tokenUsage = output.usage;
+    addTelemetryContentEvent(args.options, telemetryEventNames.modelOutput, {
+      "cognidesk.model.role": args.input.role,
+      "cognidesk.model.text": output.text,
+      "cognidesk.model.structured": output.structured,
+      "cognidesk.model.tool_calls": output.toolCalls,
+      "cognidesk.model.usage": output.usage,
     });
     return output;
-  } catch (error) {
+  }).catch((error) => {
     logger.error({
       role: args.input.role,
       provider: args.model.provider,
       model: args.model.model,
       error: error instanceof Error ? error.message : "Model call failed.",
     }, "Model call threw");
-    await args.trace({
-      type: "model.failed",
-      conversationId: args.conversationId,
-      role: args.input.role,
-      provider: args.model.provider,
-      model: args.model.model,
-      error: error instanceof Error ? error.message : "Model call failed.",
-    });
     throw error;
-  }
+  });
 }
 
 export async function generateResponseWithTools(args: {
   options: RuntimeOptions;
-  trace(event: TraceEvent): Promise<void>;
   requireConversationRecord(conversationId: string): Promise<ConversationRecord>;
   applyBuiltInLifecycleTool(input: {
     toolName: string;
@@ -122,7 +143,6 @@ export async function generateResponseWithTools(args: {
     }, "Starting response generation round");
     const response = await generateTextWithTrace({
       options: args.options,
-      trace: args.trace,
       conversationId: args.conversation.id,
       model: args.model,
       input: {
@@ -169,7 +189,6 @@ export async function generateResponseWithTools(args: {
     });
     const results = await executeModelToolCalls({
       options: args.options,
-      trace: args.trace,
       applyBuiltInLifecycleTool: args.applyBuiltInLifecycleTool,
       conversation: args.conversation,
       calls: response.toolCalls,
@@ -191,7 +210,6 @@ export async function generateResponseWithTools(args: {
 
 export async function executeModelToolCalls(args: {
   options: RuntimeOptions;
-  trace(event: TraceEvent): Promise<void>;
   applyBuiltInLifecycleTool(input: {
     toolName: string;
     input: unknown;
@@ -245,28 +263,47 @@ export async function executeModelToolCalls(args: {
         ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
       },
     });
-    await args.trace({
-      type: "tool.started",
-      conversationId: args.conversation.id,
-      toolName: toolDefinition.name,
-      ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
-    });
     try {
       const idempotencyKey = toolDefinition.idempotencyKey?.({
         input: parsedInput.data,
         conversationId: args.conversation.id,
       });
-      const output = await executeToolWithRetry({
-        options: args.options,
-        tool: toolDefinition,
-        input: parsedInput.data,
-        conversationId: args.conversation.id,
-        journeyContext: args.stateMachineTurn?.journeyContext ?? {},
-        emit: args.emit,
-        ...(idempotencyKey ? { idempotencyKey } : {}),
-        ...(args.signal ? { signal: args.signal } : {}),
+      const parsedOutput = await withTelemetrySpan(args.options, {
+        name: telemetrySpanNames.toolExecute,
+        attributes: {
+          [telemetryAttributes.conversationId]: args.conversation.id,
+          [telemetryAttributes.toolName]: toolDefinition.name,
+          ...(args.selectedJourney ? { [telemetryAttributes.journeyId]: args.selectedJourney.id } : {}),
+        },
+        metric: {
+          kind: "tool",
+          attributes: {
+            [telemetryAttributes.toolName]: toolDefinition.name,
+            ...(args.selectedJourney ? { [telemetryAttributes.journeyId]: args.selectedJourney.id } : {}),
+          },
+        },
+      }, async () => {
+        addTelemetryContentEvent(args.options, telemetryEventNames.toolInput, {
+          "cognidesk.tool.name": toolDefinition.name,
+          "cognidesk.tool.input": parsedInput.data,
+        });
+        const output = await executeToolWithRetry({
+          options: args.options,
+          tool: toolDefinition,
+          input: parsedInput.data,
+          conversationId: args.conversation.id,
+          journeyContext: args.stateMachineTurn?.journeyContext ?? {},
+          emit: args.emit,
+          ...(idempotencyKey ? { idempotencyKey } : {}),
+          ...(args.signal ? { signal: args.signal } : {}),
+        });
+        const parsed = toolDefinition.output.parse(output);
+        addTelemetryContentEvent(args.options, telemetryEventNames.toolOutput, {
+          "cognidesk.tool.name": toolDefinition.name,
+          "cognidesk.tool.output": parsed,
+        });
+        return parsed;
       });
-      const parsedOutput = toolDefinition.output.parse(output);
       logger.debug({ toolName: toolDefinition.name }, "Model tool output validated");
       await args.emit({
         conversationId: args.conversation.id,
@@ -277,13 +314,6 @@ export async function executeModelToolCalls(args: {
           ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
           result: parsedOutput,
         },
-      });
-      await args.trace({
-        type: "tool.completed",
-        conversationId: args.conversation.id,
-        toolName: toolDefinition.name,
-        success: true,
-        ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
       });
       await args.applyBuiltInLifecycleTool({
         toolName: toolDefinition.name,
@@ -305,14 +335,6 @@ export async function executeModelToolCalls(args: {
           ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
           error: message,
         },
-      });
-      await args.trace({
-        type: "tool.completed",
-        conversationId: args.conversation.id,
-        toolName: toolDefinition.name,
-        success: false,
-        ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
-        error: message,
       });
       messages.push(createToolResultMessage(call, { error: message }));
     }

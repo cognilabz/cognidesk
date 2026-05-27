@@ -22,7 +22,6 @@ import type {
   CreateConversationInput,
   ListEventsOptions,
   TextGenerationInput,
-  TraceEvent,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,

@@ -1,4 +1,3 @@
-import type { TraceEvent } from "./observability.js";
 import type { RuntimeEventInput } from "./storage.js";
 import type {
   ModelMessage,
@@ -11,7 +10,6 @@ type MaybePromise<T> = Promise<T> | T;
 export interface PrivacyHookContext {
   conversationId: string;
   agentId: string;
-  traceId?: string;
 }
 
 export interface PrivacyHooks {
@@ -22,5 +20,4 @@ export interface PrivacyHooks {
   redactRuntimeEvent?(input: PrivacyHookContext & { event: RuntimeEventInput }): MaybePromise<RuntimeEventInput>;
   redactRuntimeSnapshot?(input: PrivacyHookContext & { snapshot: RuntimeSnapshot }): MaybePromise<RuntimeSnapshot>;
   redactModelInput?(input: PrivacyHookContext & { input: TextGenerationInput }): MaybePromise<TextGenerationInput>;
-  redactTraceEvent?(input: PrivacyHookContext & { event: TraceEvent }): MaybePromise<TraceEvent | null>;
 }

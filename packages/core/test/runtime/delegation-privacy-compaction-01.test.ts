@@ -21,7 +21,6 @@ import type {
   CreateConversationInput,
   ListEventsOptions,
   TextGenerationInput,
-  TraceEvent,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,
@@ -145,9 +144,8 @@ describe("runtime delegation, privacy, and compaction 01", () => {
     expect(events.at(-1)?.data).toMatchObject({ text: "Reach [email] for details." });
   });
 
-  it("applies privacy hooks at runtime persistence, model input, and trace surfaces", async () => {
+  it("applies privacy hooks at runtime persistence and model input surfaces", async () => {
     let modelPrompt = "";
-    const traceEvents: TraceEvent[] = [];
     const auditNote = customRuntimeEvent("audit.note", {
       payload: z.object({ note: z.string() }),
       visibleToModel: true,
@@ -187,14 +185,6 @@ describe("runtime delegation, privacy, and compaction 01", () => {
             content: message.content.replace("model-secret", "[model]"),
           })),
         }),
-        redactTraceEvent: ({ event }) => event.type === "runtime.event" && event.event.type === "custom.audit.note"
-          ? { ...event, event: { ...event.event, data: { note: "[trace]" } } as RuntimeEvent }
-          : event,
-      },
-      observability: {
-        onTraceEvent: (event) => {
-          traceEvents.push(event);
-        },
       },
     });
 
@@ -223,14 +213,6 @@ describe("runtime delegation, privacy, and compaction 01", () => {
     expect(modelPrompt).not.toContain("model-secret");
     expect((await runtime.listEvents(conversation.id)).find((event) => event.type === "custom.audit.note")?.data).toEqual({
       note: "[event]",
-    });
-    expect(traceEvents.find((event) => (
-      event.type === "runtime.event"
-      && event.event.type === "custom.audit.note"
-    ))).toMatchObject({
-      event: {
-        data: { note: "[trace]" },
-      },
     });
   });
 

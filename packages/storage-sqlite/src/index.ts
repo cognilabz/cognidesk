@@ -61,7 +61,8 @@ export class SqliteStorageAdapter implements StorageAdapter {
         conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
         offset INTEGER NOT NULL CHECK (offset > 0),
         type TEXT NOT NULL,
-        trace_id TEXT,
+        telemetry_trace_id TEXT,
+        telemetry_span_id TEXT,
         data_json TEXT NOT NULL,
         created_at TEXT NOT NULL,
         UNIQUE(conversation_id, offset)
@@ -73,6 +74,8 @@ export class SqliteStorageAdapter implements StorageAdapter {
         updated_at TEXT NOT NULL
       );
     `);
+    this.addColumnIfMissing("runtime_events", "telemetry_trace_id", "TEXT");
+    this.addColumnIfMissing("runtime_events", "telemetry_span_id", "TEXT");
   }
 
   async createConversation<TConversationContext = unknown>(
@@ -134,14 +137,15 @@ export class SqliteStorageAdapter implements StorageAdapter {
       const id = event.id ?? randomUUID();
       const createdAt = event.createdAt ?? nowIso();
       this.db.prepare(`
-        INSERT INTO runtime_events (id, conversation_id, offset, type, trace_id, data_json, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO runtime_events (id, conversation_id, offset, type, telemetry_trace_id, telemetry_span_id, data_json, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id,
         event.conversationId,
         offset,
         event.type,
-        event.traceId ?? null,
+        event.telemetry?.traceId ?? null,
+        event.telemetry?.spanId ?? null,
         JSON.stringify(event.data),
         createdAt,
       );
@@ -191,6 +195,12 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
   close() {
     this.db.close();
+  }
+
+  private addColumnIfMissing(table: string, column: string, definition: string) {
+    const rows = this.db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name?: string }>;
+    if (rows.some((row) => row.name === column)) return;
+    this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
   }
 }
 

@@ -58,12 +58,11 @@ export function createRuntimeState(
     selectEventTransition: routing.selectEventTransition,
     resolveJourneyEventRoute: routing.resolveJourneyEventRoute,
     runStateActionRuns(args: StateRunArgs) {
-      return runRuntimeStateActionRuns(options, core.trace, args);
+      return runRuntimeStateActionRuns(options, args);
     },
     runStateToolRuns(args: StateRunArgs & { confirmedPromptId?: string }): Promise<string | null> {
       return runRuntimeStateToolRuns({
         options,
-        trace: core.trace,
         applyBuiltInLifecycleTool: core.applyBuiltInLifecycleTool,
       }, args);
     },

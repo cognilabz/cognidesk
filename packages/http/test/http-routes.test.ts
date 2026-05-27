@@ -141,7 +141,7 @@ describe("HTTP adapter routes", () => {
 
     const customResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/custom-events/lead.captured", {
       method: "POST",
-      body: JSON.stringify({ payload: { email: "alex@example.com" }, traceId: "trace_1" }),
+      body: JSON.stringify({ payload: { email: "alex@example.com" } }),
     }));
     const custom = await customResponse.json() as { event: RuntimeEvent };
 
@@ -157,7 +157,6 @@ describe("HTTP adapter routes", () => {
     expect(customResponse.status).toBe(200);
     expect(custom.event.type).toBe("custom.lead.captured");
     expect(custom.event.data).toEqual({ email: "alex@example.com" });
-    expect(custom.event.traceId).toBe("trace_1");
     expect(journeyResponse.status).toBe(200);
     expect(journey.event.type).toBe("journey.event.emitted");
     expect(journey.event.data).toEqual({

@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import type { TelemetryContext } from "../telemetry.js";
 
 type Primitive = string | number | boolean | bigint | symbol | null | undefined | Date;
 type StringKey<T> = Extract<keyof T, string>;
@@ -41,6 +42,7 @@ export interface ToolExecutionContext<TInput, TApp = unknown> {
   input: TInput;
   app: TApp;
   conversationId: string;
+  telemetry: TelemetryContext;
   idempotencyKey?: string;
   signal?: AbortSignal;
 }

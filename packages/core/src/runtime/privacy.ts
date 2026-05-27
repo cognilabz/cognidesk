@@ -1,4 +1,3 @@
-import type { TraceEvent } from "../observability.js";
 import type {
   ConversationRecord,
   CreateConversationInput,
@@ -63,7 +62,7 @@ export function createPrivacyStorageAdapter(
     async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent) {
       if (!privacy.redactRuntimeEvent) return storage.appendEvent(event);
       const redacted = await privacy.redactRuntimeEvent({
-        ...await privacyContextForStorage(storage, event.conversationId, event.traceId),
+        ...await privacyContextForStorage(storage, event.conversationId),
         event,
       });
       return storage.appendEvent(redacted as TEvent);
@@ -98,18 +97,6 @@ export async function redactModelInput(
   });
 }
 
-export async function redactTraceEvent(
-  options: RuntimeOptions,
-  event: TraceEvent,
-) {
-  const hook = options.privacy?.redactTraceEvent;
-  if (!hook) return event;
-  return hook({
-    ...await privacyContext(options, event.conversationId),
-    event,
-  });
-}
-
 export async function redactModelMessages(
   options: RuntimeOptions,
   conversation: ConversationRecord,
@@ -137,20 +124,17 @@ export async function redactAssistantMessage(
 async function privacyContext(
   options: RuntimeOptions,
   conversationId: string,
-  traceId?: string,
 ) {
-  return privacyContextForStorage(options.storage, conversationId, traceId);
+  return privacyContextForStorage(options.storage, conversationId);
 }
 
 async function privacyContextForStorage(
   storage: StorageAdapter,
   conversationId: string,
-  traceId?: string,
 ) {
   const conversation = await storage.getConversation(conversationId).catch(() => null);
   return {
     conversationId,
     agentId: conversation?.agentId ?? "",
-    ...(traceId ? { traceId } : {}),
   };
 }

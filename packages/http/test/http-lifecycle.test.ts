@@ -69,13 +69,13 @@ describe("HTTP adapter lifecycle controls", () => {
 
     const intermediateResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/intermediate-messages", {
       method: "POST",
-      body: JSON.stringify({ text: "Still checking.", traceId: "trace_1", visibleToModel: true }),
+      body: JSON.stringify({ text: "Still checking.", visibleToModel: true }),
     }));
     const intermediate = await intermediateResponse.json() as { events: RuntimeEvent[] };
 
     const preambleResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/preambles", {
       method: "POST",
-      body: JSON.stringify({ purpose: "checking booking", maxWords: 8, traceId: "trace_2" }),
+      body: JSON.stringify({ purpose: "checking booking", maxWords: 8 }),
     }));
     const preamble = await preambleResponse.json() as { text: string; events: RuntimeEvent[] };
 

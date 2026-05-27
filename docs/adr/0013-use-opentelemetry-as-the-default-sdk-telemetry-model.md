@@ -1,0 +1,3 @@
+# Use OpenTelemetry as the default SDK telemetry model
+
+Cognidesk Core will use OpenTelemetry as the default telemetry model for runtime traces and metrics, replacing the earlier hook-only observability stance and removing the provider-neutral Observability Hook/Trace Event extension point. Core should depend only on the OpenTelemetry API and emit telemetry through that API, while exporter, collector, dashboard, and deployment setup belongs in applications, demos, or the `@cognidesk/otel` package. Logs remain normal SDK/application logs because common deployments collect container or process logs independently of OpenTelemetry instrumentation.

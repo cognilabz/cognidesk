@@ -202,7 +202,7 @@ _Avoid_: Provider-specific core handoff
 
 **Test Harness**:
 An SDK-provided development and evaluation tool for customers to run their own agent implementations against real models and inspect Runtime Events, Journey Activation, state changes, tool calls, Knowledge Retrieval, and Conversation Closure.
-_Avoid_: CI-only mock harness
+_Avoid_: CI-only mock harness, Studio
 
 **Eval Scenario**:
 A code-defined Test Harness scenario that exercises a customer's agent implementation and records expected or observed runtime behavior.
@@ -493,12 +493,28 @@ An app-defined function that redacts or filters data before persistence, model i
 _Avoid_: Hardcoded privacy rules
 
 **Observability Hook**:
-An app-defined function that receives provider-neutral trace and diagnostic events from the Runtime SDK.
-_Avoid_: Hardcoded observability vendor
+A deprecated app-defined function concept formerly used to receive Cognidesk diagnostic events before OpenTelemetry became the default telemetry model.
+_Avoid_: New observability extension point
 
 **Trace Event**:
-A provider-neutral diagnostic event describing runtime execution such as model calls, matching, Journey Policy decisions, tool calls, Knowledge Retrieval, and emitted Runtime Events.
-_Avoid_: Vendor-specific trace object
+A deprecated provider-neutral diagnostic event concept formerly used to describe runtime execution before OpenTelemetry became the default telemetry model.
+_Avoid_: New tracing model
+
+**Telemetry**:
+The SDK's default observability signal for runtime execution, covering traces and metrics while leaving log collection to the hosting application or deployment platform.
+_Avoid_: Logs-only diagnostics
+
+**Telemetry Content Mode**:
+An application-selected telemetry setting that controls whether spans include redacted or full runtime content such as messages, prompts, tool inputs, tool outputs, Knowledge snippets, and model responses. Full mode bypasses telemetry redaction only and must not bypass privacy rules for persistence, model input, logs, or external adapter calls.
+_Avoid_: Always-full traces
+
+**Telemetry Context**:
+An SDK-provided helper available during runtime execution, especially inside Tool Execution Context, for adding nested spans, span attributes, span events, and exceptions to the active telemetry trace.
+_Avoid_: Tool authors manually wiring trace parents
+
+**Telemetry Trace ID**:
+The OpenTelemetry trace identifier associated with runtime execution and persisted events when available.
+_Avoid_: App-supplied traceId
 
 **Token Usage**:
 A normalized record of model token usage emitted by the Runtime SDK when providers supply it. Cost calculation is provider-specific metadata rather than a core guarantee.
@@ -1166,9 +1182,9 @@ Developer: "Does Cognidesk hardcode privacy rules?"
 
 Domain expert: "No. Cognidesk provides Privacy Hooks so applications define redaction and filtering policy."
 
-Developer: "Does Cognidesk require Langfuse or OpenTelemetry?"
+Developer: "Does Cognidesk use OpenTelemetry?"
 
-Domain expert: "No. Cognidesk emits provider-neutral Trace Events through Observability Hooks."
+Domain expert: "Yes. OpenTelemetry is the default SDK telemetry model for traces and metrics, while Observability Hooks can still receive Cognidesk diagnostic events."
 
 Developer: "Does Core calculate exact model cost?"
 

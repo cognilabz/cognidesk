@@ -64,10 +64,10 @@ export interface CognideskClient {
   createConversation(input?: { agentId?: string; context?: unknown; id?: string }): Promise<CreateConversationResult>;
   sendMessage(conversationId: string, message: string, options?: { turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
-  emitCustomEvent(conversationId: string, eventName: string, input?: { payload?: unknown; traceId?: string }): Promise<{ event: RuntimeEvent }>;
-  emitJourneyEvent(conversationId: string, eventName: string, input?: { payload?: unknown; routing?: "none" | "activeJourneyOnly" | "full" | "targeted"; target?: { journeyId?: string; stateId?: string }; app?: unknown; traceId?: string }): Promise<{ event: RuntimeEvent; snapshot: RuntimeSnapshotResult["snapshot"]; events: RuntimeEvent[] }>;
-  emitIntermediateMessage(conversationId: string, input: { text: string; traceId?: string; visibleToModel?: boolean }): Promise<{ events: RuntimeEvent[] }>;
-  emitGeneratedPreamble(conversationId: string, input?: { purpose?: string; maxWords?: number; traceId?: string }): Promise<{ text: string; events: RuntimeEvent[] }>;
+  emitCustomEvent(conversationId: string, eventName: string, input?: { payload?: unknown }): Promise<{ event: RuntimeEvent }>;
+  emitJourneyEvent(conversationId: string, eventName: string, input?: { payload?: unknown; routing?: "none" | "activeJourneyOnly" | "full" | "targeted"; target?: { journeyId?: string; stateId?: string }; app?: unknown }): Promise<{ event: RuntimeEvent; snapshot: RuntimeSnapshotResult["snapshot"]; events: RuntimeEvent[] }>;
+  emitIntermediateMessage(conversationId: string, input: { text: string; visibleToModel?: boolean }): Promise<{ events: RuntimeEvent[] }>;
+  emitGeneratedPreamble(conversationId: string, input?: { purpose?: string; maxWords?: number }): Promise<{ text: string; events: RuntimeEvent[] }>;
   compactConversation(conversationId: string, input?: { fromOffset?: number; toOffset?: number; schemaVersion?: string }): Promise<{ summary: unknown; snapshot: NonNullable<RuntimeSnapshotResult["snapshot"]>; events: RuntimeEvent[] }>;
   closeConversation(conversationId: string, input?: { reason?: string }): Promise<{ conversation: CreateConversationResult["conversation"] }>;
   requestHandoff(conversationId: string, input: { reason: string; summary?: string; payload?: unknown }): Promise<{ conversation: CreateConversationResult["conversation"]; event: RuntimeEvent }>;

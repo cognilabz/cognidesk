@@ -1,5 +1,4 @@
 import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../definition.js";
-import type { TraceEvent } from "../observability.js";
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
@@ -91,7 +90,6 @@ export function advanceRuntimeStateMachine(
 
 export function runRuntimeStateActionRuns(
   options: RuntimeOptions,
-  trace: (event: TraceEvent) => Promise<void>,
   args: {
     journey: CompiledJourney;
     conversation: ConversationRecord;
@@ -105,14 +103,12 @@ export function runRuntimeStateActionRuns(
   return runStateActionRunsWithDeps({
     ...args,
     options,
-    trace,
   });
 }
 
 export function runRuntimeStateToolRuns(
   deps: {
     options: RuntimeOptions;
-    trace: (event: TraceEvent) => Promise<void>;
     applyBuiltInLifecycleTool: (input: {
       toolName: string;
       input: unknown;
@@ -134,7 +130,6 @@ export function runRuntimeStateToolRuns(
   return runStateToolRunsWithDeps({
     ...args,
     options: deps.options,
-    trace: deps.trace,
     applyBuiltInLifecycleTool: deps.applyBuiltInLifecycleTool,
   });
 }

@@ -15,9 +15,9 @@ import type {
   RuntimeEvent,
   RuntimeSnapshot,
 } from "../types.js";
-import type { ObservabilityHooks } from "../observability.js";
 import type { PrivacyHooks } from "../privacy.js";
 import type { AgentLogLevel } from "../definition.js";
+import type { RuntimeTelemetryOptions } from "../telemetry.js";
 
 export type RetrievedKnowledgeItem = KnowledgeItem & {
   sourceName: string;
@@ -32,9 +32,9 @@ export interface RuntimeOptions {
   app?: unknown;
   knowledgeLimit?: number;
   privacy?: PrivacyHooks;
-  observability?: ObservabilityHooks;
+  telemetry?: RuntimeTelemetryOptions;
   logLevel?: AgentLogLevel;
-  logger?: Pick<Logger, "trace" | "debug" | "info" | "error" | "child">;
+  logger?: Pick<Logger, "trace" | "debug" | "info" | "warn" | "error" | "child">;
   compaction?: {
     beforeTurn?: boolean;
     afterTurn?: boolean;
@@ -105,7 +105,6 @@ export interface SubmitWidgetInput {
 export interface EmitIntermediateMessageInput {
   conversationId: string;
   text: string;
-  traceId?: string;
   visibleToModel?: boolean;
 }
 
@@ -113,7 +112,6 @@ export interface EmitGeneratedPreambleInput {
   conversationId: string;
   purpose?: string;
   maxWords?: number;
-  traceId?: string;
   signal?: AbortSignal;
 }
 
@@ -126,7 +124,6 @@ export interface EmitCustomEventInput<TEvent extends CustomRuntimeEventDefinitio
   conversationId: string;
   event: TEvent;
   payload: z.infer<TEvent["payload"]>;
-  traceId?: string;
 }
 
 export interface EmitJourneyEventInput<TEvent extends JourneyEventDefinition = JourneyEventDefinition> {
@@ -139,7 +136,6 @@ export interface EmitJourneyEventInput<TEvent extends JourneyEventDefinition = J
     stateId?: string;
   };
   app?: unknown;
-  traceId?: string;
   signal?: AbortSignal;
 }
 

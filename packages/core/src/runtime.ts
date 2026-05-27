@@ -1,7 +1,13 @@
 import { createRuntimeKernel, type RuntimeKernel } from "./runtime/kernel.js";
-import { createRuntimeLogger } from "./logging.js";
+import { createRuntimeLogger, runtimeLogger } from "./logging.js";
 import { createPrivacyStorageAdapter } from "./runtime/privacy.js";
 import { type ConversationCompactionSummary } from "./runtime/schemas.js";
+import {
+  telemetryAttributes,
+  telemetryContentMode,
+  telemetrySpanNames,
+  withTelemetrySpan,
+} from "./telemetry.js";
 import type {
   ActiveTurn,
   CompactConversationInput,
@@ -69,77 +75,139 @@ export class CognideskRuntime {
   }
 
   async initialize() {
-    await this.kernel.initialize();
+    if (telemetryContentMode(this.options) === "full") {
+      runtimeLogger(this.options).warn(
+        "Cognidesk telemetry content mode is full; message, prompt, tool, and Knowledge content may be exported to OpenTelemetry backends without telemetry redaction.",
+      );
+    }
+    await this.runtimeOperation("initialize", telemetrySpanNames.runtimeInitialize, {}, () => this.kernel.initialize());
   }
 
   createConversation<TConversationContext = unknown>(
     input: CreateRuntimeConversationInput<TConversationContext>,
   ): Promise<ConversationRecord<TConversationContext>> {
-    return this.kernel.createConversation(input);
+    return this.runtimeOperation("create_conversation", telemetrySpanNames.runtimeCreateConversation, {
+      [telemetryAttributes.agentId]: input.agentId,
+    }, () => this.kernel.createConversation(input));
   }
 
   emit<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {
-    return this.kernel.emit(event);
+    return this.runtimeOperation("emit_event", telemetrySpanNames.runtimeEmitEvent, {
+      [telemetryAttributes.conversationId]: event.conversationId,
+      "cognidesk.runtime.event.type": event.type,
+    }, () => this.kernel.emit(event));
   }
 
   emitIntermediateMessage(input: EmitIntermediateMessageInput): Promise<{ events: RuntimeEvent[] }> {
-    return this.kernel.emitIntermediateMessage(input);
+    return this.runtimeOperation("emit_intermediate_message", telemetrySpanNames.runtimeEmitIntermediateMessage, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => this.kernel.emitIntermediateMessage(input));
   }
 
   emitGeneratedPreamble(input: EmitGeneratedPreambleInput): Promise<EmitGeneratedPreambleResult> {
-    return this.kernel.emitGeneratedPreamble(input);
+    return this.runtimeOperation("emit_generated_preamble", telemetrySpanNames.runtimeEmitGeneratedPreamble, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => this.kernel.emitGeneratedPreamble(input));
   }
 
   emitCustomEvent<TEvent extends CustomRuntimeEventDefinition>(
     input: EmitCustomEventInput<TEvent>,
   ): Promise<RuntimeEvent> {
-    return this.kernel.emitCustomEvent(input);
+    return this.runtimeOperation("emit_custom_event", telemetrySpanNames.runtimeEmitCustomEvent, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+      "cognidesk.custom_event.name": input.event.name,
+    }, () => this.kernel.emitCustomEvent(input));
   }
 
   emitJourneyEvent<TEvent extends JourneyEventDefinition>(
     input: EmitJourneyEventInput<TEvent>,
   ): Promise<EmitJourneyEventResult> {
-    return this.kernel.emitJourneyEvent(input);
+    return this.runtimeOperation("emit_journey_event", telemetrySpanNames.runtimeEmitJourneyEvent, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+      "cognidesk.journey_event.name": input.event.name,
+    }, () => this.kernel.emitJourneyEvent(input));
   }
 
   listEvents(conversationId: string, afterOffset?: number) {
-    return this.kernel.listEvents(conversationId, afterOffset);
+    return this.runtimeOperation("list_events", telemetrySpanNames.runtimeListEvents, {
+      [telemetryAttributes.conversationId]: conversationId,
+    }, () => this.kernel.listEvents(conversationId, afterOffset));
   }
 
   replayConversation(input: ReplayConversationInput): Promise<ReplayConversationResult> {
-    return this.kernel.replayConversation(input);
+    return this.runtimeOperation("replay_conversation", telemetrySpanNames.runtimeReplayConversation, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => this.kernel.replayConversation(input));
   }
 
   submitWidget(input: SubmitWidgetInput): Promise<RuntimeEvent> {
-    return this.kernel.submitWidget(input);
+    return this.runtimeOperation("submit_widget", telemetrySpanNames.runtimeSubmitWidget, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+      "cognidesk.widget.kind": input.widgetKind,
+    }, () => this.kernel.submitWidget(input));
   }
 
   getSnapshot(conversationId: string): Promise<RuntimeSnapshot | null> {
-    return this.kernel.getSnapshot(conversationId);
+    return this.runtimeOperation("get_snapshot", telemetrySpanNames.runtimeGetSnapshot, {
+      [telemetryAttributes.conversationId]: conversationId,
+    }, () => this.kernel.getSnapshot(conversationId));
   }
 
   handleUserMessage<TTurn = unknown>(
     input: HandleUserMessageInput<TTurn>,
   ): Promise<HandleUserMessageResult> {
-    return this.kernel.handleUserMessage(input);
+    return this.runtimeOperation("handle_user_message", telemetrySpanNames.runtimeHandleUserMessage, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => this.kernel.handleUserMessage(input));
   }
 
   closeConversation(conversationId: string, reason?: string) {
-    return this.kernel.closeConversation(conversationId, reason);
+    return this.runtimeOperation("close_conversation", telemetrySpanNames.runtimeCloseConversation, {
+      [telemetryAttributes.conversationId]: conversationId,
+    }, () => this.kernel.closeConversation(conversationId, reason));
   }
 
   requestHandoff(input: RequestHandoffInput) {
-    return this.kernel.requestHandoff(input);
+    return this.runtimeOperation("request_handoff", telemetrySpanNames.runtimeRequestHandoff, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => this.kernel.requestHandoff(input));
   }
 
   resumeConversation(input: ResumeConversationInput) {
-    return this.kernel.resumeConversation(input);
+    return this.runtimeOperation("resume_conversation", telemetrySpanNames.runtimeResumeConversation, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => this.kernel.resumeConversation(input));
   }
 
   compactConversation<TSummary = ConversationCompactionSummary>(
     input: CompactConversationInput,
   ): Promise<CompactConversationResult<TSummary>> {
-    return this.kernel.compactConversation<TSummary>(input);
+    return this.runtimeOperation("compact_conversation", telemetrySpanNames.runtimeCompactConversation, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => this.kernel.compactConversation<TSummary>(input));
+  }
+
+  private runtimeOperation<T>(
+    operation: string,
+    spanName: string,
+    attributes: Record<string, string | number | boolean | undefined>,
+    run: () => T | Promise<T>,
+  ): Promise<Awaited<T>> {
+    return withTelemetrySpan(this.options, {
+      name: spanName,
+      attributes: {
+        ...attributes,
+        [telemetryAttributes.operation]: operation,
+        ...(this.options.agent ? { [telemetryAttributes.agentId]: this.options.agent.id } : {}),
+      },
+      metric: {
+        kind: "runtime",
+        attributes: {
+          [telemetryAttributes.operation]: operation,
+          ...(this.options.agent ? { [telemetryAttributes.agentId]: this.options.agent.id } : {}),
+        },
+      },
+    }, () => run() as Awaited<T>);
   }
 }
 

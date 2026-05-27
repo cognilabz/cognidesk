@@ -52,7 +52,7 @@ export function createRuntimeRouting(
       signal?: AbortSignal;
       emit: RuntimeEmit;
     }) {
-      return retrieveRuntimeKnowledge({ options, trace: core.trace }, args);
+      return retrieveRuntimeKnowledge({ options }, args);
     },
     evaluateDelegationCompletion(args: {
       journey: CompiledJourney | null;

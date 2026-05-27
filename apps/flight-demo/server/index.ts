@@ -4,9 +4,22 @@ import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createRuntime } from "@cognidesk/core";
+import { startCognideskOtel } from "@cognidesk/otel";
 import { createSqliteStorage } from "@cognidesk/storage-sqlite";
 import { loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";
+
+const otel = process.env.COGNIDESK_OTEL === "true"
+  ? startCognideskOtel({
+      serviceName: "cognidesk-flight-demo",
+      serviceVersion: "0.0.0",
+      environment: process.env.NODE_ENV ?? "development",
+      ...(process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? { otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT } : {}),
+      resourceAttributes: {
+        "cognidesk.demo": "flight",
+      },
+    })
+  : null;
 
 const config = await loadFlightDemoConfig();
 const sqlitePath = resolveFlightDemoPath(config.storage.sqlitePath);
@@ -22,6 +35,9 @@ const runtime = createRuntime({
   topKJourneys: 3,
   streaming: {
     syntheticDeltas: true,
+  },
+  telemetry: {
+    content: process.env.COGNIDESK_TELEMETRY_CONTENT === "full" ? "full" : "redacted",
   },
 });
 await runtime.initialize();
@@ -79,6 +95,10 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
 
 server.listen(port, host, () => {
   console.log(`Flight demo API listening on http://${host}:${port}/api`);
+});
+
+server.on("close", () => {
+  void otel?.shutdown().catch(() => undefined);
 });
 
 function toWebRequest(request: IncomingMessage, port: number) {

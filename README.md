@@ -188,6 +188,16 @@ pnpm demo
 
 This starts the demo API and Vite frontend in Turbo's terminal UI so you can switch between each service's logs. The API is served at `http://localhost:8787/api` and the frontend at `http://localhost:5173`.
 
+Run the OpenTelemetry LGTM demo stack:
+
+```bash
+docker compose -f docker-compose.otel.yml up --build
+```
+
+This starts the flight demo with full telemetry content, an OpenTelemetry Collector, Tempo, Prometheus, Loki, Promtail, and Grafana. Open `http://localhost:3000` for provisioned Cognidesk dashboards. The demo still requires real model credentials in your environment, such as `OPENROUTER_KEY` for the default `apps/flight-demo/config.json`.
+
+If your local Docker environment cannot create bridge networks, `docker-compose.otel.host.yml` provides the same stack on host networking for local verification.
+
 ## Development
 
 ```bash

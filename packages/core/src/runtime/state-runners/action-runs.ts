@@ -1,13 +1,16 @@
 import type { ActionDefinition, CompiledJourney } from "../../definition.js";
-import type { TraceEvent } from "../../observability.js";
 import type { ConversationRecord } from "../../storage.js";
+import {
+  telemetryAttributes,
+  telemetrySpanNames,
+  withTelemetrySpan,
+} from "../../telemetry.js";
 import { AbortError, isAbortLikeError } from "../errors.js";
 import type { RuntimeEventEmitter, RuntimeOptions } from "../types.js";
 import { emitRetryNotice } from "./retry.js";
 
 export async function runStateActionRuns(args: {
   options: RuntimeOptions;
-  trace(event: TraceEvent): Promise<void>;
   journey: CompiledJourney;
   conversation: ConversationRecord;
   state: CompiledJourney["states"][number];
@@ -32,7 +35,23 @@ export async function runStateActionRuns(args: {
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
           if (args.signal?.aborted) throw args.signal.reason ?? new AbortError("aborted");
-          await actionRun.action.run({ input: parsedInput.data });
+          await withTelemetrySpan(args.options, {
+            name: telemetrySpanNames.actionExecute,
+            attributes: {
+              [telemetryAttributes.conversationId]: args.conversation.id,
+              [telemetryAttributes.journeyId]: args.journey.id,
+              [telemetryAttributes.stateId]: args.state.id,
+              [telemetryAttributes.actionName]: actionRun.action.name,
+            },
+            metric: {
+              kind: "action",
+              attributes: {
+                [telemetryAttributes.journeyId]: args.journey.id,
+                [telemetryAttributes.stateId]: args.state.id,
+                [telemetryAttributes.actionName]: actionRun.action.name,
+              },
+            },
+          }, () => actionRun.action.run({ input: parsedInput.data }));
           lastError = null;
           break;
         } catch (error) {
@@ -74,13 +93,6 @@ async function emitActionStarted(args: ActionRunContext, actionName: string) {
     type: "action.started",
     data: { actionName, journeyId: args.journey.id, stateId: args.state.id },
   });
-  await args.trace({
-    type: "action.started",
-    conversationId: args.conversation.id,
-    actionName,
-    journeyId: args.journey.id,
-    stateId: args.state.id,
-  });
 }
 
 async function emitActionSuccess(args: ActionRunContext, actionName: string) {
@@ -89,14 +101,6 @@ async function emitActionSuccess(args: ActionRunContext, actionName: string) {
     type: "action.completed",
     data: { actionName, success: true, journeyId: args.journey.id, stateId: args.state.id },
   });
-  await args.trace({
-    type: "action.completed",
-    conversationId: args.conversation.id,
-    actionName,
-    success: true,
-    journeyId: args.journey.id,
-    stateId: args.state.id,
-  });
 }
 
 async function emitActionFailure(
@@ -104,24 +108,13 @@ async function emitActionFailure(
   actionName: string,
   message: string,
   code: "state_action_failed" | "state_action_validation_failed",
-  traceCompleted = true,
+  _traceCompleted = true,
 ) {
   await args.emit({
     conversationId: args.conversation.id,
     type: "action.completed",
     data: { actionName, success: false, journeyId: args.journey.id, stateId: args.state.id, error: message },
   });
-  if (traceCompleted) {
-    await args.trace({
-      type: "action.completed",
-      conversationId: args.conversation.id,
-      actionName,
-      success: false,
-      journeyId: args.journey.id,
-      stateId: args.state.id,
-      error: message,
-    });
-  }
   await args.emit({
     conversationId: args.conversation.id,
     type: "error",
@@ -130,7 +123,6 @@ async function emitActionFailure(
 }
 
 type ActionRunContext = {
-  trace(event: TraceEvent): Promise<void>;
   journey: CompiledJourney;
   conversation: ConversationRecord;
   state: CompiledJourney["states"][number];

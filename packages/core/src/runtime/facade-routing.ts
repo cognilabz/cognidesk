@@ -1,5 +1,4 @@
 import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../definition.js";
-import type { TraceEvent } from "../observability.js";
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
@@ -9,6 +8,11 @@ import type {
   TextGenerationInput,
   TextGenerationOutput,
 } from "../types.js";
+import {
+  telemetryAttributes,
+  telemetrySpanNames,
+  withTelemetrySpan,
+} from "../telemetry.js";
 import {
   evaluateDelegationCompletion as evaluateDelegationCompletionWithDeps,
   retrieveKnowledge as retrieveKnowledgeWithDeps,
@@ -55,18 +59,31 @@ export function selectRuntimeJourney<TTurn>(
     emit: RuntimeEventEmitter;
   },
 ) {
-  return selectJourneyWithDeps({
-    ...args,
-    options: deps.options,
-    generateTextWithTrace: deps.generateTextWithTrace,
-    emitGuardDenial: deps.emitGuardDenial,
-  });
+  return withTelemetrySpan(deps.options, {
+    name: telemetrySpanNames.journeySelect,
+    attributes: {
+      [telemetryAttributes.conversationId]: args.conversation.id,
+      [telemetryAttributes.agentId]: args.agent.id,
+      ...(args.previousSnapshot?.activeJourneyId ? { "cognidesk.previous_journey.id": args.previousSnapshot.activeJourneyId } : {}),
+    },
+    metric: {
+      kind: "runtime",
+      attributes: {
+        [telemetryAttributes.operation]: "journey_select",
+        [telemetryAttributes.agentId]: args.agent.id,
+      },
+    },
+  }, () => selectJourneyWithDeps({
+      ...args,
+      options: deps.options,
+      generateTextWithTrace: deps.generateTextWithTrace,
+      emitGuardDenial: deps.emitGuardDenial,
+    }));
 }
 
 export function retrieveRuntimeKnowledge(
   deps: {
     options: RuntimeOptions;
-    trace: (event: TraceEvent) => Promise<void>;
   },
   args: {
     agent: CompiledAgent;
@@ -81,7 +98,6 @@ export function retrieveRuntimeKnowledge(
   return retrieveKnowledgeWithDeps({
     ...args,
     options: deps.options,
-    trace: deps.trace,
   });
 }
 

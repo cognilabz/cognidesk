@@ -9,6 +9,7 @@ import type {
   KnowledgeSource,
   ObjectSchema,
   SideEffectTool,
+  ToolExecutionContext,
   ToolDefinition,
   WidgetDefinition,
   WidgetPromptDefinition,
@@ -102,13 +103,7 @@ export function tool<
     input: z.infer<TInputSchema>;
     conversationId: string;
   }) => string;
-  execute: (context: {
-    input: z.infer<TInputSchema>;
-    app: unknown;
-    conversationId: string;
-    idempotencyKey?: string;
-    signal?: AbortSignal;
-  }) => Promise<z.infer<TOutputSchema>>;
+  execute: (context: ToolExecutionContext<z.infer<TInputSchema>>) => Promise<z.infer<TOutputSchema>>;
 }): ToolDefinition<TName, TInputSchema, TOutputSchema, TSideEffect> {
   return {
     kind: "tool",

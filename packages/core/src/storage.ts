@@ -10,9 +10,10 @@ export interface ConversationRecord<TConversationContext = unknown> {
 }
 
 export type RuntimeEventInput<TType extends RuntimeEvent["type"] = RuntimeEvent["type"]> =
-  Omit<Extract<RuntimeEvent, { type: TType }>, "id" | "offset" | "createdAt"> & {
+  Omit<Extract<RuntimeEvent, { type: TType }>, "id" | "offset" | "createdAt" | "telemetry"> & {
     id?: string;
     createdAt?: string;
+    telemetry?: RuntimeEvent["telemetry"];
   };
 
 export interface ListEventsOptions {

@@ -1,0 +1,93 @@
+services:
+  flight-demo:
+    build:
+      context: .
+      network: host
+    network_mode: host
+    command: sh -c "pnpm --filter @cognidesk/flight-demo ingest:knowledge && (pnpm --filter @cognidesk/flight-demo dev:server & pnpm --filter @cognidesk/flight-demo dev --host 0.0.0.0)"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "18787"
+      NODE_ENV: "development"
+      VITE_COGNIDESK_API_URL: "http://localhost:18787/api"
+      COGNIDESK_OTEL: "true"
+      COGNIDESK_TELEMETRY_CONTENT: "full"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:4318"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENROUTER_KEY: "${OPENROUTER_KEY:-}"
+    volumes:
+      - flight_demo_otel_host_data:/app/apps/flight-demo/.data
+    depends_on:
+      - otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    network_mode: host
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./observability/otelcol/config.host.yaml:/etc/otelcol/config.yaml:ro
+    depends_on:
+      - tempo
+
+  tempo:
+    image: grafana/tempo:2.7.2
+    network_mode: host
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./observability/tempo/tempo.host.yaml:/etc/tempo.yaml:ro
+      - tempo_host_data:/var/tempo
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    network_mode: host
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-otlp-receiver"
+    volumes:
+      - ./observability/prometheus/prometheus.host.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_host_data:/prometheus
+    depends_on:
+      - otel-collector
+
+  loki:
+    image: grafana/loki:3.4.2
+    network_mode: host
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes:
+      - ./observability/loki/loki.host.yaml:/etc/loki/local-config.yaml:ro
+      - loki_host_data:/loki
+
+  promtail:
+    image: grafana/promtail:3.4.2
+    network_mode: host
+    command: ["-config.file=/etc/promtail/config.yaml"]
+    volumes:
+      - ./observability/promtail/config.host.yaml:/etc/promtail/config.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    network_mode: host
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./observability/grafana/provisioning-host:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_host_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - tempo
+      - loki
+
+volumes:
+  flight_demo_otel_host_data:
+  grafana_host_data:
+  loki_host_data:
+  prometheus_host_data:
+  tempo_host_data:

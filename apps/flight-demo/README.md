@@ -70,6 +70,18 @@ pnpm demo
 
 This starts the API and Vite frontend in Turbo's terminal UI so you can switch between each service's logs. Open `http://localhost:5173`. The React app uses `http://localhost:8787/api` by default.
 
+## OpenTelemetry Demo
+
+```sh
+docker compose -f docker-compose.otel.yml up --build
+```
+
+The OpenTelemetry demo starts the flight app with `COGNIDESK_OTEL=true` and `COGNIDESK_TELEMETRY_CONTENT=full`, exports traces and metrics through the OpenTelemetry Collector, collects container logs with Promtail/Loki, and provisions Grafana dashboards at `http://localhost:3000`.
+
+The stack uses real model calls only. Make sure the configured API key, such as `OPENROUTER_KEY` for the default config, is available in the shell that starts Docker Compose.
+
+For local environments that cannot create Docker bridge networks, use `docker-compose.otel.host.yml` from the repository root; it keeps the same Grafana entrypoint and moves the demo API to `http://localhost:18787/api` to avoid common local port collisions.
+
 ## Test Prompts
 
 Use these prompts to exercise the demo agent. The expected behavior below is intentionally directional, not the exact answer text.

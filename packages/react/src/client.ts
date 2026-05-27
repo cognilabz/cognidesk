@@ -51,7 +51,6 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           ...(input.payload !== undefined ? { payload: input.payload } : {}),
-          ...(input.traceId ? { traceId: input.traceId } : {}),
         }),
       }, "Failed to emit custom event");
     },
@@ -64,7 +63,6 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
           ...(input.routing ? { routing: input.routing } : {}),
           ...(input.target ? { target: input.target } : {}),
           ...(input.app !== undefined ? { app: input.app } : {}),
-          ...(input.traceId ? { traceId: input.traceId } : {}),
         }),
       }, "Failed to emit journey event");
     },
@@ -74,7 +72,6 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           text: input.text,
-          ...(input.traceId ? { traceId: input.traceId } : {}),
           ...(input.visibleToModel ? { visibleToModel: true } : {}),
         }),
       }, "Failed to emit intermediate message");
@@ -86,7 +83,6 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
         body: JSON.stringify({
           ...(input.purpose ? { purpose: input.purpose } : {}),
           ...(input.maxWords !== undefined ? { maxWords: input.maxWords } : {}),
-          ...(input.traceId ? { traceId: input.traceId } : {}),
         }),
       }, "Failed to emit generated preamble");
     },

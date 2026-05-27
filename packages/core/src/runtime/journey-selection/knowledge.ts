@@ -1,6 +1,12 @@
 import type { CompiledAgent, CompiledJourney } from "../../definition.js";
 import { runtimeLogger } from "../../logging.js";
-import type { TraceEvent } from "../../observability.js";
+import {
+  addTelemetryContentEvent,
+  telemetryAttributes,
+  telemetryEventNames,
+  telemetrySpanNames,
+  withTelemetrySpan,
+} from "../../telemetry.js";
 import { resolveActiveStates } from "../journey-state.js";
 import { parseKnowledgeQuery, uniqueKnowledgeSources } from "../tools.js";
 import type {
@@ -12,7 +18,6 @@ import type {
 
 export async function retrieveKnowledge(args: {
   options: RuntimeOptions;
-  trace(event: TraceEvent): Promise<void>;
   agent: CompiledAgent;
   journey: CompiledJourney | null;
   stateMachineTurn: StateMachineTurnResult | null;
@@ -40,9 +45,28 @@ export async function retrieveKnowledge(args: {
       continue;
     }
     logger.debug({ sourceName: source.name }, "Retrieving from knowledge source");
-    const result = await source.retrieve({
-      query,
-      ...(args.signal ? { signal: args.signal } : {}),
+    const result = await withTelemetrySpan(args.options, {
+      name: telemetrySpanNames.knowledgeRetrieve,
+      attributes: {
+        [telemetryAttributes.conversationId]: args.conversationId,
+        [telemetryAttributes.knowledgeSourceName]: source.name,
+        ...(args.journey ? { [telemetryAttributes.journeyId]: args.journey.id } : {}),
+      },
+      metric: {
+        kind: "knowledge",
+        attributes: {
+          [telemetryAttributes.knowledgeSourceName]: source.name,
+          ...(args.journey ? { [telemetryAttributes.journeyId]: args.journey.id } : {}),
+        },
+      },
+    }, () => source.retrieve({
+        query,
+        ...(args.signal ? { signal: args.signal } : {}),
+      }));
+    addTelemetryContentEvent(args.options, telemetryEventNames.knowledgeItems, {
+      "cognidesk.knowledge.source.name": source.name,
+      "cognidesk.knowledge.query": query,
+      "cognidesk.knowledge.items": result.items,
     });
     const limited = result.items
       .slice(0, args.options.knowledgeLimit ?? 5)
@@ -54,12 +78,6 @@ export async function retrieveKnowledge(args: {
       returnedCount: limited.length,
       itemIds: limited.map((item) => item.id),
     }, "Knowledge source returned items");
-    await args.trace({
-      type: "knowledge.retrieved",
-      conversationId: args.conversationId,
-      sourceName: source.name,
-      itemIds: limited.map((item) => item.id),
-    });
     await args.emit({
       conversationId: args.conversationId,
       type: "knowledge.retrieved",

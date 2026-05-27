@@ -1,6 +1,7 @@
 import type { RuntimeEventInput } from "../storage.js";
 import { runtimeLogger } from "../logging.js";
 import type { RuntimeEvent } from "../types.js";
+import { addTelemetryContentEvent, telemetryEventNames } from "../telemetry.js";
 import {
   beginUserTurn,
   createAbortedTurnResult,
@@ -38,6 +39,10 @@ export async function handleUserMessage<TTurn>(
     ...(args.input.signal ? { signal: args.input.signal } : {}),
   });
   const userText = await args.redactUserMessage(conversation, args.input.text);
+  addTelemetryContentEvent(args.options, telemetryEventNames.userMessage, {
+    "cognidesk.user.message.text": args.input.text,
+    "cognidesk.user.message.redacted_text": userText,
+  });
   const emitted: RuntimeEvent[] = [];
   if (turn.interruptedEvent) emitted.push(turn.interruptedEvent);
   const emit = async <TEvent extends RuntimeEventInput>(event: TEvent) => {

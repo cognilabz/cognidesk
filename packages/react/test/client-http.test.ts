@@ -189,7 +189,6 @@ describe("createCognideskClient HTTP adapter", () => {
     });
     await client.emitCustomEvent(created.conversation.id, "lead.captured", {
       payload: { email: "alex@example.com" },
-      traceId: "trace_custom",
     });
     await client.emitJourneyEvent(created.conversation.id, "ticket.synced", {
       payload: { bookingReference: "ABC123" },
@@ -206,13 +205,11 @@ describe("createCognideskClient HTTP adapter", () => {
     });
     await client.emitIntermediateMessage(created.conversation.id, {
       text: "Still checking.",
-      traceId: "trace_1",
       visibleToModel: true,
     });
     await client.emitGeneratedPreamble(created.conversation.id, {
       purpose: "checking booking",
       maxWords: 8,
-      traceId: "trace_2",
     });
     await client.compactConversation(created.conversation.id, {
       fromOffset: 1,
@@ -240,7 +237,7 @@ describe("createCognideskClient HTTP adapter", () => {
       },
       {
         url: "http://localhost/api/conversations/conversation_1/custom-events/lead.captured",
-        body: { payload: { email: "alex@example.com" }, traceId: "trace_custom" },
+        body: { payload: { email: "alex@example.com" } },
       },
       {
         url: "http://localhost/api/conversations/conversation_1/journey-events/ticket.synced",
@@ -260,11 +257,11 @@ describe("createCognideskClient HTTP adapter", () => {
       },
       {
         url: "http://localhost/api/conversations/conversation_1/intermediate-messages",
-        body: { text: "Still checking.", traceId: "trace_1", visibleToModel: true },
+        body: { text: "Still checking.", visibleToModel: true },
       },
       {
         url: "http://localhost/api/conversations/conversation_1/preambles",
-        body: { purpose: "checking booking", maxWords: 8, traceId: "trace_2" },
+        body: { purpose: "checking booking", maxWords: 8 },
       },
       {
         url: "http://localhost/api/conversations/conversation_1/compact",

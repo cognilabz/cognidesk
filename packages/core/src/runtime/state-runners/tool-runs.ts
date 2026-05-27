@@ -1,6 +1,12 @@
 import type { CompiledJourney } from "../../definition.js";
 import { runtimeLogger } from "../../logging.js";
-import type { TraceEvent } from "../../observability.js";
+import {
+  addTelemetryContentEvent,
+  telemetryAttributes,
+  telemetryEventNames,
+  telemetrySpanNames,
+  withTelemetrySpan,
+} from "../../telemetry.js";
 import type { ConversationRecord } from "../../storage.js";
 import { setPathValue } from "../context.js";
 import { isAbortLikeError } from "../errors.js";
@@ -10,7 +16,6 @@ import { executeToolWithRetry } from "./retry.js";
 
 export async function runStateToolRuns(args: {
   options: RuntimeOptions;
-  trace(event: TraceEvent): Promise<void>;
   applyBuiltInLifecycleTool(input: {
     toolName: string;
     input: unknown;
@@ -63,17 +68,44 @@ export async function runStateToolRuns(args: {
         input: parsedInput.data,
         conversationId: args.conversation.id,
       });
-      const output = await executeToolWithRetry({
-        options: args.options,
-        tool: toolRun.tool,
-        input: parsedInput.data,
-        conversationId: args.conversation.id,
-        journeyContext: args.context,
-        emit: args.emit,
-        ...(idempotencyKey ? { idempotencyKey } : {}),
-        ...(args.signal ? { signal: args.signal } : {}),
+      const parsedOutput = await withTelemetrySpan(args.options, {
+        name: telemetrySpanNames.toolExecute,
+        attributes: {
+          [telemetryAttributes.conversationId]: args.conversation.id,
+          [telemetryAttributes.journeyId]: args.journey.id,
+          [telemetryAttributes.stateId]: args.state.id,
+          [telemetryAttributes.toolName]: toolRun.tool.name,
+        },
+        metric: {
+          kind: "tool",
+          attributes: {
+            [telemetryAttributes.journeyId]: args.journey.id,
+            [telemetryAttributes.stateId]: args.state.id,
+            [telemetryAttributes.toolName]: toolRun.tool.name,
+          },
+        },
+      }, async () => {
+        addTelemetryContentEvent(args.options, telemetryEventNames.toolInput, {
+          "cognidesk.tool.name": toolRun.tool.name,
+          "cognidesk.tool.input": parsedInput.data,
+        });
+        const output = await executeToolWithRetry({
+          options: args.options,
+          tool: toolRun.tool,
+          input: parsedInput.data,
+          conversationId: args.conversation.id,
+          journeyContext: args.context,
+          emit: args.emit,
+          ...(idempotencyKey ? { idempotencyKey } : {}),
+          ...(args.signal ? { signal: args.signal } : {}),
+        });
+        const parsed = toolRun.tool.output.parse(output);
+        addTelemetryContentEvent(args.options, telemetryEventNames.toolOutput, {
+          "cognidesk.tool.name": toolRun.tool.name,
+          "cognidesk.tool.output": parsed,
+        });
+        return parsed;
       });
-      const parsedOutput = toolRun.tool.output.parse(output);
       logger.debug({ toolName: toolRun.tool.name }, "State tool output validated");
       for (const assignment of toolRun.assign) {
         setPathValue(args.context, assignment.path, assignment.value({
@@ -116,13 +148,6 @@ async function emitToolStarted(args: ToolRunContext, toolName: string) {
     type: "tool.started",
     data: { toolName, journeyId: args.journey.id, stateId: args.state.id },
   });
-  await args.trace({
-    type: "tool.started",
-    conversationId: args.conversation.id,
-    toolName,
-    journeyId: args.journey.id,
-    stateId: args.state.id,
-  });
 }
 
 async function emitToolCompleted(
@@ -131,7 +156,7 @@ async function emitToolCompleted(
   success: boolean,
   error?: string,
   result?: unknown,
-  traceCompleted = true,
+  _traceCompleted = true,
 ) {
   await args.emit({
     conversationId: args.conversation.id,
@@ -145,21 +170,10 @@ async function emitToolCompleted(
       ...(error ? { error } : {}),
     },
   });
-  if (traceCompleted) {
-    await args.trace({
-      type: "tool.completed",
-      conversationId: args.conversation.id,
-      toolName,
-      success,
-      journeyId: args.journey.id,
-      stateId: args.state.id,
-      ...(error ? { error } : {}),
-    });
-  }
 }
 
 type ToolRunContext = {
-  trace(event: TraceEvent): Promise<void>;
+  options: RuntimeOptions;
   journey: CompiledJourney;
   conversation: ConversationRecord;
   state: CompiledJourney["states"][number];

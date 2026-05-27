@@ -21,7 +21,6 @@ import type {
   CreateConversationInput,
   ListEventsOptions,
   TextGenerationInput,
-  TraceEvent,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,
@@ -150,11 +149,9 @@ describe("runtime UI and lifecycle events 01", () => {
     const result = await runtime.emitIntermediateMessage({
       conversationId: conversation.id,
       text: "I am checking that now.",
-      traceId: "trace_1",
     });
 
     expect(result.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);
-    expect(result.events[0]?.traceId).toBe("trace_1");
     expect(result.events[1]?.data).toEqual({
       text: "I am checking that now.",
       intermediate: true,
@@ -235,7 +232,6 @@ describe("runtime UI and lifecycle events 01", () => {
       conversationId: conversation.id,
       purpose: "checking booking ABC123",
       maxWords: 7,
-      traceId: "trace_preamble",
     });
 
     expect(result.text).toBe("I am checking the latest mocked booking");
@@ -245,7 +241,6 @@ describe("runtime UI and lifecycle events 01", () => {
     expect(preamblePrompt).not.toContain("Programmatic progress should stay out of transcript.");
     expect(result.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);
     expect(result.events[1]).toMatchObject({
-      traceId: "trace_preamble",
       data: {
         text: "I am checking the latest mocked booking",
         intermediate: true,

@@ -72,7 +72,6 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             conversationId,
             event,
             payload: body.payload,
-            ...optionalStringProperty(body, "traceId"),
           });
           return json({ event: emitted }, 200, options);
         }
@@ -94,7 +93,6 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             ...(routing ? { routing } : {}),
             ...(target ? { target } : {}),
             ...(body.app !== undefined ? { app: body.app } : {}),
-            ...optionalStringProperty(body, "traceId"),
             signal: request.signal,
           });
           return json(result, 200, options);
@@ -151,7 +149,6 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           const result = await options.runtime.emitIntermediateMessage({
             conversationId,
             text,
-            ...optionalStringProperty(body, "traceId"),
             ...(body.visibleToModel === true ? { visibleToModel: true } : {}),
           });
           return json(result, 200, options);
@@ -167,7 +164,6 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             conversationId,
             ...optionalStringProperty(body, "purpose"),
             ...(maxWords !== undefined ? { maxWords } : {}),
-            ...optionalStringProperty(body, "traceId"),
             signal: request.signal,
           });
           return json(result, 200, options);

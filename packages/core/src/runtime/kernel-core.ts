@@ -1,6 +1,5 @@
 import type { CompiledAgent, CompiledJourney } from "../definition.js";
 import { runtimeLogger } from "../logging.js";
-import type { TraceEvent } from "../observability.js";
 import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
 import type {
   AnyTool,
@@ -45,7 +44,6 @@ import {
   redactRuntimeUserMessage,
   requireRuntimeAgent,
   requireRuntimeModels,
-  traceRuntimeEvent,
 } from "./facade-models.js";
 import type {
   CompactConversationInput,
@@ -82,7 +80,7 @@ export function createRuntimeCore(options: RuntimeOptions) {
       return conversation;
     },
     emit<TEvent extends RuntimeEventInput>(event: TEvent) {
-      return emitRuntimeEvent(options, core.trace, event);
+      return emitRuntimeEvent(options, event);
     },
     emitIntermediateMessage(input: EmitIntermediateMessageInput) {
       return emitRuntimeIntermediateMessage(options, core.requireConversation, core.emit, input);
@@ -151,9 +149,6 @@ export function createRuntimeCore(options: RuntimeOptions) {
     requireModels() {
       return requireRuntimeModels(options);
     },
-    trace(event: TraceEvent) {
-      return traceRuntimeEvent(options, event);
-    },
     resolveCustomRuntimeEvent<TEvent extends CustomRuntimeEventDefinition>(event: TEvent) {
       return resolveRuntimeCustomEvent(options.agent, event);
     },
@@ -179,7 +174,7 @@ export function createRuntimeCore(options: RuntimeOptions) {
       model: ModelAdapter;
       input: TextGenerationInput;
     }) {
-      return generateRuntimeTextWithTrace(options, core.trace, input);
+      return generateRuntimeTextWithTrace(options, input);
     },
     generateResponseWithTools(args: {
       conversation: ConversationRecord;
@@ -195,7 +190,6 @@ export function createRuntimeCore(options: RuntimeOptions) {
     }): Promise<TextGenerationOutput> {
       return generateRuntimeResponseWithTools(
         options,
-        core.trace,
         core.requireConversationRecord,
         core.applyBuiltInLifecycleTool,
         args,

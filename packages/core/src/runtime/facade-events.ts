@@ -1,7 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type { CompiledAgent, EventRoutingMode, JourneyEventDefinition } from "../definition.js";
-import type { TraceEvent } from "../observability.js";
 import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
+import {
+  activeRuntimeEventTelemetry,
+  recordRuntimeEventMetric,
+  telemetryEventNames,
+  addTelemetryContentEvent,
+} from "../telemetry.js";
 import type {
   AgentModelSet,
   CustomRuntimeEventDefinition,
@@ -30,18 +35,21 @@ import type {
 
 export async function emitRuntimeEvent<TEvent extends RuntimeEventInput>(
   options: RuntimeOptions,
-  trace: (event: TraceEvent) => Promise<void>,
   event: TEvent,
 ): Promise<RuntimeEvent> {
   const stored = await options.storage.appendEvent({
     ...event,
     id: event.id ?? randomUUID(),
     createdAt: event.createdAt ?? new Date().toISOString(),
+    telemetry: activeRuntimeEventTelemetry(options),
   });
-  await trace({
-    type: "runtime.event",
-    conversationId: stored.conversationId,
-    event: stored,
+  recordRuntimeEventMetric(options, {
+    "cognidesk.runtime.event.type": stored.type,
+  });
+  addTelemetryContentEvent(options, telemetryEventNames.runtimeEvent, {
+    "cognidesk.runtime.event.type": stored.type,
+    "cognidesk.runtime.event.offset": stored.offset,
+    "cognidesk.runtime.event.data": stored.data,
   });
   return stored;
 }
@@ -58,7 +66,6 @@ export async function emitRuntimeIntermediateMessage(
     conversationId: input.conversationId,
     type: "message.started",
     data: { role: "assistant" },
-    ...(input.traceId ? { traceId: input.traceId } : {}),
   });
   events.push(started);
   if (options.streaming?.syntheticDeltas && input.text.length > 0) {
@@ -66,7 +73,6 @@ export async function emitRuntimeIntermediateMessage(
       conversationId: input.conversationId,
       type: "message.delta",
       data: { textDelta: input.text },
-      ...(input.traceId ? { traceId: input.traceId } : {}),
     });
     events.push(delta);
   }
@@ -78,7 +84,6 @@ export async function emitRuntimeIntermediateMessage(
       intermediate: true,
       ...(input.visibleToModel ? { visibleToModel: true } : {}),
     },
-    ...(input.traceId ? { traceId: input.traceId } : {}),
   });
   events.push(completed);
   return { events };
@@ -140,7 +145,6 @@ export async function emitRuntimeGeneratedPreamble(
   const emitted = await deps.emitIntermediateMessage({
     conversationId: conversation.id,
     text,
-    ...(input.traceId ? { traceId: input.traceId } : {}),
   });
   return { text, events: emitted.events };
 }
@@ -158,7 +162,6 @@ export async function emitRuntimeCustomEvent<TEvent extends CustomRuntimeEventDe
     conversationId: input.conversationId,
     type: `custom.${definition.name}`,
     data: payload,
-    ...(input.traceId ? { traceId: input.traceId } : {}),
   });
 }
 
@@ -197,7 +200,6 @@ export async function emitRuntimeJourneyEvent<TEvent extends JourneyEventDefinit
       routing,
       ...(input.target ? { target: input.target } : {}),
     },
-    ...(input.traceId ? { traceId: input.traceId } : {}),
   });
   if (routing === "none") {
     return {

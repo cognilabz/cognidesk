@@ -66,7 +66,6 @@ export class FakeRuntime implements CognideskHttpRuntime {
       type: `custom.${input.event.name}`,
       createdAt: "2026-05-25T00:00:00.000Z",
       data: input.payload,
-      ...(input.traceId ? { traceId: input.traceId } : {}),
     } satisfies RuntimeEvent;
     this.events.push(event);
     return event;
@@ -174,7 +173,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
     };
   }
 
-  async emitIntermediateMessage(input: { conversationId: string; text: string; traceId?: string; visibleToModel?: boolean }): Promise<{ events: RuntimeEvent[] }> {
+  async emitIntermediateMessage(input: { conversationId: string; text: string; visibleToModel?: boolean }): Promise<{ events: RuntimeEvent[] }> {
     const started = {
       id: `event_${this.events.length + 1}`,
       conversationId: input.conversationId,
@@ -182,7 +181,6 @@ export class FakeRuntime implements CognideskHttpRuntime {
       type: "message.started",
       createdAt: "2026-05-25T00:00:00.000Z",
       data: { role: "assistant" as const },
-      ...(input.traceId ? { traceId: input.traceId } : {}),
     } satisfies RuntimeEvent;
     const completed = {
       id: `event_${this.events.length + 2}`,
@@ -195,18 +193,16 @@ export class FakeRuntime implements CognideskHttpRuntime {
         intermediate: true,
         ...(input.visibleToModel ? { visibleToModel: true } : {}),
       },
-      ...(input.traceId ? { traceId: input.traceId } : {}),
     } satisfies RuntimeEvent;
     this.events.push(started, completed);
     return { events: [started, completed] };
   }
 
-  async emitGeneratedPreamble(input: { conversationId: string; purpose?: string; maxWords?: number; traceId?: string }): Promise<{ text: string; events: RuntimeEvent[] }> {
+  async emitGeneratedPreamble(input: { conversationId: string; purpose?: string; maxWords?: number }): Promise<{ text: string; events: RuntimeEvent[] }> {
     const text = input.purpose ? "I am still checking that for you." : "Still working.";
     const result = await this.emitIntermediateMessage({
       conversationId: input.conversationId,
       text,
-      ...(input.traceId ? { traceId: input.traceId } : {}),
     });
     return { text, events: result.events };
   }
