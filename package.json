@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.33.4",
   "scripts": {
     "build": "turbo run build",
+    "demo": "turbo run dev --filter=@cognidesk/flight-demo --ui=tui",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "turbo run lint",

@@ -183,9 +183,10 @@ Then open `http://localhost:5173`. The API is served at `http://localhost:8787/a
 For local development without Docker, run these in separate terminals:
 
 ```bash
-pnpm --filter @cognidesk/flight-demo dev:server
-pnpm --filter @cognidesk/flight-demo dev
+pnpm demo
 ```
+
+This starts the demo API and Vite frontend in Turbo's terminal UI so you can switch between each service's logs. The API is served at `http://localhost:8787/api` and the frontend at `http://localhost:5173`.
 
 ## Development
 

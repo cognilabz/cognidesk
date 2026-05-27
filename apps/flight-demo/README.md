@@ -65,16 +65,10 @@ The server fails startup if the Knowledge Index is missing or was generated with
 ```sh
 pnpm install
 pnpm --filter @cognidesk/flight-demo ingest:knowledge
-pnpm --filter @cognidesk/flight-demo dev:server
+pnpm demo
 ```
 
-In a second terminal:
-
-```sh
-pnpm --filter @cognidesk/flight-demo dev
-```
-
-Open `http://localhost:5173`. The React app uses `http://localhost:8787/api` by default.
+This starts the API and Vite frontend in Turbo's terminal UI so you can switch between each service's logs. Open `http://localhost:5173`. The React app uses `http://localhost:8787/api` by default.
 
 ## Test Prompts
 
