@@ -22,9 +22,11 @@ const wss = new WebSocketServer({ host, port, path: "/ws" });
 codex.onNotification(handleCodexNotification);
 
 wss.on("connection", (socket, request) => {
+  const sessionToken = request.headers["x-studio-session-token"]?.toString();
   const claims: StudioClaims = {
     userId: request.headers["x-studio-user-id"]?.toString() ?? "unknown",
     role: request.headers["x-studio-user-role"]?.toString() ?? "viewer",
+    ...(sessionToken ? { sessionToken } : {}),
   };
   send(socket, {
     type: "activity",
@@ -47,6 +49,7 @@ console.log(`Cognidesk Studio Operator Runtime listening on ws://${host}:${port}
 interface StudioClaims {
   userId: string;
   role: string;
+  sessionToken?: string;
 }
 
 interface OperatorSession {
@@ -96,7 +99,7 @@ async function startSession(
   const model = modelForCodex(event.modelId);
   const thread = await codex.startThread({
     cwd: sandboxPath,
-    baseInstructions: buildBaseInstructions(event.targetId),
+    baseInstructions: buildBaseInstructions(event.targetId, claims.sessionToken),
     ...(model ? { model } : {}),
   });
   const session: OperatorSession = {
@@ -254,18 +257,29 @@ async function prepareSandbox(sessionId: string) {
   const repoUrl = process.env.STUDIO_SOURCE_REPO_URL;
   if (repoUrl) {
     await run("git", ["clone", "--depth", "1", repoUrl, "."], path);
+  } else {
+    const repoPath = process.env.STUDIO_SOURCE_REPO_PATH ?? await localRepoRoot().catch(() => null);
+    if (repoPath) {
+      await run("git", ["clone", "--shared", repoPath, "."], path).catch(async () => {
+        await run("git", ["clone", repoPath, "."], path);
+      });
+    }
   }
   await writeFile(join(path, "AGENTS.md"), buildSandboxAgentsFile(), "utf8");
   return path;
 }
 
-function buildBaseInstructions(targetId: string) {
+function buildBaseInstructions(targetId: string, sessionToken?: string) {
   const pack = getStudioOperatorSkillPack();
+  const studioApiBaseUrl = process.env.STUDIO_API_BASE_URL ?? "http://studio:3000";
   return [
     pack.defaultSystemPrompt,
     "",
     `Active Studio Target: ${targetId}`,
-    `Studio API base URL: ${process.env.STUDIO_API_BASE_URL ?? "http://studio:3000"}`,
+    `Studio API base URL: ${studioApiBaseUrl}`,
+    sessionToken ? `Studio API authentication: include Authorization: Bearer ${sessionToken} on /api/studio requests.` : "Studio API authentication: use the credentials provided by the runtime environment.",
+    "To explain the agent, read /api/studio/introspection and cite concrete journey, tool, and knowledge names.",
+    "To create or save a dashboard, read /api/studio/conversations or /api/studio/dashboard-data, then POST a dashboard draft to /api/studio/dashboards with title, slug, code, datasets, and fallback. Publishing still requires an explicit user action.",
     "Use WebSocket-visible activity updates when gathering telemetry, editing source, creating dashboard artifacts, validating changes, or preparing a GitHub PR.",
     "For code changes, keep edits inside the sandbox and create a GitHub PR only after the user requests publication.",
   ].join("\n");
@@ -348,6 +362,30 @@ function run(command: string, args: string[], cwd: string) {
     });
     child.on("exit", (code) => {
       if (code === 0) resolve();
+      else reject(new Error(`${command} ${args.join(" ")} failed with ${code}: ${stderr}`));
+    });
+    child.on("error", reject);
+  });
+}
+
+async function localRepoRoot() {
+  const output = await runCapture("git", ["rev-parse", "--show-toplevel"], process.cwd());
+  return output.trim() || null;
+}
+
+function runCapture(command: string, args: string[], cwd: string) {
+  return new Promise<string>((resolve, reject) => {
+    const child = spawn(command, args, { cwd, stdio: ["ignore", "pipe", "pipe"], env: process.env });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on("exit", (code) => {
+      if (code === 0) resolve(stdout);
       else reject(new Error(`${command} ${args.join(" ")} failed with ${code}: ${stderr}`));
     });
     child.on("error", reject);

@@ -1,7 +1,5 @@
 import type {
-  StudioAgentIntrospection,
   StudioDashboardArtifact,
-  StudioTargetManifest,
 } from "@cognidesk/studio-contracts";
 
 export type Health = {
@@ -31,8 +29,6 @@ export type User = {
   email: string;
   role: string;
 };
-
-export type StudioView = "monitoring" | "agents" | "dashboards" | "operator" | "admin";
 
 export type OperatorMessage = {
   id: string;
@@ -64,14 +60,26 @@ export type OperatorEvent =
   | { type: "turn.completed"; sessionId: string }
   | { type: "error"; sessionId?: string; message: string };
 
-export type StudioAppProps = {
-  user: User;
-  manifest: StudioTargetManifest;
-  health: Health;
-  initialDashboards: DashboardRow[];
-  initialIntrospection: StudioAgentIntrospection | null;
-  introspectionError: string | null;
-  initialRenderedAt: string;
+export type StudioConversationRow = {
+  id: string;
+  agentId: string;
+  lifecycle: "active" | "handoff" | "closed";
+  customerLabel: string;
+  summary: string;
+  createdAt: string;
+  updatedAt: string;
+  activeJourneyId?: string | undefined;
+  activeStateIds: string[];
+  traceIds: string[];
+  eventCount?: number | undefined;
+  satisfaction: "positive" | "neutral" | "negative";
+};
+
+export type OperatorSessionRow = {
+  id: string;
+  title: string;
+  updatedAt: string;
+  modelId: string | null;
 };
 
 export type PreviewDashboard = { artifact: StudioDashboardArtifact; code: string } | null;

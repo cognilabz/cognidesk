@@ -96,7 +96,7 @@ export function DataTable(props: { columns: string[]; rows: string[][]; emptyTex
           {props.rows.length ? props.rows.map((row, index) => (
             <tr key={index}>
               {props.columns.map((column, columnIndex) => (
-                <td className="border-b border-slate-100 px-4 py-3 text-slate-700" key={`${column}-${columnIndex}`}>
+                <td className="break-words border-b border-slate-100 px-4 py-3 align-top text-slate-700" key={`${column}-${columnIndex}`}>
                   {row[columnIndex] ?? "-"}
                 </td>
               ))}

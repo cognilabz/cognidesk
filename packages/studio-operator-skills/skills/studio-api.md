@@ -10,3 +10,15 @@ Studio APIs so versions, RBAC, and audit logs remain intact.
 
 When answering, cite concrete API objects such as target ids, dashboard ids,
 artifact keys, validation ids, session ids, and audit ids.
+
+Use the Studio API base URL and Authorization header supplied in the active
+runtime instructions. Useful v1 endpoints:
+
+- `GET /api/studio/introspection` explains the compiled Agent, Journeys,
+  Tools, Knowledge, Widgets, and prompt-visible instructions.
+- `GET /api/studio/dashboards` lists saved dashboard artifacts.
+- `GET /api/studio/conversations` lists recent Studio conversation summaries.
+- `POST /api/studio/dashboards` saves a dashboard draft with `title`, `slug`,
+  `description`, `code`, `datasets`, and `fallback`.
+- `POST /api/studio/dashboards/:id/publish` publishes a saved draft only after
+  the user has explicitly asked for publication.

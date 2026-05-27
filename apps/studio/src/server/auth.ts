@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
-import { eq } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 import { db, ensureStudioDatabase } from "@/server/db/client";
-import { schema, studioAuditLog, user } from "@/server/db/schema";
+import { schema, session as sessionTable, studioAuditLog, user } from "@/server/db/schema";
 import { studioEnv } from "@/server/config";
 import type { StudioRole } from "@cognidesk/studio-contracts";
 
@@ -40,7 +40,26 @@ export type StudioAuthSession = typeof auth.$Infer.Session & {
 };
 
 export async function getStudioSession(headers: Headers): Promise<StudioAuthSession | null> {
-  return await auth.api.getSession({ headers }) as StudioAuthSession | null;
+  const cookieSession = await auth.api.getSession({ headers }) as StudioAuthSession | null;
+  if (cookieSession) return cookieSession;
+
+  const token = bearerToken(headers);
+  if (!token) return null;
+  await ensureStudioDatabase();
+  const [row] = await db.select({
+    session: sessionTable,
+    user,
+  })
+    .from(sessionTable)
+    .innerJoin(user, eq(sessionTable.userId, user.id))
+    .where(and(eq(sessionTable.token, token), gt(sessionTable.expiresAt, new Date())))
+    .limit(1);
+  if (!row) return null;
+
+  return {
+    session: row.session,
+    user: row.user,
+  } as StudioAuthSession;
 }
 
 export async function ensureBootstrapAdmin() {
@@ -89,4 +108,11 @@ function localTrustedOrigins(appUrl: string) {
     // Keep the configured origin only.
   }
   return [...origins];
+}
+
+function bearerToken(headers: Headers) {
+  const value = headers.get("authorization");
+  if (!value) return null;
+  const match = value.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() || null;
 }

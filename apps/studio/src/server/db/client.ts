@@ -105,6 +105,24 @@ async function initialize() {
     CREATE INDEX IF NOT EXISTS audit_user_idx ON studio_audit_log(user_id);
     CREATE INDEX IF NOT EXISTS audit_created_at_idx ON studio_audit_log(created_at);
 
+    CREATE TABLE IF NOT EXISTS studio_conversations (
+      id TEXT PRIMARY KEY,
+      target_id TEXT NOT NULL REFERENCES studio_targets(id) ON DELETE CASCADE,
+      agent_id TEXT NOT NULL,
+      customer_label TEXT NOT NULL,
+      lifecycle TEXT NOT NULL CHECK (lifecycle IN ('active', 'handoff', 'closed')),
+      summary TEXT NOT NULL,
+      active_journey_id TEXT,
+      active_state_ids_json TEXT NOT NULL DEFAULT '[]',
+      trace_ids_json TEXT NOT NULL DEFAULT '[]',
+      event_count INTEGER NOT NULL DEFAULT 0,
+      satisfaction TEXT NOT NULL DEFAULT 'neutral' CHECK (satisfaction IN ('positive', 'neutral', 'negative')),
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS conversation_target_idx ON studio_conversations(target_id);
+    CREATE INDEX IF NOT EXISTS conversation_updated_at_idx ON studio_conversations(updated_at);
+
     CREATE TABLE IF NOT EXISTS dashboard_artifacts (
       id TEXT PRIMARY KEY,
       target_id TEXT NOT NULL REFERENCES studio_targets(id) ON DELETE CASCADE,

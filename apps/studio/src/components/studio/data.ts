@@ -1,4 +1,5 @@
 import type { StudioAgentIntrospection, StudioJourneySummary } from "@cognidesk/studio-contracts";
+import type { StudioConversationRow } from "./types";
 
 export function journeyRows(introspection: StudioAgentIntrospection | null) {
   return introspection?.journeys.map((journey) => [
@@ -42,6 +43,35 @@ export function telemetryRows(introspection: StudioAgentIntrospection | null) {
   ];
 }
 
+export function conversationLifecycleDistribution(conversations: StudioConversationRow[]) {
+  return ["active", "handoff", "closed"].map((lifecycle) => ({
+    name: labelLifecycle(lifecycle),
+    value: conversations.filter((conversation) => conversation.lifecycle === lifecycle).length,
+  })).filter((entry) => entry.value > 0);
+}
+
+export function conversationJourneyActivity(conversations: StudioConversationRow[]) {
+  const byJourney = new Map<string, { journey: string; conversations: number; events: number }>();
+  for (const conversation of conversations) {
+    const journey = conversation.activeJourneyId ?? "unassigned";
+    const current = byJourney.get(journey) ?? { journey: truncate(journey, 18), conversations: 0, events: 0 };
+    current.conversations += 1;
+    current.events += conversation.eventCount ?? 0;
+    byJourney.set(journey, current);
+  }
+  return [...byJourney.values()].sort((left, right) => right.conversations - left.conversations);
+}
+
+export function conversationRows(conversations: StudioConversationRow[]) {
+  return conversations.map((conversation) => [
+    conversation.customerLabel,
+    labelLifecycle(conversation.lifecycle),
+    conversation.activeJourneyId ?? "-",
+    String(conversation.eventCount ?? 0),
+    conversation.summary,
+  ]);
+}
+
 export function toolRows(introspection: StudioAgentIntrospection | null) {
   return introspection?.tools.map((tool) => [
     tool.name,
@@ -71,4 +101,8 @@ export function activeJourneyRows(journey: StudioJourneySummary | null) {
 
 function truncate(value: string, max: number) {
   return value.length > max ? `${value.slice(0, max - 1)}...` : value;
+}
+
+function labelLifecycle(value: string) {
+  return value[0]?.toUpperCase() + value.slice(1);
 }

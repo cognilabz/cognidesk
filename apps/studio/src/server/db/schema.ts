@@ -101,6 +101,25 @@ export const studioAuditLog = sqliteTable("studio_audit_log", {
   index("audit_created_at_idx").on(table.createdAt),
 ]);
 
+export const studioConversations = sqliteTable("studio_conversations", {
+  id: text("id").primaryKey(),
+  targetId: text("target_id").notNull().references(() => studioTargets.id, { onDelete: "cascade" }),
+  agentId: text("agent_id").notNull(),
+  customerLabel: text("customer_label").notNull(),
+  lifecycle: text("lifecycle", { enum: ["active", "handoff", "closed"] }).notNull(),
+  summary: text("summary").notNull(),
+  activeJourneyId: text("active_journey_id"),
+  activeStateIdsJson: text("active_state_ids_json").notNull().default("[]"),
+  traceIdsJson: text("trace_ids_json").notNull().default("[]"),
+  eventCount: integer("event_count").default(0).notNull(),
+  satisfaction: text("satisfaction", { enum: ["positive", "neutral", "negative"] }).default("neutral").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+}, (table) => [
+  index("conversation_target_idx").on(table.targetId),
+  index("conversation_updated_at_idx").on(table.updatedAt),
+]);
+
 export const dashboardArtifacts = sqliteTable("dashboard_artifacts", {
   id: text("id").primaryKey(),
   targetId: text("target_id").notNull().references(() => studioTargets.id, { onDelete: "cascade" }),
@@ -201,6 +220,7 @@ export const schema = {
   verification,
   studioTargets,
   studioAuditLog,
+  studioConversations,
   dashboardArtifacts,
   dashboardArtifactVersions,
   operatorSessions,
