@@ -1,4 +1,5 @@
 import type { CompiledAgent, CompiledJourney } from "../definition.js";
+import { runtimeLogger } from "../logging.js";
 import {
   selectJourneyCandidates,
   type JourneyCandidate,
@@ -47,12 +48,22 @@ export async function selectJourney<TTurn>(args: {
   userText: string;
   emit: RuntimeEventEmitter;
 }) {
+  const logger = runtimeLogger(args.options, { conversationId: args.conversation.id });
   if (!args.options.journeyIndex) {
-    return args.previousSnapshot?.activeJourneyId
+    const selected = args.previousSnapshot?.activeJourneyId
       ? args.agent.journeys.find((journey) => journey.id === args.previousSnapshot?.activeJourneyId) ?? null
       : null;
+    logger.debug({
+      selectedJourneyId: selected?.id ?? null,
+      reason: "journey_index_unavailable",
+    }, "Selected journey without journey index");
+    return selected;
   }
 
+  logger.debug({
+    topK: args.options.topKJourneys ?? 5,
+    activeJourneyId: args.previousSnapshot?.activeJourneyId,
+  }, "Retrieving journey candidates");
   const candidates = await selectJourneyCandidates({
     agent: args.agent,
     index: args.options.journeyIndex,
@@ -70,7 +81,11 @@ export async function selectJourney<TTurn>(args: {
     type: "journey.candidates.retrieved",
     data: { journeyIds: candidates.map((candidate) => candidate.journeyId) },
   });
+  logger.debug({
+    candidateJourneyIds: candidates.map((candidate) => candidate.journeyId),
+  }, "Journey candidates retrieved");
   const rankedCandidates = await rankJourneyCandidates({
+    options: args.options,
     generateTextWithTrace: args.generateTextWithTrace,
     candidates,
     models: args.models,
@@ -91,6 +106,9 @@ export async function selectJourney<TTurn>(args: {
       })),
     },
   });
+  logger.debug({
+    rankedJourneyIds: rankedCandidates.map((candidate) => candidate.journeyId),
+  }, "Journey candidates ranked");
 
   const selected = await selectAllowedJourney({
     emitGuardDenial: args.emitGuardDenial,
@@ -111,6 +129,9 @@ export async function selectJourney<TTurn>(args: {
       },
     });
   }
+  logger.info({
+    selectedJourneyId: selected?.id ?? null,
+  }, "Allowed journey selected");
   return selected;
 }
 
@@ -145,6 +166,7 @@ async function selectAllowedJourney(args: {
 }
 
 async function rankJourneyCandidates(args: {
+  options: RuntimeOptions;
   generateTextWithTrace: GenerateTextWithTrace;
   candidates: JourneyCandidate[];
   models: AgentModelSet;
@@ -223,6 +245,9 @@ async function rankJourneyCandidates(args: {
     return ranked;
   } catch (error) {
     if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+    runtimeLogger(args.options, { conversationId: args.conversation.id }).error({
+      error: error instanceof Error ? error.message : "Journey candidate ranking failed.",
+    }, "Falling back to unranked journey candidates");
     return args.candidates;
   }
 }

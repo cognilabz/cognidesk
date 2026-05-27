@@ -1,4 +1,5 @@
 import type { CompiledJourney } from "../../definition.js";
+import { runtimeLogger } from "../../logging.js";
 import type { TraceEvent } from "../../observability.js";
 import type { ConversationRecord } from "../../storage.js";
 import { setPathValue } from "../context.js";
@@ -33,14 +34,29 @@ export async function runStateToolRuns(args: {
     }
     return !toolRun.confirm;
   });
+  const logger = runtimeLogger(args.options, {
+    conversationId: args.conversation.id,
+    journeyId: args.journey.id,
+    stateId: args.state.id,
+  });
+  logger.debug({
+    actionType: args.actionType,
+    toolNames: toolRuns.map((toolRun) => toolRun.tool.name),
+    confirmedPromptId: args.confirmedPromptId,
+  }, "Running state tool runs");
   for (const toolRun of toolRuns) {
     const rawInput = toolRun.input ? toolRun.input({ context: args.context }) : {};
     const parsedInput = toolRun.tool.input.safeParse(rawInput);
     if (!parsedInput.success) {
+      logger.error({
+        toolName: toolRun.tool.name,
+        error: parsedInput.error.message,
+      }, "State tool input validation failed");
       await emitToolCompleted(args, toolRun.tool.name, false, parsedInput.error.message, undefined, false);
       return toolRun.onValidationErrorId ?? null;
     }
 
+    logger.debug({ toolName: toolRun.tool.name }, "State tool execution starting");
     await emitToolStarted(args, toolRun.tool.name);
     try {
       const idempotencyKey = toolRun.tool.idempotencyKey?.({
@@ -58,6 +74,7 @@ export async function runStateToolRuns(args: {
         ...(args.signal ? { signal: args.signal } : {}),
       });
       const parsedOutput = toolRun.tool.output.parse(output);
+      logger.debug({ toolName: toolRun.tool.name }, "State tool output validated");
       for (const assignment of toolRun.assign) {
         setPathValue(args.context, assignment.path, assignment.value({
           output: parsedOutput,
@@ -71,11 +88,21 @@ export async function runStateToolRuns(args: {
         conversationId: args.conversation.id,
         emit: args.emit,
       });
-      if (lifecycleApplied) return null;
-      if (toolRun.onSuccessId) return toolRun.onSuccessId;
+      if (lifecycleApplied) {
+        logger.info({ toolName: toolRun.tool.name }, "State tool applied lifecycle change");
+        return null;
+      }
+      if (toolRun.onSuccessId) {
+        logger.debug({
+          toolName: toolRun.tool.name,
+          targetStateId: toolRun.onSuccessId,
+        }, "State tool selected success transition");
+        return toolRun.onSuccessId;
+      }
     } catch (error) {
       if (isAbortLikeError(error) && args.signal?.aborted) throw error;
       const message = error instanceof Error ? error.message : "Tool execution failed.";
+      logger.error({ toolName: toolRun.tool.name, error: message }, "State tool execution failed");
       await emitToolCompleted(args, toolRun.tool.name, false, message);
       return toolRun.onFailureId ?? null;
     }

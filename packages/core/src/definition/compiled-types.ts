@@ -26,6 +26,7 @@ export interface StateReference<TId extends string = string> {
 export interface CompiledAgent {
   id: string;
   instructions: string;
+  logLevel?: AgentLogLevel;
   behavior: AgentBehaviorOptions;
   postProcessing: AgentPostProcessingOptions;
   journeys: CompiledJourney[];
@@ -241,8 +242,11 @@ export interface AgentPostProcessingOptions {
   citations?: boolean;
 }
 
+export type AgentLogLevel = "trace" | "debug" | "info" | "error";
+
 export interface AgentOptions {
   instructions: string;
+  logLevel?: AgentLogLevel;
   behavior?: AgentBehaviorOptions;
   postProcessing?: AgentPostProcessingOptions;
 }

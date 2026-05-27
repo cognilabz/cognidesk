@@ -66,6 +66,7 @@ export class AgentBuilder<const TId extends string> {
     return {
       id: this.id,
       instructions: this.options.instructions,
+      ...(this.options.logLevel ? { logLevel: this.options.logLevel } : {}),
       behavior: this.options.behavior ?? {},
       postProcessing: this.options.postProcessing ?? {},
       journeys: compiledJourneys,

@@ -1,4 +1,5 @@
 import type { CompiledAgent, CompiledJourney } from "../../definition.js";
+import { runtimeLogger } from "../../logging.js";
 import type { TraceEvent } from "../../observability.js";
 import { resolveActiveStates } from "../journey-state.js";
 import { parseKnowledgeQuery, uniqueKnowledgeSources } from "../tools.js";
@@ -26,10 +27,19 @@ export async function retrieveKnowledge(args: {
     ...(args.journey?.knowledge ?? []),
     ...activeStates.flatMap((state) => state.knowledge),
   ]);
+  const logger = runtimeLogger(args.options, { conversationId: args.conversationId });
+  logger.debug({
+    sourceNames: sources.map((source) => source.name),
+    limit: args.options.knowledgeLimit ?? 5,
+  }, "Starting knowledge retrieval");
   const items: RetrievedKnowledgeItem[] = [];
   for (const source of sources) {
     const query = parseKnowledgeQuery(source, args.message);
-    if (query === null) continue;
+    if (query === null) {
+      logger.trace({ sourceName: source.name }, "Knowledge source skipped");
+      continue;
+    }
+    logger.debug({ sourceName: source.name }, "Retrieving from knowledge source");
     const result = await source.retrieve({
       query,
       ...(args.signal ? { signal: args.signal } : {}),
@@ -38,6 +48,12 @@ export async function retrieveKnowledge(args: {
       .slice(0, args.options.knowledgeLimit ?? 5)
       .map((item) => ({ ...item, sourceName: source.name }));
     items.push(...limited);
+    logger.debug({
+      sourceName: source.name,
+      retrievedCount: result.items.length,
+      returnedCount: limited.length,
+      itemIds: limited.map((item) => item.id),
+    }, "Knowledge source returned items");
     await args.trace({
       type: "knowledge.retrieved",
       conversationId: args.conversationId,

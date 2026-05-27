@@ -1,4 +1,5 @@
 import type { CompiledAgent, CompiledJourney } from "../definition.js";
+import { runtimeLogger } from "../logging.js";
 import type { TraceEvent } from "../observability.js";
 import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
 import type {
@@ -61,12 +62,24 @@ import type {
 } from "./types.js";
 
 export function createRuntimeCore(options: RuntimeOptions) {
+  const logger = runtimeLogger(options);
   const core = {
-    initialize() {
-      return options.storage.initialize?.();
+    async initialize() {
+      logger.info({
+        hasAgent: Boolean(options.agent),
+        hasModels: Boolean(options.models),
+        hasJourneyIndex: Boolean(options.journeyIndex),
+      }, "Runtime initializing");
+      await options.storage.initialize?.();
+      logger.info("Runtime initialized");
     },
-    createConversation<TConversationContext = unknown>(input: CreateRuntimeConversationInput<TConversationContext>) {
-      return createRuntimeConversation(options, core.emit, input);
+    async createConversation<TConversationContext = unknown>(input: CreateRuntimeConversationInput<TConversationContext>) {
+      logger.debug({ hasContext: input.context !== undefined }, "Creating conversation");
+      const conversation = await createRuntimeConversation(options, core.emit, input);
+      runtimeLogger(options, { conversationId: conversation.id }).info({
+        lifecycle: conversation.lifecycle,
+      }, "Conversation created");
+      return conversation;
     },
     emit<TEvent extends RuntimeEventInput>(event: TEvent) {
       return emitRuntimeEvent(options, core.trace, event);
@@ -99,17 +112,27 @@ export function createRuntimeCore(options: RuntimeOptions) {
       return options.storage.getSnapshot(conversationId);
     },
     async closeConversation(conversationId: string, reason?: string) {
+      runtimeLogger(options, { conversationId }).info({ reason }, "Closing conversation");
       const result = await applyRuntimeConversationClosure(options, {
         conversationId,
         ...(reason ? { reason } : {}),
         emit: core.emit,
       });
+      runtimeLogger(options, { conversationId }).info("Conversation closed");
       return result.conversation;
     },
     requestHandoff(input: RequestHandoffInput) {
+      runtimeLogger(options, { conversationId: input.conversationId }).info({
+        hasSummary: input.summary !== undefined,
+        hasPayload: input.payload !== undefined,
+      }, "Requesting handoff");
       return applyRuntimeHandoffRequest(options, { ...input, emit: core.emit });
     },
     resumeConversation(input: ResumeConversationInput) {
+      runtimeLogger(options, { conversationId: input.conversationId }).info({
+        reason: input.reason,
+        hasPayload: input.payload !== undefined,
+      }, "Resuming conversation");
       return applyRuntimeConversationResume(options, { ...input, emit: core.emit });
     },
     compactConversation<TSummary>(input: CompactConversationInput) {

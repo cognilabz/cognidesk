@@ -1,5 +1,6 @@
 import type { CompiledAgent, CompiledJourney } from "../definition.js";
 import type { TraceEvent } from "../observability.js";
+import { runtimeLogger } from "../logging.js";
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
@@ -27,6 +28,15 @@ export async function generateTextWithTrace(args: {
   model: ModelAdapter;
   input: TextGenerationInput;
 }): Promise<TextGenerationOutput> {
+  const logger = runtimeLogger(args.options, { conversationId: args.conversationId });
+  logger.debug({
+    role: args.input.role,
+    promptTask: args.input.promptTask,
+    provider: args.model.provider,
+    model: args.model.model,
+    messageCount: args.input.messages.length,
+    toolCount: args.input.tools?.length ?? 0,
+  }, "Preparing model call");
   await args.trace({
     type: "model.started",
     conversationId: args.conversationId,
@@ -43,6 +53,13 @@ export async function generateTextWithTrace(args: {
         input: redactedInput,
       }),
     });
+    logger.debug({
+      role: args.input.role,
+      provider: args.model.provider,
+      model: args.model.model,
+      outputTextLength: output.text.length,
+      toolCallCount: output.toolCalls?.length ?? 0,
+    }, "Model call returned");
     await args.trace({
       type: "model.completed",
       conversationId: args.conversationId,
@@ -53,6 +70,12 @@ export async function generateTextWithTrace(args: {
     });
     return output;
   } catch (error) {
+    logger.error({
+      role: args.input.role,
+      provider: args.model.provider,
+      model: args.model.model,
+      error: error instanceof Error ? error.message : "Model call failed.",
+    }, "Model call threw");
     await args.trace({
       type: "model.failed",
       conversationId: args.conversationId,
@@ -89,7 +112,14 @@ export async function generateResponseWithTools(args: {
 }): Promise<TextGenerationOutput> {
   const messages = [...args.messages];
   const maxToolRounds = 4;
+  const logger = runtimeLogger(args.options, { conversationId: args.conversation.id });
   for (let round = 0; round <= maxToolRounds; round += 1) {
+    logger.debug({
+      round,
+      maxToolRounds,
+      messageCount: messages.length,
+      modelToolCount: args.modelTools.length,
+    }, "Starting response generation round");
     const response = await generateTextWithTrace({
       options: args.options,
       trace: args.trace,
@@ -111,8 +141,16 @@ export async function generateResponseWithTools(args: {
         ...(args.signal ? { signal: args.signal } : {}),
       },
     });
-    if (!response.toolCalls?.length) return response;
+    if (!response.toolCalls?.length) {
+      logger.debug({ round }, "Response generation completed without tool calls");
+      return response;
+    }
+    logger.info({
+      round,
+      toolCallNames: response.toolCalls.map((call) => call.name),
+    }, "Model requested tool calls");
     if (round === maxToolRounds) {
+      logger.error({ maxToolRounds }, "Model exceeded tool round limit");
       await args.emit({
         conversationId: args.conversation.id,
         type: "error",
@@ -144,6 +182,7 @@ export async function generateResponseWithTools(args: {
     messages.push(...results);
     const lifecycle = await args.requireConversationRecord(args.conversation.id);
     if (lifecycle.lifecycle !== "active") {
+      logger.info({ lifecycle: lifecycle.lifecycle }, "Stopping response generation after lifecycle change");
       return { text: "", providerMetadata: { interruptedByLifecycle: true } };
     }
   }
@@ -169,10 +208,13 @@ export async function executeModelToolCalls(args: {
 }): Promise<ModelMessage[]> {
   const byName = new Map(args.tools.map((toolDefinition) => [toolDefinition.name, toolDefinition]));
   const messages: ModelMessage[] = [];
+  const logger = runtimeLogger(args.options, { conversationId: args.conversation.id });
   for (const call of args.calls) {
+    logger.debug({ toolName: call.name }, "Resolving model tool call");
     const toolDefinition = byName.get(call.name);
     if (!toolDefinition) {
       const error = `Tool '${call.name}' is not available in the active tool scope.`;
+      logger.error({ toolName: call.name, error }, "Model requested unavailable tool");
       await args.emit({
         conversationId: args.conversation.id,
         type: "tool.completed",
@@ -185,6 +227,7 @@ export async function executeModelToolCalls(args: {
     const parsedInput = toolDefinition.input.safeParse(call.input);
     if (!parsedInput.success) {
       const error = parsedInput.error.message;
+      logger.error({ toolName: call.name, error }, "Model tool input validation failed");
       await args.emit({
         conversationId: args.conversation.id,
         type: "tool.completed",
@@ -224,6 +267,7 @@ export async function executeModelToolCalls(args: {
         ...(args.signal ? { signal: args.signal } : {}),
       });
       const parsedOutput = toolDefinition.output.parse(output);
+      logger.debug({ toolName: toolDefinition.name }, "Model tool output validated");
       await args.emit({
         conversationId: args.conversation.id,
         type: "tool.completed",
@@ -251,6 +295,7 @@ export async function executeModelToolCalls(args: {
     } catch (error) {
       if (isAbortLikeError(error) && args.signal?.aborted) throw error;
       const message = error instanceof Error ? error.message : "Tool execution failed.";
+      logger.error({ toolName: toolDefinition.name, error: message }, "Model tool execution failed");
       await args.emit({
         conversationId: args.conversation.id,
         type: "tool.completed",

@@ -1,4 +1,5 @@
 import { createRuntimeKernel, type RuntimeKernel } from "./runtime/kernel.js";
+import { createRuntimeLogger } from "./logging.js";
 import { createPrivacyStorageAdapter } from "./runtime/privacy.js";
 import { type ConversationCompactionSummary } from "./runtime/schemas.js";
 import type {
@@ -62,6 +63,7 @@ export class CognideskRuntime {
     this.options = {
       ...options,
       storage: createPrivacyStorageAdapter(options.storage, options.privacy),
+      logger: options.logger ?? createRuntimeLogger(options),
     };
     this.kernel = createRuntimeKernel(this.options, this.activeTurns);
   }

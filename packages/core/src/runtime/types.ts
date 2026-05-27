@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import type { Logger } from "pino";
 import type { JourneyCandidate } from "../journey-index.js";
 import type { ConversationRecord, CreateConversationInput, RuntimeEventInput } from "../storage.js";
 import type { ActionDefinition, CompiledAgent, CompiledJourney, EventRoutingMode, JourneyEventDefinition } from "../definition.js";
@@ -16,6 +17,7 @@ import type {
 } from "../types.js";
 import type { ObservabilityHooks } from "../observability.js";
 import type { PrivacyHooks } from "../privacy.js";
+import type { AgentLogLevel } from "../definition.js";
 
 export type RetrievedKnowledgeItem = KnowledgeItem & {
   sourceName: string;
@@ -31,6 +33,8 @@ export interface RuntimeOptions {
   knowledgeLimit?: number;
   privacy?: PrivacyHooks;
   observability?: ObservabilityHooks;
+  logLevel?: AgentLogLevel;
+  logger?: Pick<Logger, "trace" | "debug" | "info" | "error" | "child">;
   compaction?: {
     beforeTurn?: boolean;
     afterTurn?: boolean;

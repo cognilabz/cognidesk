@@ -1,4 +1,5 @@
 import type { RuntimeEventInput } from "../storage.js";
+import { runtimeLogger } from "../logging.js";
 import type { RuntimeEvent } from "../types.js";
 import {
   beginUserTurn,
@@ -24,6 +25,11 @@ export async function handleUserMessage<TTurn>(
   const agent = args.requireAgent();
   const models = args.requireModels();
   const conversation = await args.requireConversation(args.input.conversationId);
+  const logger = runtimeLogger(args.options, { conversationId: conversation.id });
+  logger.info({
+    userTextLength: args.input.text.length,
+    hasTurnPayload: args.input.turn !== undefined,
+  }, "User turn started");
   const turn = await beginUserTurn({
     activeTurns: args.activeTurns,
     conversationId: conversation.id,
@@ -42,15 +48,22 @@ export async function handleUserMessage<TTurn>(
 
   try {
     if (args.options.compaction?.beforeTurn) {
+      logger.debug("Checking before-turn compaction");
       const compaction = await args.compactIfNeeded({
         conversationId: conversation.id,
         ...(args.options.compaction.schemaVersion ? { schemaVersion: args.options.compaction.schemaVersion } : {}),
         signal: turn.controller.signal,
       });
       throwIfTurnInterrupted(turn);
-      if (compaction) emitted.push(...compaction.events);
+      if (compaction) {
+        logger.info({
+          eventCount: compaction.events.length,
+        }, "Before-turn compaction completed");
+        emitted.push(...compaction.events);
+      }
     }
 
+    logger.debug("Recording user message events");
     await emit({
       conversationId: conversation.id,
       type: "message.started",
@@ -64,6 +77,10 @@ export async function handleUserMessage<TTurn>(
 
     const history = await listConversationMessages(args.options.storage, conversation.id);
     const previousSnapshot = await args.options.storage.getSnapshot(conversation.id);
+    logger.debug({
+      historyMessages: history.length,
+      previousJourneyId: previousSnapshot?.activeJourneyId,
+    }, "Selecting journey");
     const selectedJourney = await args.selectJourney({
       agent,
       models,
@@ -78,6 +95,10 @@ export async function handleUserMessage<TTurn>(
       emit,
     });
     throwIfTurnInterrupted(turn);
+    logger.info({
+      selectedJourneyId: selectedJourney?.id ?? null,
+      selectedJourneyKind: selectedJourney?.kind ?? null,
+    }, "Journey selected");
     const stateMachineTurn = selectedJourney?.kind === "stateMachine"
       ? await args.executeStateMachineTurn({
           journey: selectedJourney,
@@ -92,12 +113,23 @@ export async function handleUserMessage<TTurn>(
         })
       : null;
     throwIfTurnInterrupted(turn);
+    if (stateMachineTurn) {
+      logger.debug({
+        activeStateIds: stateMachineTurn.activeStateIds,
+        completedJourneyId: stateMachineTurn.completed?.journeyId,
+        completedStateId: stateMachineTurn.completed?.stateId,
+      }, "State machine turn completed");
+    }
     const interruptedByLifecycle = await args.createLifecycleInterruptionResult({
       conversationId: conversation.id,
       events: emitted,
     });
-    if (interruptedByLifecycle) return interruptedByLifecycle;
+    if (interruptedByLifecycle) {
+      logger.info("User turn interrupted by lifecycle change");
+      return interruptedByLifecycle;
+    }
 
+    logger.debug("Retrieving knowledge");
     const knowledge = await args.retrieveKnowledge({
       agent,
       journey: selectedJourney,
@@ -108,6 +140,7 @@ export async function handleUserMessage<TTurn>(
       signal: turn.controller.signal,
     });
     throwIfTurnInterrupted(turn);
+    logger.debug({ knowledgeItems: knowledge.length }, "Knowledge retrieval completed");
     const visibleCustomEvents = await listVisibleCustomEventContext(args.options.storage, agent, conversation.id);
     const modelMessages = await args.redactModelMessages(conversation, createResponseMessages({
       agent,
@@ -122,6 +155,11 @@ export async function handleUserMessage<TTurn>(
     }));
     const availableTools = resolveAvailableModelTools(agent, selectedJourney, stateMachineTurn);
     const modelTools = availableTools.map(toModelToolDefinition);
+    logger.debug({
+      modelMessageCount: modelMessages.length,
+      availableToolNames: availableTools.map((tool) => tool.name),
+      visibleCustomEventCount: visibleCustomEvents.length,
+    }, "Generating assistant response");
     throwIfTurnInterrupted(turn);
     let assistantStarted = false;
     const ensureAssistantStarted = async () => {
@@ -167,12 +205,20 @@ export async function handleUserMessage<TTurn>(
       signal: turn.controller.signal,
     });
     throwIfTurnInterrupted(turn);
+    logger.info({
+      responseTextLength: response.text.length,
+      toolCallCount: response.toolCalls?.length ?? 0,
+      usage: response.usage,
+    }, "Assistant response generated");
     if (response.providerMetadata?.interruptedByLifecycle) {
       const interrupted = await args.createLifecycleInterruptionResult({
         conversationId: conversation.id,
         events: emitted,
       });
-      if (interrupted) return interrupted;
+      if (interrupted) {
+        logger.info("Assistant response interrupted by lifecycle change");
+        return interrupted;
+      }
     }
     const assistantText = removeRawKnowledgeMarkers(
       await args.redactAssistantMessage(conversation, response.text),
@@ -187,6 +233,7 @@ export async function handleUserMessage<TTurn>(
       signal: turn.controller.signal,
     });
     throwIfTurnInterrupted(turn);
+    logger.debug({ citationSegments: segments?.length ?? 0 }, "Citation processing completed");
 
     await ensureAssistantStarted();
     if (args.options.streaming?.syntheticDeltas && assistantText.length > 0 && streamedTextLength === 0) {
@@ -215,6 +262,11 @@ export async function handleUserMessage<TTurn>(
       signal: turn.controller.signal,
     });
     throwIfTurnInterrupted(turn);
+    if (delegationCompletion) {
+      logger.info({
+        journeyId: delegationCompletion.journeyId,
+      }, "Delegation journey completed");
+    }
 
     const snapshot = createNextSnapshot({
       conversationId: conversation.id,
@@ -225,17 +277,31 @@ export async function handleUserMessage<TTurn>(
       ...(args.options.journeyIndex ? { definitionHash: args.options.journeyIndex.definitionHash } : {}),
     });
     await args.options.storage.saveSnapshot(snapshot);
+    logger.debug({
+      activeJourneyId: snapshot.activeJourneyId,
+      activeStateIds: snapshot.activeStateIds,
+    }, "Runtime snapshot saved");
 
     if (args.options.compaction?.afterTurn) {
+      logger.debug("Checking after-turn compaction");
       const compaction = await args.compactIfNeeded({
         conversationId: conversation.id,
         ...(args.options.compaction.schemaVersion ? { schemaVersion: args.options.compaction.schemaVersion } : {}),
         signal: turn.controller.signal,
       });
       throwIfTurnInterrupted(turn);
-      if (compaction) emitted.push(...compaction.events);
+      if (compaction) {
+        logger.info({
+          eventCount: compaction.events.length,
+        }, "After-turn compaction completed");
+        emitted.push(...compaction.events);
+      }
     }
 
+    logger.info({
+      emittedEventCount: emitted.length,
+      activeJourneyId: snapshot.activeJourneyId,
+    }, "User turn completed");
     return {
       conversation,
       snapshot,
@@ -245,6 +311,7 @@ export async function handleUserMessage<TTurn>(
     };
   } catch (error) {
     if (turn.interruptedByNewMessage && isAbortLikeError(error)) {
+      logger.info("User turn aborted by a newer message");
       return createAbortedTurnResult({
         storage: args.options.storage,
         conversation,
@@ -252,6 +319,9 @@ export async function handleUserMessage<TTurn>(
         events: emitted,
       });
     }
+    logger.error({
+      error: error instanceof Error ? error.message : "User turn failed.",
+    }, "User turn failed");
     throw error;
   } finally {
     finishUserTurn(args.activeTurns, turn);

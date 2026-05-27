@@ -1,5 +1,6 @@
 import type { CompiledAgent, CompiledJourney } from "../definition.js";
 import type { TraceEvent } from "../observability.js";
+import { logTraceEvent, runtimeLogger } from "../logging.js";
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
@@ -38,9 +39,13 @@ import type {
 export async function traceRuntimeEvent(options: RuntimeOptions, event: TraceEvent) {
   const redacted = await redactTraceEventWithOptions(options, event).catch(() => null);
   if (!redacted) return;
+  logTraceEvent(options, redacted);
   try {
     await options.observability?.onTraceEvent?.(redacted);
-  } catch {
+  } catch (error) {
+    runtimeLogger(options, { conversationId: redacted.conversationId }).error({
+      error: error instanceof Error ? error.message : "Observability hook failed.",
+    }, "Observability trace hook failed");
     // Observability hooks must not affect conversation execution.
   }
 }

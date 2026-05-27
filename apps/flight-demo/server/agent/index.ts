@@ -41,6 +41,7 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
     embeddingModel: models.journeyEmbedding,
   });
   const agent = createAgent("flight-service", {
+    logLevel: "debug",
     instructions: [
       "You are a concise customer support agent for a mocked flight service.",
       "Help with booking tickets, ticket status, flight information, check-in, baggage, and handoff.",
