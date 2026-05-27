@@ -7,6 +7,7 @@ export const flightKnowledgeDocumentSchema = z.object({
   id: z.string(),
   title: z.string(),
   category: z.string(),
+  url: z.string().min(1).optional(),
   content: z.string(),
 });
 
@@ -19,6 +20,7 @@ const knowledgeIndexEntrySchema = z.object({
   metadata: z.object({
     documentId: z.string(),
     category: z.string(),
+    url: z.string().min(1).optional(),
   }),
   embedding: z.array(z.number()),
 });
@@ -61,6 +63,7 @@ export async function buildFlightKnowledgeIndex(options: {
       metadata: {
         documentId: document.id,
         category: document.category,
+        ...(document.url ? { url: document.url } : {}),
       },
       embedding: embedding.embedding,
     });

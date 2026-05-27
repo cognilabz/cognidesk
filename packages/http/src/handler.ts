@@ -152,6 +152,7 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             conversationId,
             text,
             ...optionalStringProperty(body, "traceId"),
+            ...(body.visibleToModel === true ? { visibleToModel: true } : {}),
           });
           return json(result, 200, options);
         }

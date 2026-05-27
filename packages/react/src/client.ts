@@ -75,6 +75,7 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
         body: JSON.stringify({
           text: input.text,
           ...(input.traceId ? { traceId: input.traceId } : {}),
+          ...(input.visibleToModel ? { visibleToModel: true } : {}),
         }),
       }, "Failed to emit intermediate message");
     },

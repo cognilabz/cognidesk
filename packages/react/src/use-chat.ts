@@ -7,6 +7,7 @@ export function useChat(options: UseChatOptions) {
   const [chatState, setChatState] = useState<ChatEventReducerState>({
     messages: [],
     prompts: [],
+    activities: [],
     lastOffset: 0,
   });
   const [status, setStatus] = useState<"idle" | "starting" | "sending" | "streaming" | "error">("idle");
@@ -68,7 +69,7 @@ export function useChat(options: UseChatOptions) {
     setConversationId(options.conversationId ?? null);
     lastOffsetRef.current = 0;
     createConversationRef.current = null;
-    setChatState({ messages: [], prompts: [], lastOffset: 0 });
+    setChatState({ messages: [], prompts: [], activities: [], lastOffset: 0 });
     setError(null);
   }, [options.conversationId, stopStream]);
 
@@ -79,6 +80,11 @@ export function useChat(options: UseChatOptions) {
     setChatState((current) => ({
       ...current,
       messages: [...current.messages, { id, role: "user", text: trimmed, status: "sending" }],
+      activities: [{
+        id: "thinking",
+        label: "Thinking",
+        status: "running",
+      }],
     }));
     setStatus("sending");
     setError(null);
@@ -91,6 +97,7 @@ export function useChat(options: UseChatOptions) {
         messages: current.messages.map((message) => (
           message.id === id ? { ...message, status: "sent" } : message
         )),
+        activities: current.activities.filter((activity) => activity.id !== "thinking"),
       }));
       for (const event of result.events) applyEvent(event);
       setStatus("idle");
@@ -134,6 +141,7 @@ export function useChat(options: UseChatOptions) {
     conversationId,
     messages: chatState.messages,
     prompts: chatState.prompts,
+    activities: chatState.activities,
     status,
     error,
     sendMessage,
@@ -142,5 +150,5 @@ export function useChat(options: UseChatOptions) {
       ...current,
       prompts: current.prompts.filter((prompt) => prompt.promptId !== promptId),
     })),
-  }), [chatState.messages, chatState.prompts, conversationId, error, sendMessage, status, submitWidget]);
+  }), [chatState.activities, chatState.messages, chatState.prompts, conversationId, error, sendMessage, status, submitWidget]);
 }

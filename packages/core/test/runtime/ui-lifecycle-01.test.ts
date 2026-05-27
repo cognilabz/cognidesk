@@ -167,6 +167,43 @@ describe("runtime UI and lifecycle events 01", () => {
     })).rejects.toThrow("is 'closed'");
   });
 
+  it("can expose durable intermediate messages to later model turns", async () => {
+    let responsePrompt = "";
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async ({ messages }) => {
+            responsePrompt = messages.map((message) => message.content).join("\n");
+            return { text: "All set." };
+          },
+        },
+      }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text: "Transient wait message.",
+    });
+    await runtime.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text: "Mock booking confirmed. Booking reference: CD-CL102-4821.",
+      visibleToModel: true,
+    });
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "cool",
+    });
+
+    expect(responsePrompt).toContain("Mock booking confirmed. Booking reference: CD-CL102-4821.");
+    expect(responsePrompt).not.toContain("Transient wait message.");
+  });
+
   it("generates constrained wait-time preambles as intermediate messages", async () => {
     let preamblePrompt = "";
     const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();

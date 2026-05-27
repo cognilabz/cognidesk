@@ -223,9 +223,9 @@ describe("runtime UI and lifecycle events 02", () => {
       widgetKind: "confirmation",
       input: {
         title: "Confirm booking",
-        message: "Confirm booking",
+        message: "Confirm booking\n\nPassenger Name: Alex",
         confirmLabel: "Confirm",
-        cancelLabel: "Cancel",
+        cancelLabel: "Not now",
       },
     });
 

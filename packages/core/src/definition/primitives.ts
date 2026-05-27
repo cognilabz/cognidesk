@@ -30,6 +30,7 @@ export interface FieldCollectionOptions<TContext> {
   extract?: boolean;
   confirm?: boolean | "beforeAction" | ConfirmationPolicy;
   widget?: FieldWidgetOption;
+  widgetInput?: (args: { context: TContext }) => unknown;
 }
 
 export interface ListCollectionOptions<TContext, TItemSchema extends z.ZodType> {

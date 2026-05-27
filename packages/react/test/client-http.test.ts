@@ -207,6 +207,7 @@ describe("createCognideskClient HTTP adapter", () => {
     await client.emitIntermediateMessage(created.conversation.id, {
       text: "Still checking.",
       traceId: "trace_1",
+      visibleToModel: true,
     });
     await client.emitGeneratedPreamble(created.conversation.id, {
       purpose: "checking booking",
@@ -259,7 +260,7 @@ describe("createCognideskClient HTTP adapter", () => {
       },
       {
         url: "http://localhost/api/conversations/conversation_1/intermediate-messages",
-        body: { text: "Still checking.", traceId: "trace_1" },
+        body: { text: "Still checking.", traceId: "trace_1", visibleToModel: true },
       },
       {
         url: "http://localhost/api/conversations/conversation_1/preambles",

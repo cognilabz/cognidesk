@@ -60,7 +60,7 @@ export function createResponseMessages(args: {
         "",
         journeyContext,
         "",
-        "Use retrieved knowledge when relevant. If knowledge is used, make the supporting text cite the source id in prose.",
+        "Use retrieved knowledge when relevant. Do not write raw knowledge ids such as K1, K1:document-id, or document ids in the customer-facing prose; the runtime attaches source links after the message.",
         "",
         knowledgeContext,
         "",

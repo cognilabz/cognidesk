@@ -44,6 +44,7 @@ export const bookFlight = tool("bookFlight", {
   input: z.object({
     selectedFlightId: z.string(),
     passengerName: z.string(),
+    flight: z.string().optional(),
   }),
   output: z.object({
     bookingReference: z.string(),

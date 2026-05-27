@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isValidElement } from "react";
-import { createCognideskClient, defaultWidgetRenderers, formatSupportReferences, reduceChatRuntimeEvent } from "../src/index.js";
+import { collectSupportSourceLinks, createCognideskClient, defaultWidgetRenderers, formatSupportReferences, reduceChatRuntimeEvent } from "../src/index.js";
 import type { RuntimeEvent } from "@cognidesk/core";
 
 describe("React client events and widgets", () => {
@@ -32,9 +32,17 @@ describe("React client events and widgets", () => {
 
   it("formats support references for citation hovers", () => {
     expect(formatSupportReferences([
-      { type: "knowledge", id: "policy-bags", sourceName: "flight-faq", title: "Baggage policy", metadata: { section: "bags" } },
+      { type: "knowledge", id: "policy-bags", sourceName: "flight-faq", title: "Baggage policy", metadata: { section: "bags", url: "/docs/bags.html" } },
       { type: "toolResult", id: "tool_1" },
-    ])).toBe("Knowledge: Baggage policy (flight-faq)\nsection: bags\nTool result: tool_1");
+    ])).toBe("Source: Baggage policy\nTool result: tool_1");
+    expect(collectSupportSourceLinks([
+      { type: "knowledge", id: "policy-bags", sourceName: "flight-faq", title: "Baggage policy", metadata: { url: "/docs/bags.html" } },
+      { type: "knowledge", id: "policy-bags", sourceName: "flight-faq", title: "Baggage policy", metadata: { url: "/docs/bags.html" } },
+    ])).toEqual([{
+      id: "policy-bags",
+      label: "Baggage policy",
+      url: "/docs/bags.html",
+    }]);
   });
 
   it("reduces runtime events into headless chat state", () => {
@@ -77,22 +85,34 @@ describe("React client events and widgets", () => {
 
     expect(prompted.prompts).toEqual([{
       promptId: "prompt_1",
+      offset: 1,
       kind: "confirmation",
       input: { title: "Confirm", message: "Proceed?" },
+      status: "open",
     }]);
     expect(completed.messages).toEqual([{
       id: "event_2",
+      offset: 2,
       role: "assistant",
       text: "I can help.",
       status: "sent",
     }]);
     expect(aborted.messages.at(-1)).toEqual({
       id: "event_3",
+      offset: 3,
       role: "assistant",
       text: "Response interrupted.",
       status: "aborted",
     });
-    expect(submitted.prompts).toEqual([]);
+    expect(submitted.prompts).toEqual([{
+      promptId: "prompt_1",
+      offset: 1,
+      displayOffset: 2.1,
+      kind: "confirmation",
+      input: { title: "Confirm", message: "Proceed?" },
+      status: "submitted",
+      output: { confirmed: true },
+    }]);
     expect(submitted.lastOffset).toBe(4);
   });
 
@@ -139,18 +159,21 @@ describe("React client events and widgets", () => {
 
     expect(started.messages).toEqual([{
       id: "event_1",
+      offset: 1,
       role: "assistant",
       text: "",
       status: "streaming",
     }]);
     expect(secondDelta.messages).toEqual([{
       id: "event_1",
+      offset: 1,
       role: "assistant",
       text: "Ticket confirmed.",
       status: "streaming",
     }]);
     expect(completed.messages).toEqual([{
       id: "event_4",
+      offset: 1,
       role: "assistant",
       text: "Ticket confirmed.",
       segments: [{
@@ -160,6 +183,137 @@ describe("React client events and widgets", () => {
       }],
       status: "sent",
     }]);
+  });
+
+  it("reduces background work events into activity indicators", () => {
+    const thinking = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "journey.candidates.retrieved",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { journeyIds: ["book-flight"] },
+    });
+    const toolStarted = reduceChatRuntimeEvent(thinking, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "tool.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { toolName: "searchFlights", journeyId: "book-flight" },
+    });
+    const toolCompleted = reduceChatRuntimeEvent(toolStarted, {
+      id: "event_3",
+      conversationId: "conversation_1",
+      offset: 3,
+      type: "tool.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { toolName: "searchFlights", success: true, journeyId: "book-flight", result: { flights: [] } },
+    });
+    const knowledge = reduceChatRuntimeEvent(toolCompleted, {
+      id: "event_4",
+      conversationId: "conversation_1",
+      offset: 4,
+      type: "knowledge.retrieved",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { sourceName: "flight-policies", itemIds: ["bags"] },
+    });
+
+    expect(thinking.activities).toEqual([{
+      id: "intent",
+      label: "Understanding request",
+      status: "running",
+    }]);
+    expect(toolStarted.activities.at(-1)).toEqual({
+      id: "tool:searchFlights",
+      label: "Searching flights",
+      status: "running",
+    });
+    expect(toolCompleted.activities.some((activity) => activity.id === "tool:searchFlights")).toBe(false);
+    expect(knowledge.activities.at(-1)).toEqual({
+      id: "knowledge:flight-policies",
+      label: "Checking policy documents",
+      status: "done",
+    });
+  });
+
+  it("closes matching field widgets when clear-text extraction accepts the value", () => {
+    const prompted = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "ui.prompted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        promptId: "field:book-flight:selectFlight:selectedFlightId",
+        widgetKind: "choice",
+        input: { label: "Flight option", options: [{ id: "CL102", label: "CL102" }] },
+      },
+    });
+    const extracted = reduceChatRuntimeEvent(prompted, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "journey.extraction.accepted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        journeyId: "book-flight",
+        stateId: "selectFlight",
+        fields: ["selectedFlightId"],
+      },
+    });
+
+    expect(extracted.prompts).toEqual([]);
+  });
+
+  it("closes open journey widgets when the matcher returns to the base agent", () => {
+    const prompted = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "ui.prompted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        promptId: "fields:book-flight:collectRoute",
+        widgetKind: "form",
+        input: { title: "Missing details", fields: [] },
+      },
+    });
+    const submitted = reduceChatRuntimeEvent(prompted, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "ui.submitted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        promptId: "fields:book-flight:collectRoute",
+        widgetKind: "form",
+        output: { values: { origin: "Vienna" } },
+      },
+    });
+    const nextPrompt = reduceChatRuntimeEvent(submitted, {
+      id: "event_3",
+      conversationId: "conversation_1",
+      offset: 3,
+      type: "ui.prompted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        promptId: "field:book-flight:selectFlight:selectedFlightId",
+        widgetKind: "choice",
+        input: { label: "Flight option", options: [] },
+      },
+    });
+    const baseAgent = reduceChatRuntimeEvent(nextPrompt, {
+      id: "event_4",
+      conversationId: "conversation_1",
+      offset: 4,
+      type: "journey.matched",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { candidates: [] },
+    });
+
+    expect(baseAgent.prompts.map((prompt) => prompt.promptId)).toEqual(["fields:book-flight:collectRoute"]);
+    expect(baseAgent.prompts[0]?.status).toBe("submitted");
   });
 
   it("replays completed user messages with the correct role", () => {
@@ -182,6 +336,7 @@ describe("React client events and widgets", () => {
 
     expect(completed.messages).toEqual([{
       id: "event_2",
+      offset: 2,
       role: "user",
       text: "Where is my ticket?",
       status: "sent",
@@ -244,7 +399,7 @@ describe("React client events and widgets", () => {
 });
 
 function emptyChatState() {
-  return { messages: [], prompts: [], lastOffset: 0 };
+  return { messages: [], prompts: [], activities: [], lastOffset: 0 };
 }
 
 class FakeEventSource {

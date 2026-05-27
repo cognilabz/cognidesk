@@ -1,4 +1,5 @@
 import type { MessageSegment, RuntimeEvent } from "../types.js";
+import { parseFieldConfirmationPromptId, parseFieldPromptId } from "./journey-state.js";
 
 export interface ReplayedMessage {
   id: string;
@@ -70,6 +71,20 @@ export function replayRuntimeEvents(events: RuntimeEvent[]) {
     }
     if (event.type === "ui.submitted") {
       openPrompts.delete(event.data.promptId);
+      continue;
+    }
+    if (event.type === "journey.extraction.accepted") {
+      for (const prompt of openPrompts.values()) {
+        const fieldPrompt = parseFieldPromptId(prompt.promptId) ?? parseFieldConfirmationPromptId(prompt.promptId);
+        if (
+          fieldPrompt
+          && fieldPrompt.journeyId === event.data.journeyId
+          && fieldPrompt.stateId === event.data.stateId
+          && event.data.fields.includes(fieldPrompt.path)
+        ) {
+          openPrompts.delete(prompt.promptId);
+        }
+      }
     }
   }
 

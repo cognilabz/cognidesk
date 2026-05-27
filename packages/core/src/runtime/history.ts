@@ -45,7 +45,7 @@ export function conversationMessagesFromEvents(events: RuntimeEvent[]): Conversa
       continue;
     }
     if (event.type !== "message.completed") continue;
-    if (event.data.intermediate) {
+    if (event.data.intermediate && !event.data.visibleToModel) {
       pendingRole = null;
       continue;
     }

@@ -15,6 +15,16 @@ function App() {
   const handleWidgetSubmit = async (args: { promptId: string; kind: string; output: unknown }) => {
     if (!conversationId) return;
     const { events } = await client.listEvents(conversationId);
+    if (isFlightSelectionPrompt(args.promptId)) {
+      const snapshot = await client.getSnapshot(conversationId);
+      const summary = formatSelectedFlightFromSnapshot(snapshot.snapshot?.journeyContext);
+      await client.emitIntermediateMessage(conversationId, {
+        text: summary
+          ? `${summary} selected. Please add the passenger name to continue.`
+          : "Flight selected. Please add the passenger name to continue.",
+      });
+      return;
+    }
     if (
       args.kind === "confirmation"
       && args.promptId === "confirm:book-flight:book:bookFlight"
@@ -25,6 +35,7 @@ function App() {
       if (!isRecord(result) || typeof result.bookingReference !== "string") return;
       await client.emitIntermediateMessage(conversationId, {
         text: `Mock booking confirmed. Booking reference: **${result.bookingReference}**.`,
+        visibleToModel: true,
       });
       return;
     }
@@ -34,7 +45,7 @@ function App() {
       if (isRecord(searchResult) && Array.isArray(searchResult.flights)) {
         if (searchResult.flights.length > 0) {
           await client.emitIntermediateMessage(conversationId, {
-            text: `${formatFlights(searchResult.flights)}\n\nChoose a flight number to continue.`,
+            text: `${formatFlights(searchResult.flights)}\n\nChoose a flight to continue.`,
           });
           return;
         }
@@ -106,6 +117,11 @@ function isRoutePrompt(promptId: string) {
     || promptId.startsWith("field:book-flight:noFlights:");
 }
 
+function isFlightSelectionPrompt(promptId: string) {
+  return promptId === "field:book-flight:selectFlight:selectedFlightId"
+    || promptId === "field:book-flight:noFlights:selectedFlightId";
+}
+
 function formatFlights(value: unknown) {
   const flights = Array.isArray(value) ? value.filter(isFlightLike) : [];
   if (flights.length === 0) return "I could not find any mocked flights for those details.";
@@ -130,6 +146,15 @@ function formatNoFlights(searchResult: unknown, suggestionResult: unknown) {
   return `I could not find mocked flights${searched}. Available mocked flights are:\n${formatFlights(allFlights)}`;
 }
 
+function formatSelectedFlightFromSnapshot(context: unknown) {
+  if (!isRecord(context) || typeof context.selectedFlightId !== "string") return "";
+  const flights = Array.isArray(context.availableFlights) ? context.availableFlights.filter(isFlightLike) : [];
+  const selectedFlightId = context.selectedFlightId;
+  const selected = flights.find((flight) => flight.id.toLowerCase() === selectedFlightId.toLowerCase());
+  if (!selected) return selectedFlightId.toUpperCase();
+  return `${selected.id} — ${selected.origin} → ${selected.destination}, ${formatDateTime(selected.departureTime)}, €${selected.price}`;
+}
+
 function isFlightLike(value: unknown): value is { id: string; origin: string; destination: string; departureTime: string; price: number } {
   return isRecord(value)
     && typeof value.id === "string"
@@ -145,14 +170,19 @@ function formatDateTime(value: string) {
 
 function ConfirmationWidget(props: WidgetRendererProps) {
   const input = props.input as { title?: string; message?: string; confirmLabel?: string; cancelLabel?: string };
+  const output = isRecord(props.output) ? props.output : {};
   return (
     <div className="demo-confirmation">
       <strong>{input.title ?? "Confirm"}</strong>
       <span>{input.message ?? "Continue?"}</span>
-      <div className="demo-confirmation-actions">
-        <button className="demo-confirmation-primary" type="button" disabled={props.disabled} onClick={() => props.submit({ confirmed: true })}>{input.confirmLabel ?? "Confirm"}</button>
-        <button type="button" disabled={props.disabled} onClick={() => props.submit({ confirmed: false })}>{input.cancelLabel ?? "Cancel"}</button>
-      </div>
+      {props.submitted ? (
+        <span>{output.confirmed === true ? "Confirmed" : "Not confirmed"}</span>
+      ) : (
+        <div className="demo-confirmation-actions">
+          <button className="demo-confirmation-primary" type="button" disabled={props.disabled} onClick={() => props.submit({ confirmed: true })}>{input.confirmLabel ?? "Confirm"}</button>
+          <button type="button" disabled={props.disabled} onClick={() => props.submit({ confirmed: false })}>{input.cancelLabel ?? "Cancel"}</button>
+        </div>
+      )}
     </div>
   );
 }

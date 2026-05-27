@@ -4,11 +4,12 @@ import type { FlightTools } from "../tools/flight-tools.js";
 
 export function addTicketStatusJourney(agent: ReturnType<typeof createAgent>, tools: FlightTools) {
   const status = agent.stateMachineJourney("ticket-status", {
-    condition: "Customer wants ticket status, booking status, check-in status, or flight information",
-    examples: ["Where is my ticket?", "What is the status of CL204?", "Can I check in?"],
+    condition: "Customer explicitly wants ticket status, booking status, check-in status, or flight information for a booking reference or flight number. Do not use this Journey for baggage add-ons, luggage eligibility, fare-rule checks, seat purchases, refunds, payments, or unsupported service changes.",
+    examples: ["Where is my ticket?", "What is the status of booking CD-CL204-4821?", "Can I check in for CL204?", "What is the status of flight CL204?"],
     tags: ["status", "check-in", "flight-info"],
     context: statusContext,
     priority: 30,
+    includeWhen: ({ activeJourneyId }) => activeJourneyId !== "baggage-service",
     matcher: ({ turn }) => Boolean((turn as { forceStatus?: boolean }).forceStatus),
   });
   const identify = status.state("identify").collect("bookingReference", { required: false }).collect("flightNumber", { required: false });

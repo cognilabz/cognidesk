@@ -3,30 +3,35 @@
     "id": "cogni-air-checkin",
     "title": "Cogni Air check-in windows",
     "category": "check-in",
+    "url": "/docs/cogni-air-checkin.html",
     "content": "Cogni Air opens online check-in 24 hours before scheduled departure and closes online check-in 45 minutes before departure. Airport desk check-in closes 35 minutes before departure for Schengen routes and 60 minutes before departure for long-haul routes."
   },
   {
     "id": "cogni-air-baggage-economy",
     "title": "Economy baggage allowance",
     "category": "baggage",
-    "content": "Cogni Air Economy Light includes one cabin bag up to 8 kg. Economy Flex includes one cabin bag and one checked bag up to 23 kg. Extra checked baggage can be added after booking when the fare rules permit changes."
+    "url": "/docs/cogni-air-baggage-economy.html",
+    "content": "Cogni Air Economy Light includes one cabin bag up to 8 kg. Economy Flex includes one cabin bag and one checked bag up to 23 kg. Extra checked baggage can be added after booking when the fare rules permit changes. The demo support chat can explain this policy but cannot purchase extra baggage or verify add-on eligibility for a booking."
   },
   {
     "id": "cogni-air-ticket-changes",
     "title": "Ticket change policy",
     "category": "changes",
+    "url": "/docs/cogni-air-ticket-changes.html",
     "content": "Cogni Air Flexible fares can be changed before departure without a service fee, although fare differences still apply. Saver fares can be changed for a service fee. Promo fares are non-changeable unless a schedule disruption affects the itinerary."
   },
   {
     "id": "cogni-air-disruptions",
     "title": "Disruption support",
     "category": "disruptions",
+    "url": "/docs/cogni-air-disruptions.html",
     "content": "When Cogni Air delays a flight by more than 90 minutes, customers may ask for rebooking options on the same route. When a flight is cancelled, support agents should offer the next available Cogni Air flight or prepare a human handoff when no automatic option fits."
   },
   {
     "id": "cogni-air-boarding",
     "title": "Boarding and gate timing",
     "category": "boarding",
+    "url": "/docs/cogni-air-boarding.html",
     "content": "Cogni Air boarding usually starts 35 minutes before departure for European flights and 50 minutes before departure for long-haul flights. Gates may close 15 minutes before departure even if online check-in has been completed."
   }
 ]

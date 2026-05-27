@@ -174,7 +174,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
     };
   }
 
-  async emitIntermediateMessage(input: { conversationId: string; text: string; traceId?: string }): Promise<{ events: RuntimeEvent[] }> {
+  async emitIntermediateMessage(input: { conversationId: string; text: string; traceId?: string; visibleToModel?: boolean }): Promise<{ events: RuntimeEvent[] }> {
     const started = {
       id: `event_${this.events.length + 1}`,
       conversationId: input.conversationId,
@@ -190,7 +190,11 @@ export class FakeRuntime implements CognideskHttpRuntime {
       offset: this.events.length + 2,
       type: "message.completed",
       createdAt: "2026-05-25T00:00:00.000Z",
-      data: { text: input.text, intermediate: true },
+      data: {
+        text: input.text,
+        intermediate: true,
+        ...(input.visibleToModel ? { visibleToModel: true } : {}),
+      },
       ...(input.traceId ? { traceId: input.traceId } : {}),
     } satisfies RuntimeEvent;
     this.events.push(started, completed);

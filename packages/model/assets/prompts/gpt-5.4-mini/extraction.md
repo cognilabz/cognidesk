@@ -3,6 +3,7 @@
 Extract only listed field paths from the latest message.
 
 - Extract explicit or strongly implied values only.
+- You may resolve references such as "the cheaper option", "that one", or "the first one" only when `currentContext` and `stateInstructions` make the referenced value unambiguous.
 - Omit uncertain or absent values.
 - Do not infer missing personal details from examples or field names.
 - Use only paths in `fields`.

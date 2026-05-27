@@ -140,7 +140,21 @@ export async function processWidgetSubmission(args: StateInteractionDeps & {
   }
 
   const confirmed = z.object({ confirmed: z.boolean() }).safeParse(args.output);
-  if (!confirmed.success || !confirmed.data.confirmed) return;
+  if (!confirmed.success) return;
+  if (!confirmed.data.confirmed) {
+    const events = await args.storage.listEvents({ conversationId: args.conversation.id });
+    const previousPrompt = [...events].reverse().find((event): event is PromptedEvent => (
+      event.type === "ui.prompted" && event.data.promptId === args.promptId
+    ));
+    if (previousPrompt) {
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "ui.prompted",
+        data: previousPrompt.data,
+      });
+    }
+    return;
+  }
   const toolTargetId = await args.runStateToolRuns({
     journey,
     conversation: args.conversation,

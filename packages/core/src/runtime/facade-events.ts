@@ -76,6 +76,7 @@ export async function emitRuntimeIntermediateMessage(
     data: {
       text: input.text,
       intermediate: true,
+      ...(input.visibleToModel ? { visibleToModel: true } : {}),
     },
     ...(input.traceId ? { traceId: input.traceId } : {}),
   });

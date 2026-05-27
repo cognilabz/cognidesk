@@ -50,7 +50,11 @@ export class StateBuilder<
       ...(options.confirm ? { confirm: options.confirm === true ? true : options.confirm } : {}),
       ...(options.prompt ? { prompt: options.prompt } : {}),
       ...(widgetDefinition ? { widget: widgetDefinition.widget } : {}),
-      ...(widgetDefinition?.input !== undefined ? { widgetInput: widgetDefinition.input } : {}),
+      ...(options.widgetInput
+        ? { widgetInput: options.widgetInput as (args: { context: unknown }) => unknown }
+        : widgetDefinition?.input !== undefined
+          ? { widgetInput: widgetDefinition.input }
+          : {}),
       ...(options.requiredWhen ? { requiredWhen: options.requiredWhen as (args: { context: unknown }) => boolean } : {}),
     });
     if (options.widget || options.confirm) this.requiresVisit("field collection requires user-visible handling");

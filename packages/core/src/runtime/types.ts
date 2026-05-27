@@ -102,6 +102,7 @@ export interface EmitIntermediateMessageInput {
   conversationId: string;
   text: string;
   traceId?: string;
+  visibleToModel?: boolean;
 }
 
 export interface EmitGeneratedPreambleInput {

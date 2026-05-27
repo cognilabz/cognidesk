@@ -69,7 +69,7 @@ describe("HTTP adapter lifecycle controls", () => {
 
     const intermediateResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/intermediate-messages", {
       method: "POST",
-      body: JSON.stringify({ text: "Still checking.", traceId: "trace_1" }),
+      body: JSON.stringify({ text: "Still checking.", traceId: "trace_1", visibleToModel: true }),
     }));
     const intermediate = await intermediateResponse.json() as { events: RuntimeEvent[] };
 
@@ -99,6 +99,7 @@ describe("HTTP adapter lifecycle controls", () => {
 
     expect(intermediateResponse.status).toBe(200);
     expect(intermediate.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);
+    expect(intermediate.events[1]?.data).toMatchObject({ visibleToModel: true });
     expect(preambleResponse.status).toBe(200);
     expect(preamble.text).toBe("I am still checking that for you.");
     expect(preamble.events.map((event) => event.type)).toEqual(["message.started", "message.completed"]);

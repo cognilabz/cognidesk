@@ -32,7 +32,12 @@ describe("flight demo customer use cases", () => {
     expect(openPrompts(events)).toEqual([
       expect.objectContaining({
         promptId: "field:book-flight:selectFlight:selectedFlightId",
-        widgetKind: "text-input",
+        widgetKind: "choice",
+        data: expect.objectContaining({
+          input: expect.objectContaining({
+            options: [expect.objectContaining({ id: "CL102" })],
+          }),
+        }),
       }),
     ]);
   });
@@ -93,9 +98,75 @@ describe("flight demo customer use cases", () => {
     expect(afterFormPrompts).toEqual([
       expect.objectContaining({
         promptId: "field:book-flight:selectFlight:selectedFlightId",
-        widgetKind: "text-input",
+        widgetKind: "choice",
       }),
     ]);
+  });
+
+  it("lets customers choose route alternatives from the no-flights state and continue booking", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime();
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Find flights from Vienna to Berlin on 2026-05-28.",
+    });
+    const prompts = openPrompts(await runtime.listEvents(conversation.id));
+
+    expect(result.snapshot.activeStateIds).toEqual(["noFlights"]);
+    expect(result.snapshot.journeyContext).toMatchObject({
+      routeAlternativeFlights: expect.arrayContaining([
+        expect.objectContaining({ id: "CL101" }),
+        expect.objectContaining({ id: "CL102" }),
+      ]),
+      availableFlights: expect.arrayContaining([
+        expect.objectContaining({ id: "CL101" }),
+        expect.objectContaining({ id: "CL102" }),
+      ]),
+    });
+    expect(prompts).toEqual([
+      expect.objectContaining({
+        promptId: "field:book-flight:noFlights:selectedFlightId",
+        widgetKind: "choice",
+      }),
+    ]);
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "field:book-flight:noFlights:selectedFlightId",
+      widgetKind: "choice",
+      output: { selectedId: "CL101" },
+    });
+
+    expect(await runtime.getSnapshot(conversation.id)).toMatchObject({
+      activeJourneyId: "book-flight",
+      activeStateIds: ["confirmPassenger"],
+      journeyContext: {
+        selectedFlightId: "CL101",
+      },
+    });
+  });
+
+  it("accepts clear-text cheaper alternative selection and keeps the booking journey alive", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime();
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Find flights from Vienna to Berlin on 2026-05-28.",
+    });
+    const selected = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "The cheaper one sounds good",
+    });
+
+    expect(selected.snapshot).toMatchObject({
+      activeJourneyId: "book-flight",
+      activeStateIds: ["confirmPassenger"],
+      journeyContext: {
+        selectedFlightId: "CL101",
+      },
+    });
   });
 
   it("does not ask customers to choose a flight when the mocked inventory is empty", async () => {
@@ -157,8 +228,8 @@ describe("flight demo customer use cases", () => {
     await runtime.submitWidget({
       conversationId: conversation.id,
       promptId: "field:book-flight:selectFlight:selectedFlightId",
-      widgetKind: "text-input",
-      output: { value: "cl204" },
+      widgetKind: "choice",
+      output: { selectedId: "cl204" },
     });
     const afterSelection = await runtime.getSnapshot(conversation.id);
 
@@ -174,6 +245,11 @@ describe("flight demo customer use cases", () => {
       expect.objectContaining({
         promptId: "confirm:book-flight:book:bookFlight",
         widgetKind: "confirmation",
+        data: expect.objectContaining({
+          input: expect.objectContaining({
+            message: expect.stringContaining("Flight: CL204"),
+          }),
+        }),
       }),
     ]);
   });
@@ -189,8 +265,8 @@ describe("flight demo customer use cases", () => {
     await runtime.submitWidget({
       conversationId: conversation.id,
       promptId: "field:book-flight:selectFlight:selectedFlightId",
-      widgetKind: "text-input",
-      output: { value: "CL102" },
+      widgetKind: "choice",
+      output: { selectedId: "CL102" },
     });
 
     expect(findSuccessfulTool(await runtime.listEvents(conversation.id), "bookFlight")).toBeUndefined();
@@ -214,6 +290,85 @@ describe("flight demo customer use cases", () => {
     expect(await runtime.getSnapshot(conversation.id)).toMatchObject({
       activeStateIds: [],
     });
+  });
+
+  it("does not ask for booking confirmation again after a confirmed booking follow-up", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime();
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Find flights from Vienna to Berlin tomorrow.",
+    });
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "field:book-flight:selectFlight:selectedFlightId",
+      widgetKind: "choice",
+      output: { selectedId: "CL102" },
+    });
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "field:book-flight:confirmPassenger:passengerName",
+      widgetKind: "text-input",
+      output: { value: "Philipp" },
+    });
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "confirm:book-flight:book:bookFlight",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
+    await runtime.emitIntermediateMessage({
+      conversationId: conversation.id,
+      text: "Mock booking confirmed. Booking reference: CD-CL102-4821.",
+      visibleToModel: true,
+    });
+
+    const followUp = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "cool",
+    });
+
+    expect(followUp.text.toLowerCase()).toContain("already confirmed");
+    expect(followUp.text).not.toMatch(/please confirm|confirm the booking/i);
+    expect(openPrompts(await runtime.listEvents(conversation.id))).toEqual([]);
+  });
+
+  it("keeps the booking confirmation available when the customer clicks not now", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime();
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Find flights from Vienna to Berlin tomorrow.",
+    });
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "field:book-flight:selectFlight:selectedFlightId",
+      widgetKind: "choice",
+      output: { selectedId: "CL102" },
+    });
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "field:book-flight:confirmPassenger:passengerName",
+      widgetKind: "text-input",
+      output: { value: "Alex Morgan" },
+    });
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "confirm:book-flight:book:bookFlight",
+      widgetKind: "confirmation",
+      output: { confirmed: false },
+    });
+
+    const events = await runtime.listEvents(conversation.id);
+    expect(findSuccessfulTool(events, "bookFlight")).toBeUndefined();
+    expect(openPrompts(events)).toEqual([
+      expect.objectContaining({
+        promptId: "confirm:book-flight:book:bookFlight",
+        widgetKind: "confirmation",
+      }),
+    ]);
   });
 
   it("uses booking references and flight numbers on the status journey", async () => {
@@ -296,11 +451,12 @@ async function setupFlightDemoRuntime(): Promise<FlightDemoTestRuntime> {
 }
 
 function openPrompts(events: RuntimeEvent[]) {
-  const submitted = new Set(events
-    .filter((event) => event.type === "ui.submitted")
-    .map((event) => event.data.promptId));
-  return events
-    .filter((event) => event.type === "ui.prompted" && !submitted.has(event.data.promptId))
+  const latestByPrompt = new Map<string, RuntimeEvent>();
+  for (const event of events) {
+    if (event.type === "ui.prompted" || event.type === "ui.submitted") latestByPrompt.set(event.data.promptId, event);
+  }
+  return [...latestByPrompt.values()]
+    .filter((event): event is Extract<RuntimeEvent, { type: "ui.prompted" }> => event.type === "ui.prompted")
     .map((event) => ({
       promptId: event.data.promptId,
       widgetKind: event.data.widgetKind,

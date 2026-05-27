@@ -91,7 +91,7 @@ export async function emitFieldPrompts(args: {
         widgetKind: "form",
         input: {
           title: "Missing details",
-          fields: missingFields.map(formFieldFromCollectedField),
+          fields: missingFields.map((field) => formFieldFromCollectedField(field, args.context)),
         },
       },
     });
@@ -112,7 +112,7 @@ export async function emitFieldPrompts(args: {
       data: {
         promptId,
         widgetKind: field.widget?.kind ?? "text-input",
-        input: field.widgetInput ?? {
+        input: resolveWidgetInput(field, args.context) ?? {
           label: field.prompt ?? field.path,
         },
       },
@@ -122,8 +122,12 @@ export async function emitFieldPrompts(args: {
   return prompted;
 }
 
-function formFieldFromCollectedField(field: CompiledJourney["states"][number]["collected"][number]) {
-  const input = isRecord(field.widgetInput) ? field.widgetInput : {};
+function formFieldFromCollectedField(
+  field: CompiledJourney["states"][number]["collected"][number],
+  context: Record<string, unknown>,
+) {
+  const resolvedInput = resolveWidgetInput(field, context);
+  const input = isRecord(resolvedInput) ? resolvedInput : {};
   const widgetKind = field.widget?.kind;
   return {
     path: field.path,
@@ -219,6 +223,8 @@ export async function emitConfirmationPrompts(args: {
       event.type === "ui.submitted" && event.data.promptId === promptId
     ));
     if (hasOpenPrompt) continue;
+    const baseMessage = toolRun.confirm?.reason ?? toolRun.confirm?.message ?? `Confirm ${toolRun.tool.name}.`;
+    const preview = formatConfirmationPreview(safeToolInputPreview(toolRun.input, args.context));
     await args.emit({
       conversationId: args.conversation.id,
       type: "ui.prompted",
@@ -227,13 +233,53 @@ export async function emitConfirmationPrompts(args: {
         widgetKind: toolRun.confirm?.widget?.kind ?? "confirmation",
         input: {
           title: toolRun.confirm?.message ?? `Confirm ${toolRun.tool.name}`,
-          message: toolRun.confirm?.reason ?? toolRun.confirm?.message ?? `Confirm ${toolRun.tool.name}.`,
+          message: preview ? `${baseMessage}\n\n${preview}` : baseMessage,
           confirmLabel: "Confirm",
-          cancelLabel: "Cancel",
+          cancelLabel: "Not now",
         },
       },
     });
     prompted += 1;
   }
   return prompted;
+}
+
+function resolveWidgetInput(
+  field: CompiledJourney["states"][number]["collected"][number],
+  context: Record<string, unknown>,
+) {
+  return typeof field.widgetInput === "function"
+    ? field.widgetInput({ context })
+    : field.widgetInput;
+}
+
+function safeToolInputPreview(
+  input: CompiledJourney["states"][number]["toolRuns"][number]["input"],
+  context: Record<string, unknown>,
+) {
+  if (!input) return {};
+  try {
+    return input({ context });
+  } catch {
+    return {};
+  }
+}
+
+function formatConfirmationPreview(value: unknown) {
+  if (!isRecord(value)) return "";
+  const entries = Object.entries(value)
+    .filter(([, entryValue]) => typeof entryValue === "string" || typeof entryValue === "number" || typeof entryValue === "boolean")
+    .filter(([key, entryValue]) => !key.toLowerCase().includes("internal") && String(entryValue).trim().length > 0);
+  if (entries.length === 0) return "";
+  return entries
+    .map(([key, entryValue]) => `${humanizeKey(key)}: ${String(entryValue)}`)
+    .join("\n");
+}
+
+function humanizeKey(value: string) {
+  const spaced = value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .trim();
+  return spaced ? `${spaced[0]?.toUpperCase() ?? ""}${spaced.slice(1)}` : value;
 }

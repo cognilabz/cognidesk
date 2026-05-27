@@ -122,6 +122,67 @@
   cursor: help;
 }
 
+.cd-message-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  color: var(--cd-color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.cd-message-source-link {
+  border: 1px solid color-mix(in srgb, var(--cd-color-border) 75%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cd-color-surface) 82%, transparent);
+  color: inherit;
+  padding: 0.125rem 0.4rem;
+  text-decoration: none;
+}
+
+.cd-message-source-link:hover {
+  border-color: color-mix(in srgb, var(--cd-color-primary) 35%, var(--cd-color-border));
+  color: var(--cd-color-primary);
+}
+
+.cd-activity-indicator {
+  display: inline-flex;
+  max-width: 84%;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.5rem;
+  border-radius: var(--cd-radius);
+  background: var(--cd-color-message-assistant);
+  color: var(--cd-color-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  padding: 0.55rem 0.7rem;
+}
+
+.cd-activity-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+  animation: cd-activity-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cd-activity-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .cd-widget-outlet {
   display: flex;
   flex-direction: column;
@@ -135,7 +196,13 @@
 }
 
 .cd-widget {
-  width: 100%;
+  width: min(100%, 84%);
+  align-self: flex-end;
+  border: 1px solid var(--cd-color-border);
+  border-radius: var(--cd-radius);
+  background: var(--cd-color-surface);
+  padding: 0.75rem;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--cd-color-primary) 8%, transparent);
 }
 
 .cd-widget-panel {
@@ -154,6 +221,7 @@
   color: var(--cd-color-text-muted);
   font-size: 0.8125rem;
   line-height: 1.4;
+  white-space: pre-wrap;
 }
 
 .cd-widget-actions {
@@ -216,6 +284,11 @@
   font: inherit;
   padding: 0.625rem 0.75rem;
   text-align: left;
+}
+
+.cd-widget-choice[data-selected="true"] {
+  border-color: var(--cd-color-primary);
+  background: color-mix(in srgb, var(--cd-color-primary) 8%, var(--cd-color-surface));
 }
 
 .cd-widget-choice-label,

@@ -8,6 +8,7 @@ import {
 } from "./active-turns.js";
 import { isAbortLikeError } from "./errors.js";
 import { listConversationMessages, listVisibleCustomEventContext } from "./history.js";
+import { removeRawKnowledgeMarkers } from "./knowledge-markers.js";
 import { resolveAvailableModelTools } from "./model-runner.js";
 import { createResponseMessages } from "./response-messages.js";
 import { createNextSnapshot } from "./snapshots.js";
@@ -173,7 +174,10 @@ export async function handleUserMessage<TTurn>(
       });
       if (interrupted) return interrupted;
     }
-    const assistantText = await args.redactAssistantMessage(conversation, response.text);
+    const assistantText = removeRawKnowledgeMarkers(
+      await args.redactAssistantMessage(conversation, response.text),
+      knowledge,
+    );
     throwIfTurnInterrupted(turn);
     const segments = await args.createCitationSegments({
       agent,

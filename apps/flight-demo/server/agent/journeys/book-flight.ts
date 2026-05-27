@@ -1,11 +1,12 @@
-import { datePickerWidget, textInputWidget, widgetPrompt, type createAgent } from "@cognidesk/core";
+import { choiceWidget, datePickerWidget, textInputWidget, widgetPrompt, type createAgent } from "@cognidesk/core";
 import { bookingContext } from "../domain/schemas.js";
+import type { Flight } from "../domain/schemas.js";
 import type { FlightTools } from "../tools/flight-tools.js";
 
 export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tools: FlightTools) {
   const booking = agent.stateMachineJourney("book-flight", {
-    condition: "Customer wants to search for flights or book a ticket",
-    examples: ["Book a ticket to Berlin", "Find me a flight from Vienna to Paris tomorrow"],
+    condition: "Customer explicitly wants to search flight availability or book a flight itinerary. Do not use this Journey for baggage, luggage, add-ons, seats, payment, ticket changes, refunds, policy questions, or unsupported service requests unless the customer also clearly asks to book a flight itinerary.",
+    examples: ["Book a ticket to Berlin", "Find me a flight from Vienna to Paris tomorrow", "I need a flight from Vienna to Berlin on 2026-05-27"],
     tags: ["booking", "tickets"],
     context: bookingContext,
     priority: 20,
@@ -14,6 +15,7 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
     .instructions([
       "A route-details form is shown when origin, destination, or departure date is missing.",
       "When the form is visible, ask the customer to use the form below instead of asking them to send those values separately in chat.",
+      "Use one short sentence and do not repeat the same form instruction.",
       "Interpret relative travel dates using 2026-05-26 as today.",
       "Store departureDate as YYYY-MM-DD; for example, tomorrow is 2026-05-27.",
     ].join(" "))
@@ -54,26 +56,35 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
     }),
     assign: {
       availableFlights: ({ output }) => output.flights,
+      selectedFlightId: () => undefined,
       lastSearchOrigin: ({ context }) => context.origin,
       lastSearchDestination: ({ context }) => context.destination,
       lastSearchDepartureDate: ({ context }) => context.departureDate,
     },
   });
   const selectFlight = booking.state("selectFlight")
-    .instructions("Show the availableFlights from journeyContext in the answer and ask the customer to use the flight-number field below. Do not ask them to reply in chat when the field is visible.")
+    .instructions([
+      "Show the availableFlights from journeyContext in the answer.",
+      "The customer may select a flight with the choice widget or in plain chat.",
+      "If the customer says the cheaper/cheapest option, select the available flight with the lowest price.",
+      "If the customer names a flight number, normalize it to uppercase.",
+    ].join(" "))
     .collect("selectedFlightId", {
-      prompt: "Choose one of the mocked flight numbers.",
-      widget: widgetPrompt(textInputWidget, {
-        label: "Flight number",
-        description: "Use a flight number from the search results.",
-        placeholder: "CL102",
+      prompt: "Flight option",
+      widget: widgetPrompt(choiceWidget, {
+        label: "Flight option",
+        options: [],
       }),
+      widgetInput: ({ context }) => flightChoiceInput(context),
     });
   const noFlights = booking.state("noFlights")
     .instructions([
       "No mocked flights matched the last search.",
       "For vague follow-ups such as 'What are available flights?' or 'On any dates?', use routeAlternativeFlights and allAvailableFlights from journeyContext instead of repeating only the failed date.",
-      "If routeAlternativeFlights is empty, say there are no mocked flights for that route on any date and offer the available mocked routes.",
+      "If routeAlternativeFlights is empty, say there are no mocked flights for that route on any date and list available mocked flights from allAvailableFlights with flight number, route, departure date/time, and price; do not reduce them to route names only.",
+      "When listing route alternatives, include the flight numbers such as CL102 so the customer can choose a concrete option.",
+      "If routeAlternativeFlights is not empty, those alternatives are selectable booking candidates. The customer may pick one using the choice widget or plain chat.",
+      "If the customer says the cheaper/cheapest option, select the route alternative with the lowest price.",
       "If the customer gives a new route or date, update the changed slot and search again.",
       "Interpret relative travel dates using 2026-05-26 as today and store departureDate as YYYY-MM-DD.",
     ].join(" "))
@@ -85,25 +96,40 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
       assign: {
         routeAlternativeFlights: ({ output }) => output.routeFlights,
         allAvailableFlights: ({ output }) => output.allFlights,
+        availableFlights: ({ output }) => output.routeFlights,
+        selectedFlightId: () => undefined,
       },
     })
     .collect("origin", { required: false })
     .collect("destination", { required: false })
-    .collect("departureDate", { required: false });
-  const confirmPassenger = booking.state("confirmPassenger").collect("passengerName", {
-    prompt: "Passenger name",
-    widget: widgetPrompt(textInputWidget, {
-      label: "Passenger name",
-      placeholder: "Alex Morgan",
-    }),
-  });
+    .collect("departureDate", { required: false })
+    .collect("selectedFlightId", {
+      prompt: "Flight option",
+      requiredWhen: ({ context }) => Array.isArray(context.availableFlights) && context.availableFlights.length > 0 && !searchCriteriaChanged(context),
+      widget: widgetPrompt(choiceWidget, {
+        label: "Route alternative",
+        options: [],
+      }),
+      widgetInput: ({ context }) => flightChoiceInput(context),
+    });
+  const confirmPassenger = booking.state("confirmPassenger")
+    .instructions("Tell the customer which selected mocked flight is being prepared, then collect the passenger name if it is missing.")
+    .collect("passengerName", {
+      prompt: "Passenger name",
+      widget: widgetPrompt(textInputWidget, {
+        label: "Passenger name",
+        placeholder: "Alex Morgan",
+      }),
+    });
   const book = booking.state("book").runTool(tools.bookFlight, {
     confirm: {
       message: "Confirm mocked booking",
+      reason: "Review the mocked booking details before creating the booking.",
     },
     input: ({ context }) => ({
       selectedFlightId: normalizeFlightId(context.selectedFlightId),
       passengerName: context.passengerName ?? "",
+      flight: summarizeSelectedFlight(context),
     }),
     assign: {
       bookingReference: ({ output }) => output.bookingReference,
@@ -127,6 +153,10 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
   noFlights.when("customer changed the route or departure date", {
     guard: ({ context }) => searchCriteriaChanged(context),
   }).target(chooseFlight);
+  noFlights.when("customer selected one of the listed route alternatives", {
+    priority: 20,
+    guard: ({ context }) => hasSelectedAvailableFlight(context),
+  }).target(confirmPassenger);
   confirmPassenger.when("passenger is known").target(book);
   book.transitionTo(booked);
 }
@@ -143,4 +173,56 @@ function searchCriteriaChanged(context: Record<string, unknown>) {
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function hasSelectedAvailableFlight(context: Record<string, unknown>) {
+  const selectedFlightId = normalizeFlightId(context.selectedFlightId);
+  return Boolean(selectedFlightId && getAvailableFlights(context).some((flight) => flight.id === selectedFlightId));
+}
+
+function flightChoiceInput(context: Record<string, unknown>) {
+  const flights = getAvailableFlights(context);
+  return {
+    label: flights.length > 1 ? "Choose a flight" : "Choose this flight",
+    options: flights.map((flight) => ({
+      id: flight.id,
+      label: `${flight.id} — ${flight.origin} to ${flight.destination}`,
+      description: `${formatFlightDate(flight.departureTime)} · €${flight.price} · ${flight.status}`,
+    })),
+  };
+}
+
+function summarizeSelectedFlight(context: Record<string, unknown>) {
+  const selectedFlightId = normalizeFlightId(context.selectedFlightId);
+  const flight = getAvailableFlights(context).find((candidate) => candidate.id === selectedFlightId);
+  return flight ? `${flight.id} — ${flight.origin} to ${flight.destination} — ${formatFlightDate(flight.departureTime)} — €${flight.price}` : selectedFlightId;
+}
+
+function getAvailableFlights(context: Record<string, unknown>) {
+  return Array.isArray(context.availableFlights)
+    ? context.availableFlights.filter(isFlight)
+    : [];
+}
+
+function isFlight(value: unknown): value is Flight {
+  return Boolean(
+    value
+      && typeof value === "object"
+      && "id" in value
+      && typeof value.id === "string"
+      && "origin" in value
+      && typeof value.origin === "string"
+      && "destination" in value
+      && typeof value.destination === "string"
+      && "departureTime" in value
+      && typeof value.departureTime === "string"
+      && "status" in value
+      && typeof value.status === "string"
+      && "price" in value
+      && typeof value.price === "number",
+  );
+}
+
+function formatFlightDate(value: string) {
+  return value.replace("T", " ").replace(/:\d{2}(?:[+-]\d{2}:\d{2}|Z)$/, "");
 }

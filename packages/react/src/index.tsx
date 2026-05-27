@@ -1,8 +1,8 @@
 export { createCognideskClient } from "./client.js";
 export { ChatWidget } from "./chat-widget.js";
 export { defaultWidgetRenderers } from "./default-widgets.js";
-export { reduceChatRuntimeEvent, type ChatEventReducerState, type ChatMessage, type PromptState } from "./event-reducer.js";
-export { formatSupportReferences } from "./support-references.js";
+export { reduceChatRuntimeEvent, type ChatActivity, type ChatEventReducerState, type ChatMessage, type PromptState } from "./event-reducer.js";
+export { collectSupportSourceLinks, formatSupportReferences, type SupportSourceLink } from "./support-references.js";
 export type {
   ChatWidgetProps,
   CognideskClient,

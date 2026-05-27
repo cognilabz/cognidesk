@@ -50,7 +50,7 @@ export interface CollectedField {
   confirm?: true | "beforeAction" | ConfirmationPolicy;
   prompt?: string;
   widget?: WidgetDefinition;
-  widgetInput?: unknown;
+  widgetInput?: unknown | ((args: { context: unknown }) => unknown);
   requiredWhen?: (args: { context: unknown }) => boolean;
 }
 

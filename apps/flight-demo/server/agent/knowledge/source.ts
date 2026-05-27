@@ -15,23 +15,31 @@ export function createFlightKnowledgeSource(args: {
     metadata: z.object({
       documentId: z.string(),
       category: z.string(),
+      url: z.string().min(1).optional(),
     }),
     retrieve: async ({ query, signal }) => {
       const items = await searchFlightKnowledgeIndex({
         index: args.index,
         embeddingModel: args.embeddingModel,
         query: query.query,
-        limit: 3,
+        limit: 5,
         minScore: 0.2,
         ...(signal ? { signal } : {}),
       });
+      const enriched = items.map((item) => ({
+        ...item,
+        metadata: {
+          ...item.metadata,
+          url: item.metadata.url ?? `/docs/${item.metadata.documentId}.html`,
+        },
+      }));
       return {
-        items: items as Array<{
+        items: enriched as Array<{
           id: string;
           title?: string;
           content: string;
           score?: number;
-          metadata: FlightKnowledgeMetadata;
+          metadata: FlightKnowledgeMetadata & { url: string };
         }>,
       };
     },

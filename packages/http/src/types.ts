@@ -101,6 +101,7 @@ export interface CreateCloseBody {
 export interface CreateIntermediateMessageBody {
   text?: string;
   traceId?: string;
+  visibleToModel?: boolean;
 }
 
 export interface CreateGeneratedPreambleBody {

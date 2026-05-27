@@ -66,7 +66,7 @@ export interface CognideskClient {
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
   emitCustomEvent(conversationId: string, eventName: string, input?: { payload?: unknown; traceId?: string }): Promise<{ event: RuntimeEvent }>;
   emitJourneyEvent(conversationId: string, eventName: string, input?: { payload?: unknown; routing?: "none" | "activeJourneyOnly" | "full" | "targeted"; target?: { journeyId?: string; stateId?: string }; app?: unknown; traceId?: string }): Promise<{ event: RuntimeEvent; snapshot: RuntimeSnapshotResult["snapshot"]; events: RuntimeEvent[] }>;
-  emitIntermediateMessage(conversationId: string, input: { text: string; traceId?: string }): Promise<{ events: RuntimeEvent[] }>;
+  emitIntermediateMessage(conversationId: string, input: { text: string; traceId?: string; visibleToModel?: boolean }): Promise<{ events: RuntimeEvent[] }>;
   emitGeneratedPreamble(conversationId: string, input?: { purpose?: string; maxWords?: number; traceId?: string }): Promise<{ text: string; events: RuntimeEvent[] }>;
   compactConversation(conversationId: string, input?: { fromOffset?: number; toOffset?: number; schemaVersion?: string }): Promise<{ summary: unknown; snapshot: NonNullable<RuntimeSnapshotResult["snapshot"]>; events: RuntimeEvent[] }>;
   closeConversation(conversationId: string, input?: { reason?: string }): Promise<{ conversation: CreateConversationResult["conversation"] }>;
@@ -82,8 +82,10 @@ export interface WidgetRendererProps {
   promptId: string;
   kind: string;
   input: unknown;
+  output?: unknown;
   appearance?: AppearanceConfiguration | undefined;
   disabled?: boolean;
+  submitted?: boolean;
   submit(output: unknown): void;
 }
 

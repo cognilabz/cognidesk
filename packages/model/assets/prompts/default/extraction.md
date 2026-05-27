@@ -5,6 +5,7 @@ Extract Journey State context fields from the latest user message.
 ## Extraction rules
 
 - Extract only values explicitly stated or strongly implied by the latest user message.
+- You may resolve references such as "the cheaper option", "that one", or "the first one" only when `currentContext` and `stateInstructions` make the referenced value unambiguous.
 - Do not fill missing customer details from examples, prior unrelated turns, or field names.
 - Do not transform values unless normalization is obvious and lossless.
 - Return only paths listed in `fields`.
