@@ -6,6 +6,7 @@ import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createRuntime } from "@cognidesk/core";
 import { startCognideskOtel } from "@cognidesk/otel";
 import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
 import { loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";
 
@@ -50,13 +51,25 @@ const handler = createCognideskHttpHandler({
   ssePollIntervalMs: 300,
 });
 
+const studioAdapter = createCognideskStudioAdapter({
+  targetId: process.env.COGNIDESK_STUDIO_TARGET_ID ?? "flight-demo-local",
+  agent,
+  runtime,
+  basePath: "/api/studio",
+  serviceToken: process.env.COGNIDESK_STUDIO_TARGET_TOKEN ?? "dev-studio-token",
+  cors: process.env.COGNIDESK_CORS === "false" ? false : true,
+});
+
 const port = Number(process.env.PORT ?? 8787);
 const host = process.env.HOST ?? "127.0.0.1";
 const server = createServer(async (nodeRequest, nodeResponse) => {
   let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   try {
     const request = toWebRequest(nodeRequest, port);
-    const response = await handler.handle(request);
+    const path = new URL(request.url).pathname;
+    const response = path.startsWith("/api/studio")
+      ? await studioAdapter.handle(request)
+      : await handler.handle(request);
     const headers: Record<string, string> = {};
     response.headers.forEach((value, key) => {
       headers[key] = value;

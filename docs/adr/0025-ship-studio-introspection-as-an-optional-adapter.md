@@ -1,0 +1,3 @@
+# Ship Studio introspection as an optional adapter
+
+Cognidesk Studio introspection will be exposed through an optional Studio Adapter package that target applications mount explicitly, rather than through Core or automatic runtime exposure. This keeps Runtime SDK execution independent of Studio while giving Studio a standard read-only boundary for compiled Agent definitions, Journey Graphs, prompt configuration, tool and Knowledge metadata, Runtime Events, conversations, and snapshots. Mutable Studio-owned artifacts, such as saved dashboards, are published through Studio artifact APIs and object storage rather than through target runtime mutation or source-code pull requests.

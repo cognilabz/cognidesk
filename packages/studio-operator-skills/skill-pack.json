@@ -1,0 +1,30 @@
+{
+  "name": "@cognidesk/studio-operator-skills",
+  "version": 1,
+  "skills": [
+    {
+      "id": "studio-api",
+      "title": "Use the Cognidesk Studio API",
+      "description": "Read targets, sessions, dashboard artifacts, credential grants, and publication state through typed Studio APIs.",
+      "path": "skills/studio-api.md"
+    },
+    {
+      "id": "telemetry",
+      "title": "Query Cognidesk telemetry",
+      "description": "Use configured trace and metric sources for runtime investigation and dashboard datasets.",
+      "path": "skills/telemetry.md"
+    },
+    {
+      "id": "sdk-map",
+      "title": "Understand the Cognidesk SDK",
+      "description": "Navigate compiled agents, state-machine journeys, delegation journeys, tools, widgets, events, snapshots, and docs.",
+      "path": "skills/sdk-map.md"
+    },
+    {
+      "id": "dashboard-authoring",
+      "title": "Author interactive Studio dashboards",
+      "description": "Create browser-sandboxed React dashboard artifacts backed by Studio Dashboard Data Layer capabilities.",
+      "path": "skills/dashboard-authoring.md"
+    }
+  ]
+}

@@ -4,14 +4,141 @@ services:
       context: .
     command: sh -c "pnpm --filter @cognidesk/flight-demo dev:server & pnpm --filter @cognidesk/flight-demo dev --host 0.0.0.0"
     environment:
+      HOST: "0.0.0.0"
       PORT: "8787"
       VITE_COGNIDESK_API_URL: "http://localhost:8787/api"
       SQLITE_PATH: "/app/apps/flight-demo/.data/flight-demo.sqlite"
+      COGNIDESK_STUDIO_TARGET_TOKEN: "dev-studio-token"
+      COGNIDESK_OTEL: "${COGNIDESK_OTEL:-false}"
+      COGNIDESK_TELEMETRY_CONTENT: "${COGNIDESK_TELEMETRY_CONTENT:-redacted}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}"
     ports:
       - "5173:5173"
       - "8787:8787"
     volumes:
       - flight_demo_data:/app/apps/flight-demo/.data
 
+  studio:
+    build:
+      context: .
+    command: pnpm --filter @cognidesk/studio dev
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      NODE_ENV: "development"
+      STUDIO_APP_URL: "http://localhost:3000"
+      STUDIO_DATABASE_PROVIDER: "sqlite"
+      STUDIO_DATABASE_URL: "file:/app/apps/studio/.data/studio.sqlite"
+      STUDIO_TARGET_MANIFEST: "/app/cognidesk.studio.json"
+      STUDIO_TARGET_OVERLAY: "/app/deploy/studio/compose-overlay.json"
+      STUDIO_OPERATOR_RUNTIME_WS_URL: "ws://studio-operator-runtime:4099/ws"
+      STUDIO_S3_ENDPOINT: "http://minio:9000"
+      STUDIO_S3_REGION: "us-east-1"
+      STUDIO_S3_ACCESS_KEY_ID: "minioadmin"
+      STUDIO_S3_SECRET_ACCESS_KEY: "minioadmin"
+      STUDIO_S3_FORCE_PATH_STYLE: "true"
+      COGNIDESK_STUDIO_TARGET_TOKEN: "dev-studio-token"
+      BETTER_AUTH_SECRET: "cognidesk-studio-local-development-secret-change-me"
+    ports:
+      - "3000:3000"
+    volumes:
+      - studio_data:/app/apps/studio/.data
+    depends_on:
+      flight-demo:
+        condition: service_started
+      minio:
+        condition: service_started
+      studio-operator-runtime:
+        condition: service_started
+
+  studio-operator-runtime:
+    build:
+      context: .
+      dockerfile: apps/studio-operator-runtime/Dockerfile
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "4099"
+      STUDIO_API_BASE_URL: "http://studio:3000"
+      STUDIO_DEFAULT_TARGET_ID: "flight-demo-local"
+      STUDIO_OPERATOR_SANDBOX_ROOT: "/sandboxes"
+      STUDIO_SOURCE_REPO_URL: "https://github.com/cognilabz/cognidesk.git"
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      GH_TOKEN: "${GH_TOKEN:-}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+    ports:
+      - "4099:4099"
+    volumes:
+      - operator_sandboxes:/sandboxes
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  postgres:
+    image: postgres:18-alpine
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: "studio"
+      POSTGRES_PASSWORD: "studio"
+      POSTGRES_DB: "cognidesk_studio"
+    ports:
+      - "5432:5432"
+    volumes:
+      - studio_postgres_data:/var/lib/postgresql/data
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    profiles: ["otel"]
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./observability/otelcol/config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
+    depends_on:
+      tempo:
+        condition: service_started
+
+  tempo:
+    image: grafana/tempo:2.7.2
+    profiles: ["otel"]
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./observability/tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200"
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    profiles: ["otel"]
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-otlp-receiver"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      otel-collector:
+        condition: service_started
+
 volumes:
   flight_demo_data:
+  studio_data:
+  minio_data:
+  operator_sandboxes:
+  studio_postgres_data:
+  prometheus_data:
+  tempo_data:

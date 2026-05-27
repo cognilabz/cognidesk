@@ -7,4 +7,5 @@ coverage/
 *.tsbuildinfo
 apps/*/.env
 packages/*/.env
-apps/*/.data/
+apps/*/*data/
+apps/*/.next

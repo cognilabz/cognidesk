@@ -19,6 +19,7 @@
     "@cognidesk/model": "workspace:*",
     "@cognidesk/otel": "workspace:*",
     "@cognidesk/react": "workspace:*",
+    "@cognidesk/studio-adapter": "workspace:*",
     "@cognidesk/storage-sqlite": "workspace:*",
     "@cognidesk/ui": "workspace:*",
     "@openrouter/ai-sdk-provider": "^2.9.0",

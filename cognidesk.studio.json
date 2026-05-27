@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "target": {
+    "id": "flight-demo-local",
+    "name": "Flight Demo",
+    "environment": "local"
+  },
+  "runtime": {
+    "baseUrl": "http://127.0.0.1:8787",
+    "apiBasePath": "/api",
+    "studioAdapterBasePath": "/api/studio",
+    "serviceAuthHeader": "authorization"
+  },
+  "telemetry": {
+    "sources": [
+      {
+        "id": "local-prometheus",
+        "label": "Local Prometheus",
+        "kind": "prometheus",
+        "baseUrl": "http://127.0.0.1:9090"
+      },
+      {
+        "id": "local-tempo",
+        "label": "Local Tempo",
+        "kind": "tempo",
+        "baseUrl": "http://127.0.0.1:3200"
+      }
+    ]
+  },
+  "source": {
+    "provider": "github",
+    "owner": "cognilabz",
+    "repo": "cognidesk",
+    "defaultBranch": "main",
+    "root": "."
+  },
+  "code": {
+    "allowedPaths": [
+      "apps/flight-demo/server/agent/**",
+      "apps/flight-demo/src/**",
+      "packages/core/src/**",
+      "packages/model/src/**",
+      "packages/react/src/**"
+    ],
+    "validationCommands": [
+      {
+        "id": "typecheck",
+        "label": "Typecheck",
+        "command": "pnpm typecheck",
+        "workingDirectory": "."
+      },
+      {
+        "id": "test",
+        "label": "Tests",
+        "command": "pnpm test",
+        "workingDirectory": "."
+      }
+    ]
+  },
+  "dashboards": {
+    "artifactBucket": "cognidesk-studio",
+    "artifactPrefix": "studio/dashboards"
+  },
+  "operator": {
+    "instructionsPath": "AGENTS.md",
+    "skillPacks": ["@cognidesk/studio-operator-skills"],
+    "models": [
+      {
+        "id": "gpt-5.3-codex",
+        "label": "GPT-5.3 Codex",
+        "provider": "codex-app-server",
+        "model": "gpt-5.3-codex"
+      },
+      {
+        "id": "gpt-5.5",
+        "label": "GPT-5.5",
+        "provider": "codex-app-server",
+        "model": "gpt-5.5",
+        "default": true
+      },
+      {
+        "id": "gpt-5.4",
+        "label": "GPT-5.4",
+        "provider": "codex-app-server",
+        "model": "gpt-5.4"
+      },
+      {
+        "id": "gpt-5.4-mini",
+        "label": "GPT-5.4 Mini",
+        "provider": "codex-app-server",
+        "model": "gpt-5.4-mini"
+      }
+    ],
+    "allowedCredentialGrants": [
+      "github",
+      "package_registry",
+      "telemetry",
+      "artifact_store",
+      "studio_adapter",
+      "backend_service"
+    ]
+  }
+}

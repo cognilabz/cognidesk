@@ -168,6 +168,10 @@ _Avoid_: Next.js-first frontend
 The non-A1 sample domain for demonstrating Cognidesk. It covers flight booking, ticket status, flight information, customer support tools, Knowledge, Widgets, and eval scenarios using real Cognidesk runtime modules, app-owned demo Knowledge, and mocked flight-service integrations.
 _Avoid_: Telecom demo, A1-like demo, fully mocked SDK demo
 
+**Flight Demo Studio Target**:
+The first local Studio Target used to prove Cognidesk Studio against a real SDK application. It attaches Studio to the Flight Service Demo's runtime definitions, storage, telemetry, source repository, Journeys, Delegation Journeys, Runtime Events, and demo UI.
+_Avoid_: Fake Studio-only target, A1 Daybreaker target, mocked introspection target
+
 **Demo Data**:
 Mocked data used only by the Flight Service Demo. Demo Data lives inside the demo application and is not a reusable SDK package.
 _Avoid_: Shared demo fixtures package
@@ -203,6 +207,154 @@ _Avoid_: Provider-specific core handoff
 **Test Harness**:
 An SDK-provided development and evaluation tool for customers to run their own agent implementations against real models and inspect Runtime Events, Journey Activation, state changes, tool calls, Knowledge Retrieval, and Conversation Closure.
 _Avoid_: CI-only mock harness, Studio
+
+**Cognidesk Studio**:
+An optional self-hosted developer and operator application that attaches to one active Studio Target at a time. Cognidesk Studio helps inspect, monitor, and safely change an SDK application, but it is not required for Runtime SDK execution.
+_Avoid_: Hosted-only platform, required runtime dependency, Test Harness
+
+**Studio Target**:
+The configured SDK application, Runtime SDK instance, source repository, and observability backend that a Cognidesk Studio instance is attached to. Studio inspection and change workflows operate against Studio Targets rather than against the Runtime SDK as a global service.
+_Avoid_: Cognidesk Agent, live runtime patch target, hosted tenant
+
+**Studio Target Manifest**:
+A versioned, reviewable, non-executable declaration of the active Studio Target, including the target identity, runtime API, observability source, source repository, allowed change scope, dashboard storage, allowed credential grant categories, and permission boundaries. A target repository may ship non-secret defaults in `cognidesk.studio.json` while the Studio deployment supplies an environment-specific overlay; Studio merges them deterministically into an effective manifest, with secrets and environment-specific values supplied outside repo defaults.
+_Avoid_: Executable TypeScript config, implicit environment discovery, hidden repo binding, unversioned studio config
+
+**Studio Telemetry Source**:
+A queryable telemetry backend attached to a Studio Target for traces and metrics. Studio Telemetry Sources use OpenTelemetry-shaped signals and conventions, but dashboards query stored telemetry rather than raw OTLP collector ingestion endpoints.
+_Avoid_: OTLP collector as dashboard database, raw telemetry firehose, logs-only source
+
+**Studio Introspection API**:
+A read-only API exposed by a Studio Target for the runtime facts Cognidesk Studio needs to inspect, such as compiled Agent definitions, Journey Graphs, prompt configuration, tool and Knowledge metadata, conversations, snapshots, and Runtime Events. The Studio Introspection API represents what the target runtime has actually compiled or recorded.
+_Avoid_: Source scraping as runtime truth, storage-table-only inspection, mutable admin API
+
+**Studio Adapter**:
+An optional Built-In Adapter that a Studio Target can mount to expose the read-only Studio Introspection API and related Studio integration endpoints. The Studio Adapter is explicit opt-in, uses Studio-facing service authentication, and is not part of Core runtime execution; Studio-owned artifact publication happens through Studio artifact APIs rather than target runtime mutation.
+_Avoid_: Core Studio dependency, automatic introspection exposure, customer auth reuse, target mutation API, mandatory admin API
+
+**Agent View**:
+The Cognidesk Studio inspection surface organized around the Studio Target's compiled Agent. Agent View links State Machine Journeys, Delegation Journeys, Journey Graphs, prompt configuration, Model Roles, Tools, Knowledge, Runtime Events, traces, conversations, and Runtime Snapshots back to the runtime Agent they belong to; graphical journey views are derived from compiled Journey Graphs.
+_Avoid_: Generic monitoring page, source-file browser, dashboard-only agent page
+
+**Studio Source Sandbox**:
+A disposable isolated clone or worktree of a Studio Target's source repository used by the Studio Operator to inspect code and prepare changes within the manifest's allowlisted write scope. The Studio Source Sandbox complements the Studio Introspection API but does not replace runtime introspection as the source of compiled runtime truth.
+_Avoid_: Live mounted repo mutation, unrestricted write scope, source-only Agent View, runtime hot patch
+
+**Studio Sandbox Toolchain**:
+The preinstalled developer tools available inside a Studio Source Sandbox container, such as `git`, `gh`, package managers, language runtimes, and validation tooling. The Studio Operator Runtime chooses which tools to use based on the Studio User's goal, configured capabilities, instructions, and Credential Grants rather than requiring a separate sandbox bootstrap CLI.
+_Avoid_: Per-session tool installer CLI as control plane, host tool dependency, missing GitHub CLI
+
+**Studio Operator Instructions**:
+The target-owned guidance file that tells the Studio Operator Runtime how to work inside a Studio Target source repository, including coding conventions, validation expectations, and capability usage. The default instruction file name is `AGENTS.md`, with alternate paths allowed through the Studio Target Manifest.
+_Avoid_: `agent.md` as canonical name, hidden prompt-only repo policy, instructions embedded only in Studio UI
+
+**Studio Operator Skill Pack**:
+A configured set of skills and tools that teach the Studio Operator Runtime how to use Studio APIs, Studio Dashboard Data Layer capabilities, Studio Telemetry Sources, Cognidesk SDK concepts, and the target's source and documentation map. Cognidesk ships a default SDK-owned Skill Pack as a reusable workspace package for Cognidesk and Studio concepts; target-specific instructions and skills complement it through the Operator Runtime's existing capability model rather than a separate Studio plugin system.
+_Avoid_: Hidden all-purpose prompt, duplicate Studio plugin system, repo instructions as only capability source
+
+**Studio Sandbox Network Access**:
+The full outbound network access available to Studio Source Sandboxes for realistic dependency installation, validation, repository access, and tool execution. Full network access increases the importance of sandbox isolation, credential scoping, and audit logging.
+_Avoid_: Offline-only validation, host-network trust, unrestricted secret access
+
+**Studio Credential Grant**:
+An explicit audited credential made available to a Studio Operator Session, Studio Operator Runtime tool, or Studio Source Sandbox so the Studio Operator can fulfill a goal. The Studio Target Manifest declares allowed grant categories, while Studio Admins configure actual secret values and policies; Credential Grants may include repository, package registry, telemetry, artifact storage, Studio Adapter, or backend service credentials, and should record scope, purpose, session, expiry, and use.
+_Avoid_: Ambient secret inheritance, untracked environment access, permanent broad credential
+
+**Studio Validation Command**:
+A manifest-declared command that the Studio Operator may run inside a Studio Source Sandbox to validate proposed source changes. Validation command output is attached to the Studio Operator Session and can be used in approval and pull request review.
+_Avoid_: Arbitrary shell access, undeclared validation, host command execution
+
+**Studio Approval Gate**:
+An explicit action by an authorized Studio User before the Studio Operator performs a durable side effect, such as creating a GitHub pull request or publishing a generated dashboard. Approval Gates make proposed changes reviewable and editable before they affect shared Studio or repository state, but they do not necessarily require approval from a second person.
+_Avoid_: Chat-text confirmation phrase, automatic PR creation, silent dashboard publish, mandatory second-person review
+
+**Studio Code Change Publication**:
+The v1 path for turning a validated Studio Source Sandbox diff into a durable source change by creating a GitHub pull request after a Studio Approval Gate. Direct pushes, live deployment hooks, and patch-download flows are outside the v1 publication path.
+_Avoid_: Direct push, live runtime patch, deployment hook as code review
+
+**Studio PR Provider**:
+The external source-control provider used by Studio Code Change Publication. GitHub is the only v1 Studio PR Provider; other providers such as GitLab or Bitbucket are future integration work.
+_Avoid_: Direct push provider, generic unsupported Git forge, target deployment provider
+
+**Studio Artifact Store**:
+The durable S3-compatible object storage used by Cognidesk Studio for generated artifacts such as saved interactive dashboards, large Operator Session artifacts, validation logs, screenshots, diff bundles, and captured sample datasets. Studio Artifacts are stored outside the Studio Target source repository unless a Studio User explicitly asks to turn an artifact into source code; local development uses MinIO for this storage boundary.
+_Avoid_: Git repo as dashboard store, browser-only artifact, runtime storage table as artifact blob store
+
+**Studio Database**:
+The Studio-owned operational database for Studio Users, RBAC state, target metadata, dashboard metadata, Operator Sessions, approvals, artifact references, and audit records. The Studio Database is separate from the Studio Target's runtime storage.
+_Avoid_: Target conversation storage, object artifact body store, browser-local Studio state
+
+**Studio Dashboard**:
+A saved interactive monitoring or analysis surface in Cognidesk Studio. Studio Dashboard metadata lives in Studio's database, while immutable generated dashboard version bodies live in the Studio Artifact Store, and later Studio Operator Sessions can continue editing the dashboard.
+_Avoid_: Grafana dashboard clone, target-repo dashboard file, transient chat artifact
+
+**Studio Dashboard Iteration**:
+The ability to resume work on an existing Studio Dashboard from the same or a later Studio Operator Session. Dashboard Iteration preserves immutable saved artifact versions, data bindings, and lineage so a Studio User can refine a dashboard over time and publish a reviewed version by moving the current-version pointer; the Studio Operator can read published dashboards and accessible drafts as context.
+_Avoid_: One-shot generated chart, chat-local dashboard edit, overwrite without lineage
+
+**Studio Dashboard Draft**:
+A dashboard artifact version being created or edited inside a Studio Operator Session before publication. A Studio Dashboard Draft can be previewed and validated, but it becomes a saved immutable Studio Dashboard version only after an authorized Studio User publishes it from the Studio Dashboard Sandbox.
+_Avoid_: Shared half-published dashboard, implicit save from chat, draft as current version
+
+**Studio Dashboard Data Layer**:
+The typed capability API used by Studio Dashboards and Studio APIs to query telemetry, runtime, and Cognidesk data for a Studio Target. Generated dashboard artifacts use target-scoped and permission-scoped named capabilities from the browser, with support for live query bindings and captured sample datasets, rather than receiving direct access to telemetry stores, runtime internals, repository credentials, arbitrary target selection, or arbitrary Studio endpoints.
+_Avoid_: Ad hoc dashboard fetches, direct secret-bearing backend access, raw telemetry backend coupling, generic internal API client
+
+**Studio Dashboard Sandbox**:
+The isolated browser execution context where generated Studio Dashboard React artifacts run. The sandbox lets generated dashboard code execute in the browser while limiting it to the Studio Dashboard Data Layer and preventing ambient access to Studio application state, credentials, or the main Studio DOM.
+_Avoid_: Main Studio React tree execution, ambient Studio privileges, backend secret access
+
+**Studio User**:
+A human developer or operator using Cognidesk Studio to inspect, monitor, evaluate, or change a Studio Target.
+_Avoid_: Customer, end user, Base Agent
+
+**Studio Auth**:
+The authentication boundary for Cognidesk Studio users. Studio Auth identifies Studio Users separately from customer conversation users and from target application authentication.
+_Avoid_: Trusted local network, customer auth reuse by default, anonymous operator access
+
+**Studio RBAC**:
+The role-based access control model for Cognidesk Studio capabilities such as target inspection, dashboard editing, Studio Operator usage, source sandbox access, approval gates, and administration. V1 built-in roles are Viewer, Dashboard Editor, Operator, and Admin: Viewer can inspect Agent View, monitoring, and published dashboards; Dashboard Editor can create, edit, and publish dashboards; Operator can use Studio Operator workflows; Admin manages Studio configuration and users. Studio RBAC gates both Studio web actions and Studio Operator Runtime actions.
+_Avoid_: All-or-nothing admin, UI-only permissions, target app roles as Studio roles
+
+**Studio Audit Log**:
+The append-only record of security-relevant and durable Studio actions, including dashboard publication, pull request creation, target manifest changes, RBAC changes, Operator Sessions, source sandbox lifecycle, validation runs, and denied or failed side-effect attempts.
+_Avoid_: Browser-only activity feed, mutable history, target runtime event log
+
+**Studio Admin View**:
+The Cognidesk Studio administration surface for Studio Auth, Studio RBAC, effective Studio Target Manifest inspection, integration health, artifact store health, telemetry source health, credential grant categories, validation commands, and Operator Skill Packs.
+_Avoid_: Hidden deployment wiring, separate health scripts only, target app admin page
+
+**Studio Operator**:
+The model-backed capability inside Cognidesk Studio that helps a Studio User inspect and change a Studio Target through evidence-grounded actions and approval-gated changes. The Studio Operator is not a Runtime SDK Agent and does not participate in customer support conversations.
+_Avoid_: Studio Agent, Assistant, Base Agent, runtime agent
+
+**Studio Operator Model**:
+The model configuration used by the Studio Operator itself. Studio Operator Models are completely separate from a Studio Target's Agent Model Set; changing a Studio Operator Model does not change the target Agent's production Model Roles.
+_Avoid_: Agent Model Set override, runtime model role, production agent model
+
+**Studio Operator Runtime**:
+The separate service container that executes Studio Operator model calls, tool orchestration, Studio Source Sandbox lifecycle, validation runs, and pull request preparation. The Studio Operator Runtime contains the Codex app server plus Cognidesk integration code, and is separate from the Studio web application and from the Runtime SDK executing customer conversations.
+_Avoid_: Next.js route as full operator runtime, Runtime SDK Agent, embedded code-editing side effect
+
+**Studio Operator Runtime Auth**:
+The service-to-service authentication and scoped session-claim handoff between the Studio web application and the Studio Operator Runtime. Studio owns Studio User identity and RBAC, while the Operator Runtime receives per-session claims, Credential Grants, and allowed capabilities to enforce actions.
+_Avoid_: Operator Runtime owning user login, raw browser session cookie forwarding, unauthenticated internal runtime API
+
+**Studio Operator Event Stream**:
+The incremental WebSocket event stream for Studio Operator Sessions, including model text, tool progress, evidence, artifacts, validation output, approval requests, and sandbox status. The Studio web application owns the browser-facing WebSocket endpoint and proxies authenticated, normalized Operator events to and from the internal Studio Operator Runtime.
+_Avoid_: Polling-only Operator UI, prose-only progress, SSE-only wrapper, browser coupling to raw Codex protocol, direct browser access to raw Operator Runtime
+
+**Studio Operator Session**:
+A persisted Codex-like Studio Operator workspace for a Studio User and Studio Target, combining a conversational transcript with typed workflow state such as selected Studio Operator Model, loaded evidence, generated artifacts, sandbox references, validation results, approval state, and proposed durable side effects. Studio Operator Sessions are private to the creating Studio User by default in v1, Admins may inspect them for audit or support, and they are separate from customer conversations and Eval Scenarios.
+_Avoid_: Stateless chat request, generic chat transcript only, Runtime SDK conversation, Test Harness run
+
+**Studio Operator Session Surface**:
+A structured UI region attached to a Studio Operator Session, such as Evidence, Artifacts, Sandbox Diff, Validation Runs, and Approvals. Session Surfaces make typed Operator state inspectable alongside the conversational transcript.
+_Avoid_: Prose-only evidence, hidden validation logs, approval buried in chat
+
+**Studio Operator Evidence**:
+The cited facts the Studio Operator uses to answer questions or propose changes, drawn from the Studio Introspection API, Studio Telemetry Sources, Studio Dashboard Data Layer, Studio Dashboards, accessible Studio Dashboard Drafts, and Studio Source Sandbox. When evidence sources disagree, the Studio Operator should surface the mismatch instead of merging them into an unsupported claim.
+_Avoid_: Uncited answer, source-only reasoning, telemetry-only diagnosis
 
 **Eval Scenario**:
 A code-defined Test Harness scenario that exercises a customer's agent implementation and records expected or observed runtime behavior.
@@ -854,6 +1006,10 @@ Developer: "Can the Flight Service Demo fall back to mock models when provider c
 
 Domain expert: "No. The demo runtime should fail startup without real model-provider configuration; mock models belong in explicit tests, not the running demo."
 
+Developer: "What should the first local Studio Target be?"
+
+Domain expert: "The Flight Demo Studio Target, because it exercises a real SDK app with Journeys, Delegation Journeys, storage, telemetry, Runtime Events, and UI."
+
 Developer: "Does v1 need a native Cognidesk Knowledge database package?"
 
 Domain expert: "No. Cognidesk owns the Knowledge Source contract; concrete vector stores and demo document ingestion can remain app-owned in v1."
@@ -869,6 +1025,214 @@ Domain expert: "They write Eval Scenarios and run them with the Eval CLI."
 Developer: "Are evals limited to fixed assertions?"
 
 Domain expert: "No. Eval Scenarios can use assertions, recording, an LLM Judge, and a Simulated User."
+
+Developer: "Is Cognidesk Studio required to run a production agent?"
+
+Domain expert: "No. Cognidesk Studio is an optional self-hosted control plane that attaches to a configured SDK application for inspection, monitoring, and guided changes."
+
+Developer: "When Studio changes code, does it change any Cognidesk agent globally?"
+
+Domain expert: "No. Studio changes are scoped to a Studio Target: the configured SDK application, source repo, runtime, and observability backend that Studio is attached to."
+
+Developer: "Can Studio infer the target repo and runtime from whatever environment it starts in, or by running a target-owned config file?"
+
+Domain expert: "No. A non-executable Studio Target Manifest declares that relationship explicitly, while secrets and environment-specific values can still come from deployment configuration."
+
+Developer: "Does the Studio Target Manifest live only in the target repository?"
+
+Domain expert: "No. Target repositories can provide non-secret manifest defaults, while Studio deployments provide environment-specific overlays that merge into an effective manifest."
+
+Developer: "What is the default repo manifest file name?"
+
+Domain expert: "`cognidesk.studio.json`."
+
+Developer: "Do Studio monitoring dashboards query the OTLP collector directly?"
+
+Domain expert: "No. The SDK exports OpenTelemetry signals, and Studio queries Studio Telemetry Sources that store and expose traces and metrics."
+
+Developer: "Can Studio build the Agent View by scraping source files?"
+
+Domain expert: "No. The Agent View should use the Studio Introspection API for compiled runtime truth, while the Studio Operator can also inspect source through a Studio Source Sandbox."
+
+Developer: "Does every Cognidesk runtime expose Studio introspection automatically?"
+
+Domain expert: "No. A target app explicitly mounts the optional Studio Adapter when it wants to expose Studio Introspection APIs."
+
+Developer: "Can Studio use customer end-user auth to call the Studio Adapter?"
+
+Domain expert: "No. The Studio Adapter uses Studio-facing service authentication; Studio RBAC remains inside Studio."
+
+Developer: "Can the Studio Adapter mutate the target runtime in v1?"
+
+Domain expert: "No. The Studio Adapter is read-only for target runtime state; mutable Studio artifacts are published through Studio's own artifact APIs without a target-source PR."
+
+Developer: "Is Agent View just a monitoring dashboard filtered by agent id?"
+
+Domain expert: "No. Agent View is organized around the compiled Agent and cross-links Journeys, prompts, tools, Knowledge, Runtime Events, traces, conversations, and snapshots."
+
+Developer: "Are open prompt-based journeys a separate Studio concept?"
+
+Domain expert: "No. Studio should present them as Delegation Journeys, with specialist goal, instructions, tools, Knowledge, completion criteria, and runtime activations."
+
+Developer: "Should Studio invent its own graph model for journey diagrams?"
+
+Domain expert: "No. Graphical journey views should be derived from compiled Journey Graphs exposed through introspection."
+
+Developer: "Can the Studio Operator edit the mounted target repository directly?"
+
+Domain expert: "No. Code changes happen in a disposable Studio Source Sandbox, constrained by the Studio Target Manifest's allowlisted write scope."
+
+Developer: "Does a sandbox need a special Studio CLI to install basic coding tools before the Operator can work?"
+
+Domain expert: "No. The Studio Source Sandbox image includes the Studio Sandbox Toolchain, and the Studio Operator Runtime chooses tools according to configured capabilities and instructions."
+
+Developer: "Should target-specific Operator instructions live in `agent.md`?"
+
+Domain expert: "No. `AGENTS.md` is the default Studio Operator Instructions file, with alternate paths allowed through the Studio Target Manifest."
+
+Developer: "Does the Studio Operator learn Studio APIs, telemetry APIs, and Cognidesk SDK concepts only from `AGENTS.md`?"
+
+Domain expert: "No. Studio Operator Skill Packs provide configured skills and tools for Studio APIs, telemetry, SDK concepts, and source or docs maps."
+
+Developer: "Who owns the default Cognidesk knowledge for the Studio Operator?"
+
+Domain expert: "The Cognidesk SDK ships a default Studio Operator Skill Pack for SDK concepts, Studio APIs, telemetry usage, dashboard generation, and source or docs maps."
+
+Developer: "Can the Studio Operator run arbitrary host shell commands to validate changes?"
+
+Domain expert: "No. It runs manifest-declared Studio Validation Commands inside the Studio Source Sandbox."
+
+Developer: "Are Studio Source Sandboxes offline by default?"
+
+Domain expert: "No. Studio Source Sandboxes have full outbound network access for realistic dependency installation, validation, repository access, and tool execution."
+
+Developer: "Can the Studio Operator receive backend credentials when a goal needs them?"
+
+Domain expert: "Yes, through explicit Studio Credential Grants that are scoped, purpose-bound, session-bound, expiring, and audited."
+
+Developer: "Are the actual credential secrets stored in the Studio Target Manifest?"
+
+Domain expert: "No. The manifest declares allowed grant categories, while Studio Admins configure actual secret values and grant policies inside Studio."
+
+Developer: "Can the Studio Operator create a pull request or publish a dashboard as soon as checks pass?"
+
+Domain expert: "No. Durable side effects require an explicit Studio Approval Gate by an authorized Studio User, though dashboard publication does not require a second-person review."
+
+Developer: "Can Studio publish code changes by direct push or deployment hook in v1?"
+
+Domain expert: "No. The v1 Studio Code Change Publication path is an approval-gated GitHub pull request."
+
+Developer: "Does v1 need GitLab or Bitbucket pull request support?"
+
+Domain expert: "No. GitHub is the v1 Studio PR Provider; other Git forge providers are future integration work."
+
+Developer: "Does the Studio Operator model picker change the target Agent's production models?"
+
+Domain expert: "No. Studio Operator Models belong to Studio and are completely separate from the Studio Target's Agent Model Set."
+
+Developer: "Does the Studio web app execute all Studio Operator code-editing work itself?"
+
+Domain expert: "No. A separate Studio Operator Runtime owns model orchestration, source sandboxes, validation runs, and pull request preparation."
+
+Developer: "Does the Studio Operator Runtime own Studio user login?"
+
+Domain expert: "No. Studio owns user identity and RBAC; the Operator Runtime authenticates service-to-service and receives scoped session claims, grants, and capabilities."
+
+Developer: "Does Studio need to invent model/tool streaming from scratch or wrap it as SSE?"
+
+Domain expert: "No. The Operator Runtime uses Codex app-server WebSocket-capable notifications and exposes a normalized Studio Operator Event Stream to the Studio web UI."
+
+Developer: "Does the browser connect directly to the raw Operator Runtime WebSocket?"
+
+Domain expert: "No. The Studio web app owns the browser-facing WebSocket endpoint and proxies authenticated, normalized Operator events to the internal Studio Operator Runtime."
+
+Developer: "Can each Studio Operator turn be stateless, or just stored as a plain chat transcript?"
+
+Domain expert: "No. Studio Operator work happens inside persisted Codex-like Studio Operator Sessions with a conversational transcript plus typed evidence, artifacts, sandbox references, validation, approvals, and model selection."
+
+Developer: "Are Studio Operator Sessions shared team workspaces in v1?"
+
+Domain expert: "No. They are private to the creating Studio User by default, while published dashboards and pull requests are the shared artifacts."
+
+Developer: "Can Admins inspect private Operator Sessions?"
+
+Domain expert: "Yes, for audit and support, and that access should itself be recorded in the Studio Audit Log."
+
+Developer: "Should evidence, diffs, validation runs, artifacts, and approvals live only inside chat messages?"
+
+Domain expert: "No. They should also appear as structured Studio Operator Session Surfaces alongside the transcript."
+
+Developer: "Can the Studio Operator answer from source code alone?"
+
+Domain expert: "No. It should ground answers in Studio Operator Evidence from introspection, telemetry, dashboard data, and source sandbox evidence, and call out mismatches."
+
+Developer: "Can the Studio Operator use existing dashboards as context?"
+
+Domain expert: "Yes. It can read published dashboards and accessible dashboard drafts according to the Studio User's RBAC permissions."
+
+Developer: "Are generated dashboards committed to the Studio Target repository when they are saved?"
+
+Domain expert: "No. Saved generated dashboards are Studio Artifacts stored in the Studio Artifact Store, outside the target source repository."
+
+Developer: "Does Studio store its own users, roles, dashboards, Operator Sessions, and approvals in the target runtime storage?"
+
+Domain expert: "No. Studio owns a separate Studio Database for operational Studio state."
+
+Developer: "Does Studio store the whole generated dashboard in its database?"
+
+Domain expert: "No. Studio stores Studio Dashboard metadata in its database and stores the generated artifact body in the Studio Artifact Store."
+
+Developer: "Is a generated Studio Dashboard finished forever once saved?"
+
+Domain expert: "No. Studio Dashboard Iteration lets later Studio Operator Sessions continue refining an existing dashboard with preserved lineage and data bindings."
+
+Developer: "Does editing a saved dashboard overwrite the artifact?"
+
+Domain expert: "No. Studio Dashboard versions are immutable; publishing moves the current-version pointer after review."
+
+Developer: "Do dashboard drafts show up as published dashboards?"
+
+Domain expert: "No. Studio Dashboard Drafts stay attached to a Studio Operator Session until a Studio Approval Gate publishes an immutable version."
+
+Developer: "Does publishing a generated dashboard require another person to approve it?"
+
+Domain expert: "No. A Studio User with the required RBAC permission can publish a reviewed dashboard draft from the sandbox."
+
+Developer: "Do generated dashboards query telemetry and runtime backends however they want, or call arbitrary Studio API endpoints?"
+
+Domain expert: "No. They use named, typed Studio Dashboard Data Layer capabilities backed by Studio APIs."
+
+Developer: "Are generated dashboards always live-only?"
+
+Domain expert: "No. The Studio Dashboard Data Layer supports live query bindings and captured sample datasets for preview, validation, and reproducibility."
+
+Developer: "Can a dashboard artifact choose another Studio Target or broaden its own permissions?"
+
+Domain expert: "No. Studio scopes Dashboard Data Layer capabilities to the dashboard target, Studio User permissions, manifest limits, query limits, and rate limits."
+
+Developer: "Can generated dashboard React code run with the same browser privileges as the main Studio app?"
+
+Domain expert: "No. Generated dashboard artifacts run in a Studio Dashboard Sandbox with access to the Studio Dashboard Data Layer, not ambient Studio privileges."
+
+Developer: "Can self-hosted Studio skip authentication because it runs locally?"
+
+Domain expert: "No. Studio Auth and Studio RBAC are required because Studio can inspect sensitive target data, run Operator workflows, save dashboards, and prepare pull requests."
+
+Developer: "Does v1 need fine-grained custom permission design before roles exist?"
+
+Domain expert: "No. V1 starts with built-in Viewer, Dashboard Editor, Operator, and Admin roles, with permissions enforced in Studio and the Studio Operator Runtime."
+
+Developer: "Where do admins verify the effective manifest and integration health?"
+
+Domain expert: "In Studio Admin View, which shows the effective Studio Target Manifest, source repo, introspection, telemetry, artifact store, credential grants, validation commands, and Operator Skill Packs."
+
+Developer: "Can durable Studio actions rely on chat history as the audit trail?"
+
+Domain expert: "No. Durable and security-relevant Studio actions are written to the append-only Studio Audit Log."
+
+Developer: "Is the Studio Operator just another customer support Agent?"
+
+Domain expert: "No. The Studio Operator is the model-backed capability inside Studio for a Studio User; Runtime SDK Agents handle customer support conversations."
 
 Developer: "Does Core know about a specific human support provider?"
 

@@ -1,0 +1,3 @@
+# Store Studio artifacts in object storage
+
+Saved Studio Dashboards, large Operator Session artifacts, validation logs, screenshots, diff bundles, captured sample datasets, and similar generated artifacts will store queryable metadata in Studio's database and durable artifact bodies in S3-compatible object storage. Local development uses a MinIO Docker container to keep the storage path S3-shaped, while production can use S3-compatible object storage. This keeps dashboard lists, ownership, permissions, versions, query bindings, approvals, and session references easy to index while avoiding Git or relational tables as the blob store for generated interactive component artifacts.

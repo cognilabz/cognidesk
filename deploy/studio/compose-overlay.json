@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "runtime": {
+    "baseUrl": "http://flight-demo:8787"
+  },
+  "telemetry": {
+    "sources": [
+      {
+        "id": "local-prometheus",
+        "label": "Local Prometheus",
+        "kind": "prometheus",
+        "baseUrl": "http://prometheus:9090"
+      },
+      {
+        "id": "local-tempo",
+        "label": "Local Tempo",
+        "kind": "tempo",
+        "baseUrl": "http://tempo:3200"
+      }
+    ]
+  }
+}
