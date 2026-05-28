@@ -8,7 +8,9 @@ Create dashboards as versioned artifacts with:
 
 - A title, slug, and target id.
 - React component code with a stable exported `Dashboard` entry.
-- Data queries and captured sample datasets.
+- Data queries and captured sample datasets in the full
+  `StudioDashboardDataset` shape: `{ id, title, description?, source:
+  { capability, targetId, params }, capturedAt, data }`.
 - A fallback summary for failed rendering.
 
 Publishing a dashboard requires an explicit authorized user action but does not

@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { StudioDashboardDatasetSchema } from "@cognidesk/studio-contracts";
 import { z } from "zod";
 import { getStudioSession } from "@/server/auth";
 import { authErrorResponse, requirePermission } from "@/server/rbac";
@@ -13,7 +14,7 @@ const SaveDashboardSchema = z.object({
   slug: z.string().optional(),
   description: z.string().optional(),
   code: z.string().min(1),
-  datasets: z.array(z.unknown()).optional(),
+  datasets: z.array(StudioDashboardDatasetSchema).optional(),
   fallback: z.unknown().optional(),
 });
 

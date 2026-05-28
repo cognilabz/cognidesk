@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 import {
   StudioDashboardArtifactSchema,
+  StudioDashboardDataQuerySchema,
+  StudioDashboardDatasetSchema,
   type StudioDashboardArtifact,
   type StudioDashboardDataset,
 } from "@cognidesk/studio-contracts";
@@ -28,6 +30,7 @@ export async function getDashboardArtifact(id: string): Promise<StudioDashboardA
     ))
     .limit(1);
   if (!version) return null;
+  const datasets = parseStoredDatasets(version.datasetsJson, dashboard.targetId, version.createdAt.toISOString());
   return StudioDashboardArtifactSchema.parse({
     id: dashboard.id,
     targetId: dashboard.targetId,
@@ -39,7 +42,7 @@ export async function getDashboardArtifact(id: string): Promise<StudioDashboardA
     version: dashboard.currentVersion,
     artifactKey: version.artifactKey,
     renderer: JSON.parse(version.rendererJson) as unknown,
-    datasets: JSON.parse(version.datasetsJson) as unknown,
+    datasets,
     createdAt: dashboard.createdAt.toISOString(),
     updatedAt: dashboard.updatedAt.toISOString(),
     publishedAt: dashboard.publishedAt?.toISOString(),
@@ -71,6 +74,7 @@ export async function saveDashboardDraft(input: {
   const now = new Date();
   const slug = slugify(input.slug ?? input.title);
   const dashboardId = input.dashboardId ?? randomUUID();
+  const datasets = StudioDashboardDatasetSchema.array().parse(input.datasets ?? []);
   const existing = input.dashboardId
     ? await getDashboardArtifact(input.dashboardId)
     : null;
@@ -113,7 +117,7 @@ export async function saveDashboardDraft(input: {
     version,
     artifactKey,
     rendererJson: JSON.stringify({ kind: "react-component", entry: "Dashboard" }),
-    datasetsJson: JSON.stringify(input.datasets ?? []),
+    datasetsJson: JSON.stringify(datasets),
     fallbackJson: JSON.stringify(input.fallback ?? {}),
     createdByUserId: input.userId,
     createdAt: now,
@@ -159,4 +163,50 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
     .slice(0, 80) || `dashboard-${Date.now()}`;
+}
+
+function parseStoredDatasets(rawJson: string, targetId: string, capturedAt: string) {
+  const parsed = JSON.parse(rawJson) as unknown;
+  const strict = StudioDashboardDatasetSchema.array().safeParse(parsed);
+  if (strict.success) return strict.data;
+  if (!Array.isArray(parsed)) return StudioDashboardDatasetSchema.array().parse([]);
+  return StudioDashboardDatasetSchema.array().parse(
+    parsed.map((dataset, index) => coerceLegacyDataset(dataset, index, targetId, capturedAt)),
+  );
+}
+
+function coerceLegacyDataset(raw: unknown, index: number, targetId: string, capturedAt: string): StudioDashboardDataset {
+  const record = isRecord(raw) ? raw : { data: raw };
+  const title = stringValue(record.title) ?? stringValue(record.name) ?? `Dataset ${index + 1}`;
+  const id = stringValue(record.id) ?? slugify(title);
+  const description = stringValue(record.description);
+  const sourceRecord = isRecord(record.source) ? record.source : {};
+  const strictSource = StudioDashboardDataQuerySchema.safeParse(sourceRecord);
+  const params = isRecord(sourceRecord.params) ? { ...sourceRecord.params } : {};
+  for (const key of ["endpoint", "type", "capability"]) {
+    const value = stringValue(sourceRecord[key]);
+    if (value) params[key] = value;
+  }
+  return {
+    id,
+    title,
+    ...(description ? { description } : {}),
+    source: strictSource.success
+      ? strictSource.data
+      : {
+          capability: "cognidesk.events",
+          targetId: stringValue(sourceRecord.targetId) ?? targetId,
+          params,
+        },
+    capturedAt: stringValue(record.capturedAt) ?? capturedAt,
+    data: record.data ?? record.rows ?? raw,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function stringValue(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }

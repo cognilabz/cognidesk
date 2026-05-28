@@ -74,23 +74,44 @@ export function DashboardsView(props: {
       </aside>
 
       <section className="min-w-0">
-        <PageHeader
-          eyebrow="Conversation dashboards"
-          title={previewDashboard?.artifact.title ?? "Conversation operations"}
-          actions={previewDashboard && previewDashboard.artifact.status !== "published" ? (
-            <Button onClick={() => publishDashboard(previewDashboard.artifact.id)}>
-              <CheckCircle2 size={16} />
-              Publish
-            </Button>
-          ) : null}
-        />
-        <div className="p-8">
-          <ConversationDashboard
-            conversations={props.conversations}
-            introspection={props.introspection}
-            previewDashboard={previewDashboard}
-          />
-        </div>
+        {previewDashboard ? (
+          <>
+            <PageHeader
+              eyebrow="Saved dashboard"
+              title={previewDashboard.artifact.title}
+              actions={previewDashboard.artifact.status !== "published" ? (
+                <Button onClick={() => publishDashboard(previewDashboard.artifact.id)}>
+                  <CheckCircle2 size={16} />
+                  Publish
+                </Button>
+              ) : null}
+            />
+            <div className="p-8">
+              <ConversationDashboard
+                conversations={props.conversations}
+                introspection={props.introspection}
+                previewDashboard={previewDashboard}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <PageHeader
+              eyebrow="Saved dashboards"
+              title="No saved dashboards yet"
+              description="Operator-created dashboard drafts will appear here after they are saved."
+              actions={(
+                <Button onClick={() => router.push("/operator")}>
+                  <Sparkles size={16} />
+                  Create with Operator
+                </Button>
+              )}
+            />
+            <div className="p-8">
+              <EmptyState title="No saved dashboard selected" text="Create a dashboard draft with Operator, then return here to review, publish, and inspect its saved artifact." />
+            </div>
+          </>
+        )}
       </section>
     </section>
   );
@@ -99,7 +120,7 @@ export function DashboardsView(props: {
 function ConversationDashboard(props: {
   conversations: StudioConversationRow[];
   introspection: StudioAgentIntrospection | null;
-  previewDashboard: PreviewDashboard;
+  previewDashboard: NonNullable<PreviewDashboard>;
 }) {
   const activity = conversationJourneyActivity(props.conversations);
   const lifecycle = conversationLifecycleDistribution(props.conversations);
@@ -160,13 +181,14 @@ function ConversationDashboard(props: {
 
 function ActivityBars({ data }: { data: Array<{ journey: string; conversations: number; events: number }> }) {
   const max = Math.max(1, ...data.flatMap((entry) => [entry.conversations, entry.events]));
+  const chartHeight = 280;
   return (
     <div className="grid h-96 grid-rows-[1fr_auto] gap-4 p-5">
       <div className="flex min-h-0 items-end gap-4 border-b border-slate-200">
         {data.map((entry) => (
           <div className="flex min-w-0 flex-1 items-end justify-center gap-1" key={entry.journey}>
-            <span className="w-6 rounded-t bg-blue-600" style={{ height: `${Math.max(4, (entry.conversations / max) * 100)}%` }} title={`${entry.conversations} conversations`} />
-            <span className="w-6 rounded-t bg-teal-700" style={{ height: `${Math.max(4, (entry.events / max) * 100)}%` }} title={`${entry.events} events`} />
+            <span className="block w-6 rounded-t bg-blue-600" style={{ height: `${Math.max(6, (entry.conversations / max) * chartHeight)}px` }} title={`${entry.conversations} conversations`} />
+            <span className="block w-6 rounded-t bg-teal-700" style={{ height: `${Math.max(6, (entry.events / max) * chartHeight)}px` }} title={`${entry.events} events`} />
           </div>
         ))}
       </div>

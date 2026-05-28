@@ -78,13 +78,14 @@ function SurfaceLine(props: { icon: React.ReactNode; label: string; value: strin
 
 function ActivityBars({ data }: { data: Array<{ journey: string; conversations: number; events: number }> }) {
   const max = Math.max(1, ...data.flatMap((entry) => [entry.conversations, entry.events]));
+  const chartHeight = 220;
   return (
     <div className="grid h-80 grid-rows-[1fr_auto] gap-4 p-5">
       <div className="flex min-h-0 items-end gap-4 border-b border-slate-200">
         {data.map((entry) => (
           <div className="flex min-w-0 flex-1 items-end justify-center gap-1" key={entry.journey}>
-            <span className="w-5 rounded-t bg-blue-600" style={{ height: `${Math.max(4, (entry.conversations / max) * 100)}%` }} title={`${entry.conversations} conversations`} />
-            <span className="w-5 rounded-t bg-teal-700" style={{ height: `${Math.max(4, (entry.events / max) * 100)}%` }} title={`${entry.events} events`} />
+            <span className="block w-5 rounded-t bg-blue-600" style={{ height: `${Math.max(6, (entry.conversations / max) * chartHeight)}px` }} title={`${entry.conversations} conversations`} />
+            <span className="block w-5 rounded-t bg-teal-700" style={{ height: `${Math.max(6, (entry.events / max) * chartHeight)}px` }} title={`${entry.events} events`} />
           </div>
         ))}
       </div>

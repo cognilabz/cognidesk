@@ -103,6 +103,15 @@ select {
   animation: operator-event-in 180ms ease-out both;
 }
 
+.operator-working-text {
+  animation: text-shimmer 1.8s ease-in-out infinite;
+  background: linear-gradient(90deg, #64748b 0%, #0f172a 45%, #64748b 90%);
+  background-clip: text;
+  background-size: 220% 100%;
+  color: transparent;
+  -webkit-background-clip: text;
+}
+
 @keyframes text-shimmer {
   from {
     background-position: 100% center;

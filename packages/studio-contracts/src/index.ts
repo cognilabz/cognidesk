@@ -401,6 +401,10 @@ export const StudioOperatorServerEventSchema = z.discriminatedUnion("type", [
     type: z.literal("activity"),
     sessionId: z.string(),
     message: z.string(),
+    detail: z.string().optional(),
+    category: z.string().optional(),
+    input: z.unknown().optional(),
+    output: z.unknown().optional(),
     surface: StudioOperatorSurfaceSchema.optional(),
   }),
   z.object({

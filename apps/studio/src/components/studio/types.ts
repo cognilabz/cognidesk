@@ -43,6 +43,16 @@ export type OperatorEventEntry = {
   kind: "activity" | "tool" | "reasoning" | "artifact" | "diff" | "validation" | "approval" | "error";
   title: string;
   detail?: string;
+  category?: string;
+  history?: Array<{
+    id: string;
+    title: string;
+    detail?: string;
+    category?: string;
+    input?: unknown;
+    output?: unknown;
+    status?: OperatorEventStatus;
+  }>;
   surface?: string;
   status?: OperatorEventStatus;
   name?: string;
@@ -70,7 +80,7 @@ export type ReasoningEffort = "none" | "minimal" | "low" | "medium" | "high" | "
 
 export type OperatorEvent =
   | { type: "session.ready"; sessionId: string; targetId: string; modelId?: string }
-  | { type: "activity"; sessionId?: string; message: string; surface?: string }
+  | { type: "activity"; sessionId?: string; message: string; detail?: string; category?: string; input?: unknown; output?: unknown; surface?: string }
   | { type: "assistant.delta"; sessionId: string; delta: string }
   | { type: "artifact.upserted"; sessionId: string; artifact: Record<string, unknown> }
   | { type: "sandbox.diff.updated"; sessionId: string; summary: string; files: Array<{ path: string; status: string }> }

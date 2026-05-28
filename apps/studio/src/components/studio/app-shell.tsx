@@ -16,6 +16,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import type { Health, User } from "./types";
 import { Button } from "./ui";
 
@@ -46,9 +47,12 @@ export function AppShell(props: {
 
   return (
     <main className={`grid min-h-screen bg-slate-100 ${collapsed ? "lg:grid-cols-[72px_minmax(0,1fr)]" : "lg:grid-cols-[220px_minmax(0,1fr)]"}`}>
-      <aside className="sticky top-0 grid h-screen grid-rows-[auto_1fr_auto] border-r border-slate-200 bg-slate-50 px-3 py-4 max-lg:static max-lg:h-auto max-lg:border-b max-lg:border-r-0">
-        <div className={`flex items-center gap-2 ${collapsed ? "lg:justify-center" : "justify-between"}`}>
-          <Link className={`flex min-h-10 items-center gap-3 rounded-lg px-2 text-left ${collapsed ? "lg:justify-center" : ""}`} href="/" title="Cognidesk">
+      <aside className={cn(
+        "sticky top-0 grid h-screen grid-rows-[auto_1fr_auto] overflow-hidden border-r border-slate-200 bg-slate-50 py-4 max-lg:static max-lg:h-auto max-lg:border-b max-lg:border-r-0",
+        collapsed ? "px-2 lg:justify-items-center" : "px-3"
+      )}>
+        <div className={cn("flex items-center gap-2", collapsed ? "lg:flex-col lg:justify-start" : "justify-between")}>
+          <Link className={cn("flex min-h-10 items-center gap-3 rounded-lg px-2 text-left", collapsed && "lg:w-10 lg:justify-center lg:px-0")} href="/" title="Cognidesk">
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-950 text-sm font-semibold text-white">C</span>
             <strong className={`text-sm text-slate-950 ${collapsed ? "lg:hidden" : ""}`}>Cognidesk</strong>
           </Link>
@@ -63,14 +67,14 @@ export function AppShell(props: {
           </button>
         </div>
 
-        <nav className="mt-8 grid content-start gap-1 max-lg:flex max-lg:flex-wrap">
+        <nav className={cn("grid content-start gap-1 max-lg:flex max-lg:flex-wrap", collapsed ? "mt-5 lg:justify-items-center" : "mt-8")}>
           {navItems.map((item) => {
             const selected = isActive(pathname, item.href);
             return (
               <Link
                 className={`flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm transition ${
                   selected ? "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:bg-slate-100"
-                } ${collapsed ? "lg:justify-center lg:px-0" : ""}`}
+                } ${collapsed ? "lg:w-10 lg:justify-center lg:px-0" : ""}`}
                 href={item.href}
                 key={item.href}
                 title={item.label}
@@ -82,7 +86,7 @@ export function AppShell(props: {
           })}
         </nav>
 
-        <div className={`grid gap-1 px-3 py-2 text-sm ${collapsed ? "lg:px-0 lg:text-center" : ""}`}>
+        <div className={`grid max-w-full gap-1 overflow-hidden px-3 py-2 text-sm ${collapsed ? "lg:px-0 lg:text-center" : ""}`}>
           <span className={`truncate font-medium text-slate-950 ${collapsed ? "lg:hidden" : ""}`}>{props.user.name}</span>
           <span className={`text-xs text-slate-500 ${collapsed ? "lg:hidden" : ""}`}>{props.user.role}</span>
           <span className={`mx-auto hidden h-8 w-8 place-items-center rounded-full bg-white text-xs font-semibold text-slate-700 ring-1 ring-slate-200 ${collapsed ? "lg:grid" : ""}`}>
