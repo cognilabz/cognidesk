@@ -78,6 +78,59 @@ export async function createOperatorSession(input: {
   return session;
 }
 
+export async function renameOperatorSession(input: {
+  sessionId: string;
+  userId: string;
+  title: string;
+  includeAll?: boolean;
+}) {
+  const [session] = await db.select().from(operatorSessions)
+    .where(input.includeAll
+      ? eq(operatorSessions.id, input.sessionId)
+      : and(eq(operatorSessions.id, input.sessionId), eq(operatorSessions.userId, input.userId)))
+    .limit(1);
+  if (!session) return null;
+
+  const now = new Date();
+  const title = input.title.trim().slice(0, 120);
+  await db.update(operatorSessions)
+    .set({ title, updatedAt: now })
+    .where(eq(operatorSessions.id, input.sessionId));
+  await audit({
+    userId: input.userId,
+    targetId: session.targetId,
+    action: "operator.session.renamed",
+    subjectType: "operator_session",
+    subjectId: session.id,
+    metadata: { title },
+  });
+  return { ...session, title, updatedAt: now };
+}
+
+export async function deleteOperatorSession(input: {
+  sessionId: string;
+  userId: string;
+  includeAll?: boolean;
+}) {
+  const [session] = await db.select().from(operatorSessions)
+    .where(input.includeAll
+      ? eq(operatorSessions.id, input.sessionId)
+      : and(eq(operatorSessions.id, input.sessionId), eq(operatorSessions.userId, input.userId)))
+    .limit(1);
+  if (!session) return false;
+
+  await audit({
+    userId: input.userId,
+    targetId: session.targetId,
+    action: "operator.session.deleted",
+    subjectType: "operator_session",
+    subjectId: session.id,
+    metadata: { title: session.title },
+  });
+  await db.delete(operatorSessions).where(eq(operatorSessions.id, input.sessionId));
+  return true;
+}
+
 export async function appendOperatorMessage(input: {
   sessionId: string;
   role: "user" | "assistant" | "system" | "tool";

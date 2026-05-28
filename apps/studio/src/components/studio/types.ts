@@ -36,13 +36,35 @@ export type OperatorMessage = {
   text: string;
 };
 
+export type OperatorEventStatus = "pending" | "running" | "completed" | "error";
+
 export type OperatorEventEntry = {
   id: string;
   kind: "activity" | "tool" | "reasoning" | "artifact" | "diff" | "validation" | "approval" | "error";
   title: string;
   detail?: string;
   surface?: string;
+  status?: OperatorEventStatus;
+  name?: string;
+  input?: unknown;
+  output?: unknown;
+  files?: Array<{ path: string; status: string }>;
+  approvalId?: string;
+  action?: string;
 };
+
+export type OperatorChatMessageItem = OperatorMessage & {
+  type: "message";
+  streaming?: boolean;
+};
+
+export type OperatorChatEventItem = {
+  id: string;
+  type: "event";
+  event: OperatorEventEntry;
+};
+
+export type OperatorChatItem = OperatorChatMessageItem | OperatorChatEventItem;
 
 export type ReasoningEffort = "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
 

@@ -12,6 +12,12 @@
     "lint": "turbo run lint",
     "check": "pnpm typecheck && pnpm test"
   },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.15",
+      "@types/react-dom": "19.2.3"
+    }
+  },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "tsup": "^8.5.0",
