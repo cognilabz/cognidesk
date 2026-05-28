@@ -4,19 +4,24 @@ import type { StudioTargetManifest } from "@cognidesk/studio-contracts";
 import {
   ChevronDownIcon,
   CheckIcon,
+  BarChart3Icon,
   FileTextIcon,
+  EyeIcon,
   MoreHorizontalIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
+  PanelRightCloseIcon,
+  PanelRightOpenIcon,
   PencilIcon,
   PlusIcon,
+  RefreshCwIcon,
   SearchIcon,
   SparklesIcon,
   SquareTerminalIcon,
   Trash2Icon,
   XIcon,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { type CSSProperties, useMemo, useRef, useState } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -84,12 +89,14 @@ import type {
   OperatorChatItem,
   OperatorChatEventItem,
   OperatorChatMessageItem,
+  PreviewDashboard,
   OperatorEvent,
   OperatorEventEntry,
   OperatorMessage,
   OperatorSessionRow,
   ReasoningEffort,
 } from "./types";
+import { DashboardRenderer, type DashboardCheckResult } from "./dashboard-renderer";
 import { formatDateTime } from "./ui";
 
 const reasoningEfforts: Array<{ id: ReasoningEffort; label: string }> = [
@@ -126,6 +133,8 @@ export function OperatorView(props: {
   const assistantMessageIdRef = useRef<string | null>(null);
   const operatorSessionIdRef = useRef<string | null>(null);
   const persistQueueRef = useRef(Promise.resolve());
+  const dashboardSnapshotRef = useRef<Map<string, string>>(new Map());
+  const surfacedDashboardVersionsRef = useRef<Set<string>>(new Set());
   const [sessionSidebarCollapsed, setSessionSidebarCollapsed] = useState(false);
   const [operatorSessionId, setOperatorSessionId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<OperatorSessionRow[]>(props.initialSessions);
@@ -142,6 +151,12 @@ export function OperatorView(props: {
   ]);
   const [artifacts, setArtifacts] = useState<Record<string, unknown>[]>([]);
   const [diffFiles, setDiffFiles] = useState<Array<{ path: string; status: string }>>([]);
+  const [previewDashboard, setPreviewDashboard] = useState<PreviewDashboard>(null);
+  const [dashboardDialogOpen, setDashboardDialogOpen] = useState(false);
+  const [dashboardPanelOpen, setDashboardPanelOpen] = useState(false);
+  const [dashboardPanelWidth, setDashboardPanelWidth] = useState(560);
+  const [dashboardChecks, setDashboardChecks] = useState<Record<string, DashboardCheckResult>>({});
+  const [dashboardActionError, setDashboardActionError] = useState<string | null>(null);
   const [isWorking, setIsWorking] = useState(false);
 
   const filteredSessions = useMemo(() => {
@@ -154,6 +169,10 @@ export function OperatorView(props: {
   const hasUserMessages = chatItems.some((item) => item.type === "message" && item.role === "user");
   const visibleChatItems = useMemo(() => compactActivityEvents(chatItems), [chatItems]);
   const assistantIsTyping = isAssistantTyping(visibleChatItems);
+  const operatorGridStyle = {
+    "--session-column": `${sessionSidebarCollapsed ? 68 : 300}px`,
+    "--dashboard-column": `${dashboardPanelWidth}px`,
+  } as CSSProperties;
   operatorSessionIdRef.current = operatorSessionId;
 
   async function startNewSession() {
@@ -178,6 +197,10 @@ export function OperatorView(props: {
     setChatItems([messageToChatItem(welcomeMessage(props.manifest.target.name))]);
     setArtifacts([]);
     setDiffFiles([]);
+    setPreviewDashboard(null);
+    setDashboardDialogOpen(false);
+    setDashboardPanelOpen(false);
+    setDashboardActionError(null);
     setInput("");
     assistantDraftRef.current = "";
     assistantMessageIdRef.current = null;
@@ -200,15 +223,21 @@ export function OperatorView(props: {
     };
     setOperatorSessionId(id);
     operatorSessionIdRef.current = id;
-    setChatItems(data.messages.length
+    const loadedChatItems = data.messages.length
       ? data.messages.map(storedMessageToChatItem)
-      : [messageToChatItem(welcomeMessage(props.manifest.target.name))]);
+      : [messageToChatItem(welcomeMessage(props.manifest.target.name))];
+    setChatItems(loadedChatItems);
+    void reconcileDashboardEvents(loadedChatItems);
     setArtifacts(data.artifacts.map((artifact) => (
       typeof artifact.artifact === "object" && artifact.artifact !== null
         ? artifact.artifact as Record<string, unknown>
         : { title: artifact.title, type: artifact.type, value: artifact.artifact }
     )));
     setDiffFiles([]);
+    setPreviewDashboard(null);
+    setDashboardDialogOpen(false);
+    setDashboardPanelOpen(false);
+    setDashboardActionError(null);
     assistantDraftRef.current = "";
     assistantMessageIdRef.current = null;
   }
@@ -253,6 +282,9 @@ export function OperatorView(props: {
       setChatItems([messageToChatItem(welcomeMessage(props.manifest.target.name))]);
       setArtifacts([]);
       setDiffFiles([]);
+      setPreviewDashboard(null);
+      setDashboardDialogOpen(false);
+      setDashboardPanelOpen(false);
       assistantDraftRef.current = "";
       assistantMessageIdRef.current = null;
     }
@@ -270,6 +302,7 @@ export function OperatorView(props: {
       { id: crypto.randomUUID(), role: "user", text: message, type: "message" },
     ]);
     try {
+      dashboardSnapshotRef.current = await fetchDashboardSnapshot().catch(() => new Map());
       const socket = await ensureOperatorSocket();
       let sessionId = operatorSessionId;
       if (!sessionId) {
@@ -456,6 +489,7 @@ export function OperatorView(props: {
       setIsWorking(false);
       markActivityEventsComplete();
       finishAssistantSegment({ reloadSessions: Boolean(event.sessionId) });
+      void surfaceDashboardChanges();
     }
   }
 
@@ -546,13 +580,201 @@ export function OperatorView(props: {
     });
   }
 
+  async function fetchDashboardRows() {
+    const response = await fetch("/api/studio/dashboards", { cache: "no-store" });
+    if (!response.ok) return [];
+    const data = await response.json() as { dashboards: RawDashboardRow[] };
+    return data.dashboards;
+  }
+
+  async function fetchDashboardSnapshot() {
+    const rows = await fetchDashboardRows();
+    return new Map(rows.map((dashboard) => [dashboard.id, dashboardSnapshotValue(dashboard)]));
+  }
+
+  async function fetchDashboardPreview(id: string): Promise<PreviewDashboard> {
+    const response = await fetch(`/api/studio/dashboards/${id}`, { cache: "no-store" });
+    if (!response.ok) return null;
+    return await response.json() as PreviewDashboard;
+  }
+
+  async function surfaceDashboardChanges() {
+    const rows = await fetchDashboardRows().catch(() => []);
+    if (!rows.length) return;
+    const previous = dashboardSnapshotRef.current;
+    dashboardSnapshotRef.current = new Map(rows.map((dashboard) => [dashboard.id, dashboardSnapshotValue(dashboard)]));
+    const changed = rows.filter((dashboard) => previous.get(dashboard.id) !== dashboardSnapshotValue(dashboard));
+    const dashboard = changed[0];
+    if (!dashboard) return;
+    const preview = await fetchDashboardPreview(dashboard.id);
+    if (!preview) return;
+    const surfacedKey = `${preview.artifact.id}:v${preview.artifact.version}`;
+    if (surfacedDashboardVersionsRef.current.has(surfacedKey)) return;
+    surfacedDashboardVersionsRef.current.add(surfacedKey);
+    setArtifacts((items) => [preview.artifact as unknown as Record<string, unknown>, ...items].slice(0, 12));
+    pushOperatorEvent({
+      kind: "dashboard",
+      title: preview.artifact.title,
+      ...(preview.artifact.description ? { detail: preview.artifact.description } : {}),
+      dashboardId: preview.artifact.id,
+      dashboardSlug: preview.artifact.slug,
+      dashboardStatus: preview.artifact.status,
+      dashboardVersion: preview.artifact.version,
+      artifactKey: preview.artifact.artifactKey,
+      output: preview.artifact,
+      surface: "artifacts",
+      status: "completed",
+    });
+  }
+
+  async function openDashboardFromChat(id: string) {
+    const preview = await fetchDashboardPreview(id);
+    if (!preview) {
+      setDashboardActionError("Dashboard could not be opened.");
+      return;
+    }
+    setDashboardActionError(null);
+    setPreviewDashboard(preview);
+    setDashboardDialogOpen(true);
+  }
+
+  async function openDashboardPanelFromChat(id: string) {
+    const preview = await fetchDashboardPreview(id);
+    if (!preview) {
+      setDashboardActionError("Dashboard could not be opened.");
+      return;
+    }
+    setDashboardActionError(null);
+    setPreviewDashboard(preview);
+    setDashboardDialogOpen(false);
+    setDashboardPanelOpen(true);
+  }
+
+  async function publishDashboardFromChat(id: string) {
+    const response = await fetch(`/api/studio/dashboards/${id}/publish`, { method: "POST" });
+    if (!response.ok) {
+      setDashboardActionError("Dashboard could not be published.");
+      return;
+    }
+    const data = await response.json() as { dashboard: NonNullable<PreviewDashboard>["artifact"] };
+    updateDashboardEvents(id, {
+      dashboardStatus: data.dashboard.status,
+      dashboardVersion: data.dashboard.version,
+      artifactKey: data.dashboard.artifactKey,
+      output: data.dashboard,
+    });
+    setPreviewDashboard((current) => current?.artifact.id === id ? { ...current, artifact: data.dashboard } : current);
+    setDashboardActionError(null);
+  }
+
+  async function deleteDashboardFromChat(id: string) {
+    const response = await fetch(`/api/studio/dashboards/${id}`, { method: "DELETE" });
+    if (!response.ok) {
+      setDashboardActionError("Dashboard could not be deleted.");
+      return;
+    }
+    updateDashboardEvents(id, {
+      dashboardStatus: "deleted",
+      status: "completed",
+    });
+    if (previewDashboard?.artifact.id === id) {
+      setDashboardDialogOpen(false);
+      setDashboardPanelOpen(false);
+      setPreviewDashboard(null);
+    }
+    setDashboardActionError(null);
+  }
+
+  async function checkDashboardFromChat(id: string) {
+    const preview = await fetchDashboardPreview(id);
+    if (!preview) {
+      setDashboardActionError("Dashboard could not be checked.");
+      return;
+    }
+    const issues: string[] = [];
+    if (!hasDashboardExport(preview.code)) issues.push("Generated React code does not export Dashboard.");
+    if (!preview.artifact.datasets.length) issues.push("No datasets are attached.");
+    if (!preview.artifact.renderer.spec?.widgets?.length) issues.push("No render spec widgets are attached.");
+    for (const dataset of preview.artifact.datasets.filter((dataset) => dataset.mode === "live")) {
+      const response = await fetch("/api/studio/dashboard-data", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(dataset.source),
+      });
+      if (!response.ok) issues.push(`Live dataset failed: ${dataset.title}`);
+    }
+    const result: DashboardCheckResult = {
+      status: issues.length ? "failed" : "passed",
+      checkedAt: new Date().toISOString(),
+      issues,
+    };
+    setDashboardChecks((items) => ({ ...items, [id]: result }));
+    setPreviewDashboard(preview);
+    if (!dashboardPanelOpen) setDashboardDialogOpen(true);
+    setDashboardActionError(null);
+  }
+
+  function reviseDashboardFromDialog() {
+    if (!previewDashboard) return;
+    setInput(`Update dashboard ${previewDashboard.artifact.id} (${previewDashboard.artifact.title}). Keep the existing dashboardId, preserve useful datasets, and revise the React code plus spec for: `);
+    setDashboardDialogOpen(false);
+  }
+
+  function updateDashboardEvents(id: string, patch: Partial<OperatorEventEntry>) {
+    setChatItems((items) => items.map((item) => {
+      if (item.type !== "event" || item.event.dashboardId !== id) return item;
+      return { ...item, event: { ...item.event, ...patch } };
+    }));
+  }
+
+  async function reconcileDashboardEvents(items: OperatorChatItem[]) {
+    const dashboardIds = [...new Set(items
+      .map((item) => item.type === "event" ? item.event.dashboardId : undefined)
+      .filter((id): id is string => Boolean(id)))];
+    if (!dashboardIds.length) return;
+    const previews = await Promise.all(dashboardIds.map(async (id) => [id, await fetchDashboardPreview(id)] as const));
+    const previewById = new Map(previews);
+    setChatItems((current) => current.map((item) => {
+      if (item.type !== "event" || !item.event.dashboardId) return item;
+      if (!previewById.has(item.event.dashboardId)) return item;
+      const preview = previewById.get(item.event.dashboardId);
+      if (!preview) {
+        return {
+          ...item,
+          event: {
+            ...item.event,
+            dashboardStatus: "deleted",
+            status: "completed",
+          },
+        };
+      }
+      return {
+        ...item,
+        event: {
+          ...item.event,
+          title: preview.artifact.title,
+          ...(preview.artifact.description ? { detail: preview.artifact.description } : {}),
+          dashboardSlug: preview.artifact.slug,
+          dashboardStatus: preview.artifact.status,
+          dashboardVersion: preview.artifact.version,
+          artifactKey: preview.artifact.artifactKey,
+          output: preview.artifact,
+          status: "completed",
+        },
+      };
+    }));
+  }
+
   return (
     <section
       className={cn(
-        "grid h-[calc(100vh-5rem)] min-h-0 overflow-hidden bg-white text-slate-950",
-        sessionSidebarCollapsed ? "grid-cols-[68px_minmax(0,1fr)]" : "grid-cols-[300px_minmax(0,1fr)]",
+        "grid h-[calc(100vh-4rem)] min-h-0 overflow-hidden bg-white text-slate-950",
+        dashboardPanelOpen
+          ? "grid-cols-[var(--session-column)_minmax(0,1fr)_minmax(380px,var(--dashboard-column))]"
+          : "grid-cols-[var(--session-column)_minmax(0,1fr)]",
         "max-lg:grid-cols-[minmax(0,1fr)]"
       )}
+      style={operatorGridStyle}
     >
       <aside className="grid min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] border-r border-slate-200 bg-slate-50 max-lg:hidden">
         <div className={cn("flex items-center gap-2 px-3 py-3", sessionSidebarCollapsed ? "justify-center" : "justify-between")}>
@@ -622,7 +844,7 @@ export function OperatorView(props: {
         </div>
       </aside>
 
-      <section className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)_auto]">
+      <section className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
         <header className="flex min-h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 max-md:flex-col max-md:items-stretch max-md:py-4">
           <div className="min-w-0">
             <h1 className="truncate text-base font-semibold text-slate-950">{activeSession?.title ?? "Studio Operator"}</h1>
@@ -700,9 +922,15 @@ export function OperatorView(props: {
                 />
               ) : (
                 <OperatorEventWidget
+                  checkResult={item.event.dashboardId ? dashboardChecks[item.event.dashboardId] ?? null : null}
                   continuing={shouldMarkItemContinuing(item, visibleChatItems, isWorking, assistantIsTyping)}
                   event={item.event}
                   key={item.id}
+                  onCheckDashboard={checkDashboardFromChat}
+                  onDeleteDashboard={deleteDashboardFromChat}
+                  onOpenDashboard={openDashboardFromChat}
+                  onOpenDashboardPanel={openDashboardPanelFromChat}
+                  onPublishDashboard={publishDashboardFromChat}
                 />
               ))}
               {shouldShowStandaloneWorkingIndicator(visibleChatItems, isWorking, assistantIsTyping) ? <InlineWorkingIndicator /> : null}
@@ -767,6 +995,172 @@ export function OperatorView(props: {
         </footer>
       </section>
 
+      {dashboardPanelOpen ? (
+        <aside className="grid min-h-0 min-w-[380px] grid-rows-[auto_auto_minmax(0,1fr)] border-l border-slate-200 bg-white max-lg:hidden">
+          <div className="flex min-h-16 items-center justify-between gap-3 border-b border-slate-200 px-4">
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase text-slate-500">Dashboard view</p>
+              <h2 className="truncate text-sm font-semibold text-slate-950">
+                {previewDashboard?.artifact.title ?? "No dashboard selected"}
+              </h2>
+            </div>
+            <Button
+              aria-label="Close dashboard sidebar"
+              className="text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+              onClick={() => setDashboardPanelOpen(false)}
+              size="icon-sm"
+              title="Close dashboard sidebar"
+              type="button"
+              variant="ghost"
+            >
+              <PanelRightCloseIcon />
+            </Button>
+          </div>
+          <div className="border-b border-slate-200 px-4 py-3">
+            <label className="grid gap-2 text-xs font-medium uppercase text-slate-500">
+              Sidebar width
+              <input
+                aria-label="Dashboard sidebar width"
+                className="w-full accent-slate-950"
+                max={920}
+                min={380}
+                onChange={(event) => setDashboardPanelWidth(Number(event.target.value))}
+                step={20}
+                type="range"
+                value={dashboardPanelWidth}
+              />
+            </label>
+          </div>
+          <div className="min-h-0 overflow-y-auto bg-slate-50/60 p-4">
+            {dashboardActionError ? (
+              <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {dashboardActionError}
+              </div>
+            ) : null}
+            {previewDashboard ? (
+              <div className="grid gap-3">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    onClick={() => void checkDashboardFromChat(previewDashboard.artifact.id)}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <RefreshCwIcon />
+                    Check
+                  </Button>
+                  {previewDashboard.artifact.status !== "published" ? (
+                    <Button onClick={() => void publishDashboardFromChat(previewDashboard.artifact.id)} size="sm" type="button">
+                      <CheckIcon />
+                      Publish
+                    </Button>
+                  ) : null}
+                  <Button
+                    className="border-red-200 bg-white text-red-600 hover:bg-red-50"
+                    onClick={() => void deleteDashboardFromChat(previewDashboard.artifact.id)}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <Trash2Icon />
+                    Delete
+                  </Button>
+                </div>
+                <DashboardRenderer
+                  checkResult={dashboardChecks[previewDashboard.artifact.id] ?? null}
+                  compact
+                  previewDashboard={previewDashboard}
+                />
+              </div>
+            ) : (
+              <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500">
+                Open a dashboard from the chat card to pin it here.
+              </div>
+            )}
+          </div>
+        </aside>
+      ) : null}
+
+      <Dialog onOpenChange={setDashboardDialogOpen} open={dashboardDialogOpen}>
+        <DialogContent className="grid max-h-[92vh] w-[min(1480px,96vw)] max-w-none grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden border-slate-200 bg-white text-slate-950">
+          <DialogHeader>
+            <DialogTitle>{previewDashboard?.artifact.title ?? "Dashboard"}</DialogTitle>
+            <DialogDescription className="text-slate-500">
+              {previewDashboard ? `${previewDashboard.artifact.status} / v${previewDashboard.artifact.version}` : "Loading"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 overflow-y-auto pr-1">
+            {dashboardActionError ? (
+              <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {dashboardActionError}
+              </div>
+            ) : null}
+            {previewDashboard ? (
+              <DashboardRenderer
+                checkResult={dashboardChecks[previewDashboard.artifact.id] ?? null}
+                compact
+                previewDashboard={previewDashboard}
+              />
+            ) : null}
+          </div>
+          <DialogFooter className="gap-2 sm:justify-between">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                onClick={reviseDashboardFromDialog}
+                type="button"
+                variant="outline"
+              >
+                <PencilIcon />
+                Ask for changes
+              </Button>
+              {previewDashboard ? (
+                <Button
+                  className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                  onClick={() => void openDashboardPanelFromChat(previewDashboard.artifact.id)}
+                  type="button"
+                  variant="outline"
+                >
+                  <PanelRightOpenIcon />
+                  Sidebar
+                </Button>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {previewDashboard ? (
+                <>
+                  <Button
+                    className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                    onClick={() => void checkDashboardFromChat(previewDashboard.artifact.id)}
+                    type="button"
+                    variant="outline"
+                  >
+                    <RefreshCwIcon />
+                    Check
+                  </Button>
+                  {previewDashboard.artifact.status !== "published" ? (
+                    <Button onClick={() => void publishDashboardFromChat(previewDashboard.artifact.id)} type="button">
+                      <CheckIcon />
+                      Publish
+                    </Button>
+                  ) : null}
+                  <Button
+                    className="border-red-200 bg-white text-red-600 hover:bg-red-50"
+                    onClick={() => void deleteDashboardFromChat(previewDashboard.artifact.id)}
+                    type="button"
+                    variant="outline"
+                  >
+                    <Trash2Icon />
+                    Delete
+                  </Button>
+                </>
+              ) : null}
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog
         onOpenChange={(open) => {
           if (!open) setPendingDeleteSession(null);
@@ -823,9 +1217,41 @@ function ChatMessage({ continuing = false, item }: { continuing?: boolean; item:
   );
 }
 
-function OperatorEventWidget({ continuing = false, event }: { continuing?: boolean; event: OperatorEventEntry }) {
+function OperatorEventWidget({
+  checkResult,
+  continuing = false,
+  event,
+  onCheckDashboard,
+  onDeleteDashboard,
+  onOpenDashboard,
+  onOpenDashboardPanel,
+  onPublishDashboard,
+}: {
+  checkResult?: DashboardCheckResult | null | undefined;
+  continuing?: boolean;
+  event: OperatorEventEntry;
+  onCheckDashboard: (id: string) => void | Promise<void>;
+  onDeleteDashboard: (id: string) => void | Promise<void>;
+  onOpenDashboard: (id: string) => void | Promise<void>;
+  onOpenDashboardPanel: (id: string) => void | Promise<void>;
+  onPublishDashboard: (id: string) => void | Promise<void>;
+}) {
   if (event.kind === "activity") {
     return <InlineActivityEvent continuing={continuing} event={event} />;
+  }
+  if (event.kind === "dashboard") {
+    return (
+      <DashboardEventCard
+        checkResult={checkResult ?? null}
+        continuing={continuing}
+        event={event}
+        onCheckDashboard={onCheckDashboard}
+        onDeleteDashboard={onDeleteDashboard}
+        onOpenDashboard={onOpenDashboard}
+        onOpenDashboardPanel={onOpenDashboardPanel}
+        onPublishDashboard={onPublishDashboard}
+      />
+    );
   }
   if (event.kind === "reasoning") {
     return (
@@ -922,6 +1348,127 @@ function InlineActivityEvent({ continuing = false, event }: { continuing?: boole
         {event.detail ? <span className="truncate text-slate-400">{event.detail}</span> : null}
         {continuing && event.status !== "running" ? <InlineContinuationStatus /> : null}
       </span>
+    </div>
+  );
+}
+
+function DashboardEventCard({
+  checkResult,
+  continuing = false,
+  event,
+  onCheckDashboard,
+  onDeleteDashboard,
+  onOpenDashboard,
+  onOpenDashboardPanel,
+  onPublishDashboard,
+}: {
+  checkResult?: DashboardCheckResult | null | undefined;
+  continuing?: boolean;
+  event: OperatorEventEntry;
+  onCheckDashboard: (id: string) => void | Promise<void>;
+  onDeleteDashboard: (id: string) => void | Promise<void>;
+  onOpenDashboard: (id: string) => void | Promise<void>;
+  onOpenDashboardPanel: (id: string) => void | Promise<void>;
+  onPublishDashboard: (id: string) => void | Promise<void>;
+}) {
+  const dashboardId = event.dashboardId;
+  const deleted = event.dashboardStatus === "deleted";
+  return (
+    <div className="operator-event-in mx-auto w-full max-w-3xl" data-testid="operator-dashboard-event">
+      <section className={cn(
+        "rounded-lg border bg-white p-4",
+        deleted ? "border-slate-200 opacity-75" : "border-sky-200",
+      )}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 text-xs font-medium uppercase text-sky-700">
+              <BarChart3Icon className="size-4" />
+              Dashboard
+            </p>
+            <h3 className="mt-2 truncate text-base font-semibold text-slate-950">{event.title}</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              {deleted ? "Deleted" : `${event.dashboardStatus ?? "draft"} / v${event.dashboardVersion ?? 1}`}
+              {event.dashboardSlug ? ` / ${event.dashboardSlug}` : ""}
+            </p>
+          </div>
+          {dashboardId && !deleted ? (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                onClick={() => void onOpenDashboard(dashboardId)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <EyeIcon />
+                Open
+              </Button>
+              <Button
+                className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                onClick={() => void onOpenDashboardPanel(dashboardId)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <PanelRightOpenIcon />
+                Sidebar
+              </Button>
+              <Button
+                className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                onClick={() => void onCheckDashboard(dashboardId)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <RefreshCwIcon />
+                Check
+              </Button>
+              {event.dashboardStatus !== "published" ? (
+                <Button
+                  className="bg-slate-950 text-white hover:bg-slate-800"
+                  onClick={() => void onPublishDashboard(dashboardId)}
+                  size="sm"
+                  type="button"
+                >
+                  <CheckIcon />
+                  Publish
+                </Button>
+              ) : null}
+              <Button
+                className="border-red-200 bg-white text-red-600 hover:bg-red-50"
+                onClick={() => void onDeleteDashboard(dashboardId)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <Trash2Icon />
+                Delete
+              </Button>
+            </div>
+          ) : null}
+        </div>
+        {event.detail ? <p className="mt-3 text-sm leading-6 text-slate-600">{event.detail}</p> : null}
+        {event.artifactKey ? (
+          <details className="mt-3 rounded-md bg-slate-50 text-xs text-slate-500">
+            <summary className="cursor-pointer list-none px-2 py-2 font-medium text-slate-600">Artifact info</summary>
+            <p className="break-all px-2 pb-2">{event.artifactKey}</p>
+          </details>
+        ) : null}
+        {checkResult ? (
+          <div className={cn(
+            "mt-3 rounded-md border p-3 text-sm",
+            checkResult.status === "passed" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800",
+          )}>
+            <p className="font-medium">Check {checkResult.status}</p>
+            {checkResult.issues.length ? (
+              <ul className="mt-2 list-disc pl-5">
+                {checkResult.issues.map((issue) => <li key={issue}>{issue}</li>)}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
+      </section>
+      {continuing ? <InlineContinuationStatus className="mt-2" /> : null}
     </div>
   );
 }
@@ -1087,6 +1634,23 @@ type RawOperatorSession = {
   updatedAt: string | Date;
   modelId: string | null;
 };
+
+type RawDashboardRow = {
+  id: string;
+  status: "draft" | "published" | "archived";
+  currentVersion: number;
+  updatedAt: string | Date;
+};
+
+function dashboardSnapshotValue(dashboard: RawDashboardRow) {
+  return `${dashboard.status}:v${dashboard.currentVersion}:${String(dashboard.updatedAt)}`;
+}
+
+function hasDashboardExport(code: string) {
+  return /\bexport\s+(default\s+)?function\s+Dashboard\b/.test(code)
+    || /\bexport\s+const\s+Dashboard\b/.test(code)
+    || /\bexport\s*\{\s*Dashboard\s*\}/.test(code);
+}
 
 function normalizeSession(session: RawOperatorSession): OperatorSessionRow {
   return {

@@ -1,5 +1,6 @@
 import {
   CreateBucketCommand,
+  DeleteObjectCommand,
   HeadBucketCommand,
   GetObjectCommand,
   PutObjectCommand,
@@ -54,4 +55,12 @@ export async function getArtifactText(input: {
   const bucket = input.bucket ?? loadStudioTargetManifest().dashboards.artifactBucket;
   const result = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: input.key }));
   return await result.Body?.transformToString() ?? "";
+}
+
+export async function deleteArtifact(input: {
+  bucket?: string;
+  key: string;
+}) {
+  const bucket = input.bucket ?? loadStudioTargetManifest().dashboards.artifactBucket;
+  await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: input.key }));
 }

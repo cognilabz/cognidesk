@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { StudioDashboardDatasetSchema } from "@cognidesk/studio-contracts";
+import { StudioDashboardDatasetSchema, StudioDashboardSpecSchema } from "@cognidesk/studio-contracts";
 import { z } from "zod";
 import { getStudioSession } from "@/server/auth";
 import { authErrorResponse, requirePermission } from "@/server/rbac";
@@ -15,6 +15,7 @@ const SaveDashboardSchema = z.object({
   description: z.string().optional(),
   code: z.string().min(1),
   datasets: z.array(StudioDashboardDatasetSchema).optional(),
+  spec: StudioDashboardSpecSchema.optional(),
   fallback: z.unknown().optional(),
 });
 
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
       ...(body.description ? { description: body.description } : {}),
       code: body.code,
       ...(body.datasets ? { datasets: body.datasets as never } : {}),
+      ...(body.spec ? { spec: body.spec } : {}),
       ...(body.fallback !== undefined ? { fallback: body.fallback } : {}),
     });
     return Response.json({ dashboard });

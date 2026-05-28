@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, CheckCircle2, PanelLeftClose, PanelLeftOpen, Sparkles } from "lucide-react";
+import { BarChart3, CheckCircle2, PanelLeftClose, PanelLeftOpen, Sparkles, Trash2 } from "lucide-react";
 import type { StudioAgentIntrospection } from "@cognidesk/studio-contracts";
 import type { DashboardRow, PreviewDashboard, StudioConversationRow } from "./types";
 import { conversationJourneyActivity, conversationLifecycleDistribution, conversationRows } from "./data";
+import { DashboardRenderer } from "./dashboard-renderer";
 import { Button, DataTable, EmptyState, Metric, PageHeader, Panel, PanelHeader, formatDateTime } from "./ui";
 
 export function DashboardsView(props: {
@@ -29,6 +30,13 @@ export function DashboardsView(props: {
     if (!response.ok) return;
     const data = await response.json() as { dashboard: NonNullable<PreviewDashboard>["artifact"] };
     setPreviewDashboard((current) => current ? { ...current, artifact: data.dashboard } : current);
+    router.refresh();
+  }
+
+  async function deleteDashboard(id: string) {
+    const response = await fetch(`/api/studio/dashboards/${id}`, { method: "DELETE" });
+    if (!response.ok) return;
+    setPreviewDashboard(null);
     router.refresh();
   }
 
@@ -79,19 +87,26 @@ export function DashboardsView(props: {
             <PageHeader
               eyebrow="Saved dashboard"
               title={previewDashboard.artifact.title}
-              actions={previewDashboard.artifact.status !== "published" ? (
-                <Button onClick={() => publishDashboard(previewDashboard.artifact.id)}>
-                  <CheckCircle2 size={16} />
-                  Publish
-                </Button>
-              ) : null}
+              actions={(
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                    onClick={() => deleteDashboard(previewDashboard.artifact.id)}
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </Button>
+                  {previewDashboard.artifact.status !== "published" ? (
+                    <Button onClick={() => publishDashboard(previewDashboard.artifact.id)}>
+                      <CheckCircle2 size={16} />
+                      Publish
+                    </Button>
+                  ) : null}
+                </div>
+              )}
             />
             <div className="p-8">
-              <ConversationDashboard
-                conversations={props.conversations}
-                introspection={props.introspection}
-                previewDashboard={previewDashboard}
-              />
+              <DashboardRenderer previewDashboard={previewDashboard} />
             </div>
           </>
         ) : (

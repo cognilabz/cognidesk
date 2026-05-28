@@ -309,8 +309,18 @@ export const StudioTraceSummarySchema = z.object({
 });
 export type StudioTraceSummary = z.infer<typeof StudioTraceSummarySchema>;
 
+export const StudioDashboardDataCapabilitySchema = z.enum([
+  "telemetry.traces",
+  "telemetry.metrics",
+  "cognidesk.agent",
+  "cognidesk.conversations",
+  "cognidesk.events",
+  "cognidesk.snapshots",
+]);
+export type StudioDashboardDataCapability = z.infer<typeof StudioDashboardDataCapabilitySchema>;
+
 export const StudioDashboardDataQuerySchema = z.object({
-  capability: z.enum(["telemetry.traces", "telemetry.metrics", "cognidesk.agent", "cognidesk.events", "cognidesk.snapshots"]),
+  capability: StudioDashboardDataCapabilitySchema,
   targetId: z.string(),
   params: z.record(z.string(), z.unknown()).default({}),
 });
@@ -320,11 +330,44 @@ export const StudioDashboardDatasetSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string().optional(),
+  mode: z.enum(["static", "live"]).default("static"),
+  refreshMs: z.number().int().positive().optional(),
   source: StudioDashboardDataQuerySchema,
   capturedAt: z.string(),
   data: z.unknown(),
 });
 export type StudioDashboardDataset = z.infer<typeof StudioDashboardDatasetSchema>;
+
+export const StudioDashboardWidgetSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  kind: z.enum(["metric", "line", "bar", "donut", "table", "insight"]),
+  datasetId: z.string().optional(),
+  description: z.string().optional(),
+  valuePath: z.string().optional(),
+  labelPath: z.string().optional(),
+  xPath: z.string().optional(),
+  yPath: z.string().optional(),
+  series: z.array(z.object({
+    label: z.string(),
+    path: z.string(),
+  })).optional(),
+  unit: z.string().optional(),
+  tone: z.enum(["slate", "blue", "green", "amber", "red", "violet", "teal"]).optional(),
+  limit: z.number().int().positive().optional(),
+  columns: z.array(z.object({
+    label: z.string(),
+    path: z.string(),
+  })).optional(),
+}).passthrough();
+export type StudioDashboardWidget = z.infer<typeof StudioDashboardWidgetSchema>;
+
+export const StudioDashboardSpecSchema = z.object({
+  layout: z.enum(["overview", "timeseries", "comparison", "operations"]).default("overview"),
+  summary: z.string().optional(),
+  widgets: z.array(StudioDashboardWidgetSchema).default([]),
+}).passthrough();
+export type StudioDashboardSpec = z.infer<typeof StudioDashboardSpecSchema>;
 
 export const StudioDashboardArtifactSchema = z.object({
   id: z.string(),
@@ -339,6 +382,7 @@ export const StudioDashboardArtifactSchema = z.object({
   renderer: z.object({
     kind: z.literal("react-component"),
     entry: z.string().default("Dashboard"),
+    spec: StudioDashboardSpecSchema.optional(),
   }),
   datasets: z.array(StudioDashboardDatasetSchema).default([]),
   createdAt: z.string(),

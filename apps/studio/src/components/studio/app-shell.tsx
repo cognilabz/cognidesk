@@ -95,7 +95,7 @@ export function AppShell(props: {
         </div>
       </aside>
 
-      <section className="min-w-0 border-[8px] border-l-0 border-slate-900 bg-white max-lg:border-l-[8px]">
+      <section className="min-w-0 bg-white">
         <header className="flex min-h-16 items-center justify-between gap-4 border-b border-slate-200 px-6 max-md:flex-col max-md:items-stretch max-md:py-4">
           <div className="flex min-w-0 items-center gap-2 text-sm text-slate-500">
             <span className="truncate">{props.targetName}</span>

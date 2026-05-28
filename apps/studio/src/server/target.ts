@@ -10,6 +10,7 @@ import {
 } from "@cognidesk/studio-contracts";
 import { audit } from "@/server/audit";
 import { loadStudioTargetManifest, studioEnv } from "@/server/config";
+import { listStudioConversations } from "@/server/conversations";
 import { db, ensureStudioDatabase } from "@/server/db/client";
 import { studioTargets } from "@/server/db/schema";
 
@@ -106,6 +107,17 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
         source: parsed,
         capturedAt: new Date().toISOString(),
         data: await fetchIntrospection(),
+      };
+    case "cognidesk.conversations":
+      return {
+        id: randomUUID(),
+        title: "Studio Conversations",
+        source: parsed,
+        capturedAt: new Date().toISOString(),
+        data: await listStudioConversations(parsed.targetId, {
+          limit: numberParam(parsed.params.limit) ?? 1000,
+          offset: numberParam(parsed.params.offset) ?? 0,
+        }),
       };
     case "cognidesk.events": {
       const conversationId = stringParam(parsed.params.conversationId);

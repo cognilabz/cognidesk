@@ -19,10 +19,14 @@ runtime instructions. Useful v1 endpoints:
 - `GET /api/studio/dashboards` lists saved dashboard artifacts.
 - `GET /api/studio/conversations` lists recent Studio conversation summaries.
 - `POST /api/studio/dashboards` saves a dashboard draft with `title`, `slug`,
-  `description`, `code`, `datasets`, and `fallback`. Each dataset must be:
-  `{ id, title, description?, source: { capability, targetId, params },
-  capturedAt, data }`. `source.capability` must be one of
+  `description`, `code`, `datasets`, `spec`, and `fallback`. Each dataset must
+  be:
+  `{ id, title, description?, mode?, refreshMs?, source: { capability, targetId, params },
+  capturedAt, data }`. `mode` is `"live"` for refreshable bindings and
+  `"static"` for fixed captured inputs. `source.capability` must be one of
   `telemetry.traces`, `telemetry.metrics`, `cognidesk.agent`,
-  `cognidesk.events`, or `cognidesk.snapshots`.
+  `cognidesk.conversations`, `cognidesk.events`, or `cognidesk.snapshots`.
 - `POST /api/studio/dashboards/:id/publish` publishes a saved draft only after
   the user has explicitly asked for publication.
+- `DELETE /api/studio/dashboards/:id` deletes a saved dashboard draft or
+  published dashboard from Studio metadata and artifact storage.

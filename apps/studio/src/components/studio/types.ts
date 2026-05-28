@@ -40,7 +40,7 @@ export type OperatorEventStatus = "pending" | "running" | "completed" | "error";
 
 export type OperatorEventEntry = {
   id: string;
-  kind: "activity" | "tool" | "reasoning" | "artifact" | "diff" | "validation" | "approval" | "error";
+  kind: "activity" | "tool" | "reasoning" | "artifact" | "dashboard" | "diff" | "validation" | "approval" | "error";
   title: string;
   detail?: string;
   category?: string;
@@ -61,6 +61,11 @@ export type OperatorEventEntry = {
   files?: Array<{ path: string; status: string }>;
   approvalId?: string;
   action?: string;
+  dashboardId?: string;
+  dashboardSlug?: string;
+  dashboardStatus?: "draft" | "published" | "archived" | "deleted";
+  dashboardVersion?: number;
+  artifactKey?: string;
 };
 
 export type OperatorChatMessageItem = OperatorMessage & {
