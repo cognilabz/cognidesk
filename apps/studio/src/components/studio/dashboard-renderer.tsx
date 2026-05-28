@@ -129,9 +129,13 @@ export function DashboardRenderer(props: {
         </section>
       ) : null}
 
-      <section className="grid grid-cols-4 gap-4 max-xl:grid-cols-2 max-md:grid-cols-1">
+      <section className={cn(
+        "grid gap-4",
+        props.compact ? "grid-cols-2 max-sm:grid-cols-1" : "grid-cols-4 max-xl:grid-cols-2 max-md:grid-cols-1",
+      )}>
         {widgets.map((widget) => (
           <DashboardWidget
+            compact={Boolean(props.compact)}
             datasets={datasets}
             key={widget.id}
             onLoadMoreRows={() => setVisibleRowsByWidget((items) => ({
@@ -169,6 +173,7 @@ export function DashboardRenderer(props: {
 }
 
 function DashboardWidget(props: {
+  compact?: boolean;
   datasets: StudioDashboardDataset[];
   onLoadMoreRows: () => void;
   visibleRowCount: number;
@@ -191,7 +196,7 @@ function DashboardWidget(props: {
     const rows = chartRowsForWidget(props.widget, dataset);
     const series = props.widget.series?.length ? props.widget.series : inferSeries(rows);
     return (
-      <article className="col-span-2 rounded-lg border border-slate-200 bg-white p-4 max-md:col-span-1">
+      <article className={cn("col-span-2 rounded-lg border border-slate-200 bg-white p-4", props.compact ? "max-sm:col-span-1" : "max-md:col-span-1")}>
         <h3 className="text-sm font-medium text-slate-800">{props.widget.title}</h3>
         <div className="mt-4 h-72">
           <ResponsiveContainer height="100%" width="100%">
@@ -213,7 +218,7 @@ function DashboardWidget(props: {
   if (props.widget.kind === "bar") {
     const rows = chartRowsForWidget(props.widget, dataset);
     return (
-      <article className="col-span-2 rounded-lg border border-slate-200 bg-white p-4 max-md:col-span-1">
+      <article className={cn("col-span-2 rounded-lg border border-slate-200 bg-white p-4", props.compact ? "max-sm:col-span-1" : "max-md:col-span-1")}>
         <h3 className="text-sm font-medium text-slate-800">{props.widget.title}</h3>
         <div className="mt-4 h-72">
           <ResponsiveContainer height="100%" width="100%">
@@ -279,7 +284,7 @@ function DashboardWidget(props: {
   const columns = props.widget.columns?.length ? props.widget.columns : inferColumns(rows);
   const visibleRows = rows.slice(0, Math.max(1, props.visibleRowCount));
   return (
-    <article className="col-span-4 overflow-hidden rounded-lg border border-slate-200 bg-white max-md:col-span-1">
+    <article className={cn("overflow-hidden rounded-lg border border-slate-200 bg-white", props.compact ? "col-span-2 max-sm:col-span-1" : "col-span-4 max-md:col-span-1")}>
       <div className="border-b border-slate-200 p-4">
         <h3 className="text-sm font-medium text-slate-800">{props.widget.title}</h3>
       </div>

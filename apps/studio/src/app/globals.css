@@ -103,6 +103,54 @@ select {
   animation: operator-event-in 180ms ease-out both;
 }
 
+.operator-layout {
+  grid-template-columns: var(--session-column) minmax(0, 1fr);
+}
+
+.operator-layout[data-dashboard-open="true"] {
+  grid-template-columns:
+    var(--session-column)
+    minmax(0, max(0px, calc(100% - var(--session-column) - var(--dashboard-column))))
+    minmax(0, var(--dashboard-column));
+}
+
+.operator-layout[data-dashboard-open="true"][data-dashboard-maximized="true"] {
+  grid-template-columns:
+    var(--session-column)
+    minmax(0, 0px)
+    minmax(0, var(--dashboard-column));
+}
+
+.operator-chat-flow,
+.operator-chat-flow > * {
+  min-width: 0;
+}
+
+.operator-chat-flow :where(p, li, code, pre, span) {
+  overflow-wrap: anywhere;
+}
+
+.operator-chat-flow :where(pre) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 1023px) {
+  .operator-layout,
+  .operator-layout[data-dashboard-open="true"],
+  .operator-layout[data-dashboard-open="true"][data-dashboard-maximized="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.studio-scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.studio-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 .operator-working-text {
   animation: text-shimmer 1.8s ease-in-out infinite;
   background: linear-gradient(90deg, #64748b 0%, #0f172a 45%, #64748b 90%);

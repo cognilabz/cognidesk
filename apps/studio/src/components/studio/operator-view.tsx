@@ -7,11 +7,12 @@ import {
   BarChart3Icon,
   FileTextIcon,
   EyeIcon,
+  Maximize2Icon,
   MoreHorizontalIcon,
+  Minimize2Icon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
   PanelRightCloseIcon,
-  PanelRightOpenIcon,
   PencilIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -21,7 +22,7 @@ import {
   Trash2Icon,
   XIcon,
 } from "lucide-react";
-import { type CSSProperties, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -33,16 +34,8 @@ import {
   MessageResponse,
 } from "@/components/ai-elements/message";
 import {
-  ModelSelector,
-  ModelSelectorContent,
-  ModelSelectorEmpty,
-  ModelSelectorGroup,
-  ModelSelectorInput,
-  ModelSelectorItem,
-  ModelSelectorList,
   ModelSelectorLogo,
   ModelSelectorName,
-  ModelSelectorTrigger,
 } from "@/components/ai-elements/model-selector";
 import {
   PromptInput,
@@ -69,6 +62,14 @@ import {
 import { Tool, ToolContent, ToolHeader } from "@/components/ai-elements/tool";
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -84,6 +85,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type {
   OperatorChatItem,
@@ -124,10 +126,22 @@ const suggestions = [
   },
 ];
 
+const SESSION_RAIL_WIDTH = 64;
+const SESSION_DEFAULT_WIDTH = 300;
+const SESSION_MAX_WIDTH = 420;
+const SESSION_COLLAPSE_THRESHOLD = 120;
+const SESSION_RESIZE_MIN_WIDTH = SESSION_COLLAPSE_THRESHOLD + 1;
+const DASHBOARD_DEFAULT_WIDTH = 520;
+const DASHBOARD_COLLAPSE_THRESHOLD = 220;
+const DASHBOARD_RESIZE_MIN_WIDTH = DASHBOARD_COLLAPSE_THRESHOLD + 1;
+const DASHBOARD_INLINE_MIN_WIDTH = 360;
+const CHAT_INLINE_MIN_WIDTH = 360;
+
 export function OperatorView(props: {
   manifest: StudioTargetManifest;
   initialSessions: OperatorSessionRow[];
 }) {
+  const operatorLayoutRef = useRef<HTMLElement | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const assistantDraftRef = useRef("");
   const assistantMessageIdRef = useRef<string | null>(null);
@@ -136,6 +150,7 @@ export function OperatorView(props: {
   const dashboardSnapshotRef = useRef<Map<string, string>>(new Map());
   const surfacedDashboardVersionsRef = useRef<Set<string>>(new Set());
   const [sessionSidebarCollapsed, setSessionSidebarCollapsed] = useState(false);
+  const [sessionSidebarWidth, setSessionSidebarWidth] = useState(SESSION_DEFAULT_WIDTH);
   const [operatorSessionId, setOperatorSessionId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<OperatorSessionRow[]>(props.initialSessions);
   const [sessionSearch, setSessionSearch] = useState("");
@@ -152,9 +167,10 @@ export function OperatorView(props: {
   const [artifacts, setArtifacts] = useState<Record<string, unknown>[]>([]);
   const [diffFiles, setDiffFiles] = useState<Array<{ path: string; status: string }>>([]);
   const [previewDashboard, setPreviewDashboard] = useState<PreviewDashboard>(null);
-  const [dashboardDialogOpen, setDashboardDialogOpen] = useState(false);
   const [dashboardPanelOpen, setDashboardPanelOpen] = useState(false);
-  const [dashboardPanelWidth, setDashboardPanelWidth] = useState(560);
+  const [dashboardPanelWidth, setDashboardPanelWidth] = useState(DASHBOARD_DEFAULT_WIDTH);
+  const [dashboardPanelMaximized, setDashboardPanelMaximized] = useState(false);
+  const [operatorLayoutWidth, setOperatorLayoutWidth] = useState(0);
   const [dashboardChecks, setDashboardChecks] = useState<Record<string, DashboardCheckResult>>({});
   const [dashboardActionError, setDashboardActionError] = useState<string | null>(null);
   const [isWorking, setIsWorking] = useState(false);
@@ -169,11 +185,136 @@ export function OperatorView(props: {
   const hasUserMessages = chatItems.some((item) => item.type === "message" && item.role === "user");
   const visibleChatItems = useMemo(() => compactActivityEvents(chatItems), [chatItems]);
   const assistantIsTyping = isAssistantTyping(visibleChatItems);
+  const sessionColumnWidth = sessionSidebarCollapsed ? SESSION_RAIL_WIDTH : sessionSidebarWidth;
+  const dashboardAvailableInlineWidth = operatorLayoutWidth > 0
+    ? operatorLayoutWidth - sessionColumnWidth - CHAT_INLINE_MIN_WIDTH
+    : null;
+  const dashboardInlineMaxWidth = dashboardAvailableInlineWidth;
+  const canShowDashboardInline = dashboardInlineMaxWidth !== null && dashboardInlineMaxWidth >= DASHBOARD_INLINE_MIN_WIDTH;
+  const dashboardInlineWidth = canShowDashboardInline
+    ? clamp(dashboardPanelWidth, DASHBOARD_INLINE_MIN_WIDTH, dashboardInlineMaxWidth)
+    : DASHBOARD_INLINE_MIN_WIDTH;
+  const effectiveDashboardPanelMaximized = dashboardPanelMaximized || (
+    dashboardPanelOpen
+    && dashboardInlineMaxWidth !== null
+    && !canShowDashboardInline
+  );
   const operatorGridStyle = {
-    "--session-column": `${sessionSidebarCollapsed ? 68 : 300}px`,
-    "--dashboard-column": `${dashboardPanelWidth}px`,
+    "--session-column": `${sessionColumnWidth}px`,
+    "--dashboard-column": effectiveDashboardPanelMaximized
+      ? "calc(100% - var(--session-column))"
+      : `${dashboardInlineWidth}px`,
   } as CSSProperties;
   operatorSessionIdRef.current = operatorSessionId;
+
+  useEffect(() => {
+    const node = operatorLayoutRef.current;
+    if (!node) return;
+    const updateLayoutWidth = () => {
+      setOperatorLayoutWidth(node.getBoundingClientRect().width);
+    };
+    updateLayoutWidth();
+    const observer = new ResizeObserver(updateLayoutWidth);
+    observer.observe(node);
+    window.addEventListener("resize", updateLayoutWidth);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateLayoutWidth);
+    };
+  }, []);
+
+  function closeDashboardPanel(options?: { resetWidth?: boolean }) {
+    setDashboardPanelOpen(false);
+    setDashboardPanelMaximized(false);
+    if (options?.resetWidth) {
+      setDashboardPanelWidth(DASHBOARD_DEFAULT_WIDTH);
+    }
+  }
+
+  function toggleDashboardMaximized() {
+    if (effectiveDashboardPanelMaximized) {
+      if (!canShowDashboardInline || dashboardInlineMaxWidth === null) {
+        setDashboardPanelMaximized(true);
+        return;
+      }
+      setDashboardPanelMaximized(false);
+      setDashboardPanelWidth(clamp(DASHBOARD_DEFAULT_WIDTH, DASHBOARD_INLINE_MIN_WIDTH, dashboardInlineMaxWidth));
+      return;
+    }
+    setDashboardPanelMaximized(true);
+  }
+
+  function startSessionSidebarResize(event: ReactPointerEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    const rect = operatorLayoutRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cleanup = beginColumnResize();
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const rawWidth = moveEvent.clientX - rect.left;
+      if (rawWidth <= SESSION_COLLAPSE_THRESHOLD) {
+        setSessionSidebarCollapsed(true);
+        return;
+      }
+      setSessionSidebarCollapsed(false);
+      setSessionSidebarWidth(clamp(rawWidth, SESSION_RESIZE_MIN_WIDTH, SESSION_MAX_WIDTH));
+    };
+    const handlePointerUp = () => {
+      cleanup();
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp, { once: true });
+  }
+
+  function startDashboardResize(event: ReactPointerEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    const handle = event.currentTarget;
+    const pointerId = event.pointerId;
+    try {
+      handle.setPointerCapture(pointerId);
+    } catch {
+      // Pointer capture is best effort; window listeners still carry the resize.
+    }
+    const rect = operatorLayoutRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cleanup = beginColumnResize();
+    let closedDuringResize = false;
+    const updateDashboardWidth = (clientX: number) => {
+      if (closedDuringResize) return;
+      const width = rect.right - clientX;
+      const availableWidth = rect.width - sessionColumnWidth - CHAT_INLINE_MIN_WIDTH;
+      const maxWidth = Math.max(DASHBOARD_RESIZE_MIN_WIDTH, availableWidth);
+      if (width <= DASHBOARD_COLLAPSE_THRESHOLD) {
+        closedDuringResize = true;
+        closeDashboardPanel({ resetWidth: true });
+        return;
+      }
+      if (width >= maxWidth) {
+        setDashboardPanelMaximized(true);
+        setDashboardPanelWidth(maxWidth);
+        return;
+      }
+      setDashboardPanelMaximized(false);
+      setDashboardPanelWidth(clamp(width, DASHBOARD_INLINE_MIN_WIDTH, maxWidth));
+    };
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      updateDashboardWidth(moveEvent.clientX);
+    };
+    const handlePointerUp = (upEvent: PointerEvent) => {
+      updateDashboardWidth(upEvent.clientX);
+      try {
+        handle.releasePointerCapture(pointerId);
+      } catch {
+        // Capture may already be released if the pointer left the handle.
+      }
+      cleanup();
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp, { once: true });
+  }
 
   async function startNewSession() {
     const response = await fetch("/api/studio/operator/sessions", {
@@ -198,8 +339,7 @@ export function OperatorView(props: {
     setArtifacts([]);
     setDiffFiles([]);
     setPreviewDashboard(null);
-    setDashboardDialogOpen(false);
-    setDashboardPanelOpen(false);
+    closeDashboardPanel();
     setDashboardActionError(null);
     setInput("");
     assistantDraftRef.current = "";
@@ -235,8 +375,7 @@ export function OperatorView(props: {
     )));
     setDiffFiles([]);
     setPreviewDashboard(null);
-    setDashboardDialogOpen(false);
-    setDashboardPanelOpen(false);
+    closeDashboardPanel();
     setDashboardActionError(null);
     assistantDraftRef.current = "";
     assistantMessageIdRef.current = null;
@@ -283,8 +422,7 @@ export function OperatorView(props: {
       setArtifacts([]);
       setDiffFiles([]);
       setPreviewDashboard(null);
-      setDashboardDialogOpen(false);
-      setDashboardPanelOpen(false);
+      closeDashboardPanel();
       assistantDraftRef.current = "";
       assistantMessageIdRef.current = null;
     }
@@ -635,18 +773,8 @@ export function OperatorView(props: {
     }
     setDashboardActionError(null);
     setPreviewDashboard(preview);
-    setDashboardDialogOpen(true);
-  }
-
-  async function openDashboardPanelFromChat(id: string) {
-    const preview = await fetchDashboardPreview(id);
-    if (!preview) {
-      setDashboardActionError("Dashboard could not be opened.");
-      return;
-    }
-    setDashboardActionError(null);
-    setPreviewDashboard(preview);
-    setDashboardDialogOpen(false);
+    setDashboardPanelMaximized(false);
+    setDashboardPanelWidth(DASHBOARD_DEFAULT_WIDTH);
     setDashboardPanelOpen(true);
   }
 
@@ -678,8 +806,7 @@ export function OperatorView(props: {
       status: "completed",
     });
     if (previewDashboard?.artifact.id === id) {
-      setDashboardDialogOpen(false);
-      setDashboardPanelOpen(false);
+      closeDashboardPanel();
       setPreviewDashboard(null);
     }
     setDashboardActionError(null);
@@ -710,14 +837,15 @@ export function OperatorView(props: {
     };
     setDashboardChecks((items) => ({ ...items, [id]: result }));
     setPreviewDashboard(preview);
-    if (!dashboardPanelOpen) setDashboardDialogOpen(true);
+    setDashboardPanelMaximized(false);
+    setDashboardPanelWidth(DASHBOARD_DEFAULT_WIDTH);
+    setDashboardPanelOpen(true);
     setDashboardActionError(null);
   }
 
-  function reviseDashboardFromDialog() {
+  function reviseDashboardFromPanel() {
     if (!previewDashboard) return;
     setInput(`Update dashboard ${previewDashboard.artifact.id} (${previewDashboard.artifact.title}). Keep the existing dashboardId, preserve useful datasets, and revise the React code plus spec for: `);
-    setDashboardDialogOpen(false);
   }
 
   function updateDashboardEvents(id: string, patch: Partial<OperatorEventEntry>) {
@@ -768,14 +896,55 @@ export function OperatorView(props: {
   return (
     <section
       className={cn(
-        "grid h-[calc(100vh-4rem)] min-h-0 overflow-hidden bg-white text-slate-950",
-        dashboardPanelOpen
-          ? "grid-cols-[var(--session-column)_minmax(0,1fr)_minmax(380px,var(--dashboard-column))]"
-          : "grid-cols-[var(--session-column)_minmax(0,1fr)]",
+        "operator-layout relative grid h-[calc(100vh-4rem)] min-h-0 overflow-hidden bg-white text-slate-950",
         "max-lg:grid-cols-[minmax(0,1fr)]"
       )}
+      data-dashboard-maximized={effectiveDashboardPanelMaximized ? "true" : undefined}
+      data-dashboard-open={dashboardPanelOpen ? "true" : undefined}
+      ref={operatorLayoutRef}
       style={operatorGridStyle}
     >
+      <ResizeHandle
+        ariaLabel={sessionSidebarCollapsed ? "Resize or expand chat history" : "Resize chat history"}
+        onPointerDown={startSessionSidebarResize}
+        style={{ left: "var(--session-column)" }}
+      />
+
+      {dashboardPanelOpen ? (
+        <ResizeHandle
+          ariaLabel="Resize dashboard sidebar"
+          onPointerDown={startDashboardResize}
+          style={{ left: "calc(100% - var(--dashboard-column))" }}
+        />
+      ) : null}
+
+      {dashboardPanelOpen ? (
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-1 max-lg:hidden">
+          <Button
+            aria-label={effectiveDashboardPanelMaximized ? "Restore dashboard sidebar" : "Maximize dashboard sidebar"}
+            className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950"
+            onClick={toggleDashboardMaximized}
+            size="icon-sm"
+            title={effectiveDashboardPanelMaximized ? "Restore dashboard sidebar" : "Maximize dashboard sidebar"}
+            type="button"
+            variant="ghost"
+          >
+            {effectiveDashboardPanelMaximized ? <Minimize2Icon /> : <Maximize2Icon />}
+          </Button>
+          <Button
+            aria-label="Close dashboard sidebar"
+            className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950"
+            onClick={() => closeDashboardPanel()}
+            size="icon-sm"
+            title="Close dashboard sidebar"
+            type="button"
+            variant="ghost"
+          >
+            <PanelRightCloseIcon />
+          </Button>
+        </div>
+      ) : null}
+
       <aside className="grid min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] border-r border-slate-200 bg-slate-50 max-lg:hidden">
         <div className={cn("flex items-center gap-2 px-3 py-3", sessionSidebarCollapsed ? "justify-center" : "justify-between")}>
           <span className={cn("text-sm font-medium text-slate-600", sessionSidebarCollapsed && "sr-only")}>Sessions</span>
@@ -819,33 +988,35 @@ export function OperatorView(props: {
           </div>
         ) : null}
 
-        <div className="min-h-0 overflow-y-auto px-2 pb-3">
-          <div className="grid gap-1">
-            {filteredSessions.slice(0, 60).map((session) => (
-              <SessionRow
-                active={operatorSessionId === session.id}
-                collapsed={sessionSidebarCollapsed}
-                key={session.id}
-                onDelete={() => setPendingDeleteSession(session)}
-                onOpen={() => void openOperatorSession(session.id)}
-                onRename={() => beginRenameSession(session)}
-                onRenameCommit={() => void commitRenameSession(session.id)}
-                onRenameTitleChange={setRenamingTitle}
-                onRenameCancel={() => {
-                  setRenamingSessionId(null);
-                  setRenamingTitle("");
-                }}
-                renaming={renamingSessionId === session.id}
-                renamingTitle={renamingTitle}
-                session={session}
-              />
-            ))}
+        {!sessionSidebarCollapsed ? (
+          <div className="studio-scrollbar-hidden min-h-0 overflow-y-auto px-2 pb-3">
+            <div className="grid gap-1">
+              {filteredSessions.slice(0, 60).map((session) => (
+                <SessionRow
+                  active={operatorSessionId === session.id}
+                  collapsed={false}
+                  key={session.id}
+                  onDelete={() => setPendingDeleteSession(session)}
+                  onOpen={() => void openOperatorSession(session.id)}
+                  onRename={() => beginRenameSession(session)}
+                  onRenameCommit={() => void commitRenameSession(session.id)}
+                  onRenameTitleChange={setRenamingTitle}
+                  onRenameCancel={() => {
+                    setRenamingSessionId(null);
+                    setRenamingTitle("");
+                  }}
+                  renaming={renamingSessionId === session.id}
+                  renamingTitle={renamingTitle}
+                  session={session}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        ) : <div className="min-h-0" />}
       </aside>
 
-      <section className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
-        <header className="flex min-h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 max-md:flex-col max-md:items-stretch max-md:py-4">
+      <section className="grid min-h-0 min-w-0 max-w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
+        <header className="flex min-h-16 w-full min-w-0 max-w-full items-center justify-between gap-4 overflow-hidden border-b border-slate-200 bg-white px-5 max-md:flex-col max-md:items-stretch max-md:py-4">
           <div className="min-w-0">
             <h1 className="truncate text-base font-semibold text-slate-950">{activeSession?.title ?? "Studio Operator"}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
@@ -854,66 +1025,11 @@ export function OperatorView(props: {
               {artifacts.length ? <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-1 text-sky-700">{artifacts.length} artifacts</span> : null}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ModelSelector onOpenChange={setModelSelectorOpen} open={modelSelectorOpen}>
-              <ModelSelectorTrigger asChild>
-                <Button
-                  className="border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <ModelSelectorLogo provider="openai" />
-                  <span className="max-w-40 truncate">{selectedModelData?.label ?? selectedModel}</span>
-                </Button>
-              </ModelSelectorTrigger>
-              <ModelSelectorContent className="border-slate-200 bg-white text-slate-950">
-                <ModelSelectorInput placeholder="Search models..." />
-                <ModelSelectorList>
-                  <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
-                  <ModelSelectorGroup heading="Available models">
-                    {props.manifest.operator.models.map((model) => (
-                      <ModelSelectorItem
-                        key={model.id}
-                        onSelect={() => {
-                          setSelectedModel(model.id);
-                          setModelSelectorOpen(false);
-                        }}
-                        value={model.id}
-                      >
-                        <ModelSelectorLogo provider="openai" />
-                        <ModelSelectorName>{model.label}</ModelSelectorName>
-                        {model.id === selectedModel ? <CheckIcon className="ml-auto size-4" /> : <span className="ml-auto size-4" />}
-                      </ModelSelectorItem>
-                    ))}
-                  </ModelSelectorGroup>
-                </ModelSelectorList>
-              </ModelSelectorContent>
-            </ModelSelector>
-
-            <div className="inline-flex rounded-md border border-slate-200 bg-slate-50 p-1">
-              {reasoningEfforts.map((effort) => (
-                <button
-                  className={cn(
-                    "h-7 rounded px-2 text-xs transition",
-                    selectedReasoningEffort === effort.id
-                      ? "bg-white text-slate-950 shadow-sm"
-                      : "text-slate-500 hover:bg-white hover:text-slate-950"
-                  )}
-                  key={effort.id}
-                  onClick={() => setSelectedReasoningEffort(effort.id)}
-                  type="button"
-                >
-                  {effort.label}
-                </button>
-              ))}
-            </div>
-          </div>
         </header>
 
-        <Conversation className="min-h-0 bg-white">
-          <ConversationContent className="h-full gap-5 overflow-y-auto px-4 py-8">
-            <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
+        <Conversation className="min-h-0 min-w-0 max-w-full overflow-hidden bg-white">
+          <ConversationContent className="h-full w-full min-w-0 max-w-full gap-5 overflow-y-auto overflow-x-hidden px-4 py-8">
+            <div className="operator-chat-flow mx-auto flex w-full min-w-0 max-w-full flex-col gap-5">
               {visibleChatItems.map((item) => item.type === "message" ? (
                 <ChatMessage
                   continuing={shouldMarkItemContinuing(item, visibleChatItems, isWorking, assistantIsTyping)}
@@ -929,7 +1045,6 @@ export function OperatorView(props: {
                   onCheckDashboard={checkDashboardFromChat}
                   onDeleteDashboard={deleteDashboardFromChat}
                   onOpenDashboard={openDashboardFromChat}
-                  onOpenDashboardPanel={openDashboardPanelFromChat}
                   onPublishDashboard={publishDashboardFromChat}
                 />
               ))}
@@ -957,8 +1072,8 @@ export function OperatorView(props: {
           <ConversationScrollButton className="bottom-5 border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50" />
         </Conversation>
 
-        <footer className="border-t border-slate-200 bg-white px-4 py-4">
-          <div className="mx-auto max-w-4xl">
+        <footer className="w-full min-w-0 max-w-full overflow-hidden border-t border-slate-200 bg-white px-4 py-4">
+          <div className="mx-auto w-full min-w-0 max-w-4xl">
             <PromptInput
               className="rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-200/70"
               onSubmit={(message) => void sendOperatorMessage(message.text)}
@@ -977,8 +1092,63 @@ export function OperatorView(props: {
                   value={input}
                 />
               </PromptInputBody>
-              <PromptInputFooter>
-                <PromptInputTools>
+              <PromptInputFooter className="flex-wrap">
+                <PromptInputTools className="flex-1 flex-wrap">
+                  <Popover onOpenChange={setModelSelectorOpen} open={modelSelectorOpen}>
+                    <PopoverTrigger asChild>
+                      <PromptInputButton
+                        aria-label="Select model"
+                        className="min-w-0 max-w-40 justify-start text-slate-600"
+                        title="Select model"
+                        type="button"
+                        variant="ghost"
+                      >
+                        <ModelSelectorLogo provider="openai" />
+                        <span className="truncate">{selectedModelData?.label ?? selectedModel}</span>
+                        <span className="text-slate-400">/</span>
+                        <span className="text-slate-500">{reasoningLabel(selectedReasoningEffort)}</span>
+                      </PromptInputButton>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-80 border-slate-200 bg-white p-0 text-slate-950" side="top">
+                      <Command className="bg-white">
+                        <CommandInput placeholder="Search models..." />
+                        <CommandList>
+                          <CommandEmpty>No models found.</CommandEmpty>
+                          <CommandGroup heading="Available models">
+                            {props.manifest.operator.models.map((model) => (
+                              <CommandItem
+                                key={model.id}
+                                onSelect={() => {
+                                  setSelectedModel(model.id);
+                                  setModelSelectorOpen(false);
+                                }}
+                                value={model.id}
+                              >
+                                <ModelSelectorLogo provider="openai" />
+                                <ModelSelectorName>{model.label}</ModelSelectorName>
+                                {model.id === selectedModel ? <CheckIcon className="ml-auto size-4" /> : <span className="ml-auto size-4" />}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                          <CommandGroup heading="Reasoning effort">
+                            {reasoningEfforts.map((effort) => (
+                              <CommandItem
+                                key={effort.id}
+                                onSelect={() => {
+                                  setSelectedReasoningEffort(effort.id);
+                                  setModelSelectorOpen(false);
+                                }}
+                                value={`reasoning ${effort.id} ${effort.label}`}
+                              >
+                                <span className="min-w-0 flex-1 truncate">{effort.label}</span>
+                                {effort.id === selectedReasoningEffort ? <CheckIcon className="ml-auto size-4" /> : <span className="ml-auto size-4" />}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <PromptInputButton className="text-slate-500" disabled type="button" variant="ghost">
                     <span className={cn("size-2 rounded-full", isWorking ? "animate-pulse bg-emerald-500" : "bg-slate-400")} />
                     {isWorking ? "Working" : "Ready"}
@@ -996,42 +1166,16 @@ export function OperatorView(props: {
       </section>
 
       {dashboardPanelOpen ? (
-        <aside className="grid min-h-0 min-w-[380px] grid-rows-[auto_auto_minmax(0,1fr)] border-l border-slate-200 bg-white max-lg:hidden">
-          <div className="flex min-h-16 items-center justify-between gap-3 border-b border-slate-200 px-4">
+        <aside className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-l border-slate-200 bg-white max-lg:hidden">
+          <div className="relative z-20 flex min-h-16 items-center border-b border-slate-200 bg-white px-4 pr-24">
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase text-slate-500">Dashboard view</p>
               <h2 className="truncate text-sm font-semibold text-slate-950">
                 {previewDashboard?.artifact.title ?? "No dashboard selected"}
               </h2>
             </div>
-            <Button
-              aria-label="Close dashboard sidebar"
-              className="text-slate-500 hover:bg-slate-100 hover:text-slate-950"
-              onClick={() => setDashboardPanelOpen(false)}
-              size="icon-sm"
-              title="Close dashboard sidebar"
-              type="button"
-              variant="ghost"
-            >
-              <PanelRightCloseIcon />
-            </Button>
           </div>
-          <div className="border-b border-slate-200 px-4 py-3">
-            <label className="grid gap-2 text-xs font-medium uppercase text-slate-500">
-              Sidebar width
-              <input
-                aria-label="Dashboard sidebar width"
-                className="w-full accent-slate-950"
-                max={920}
-                min={380}
-                onChange={(event) => setDashboardPanelWidth(Number(event.target.value))}
-                step={20}
-                type="range"
-                value={dashboardPanelWidth}
-              />
-            </label>
-          </div>
-          <div className="min-h-0 overflow-y-auto bg-slate-50/60 p-4">
+          <div className="min-h-0 min-w-0 overflow-y-auto overflow-x-hidden bg-slate-50/60 p-4">
             {dashboardActionError ? (
               <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 {dashboardActionError}
@@ -1040,6 +1184,16 @@ export function OperatorView(props: {
             {previewDashboard ? (
               <div className="grid gap-3">
                 <div className="flex flex-wrap gap-2">
+                  <Button
+                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    onClick={reviseDashboardFromPanel}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <PencilIcon />
+                    Ask for changes
+                  </Button>
                   <Button
                     className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                     onClick={() => void checkDashboardFromChat(previewDashboard.artifact.id)}
@@ -1082,85 +1236,6 @@ export function OperatorView(props: {
         </aside>
       ) : null}
 
-      <Dialog onOpenChange={setDashboardDialogOpen} open={dashboardDialogOpen}>
-        <DialogContent className="grid max-h-[92vh] w-[min(1480px,96vw)] max-w-none grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden border-slate-200 bg-white text-slate-950">
-          <DialogHeader>
-            <DialogTitle>{previewDashboard?.artifact.title ?? "Dashboard"}</DialogTitle>
-            <DialogDescription className="text-slate-500">
-              {previewDashboard ? `${previewDashboard.artifact.status} / v${previewDashboard.artifact.version}` : "Loading"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="min-h-0 overflow-y-auto pr-1">
-            {dashboardActionError ? (
-              <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                {dashboardActionError}
-              </div>
-            ) : null}
-            {previewDashboard ? (
-              <DashboardRenderer
-                checkResult={dashboardChecks[previewDashboard.artifact.id] ?? null}
-                compact
-                previewDashboard={previewDashboard}
-              />
-            ) : null}
-          </div>
-          <DialogFooter className="gap-2 sm:justify-between">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                className="border-slate-200 text-slate-700 hover:bg-slate-50"
-                onClick={reviseDashboardFromDialog}
-                type="button"
-                variant="outline"
-              >
-                <PencilIcon />
-                Ask for changes
-              </Button>
-              {previewDashboard ? (
-                <Button
-                  className="border-slate-200 text-slate-700 hover:bg-slate-50"
-                  onClick={() => void openDashboardPanelFromChat(previewDashboard.artifact.id)}
-                  type="button"
-                  variant="outline"
-                >
-                  <PanelRightOpenIcon />
-                  Sidebar
-                </Button>
-              ) : null}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {previewDashboard ? (
-                <>
-                  <Button
-                    className="border-slate-200 text-slate-700 hover:bg-slate-50"
-                    onClick={() => void checkDashboardFromChat(previewDashboard.artifact.id)}
-                    type="button"
-                    variant="outline"
-                  >
-                    <RefreshCwIcon />
-                    Check
-                  </Button>
-                  {previewDashboard.artifact.status !== "published" ? (
-                    <Button onClick={() => void publishDashboardFromChat(previewDashboard.artifact.id)} type="button">
-                      <CheckIcon />
-                      Publish
-                    </Button>
-                  ) : null}
-                  <Button
-                    className="border-red-200 bg-white text-red-600 hover:bg-red-50"
-                    onClick={() => void deleteDashboardFromChat(previewDashboard.artifact.id)}
-                    type="button"
-                    variant="outline"
-                  >
-                    <Trash2Icon />
-                    Delete
-                  </Button>
-                </>
-              ) : null}
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <Dialog
         onOpenChange={(open) => {
           if (!open) setPendingDeleteSession(null);
@@ -1191,6 +1266,39 @@ export function OperatorView(props: {
       </Dialog>
     </section>
   );
+}
+
+function ResizeHandle(props: {
+  ariaLabel: string;
+  onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void;
+  style: CSSProperties;
+}) {
+  return (
+    <button
+      aria-label={props.ariaLabel}
+      className="group absolute top-0 bottom-0 z-40 w-6 -translate-x-1/2 cursor-col-resize touch-none max-lg:hidden focus-visible:outline-none"
+      onPointerDown={props.onPointerDown}
+      style={props.style}
+      type="button"
+    >
+      <span className="mx-auto block h-full w-px bg-transparent transition-colors group-hover:bg-slate-400 group-focus-visible:bg-slate-500" />
+    </button>
+  );
+}
+
+function beginColumnResize() {
+  const previousCursor = document.body.style.cursor;
+  const previousUserSelect = document.body.style.userSelect;
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+  return () => {
+    document.body.style.cursor = previousCursor;
+    document.body.style.userSelect = previousUserSelect;
+  };
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
 
 function ChatMessage({ continuing = false, item }: { continuing?: boolean; item: OperatorChatMessageItem }) {
@@ -1224,7 +1332,6 @@ function OperatorEventWidget({
   onCheckDashboard,
   onDeleteDashboard,
   onOpenDashboard,
-  onOpenDashboardPanel,
   onPublishDashboard,
 }: {
   checkResult?: DashboardCheckResult | null | undefined;
@@ -1233,7 +1340,6 @@ function OperatorEventWidget({
   onCheckDashboard: (id: string) => void | Promise<void>;
   onDeleteDashboard: (id: string) => void | Promise<void>;
   onOpenDashboard: (id: string) => void | Promise<void>;
-  onOpenDashboardPanel: (id: string) => void | Promise<void>;
   onPublishDashboard: (id: string) => void | Promise<void>;
 }) {
   if (event.kind === "activity") {
@@ -1248,7 +1354,6 @@ function OperatorEventWidget({
         onCheckDashboard={onCheckDashboard}
         onDeleteDashboard={onDeleteDashboard}
         onOpenDashboard={onOpenDashboard}
-        onOpenDashboardPanel={onOpenDashboardPanel}
         onPublishDashboard={onPublishDashboard}
       />
     );
@@ -1359,7 +1464,6 @@ function DashboardEventCard({
   onCheckDashboard,
   onDeleteDashboard,
   onOpenDashboard,
-  onOpenDashboardPanel,
   onPublishDashboard,
 }: {
   checkResult?: DashboardCheckResult | null | undefined;
@@ -1368,7 +1472,6 @@ function DashboardEventCard({
   onCheckDashboard: (id: string) => void | Promise<void>;
   onDeleteDashboard: (id: string) => void | Promise<void>;
   onOpenDashboard: (id: string) => void | Promise<void>;
-  onOpenDashboardPanel: (id: string) => void | Promise<void>;
   onPublishDashboard: (id: string) => void | Promise<void>;
 }) {
   const dashboardId = event.dashboardId;
@@ -1402,16 +1505,6 @@ function DashboardEventCard({
               >
                 <EyeIcon />
                 Open
-              </Button>
-              <Button
-                className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                onClick={() => void onOpenDashboardPanel(dashboardId)}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <PanelRightOpenIcon />
-                Sidebar
               </Button>
               <Button
                 className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
@@ -1663,6 +1756,10 @@ function normalizeSession(session: RawOperatorSession): OperatorSessionRow {
 
 function defaultModel(manifest: StudioTargetManifest) {
   return manifest.operator.models.find((model) => model.default)?.id ?? manifest.operator.models[0]?.id ?? "gpt-5.5";
+}
+
+function reasoningLabel(effort: ReasoningEffort) {
+  return reasoningEfforts.find((item) => item.id === effort)?.label ?? sentenceCase(effort);
 }
 
 function welcomeMessage(targetName: string): OperatorMessage {
