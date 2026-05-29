@@ -4,7 +4,7 @@ import type { StudioConversationRow } from "./types";
 export function journeyRows(introspection: StudioAgentIntrospection | null) {
   return introspection?.journeys.map((journey) => [
     journey.id,
-    journey.kind === "delegation" ? "Prompt-based" : "XState",
+    journey.kind === "delegation" ? "Delegation" : "State Machine",
     String(journey.graph.states.length),
     String(journey.tools.length),
     String(journey.knowledge.length),
@@ -23,11 +23,11 @@ export function journeyComplexity(introspection: StudioAgentIntrospection | null
 
 export function journeyKindDistribution(introspection: StudioAgentIntrospection | null) {
   if (!introspection) return [];
-  const xstate = introspection.journeys.filter((journey) => journey.kind === "stateMachine").length;
-  const prompt = introspection.journeys.filter((journey) => journey.kind === "delegation").length;
+  const stateMachine = introspection.journeys.filter((journey) => journey.kind === "stateMachine").length;
+  const delegation = introspection.journeys.filter((journey) => journey.kind === "delegation").length;
   return [
-    { name: "XState", value: xstate },
-    { name: "Prompt-based", value: prompt },
+    { name: "State Machine", value: stateMachine },
+    { name: "Delegation", value: delegation },
   ].filter((entry) => entry.value > 0);
 }
 

@@ -104,8 +104,8 @@ export function AgentsView(props: {
             </button>
           ))}
         </div>
-        <JourneyGroup collapsed={sidebarCollapsed} title="XState journeys" icon="xstate" journeys={stateMachines} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
-        <JourneyGroup collapsed={sidebarCollapsed} title="Prompt-based journeys" icon="prompt" journeys={delegations} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
+        <JourneyGroup collapsed={sidebarCollapsed} title="State Machine Journeys" icon="state-machine" journeys={stateMachines} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
+        <JourneyGroup collapsed={sidebarCollapsed} title="Delegation Journeys" icon="delegation" journeys={delegations} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
       </aside>
       <section className="min-w-0">
         <PageHeader
@@ -121,13 +121,13 @@ export function AgentsView(props: {
 function JourneyGroup(props: {
   collapsed: boolean;
   title: string;
-  icon: "xstate" | "prompt";
+  icon: "state-machine" | "delegation";
   journeys: StudioJourneySummary[];
   activeJourney: StudioJourneySummary | null;
   setSection: (section: AgentSection) => void;
   setActiveJourneyId: (id: string) => void;
 }) {
-  const Icon = props.icon === "xstate" ? Workflow : Bot;
+  const Icon = props.icon === "state-machine" ? Workflow : Bot;
   return (
     <div className="mt-6 grid gap-1">
       <span className={`px-1 py-2 text-xs text-slate-500 ${props.collapsed ? "hidden" : ""}`}>{props.title}</span>
@@ -158,7 +158,7 @@ function JourneyDetail({ journey }: { journey: StudioJourneySummary | null }) {
     return (
       <div className="grid gap-4">
         <Panel>
-          <PanelHeader title="Prompt-based journey configuration" detail={journey.condition} />
+          <PanelHeader title="Delegation Journey configuration" detail={journey.condition} />
           <ConfigBlock title="Goal" body={journey.delegation?.goal ?? "No goal returned."} />
           <ConfigBlock title="Instructions" body={journey.delegation?.instructions ?? "No journey-specific instructions returned."} />
           <ConfigBlock title="Complete when" body={journey.delegation?.completeWhen.join("\n") || "No completion criteria returned."} />
@@ -180,7 +180,7 @@ function JourneyDetail({ journey }: { journey: StudioJourneySummary | null }) {
   return (
     <div className="grid gap-4">
       <Panel>
-        <PanelHeader title="XState journey graph" detail={journey.condition} />
+        <PanelHeader title="State Machine Journey graph" detail={journey.condition} />
         <div className="p-5">
           <JourneyGraph journey={journey} />
         </div>

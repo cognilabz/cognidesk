@@ -13,6 +13,7 @@ import {
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
   PanelRightCloseIcon,
+  PanelRightOpenIcon,
   PencilIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -194,8 +195,9 @@ export function OperatorView(props: {
   const dashboardInlineWidth = canShowDashboardInline
     ? clamp(dashboardPanelWidth, DASHBOARD_INLINE_MIN_WIDTH, dashboardInlineMaxWidth)
     : DASHBOARD_INLINE_MIN_WIDTH;
+  const dashboardPanelVisible = dashboardPanelOpen && Boolean(previewDashboard);
   const effectiveDashboardPanelMaximized = dashboardPanelMaximized || (
-    dashboardPanelOpen
+    dashboardPanelVisible
     && dashboardInlineMaxWidth !== null
     && !canShowDashboardInline
   );
@@ -229,6 +231,13 @@ export function OperatorView(props: {
     if (options?.resetWidth) {
       setDashboardPanelWidth(DASHBOARD_DEFAULT_WIDTH);
     }
+  }
+
+  function openDashboardPanel(options: { resetWidth?: boolean } = {}) {
+    setDashboardActionError(null);
+    setDashboardPanelMaximized(false);
+    if (options.resetWidth) setDashboardPanelWidth(DASHBOARD_DEFAULT_WIDTH);
+    setDashboardPanelOpen(true);
   }
 
   function toggleDashboardMaximized() {
@@ -639,17 +648,18 @@ export function OperatorView(props: {
       assistantMessageIdRef.current = assistantId;
     }
     const nextAssistantId = assistantId;
+    const nextText = assistantDraftRef.current;
     setChatItems((items) => {
       const existing = items.some((item) => item.type === "message" && item.id === nextAssistantId);
       if (!existing) {
         return [
           ...items,
-          { id: nextAssistantId, role: "assistant", text: delta, type: "message", streaming: true },
+          { id: nextAssistantId, role: "assistant", text: nextText, type: "message", streaming: true },
         ];
       }
       return items.map((item) => (
         item.type === "message" && item.id === nextAssistantId
-          ? { ...item, text: item.text + delta, streaming: true }
+          ? { ...item, text: nextText, streaming: true }
           : item
       ));
     });
@@ -773,9 +783,7 @@ export function OperatorView(props: {
     }
     setDashboardActionError(null);
     setPreviewDashboard(preview);
-    setDashboardPanelMaximized(false);
-    setDashboardPanelWidth(DASHBOARD_DEFAULT_WIDTH);
-    setDashboardPanelOpen(true);
+    openDashboardPanel();
   }
 
   async function publishDashboardFromChat(id: string) {
@@ -837,9 +845,7 @@ export function OperatorView(props: {
     };
     setDashboardChecks((items) => ({ ...items, [id]: result }));
     setPreviewDashboard(preview);
-    setDashboardPanelMaximized(false);
-    setDashboardPanelWidth(DASHBOARD_DEFAULT_WIDTH);
-    setDashboardPanelOpen(true);
+    openDashboardPanel();
     setDashboardActionError(null);
   }
 
@@ -900,7 +906,7 @@ export function OperatorView(props: {
         "max-lg:grid-cols-[minmax(0,1fr)]"
       )}
       data-dashboard-maximized={effectiveDashboardPanelMaximized ? "true" : undefined}
-      data-dashboard-open={dashboardPanelOpen ? "true" : undefined}
+      data-dashboard-open={dashboardPanelVisible ? "true" : undefined}
       ref={operatorLayoutRef}
       style={operatorGridStyle}
     >
@@ -910,19 +916,20 @@ export function OperatorView(props: {
         style={{ left: "var(--session-column)" }}
       />
 
-      {dashboardPanelOpen ? (
+      {dashboardPanelVisible && previewDashboard ? (
         <ResizeHandle
           ariaLabel="Resize dashboard sidebar"
           onPointerDown={startDashboardResize}
           style={{ left: "calc(100% - var(--dashboard-column))" }}
+          testId="dashboard-resize-handle"
         />
       ) : null}
 
-      {dashboardPanelOpen ? (
+      {dashboardPanelVisible ? (
         <div className="fixed top-20 right-8 z-50 flex items-center gap-1 max-lg:hidden">
           <Button
             aria-label={effectiveDashboardPanelMaximized ? "Restore dashboard sidebar" : "Maximize dashboard sidebar"}
-            className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950"
+            className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
             onClick={toggleDashboardMaximized}
             size="icon-sm"
             title={effectiveDashboardPanelMaximized ? "Restore dashboard sidebar" : "Maximize dashboard sidebar"}
@@ -933,7 +940,7 @@ export function OperatorView(props: {
           </Button>
           <Button
             aria-label="Close dashboard sidebar"
-            className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950"
+            className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
             onClick={() => closeDashboardPanel()}
             size="icon-sm"
             title="Close dashboard sidebar"
@@ -945,12 +952,12 @@ export function OperatorView(props: {
         </div>
       ) : null}
 
-      <aside className="grid min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] border-r border-slate-200 bg-slate-50 max-lg:hidden">
+      <aside className="grid min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] border-r border-slate-200 bg-slate-50 max-lg:hidden dark:border-slate-700 dark:bg-slate-950">
         <div className={cn("flex items-center gap-2 px-3 py-3", sessionSidebarCollapsed ? "justify-center" : "justify-between")}>
           <span className={cn("text-sm font-medium text-slate-600", sessionSidebarCollapsed && "sr-only")}>Sessions</span>
           <Button
             aria-label={sessionSidebarCollapsed ? "Expand sessions" : "Collapse sessions"}
-            className="text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+            className="text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
             onClick={() => setSessionSidebarCollapsed((value) => !value)}
             size="icon-sm"
             title={sessionSidebarCollapsed ? "Expand sessions" : "Collapse sessions"}
@@ -963,7 +970,7 @@ export function OperatorView(props: {
 
         <div className="px-3 pb-3">
           <Button
-            className={cn("w-full justify-start bg-white text-slate-950 hover:bg-slate-100", sessionSidebarCollapsed && "justify-center px-0")}
+            className={cn("w-full justify-start bg-white text-slate-950 hover:bg-slate-100 dark:border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800", sessionSidebarCollapsed && "justify-center px-0")}
             onClick={startNewSession}
             title="New session"
             type="button"
@@ -979,7 +986,7 @@ export function OperatorView(props: {
               <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500" />
               <Input
                 aria-label="Search sessions"
-                className="border-slate-200 bg-white pl-9 text-slate-950 placeholder:text-slate-400 focus-visible:ring-slate-300"
+                className="border-slate-200 bg-white pl-9 text-slate-950 placeholder:text-slate-400 focus-visible:ring-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
                 onChange={(event) => setSessionSearch(event.target.value)}
                 placeholder="Search sessions"
                 value={sessionSearch}
@@ -1015,8 +1022,8 @@ export function OperatorView(props: {
         ) : <div className="min-h-0" />}
       </aside>
 
-      <section className="grid min-h-0 min-w-0 max-w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
-        <header className="flex min-h-16 w-full min-w-0 max-w-full items-center justify-between gap-4 overflow-hidden border-b border-slate-200 bg-white px-5 max-md:flex-col max-md:items-stretch max-md:py-4">
+      <section className="grid min-h-0 min-w-0 max-w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden dark:bg-slate-950">
+        <header className="flex min-h-16 w-full min-w-0 max-w-full items-center justify-between gap-4 overflow-hidden border-b border-slate-200 bg-white px-5 max-md:flex-col max-md:items-stretch max-md:py-4 dark:border-slate-700 dark:bg-slate-950">
           <div className="min-w-0">
             <h1 className="truncate text-base font-semibold text-slate-950">{activeSession?.title ?? "Studio Operator"}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
@@ -1025,9 +1032,21 @@ export function OperatorView(props: {
               {artifacts.length ? <span className="rounded-full border border-sky-200 bg-sky-50 px-2 py-1 text-sky-700">{artifacts.length} artifacts</span> : null}
             </div>
           </div>
+          {previewDashboard && !dashboardPanelVisible ? (
+            <Button
+              className="shrink-0 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              onClick={() => openDashboardPanel()}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              <PanelRightOpenIcon />
+              Dashboard
+            </Button>
+          ) : null}
         </header>
 
-        <Conversation className="min-h-0 min-w-0 max-w-full overflow-hidden bg-white">
+        <Conversation className="min-h-0 min-w-0 max-w-full overflow-hidden bg-white dark:bg-slate-950">
           <ConversationContent className="h-full w-full min-w-0 max-w-full gap-5 overflow-y-auto overflow-x-hidden px-4 py-8">
             <div className="operator-chat-flow mx-auto flex w-full min-w-0 max-w-full flex-col gap-5">
               {visibleChatItems.map((item) => item.type === "message" ? (
@@ -1054,7 +1073,7 @@ export function OperatorView(props: {
                 <Suggestions className="px-0">
                   {suggestions.map((suggestion) => (
                     <Suggestion
-                      className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                       disabled={isWorking}
                       key={suggestion.label}
                       onClick={() => void sendOperatorMessage(suggestion.prompt)}
@@ -1069,18 +1088,18 @@ export function OperatorView(props: {
               ) : null}
             </div>
           </ConversationContent>
-          <ConversationScrollButton className="bottom-5 border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50" />
+          <ConversationScrollButton className="bottom-5 border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800" />
         </Conversation>
 
-        <footer className="w-full min-w-0 max-w-full overflow-hidden border-t border-slate-200 bg-white px-4 py-4">
+        <footer className="w-full min-w-0 max-w-full overflow-hidden border-t border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-950">
           <div className="mx-auto w-full min-w-0 max-w-4xl">
             <PromptInput
-              className="rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-200/70"
+              className="rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-200/70 dark:border-slate-600 dark:bg-slate-900 dark:shadow-none dark:ring-1 dark:ring-slate-700"
               onSubmit={(message) => void sendOperatorMessage(message.text)}
             >
               <PromptInputBody>
                 <PromptInputTextarea
-                  className="min-h-20 resize-none text-slate-950 placeholder:text-slate-400"
+                  className="min-h-20 resize-none text-slate-950 placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !event.shiftKey) {
@@ -1098,7 +1117,7 @@ export function OperatorView(props: {
                     <PopoverTrigger asChild>
                       <PromptInputButton
                         aria-label="Select model"
-                        className="min-w-0 max-w-40 justify-start text-slate-600"
+                        className="min-w-0 max-w-40 justify-start text-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                         title="Select model"
                         type="button"
                         variant="ghost"
@@ -1109,8 +1128,8 @@ export function OperatorView(props: {
                         <span className="text-slate-500">{reasoningLabel(selectedReasoningEffort)}</span>
                       </PromptInputButton>
                     </PopoverTrigger>
-                    <PopoverContent align="start" className="w-80 border-slate-200 bg-white p-0 text-slate-950" side="top">
-                      <Command className="bg-white">
+                    <PopoverContent align="start" className="w-80 border-slate-200 bg-white p-0 text-slate-950 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" side="top">
+                      <Command className="bg-white dark:bg-slate-900">
                         <CommandInput placeholder="Search models..." />
                         <CommandList>
                           <CommandEmpty>No models found.</CommandEmpty>
@@ -1149,7 +1168,7 @@ export function OperatorView(props: {
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  <PromptInputButton className="text-slate-500" disabled type="button" variant="ghost">
+                  <PromptInputButton className="text-slate-500 dark:text-slate-300" disabled type="button" variant="ghost">
                     <span className={cn("size-2 rounded-full", isWorking ? "animate-pulse bg-emerald-500" : "bg-slate-400")} />
                     {isWorking ? "Working" : "Ready"}
                   </PromptInputButton>
@@ -1165,27 +1184,27 @@ export function OperatorView(props: {
         </footer>
       </section>
 
-      {dashboardPanelOpen ? (
-        <aside className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-l border-slate-200 bg-white max-lg:hidden">
-          <div className="relative z-20 flex min-h-16 items-center border-b border-slate-200 bg-white px-4 pr-24">
+      {dashboardPanelVisible && previewDashboard ? (
+        <aside className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-l border-slate-200 bg-white max-lg:hidden dark:border-slate-700 dark:bg-slate-950" data-testid="dashboard-sidebar">
+          <div className="relative z-20 flex min-h-16 items-center border-b border-slate-200 bg-white px-4 pr-24 dark:border-slate-700 dark:bg-slate-950">
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase text-slate-500">Dashboard view</p>
               <h2 className="truncate text-sm font-semibold text-slate-950">
-                {previewDashboard?.artifact.title ?? "No dashboard selected"}
+                {previewDashboard.artifact.title}
               </h2>
             </div>
           </div>
-          <div className="min-h-0 min-w-0 overflow-y-auto overflow-x-hidden bg-slate-50/60 p-4">
+          <div className="min-h-0 min-w-0 overflow-y-auto overflow-x-hidden bg-slate-50/60 p-4 dark:bg-slate-950">
             {dashboardActionError ? (
               <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 {dashboardActionError}
               </div>
             ) : null}
-            {previewDashboard ? (
-              <div className="grid gap-3">
+            <div className="grid gap-3">
+              {previewDashboard ? (
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                     onClick={reviseDashboardFromPanel}
                     size="sm"
                     type="button"
@@ -1195,7 +1214,7 @@ export function OperatorView(props: {
                     Ask for changes
                   </Button>
                   <Button
-                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                     onClick={() => void checkDashboardFromChat(previewDashboard.artifact.id)}
                     size="sm"
                     type="button"
@@ -1205,13 +1224,13 @@ export function OperatorView(props: {
                     Check
                   </Button>
                   {previewDashboard.artifact.status !== "published" ? (
-                    <Button onClick={() => void publishDashboardFromChat(previewDashboard.artifact.id)} size="sm" type="button">
+                    <Button className="dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white" onClick={() => void publishDashboardFromChat(previewDashboard.artifact.id)} size="sm" type="button">
                       <CheckIcon />
                       Publish
                     </Button>
                   ) : null}
                   <Button
-                    className="border-red-200 bg-white text-red-600 hover:bg-red-50"
+                    className="border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-500/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/50"
                     onClick={() => void deleteDashboardFromChat(previewDashboard.artifact.id)}
                     size="sm"
                     type="button"
@@ -1221,17 +1240,13 @@ export function OperatorView(props: {
                     Delete
                   </Button>
                 </div>
-                <DashboardRenderer
-                  checkResult={dashboardChecks[previewDashboard.artifact.id] ?? null}
-                  compact
-                  previewDashboard={previewDashboard}
-                />
-              </div>
-            ) : (
-              <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500">
-                Open a dashboard from the chat card to pin it here.
-              </div>
-            )}
+              ) : null}
+              <DashboardRenderer
+                checkResult={dashboardChecks[previewDashboard.artifact.id] ?? null}
+                compact
+                previewDashboard={previewDashboard}
+              />
+            </div>
           </div>
         </aside>
       ) : null}
@@ -1272,11 +1287,13 @@ function ResizeHandle(props: {
   ariaLabel: string;
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void;
   style: CSSProperties;
+  testId?: string;
 }) {
   return (
     <button
       aria-label={props.ariaLabel}
       className="group absolute top-0 bottom-0 z-40 w-6 -translate-x-1/2 cursor-col-resize touch-none max-lg:hidden focus-visible:outline-none"
+      data-testid={props.testId}
       onPointerDown={props.onPointerDown}
       style={props.style}
       type="button"
