@@ -151,10 +151,23 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
 async function queryMetricData(query: StudioDashboardDataQuery) {
   const manifest = await currentTarget();
   const source = manifest.telemetry.sources.find((candidate) => candidate.kind === "prometheus");
-      if (!source) throw new Error("No Prometheus telemetry source configured");
+  if (!source) throw new Error("No Prometheus telemetry source configured");
   const expression = stringParam(query.params.query) ?? "sum(rate(cognidesk_runtime_operations_total[5m]))";
-  const url = new URL("/api/v1/query", source.baseUrl);
+  const wantsRange = query.params.start !== undefined
+    || query.params.end !== undefined
+    || query.params.step !== undefined
+    || query.params.rangeSeconds !== undefined;
+  const url = new URL(wantsRange ? "/api/v1/query_range" : "/api/v1/query", source.baseUrl);
   url.searchParams.set("query", expression);
+  if (wantsRange) {
+    const end = numberParam(query.params.end) ?? Math.floor(Date.now() / 1000);
+    const rangeSeconds = numberParam(query.params.rangeSeconds) ?? 3600;
+    const start = numberParam(query.params.start) ?? end - rangeSeconds;
+    const step = numberParam(query.params.step) ?? Math.max(15, Math.floor(rangeSeconds / 60));
+    url.searchParams.set("start", String(start));
+    url.searchParams.set("end", String(end));
+    url.searchParams.set("step", String(step));
+  }
   const response = await fetch(url, source.headers ? { headers: source.headers } : {});
   if (!response.ok) throw new Error(`Metric source returned ${response.status}`);
   return {

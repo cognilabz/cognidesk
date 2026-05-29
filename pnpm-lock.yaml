@@ -373,6 +373,9 @@ importers:
 
   packages/otel:
     dependencies:
+      '@opentelemetry/api':
+        specifier: ^1.9.0
+        version: 1.9.1
       '@opentelemetry/exporter-metrics-otlp-proto':
         specifier: ^0.57.2
         version: 0.57.2(@opentelemetry/api@1.9.1)

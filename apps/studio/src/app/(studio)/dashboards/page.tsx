@@ -1,6 +1,6 @@
 import { DashboardsView } from "@/components/studio/dashboards-view";
 import { ensureDemoConversations, listStudioConversations } from "@/server/conversations";
-import { getDashboardCode, listDashboards } from "@/server/dashboards";
+import { ensureDemoTelemetryDashboards, getDashboardCode, listDashboards } from "@/server/dashboards";
 import {
   loadIntrospectionResult,
   requireStudioPageContext,
@@ -10,7 +10,11 @@ import {
 export const runtime = "nodejs";
 
 export default async function DashboardsPage() {
-  const { manifest } = await requireStudioPageContext();
+  const { manifest, session } = await requireStudioPageContext();
+  await ensureDemoTelemetryDashboards({
+    userId: session.user.id,
+    targetId: manifest.target.id,
+  });
   const [dashboards, introspectionResult] = await Promise.all([
     listDashboards(manifest.target.id),
     loadIntrospectionResult(),

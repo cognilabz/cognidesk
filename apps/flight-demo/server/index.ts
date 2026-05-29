@@ -4,7 +4,7 @@ import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createRuntime } from "@cognidesk/core";
-import { startCognideskOtel } from "@cognidesk/otel";
+import { startCognideskDemoTelemetrySeed, startCognideskOtel } from "@cognidesk/otel";
 import { createSqliteStorage } from "@cognidesk/storage-sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
 import { loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
@@ -19,6 +19,12 @@ const otel = process.env.COGNIDESK_OTEL === "true"
       resourceAttributes: {
         "cognidesk.demo": "flight",
       },
+    })
+  : null;
+const demoTelemetrySeed = otel && process.env.COGNIDESK_OTEL_FAKE_DATA !== "false"
+  ? startCognideskDemoTelemetrySeed({
+      serviceName: "cognidesk-flight-demo",
+      serviceVersion: "0.0.0",
     })
   : null;
 
@@ -111,6 +117,7 @@ server.listen(port, host, () => {
 });
 
 server.on("close", () => {
+  demoTelemetrySeed?.shutdown();
   void otel?.shutdown().catch(() => undefined);
 });
 

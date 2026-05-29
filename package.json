@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.33.4",
   "scripts": {
     "build": "turbo run build",
-    "demo": "turbo run dev --filter=@cognidesk/flight-demo --ui=tui",
+    "demo": "pnpm --filter @cognidesk/otel build && COGNIDESK_OTEL=${COGNIDESK_OTEL:-true} COGNIDESK_TELEMETRY_CONTENT=${COGNIDESK_TELEMETRY_CONTENT:-full} OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-http://127.0.0.1:4318} COGNIDESK_STUDIO_TARGET_TOKEN=${COGNIDESK_STUDIO_TARGET_TOKEN:-dev-studio-token} STUDIO_TARGET_MANIFEST=$PWD/cognidesk.studio.json STUDIO_APP_URL=${STUDIO_APP_URL:-http://127.0.0.1:3000} STUDIO_DATABASE_PROVIDER=${STUDIO_DATABASE_PROVIDER:-sqlite} STUDIO_DATABASE_URL=${STUDIO_DATABASE_URL:-file:./.data/studio.sqlite} STUDIO_OPERATOR_RUNTIME_WS_URL=${STUDIO_OPERATOR_RUNTIME_WS_URL:-ws://127.0.0.1:4099/ws} STUDIO_SOURCE_REPO_PATH=${STUDIO_SOURCE_REPO_PATH:-$PWD} STUDIO_API_BASE_URL=${STUDIO_API_BASE_URL:-http://127.0.0.1:3000} STUDIO_OPERATOR_SANDBOX_ROOT=${STUDIO_OPERATOR_SANDBOX_ROOT:-/tmp/cognidesk-studio-sandboxes} turbo run dev --env-mode=loose --filter=@cognidesk/flight-demo --filter=@cognidesk/studio --filter=@cognidesk/studio-operator-runtime --ui=tui",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "turbo run lint",

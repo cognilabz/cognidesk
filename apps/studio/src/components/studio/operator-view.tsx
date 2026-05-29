@@ -52,6 +52,7 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import {
   Task,
@@ -1331,7 +1332,7 @@ function ChatMessage({ continuing = false, item }: { continuing?: boolean; item:
           ) : (
             <span className="inline-flex items-center gap-2 text-sm text-slate-500">
               <span className="size-2 animate-pulse rounded-full bg-emerald-500" />
-              Working
+              <Shimmer as="span" className="text-slate-500">Thinking</Shimmer>
             </span>
           )
         ) : (
@@ -1377,26 +1378,29 @@ function OperatorEventWidget({
   }
   if (event.kind === "reasoning") {
     return (
-      <div className="operator-event-in mx-auto w-full max-w-3xl" data-testid="operator-event">
+      <div className="operator-event-in w-full max-w-3xl" data-testid="operator-event">
         <Reasoning
           className="mb-0 rounded-lg border border-slate-200 bg-slate-50 p-3"
           defaultOpen={event.status === "running"}
-          isStreaming={event.status === "running"}
+          isStreaming={event.status === "running" || continuing}
         >
           <ReasoningTrigger
             className="text-slate-600 hover:text-slate-950"
             getThinkingMessage={() => (
-              <span className="text-sm">{event.title}</span>
+              <span className="inline-flex items-center gap-2 text-sm">
+                <Shimmer as="span" className="text-slate-600">{continuing ? "Continuing to work" : event.title}</Shimmer>
+              </span>
             )}
           />
           <ReasoningContent className="mt-3 text-slate-700">{event.detail ?? event.title}</ReasoningContent>
         </Reasoning>
+        {continuing ? <InlineContinuationStatus className="mt-2" /> : null}
       </div>
     );
   }
   if (event.kind === "diff") {
     return (
-      <div className="operator-event-in mx-auto w-full max-w-3xl" data-testid="operator-event">
+      <div className="operator-event-in w-full max-w-3xl" data-testid="operator-event">
         <Task className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
           <TaskTrigger className="text-emerald-800" title={event.title} />
           <TaskContent>
@@ -1412,7 +1416,7 @@ function OperatorEventWidget({
     );
   }
   return (
-    <div className="operator-event-in mx-auto w-full max-w-3xl" data-testid="operator-event">
+    <div className="operator-event-in w-full max-w-3xl" data-testid="operator-event">
       <Tool className={cn("mb-0 border-slate-200 bg-white", event.kind === "error" && "border-red-200 bg-red-50")} defaultOpen={event.status !== "completed"}>
         <ToolHeader
           state={toolStateForEvent(event)}
@@ -1441,7 +1445,7 @@ function InlineActivityEvent({ continuing = false, event }: { continuing?: boole
     const isActive = event.status === "running" && Boolean(activeTitle);
     const isContinuing = continuing && !isActive;
     return (
-      <details className="operator-event-in group mx-auto w-full max-w-3xl text-sm text-slate-500" data-testid="operator-event">
+      <details className="operator-event-in group w-full max-w-3xl text-sm text-slate-500" data-testid="operator-event">
         <summary className="inline-flex max-w-full cursor-pointer list-none items-center gap-2 rounded-md px-0 py-1 text-slate-500 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300">
           <SquareTerminalIcon className="size-4 shrink-0 text-slate-400" />
           {isActive ? <ActivityStatusDot /> : null}
@@ -1462,7 +1466,7 @@ function InlineActivityEvent({ continuing = false, event }: { continuing?: boole
   }
 
   return (
-    <div className="operator-event-in mx-auto w-full max-w-3xl text-sm text-slate-500" data-testid="operator-event">
+    <div className="operator-event-in w-full max-w-3xl text-sm text-slate-500" data-testid="operator-event">
       <span className="inline-flex max-w-full items-center gap-2 rounded-md py-1 text-slate-500">
         <SquareTerminalIcon className="size-4 shrink-0 text-slate-400" />
         {event.status === "running" ? <ActivityStatusDot /> : null}
@@ -1494,7 +1498,7 @@ function DashboardEventCard({
   const dashboardId = event.dashboardId;
   const deleted = event.dashboardStatus === "deleted";
   return (
-    <div className="operator-event-in mx-auto w-full max-w-3xl" data-testid="operator-dashboard-event">
+    <div className="operator-event-in w-full max-w-3xl" data-testid="operator-dashboard-event">
       <section className={cn(
         "rounded-lg border bg-white p-4",
         deleted ? "border-slate-200 opacity-75" : "border-sky-200",
@@ -1589,11 +1593,11 @@ function ActivityStatusDot() {
 
 function InlineWorkingIndicator() {
   return (
-    <div className="operator-event-in mx-auto w-full max-w-3xl text-sm" data-testid="operator-working-indicator">
+    <div className="operator-event-in w-full max-w-3xl text-sm" data-testid="operator-working-indicator">
       <span className="inline-flex max-w-full items-center gap-2 rounded-md py-1 text-slate-500">
         <SquareTerminalIcon className="size-4 shrink-0 text-slate-400" />
         <ActivityStatusDot />
-        <span className="operator-working-text min-w-0 truncate">Starting work</span>
+        <Shimmer as="span" className="min-w-0 truncate text-slate-500">Thinking</Shimmer>
         <span aria-hidden="true" className="inline-flex w-5 shrink-0 justify-start text-slate-400">
           <span className="animate-pulse">.</span>
           <span className="animate-pulse [animation-delay:150ms]">.</span>
@@ -1608,7 +1612,7 @@ function InlineContinuationStatus({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex shrink-0 items-center gap-1.5 text-xs text-slate-400", className)}>
       <ActivityStatusDot />
-      <span className="operator-working-text">Continuing</span>
+      <Shimmer as="span" className="text-slate-400">Continuing to work</Shimmer>
       <span aria-hidden="true" className="inline-flex w-4 justify-start text-slate-400">
         <span className="animate-pulse">.</span>
         <span className="animate-pulse [animation-delay:150ms]">.</span>
@@ -1977,7 +1981,7 @@ function shouldMarkItemContinuing(
   const last = items.at(-1);
   if (!last || last.id !== item.id) return false;
   if (item.type === "message") return item.role === "assistant" && !item.streaming;
-  return item.event.status !== "running";
+  return item.event.kind === "reasoning" || item.event.status !== "running";
 }
 
 function shouldShowStandaloneWorkingIndicator(
@@ -1988,7 +1992,8 @@ function shouldShowStandaloneWorkingIndicator(
   if (!isWorking || assistantIsTyping) return false;
   const last = items.at(-1);
   if (!last) return true;
-  return last.type === "message" && last.role !== "assistant";
+  if (last.type === "message") return last.role !== "assistant";
+  return last.event.kind === "reasoning" && last.event.status !== "running";
 }
 
 function shouldCompactActivity(event: OperatorEventEntry) {
