@@ -6,22 +6,17 @@ import {
   requireStudioPageContext,
   serializeDashboards,
 } from "@/server/studio-page-data";
+import type { Metadata } from "next";
 
 export const runtime = "nodejs";
+export const metadata: Metadata = {
+  title: "Dashboards | Cognidesk Studio",
+  description: "Review and publish generated Studio dashboards.",
+};
 
 export default async function DashboardsPage() {
-  const { manifest, session } = await requireStudioPageContext();
-  await ensureDemoTelemetryDashboards({
-    userId: session.user.id,
-    targetId: manifest.target.id,
-  });
-  const [dashboards, introspectionResult] = await Promise.all([
-    listDashboards(manifest.target.id),
-    loadIntrospectionResult(),
-  ]);
-  await ensureDemoConversations(manifest, introspectionResult.value);
-  const conversations = await listStudioConversations(manifest.target.id);
-  const firstDashboard = dashboards[0] ? await getDashboardCode(dashboards[0].id) : null;
+  const { dashboards, introspectionResult, conversations, firstDashboard } =
+    await loadDashboardsPageData();
 
   return (
     <DashboardsView
@@ -30,5 +25,33 @@ export default async function DashboardsPage() {
       introspection={introspectionResult.value}
       initialPreviewDashboard={firstDashboard}
     />
+  );
+}
+
+function loadDashboardsPageData() {
+  return requireStudioPageContext().then(({ manifest, session }) =>
+    ensureDemoTelemetryDashboards({
+      userId: session.user.id,
+      targetId: manifest.target.id,
+    }).then(() =>
+      Promise.all([
+        listDashboards(manifest.target.id),
+        loadIntrospectionResult(),
+      ]).then(([dashboards, introspectionResult]) =>
+        Promise.all([
+          ensureDemoConversations(manifest, introspectionResult.value).then(() =>
+            listStudioConversations(manifest.target.id)
+          ),
+          dashboards[0]
+            ? getDashboardCode(dashboards[0].id)
+            : Promise.resolve(null),
+        ]).then(([conversations, firstDashboard]) => ({
+          dashboards,
+          introspectionResult,
+          conversations,
+          firstDashboard,
+        }))
+      )
+    )
   );
 }

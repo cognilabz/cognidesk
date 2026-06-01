@@ -16,7 +16,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import type { ComponentProps, ReactNode } from "react";
+import { ModelSelectorLogoGroup } from "./model-selector-logo-group";
+import { ModelSelectorName } from "./model-selector-name";
 
 export type ModelSelectorProps = ComponentProps<typeof Dialog>;
 
@@ -178,7 +181,7 @@ export const ModelSelectorLogo = ({
   className,
   ...props
 }: ModelSelectorLogoProps) => (
-  <img
+  <Image
     {...props}
     alt={`${provider} logo`}
     className={cn("size-3 dark:invert", className)}
@@ -188,26 +191,4 @@ export const ModelSelectorLogo = ({
   />
 );
 
-export type ModelSelectorLogoGroupProps = ComponentProps<"div">;
-
-export const ModelSelectorLogoGroup = ({
-  className,
-  ...props
-}: ModelSelectorLogoGroupProps) => (
-  <div
-    className={cn(
-      "flex shrink-0 items-center -space-x-1 [&>img]:rounded-full [&>img]:bg-background [&>img]:p-px [&>img]:ring-1 dark:[&>img]:bg-foreground",
-      className
-    )}
-    {...props}
-  />
-);
-
-export type ModelSelectorNameProps = ComponentProps<"span">;
-
-export const ModelSelectorName = ({
-  className,
-  ...props
-}: ModelSelectorNameProps) => (
-  <span className={cn("flex-1 truncate text-left", className)} {...props} />
-);
+export { ModelSelectorLogoGroup, ModelSelectorName };

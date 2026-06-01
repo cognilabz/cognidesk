@@ -55,7 +55,7 @@ export function AppShell(props: {
     return isThemePreference(stored) ? stored : "system";
   });
   const pathname = usePathname();
-  const router = useRouter();
+  const { refresh, replace } = useRouter();
   const active = activeItem(pathname);
 
   useEffect(() => {
@@ -74,8 +74,8 @@ export function AppShell(props: {
 
   async function signOut() {
     await fetch("/api/auth/sign-out", { method: "POST" });
-    router.replace("/login");
-    router.refresh();
+    replace("/login");
+    refresh();
   }
 
   return (
@@ -86,11 +86,11 @@ export function AppShell(props: {
       )}>
         <div className={cn("flex items-center gap-2", collapsed ? "lg:flex-col lg:justify-start" : "justify-between")}>
           <Link className={cn("flex min-h-10 items-center gap-3 rounded-lg px-2 text-left", collapsed && "lg:w-10 lg:justify-center lg:px-0")} href="/" title="Cognidesk">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-950 text-sm font-semibold text-white">C</span>
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-slate-950 text-sm font-semibold text-white">C</span>
             <strong className={`text-sm text-slate-950 ${collapsed ? "lg:hidden" : ""}`}>Cognidesk</strong>
           </Link>
           <button
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-950 max-lg:hidden dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="grid size-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-950 max-lg:hidden dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
             type="button"
             onClick={() => setCollapsed((value) => !value)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -135,7 +135,7 @@ export function AppShell(props: {
                 <span className="block truncate font-medium text-slate-950">{props.user.name}</span>
                 <span className="block truncate text-xs text-slate-500">{props.user.role}</span>
               </span>
-              <ChevronDown className={cn("h-4 w-4 shrink-0 text-slate-400", collapsed && "lg:hidden")} />
+              <ChevronDown className={cn("size-4 shrink-0 text-slate-400", collapsed && "lg:hidden")} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64 border-slate-200 bg-white text-slate-950 shadow-xl dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" side="right" sideOffset={10}>
@@ -152,7 +152,7 @@ export function AppShell(props: {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="flex items-center gap-2 text-xs uppercase text-muted-foreground">
-              <Monitor className="h-3.5 w-3.5" />
+              <Monitor className="size-3.5" />
               Theme
             </DropdownMenuLabel>
             <DropdownMenuRadioGroup value={theme} onValueChange={(value) => {
@@ -206,7 +206,7 @@ function activeItem(pathname: string) {
 
 function UserAvatar(props: { name: string }) {
   return (
-    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-semibold text-white ring-1 ring-slate-200">
+    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-slate-950 text-xs font-semibold text-white ring-1 ring-slate-200">
       {initials(props.name)}
     </span>
   );

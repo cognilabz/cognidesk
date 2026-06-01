@@ -4,7 +4,8 @@ import { Activity, Database, GitPullRequestArrow } from "lucide-react";
 import type { StudioAgentIntrospection, StudioTargetManifest } from "@cognidesk/studio-contracts";
 import type { DashboardRow, StudioConversationRow } from "./types";
 import { conversationJourneyActivity, conversationRows, telemetryRows } from "./data";
-import { DataTable, EmptyState, Metric, PageHeader, Panel, PanelHeader, formatDateTime } from "./ui";
+import { formatDateTime } from "./format";
+import { DataTable, EmptyState, Metric, PageHeader, Panel, PanelHeader } from "./ui";
 
 export function HomeView(props: {
   manifest: StudioTargetManifest;

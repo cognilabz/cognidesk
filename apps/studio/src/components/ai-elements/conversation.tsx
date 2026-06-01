@@ -102,8 +102,7 @@ export const ConversationScrollButton = ({
 
 const getMessageText = (message: UIMessage): string =>
   message.parts
-    .filter((part) => part.type === "text")
-    .map((part) => part.text)
+    .flatMap((part) => (part.type === "text" ? [part.text] : []))
     .join("");
 
 export type ConversationDownloadProps = Omit<
@@ -121,7 +120,7 @@ const defaultFormatMessage = (message: UIMessage): string => {
   return `**${roleLabel}:** ${getMessageText(message)}`;
 };
 
-export const messagesToMarkdown = (
+const messagesToMarkdown = (
   messages: UIMessage[],
   formatMessage: (
     message: UIMessage,

@@ -29,20 +29,24 @@ export async function ensureDemoTelemetryDashboards(input: {
   const existing = await db.select({ slug: dashboardArtifacts.slug }).from(dashboardArtifacts)
     .where(eq(dashboardArtifacts.targetId, input.targetId));
   const existingSlugs = new Set(existing.map((dashboard) => dashboard.slug));
+  const draftPromises = [];
   for (const seed of demoTelemetryDashboardSeeds(input.targetId)) {
     if (existingSlugs.has(seed.slug)) continue;
-    await saveDashboardDraft({
-      userId: input.userId,
-      targetId: input.targetId,
-      title: seed.title,
-      slug: seed.slug,
-      description: seed.description,
-      code: "export function Dashboard() { return null; }",
-      datasets: seed.datasets,
-      spec: seed.spec,
-      fallback: { seeded: true, source: "flight-demo-otel" },
-    });
+    draftPromises.push(
+      saveDashboardDraft({
+        userId: input.userId,
+        targetId: input.targetId,
+        title: seed.title,
+        slug: seed.slug,
+        description: seed.description,
+        code: "export function Dashboard() { return null; }",
+        datasets: seed.datasets,
+        spec: seed.spec,
+        fallback: { seeded: true, source: "flight-demo-otel" },
+      })
+    );
   }
+  await Promise.all(draftPromises);
 }
 
 export async function getDashboardArtifact(id: string): Promise<StudioDashboardArtifact | null> {
@@ -206,18 +210,22 @@ export async function deleteDashboard(input: {
   if (!artifact) return null;
   const versions = await db.select().from(dashboardArtifactVersions)
     .where(eq(dashboardArtifactVersions.dashboardId, input.dashboardId));
-  for (const version of versions) {
-    await deleteArtifact({ key: version.artifactKey }).catch(() => undefined);
-  }
-  await db.delete(dashboardArtifacts).where(eq(dashboardArtifacts.id, input.dashboardId));
-  await audit({
-    userId: input.userId,
-    targetId: artifact.targetId,
-    action: "dashboard.deleted",
-    subjectType: "dashboard",
-    subjectId: input.dashboardId,
-    metadata: { version: artifact.version, artifactKeys: versions.map((version) => version.artifactKey) },
-  });
+  await Promise.all([
+    Promise.all(
+      versions.map((version) =>
+        deleteArtifact({ key: version.artifactKey }).catch(() => undefined)
+      )
+    ),
+    db.delete(dashboardArtifacts).where(eq(dashboardArtifacts.id, input.dashboardId)),
+    audit({
+      userId: input.userId,
+      targetId: artifact.targetId,
+      action: "dashboard.deleted",
+      subjectType: "dashboard",
+      subjectId: input.dashboardId,
+      metadata: { version: artifact.version, artifactKeys: versions.map((version) => version.artifactKey) },
+    }),
+  ]);
   return artifact;
 }
 

@@ -101,7 +101,7 @@ import type {
   ReasoningEffort,
 } from "./types";
 import { DashboardRenderer, type DashboardCheckResult } from "./dashboard-renderer";
-import { formatDateTime } from "./ui";
+import { formatDateTime } from "./format";
 
 const reasoningEfforts: Array<{ id: ReasoningEffort; label: string }> = [
   { id: "minimal", label: "Minimal" },
@@ -139,10 +139,12 @@ const DASHBOARD_RESIZE_MIN_WIDTH = DASHBOARD_COLLAPSE_THRESHOLD + 1;
 const DASHBOARD_INLINE_MIN_WIDTH = 360;
 const CHAT_INLINE_MIN_WIDTH = 360;
 
-export function OperatorView(props: {
+type OperatorViewProps = {
   manifest: StudioTargetManifest;
   initialSessions: OperatorSessionRow[];
-}) {
+};
+
+function useOperatorController(props: OperatorViewProps) {
   const operatorLayoutRef = useRef<HTMLElement | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const assistantDraftRef = useRef("");
@@ -160,7 +162,7 @@ export function OperatorView(props: {
   const [renamingTitle, setRenamingTitle] = useState("");
   const [pendingDeleteSession, setPendingDeleteSession] = useState<OperatorSessionRow | null>(null);
   const [input, setInput] = useState("");
-  const [selectedModel, setSelectedModel] = useState(defaultModel(props.manifest));
+  const [selectedModel, setSelectedModel] = useState(() => defaultModel(props.manifest));
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
   const [selectedReasoningEffort, setSelectedReasoningEffort] = useState<ReasoningEffort>("low");
   const [chatItems, setChatItems] = useState<OperatorChatItem[]>([
@@ -172,7 +174,7 @@ export function OperatorView(props: {
   const [dashboardPanelOpen, setDashboardPanelOpen] = useState(false);
   const [dashboardPanelWidth, setDashboardPanelWidth] = useState(DASHBOARD_DEFAULT_WIDTH);
   const [dashboardPanelMaximized, setDashboardPanelMaximized] = useState(false);
-  const [operatorLayoutWidth, setOperatorLayoutWidth] = useState(0);
+  const [operatorLayoutWidth, setOperatorLayoutWidth] = useState<number | undefined>(undefined);
   const [dashboardChecks, setDashboardChecks] = useState<Record<string, DashboardCheckResult>>({});
   const [dashboardActionError, setDashboardActionError] = useState<string | null>(null);
   const [isWorking, setIsWorking] = useState(false);
@@ -188,7 +190,7 @@ export function OperatorView(props: {
   const visibleChatItems = useMemo(() => compactActivityEvents(chatItems), [chatItems]);
   const assistantIsTyping = isAssistantTyping(visibleChatItems);
   const sessionColumnWidth = sessionSidebarCollapsed ? SESSION_RAIL_WIDTH : sessionSidebarWidth;
-  const dashboardAvailableInlineWidth = operatorLayoutWidth > 0
+  const dashboardAvailableInlineWidth = operatorLayoutWidth !== undefined
     ? operatorLayoutWidth - sessionColumnWidth - CHAT_INLINE_MIN_WIDTH
     : null;
   const dashboardInlineMaxWidth = dashboardAvailableInlineWidth;
@@ -216,7 +218,6 @@ export function OperatorView(props: {
     const updateLayoutWidth = () => {
       setOperatorLayoutWidth(node.getBoundingClientRect().width);
     };
-    updateLayoutWidth();
     const observer = new ResizeObserver(updateLayoutWidth);
     observer.observe(node);
     window.addEventListener("resize", updateLayoutWidth);
@@ -831,14 +832,23 @@ export function OperatorView(props: {
     if (!hasDashboardExport(preview.code)) issues.push("Generated React code does not export Dashboard.");
     if (!preview.artifact.datasets.length) issues.push("No datasets are attached.");
     if (!preview.artifact.renderer.spec?.widgets?.length) issues.push("No render spec widgets are attached.");
-    for (const dataset of preview.artifact.datasets.filter((dataset) => dataset.mode === "live")) {
-      const response = await fetch("/api/studio/dashboard-data", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(dataset.source),
-      });
-      if (!response.ok) issues.push(`Live dataset failed: ${dataset.title}`);
-    }
+    const liveDatasetChecks = preview.artifact.datasets.reduce<Promise<void>[]>(
+      (checks, dataset) => {
+        if (dataset.mode !== "live") return checks;
+        checks.push(
+          fetch("/api/studio/dashboard-data", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(dataset.source),
+          }).then((response) => {
+            if (!response.ok) issues.push(`Live dataset failed: ${dataset.title}`);
+          })
+        );
+        return checks;
+      },
+      []
+    );
+    await Promise.all(liveDatasetChecks);
     const result: DashboardCheckResult = {
       status: issues.length ? "failed" : "passed",
       checkedAt: new Date().toISOString(),
@@ -900,6 +910,119 @@ export function OperatorView(props: {
     }));
   }
 
+
+  return {
+    activeSession,
+    artifacts,
+    assistantIsTyping,
+    beginRenameSession,
+    checkDashboardFromChat,
+    closeDashboardPanel,
+    commitRenameSession,
+    confirmDeleteSession,
+    dashboardActionError,
+    dashboardChecks,
+    dashboardPanelVisible,
+    deleteDashboardFromChat,
+    diffFiles,
+    effectiveDashboardPanelMaximized,
+    filteredSessions,
+    hasUserMessages,
+    input,
+    isWorking,
+    modelSelectorOpen,
+    openDashboardFromChat,
+    openDashboardPanel,
+    openOperatorSession,
+    operatorGridStyle,
+    operatorLayoutRef,
+    operatorSessionId,
+    pendingDeleteSession,
+    previewDashboard,
+    publishDashboardFromChat,
+    renamingSessionId,
+    renamingTitle,
+    reviseDashboardFromPanel,
+    selectedModel,
+    selectedModelData,
+    selectedReasoningEffort,
+    sendOperatorMessage,
+    sessionSearch,
+    sessionSidebarCollapsed,
+    setInput,
+    setModelSelectorOpen,
+    setPendingDeleteSession,
+    setRenamingSessionId,
+    setRenamingTitle,
+    setSelectedModel,
+    setSelectedReasoningEffort,
+    setSessionSearch,
+    setSessionSidebarCollapsed,
+    startDashboardResize,
+    startNewSession,
+    startSessionSidebarResize,
+    stopOperatorTurn,
+    toggleDashboardMaximized,
+    visibleChatItems,
+  };
+}
+
+export function OperatorView(props: OperatorViewProps) {
+  const {
+    activeSession,
+    artifacts,
+    assistantIsTyping,
+    beginRenameSession,
+    checkDashboardFromChat,
+    closeDashboardPanel,
+    commitRenameSession,
+    confirmDeleteSession,
+    dashboardActionError,
+    dashboardChecks,
+    dashboardPanelVisible,
+    deleteDashboardFromChat,
+    diffFiles,
+    effectiveDashboardPanelMaximized,
+    filteredSessions,
+    hasUserMessages,
+    input,
+    isWorking,
+    modelSelectorOpen,
+    openDashboardFromChat,
+    openDashboardPanel,
+    openOperatorSession,
+    operatorGridStyle,
+    operatorLayoutRef,
+    operatorSessionId,
+    pendingDeleteSession,
+    previewDashboard,
+    publishDashboardFromChat,
+    renamingSessionId,
+    renamingTitle,
+    reviseDashboardFromPanel,
+    selectedModel,
+    selectedModelData,
+    selectedReasoningEffort,
+    sendOperatorMessage,
+    sessionSearch,
+    sessionSidebarCollapsed,
+    setInput,
+    setModelSelectorOpen,
+    setPendingDeleteSession,
+    setRenamingSessionId,
+    setRenamingTitle,
+    setSelectedModel,
+    setSelectedReasoningEffort,
+    setSessionSearch,
+    setSessionSidebarCollapsed,
+    startDashboardResize,
+    startNewSession,
+    startSessionSidebarResize,
+    stopOperatorTurn,
+    toggleDashboardMaximized,
+    visibleChatItems,
+  } = useOperatorController(props);
+
   return (
     <section
       className={cn(
@@ -927,101 +1050,33 @@ export function OperatorView(props: {
       ) : null}
 
       {dashboardPanelVisible ? (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-1 max-lg:hidden">
-          <Button
-            aria-label={effectiveDashboardPanelMaximized ? "Restore dashboard sidebar" : "Maximize dashboard sidebar"}
-            className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
-            onClick={toggleDashboardMaximized}
-            size="icon-sm"
-            title={effectiveDashboardPanelMaximized ? "Restore dashboard sidebar" : "Maximize dashboard sidebar"}
-            type="button"
-            variant="ghost"
-          >
-            {effectiveDashboardPanelMaximized ? <Minimize2Icon /> : <Maximize2Icon />}
-          </Button>
-          <Button
-            aria-label="Close dashboard sidebar"
-            className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
-            onClick={() => closeDashboardPanel()}
-            size="icon-sm"
-            title="Close dashboard sidebar"
-            type="button"
-            variant="ghost"
-          >
-            <PanelRightCloseIcon />
-          </Button>
-        </div>
+        <DashboardFloatingControls
+          maximized={effectiveDashboardPanelMaximized}
+          onClose={() => closeDashboardPanel()}
+          onToggleMaximized={toggleDashboardMaximized}
+        />
       ) : null}
 
-      <aside className="grid min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] border-r border-slate-200 bg-slate-50 max-lg:hidden dark:border-slate-700 dark:bg-slate-950">
-        <div className={cn("flex items-center gap-2 px-3 py-3", sessionSidebarCollapsed ? "justify-center" : "justify-between")}>
-          <span className={cn("text-sm font-medium text-slate-600", sessionSidebarCollapsed && "sr-only")}>Sessions</span>
-          <Button
-            aria-label={sessionSidebarCollapsed ? "Expand sessions" : "Collapse sessions"}
-            className="text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-            onClick={() => setSessionSidebarCollapsed((value) => !value)}
-            size="icon-sm"
-            title={sessionSidebarCollapsed ? "Expand sessions" : "Collapse sessions"}
-            type="button"
-            variant="ghost"
-          >
-            {sessionSidebarCollapsed ? <PanelLeftOpenIcon /> : <PanelLeftCloseIcon />}
-          </Button>
-        </div>
-
-        <div className="px-3 pb-3">
-          <Button
-            className={cn("w-full justify-start bg-white text-slate-950 hover:bg-slate-100 dark:border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800", sessionSidebarCollapsed && "justify-center px-0")}
-            onClick={startNewSession}
-            title="New session"
-            type="button"
-          >
-            <PlusIcon />
-            <span className={sessionSidebarCollapsed ? "sr-only" : ""}>New session</span>
-          </Button>
-        </div>
-
-        {!sessionSidebarCollapsed ? (
-          <div className="px-3 pb-3">
-            <label className="relative block">
-              <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500" />
-              <Input
-                aria-label="Search sessions"
-                className="border-slate-200 bg-white pl-9 text-slate-950 placeholder:text-slate-400 focus-visible:ring-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-                onChange={(event) => setSessionSearch(event.target.value)}
-                placeholder="Search sessions"
-                value={sessionSearch}
-              />
-            </label>
-          </div>
-        ) : null}
-
-        {!sessionSidebarCollapsed ? (
-          <div className="studio-scrollbar-hidden min-h-0 overflow-y-auto px-2 pb-3">
-            <div className="grid gap-1">
-              {filteredSessions.slice(0, 60).map((session) => (
-                <SessionRow
-                  active={operatorSessionId === session.id}
-                  collapsed={false}
-                  key={session.id}
-                  onDelete={() => setPendingDeleteSession(session)}
-                  onOpen={() => void openOperatorSession(session.id)}
-                  onRename={() => beginRenameSession(session)}
-                  onRenameCommit={() => void commitRenameSession(session.id)}
-                  onRenameTitleChange={setRenamingTitle}
-                  onRenameCancel={() => {
-                    setRenamingSessionId(null);
-                    setRenamingTitle("");
-                  }}
-                  renaming={renamingSessionId === session.id}
-                  renamingTitle={renamingTitle}
-                  session={session}
-                />
-              ))}
-            </div>
-          </div>
-        ) : <div className="min-h-0" />}
-      </aside>
+      <SessionSidebar
+        collapsed={sessionSidebarCollapsed}
+        filteredSessions={filteredSessions}
+        operatorSessionId={operatorSessionId}
+        onBeginRename={beginRenameSession}
+        onCancelRename={() => {
+          setRenamingSessionId(null);
+          setRenamingTitle("");
+        }}
+        onCommitRename={(sessionId) => void commitRenameSession(sessionId)}
+        onDelete={setPendingDeleteSession}
+        onOpenSession={(sessionId) => void openOperatorSession(sessionId)}
+        onSearchChange={setSessionSearch}
+        onStartNewSession={startNewSession}
+        onToggleCollapsed={() => setSessionSidebarCollapsed((value) => !value)}
+        renamingSessionId={renamingSessionId}
+        renamingTitle={renamingTitle}
+        search={sessionSearch}
+        setRenamingTitle={setRenamingTitle}
+      />
 
       <section className="grid min-h-0 min-w-0 max-w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden dark:bg-slate-950">
         <header className="flex min-h-16 w-full min-w-0 max-w-full items-center justify-between gap-4 overflow-hidden border-b border-slate-200 bg-white px-5 max-md:flex-col max-md:items-stretch max-md:py-4 dark:border-slate-700 dark:bg-slate-950">
@@ -1092,7 +1147,7 @@ export function OperatorView(props: {
           <ConversationScrollButton className="bottom-5 border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800" />
         </Conversation>
 
-        <footer className="w-full min-w-0 max-w-full overflow-hidden border-t border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-950">
+        <footer className="w-full min-w-0 max-w-full overflow-hidden border-t border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950">
           <div className="mx-auto w-full min-w-0 max-w-4xl">
             <PromptInput
               className="rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-200/70 dark:border-slate-600 dark:bg-slate-900 dark:shadow-none dark:ring-1 dark:ring-slate-700"
@@ -1186,101 +1241,257 @@ export function OperatorView(props: {
       </section>
 
       {dashboardPanelVisible && previewDashboard ? (
-        <aside className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-l border-slate-200 bg-white max-lg:hidden dark:border-slate-700 dark:bg-slate-950" data-testid="dashboard-sidebar">
-          <div className="relative z-20 flex min-h-16 items-center border-b border-slate-200 bg-white px-4 pr-24 dark:border-slate-700 dark:bg-slate-950">
-            <div className="min-w-0">
-              <p className="text-xs font-medium uppercase text-slate-500">Dashboard view</p>
-              <h2 className="truncate text-sm font-semibold text-slate-950">
-                {previewDashboard.artifact.title}
-              </h2>
-            </div>
-          </div>
-          <div className="min-h-0 min-w-0 overflow-y-auto overflow-x-hidden bg-slate-50/60 p-4 dark:bg-slate-950">
-            {dashboardActionError ? (
-              <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                {dashboardActionError}
-              </div>
-            ) : null}
-            <div className="grid gap-3">
-              {previewDashboard ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                    onClick={reviseDashboardFromPanel}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <PencilIcon />
-                    Ask for changes
-                  </Button>
-                  <Button
-                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                    onClick={() => void checkDashboardFromChat(previewDashboard.artifact.id)}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <RefreshCwIcon />
-                    Check
-                  </Button>
-                  {previewDashboard.artifact.status !== "published" ? (
-                    <Button className="dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white" onClick={() => void publishDashboardFromChat(previewDashboard.artifact.id)} size="sm" type="button">
-                      <CheckIcon />
-                      Publish
-                    </Button>
-                  ) : null}
-                  <Button
-                    className="border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-500/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/50"
-                    onClick={() => void deleteDashboardFromChat(previewDashboard.artifact.id)}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <Trash2Icon />
-                    Delete
-                  </Button>
-                </div>
-              ) : null}
-              <DashboardRenderer
-                checkResult={dashboardChecks[previewDashboard.artifact.id] ?? null}
-                compact
-                previewDashboard={previewDashboard}
-              />
-            </div>
-          </div>
-        </aside>
+        <DashboardSidebar
+          actionError={dashboardActionError}
+          checkResult={dashboardChecks[previewDashboard.artifact.id] ?? null}
+          previewDashboard={previewDashboard}
+          onCheck={(id) => void checkDashboardFromChat(id)}
+          onDelete={(id) => void deleteDashboardFromChat(id)}
+          onPublish={(id) => void publishDashboardFromChat(id)}
+          onRevise={reviseDashboardFromPanel}
+        />
       ) : null}
 
-      <Dialog
-        onOpenChange={(open) => {
-          if (!open) setPendingDeleteSession(null);
-        }}
-        open={pendingDeleteSession !== null}
+      <DeleteSessionDialog
+        pendingSession={pendingDeleteSession}
+        onCancel={() => setPendingDeleteSession(null)}
+        onConfirm={() => void confirmDeleteSession()}
+      />
+    </section>
+  );
+}
+
+function DashboardFloatingControls(props: {
+  maximized: boolean;
+  onClose: () => void;
+  onToggleMaximized: () => void;
+}) {
+  return (
+    <div className="fixed top-20 right-8 z-50 flex items-center gap-1 max-lg:hidden">
+      <Button
+        aria-label={props.maximized ? "Restore dashboard sidebar" : "Maximize dashboard sidebar"}
+        className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
+        onClick={props.onToggleMaximized}
+        size="icon-sm"
+        title={props.maximized ? "Restore dashboard sidebar" : "Maximize dashboard sidebar"}
+        type="button"
+        variant="ghost"
       >
-        <DialogContent className="border-slate-200 bg-white text-slate-950">
-          <DialogHeader>
-            <DialogTitle>Delete session?</DialogTitle>
-            <DialogDescription className="text-slate-500">
-              {pendingDeleteSession?.title ?? "This session"} will be removed from Studio.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+        {props.maximized ? <Minimize2Icon /> : <Maximize2Icon />}
+      </Button>
+      <Button
+        aria-label="Close dashboard sidebar"
+        className="bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 hover:bg-slate-100 hover:text-slate-950 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
+        onClick={props.onClose}
+        size="icon-sm"
+        title="Close dashboard sidebar"
+        type="button"
+        variant="ghost"
+      >
+        <PanelRightCloseIcon />
+      </Button>
+    </div>
+  );
+}
+
+function SessionSidebar(props: {
+  collapsed: boolean;
+  filteredSessions: OperatorSessionRow[];
+  operatorSessionId: string | null;
+  onBeginRename: (session: OperatorSessionRow) => void;
+  onCancelRename: () => void;
+  onCommitRename: (sessionId: string) => void;
+  onDelete: (session: OperatorSessionRow) => void;
+  onOpenSession: (sessionId: string) => void;
+  onSearchChange: (value: string) => void;
+  onStartNewSession: () => void;
+  onToggleCollapsed: () => void;
+  renamingSessionId: string | null;
+  renamingTitle: string;
+  search: string;
+  setRenamingTitle: (title: string) => void;
+}) {
+  return (
+    <aside className="grid min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] border-r border-slate-200 bg-slate-50 max-lg:hidden dark:border-slate-700 dark:bg-slate-950">
+      <div className={cn("flex items-center gap-2 px-3 py-3", props.collapsed ? "justify-center" : "justify-between")}>
+        <span className={cn("text-sm font-medium text-slate-600", props.collapsed && "sr-only")}>Sessions</span>
+        <Button
+          aria-label={props.collapsed ? "Expand sessions" : "Collapse sessions"}
+          className="text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+          onClick={props.onToggleCollapsed}
+          size="icon-sm"
+          title={props.collapsed ? "Expand sessions" : "Collapse sessions"}
+          type="button"
+          variant="ghost"
+        >
+          {props.collapsed ? <PanelLeftOpenIcon /> : <PanelLeftCloseIcon />}
+        </Button>
+      </div>
+
+      <div className="px-3 pb-3">
+        <Button
+          className={cn("w-full justify-start bg-white text-slate-950 hover:bg-slate-100 dark:border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800", props.collapsed && "justify-center px-0")}
+          onClick={props.onStartNewSession}
+          title="New session"
+          type="button"
+        >
+          <PlusIcon />
+          <span className={props.collapsed ? "sr-only" : ""}>New session</span>
+        </Button>
+      </div>
+
+      {!props.collapsed ? (
+        <div className="px-3 pb-3">
+          <label className="relative block" htmlFor="operator-session-search">
+            <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500" />
+            <Input
+              aria-label="Search sessions"
+              className="border-slate-200 bg-white pl-9 text-slate-950 placeholder:text-slate-400 focus-visible:ring-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+              id="operator-session-search"
+              onChange={(event) => props.onSearchChange(event.target.value)}
+              placeholder="Search sessions"
+              value={props.search}
+            />
+          </label>
+        </div>
+      ) : null}
+
+      {!props.collapsed ? (
+        <div className="studio-scrollbar-hidden min-h-0 overflow-y-auto px-2 pb-3">
+          <div className="grid gap-1">
+            {props.filteredSessions.slice(0, 60).map((session) => (
+              <SessionRow
+                active={props.operatorSessionId === session.id}
+                collapsed={false}
+                key={session.id}
+                onDelete={() => props.onDelete(session)}
+                onOpen={() => props.onOpenSession(session.id)}
+                onRename={() => props.onBeginRename(session)}
+                onRenameCommit={() => props.onCommitRename(session.id)}
+                onRenameTitleChange={props.setRenamingTitle}
+                onRenameCancel={props.onCancelRename}
+                renaming={props.renamingSessionId === session.id}
+                renamingTitle={props.renamingTitle}
+                session={session}
+              />
+            ))}
+          </div>
+        </div>
+      ) : <div className="min-h-0" />}
+    </aside>
+  );
+}
+
+function DashboardSidebar(props: {
+  actionError: string | null;
+  checkResult: DashboardCheckResult | null;
+  previewDashboard: NonNullable<PreviewDashboard>;
+  onCheck: (id: string) => void;
+  onDelete: (id: string) => void;
+  onPublish: (id: string) => void;
+  onRevise: () => void;
+}) {
+  const dashboardId = props.previewDashboard.artifact.id;
+  return (
+    <aside className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-l border-slate-200 bg-white max-lg:hidden dark:border-slate-700 dark:bg-slate-950" data-testid="dashboard-sidebar">
+      <div className="relative z-20 flex min-h-16 items-center border-b border-slate-200 bg-white px-4 pr-24 dark:border-slate-700 dark:bg-slate-950">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase text-slate-500">Dashboard view</p>
+          <h2 className="truncate text-sm font-semibold text-slate-950">
+            {props.previewDashboard.artifact.title}
+          </h2>
+        </div>
+      </div>
+      <div className="min-h-0 min-w-0 overflow-y-auto overflow-x-hidden bg-slate-50/60 p-4 dark:bg-slate-950">
+        {props.actionError ? (
+          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {props.actionError}
+          </div>
+        ) : null}
+        <div className="grid gap-3">
+          <div className="flex flex-wrap gap-2">
             <Button
-              className="border-slate-200 text-slate-700 hover:bg-slate-50"
-              onClick={() => setPendingDeleteSession(null)}
+              className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              onClick={props.onRevise}
+              size="sm"
               type="button"
               variant="outline"
             >
-              Cancel
+              <PencilIcon />
+              Ask for changes
             </Button>
-            <Button onClick={() => void confirmDeleteSession()} type="button" variant="destructive">
+            <Button
+              className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              onClick={() => props.onCheck(dashboardId)}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              <RefreshCwIcon />
+              Check
+            </Button>
+            {props.previewDashboard.artifact.status !== "published" ? (
+              <Button className="dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white" onClick={() => props.onPublish(dashboardId)} size="sm" type="button">
+                <CheckIcon />
+                Publish
+              </Button>
+            ) : null}
+            <Button
+              className="border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-500/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/50"
+              onClick={() => props.onDelete(dashboardId)}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              <Trash2Icon />
               Delete
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </section>
+          </div>
+          <DashboardRenderer
+            checkResult={props.checkResult}
+            compact
+            previewDashboard={props.previewDashboard}
+          />
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function DeleteSessionDialog(props: {
+  pendingSession: OperatorSessionRow | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Dialog
+      onOpenChange={(open) => {
+        if (!open) props.onCancel();
+      }}
+      open={props.pendingSession !== null}
+    >
+      <DialogContent className="border-slate-200 bg-white text-slate-950">
+        <DialogHeader>
+          <DialogTitle>Delete session?</DialogTitle>
+          <DialogDescription className="text-slate-500">
+            {props.pendingSession?.title ?? "This session"} will be removed from Studio.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            className="border-slate-200 text-slate-700 hover:bg-slate-50"
+            onClick={props.onCancel}
+            type="button"
+            variant="outline"
+          >
+            Cancel
+          </Button>
+          <Button onClick={props.onConfirm} type="button" variant="destructive">
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1564,7 +1775,7 @@ function DashboardEventCard({
         {event.detail ? <p className="mt-3 text-sm leading-6 text-slate-600">{event.detail}</p> : null}
         {event.artifactKey ? (
           <details className="mt-3 rounded-md bg-slate-50 text-xs text-slate-500">
-            <summary className="cursor-pointer list-none px-2 py-2 font-medium text-slate-600">Artifact info</summary>
+            <summary className="cursor-pointer list-none p-2 font-medium text-slate-600">Artifact info</summary>
             <p className="break-all px-2 pb-2">{event.artifactKey}</p>
           </details>
         ) : null}

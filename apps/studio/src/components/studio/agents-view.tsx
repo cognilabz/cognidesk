@@ -5,7 +5,8 @@ import { Bot, PanelLeftClose, PanelLeftOpen, Workflow } from "lucide-react";
 import type { StudioAgentIntrospection, StudioJourneySummary } from "@cognidesk/studio-contracts";
 import { JourneyGraph } from "@/components/journey-graph";
 import { activeJourneyRows, knowledgeRows, toolRows, widgetRows } from "./data";
-import { DataTable, EmptyState, PageHeader, Panel, PanelHeader, formatDateTime } from "./ui";
+import { formatDateTime } from "./format";
+import { DataTable, EmptyState, PageHeader, Panel, PanelHeader } from "./ui";
 
 type AgentSection = "overview" | "instructions" | "journeys" | "tools" | "knowledge" | "widgets";
 
@@ -22,55 +23,52 @@ export function AgentsView(props: {
   introspection: StudioAgentIntrospection | null;
   error: string | null;
 }) {
+  const { error, introspection } = props;
   const [section, setSection] = useState<AgentSection>("journeys");
-  const [activeJourneyId, setActiveJourneyId] = useState(props.introspection?.journeys[0]?.id ?? "");
+  const [activeJourneyId, setActiveJourneyId] = useState(introspection?.journeys[0]?.id ?? "");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const stateMachines = props.introspection?.journeys.filter((journey) => journey.kind === "stateMachine") ?? [];
-  const delegations = props.introspection?.journeys.filter((journey) => journey.kind === "delegation") ?? [];
+  const stateMachines = introspection?.journeys.filter((journey) => journey.kind === "stateMachine") ?? [];
+  const delegations = introspection?.journeys.filter((journey) => journey.kind === "delegation") ?? [];
   const activeJourney = useMemo(() => {
-    if (!props.introspection) return null;
-    return props.introspection.journeys.find((journey) => journey.id === activeJourneyId) ?? props.introspection.journeys[0] ?? null;
-  }, [activeJourneyId, props.introspection]);
-  const sectionContent = useMemo(() => {
-    if (!props.introspection) return <EmptyState title="Agent configuration" text={props.error ?? "Waiting for Studio Adapter data."} />;
-    if (section === "overview") {
-      return (
-        <Panel>
-          <PanelHeader title="Agent summary" detail={`Captured ${formatDateTime(props.introspection.capturedAt)}`} />
-          <DataTable
-            columns={["Area", "Count"]}
-            rows={[
-              ["Journeys", String(props.introspection.agent.journeyCount)],
-              ["Tools", String(props.introspection.agent.toolCount)],
-              ["Knowledge", String(props.introspection.agent.knowledgeCount)],
-              ["Widgets", String(props.introspection.agent.widgetCount)],
-            ]}
-          />
-        </Panel>
-      );
-    }
-    if (section === "instructions") {
-      return (
-        <Panel>
-          <PanelHeader title="Agent instructions" detail="Base configuration reported by the adapter." />
-          <pre className="whitespace-pre-wrap px-5 py-4 font-mono text-sm leading-7 text-slate-800">{props.introspection.agent.instructions || "No instructions returned."}</pre>
-        </Panel>
-      );
-    }
-    if (section === "tools") {
-      return <Panel><PanelHeader title="Tools" /><DataTable columns={["Name", "Side effect", "Description"]} rows={toolRows(props.introspection)} emptyText="No tools returned." /></Panel>;
-    }
-    if (section === "knowledge") {
-      return <Panel><PanelHeader title="Knowledge sources" /><DataTable columns={["Name"]} rows={knowledgeRows(props.introspection)} emptyText="No knowledge sources returned." /></Panel>;
-    }
-    if (section === "widgets") {
-      return <Panel><PanelHeader title="Widgets" /><DataTable columns={["Kind"]} rows={widgetRows(props.introspection)} emptyText="No widgets returned." /></Panel>;
-    }
-    return <JourneyDetail journey={activeJourney} />;
-  }, [activeJourney, props.error, props.introspection, section]);
+    if (!introspection) return null;
+    return introspection.journeys.find((journey) => journey.id === activeJourneyId) ?? introspection.journeys[0] ?? null;
+  }, [activeJourneyId, introspection]);
 
-  if (!props.introspection) {
-    return <section className="p-8"><EmptyState title="Agent configuration" text={props.error ?? "Waiting for Studio Adapter data."} /></section>;
+  if (!introspection) {
+    return <section className="p-8"><EmptyState title="Agent configuration" text={error ?? "Waiting for Studio Adapter data."} /></section>;
+  }
+
+  let sectionContent;
+  if (section === "overview") {
+    sectionContent = (
+      <Panel>
+        <PanelHeader title="Agent summary" detail={`Captured ${formatDateTime(introspection.capturedAt)}`} />
+        <DataTable
+          columns={["Area", "Count"]}
+          rows={[
+            ["Journeys", String(introspection.agent.journeyCount)],
+            ["Tools", String(introspection.agent.toolCount)],
+            ["Knowledge", String(introspection.agent.knowledgeCount)],
+            ["Widgets", String(introspection.agent.widgetCount)],
+          ]}
+        />
+      </Panel>
+    );
+  } else if (section === "instructions") {
+    sectionContent = (
+      <Panel>
+        <PanelHeader title="Agent instructions" detail="Base configuration reported by the adapter." />
+        <pre className="whitespace-pre-wrap px-5 py-4 font-mono text-sm leading-7 text-slate-800">{introspection.agent.instructions || "No instructions returned."}</pre>
+      </Panel>
+    );
+  } else if (section === "tools") {
+    sectionContent = <Panel><PanelHeader title="Tools" /><DataTable columns={["Name", "Side effect", "Description"]} rows={toolRows(introspection)} emptyText="No tools returned." /></Panel>;
+  } else if (section === "knowledge") {
+    sectionContent = <Panel><PanelHeader title="Knowledge sources" /><DataTable columns={["Name"]} rows={knowledgeRows(introspection)} emptyText="No knowledge sources returned." /></Panel>;
+  } else if (section === "widgets") {
+    sectionContent = <Panel><PanelHeader title="Widgets" /><DataTable columns={["Kind"]} rows={widgetRows(introspection)} emptyText="No widgets returned." /></Panel>;
+  } else {
+    sectionContent = <JourneyDetail journey={activeJourney} />;
   }
 
   return (
@@ -78,11 +76,11 @@ export function AgentsView(props: {
       <aside className="border-r border-slate-200 bg-slate-50 p-5 max-xl:border-b max-xl:border-r-0">
         <div className={`mb-5 flex items-start gap-3 ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           <div className={sidebarCollapsed ? "hidden" : ""}>
-            <strong className="block text-slate-950">{props.introspection.agent.id}</strong>
-            <span className="text-sm text-slate-500">{props.introspection.agent.journeyCount} journeys / {props.introspection.agent.toolCount} tools</span>
+            <strong className="block text-slate-950">{introspection.agent.id}</strong>
+            <span className="text-sm text-slate-500">{introspection.agent.journeyCount} journeys / {introspection.agent.toolCount} tools</span>
           </div>
           <button
-            className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 max-xl:hidden"
+            className="grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 max-xl:hidden"
             type="button"
             onClick={() => setSidebarCollapsed((value) => !value)}
             aria-label={sidebarCollapsed ? "Expand agent sidebar" : "Collapse agent sidebar"}

@@ -9,7 +9,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ initialError = null }: LoginFormProps) {
-  const router = useRouter();
+  const { refresh, replace } = useRouter();
   const [email, setEmail] = useState("admin@local.cognidesk.dev");
   const [password, setPassword] = useState("cognidesk-studio-admin");
   const [error, setError] = useState<string | null>(initialError);
@@ -29,14 +29,14 @@ export function LoginForm({ initialError = null }: LoginFormProps) {
       setError("Sign-in failed.");
       return;
     }
-    router.replace("/");
-    router.refresh();
+    replace("/");
+    refresh();
   }
 
   return (
     <main className="grid min-h-screen place-items-center bg-slate-100 p-6">
       <form className="grid w-full max-w-md gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm" method="post" action="/api/studio/login" onSubmit={submit}>
-        <div className="grid h-11 w-11 place-items-center rounded-full bg-slate-950 text-white">
+        <div className="grid size-11 place-items-center rounded-full bg-slate-950 text-white">
           <LockKeyhole size={20} />
         </div>
         <h1 className="text-xl font-semibold text-slate-950">Cognidesk Studio</h1>

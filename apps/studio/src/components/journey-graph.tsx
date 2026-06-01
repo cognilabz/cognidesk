@@ -98,6 +98,7 @@ export function JourneyGraph({ journey }: { journey: StudioJourneySummary }) {
 
 function layoutLevels(states: Array<{ id: string; transitions: Array<{ targetId: string }> }>) {
   const levels = new Map<string, number>();
+  const statesById = new Map(states.map((state) => [state.id, state]));
   const first = states[0]?.id;
   if (!first) return levels;
   const queue: Array<{ id: string; level: number }> = [{ id: first, level: 0 }];
@@ -107,7 +108,7 @@ function layoutLevels(states: Array<{ id: string; transitions: Array<{ targetId:
     const current = levels.get(next.id);
     if (current !== undefined && current <= next.level) continue;
     levels.set(next.id, next.level);
-    const state = states.find((candidate) => candidate.id === next.id);
+    const state = statesById.get(next.id);
     for (const transition of state?.transitions ?? []) {
       queue.push({ id: transition.targetId, level: next.level + 1 });
     }

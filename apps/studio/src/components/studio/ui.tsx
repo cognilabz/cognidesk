@@ -93,8 +93,8 @@ export function DataTable(props: { columns: string[]; rows: string[][]; emptyTex
           </tr>
         </thead>
         <tbody>
-          {props.rows.length ? props.rows.map((row, index) => (
-            <tr key={index}>
+          {props.rows.length ? props.rows.map((row) => (
+            <tr key={row.join("\u0000")}>
               {props.columns.map((column, columnIndex) => (
                 <td className="break-words border-b border-slate-100 px-4 py-3 align-top text-slate-700" key={`${column}-${columnIndex}`}>
                   {row[columnIndex] ?? "-"}
@@ -123,15 +123,4 @@ export function EmptyState(props: { title: string; text: string }) {
       </div>
     </div>
   );
-}
-
-export function formatDateTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-GB", {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }

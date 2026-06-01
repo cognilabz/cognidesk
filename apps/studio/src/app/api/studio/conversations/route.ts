@@ -10,17 +10,24 @@ export async function GET(request: Request) {
   try {
     const session = await getStudioSession(await headers());
     requirePermission(session, "studio:view");
-    const manifest = await currentTarget();
-    const introspection = await fetchIntrospection().catch(() => null);
-    await ensureDemoConversations(manifest, introspection);
+    const [manifest, introspection] = await Promise.all([
+      currentTarget(),
+      fetchIntrospection().catch(() => null),
+    ]);
     const url = new URL(request.url);
     const limit = numberParam(url.searchParams.get("limit"));
     const offset = numberParam(url.searchParams.get("offset"));
-    return Response.json({
-      conversations: await listStudioConversations(manifest.target.id, {
+    const conversations = await ensureDemoConversations(
+      manifest,
+      introspection
+    ).then(() =>
+      listStudioConversations(manifest.target.id, {
         ...(limit !== undefined ? { limit } : {}),
         ...(offset !== undefined ? { offset } : {}),
-      }),
+      })
+    );
+    return Response.json({
+      conversations,
     });
   } catch (error) {
     return authErrorResponse(error);

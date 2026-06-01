@@ -6,17 +6,17 @@ import {
   requireStudioPageContext,
   serializeDashboards,
 } from "@/server/studio-page-data";
+import type { Metadata } from "next";
 
 export const runtime = "nodejs";
+export const metadata: Metadata = {
+  title: "Home | Cognidesk Studio",
+  description: "Review Studio target status, dashboards, and conversations.",
+};
 
 export default async function HomePage() {
-  const { manifest } = await requireStudioPageContext();
-  const [dashboards, introspectionResult] = await Promise.all([
-    listDashboards(manifest.target.id),
-    loadIntrospectionResult(),
-  ]);
-  await ensureDemoConversations(manifest, introspectionResult.value);
-  const conversations = await listStudioConversations(manifest.target.id);
+  const { manifest, dashboards, introspectionResult, conversations } =
+    await loadHomePageData();
 
   return (
     <HomeView
@@ -26,5 +26,23 @@ export default async function HomePage() {
       introspection={introspectionResult.value}
       introspectionError={introspectionResult.error}
     />
+  );
+}
+
+function loadHomePageData() {
+  return requireStudioPageContext().then(({ manifest }) =>
+    Promise.all([
+      listDashboards(manifest.target.id),
+      loadIntrospectionResult(),
+    ]).then(([dashboards, introspectionResult]) =>
+      ensureDemoConversations(manifest, introspectionResult.value)
+        .then(() => listStudioConversations(manifest.target.id))
+        .then((conversations) => ({
+          manifest,
+          dashboards,
+          introspectionResult,
+          conversations,
+        }))
+    )
   );
 }

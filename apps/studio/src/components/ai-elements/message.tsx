@@ -22,9 +22,8 @@ import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import {
   createContext,
   memo,
+  use,
   useCallback,
-  useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -127,7 +126,7 @@ const MessageBranchContext = createContext<MessageBranchContextType | null>(
 );
 
 const useMessageBranch = () => {
-  const context = useContext(MessageBranchContext);
+  const context = use(MessageBranchContext);
 
   if (!context) {
     throw new Error(
@@ -206,12 +205,9 @@ export const MessageBranchContent = ({
     [children]
   );
 
-  // Use useEffect to update branches when they change
-  useEffect(() => {
-    if (branches.length !== childrenArray.length) {
-      setBranches(childrenArray);
-    }
-  }, [childrenArray, branches, setBranches]);
+  if (branches !== childrenArray) {
+    setBranches(childrenArray);
+  }
 
   return childrenArray.map((branch, index) => (
     <div

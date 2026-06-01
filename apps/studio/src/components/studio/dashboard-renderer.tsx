@@ -1,16 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import dynamic from "next/dynamic";
 import { Code2Icon, DatabaseIcon, FileSpreadsheetIcon, InfoIcon, LayoutDashboardIcon, RefreshCwIcon } from "lucide-react";
 import type { StudioDashboardDataset, StudioDashboardWidget } from "@cognidesk/studio-contracts";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PreviewDashboard } from "./types";
-import { formatDateTime } from "./ui";
+import { formatDateTime } from "./format";
 
 type ConcretePreviewDashboard = NonNullable<PreviewDashboard>;
 const DEFAULT_TABLE_PAGE_SIZE = 8;
+const integerFormatter = new Intl.NumberFormat();
+const metricFormatter = new Intl.NumberFormat(undefined, {
+  maximumFractionDigits: 1,
+});
+const Bar = dynamic(() => import("recharts").then((mod) => mod.Bar), { ssr: false });
+const BarChart = dynamic(() => import("recharts").then((mod) => mod.BarChart), { ssr: false });
+const CartesianGrid = dynamic(() => import("recharts").then((mod) => mod.CartesianGrid), { ssr: false });
+const Cell = dynamic(() => import("recharts").then((mod) => mod.Cell), { ssr: false });
+const Line = dynamic(() => import("recharts").then((mod) => mod.Line), { ssr: false });
+const LineChart = dynamic(() => import("recharts").then((mod) => mod.LineChart), { ssr: false });
+const Pie = dynamic(() => import("recharts").then((mod) => mod.Pie), { ssr: false });
+const PieChart = dynamic(() => import("recharts").then((mod) => mod.PieChart), { ssr: false });
+const ResponsiveContainer = dynamic(() => import("recharts").then((mod) => mod.ResponsiveContainer), { ssr: false });
+const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), { ssr: false });
+const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), { ssr: false });
 
 type ConversationRow = {
   id: string;
@@ -38,16 +54,33 @@ export function DashboardRenderer(props: {
   compact?: boolean;
   checkResult?: DashboardCheckResult | null;
 }) {
-  const [datasets, setDatasets] = useState(props.previewDashboard.artifact.datasets);
+  const dashboardKey = `${props.previewDashboard.artifact.id}:${props.previewDashboard.artifact.version}`;
+  return <DashboardRendererContent key={dashboardKey} {...props} />;
+}
+
+function DashboardRendererContent(props: {
+  previewDashboard: ConcretePreviewDashboard;
+  compact?: boolean;
+  checkResult?: DashboardCheckResult | null;
+}) {
+  const baseDatasets = props.previewDashboard.artifact.datasets;
+  const [datasetOverrides, setDatasetOverrides] = useState<Record<string, StudioDashboardDataset>>({});
   const [refreshingDatasetId, setRefreshingDatasetId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardRendererTab>("dashboard");
   const [visibleRowsByWidget, setVisibleRowsByWidget] = useState<Record<string, number>>({});
+  const datasets = useMemo(
+    () => baseDatasets.map((dataset) => datasetOverrides[dataset.id] ?? dataset),
+    [baseDatasets, datasetOverrides],
+  );
   const spec = props.previewDashboard.artifact.renderer.spec;
   const widgets = useMemo(
     () => spec?.widgets?.length ? spec.widgets : inferWidgets(datasets),
     [datasets, spec],
   );
-  const liveDatasets = datasets.filter((dataset) => dataset.mode === "live");
+  const liveDatasets = useMemo(
+    () => datasets.filter((dataset) => dataset.mode === "live"),
+    [datasets],
+  );
 
   const refreshDataset = useCallback(async (dataset: StudioDashboardDataset) => {
     setRefreshingDatasetId(dataset.id);
@@ -59,37 +92,36 @@ export function DashboardRenderer(props: {
       });
       if (!response.ok) return;
       const data = await response.json() as { dataset: StudioDashboardDataset };
-      setDatasets((items) => items.map((item) => (
-        item.id === dataset.id
-          ? {
-              ...item,
-              capturedAt: data.dataset.capturedAt,
-              data: data.dataset.data,
-              source: data.dataset.source,
-            }
-          : item
-      )));
+      setDatasetOverrides((items) => ({
+        ...items,
+        [dataset.id]: {
+          ...dataset,
+          capturedAt: data.dataset.capturedAt,
+          data: data.dataset.data,
+          source: data.dataset.source,
+        },
+      }));
     } finally {
       setRefreshingDatasetId(null);
     }
   }, []);
 
   useEffect(() => {
-    setDatasets(props.previewDashboard.artifact.datasets);
-    setVisibleRowsByWidget({});
-    setActiveTab("dashboard");
-  }, [props.previewDashboard.artifact.id, props.previewDashboard.artifact.version, props.previewDashboard.artifact.datasets]);
-
-  useEffect(() => {
-    const live = props.previewDashboard.artifact.datasets.filter((dataset) => dataset.mode === "live");
+    const live: StudioDashboardDataset[] = [];
+    for (const dataset of baseDatasets) {
+      if (dataset.mode === "live") live.push(dataset);
+    }
     if (!live.length) return;
     void Promise.all(live.map((dataset) => refreshDataset(dataset)));
-  }, [props.previewDashboard.artifact.id, props.previewDashboard.artifact.version, props.previewDashboard.artifact.datasets, refreshDataset]);
+  }, [baseDatasets, refreshDataset]);
 
   useEffect(() => {
-    const timers = liveDatasets
-      .filter((dataset) => dataset.refreshMs && dataset.refreshMs >= 5000)
-      .map((dataset) => window.setInterval(() => void refreshDataset(dataset), dataset.refreshMs));
+    const timers: number[] = [];
+    for (const dataset of liveDatasets) {
+      if (dataset.refreshMs && dataset.refreshMs >= 5000) {
+        timers.push(window.setInterval(() => void refreshDataset(dataset), dataset.refreshMs));
+      }
+    }
     return () => {
       for (const timer of timers) window.clearInterval(timer);
     };
@@ -307,7 +339,7 @@ function DashboardWidget(props: {
                   nameKey={labelKey}
                   outerRadius={84}
                 >
-                  {rows.map((_, index) => <Cell fill={chartColor(index)} key={index} />)}
+                  {rows.map((row, index) => <Cell fill={chartColor(index)} key={String(resolvePath(row, labelKey) ?? JSON.stringify(row))} />)}
                 </Pie>
                 <Tooltip />
               </PieChart>
@@ -354,8 +386,8 @@ function DashboardWidget(props: {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">
-            {visibleRows.map((row, index) => (
-              <tr key={String(row.id ?? index)}>
+            {visibleRows.map((row) => (
+              <tr key={String(row.id ?? stableRowKey(row))}>
                 {columns.map((column) => <td className="max-w-[280px] truncate px-4 py-3" key={column.path}>{formatCell(resolvePath(row, column.path))}</td>)}
               </tr>
             ))}
@@ -364,7 +396,7 @@ function DashboardWidget(props: {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-sm text-slate-500">
         <span>
-          Showing {new Intl.NumberFormat().format(visibleRows.length)} of {new Intl.NumberFormat().format(rows.length)} rows
+          Showing {integerFormatter.format(visibleRows.length)} of {integerFormatter.format(rows.length)} rows
         </span>
         {visibleRows.length < rows.length ? (
           <Button
@@ -429,8 +461,8 @@ function DashboardDataView(props: {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
-                      {visibleRows.map((row, index) => (
-                        <tr key={String(row.id ?? row.traceId ?? row.timestamp ?? index)}>
+                      {visibleRows.map((row) => (
+                        <tr key={String(row.id ?? row.traceId ?? row.timestamp ?? stableRowKey(row))}>
                           {columns.map((column) => (
                             <td className="max-w-[320px] truncate px-4 py-3" key={column.path}>{formatCell(resolvePath(row, column.path))}</td>
                           ))}
@@ -440,7 +472,7 @@ function DashboardDataView(props: {
                   </table>
                 </div>
                 <div className="border-t border-slate-100 px-4 py-3 text-sm text-slate-500">
-                  Showing {new Intl.NumberFormat().format(visibleRows.length)} of {new Intl.NumberFormat().format(rows.length)} rows
+                  Showing {integerFormatter.format(visibleRows.length)} of {integerFormatter.format(rows.length)} rows
                 </div>
               </>
             ) : (
@@ -496,7 +528,7 @@ function DashboardSourcesView(props: {
           <div className="mt-4 grid gap-3">
             <Detail label="Target" value={dataset.source.targetId} />
             <Detail label="Captured" value={formatDateTime(dataset.capturedAt)} />
-            {dataset.refreshMs ? <Detail label="Refresh" value={`${new Intl.NumberFormat().format(dataset.refreshMs / 1000)}s`} /> : null}
+            {dataset.refreshMs ? <Detail label="Refresh" value={`${integerFormatter.format(dataset.refreshMs / 1000)}s`} /> : null}
           </div>
           <div className="mt-4 grid gap-2">
             <p className="inline-flex items-center gap-2 text-xs font-medium uppercase text-slate-500">
@@ -774,7 +806,7 @@ function prometheusMatrixRows(result: Array<Record<string, unknown>>) {
       rowsByTimestamp.set(timestamp, row);
     }
   });
-  return [...rowsByTimestamp.values()].sort((left, right) => Number(left.timestamp) - Number(right.timestamp));
+  return Array.from(rowsByTimestamp.values()).sort((left, right) => Number(left.timestamp) - Number(right.timestamp));
 }
 
 function prometheusSampleValue(value: unknown) {
@@ -802,7 +834,9 @@ function traceRows(value: unknown): Array<Record<string, unknown>> {
     : isRecord(value.data) && Array.isArray(value.data.traces)
       ? value.data.traces
       : [];
-  return traces.filter(isRecord).map((trace, index) => {
+  const rows: Array<Record<string, unknown>> = [];
+  traces.forEach((trace, index) => {
+    if (!isRecord(trace)) return;
     const durationMs = numericValue(trace.durationMs ?? trace.duration ?? trace.durationMillis);
     const spanCount = numericValue(trace.spanCount ?? trace.spans);
     const startedAt = typeof trace.startedAt === "string"
@@ -810,7 +844,7 @@ function traceRows(value: unknown): Array<Record<string, unknown>> {
       : typeof trace.startTimeUnixNano === "string"
         ? nanoTimestampToIso(trace.startTimeUnixNano)
         : undefined;
-    return {
+    rows.push({
       ...trace,
       name: String(trace.rootTraceName ?? trace.rootSpanName ?? trace.name ?? trace.traceId ?? trace.traceID ?? `Trace ${index + 1}`),
       ...(typeof trace.rootServiceName === "string" ? { serviceName: trace.rootServiceName } : {}),
@@ -818,8 +852,9 @@ function traceRows(value: unknown): Array<Record<string, unknown>> {
       status: typeof trace.status === "string" ? trace.status : "unknown",
       ...(durationMs !== null ? { durationMs, value: durationMs } : {}),
       ...(spanCount !== null ? { spanCount } : {}),
-    };
+    });
   });
+  return rows;
 }
 
 function nanoTimestampToIso(value: string) {
@@ -913,14 +948,14 @@ function isAxisLikeKey(key: string) {
 
 function formatMetricValue(value: unknown, unit?: string) {
   const text = typeof value === "number"
-    ? new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value)
+    ? metricFormatter.format(value)
     : String(value ?? 0);
   return unit ? `${text}${unit}` : text;
 }
 
 function formatCell(value: unknown) {
   if (typeof value === "string" && /\d{4}-\d{2}-\d{2}T/.test(value)) return formatDateTime(value);
-  if (typeof value === "number") return new Intl.NumberFormat().format(value);
+  if (typeof value === "number") return integerFormatter.format(value);
   if (value === null || value === undefined || value === "") return "-";
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
@@ -938,6 +973,10 @@ function ChartEmptyState({ text = "No chart data" }: { text?: string }) {
       {text}
     </div>
   );
+}
+
+function stableRowKey(row: Record<string, unknown>) {
+  return JSON.stringify(row);
 }
 
 function Detail(props: { label: string; value: string }) {

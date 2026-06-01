@@ -59,7 +59,7 @@ export function conversationJourneyActivity(conversations: StudioConversationRow
     current.events += conversation.eventCount ?? 0;
     byJourney.set(journey, current);
   }
-  return [...byJourney.values()].sort((left, right) => right.conversations - left.conversations);
+  return Array.from(byJourney.values()).sort((left, right) => right.conversations - left.conversations);
 }
 
 export function conversationRows(conversations: StudioConversationRow[]) {

@@ -81,17 +81,19 @@ export async function ensureBootstrapAdmin() {
       name,
     },
   });
-  await db.update(user).set({ role: "admin" }).where(eq(user.email, email));
-  await db.insert(studioAuditLog).values({
-    id: randomUUID(),
-    userId: null,
-    targetId: null,
-    action: "studio.bootstrap_admin.created",
-    subjectType: "user",
-    subjectId: email,
-    metadataJson: JSON.stringify({ email }),
-    createdAt: new Date(),
-  });
+  await Promise.all([
+    db.update(user).set({ role: "admin" }).where(eq(user.email, email)),
+    db.insert(studioAuditLog).values({
+      id: randomUUID(),
+      userId: null,
+      targetId: null,
+      action: "studio.bootstrap_admin.created",
+      subjectType: "user",
+      subjectId: email,
+      metadataJson: JSON.stringify({ email }),
+      createdAt: new Date(),
+    }),
+  ]);
 }
 
 function localTrustedOrigins(appUrl: string) {

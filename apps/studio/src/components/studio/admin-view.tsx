@@ -1,7 +1,8 @@
 import type { StudioTargetManifest } from "@cognidesk/studio-contracts";
 import type { AdminOverview } from "@/server/admin";
 import type { User } from "./types";
-import { DataTable, Metric, PageHeader, Panel, PanelHeader, formatDateTime } from "./ui";
+import { formatDateTime } from "./format";
+import { DataTable, Metric, PageHeader, Panel, PanelHeader } from "./ui";
 
 export function AdminView({ manifest, user, overview }: { manifest: StudioTargetManifest; user: User; overview: AdminOverview }) {
   const activeSessions = overview.operatorSessions.filter((session) => session.status === "active").length;

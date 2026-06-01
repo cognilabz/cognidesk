@@ -7,7 +7,8 @@ import type { StudioAgentIntrospection } from "@cognidesk/studio-contracts";
 import type { DashboardRow, PreviewDashboard, StudioConversationRow } from "./types";
 import { conversationJourneyActivity, conversationLifecycleDistribution, conversationRows } from "./data";
 import { DashboardRenderer } from "./dashboard-renderer";
-import { Button, DataTable, EmptyState, Metric, PageHeader, Panel, PanelHeader, formatDateTime } from "./ui";
+import { formatDateTime } from "./format";
+import { Button, DataTable, EmptyState, Metric, PageHeader, Panel, PanelHeader } from "./ui";
 
 export function DashboardsView(props: {
   dashboards: DashboardRow[];
@@ -15,7 +16,7 @@ export function DashboardsView(props: {
   introspection: StudioAgentIntrospection | null;
   conversations: StudioConversationRow[];
 }) {
-  const router = useRouter();
+  const { push, refresh } = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [previewDashboard, setPreviewDashboard] = useState<PreviewDashboard>(props.initialPreviewDashboard);
 
@@ -30,14 +31,14 @@ export function DashboardsView(props: {
     if (!response.ok) return;
     const data = await response.json() as { dashboard: NonNullable<PreviewDashboard>["artifact"] };
     setPreviewDashboard((current) => current ? { ...current, artifact: data.dashboard } : current);
-    router.refresh();
+    refresh();
   }
 
   async function deleteDashboard(id: string) {
     const response = await fetch(`/api/studio/dashboards/${id}`, { method: "DELETE" });
     if (!response.ok) return;
     setPreviewDashboard(null);
-    router.refresh();
+    refresh();
   }
 
   return (
@@ -46,7 +47,7 @@ export function DashboardsView(props: {
         <div className={`mb-5 flex items-center gap-2 ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           <span className={`text-sm font-medium text-slate-600 ${sidebarCollapsed ? "hidden" : ""}`}>Dashboards</span>
           <button
-            className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 max-xl:hidden"
+            className="grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 max-xl:hidden"
             type="button"
             onClick={() => setSidebarCollapsed((value) => !value)}
             aria-label={sidebarCollapsed ? "Expand dashboards sidebar" : "Collapse dashboards sidebar"}
@@ -56,7 +57,7 @@ export function DashboardsView(props: {
           </button>
         </div>
 
-        <Button className={`mb-4 w-full ${sidebarCollapsed ? "justify-center px-0" : "justify-start"}`} onClick={() => router.push("/operator")} title="Create with Operator">
+        <Button className={`mb-4 w-full ${sidebarCollapsed ? "justify-center px-0" : "justify-start"}`} onClick={() => push("/operator")} title="Create with Operator">
           <Sparkles size={15} />
           <span className={sidebarCollapsed ? "hidden" : ""}>Create with Operator</span>
         </Button>
@@ -116,7 +117,7 @@ export function DashboardsView(props: {
               title="No saved dashboards yet"
               description="Operator-created dashboard drafts will appear here after they are saved."
               actions={(
-                <Button onClick={() => router.push("/operator")}>
+                <Button onClick={() => push("/operator")}>
                   <Sparkles size={16} />
                   Create with Operator
                 </Button>

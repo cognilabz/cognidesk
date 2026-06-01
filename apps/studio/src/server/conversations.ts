@@ -263,24 +263,29 @@ export async function ensureDemoConversations(
   const rowsToInsert = demoRows.slice(existingRows.length);
   if (!rowsToInsert.length) return;
 
-  for (let index = 0; index < rowsToInsert.length; index += 150) {
-    const chunk = rowsToInsert.slice(index, index + 150);
-    await db.insert(studioConversations).values(chunk.map((row, chunkIndex) => ({
-      id: `${manifest.target.id}:demo-conversation-${existingRows.length + index + chunkIndex + 1}`,
-      targetId: manifest.target.id,
-      agentId,
-      customerLabel: row.customerLabel,
-      lifecycle: row.lifecycle,
-      summary: row.summary,
-      activeJourneyId: row.journeyId,
-      activeStateIdsJson: JSON.stringify(row.stateIds),
-      traceIdsJson: JSON.stringify(row.traceIds),
-      eventCount: row.eventCount,
-      satisfaction: row.satisfaction,
-      createdAt: new Date(now - row.createdHoursAgo * 60 * 60 * 1000),
-      updatedAt: new Date(now - row.updatedHoursAgo * 60 * 60 * 1000),
-    }))).onConflictDoNothing();
-  }
+  const insertChunks = Array.from(
+    { length: Math.ceil(rowsToInsert.length / 150) },
+    (_, chunkNumber) => {
+      const index = chunkNumber * 150;
+      const chunk = rowsToInsert.slice(index, index + 150);
+      return db.insert(studioConversations).values(chunk.map((row, chunkIndex) => ({
+        id: `${manifest.target.id}:demo-conversation-${existingRows.length + index + chunkIndex + 1}`,
+        targetId: manifest.target.id,
+        agentId,
+        customerLabel: row.customerLabel,
+        lifecycle: row.lifecycle,
+        summary: row.summary,
+        activeJourneyId: row.journeyId,
+        activeStateIdsJson: JSON.stringify(row.stateIds),
+        traceIdsJson: JSON.stringify(row.traceIds),
+        eventCount: row.eventCount,
+        satisfaction: row.satisfaction,
+        createdAt: new Date(now - row.createdHoursAgo * 60 * 60 * 1000),
+        updatedAt: new Date(now - row.updatedHoursAgo * 60 * 60 * 1000),
+      }))).onConflictDoNothing();
+    }
+  );
+  await Promise.all(insertChunks);
 }
 
 export async function listStudioConversations(
