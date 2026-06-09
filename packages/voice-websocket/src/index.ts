@@ -90,6 +90,12 @@ export type VoiceBrowserServerEvent =
       event: RuntimeEvent;
     }
   | {
+      type: "cognidesk.voice.preamble";
+      event_id: string;
+      text: string;
+      elapsedMs: number;
+    }
+  | {
       type: "input_audio_buffer.speech_started";
       event_id?: string;
       audio_start_ms?: number;
@@ -100,6 +106,16 @@ export type VoiceBrowserServerEvent =
       event_id?: string;
       audio_end_ms?: number;
       item_id?: string;
+    }
+  | {
+      type: "input_audio_transcription.completed";
+      event_id: string;
+      text: string;
+      item_id?: string;
+      startedAtMs?: number;
+      endedAtMs?: number;
+      transcriptionSource?: string;
+      metadata?: Record<string, unknown>;
     }
   | {
       type: "response.output_audio.delta";
@@ -458,6 +474,8 @@ export interface HandleVoiceSocketOptions {
   reconnectTokenTtlMs?: number;
   reconnectGraceMs?: number;
   inputTranscriptDebounceMs?: number;
+  turnPreambleMs?: number;
+  turnPreambleText?: string;
   signal?: AbortSignal;
 }
 
@@ -486,8 +504,11 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   let providerSession: VoiceProviderSession | null = null;
   let closed = false;
   const inputTranscriptDebounceMs = Math.max(0, options.inputTranscriptDebounceMs ?? 350);
+  const turnPreambleMs = Math.max(0, options.turnPreambleMs ?? 1_200);
+  const turnPreambleText = options.turnPreambleText ?? "Einen Moment, ich prüfe das kurz.";
   let pendingInputTranscript: VoiceInputTranscriptEvent | null = null;
   let pendingInputTranscriptTimer: ReturnType<typeof setTimeout> | null = null;
+  let turnPreambleTimer: ReturnType<typeof setTimeout> | null = null;
   let inputTranscriptQueue = Promise.resolve();
 
   const sendRuntimeEvents = (events: RuntimeEvent[]) => {
@@ -513,8 +534,29 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
     });
   };
 
+  const clearTurnPreambleTimer = () => {
+    if (!turnPreambleTimer) return;
+    clearTimeout(turnPreambleTimer);
+    turnPreambleTimer = null;
+  };
+
+  const startTurnPreambleTimer = () => {
+    clearTurnPreambleTimer();
+    if (turnPreambleMs === 0) return;
+    turnPreambleTimer = setTimeout(() => {
+      turnPreambleTimer = null;
+      send(options.socket, {
+        type: "cognidesk.voice.preamble",
+        event_id: createId("voice_event"),
+        text: turnPreambleText,
+        elapsedMs: turnPreambleMs,
+      });
+    }, turnPreambleMs);
+  };
+
   const handleProviderEvent = async (event: VoiceProviderEvent) => {
     if (event.kind === "server_event") {
+      if (isAgentResponseSignal(event.event)) clearTurnPreambleTimer();
       send(options.socket, event.event);
       if (event.event.type === "response.output_audio.delta") {
         await options.recorder?.onAudio?.({
@@ -544,6 +586,8 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   const scheduleInputTranscript = (event: VoiceInputTranscriptEvent) => {
     const text = event.text.trim();
     if (!text) return;
+    sendInputTranscriptCompleted(event, text);
+    startTurnPreambleTimer();
     pendingInputTranscript = mergeInputTranscript(
       pendingInputTranscript,
       {
@@ -565,6 +609,19 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
       pendingInputTranscriptTimer = null;
       if (transcript) queueInputTranscript(transcript);
     }, waitMs);
+  };
+
+  const sendInputTranscriptCompleted = (event: VoiceInputTranscriptEvent, text: string) => {
+    send(options.socket, {
+      type: "input_audio_transcription.completed",
+      event_id: createId("voice_event"),
+      text,
+      ...optionalStringField("item_id", event.itemId),
+      ...optionalNumberField("startedAtMs", event.startedAtMs),
+      ...optionalNumberField("endedAtMs", event.endedAtMs),
+      ...optionalStringField("transcriptionSource", event.transcriptionSource),
+      ...(event.metadata !== undefined ? { metadata: event.metadata } : {}),
+    });
   };
 
   const queueInputTranscript = (event: VoiceInputTranscriptEvent) => {
@@ -680,6 +737,7 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
     if (closed) return;
     closed = true;
     if (pendingInputTranscriptTimer) clearTimeout(pendingInputTranscriptTimer);
+    clearTurnPreambleTimer();
     pendingInputTranscript = null;
     controller.abort();
     options.signal?.removeEventListener("abort", abort);
@@ -761,6 +819,8 @@ export interface AttachNodeVoiceWebSocketAdapterOptions {
   pathPrefix?: string;
   reconnectTokenTtlMs?: number;
   reconnectGraceMs?: number;
+  turnPreambleMs?: number;
+  turnPreambleText?: string;
 }
 
 export function attachNodeVoiceWebSocketAdapter(options: AttachNodeVoiceWebSocketAdapterOptions) {
@@ -788,6 +848,8 @@ export function attachNodeVoiceWebSocketAdapter(options: AttachNodeVoiceWebSocke
       ...(options.recorder ? { recorder: options.recorder } : {}),
       ...(options.reconnectTokenTtlMs !== undefined ? { reconnectTokenTtlMs: options.reconnectTokenTtlMs } : {}),
       ...(options.reconnectGraceMs !== undefined ? { reconnectGraceMs: options.reconnectGraceMs } : {}),
+      ...(options.turnPreambleMs !== undefined ? { turnPreambleMs: options.turnPreambleMs } : {}),
+      ...(options.turnPreambleText !== undefined ? { turnPreambleText: options.turnPreambleText } : {}),
     });
   });
 
@@ -959,6 +1021,13 @@ function mergeInputTranscript(
   };
   if (Object.keys(metadata).length > 0) merged.metadata = metadata;
   return merged;
+}
+
+function isAgentResponseSignal(event: VoiceBrowserServerEvent) {
+  return event.type === "response.output_audio.delta"
+    || event.type === "response.output_audio_transcript.delta"
+    || event.type === "response.output_audio_transcript.done"
+    || event.type === "response.done";
 }
 
 function debounceMsForTranscript(text: string, baseMs: number) {
