@@ -28,6 +28,13 @@ export type RuntimeEvent =
   | RuntimeEventBase<"message.delta", { textDelta: string }>
   | RuntimeEventBase<"message.completed", { text: string; segments?: MessageSegment[]; usage?: UsageRecord; intermediate?: boolean; visibleToModel?: boolean }>
   | RuntimeEventBase<"message.aborted", { reason: string; partialText?: string }>
+  | RuntimeEventBase<"voice.segment.started", { channelSegmentId: string; connectionId: string; adapter: string; provider?: string }>
+  | RuntimeEventBase<"voice.segment.ended", { channelSegmentId: string; connectionId?: string; reason?: string }>
+  | RuntimeEventBase<"voice.connection.failed", { channelSegmentId: string; connectionId?: string; code: string; message: string; retryable?: boolean }>
+  | RuntimeEventBase<"voice.interrupted", { channelSegmentId: string; connectionId?: string; interruptedMessageId?: string; source?: "userSpeech" | "adapter" | "provider"; reason?: string; recordingReferenceId?: string; offsetMs?: number }>
+  | RuntimeEventBase<"voice.recording.started", { channelSegmentId: string; recordingReferenceId: string; policy?: unknown }>
+  | RuntimeEventBase<"voice.recording.completed", { channelSegmentId: string; recordingReferenceId: string; uri?: string; startedAt?: string; endedAt?: string; metadata?: unknown }>
+  | RuntimeEventBase<"voice.transcript.committed", { channelSegmentId: string; speaker: "user" | "assistant"; messageEventId: string; recordingReferenceId?: string; startedAtMs?: number; endedAtMs?: number; transcriptionSource?: string; metadata?: unknown }>
   | RuntimeEventBase<"journey.candidates.retrieved", { journeyIds: string[] }>
   | RuntimeEventBase<"journey.matched", { candidates: Array<{ journeyId: string; confidence: number; reason?: string }> }>
   | RuntimeEventBase<"journey.activated", { journeyId: string; previousJourneyId?: string }>

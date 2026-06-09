@@ -22,6 +22,68 @@ describe("createCognideskClient HTTP adapter", () => {
             },
           });
         }
+        if (String(url).endsWith("/voice/conversations")) {
+          return Response.json({
+            conversation: {
+              id: "conversation_voice",
+              agentId: "flight-service",
+              lifecycle: "active",
+              context: {},
+              createdAt: "2026-05-25T00:00:00.000Z",
+              updatedAt: "2026-05-25T00:00:00.000Z",
+            },
+            channelSegment: {
+              id: "voice_segment_1",
+              conversationId: "conversation_voice",
+              channel: "voice",
+              startedAt: "2026-05-25T00:00:00.000Z",
+            },
+            connection: {
+              id: "voice_connection_1",
+              channelSegmentId: "voice_segment_1",
+              status: "starting",
+              adapter: "cognidesk-voice-websocket",
+            },
+            socket: {
+              url: "ws://localhost/api/voice/connections/voice_connection_1/socket?token=voice-token",
+              token: "voice-token",
+              expiresAt: "2026-05-25T00:01:00.000Z",
+              protocol: "cognidesk.voice.v1",
+            },
+            events: [],
+          });
+        }
+        if (String(url).endsWith("/voice-segments")) {
+          return Response.json({
+            conversation: {
+              id: "conversation_1",
+              agentId: "flight-service",
+              lifecycle: "active",
+              context: {},
+              createdAt: "2026-05-25T00:00:00.000Z",
+              updatedAt: "2026-05-25T00:00:00.000Z",
+            },
+            channelSegment: {
+              id: "voice_segment_2",
+              conversationId: "conversation_1",
+              channel: "voice",
+              startedAt: "2026-05-25T00:00:00.000Z",
+            },
+            connection: {
+              id: "voice_connection_2",
+              channelSegmentId: "voice_segment_2",
+              status: "starting",
+              adapter: "cognidesk-voice-websocket",
+            },
+            socket: {
+              url: "ws://localhost/api/voice/connections/voice_connection_2/socket?token=voice-token-2",
+              token: "voice-token-2",
+              expiresAt: "2026-05-25T00:01:00.000Z",
+              protocol: "cognidesk.voice.v1",
+            },
+            events: [],
+          });
+        }
         if (String(url).endsWith("/widgets/prompt_1/submissions")) {
           return Response.json({
             event: {
@@ -181,6 +243,11 @@ describe("createCognideskClient HTTP adapter", () => {
     });
 
     const created = await client.createConversation({ agentId: "flight-service", context: { locale: "en" } });
+    await client.startVoiceConversation({
+      agentId: "flight-service",
+      context: { locale: "en" },
+    });
+    await client.startVoiceSegment(created.conversation.id);
     const sent = await client.sendMessage(created.conversation.id, "hello", { turn: { source: "test" } });
     await client.submitWidget(created.conversation.id, {
       promptId: "prompt_1",
@@ -226,6 +293,14 @@ describe("createCognideskClient HTTP adapter", () => {
       {
         url: "http://localhost/api/conversations",
         body: { agentId: "flight-service", context: { locale: "en" } },
+      },
+      {
+        url: "http://localhost/api/voice/conversations",
+        body: { agentId: "flight-service", context: { locale: "en" } },
+      },
+      {
+        url: "http://localhost/api/conversations/conversation_1/voice-segments",
+        body: {},
       },
       {
         url: "http://localhost/api/conversations/conversation_1/messages",

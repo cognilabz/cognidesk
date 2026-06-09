@@ -24,6 +24,74 @@ _Avoid_: Core HTTP server
 A framework-agnostic request handler used by the HTTP Adapter. Framework wrappers can adapt it to Node, Hono, Express, Fastify, or other servers.
 _Avoid_: Framework-specific route as core transport
 
+**Voice Connection Adapter**:
+A Built-In Adapter or application adapter that connects a Voice Conversation to a realtime audio or telephony connection. Voice Connection Adapters handle provider-specific transport details while preserving the Runtime SDK's Conversation, Journey, Tool, Knowledge, and Runtime Event boundaries.
+_Avoid_: Provider-specific agent, voice transport in Core
+
+**Server-Mediated Voice Connection**:
+A Voice Connection where the application or Cognidesk server creates the provider session and attaches it to a Cognidesk Conversation while the browser uses a Cognidesk-owned voice protocol. Server-Mediated Voice Connections keep Voice Profile resolution, Tool projections, recording policy, safety identifiers, and audit events under server control.
+_Avoid_: Browser-owned realtime session, client-configured provider call
+
+**Voice Browser Protocol**:
+The Cognidesk-owned browser-facing protocol for live voice interaction. It carries customer audio, assistant audio, live voice state, and client control events as ordered WebSocket JSON events without exposing provider realtime protocols or provider session objects to the browser.
+_Avoid_: Browser WebRTC contract, provider protocol passthrough, raw OpenAI realtime client
+
+**Voice Audio Delta**:
+A base64-encoded audio payload carried by a Voice Browser Event during a live Voice Connection. Voice Audio Deltas carry spoken media only; durable conversation meaning comes from Runtime Events and Final Voice Transcripts.
+_Avoid_: Binary media frame, transcript chunk, provider audio event, raw browser recording artifact
+
+**Canonical Voice Audio Format**:
+The single v1 audio representation used by Voice Audio Deltas in the Voice Browser Protocol: 16-bit PCM, mono, 24 kHz, little-endian. Provider-specific audio formats are adapter concerns behind the Voice Connection Adapter boundary.
+_Avoid_: Browser-default recording format, mixed codec support in v1, provider format as browser contract
+
+**Voice Browser Event**:
+A structured JSON event exchanged through the Voice Browser Protocol for audio deltas, live voice session control, and state, such as starting, stopping, interruption, status, errors, and transcript notifications. Voice Browser Events are not a replacement for durable Runtime Events.
+_Avoid_: Provider event passthrough, durable event stream, chat message, binary media protocol
+
+**Voice Browser Event Naming**:
+The naming rule for Voice Browser Events: Cognidesk reuses provider-style realtime event names where the semantics match common realtime audio behavior and reserves `cognidesk.*` names for SDK-owned conversation, reconnect, acknowledgement, and Runtime Event concepts.
+_Avoid_: Provider event dump, all events prefixed, hidden Cognidesk semantics
+
+**Voice Session Handshake**:
+The application-mediated step that creates or attaches a Voice Channel Segment before the browser opens the live Voice Browser Protocol connection. The Voice Session Handshake returns Cognidesk-owned conversation and connection metadata plus a way to open the live voice socket.
+_Avoid_: WebSocket-only conversation creation, provider session handshake, browser-selected conversation attachment
+
+**Voice WebSocket Adapter**:
+A Built-In Adapter surface that attaches an accepted application WebSocket to a pending or reconnecting Voice Connection and runs the Voice Browser Protocol. It is separate from the HTTP Adapter because WebSocket upgrade handling is framework-specific.
+_Avoid_: HTTP handler upgrade magic, Core-owned WebSocket server, provider WebSocket passthrough
+
+**Voice Socket Token**:
+A short-lived, single-use credential that allows the browser to open one live Voice Browser Protocol connection for a pending Voice Connection. Voice Socket Tokens are scoped to Cognidesk-owned conversation and channel segment metadata rather than provider credentials.
+_Avoid_: Provider token, reusable browser voice credential, conversation auth replacement
+
+**Voice Session Store**:
+An ephemeral store for live Voice Connection operational state such as socket tokens, reconnect tokens, accepted socket identity, media acknowledgements, provider connection handles, and expiry. Voice Session Store state is separate from durable Runtime Storage.
+_Avoid_: Runtime Snapshot for socket state, durable token storage, provider handle in conversation history
+
+**Voice Reconnect Token**:
+A short-lived, single-use credential issued after a live voice socket is accepted, allowing the browser to recover the Voice Browser Protocol connection after a transient failure. Voice Reconnect Tokens preserve Cognidesk's voice connection boundary without making reconnect automatic or unlimited.
+_Avoid_: Long-lived voice session token, provider reconnect token, duplicate socket allowance
+
+**Voice Reconnect Continuity**:
+The recovery expectation that a reconnect resumes the same Cognidesk Voice Channel Segment while provider session continuity remains best-effort behind the Voice Connection Adapter. Durable conversation state, Runtime Events, and Final Voice Transcripts define continuity, not provider transport identity.
+_Avoid_: Guaranteed provider session resume, new conversation on transient disconnect, duplicate active voice segment
+
+**Voice Media Acknowledgement**:
+The Voice Browser Protocol mechanism that identifies the highest browser audio append sequence accepted by Cognidesk during a live or reconnected voice socket. Voice Media Acknowledgements bound reconnect replay and do not make partial transcripts durable conversation state.
+_Avoid_: Transcript acknowledgement, provider acknowledgement, exactly-once realtime audio
+
+**Voice Control Channel**:
+The server-side control path attached to a live Voice Connection. The Voice Control Channel observes provider events, handles Voice Tool Projections and Voice Knowledge Projections, commits Final Voice Transcripts, records Voice Interruptions, and emits durable Runtime Events.
+_Avoid_: Media-only adapter, browser-only provider event handling
+
+**Voice Provider Transport**:
+The adapter-internal connection between Cognidesk and a realtime voice provider. Voice Provider Transport choices are hidden behind Voice Connection Adapters and do not define the Voice Browser Protocol.
+_Avoid_: Browser transport, public voice API, provider-specific Core type
+
+**Voice Call Routing**:
+The application-owned decision that maps an incoming or requested voice connection to a Cognidesk Conversation, an external route, or a rejection. Voice Call Routing may create a new Voice Conversation or attach to an existing one without making caller identity rules part of the SDK.
+_Avoid_: SDK-owned phone lookup, automatic conversation merge
+
 **Model Adapter**:
 An SDK integration that lets the runtime call a configured model through a consistent Cognidesk interface. Model Adapters are created through the Cognidesk model entrypoint, commonly by wrapping Vercel AI SDK model handles.
 _Avoid_: Provider-specific runtime
@@ -67,6 +135,18 @@ _Avoid_: Single model for every task
 **Agent Model Set**:
 The complete set of production Model Role configurations for an Agent. Journeys and states do not override the Agent Model Set in v1; Test Harness judge and simulated-user models are configured separately.
 _Avoid_: Per-journey model override
+
+**Voice Model Set**:
+The model configuration for a Voice Agent's realtime spoken interaction. A Voice Model Set is optimized for voice latency and behavior and is separate from the chat-oriented Agent Model Set.
+_Avoid_: Reusing chat model roles as the voice hot path, per-journey voice model
+
+**Voice Provider Escape Hatch**:
+An explicit adapter-level configuration surface for provider-specific realtime voice settings that Cognidesk does not model directly. Voice Provider Escape Hatches are kept out of Core concepts and should not become the default public API for normal Voice Agent configuration.
+_Avoid_: Raw provider session as core API, provider event names as SDK concepts
+
+**Voice Selection**:
+The adapter-level choice of the spoken voice used by a Voice Agent. Voice Selection affects voice presentation but does not create a separate Agent identity.
+_Avoid_: Voice as agent persona, hardcoded SDK voice
 
 **AI SDK-Style Model Set Definition**:
 An application-facing Agent Model Set declaration that maps each Model Role to either an AI SDK-Style Model Definition or a configured role entry with generation settings and metadata overrides. Cognidesk converts this role map into Model Adapters and applies prompt profile selection for each role.
@@ -207,6 +287,18 @@ _Avoid_: Provider-specific core handoff
 **Test Harness**:
 An SDK-provided development and evaluation tool for customers to run their own agent implementations against real models and inspect Runtime Events, Journey Activation, state changes, tool calls, Knowledge Retrieval, and Conversation Closure.
 _Avoid_: CI-only mock harness, Studio
+
+**Voice Test Harness**:
+The voice-specific extension of the Test Harness for evaluating Voice Conversations. It covers realtime behavior such as interruption, turn detection, latency, Final Voice Transcript quality, spoken field collection, tool timing, and voice-to-chat continuation.
+_Avoid_: Transcript-only voice eval, manual call testing only
+
+**Voice User Simulator**:
+A test participant that exercises a Voice Conversation through spoken interaction rather than text message submission. Voice User Simulators validate the Voice Browser Protocol, realtime audio behavior, and Final Voice Transcript quality from the customer side of a voice session.
+_Avoid_: Text-only simulated user, transcript injection, manual microphone test
+
+**Voice Agent-to-Agent Test**:
+An end-to-end Voice Test Harness scenario where one voice-capable model simulates the customer side while the Cognidesk Voice Agent handles the support side. Voice Agent-to-Agent Tests validate real realtime audio flow, interruption behavior, and durable transcript outcomes rather than only mocked protocol events.
+_Avoid_: Unit-only voice test, two text agents, provider smoke test without Cognidesk Runtime Events
 
 **Cognidesk Studio**:
 An optional self-hosted developer and operator application that attaches to one active Studio Target at a time. Cognidesk Studio helps inspect, monitor, and safely change an SDK application, but it is not required for Runtime SDK execution.
@@ -392,6 +484,82 @@ _Avoid_: Path, flow
 The always-active customer support agent identity for a conversation. It has its own base prompt and may be extended with tools, RAG, and active Journey context.
 _Avoid_: Default journey, fallback bot
 
+**Voice Agent**:
+A voice interaction profile for a Runtime SDK Agent that lets the same Base Agent participate in speech conversations while preserving shared Journeys, Tools, Knowledge, and policies unless explicitly scoped otherwise.
+_Avoid_: Separate compiled agent, voice-only bot
+
+**Voice Profile**:
+The Agent-level declaration that enables and configures Voice Agent behavior for a Runtime SDK Agent. A Voice Profile owns voice-specific interaction settings while the Agent continues to own the shared Base Agent, Journeys, Tools, Knowledge, and policies.
+_Avoid_: Separate voice agent definition, transport route config only
+
+**Conversation Channel**:
+The interaction medium through which a customer participates in part of a Cognidesk Conversation, such as chat or voice. Conversation Channel may shape Journey eligibility, instructions, UI behavior, and runtime events without changing the underlying Conversation identity.
+_Avoid_: Separate conversation type, transport as agent identity
+
+**Channel Compatibility**:
+The declared or inferred suitability of a Journey, Tool, Knowledge Source, or Widget for a Conversation Channel. Cognidesk definitions are shared across chat and voice by default, with Channel Compatibility used only where a capability needs channel-specific restrictions or alternatives.
+_Avoid_: Voice-only copy by default, duplicate journey per channel
+
+**Voice Capability Parity**:
+The expectation that a Voice Agent covers the same customer support capabilities as its corresponding chat experience unless a capability is explicitly marked as not voice-compatible. Voice Capability Parity allows channel-specific optimization without reducing what the customer can accomplish.
+_Avoid_: Demo-only voice subset, voice as limited mode
+
+**Voice-Optimized Definition**:
+A shared Journey, Tool, or Knowledge definition with voice-specific wording, examples, instructions, retrieval behavior, or interaction constraints. Voice-Optimized Definitions preserve the same domain capability while making it work naturally in spoken conversation.
+_Avoid_: Duplicated voice journey, chat wording read aloud
+
+**Voice Conversation**:
+A Cognidesk Conversation while it is participating through a voice channel. Voice Conversations use the normal Conversation, Runtime Event, Runtime Snapshot, Journey, Tool, and Knowledge model while adding voice-specific artifacts and interaction behavior.
+_Avoid_: Realtime-only session, detached call transcript
+
+**Channel Segment**:
+A bounded portion of a Cognidesk Conversation that occurs through a specific Conversation Channel. Channel Segments let a Voice Conversation continue into chat while preserving a single conversation identity.
+_Avoid_: Chat-to-voice continuation, separate case per modality
+
+**Voice-to-Chat Continuation Context**:
+The durable conversation state available when a Voice Conversation continues in chat, including Final Voice Transcripts, Runtime Snapshot state, Journey progress, Tool results, Voice Interruptions, and Voice Recording References when present.
+_Avoid_: Raw audio handoff, partial transcript handoff, rerunning voice session
+
+**Voice Connection Lifecycle**:
+The live connection state for a voice Channel Segment, such as started, connected, interrupted, ended, failed, or transferred. Voice Connection Lifecycle is separate from Conversation Lifecycle, so ending a voice connection does not close the Cognidesk Conversation by default.
+_Avoid_: Hangup as conversation closure, transport state as support state
+
+**Voice Live Signal**:
+A non-durable, high-frequency voice adapter signal used for live UI or debugging, such as audio frames, partial captions, output audio deltas, or provider event details. Voice Live Signals are separate from Runtime Events.
+_Avoid_: Audio frames as Runtime Events, provider event log as conversation history
+
+**Voice Turn Pipeline**:
+The realtime-optimized runtime path for handling spoken interaction in a Voice Conversation. The Voice Turn Pipeline uses shared Agent, Journey, Tool, and Knowledge definitions but does not run the chat-oriented response pipeline for every spoken exchange.
+_Avoid_: Chat pipeline with audio, separate conversation runtime
+
+**Voice Journey Proposal**:
+A structured proposed Journey update produced during a Voice Conversation, such as a collected value, transition, clarification, completion, or tool request. Voice Journey Proposals must be validated by Cognidesk before they become Runtime Events or Runtime Snapshot changes.
+_Avoid_: Direct voice model state mutation, chat matcher requirement for every spoken turn
+
+**Voice Recording**:
+A durable audio artifact associated with a Voice Conversation. A Voice Recording is conversation evidence and replay material rather than the source of truth for Journey state.
+_Avoid_: Runtime state, transcript replacement
+
+**Voice Recording Policy**:
+The Voice Profile setting that determines whether audio recording is enabled for Voice Conversations and what recording references may be attached. Voice Recording is optional; Final Voice Transcripts and voice lifecycle events can exist without a Voice Recording.
+_Avoid_: Mandatory call recording, transcript requires audio
+
+**Voice Recording Consent**:
+An application-owned policy decision about whether a Voice Conversation may be recorded. Cognidesk may expose hooks and events for consent enforcement and audit, but it does not define legal consent behavior.
+_Avoid_: SDK-owned consent law, implicit recording permission
+
+**Voice Recording Reference**:
+A conversation-attached record that identifies a Voice Recording and its relevant metadata for retrieval, audit, or replay. Voice Recording References connect recordings to Voice Conversations without making audio bytes part of the Runtime Snapshot or Journey state.
+_Avoid_: Inline audio event, journey context audio blob
+
+**Voice Recorder**:
+An application-provided component that may receive voice audio from a live Voice Connection and return Voice Recording References. Voice Recorders let applications own media storage, retention, and consent policy while Cognidesk owns the conversation linkage and recording events.
+_Avoid_: SDK-owned media store, implicit recording, audio blob in Runtime Storage
+
+**Final Voice Transcript**:
+The finalized text representation of customer voice input or assistant speech that is persisted as the conversation transcript. Final Voice Transcripts exclude partial transcript deltas and live caption updates.
+_Avoid_: Partial transcript stream, raw speech event log
+
 **Conversation Closure**:
 The explicit ending of a conversation by application code, runtime policy, or an allowed Tool. Conversation Closure is separate from Journey completion because the Base Agent itself is open-ended.
 _Avoid_: Base Agent completion
@@ -401,8 +569,16 @@ The high-level state of a conversation: active, handoff, or closed.
 _Avoid_: Many lifecycle states for v1
 
 **Turn Interruption**:
-The default behavior where a new user message can stop current assistant generation for an Agent. Turn Interruption is constrained during side-effect states and does not automatically cancel side-effect actions once started.
+The default behavior where new user input can stop current assistant generation for an Agent. Turn Interruption is constrained during side-effect states and does not automatically cancel side-effect actions once started.
 _Avoid_: Concurrent turn processing
+
+**Voice Interruption**:
+A Turn Interruption in a Voice Conversation, typically caused by user speech while the assistant is speaking or generating. Voice Interruption records the interruption itself, distinct from any Aborted Message that records stopped assistant output.
+_Avoid_: Hidden barge-in, audio-only cancellation
+
+**Voice Interruption Protocol**:
+The Voice Browser Protocol behavior for stopping assistant output when the customer interrupts. The browser stops playback and sends cancellation plus optional played-audio timing, while Cognidesk records the durable Voice Interruption and coordinates provider cancellation or truncation.
+_Avoid_: Provider-only barge-in, local-only playback stop, partial transcript as interruption record
 
 **Aborted Message**:
 A partially generated assistant message that was stopped by Turn Interruption and preserved in the Event Stream.
@@ -448,6 +624,10 @@ _Avoid_: Snapshot-only opacity
 A typed runtime-declared UI interaction that applications render through their chosen UI layer. The Runtime SDK emits Widget prompts and validates Widget submissions; UI packages provide renderers.
 _Avoid_: React-only component, untyped prompt
 
+**Voice Field Collection**:
+The spoken collection or confirmation of Collected Fields in a Voice Conversation. Voice Field Collection uses conversational turns rather than Widgets, because Widgets are not part of the Voice Conversation interaction model.
+_Avoid_: Voice widget, spoken widget, companion widget
+
 **Widget Definition**:
 A shared typed declaration for a Widget's input and output schemas. Widget Definitions type both runtime prompts and UI renderers.
 _Avoid_: Renderer-only props
@@ -483,6 +663,18 @@ _Avoid_: Framework-neutral UI package in v1
 **Browser Client**:
 The React package's typed client for submitting messages, submitting Widgets, consuming SSE Streaming, tracking offsets, and receiving Runtime Events.
 _Avoid_: Untyped fetch calls in components
+
+**Voice Browser Client**:
+The React/browser client surface for starting, controlling, and observing a Voice Connection through the Voice Browser Protocol. The Voice Browser Client owns the default browser audio pipeline and protocol connection while remaining a low-level hook and client API surface rather than a prebuilt voice UI component.
+_Avoid_: Voice widget, full prebuilt voice console, browser-owned provider connection
+
+**Voice Protocol Client**:
+The lower-level client API for applications that want to speak the Voice Browser Protocol with a custom audio pipeline or non-React runtime. The Voice Protocol Client exposes protocol events and connection controls without owning visual UI.
+_Avoid_: Prebuilt voice UI, browser provider SDK, React-only voice transport
+
+**Voice Browser Audio Pipeline**:
+The default browser-side audio capture, conversion, and playback behavior owned by the Voice Browser Client. In v1 it assumes modern secure-context browser audio APIs and does not use browser-dependent recording containers as the protocol format.
+_Avoid_: MediaRecorder as protocol format, legacy browser fallback, provider SDK audio pipeline
 
 **ChatWidget**:
 The prebuilt React conversation component exported by the React package. It uses the Browser Client, Event Stream, Renderer registry, and React UI Package defaults.
@@ -539,6 +731,14 @@ _Avoid_: Independent final responses from parallel states
 **Instruction Stack**:
 The deterministic layering of Base Agent, global, Journey, State, Tool, Knowledge, and channel instructions used by the Response Coordinator.
 _Avoid_: Ad hoc prompt concatenation
+
+**Voice Instruction Layer**:
+The channel-specific instruction layer that shapes spoken behavior in a Voice Conversation, such as brevity, interruption handling, spoken confirmation, and avoiding visual formatting. Voice Instruction Layers refine the shared Base Agent and Journey instructions rather than replacing them.
+_Avoid_: Separate voice persona, duplicated base prompt
+
+**Default Voice Instruction Layer**:
+The SDK-provided Voice Instruction Layer used when a Voice Profile does not supply a custom one. It gives Voice Conversations sensible spoken behavior while remaining overrideable by applications.
+_Avoid_: App-required voice prompt, unchangeable SDK voice style
 
 **Action Scheduler**:
 The deterministic runtime process that executes state actions for active Journey States, including logical parallel regions, in declaration order.
@@ -708,6 +908,22 @@ _Avoid_: Blind side-effect retry
 A Tool exposed to the Base Agent or Active Journey for model-directed use within the current Tool Scope.
 _Avoid_: Deterministic state action
 
+**Voice Tool Projection**:
+The provider-facing callable function view of Cognidesk Tools available during a Voice Conversation. Voice Tool Projections expose only the scoped tool schema needed by the realtime model while Cognidesk remains responsible for execution, policy, events, telemetry, and privacy.
+_Avoid_: Provider-owned tool, client-executed Cognidesk Tool
+
+**Voice Browser Tool Privacy**:
+The voice-channel privacy boundary that keeps provider tool-call events, raw tool arguments, and private tool schemas out of the Voice Browser Protocol. Browser-facing voice surfaces may receive sanitized Cognidesk state or Runtime Event mirrors, but tool execution remains server-side.
+_Avoid_: Browser-visible provider tool call, client-executed voice tool, raw tool schema over voice socket
+
+**Voice Runtime Event Mirror**:
+A sanitized live notification sent over the Voice Browser Protocol to help browser voice UI react to selected Cognidesk Runtime Events. Voice Runtime Event Mirrors are not canonical history; the Runtime Event stream remains the durable, replayable source of truth.
+_Avoid_: Second event stream source of truth, full Runtime Event dump, provider event mirror
+
+**Voice Knowledge Projection**:
+The voice-facing retrieval view of scoped Cognidesk Knowledge Sources available during a Voice Conversation. Voice Knowledge Projections let the Voice Turn Pipeline retrieve grounding on demand without running chat Knowledge Retrieval before every spoken response.
+_Avoid_: Mandatory pre-response RAG in voice, separate voice knowledge base
+
 **Knowledge**:
 A first-class grounding capability that automatically retrieves and supplies trusted context for the Base Agent or an Active Journey. Knowledge is distinct from Tools because it shapes answer grounding, citations, and source events rather than performing actions.
 _Avoid_: RAG tool, search function
@@ -732,6 +948,10 @@ _Avoid_: Keeping every old retrieved chunk in prompt context
 A best-effort source-linked message segment in a generated assistant message that identifies which Knowledge Items support that part of the answer. Citation Spans are post-processed after answer generation only when Knowledge is used, validated, and allow UI renderers to underline supported text and show sources on hover when available.
 _Avoid_: Source list only
 
+**Voice Citation Behavior**:
+The voice-channel rule that spoken assistant responses do not include Citation Spans or spoken citation markers. Voice Conversations may still record Knowledge events so later chat continuation, replay, Studio, or audit surfaces can inspect grounding.
+_Avoid_: Spoken footnotes, audio message segments
+
 **Message Segment**:
 A structured part of an assistant message used for rich rendering such as Citation Spans. Messages also keep plain text for transcripts, search, and simple clients. Streaming sends plain text deltas first and finalizes segments on completion.
 _Avoid_: Structured-only message
@@ -755,6 +975,10 @@ _Avoid_: Sub-agent path, skill path
 **Specialist Agent**:
 An agent-like execution unit inside a Delegation Journey. It has its own goal, instructions, tools, and Knowledge, but it does not own nested Journeys.
 _Avoid_: Recursive agent, skill, context helper
+
+**Voice Delegation Behavior**:
+The voice-channel handling of Delegation Journeys as internal changes to active instructions, capabilities, and completion criteria. Voice Delegation Behavior does not expose a separate audible agent identity unless the Journey deliberately instructs that customer-facing framing.
+_Avoid_: Surprise second voice, literal internal handoff
 
 **Delegation Return**:
 The explicit handoff back from a Specialist Agent to the Base Agent, including the relevant conversation summary and state.

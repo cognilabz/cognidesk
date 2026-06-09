@@ -4,10 +4,16 @@ import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createRuntime } from "@cognidesk/core";
+import { createOpenAIVoiceProvider } from "@cognidesk/voice-openai";
+import {
+  attachNodeVoiceWebSocketAdapter,
+  createInMemoryVoiceSessionStore,
+  createVoiceSocketHandshake,
+} from "@cognidesk/voice-websocket";
 import { startCognideskDemoTelemetrySeed, startCognideskOtel } from "@cognidesk/otel";
 import { createSqliteStorage } from "@cognidesk/storage-sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
-import { loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
+import { getConfiguredVoiceApiKey, loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";
 
 const otel = process.env.COGNIDESK_OTEL === "true"
@@ -34,6 +40,14 @@ await mkdir(dirname(sqlitePath), { recursive: true });
 
 const { agent, models, journeyIndex } = await createFlightDemoRuntimeParts({ config });
 const storage = createSqliteStorage({ filename: sqlitePath });
+const voiceApiKey = getConfiguredVoiceApiKey(config);
+const voiceSessionStore = createInMemoryVoiceSessionStore();
+const voiceProvider = voiceApiKey
+  ? createOpenAIVoiceProvider({
+      apiKey: voiceApiKey,
+      ...(config.voice?.voice ? { voice: config.voice.voice } : {}),
+    })
+  : null;
 const runtime = createRuntime({
   storage,
   agent,
@@ -53,6 +67,13 @@ const handler = createCognideskHttpHandler({
   runtime,
   basePath: "/api",
   agentId: agent.id,
+  ...(voiceProvider
+    ? {
+        voice: createVoiceSocketHandshake({
+          store: voiceSessionStore,
+        }),
+      }
+    : {}),
   cors: process.env.COGNIDESK_CORS === "false" ? false : true,
   ssePollIntervalMs: 300,
 });
@@ -111,6 +132,17 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
     await reader?.cancel().catch(() => undefined);
   }
 });
+
+if (voiceProvider) {
+  attachNodeVoiceWebSocketAdapter({
+    server,
+    store: voiceSessionStore,
+    runtime,
+    provider: voiceProvider,
+    ...(agent.voice ? { profile: agent.voice } : {}),
+    pathPrefix: "/api/voice/connections",
+  });
+}
 
 server.listen(port, host, () => {
   console.log(`Flight demo API listening on http://${host}:${port}/api`);

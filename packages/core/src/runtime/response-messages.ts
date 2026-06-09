@@ -1,4 +1,5 @@
 import type { CompiledAgent, CompiledJourney } from "../definition.js";
+import type { ConversationChannel } from "../types.js";
 import type { JourneySummary, ModelMessage } from "../types.js";
 import { renderJourneyRuntimeContext } from "./rendering.js";
 import type { ConversationMessage, RetrievedKnowledgeItem, StateMachineTurnResult, VisibleCustomEventContext } from "./types.js";
@@ -13,6 +14,7 @@ export function createResponseMessages(args: {
   visibleCustomEvents: VisibleCustomEventContext[];
   compactionSummary?: unknown;
   journeySummaries: JourneySummary[];
+  channel?: ConversationChannel;
 }): ModelMessage[] {
   const journeyContext = args.journey
     ? renderJourneyRuntimeContext(args.journey, args.stateMachineTurn)
@@ -51,6 +53,9 @@ export function createResponseMessages(args: {
       role: "system",
       content: [
         args.agent.instructions,
+        args.channel === "voice"
+          ? "Current channel: voice. Do not mention widgets, forms, buttons, visual controls, Markdown, or UI prompts. Ask for missing details conversationally, one detail at a time when practical. Confirm side-effect actions verbally before proceeding."
+          : "",
         "",
         "Conversation memory:",
         memoryContext,

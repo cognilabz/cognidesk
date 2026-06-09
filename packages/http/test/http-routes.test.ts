@@ -76,6 +76,53 @@ describe("HTTP adapter routes", () => {
     expect(decoded).toContain("message.completed");
   });
 
+  it("starts voice conversations and voice segments", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({
+      runtime,
+      agentId: "flight-service",
+      basePath: "/api",
+      voice: {
+        async createSocket({ result }) {
+          return {
+            url: `/api/voice/connections/${result.connection.id}/socket?token=test-token`,
+            token: "test-token",
+            expiresAt: "2026-05-25T00:01:00.000Z",
+            protocol: "cognidesk.voice.v1",
+          };
+        },
+      },
+    });
+
+    const createdResponse = await handler.handle(new Request("http://localhost/api/voice/conversations", {
+      method: "POST",
+      body: JSON.stringify({ context: { locale: "en" } }),
+    }));
+    expect(createdResponse.status).toBe(201);
+    const created = await createdResponse.json() as {
+      channelSegment: { id: string };
+      connection: { id: string };
+      socket: { url: string; token: string; protocol: string };
+      eventsUrl: string;
+    };
+    expect(created.channelSegment.id).toBe("voice_segment_1");
+    expect(created.connection.id).toBe("voice_connection_1");
+    expect(created.socket).toMatchObject({
+      url: "/api/voice/connections/voice_connection_1/socket?token=test-token",
+      token: "test-token",
+      protocol: "cognidesk.voice.v1",
+    });
+    expect(created.eventsUrl).toBe("/api/conversations/conversation_1/events/stream");
+
+    const segmentResponse = await handler.handle(new Request("http://localhost/api/conversations/conversation_1/voice-segments", {
+      method: "POST",
+      body: JSON.stringify({}),
+    }));
+    expect(segmentResponse.status).toBe(200);
+    const segment = await segmentResponse.json() as { socket: { token: string } };
+    expect(segment.socket.token).toBe("test-token");
+  });
+
   it("returns 400 for malformed JSON, wrong body shapes, and invalid offsets", async () => {
     const runtime = new FakeRuntime();
     const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });

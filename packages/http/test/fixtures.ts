@@ -12,6 +12,9 @@ import type {
   ResumeConversationInput,
   RuntimeEvent,
   RuntimeSnapshot,
+  StartVoiceConversationInput,
+  StartVoiceResult,
+  StartVoiceSegmentInput,
   SubmitWidgetInput,
 } from "@cognidesk/core";
 
@@ -56,6 +59,52 @@ export class FakeRuntime implements CognideskHttpRuntime {
 
   async listEvents(_conversationId: string, afterOffset = 0) {
     return this.events.filter((event) => event.offset > afterOffset);
+  }
+
+  async startVoiceConversation(input: StartVoiceConversationInput): Promise<StartVoiceResult> {
+    const conversation = await this.createConversation({
+      ...("id" in input && input.id ? { id: input.id } : {}),
+      agentId: input.agentId,
+      context: input.context,
+    });
+    return this.startVoiceSegment({
+      conversationId: conversation.id,
+      ...(input.app !== undefined ? { app: input.app } : {}),
+    });
+  }
+
+  async startVoiceSegment(input: StartVoiceSegmentInput): Promise<StartVoiceResult> {
+    const event = {
+      id: `event_${this.events.length + 1}`,
+      conversationId: input.conversationId,
+      offset: this.events.length + 1,
+      type: "voice.segment.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        channelSegmentId: "voice_segment_1",
+        connectionId: "voice_connection_1",
+        adapter: "cognidesk-voice-websocket",
+        provider: "test",
+      },
+    } satisfies RuntimeEvent;
+    this.events.push(event);
+    return {
+      conversation: await this.createConversation({ agentId: "flight-service", context: {} }),
+      channelSegment: {
+        id: "voice_segment_1",
+        conversationId: input.conversationId,
+        channel: "voice",
+        startedAt: "2026-05-25T00:00:00.000Z",
+      },
+      connection: {
+        id: "voice_connection_1",
+        channelSegmentId: "voice_segment_1",
+        status: "starting",
+        adapter: "cognidesk-voice-websocket",
+        provider: "test",
+      },
+      events: [event],
+    };
   }
 
   async emitCustomEvent(input: Parameters<NonNullable<CognideskHttpRuntime["emitCustomEvent"]>>[0]): Promise<RuntimeEvent> {

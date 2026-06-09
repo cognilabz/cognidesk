@@ -1,10 +1,12 @@
+import { z } from "zod";
 import type { CompiledJourney } from "../definition.js";
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
+  ConversationChannel,
   RuntimeSnapshot,
 } from "../types.js";
-import { createJourneyCompletion } from "./journey-state.js";
+import { createJourneyCompletion, createToolConfirmationPromptId } from "./journey-state.js";
 import type { StateMachineTurnResult } from "./types.js";
 import {
   resolveInitialJourneyContext,
@@ -23,6 +25,7 @@ export async function executeStateMachineTurn(args: StateMachineDeps & {
   conversation: ConversationRecord;
   previousSnapshot: RuntimeSnapshot | null;
   userText: string;
+  channel?: ConversationChannel;
   turn: unknown;
   app: unknown;
   signal?: AbortSignal;
@@ -62,6 +65,7 @@ export async function executeStateMachineTurn(args: StateMachineDeps & {
       stateById,
       state: activeState,
       context,
+      ...(args.channel ? { channel: args.channel } : {}),
     }));
   }
 
@@ -77,6 +81,7 @@ export async function executeStateMachineTurn(args: StateMachineDeps & {
   return {
     activeStateIds: completed ? [] : nextActiveStates.map((state) => state.id),
     journeyContext: context,
+    ...(args.channel ? { channel: args.channel } : {}),
     ...(completed ? { completed } : {}),
   };
 }
@@ -89,6 +94,7 @@ export async function advanceStateMachine(args: StateMachineDeps & {
   state: CompiledJourney["states"][number];
   context: Record<string, unknown>;
   userText?: string;
+  channel?: ConversationChannel;
   signal?: AbortSignal;
   emit: RuntimeEmit;
 }) {
@@ -98,19 +104,33 @@ export async function advanceStateMachine(args: StateMachineDeps & {
     visited.add(state.id);
     const lifecycle = await args.requireConversationRecord(args.conversation.id);
     if (lifecycle.lifecycle !== "active") return [state];
+    const voiceMode = args.channel === "voice";
     if (!stateRequirementsSatisfied(state, args.context)) {
-      await args.emitFieldPrompts({ ...args, state });
+      if (!voiceMode) await args.emitFieldPrompts({ ...args, state });
       return [state];
     }
-    const fieldConfirmationCount = await args.emitFieldConfirmationPrompts({ ...args, state });
-    if (fieldConfirmationCount > 0) return [state];
+    if (!voiceMode) {
+      const fieldConfirmationCount = await args.emitFieldConfirmationPrompts({ ...args, state });
+      if (fieldConfirmationCount > 0) return [state];
+    }
+    let confirmedPromptId: string | undefined;
     if (state.requiresVisit) {
-      const promptCount = await args.emitConfirmationPrompts({ ...args, state });
-      if (promptCount > 0) return [state];
+      if (voiceMode) {
+        confirmedPromptId = await resolveVoiceConfirmedPromptId({ ...args, state });
+        if (hasConfirmableTransitionToolRun(state) && !confirmedPromptId) return [state];
+      } else {
+        const promptCount = await args.emitConfirmationPrompts({ ...args, state });
+        if (promptCount > 0) return [state];
+      }
     }
 
     await args.runStateActionRuns({ ...args, state, actionType: "transition" });
-    const toolTargetId = await args.runStateToolRuns({ ...args, state, actionType: "transition" });
+    const toolTargetId = await args.runStateToolRuns({
+      ...args,
+      state,
+      actionType: "transition",
+      ...(confirmedPromptId ? { confirmedPromptId } : {}),
+    });
     const latestConversation = await args.requireConversationRecord(args.conversation.id);
     if (latestConversation.lifecycle !== "active") return [state];
     const transition = toolTargetId
@@ -142,4 +162,66 @@ export async function advanceStateMachine(args: StateMachineDeps & {
     state = enteredStates[0] ?? nextState;
   }
   return [state];
+}
+
+const voiceConfirmationSchema = z.object({
+  confirmed: z.boolean(),
+  confidence: z.number().min(0).max(1),
+  reason: z.string(),
+});
+
+async function resolveVoiceConfirmedPromptId(args: StateMachineDeps & {
+  journey: CompiledJourney;
+  models?: AgentModelSet;
+  conversation: ConversationRecord;
+  state: CompiledJourney["states"][number];
+  context: Record<string, unknown>;
+  userText?: string;
+  signal?: AbortSignal;
+  emit: RuntimeEmit;
+}) {
+  const confirmable = args.state.toolRuns.filter((toolRun) => (
+    toolRun.actionType === "transition" && toolRun.confirm
+  ));
+  if (confirmable.length === 0) return undefined;
+  if (!args.models || !args.userText?.trim()) return undefined;
+  const toolRun = confirmable[0];
+  if (!toolRun) return undefined;
+  const output = await args.generateTextWithTrace({
+    conversationId: args.conversation.id,
+    model: args.models.matcher,
+    input: {
+      role: "matcher",
+      promptTask: "transition-matcher",
+      responseFormat: voiceConfirmationSchema,
+      messages: [{
+        role: "system",
+        content: [
+          "Decide whether the customer's latest voice utterance explicitly confirms the pending side-effect action.",
+          "Return confirmed=true only for clear approval to proceed now.",
+          "Concise affirmative replies such as yes, yes please, confirm it, or go ahead count as clear approval when they answer the described pending action.",
+          "Return confirmed=false for questions, hesitation, corrections, missing details, or unrelated text.",
+        ].join("\n"),
+      }, {
+        role: "user",
+        content: JSON.stringify({
+          journeyId: args.journey.id,
+          stateId: args.state.id,
+          toolName: toolRun.tool.name,
+          confirmationMessage: toolRun.confirm?.message,
+          confirmationReason: toolRun.confirm?.reason,
+          journeyContext: args.context,
+          latestUtterance: args.userText,
+        }),
+      }],
+      ...(args.signal ? { signal: args.signal } : {}),
+    },
+  });
+  const parsed = voiceConfirmationSchema.safeParse(output.structured);
+  if (!parsed.success || !parsed.data.confirmed || parsed.data.confidence < 0.6) return undefined;
+  return createToolConfirmationPromptId(args.journey.id, args.state.id, toolRun.tool.name);
+}
+
+function hasConfirmableTransitionToolRun(state: CompiledJourney["states"][number]) {
+  return state.toolRuns.some((toolRun) => toolRun.actionType === "transition" && toolRun.confirm);
 }

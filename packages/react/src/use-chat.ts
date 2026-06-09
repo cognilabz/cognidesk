@@ -119,8 +119,11 @@ export function useChat(options: UseChatOptions) {
     setError(null);
     setStatus("sending");
     try {
+      const afterOffset = lastOffsetRef.current;
       const result = await options.client.submitWidget(conversationId, input);
       applyEvent(result.event);
+      const replay = await options.client.listEvents(conversationId, { afterOffset }).catch(() => null);
+      for (const event of replay?.events ?? []) applyEvent(event);
       setStatus("idle");
       return result;
     } catch (caught) {

@@ -19,6 +19,34 @@ export interface CreateConversationResult {
   };
 }
 
+export interface StartVoiceResult {
+  conversation: CreateConversationResult["conversation"];
+  channelSegment: {
+    id: string;
+    conversationId: string;
+    channel: "voice";
+    startedAt: string;
+    endedAt?: string;
+  };
+  connection: {
+    id: string;
+    channelSegmentId: string;
+    status: string;
+    adapter: string;
+    provider?: string;
+    providerSessionId?: string;
+    expiresAt?: string;
+  };
+  socket: {
+    url: string;
+    token: string;
+    expiresAt: string;
+    protocol: "cognidesk.voice.v1";
+  };
+  events: RuntimeEvent[];
+  eventsUrl?: string;
+}
+
 export interface SendMessageResult {
   text: string;
   events: RuntimeEvent[];
@@ -62,6 +90,8 @@ export interface ReplayConversationResult {
 
 export interface CognideskClient {
   createConversation(input?: { agentId?: string; context?: unknown; id?: string }): Promise<CreateConversationResult>;
+  startVoiceConversation(input: { agentId?: string; context?: unknown; id?: string; client?: VoiceStartClientHints; app?: unknown }): Promise<StartVoiceResult>;
+  startVoiceSegment(conversationId: string, input?: { client?: VoiceStartClientHints; app?: unknown }): Promise<StartVoiceResult>;
   sendMessage(conversationId: string, message: string, options?: { turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
   emitCustomEvent(conversationId: string, eventName: string, input?: { payload?: unknown }): Promise<{ event: RuntimeEvent }>;
@@ -100,6 +130,7 @@ export interface ChatWidgetProps {
   initialContext?: unknown;
   title?: ReactNode;
   placeholder?: string;
+  sendLabel?: string;
   appearance?: AppearanceConfiguration;
   widgets?: WidgetRendererMap;
   onConversationCreated?(conversationId: string): void;
@@ -113,3 +144,47 @@ export interface UseChatOptions {
   initialContext?: unknown;
   onConversationCreated?(conversationId: string): void;
 }
+
+export type VoiceConnectionStatus =
+  | "idle"
+  | "requestingPermission"
+  | "connecting"
+  | "connected"
+  | "ended"
+  | "error";
+
+export interface UseVoiceOptions {
+  client: CognideskClient;
+  conversationId?: string;
+  agentId?: string;
+  initialContext?: unknown;
+  mediaConstraints?: MediaStreamConstraints;
+  WebSocket?: typeof WebSocket;
+  audioContext?: AudioContext;
+  app?: unknown;
+  onConversationCreated?(conversationId: string): void;
+  onConnected?(result: StartVoiceResult): void;
+  onEnded?(): void;
+  onEvent?(event: VoiceProtocolServerEvent): void;
+  onError?(error: Error): void;
+}
+
+export interface VoiceStartClientHints {
+  userAgent?: string;
+  locale?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export type VoiceProtocolClientEvent =
+  | { type: "session.update"; event_id?: string; session?: Record<string, unknown> }
+  | { type: "input_audio_buffer.append"; event_id?: string; audio: string; sequence?: number }
+  | { type: "input_audio_buffer.commit"; event_id?: string }
+  | { type: "input_audio_buffer.clear"; event_id?: string }
+  | { type: "response.cancel"; event_id?: string; response_id?: string; interruptedMessageId?: string; playedUntilMs?: number; audioEndMs?: number; reason?: string }
+  | { type: "conversation.item.truncate"; event_id?: string; item_id?: string; content_index?: number; audio_end_ms?: number };
+
+export type VoiceProtocolServerEvent = {
+  type: string;
+  event_id?: string;
+  [key: string]: unknown;
+};

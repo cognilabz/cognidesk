@@ -17,6 +17,10 @@ import type {
   ResumeConversationInput,
   RuntimeEvent,
   RuntimeSnapshot,
+  StartVoiceConversationInput,
+  StartVoiceResult,
+  StartVoiceSegmentInput,
+  VoiceSocketMetadata,
   SubmitWidgetInput,
 } from "@cognidesk/core";
 
@@ -32,15 +36,28 @@ export interface CognideskHttpRuntime {
   closeConversation?(conversationId: string, reason?: string): Promise<ConversationRecord>;
   requestHandoff?(input: RequestHandoffInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
   resumeConversation?(input: ResumeConversationInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }>;
+  startVoiceConversation?(input: StartVoiceConversationInput): Promise<StartVoiceResult>;
+  startVoiceSegment?(input: StartVoiceSegmentInput): Promise<StartVoiceResult>;
   replayConversation?(input: ReplayConversationInput): Promise<ReplayConversationResult>;
   getSnapshot?(conversationId: string): Promise<RuntimeSnapshot | null>;
   listEvents(conversationId: string, afterOffset?: number): Promise<RuntimeEvent[]>;
+}
+
+export interface VoiceSocketHandshakeInput {
+  result: StartVoiceResult;
+  request: Request;
+  basePath: string;
+}
+
+export interface VoiceSocketHandshake {
+  createSocket(input: VoiceSocketHandshakeInput): Promise<VoiceSocketMetadata>;
 }
 
 export interface CognideskHttpHandlerOptions {
   runtime: CognideskHttpRuntime | CognideskRuntime;
   basePath?: string;
   agentId?: string;
+  voice?: VoiceSocketHandshake;
   customEvents?: CustomRuntimeEventDefinition[];
   journeyEvents?: JourneyEventDefinition[];
   ssePollIntervalMs?: number;
@@ -55,6 +72,16 @@ export interface CreateConversationBody {
   id?: string;
   agentId?: string;
   context?: unknown;
+}
+
+export interface CreateVoiceConversationBody extends CreateConversationBody {
+  client?: unknown;
+  app?: unknown;
+}
+
+export interface CreateVoiceSegmentBody {
+  client?: unknown;
+  app?: unknown;
 }
 
 export interface CreateMessageBody {

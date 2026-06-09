@@ -19,6 +19,8 @@ import type {
   EmitIntermediateMessageInput,
   EmitJourneyEventInput,
   EmitJourneyEventResult,
+  HandleVoiceUserMessageInput,
+  HandleVoiceUserMessageResult,
   HandleUserMessageInput,
   HandleUserMessageResult,
   ReplayConversationInput,
@@ -31,10 +33,25 @@ import type {
 import type { JourneyEventDefinition } from "./definition.js";
 import type { ConversationRecord, RuntimeEventInput } from "./storage.js";
 import type {
+  CommitVoiceTranscriptInput,
+  CommitVoiceTranscriptResult,
   CustomRuntimeEventDefinition,
+  RecordVoiceInterruptionInput,
   RuntimeEvent,
   RuntimeSnapshot,
+  StartVoiceConversationInput,
+  StartVoiceResult,
+  StartVoiceSegmentInput,
 } from "./types.js";
+import {
+  assertNoActiveVoiceSegment,
+  commitRuntimeVoiceTranscript,
+  endRuntimeVoiceSegment,
+  handleRuntimeVoiceUserMessage,
+  recordRuntimeVoiceInterruption,
+  startRuntimeVoiceConversation,
+  startRuntimeVoiceSegment,
+} from "./runtime/voice.js";
 
 export { conversationCompactionSummarySchema } from "./runtime/schemas.js";
 export type { ConversationCompactionSummary } from "./runtime/schemas.js";
@@ -48,6 +65,8 @@ export type {
   EmitIntermediateMessageInput,
   EmitJourneyEventInput,
   EmitJourneyEventResult,
+  HandleVoiceUserMessageInput,
+  HandleVoiceUserMessageResult,
   HandleUserMessageInput,
   HandleUserMessageResult,
   ReplayConversationInput,
@@ -59,6 +78,15 @@ export type {
   ReplayedMessage,
   ReplayedPrompt,
 } from "./runtime/types.js";
+export type {
+  CommitVoiceTranscriptInput,
+  CommitVoiceTranscriptReferenceInput,
+  CommitVoiceTranscriptResult,
+  RecordVoiceInterruptionInput,
+  StartVoiceConversationInput,
+  StartVoiceResult,
+  StartVoiceSegmentInput,
+} from "./types.js";
 
 export class CognideskRuntime {
   private readonly activeTurns = new Map<string, ActiveTurn>();
@@ -158,7 +186,74 @@ export class CognideskRuntime {
   ): Promise<HandleUserMessageResult> {
     return this.runtimeOperation("handle_user_message", telemetrySpanNames.runtimeHandleUserMessage, {
       [telemetryAttributes.conversationId]: input.conversationId,
-    }, () => this.kernel.handleUserMessage(input));
+    }, async () => {
+      await assertNoActiveVoiceSegment(this.options, input.conversationId);
+      return this.kernel.handleUserMessage(input);
+    });
+  }
+
+  handleVoiceUserMessage<TTurn = unknown>(
+    input: HandleVoiceUserMessageInput<TTurn>,
+  ): Promise<HandleVoiceUserMessageResult> {
+    return this.runtimeOperation("handle_voice_user_message", telemetrySpanNames.runtimeHandleUserMessage, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => handleRuntimeVoiceUserMessage(
+      this.kernel.emit,
+      (turnInput) => this.kernel.handleUserMessage(turnInput),
+      input,
+    ));
+  }
+
+  startVoiceConversation<TConversationContext = unknown>(
+    input: StartVoiceConversationInput<TConversationContext>,
+  ): Promise<StartVoiceResult> {
+    return this.runtimeOperation("start_voice_conversation", telemetrySpanNames.runtimeEmitEvent, {
+      [telemetryAttributes.agentId]: input.agentId,
+    }, () => startRuntimeVoiceConversation(
+      this.options,
+      (conversationInput) => this.kernel.createConversation(conversationInput),
+      (segmentInput) => startRuntimeVoiceSegment(
+        this.options,
+        this.kernel.requireConversation,
+        this.kernel.emit,
+        segmentInput,
+      ),
+      input,
+    ));
+  }
+
+  startVoiceSegment(input: StartVoiceSegmentInput): Promise<StartVoiceResult> {
+    return this.runtimeOperation("start_voice_segment", telemetrySpanNames.runtimeEmitEvent, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => startRuntimeVoiceSegment(
+      this.options,
+      this.kernel.requireConversation,
+      this.kernel.emit,
+      input,
+    ));
+  }
+
+  endVoiceSegment(input: {
+    conversationId: string;
+    channelSegmentId: string;
+    connectionId?: string;
+    reason?: string;
+  }): Promise<RuntimeEvent> {
+    return this.runtimeOperation("end_voice_segment", telemetrySpanNames.runtimeEmitEvent, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => endRuntimeVoiceSegment(this.kernel.emit, input));
+  }
+
+  commitVoiceTranscript(input: CommitVoiceTranscriptInput): Promise<CommitVoiceTranscriptResult> {
+    return this.runtimeOperation("commit_voice_transcript", telemetrySpanNames.runtimeEmitEvent, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => commitRuntimeVoiceTranscript(this.kernel.emit, input));
+  }
+
+  recordVoiceInterruption(input: RecordVoiceInterruptionInput): Promise<RuntimeEvent> {
+    return this.runtimeOperation("record_voice_interruption", telemetrySpanNames.runtimeEmitEvent, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => recordRuntimeVoiceInterruption(this.kernel.emit, input));
   }
 
   closeConversation(conversationId: string, reason?: string) {

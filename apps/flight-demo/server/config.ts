@@ -34,6 +34,11 @@ const modelProviderSchema = z.discriminatedUnion("provider", [
 
 const flightDemoConfigSchema = z.object({
   models: modelProviderSchema,
+  voice: z.object({
+    provider: z.literal("openai"),
+    apiKeyEnv: z.string().min(1).default("OPENAI_API_KEY"),
+    voice: z.string().min(1).optional(),
+  }).optional(),
   storage: z.object({
     sqlitePath: z.string().min(1),
     knowledgeIndexPath: z.string().min(1),
@@ -84,6 +89,18 @@ export function requireConfiguredApiKey(config: FlightDemoConfig) {
   if (!apiKey) {
     throw new Error(
       `Flight demo requires ${config.models.apiKeyEnv} for real ${config.models.provider} model calls.`,
+    );
+  }
+  return apiKey;
+}
+
+export function getConfiguredVoiceApiKey(config: FlightDemoConfig) {
+  loadFlightDemoEnv();
+  if (!config.voice) return undefined;
+  const apiKey = process.env[config.voice.apiKeyEnv];
+  if (!apiKey) {
+    throw new Error(
+      `Flight demo voice requires ${config.voice.apiKeyEnv} for OpenAI Realtime calls.`,
     );
   }
   return apiKey;

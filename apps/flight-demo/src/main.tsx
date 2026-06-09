@@ -1,7 +1,7 @@
 import { StrictMode, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import type { RuntimeEvent } from "@cognidesk/core";
-import { ChatWidget, createCognideskClient, type WidgetRendererProps } from "@cognidesk/react";
+import { ChatWidget, createCognideskClient, useVoice, type WidgetRendererProps } from "@cognidesk/react";
 import "@cognidesk/ui/styles.css";
 import "streamdown/styles.css";
 import "./styles.css";
@@ -11,6 +11,12 @@ function App() {
   const client = useMemo(() => createCognideskClient({
     baseUrl: import.meta.env.VITE_COGNIDESK_API_URL ?? "http://localhost:8787/api",
   }), []);
+  const voice = useVoice({
+    client,
+    agentId: "flight-service",
+    initialContext: {},
+    onConversationCreated: setConversationId,
+  });
 
   const handleWidgetSubmit = async (args: { promptId: string; kind: string; output: unknown }) => {
     if (!conversationId) return;
@@ -61,9 +67,29 @@ function App() {
   return (
     <main className="demo-shell">
       <section className="demo-panel">
+        <div className="demo-voice-bar">
+          <div>
+            <strong>Voice</strong>
+            <span>{formatVoiceStatus(voice.status)}</span>
+          </div>
+          <div className="demo-voice-actions">
+            {voice.status === "connected" ? (
+              <button type="button" onClick={voice.stop}>End</button>
+            ) : (
+              <button type="button" disabled={voice.status === "requestingPermission" || voice.status === "connecting"} onClick={() => void voice.start()}>
+                Start
+              </button>
+            )}
+            <button type="button" disabled={!voice.localStream} onClick={() => voice.setMuted(!voice.muted)}>
+              {voice.muted ? "Unmute" : "Mute"}
+            </button>
+          </div>
+          {voice.error ? <span className="demo-voice-error">{voice.error.message}</span> : null}
+        </div>
         <ChatWidget
           client={client}
           agentId="flight-service"
+          {...(conversationId ? { conversationId } : {})}
           title="Flight support"
           placeholder="Ask about booking, ticket status, or flight info"
           widgets={{ confirmation: ConfirmationWidget }}
@@ -82,6 +108,18 @@ function App() {
       </section>
     </main>
   );
+}
+
+function formatVoiceStatus(status: string) {
+  const labels: Record<string, string> = {
+    idle: "Ready",
+    requestingPermission: "Requesting microphone",
+    connecting: "Connecting",
+    connected: "Connected",
+    ended: "Ended",
+    error: "Error",
+  };
+  return labels[status] ?? status;
 }
 
 function isConfirmed(output: unknown) {

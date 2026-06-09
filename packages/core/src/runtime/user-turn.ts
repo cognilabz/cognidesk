@@ -111,6 +111,7 @@ export async function handleUserMessage<TTurn>(
           conversation,
           previousSnapshot,
           userText,
+          ...(args.input.channel ? { channel: args.input.channel } : {}),
           turn: args.input.turn ?? {},
           app: args.input.app ?? args.options.app ?? {},
           emit,
@@ -157,6 +158,7 @@ export async function handleUserMessage<TTurn>(
       visibleCustomEvents,
       compactionSummary: previousSnapshot?.compactionSummary,
       journeySummaries: previousSnapshot?.journeySummaries ?? [],
+      ...(args.input.channel ? { channel: args.input.channel } : {}),
     }));
     const availableTools = resolveAvailableModelTools(agent, selectedJourney, stateMachineTurn);
     const modelTools = availableTools.map(toModelToolDefinition);

@@ -50,7 +50,7 @@ export function reduceChatRuntimeEvent(
       ...state,
       lastOffset,
       pendingMessageRole: "assistant",
-      activities: upsertActivity(state.activities, {
+      activities: upsertActivity(clearWidgetActivities(state.activities), {
         id: "response",
         label: "Writing response",
         status: "running",
@@ -212,7 +212,7 @@ export function reduceChatRuntimeEvent(
       lastOffset,
       activities: upsertActivity(state.activities, {
         id: `widget:${event.data.promptId}`,
-        label: "Submitting form",
+        label: "Formular wird gesendet",
         status: "running",
       }),
       prompts: state.prompts.map((prompt) => (
@@ -259,6 +259,7 @@ export function reduceChatRuntimeEvent(
     return {
       ...state,
       lastOffset,
+      activities: clearWidgetActivities(state.activities),
       prompts: state.prompts.filter((prompt) => prompt.status === "submitted"),
     };
   }
@@ -277,7 +278,7 @@ export function reduceChatRuntimeEvent(
     return {
       ...state,
       lastOffset,
-      activities: removeActivity(state.activities, "extraction"),
+      activities: removeActivity(clearWidgetActivities(state.activities), "extraction"),
       prompts: state.prompts.filter((prompt) => prompt.status === "submitted" || !isExtractedFieldPrompt(prompt.promptId, event.data)),
     };
   }
@@ -285,7 +286,7 @@ export function reduceChatRuntimeEvent(
     return {
       ...state,
       lastOffset,
-      activities: upsertActivity(state.activities, {
+      activities: upsertActivity(clearWidgetActivities(state.activities), {
         id: `action:${event.data.actionName}`,
         label: formatActionActivity(event.data.actionName),
         status: "running",
@@ -303,7 +304,7 @@ export function reduceChatRuntimeEvent(
     return {
       ...state,
       lastOffset,
-      activities: upsertActivity(state.activities, {
+      activities: upsertActivity(clearWidgetActivities(state.activities), {
         id: `tool:${event.data.toolName}`,
         label: formatToolActivity(event.data.toolName),
         status: "running",
@@ -353,6 +354,10 @@ function clearNonToolActivities(activities: ChatActivity[]) {
   return activities.filter((activity) => activity.id.startsWith("tool:"));
 }
 
+function clearWidgetActivities(activities: ChatActivity[]) {
+  return activities.filter((activity) => !activity.id.startsWith("widget:"));
+}
+
 function formatToolActivity(toolName: string) {
   const labels: Record<string, string> = {
     searchFlights: "Searching flights",
@@ -360,6 +365,12 @@ function formatToolActivity(toolName: string) {
     bookFlight: "Creating mocked booking",
     getTicketStatus: "Checking booking status",
     getFlightInfo: "Checking flight details",
+    searchDemoTrains: "Verbindungen prüfen",
+    bookDemoTicket: "Buchung vorbereiten",
+    getDemoTicketStatus: "Buchung prüfen",
+    lookupDelayScenario: "Verspätung prüfen",
+    getRefundGuidance: "Fahrgastrechte prüfen",
+    prepareSmsLink: "SMS vorbereiten",
   };
   return labels[toolName] ?? humanizeName(toolName);
 }
@@ -396,7 +407,7 @@ function promptJourneyId(promptId: string) {
 
 function anchorPendingPrompts(prompts: PromptState[], assistantOffset: number) {
   return prompts.map((prompt) => (
-    prompt.displayOffset === undefined && prompt.offset < assistantOffset
+    prompt.status === "open" && prompt.displayOffset === undefined && prompt.offset < assistantOffset
       ? { ...prompt, displayOffset: assistantOffset + 0.1 }
       : prompt
   ));

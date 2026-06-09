@@ -44,6 +44,38 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           return json({ conversation }, 201, options);
         }
 
+        if (request.method === "POST" && path === "/voice/conversations") {
+          if (!options.runtime.startVoiceConversation) return json({ error: "Voice conversations are not supported by this runtime" }, 501, options);
+          if (!options.voice?.createSocket) return json({ error: "Voice socket handshakes are not configured" }, 501, options);
+          const body = await readObject(request);
+          const agentId = optionalString(body, "agentId") ?? options.agentId;
+          if (!agentId) return json({ error: "agentId is required" }, 400, options);
+          const result = await options.runtime.startVoiceConversation({
+            ...optionalStringProperty(body, "id"),
+            agentId,
+            context: body.context ?? {},
+            ...optionalVoiceClient(body),
+            ...(body.app !== undefined ? { app: body.app } : {}),
+          });
+          const socket = await options.voice.createSocket({ result, request, basePath });
+          return json(withVoiceEventsUrl({ ...result, socket }, basePath), 201, options);
+        }
+
+        const voiceSegmentMatch = path.match(/^\/conversations\/([^/]+)\/voice-segments$/);
+        if (request.method === "POST" && voiceSegmentMatch) {
+          if (!options.runtime.startVoiceSegment) return json({ error: "Voice segments are not supported by this runtime" }, 501, options);
+          if (!options.voice?.createSocket) return json({ error: "Voice socket handshakes are not configured" }, 501, options);
+          const conversationId = decodeURIComponent(voiceSegmentMatch[1] ?? "");
+          const body = await readObject(request);
+          const result = await options.runtime.startVoiceSegment({
+            conversationId,
+            ...optionalVoiceClient(body),
+            ...(body.app !== undefined ? { app: body.app } : {}),
+          });
+          const socket = await options.voice.createSocket({ result, request, basePath });
+          return json(withVoiceEventsUrl({ ...result, socket }, basePath), 200, options);
+        }
+
         const messageMatch = path.match(/^\/conversations\/([^/]+)\/messages$/);
         if (request.method === "POST" && messageMatch) {
           const conversationId = decodeURIComponent(messageMatch[1] ?? "");
@@ -304,6 +336,32 @@ function optionalTarget(body: Record<string, unknown>, key: string) {
   return {
     ...(journeyId ? { journeyId } : {}),
     ...(stateId ? { stateId } : {}),
+  };
+}
+
+function optionalVoiceClient(body: Record<string, unknown>) {
+  const value = body.client;
+  if (value === undefined || value === null) return {};
+  if (!isRecord(value)) throw new HttpInputError("client must be an object.");
+  const userAgent = optionalString(value, "userAgent");
+  const locale = optionalString(value, "locale");
+  const metadata = value.metadata;
+  if (metadata !== undefined && metadata !== null && !isRecord(metadata)) {
+    throw new HttpInputError("client.metadata must be an object.");
+  }
+  return {
+    client: {
+      ...(userAgent ? { userAgent } : {}),
+      ...(locale ? { locale } : {}),
+      ...(isRecord(metadata) ? { metadata } : {}),
+    },
+  };
+}
+
+function withVoiceEventsUrl<T extends { conversation: { id: string } }>(result: T, basePath: string) {
+  return {
+    ...result,
+    eventsUrl: `${basePath}/conversations/${encodeURIComponent(result.conversation.id)}/events/stream`,
   };
 }
 

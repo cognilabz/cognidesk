@@ -2,6 +2,7 @@ import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../defini
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
+  ConversationChannel,
   ModelAdapter,
   RuntimeSnapshot,
   TextGenerationInput,
@@ -67,6 +68,7 @@ export interface RuntimeStateInteractionDeps {
     state: CompiledJourney["states"][number];
     context: Record<string, unknown>;
     userText?: string;
+    channel?: ConversationChannel;
     signal?: AbortSignal;
     emit: RuntimeEventEmitter;
   }) => Promise<CompiledJourney["states"]>;

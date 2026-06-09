@@ -20,6 +20,20 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
         body: JSON.stringify(input),
       }, "Failed to create conversation");
     },
+    startVoiceConversation(input) {
+      return requestJson(fetcher, `${baseUrl}/voice/conversations`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input),
+      }, "Failed to start voice conversation");
+    },
+    startVoiceSegment(conversationId, input = {}) {
+      return requestJson(fetcher, conversationUrl(baseUrl, conversationId, "voice-segments"), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input),
+      }, "Failed to start voice segment");
+    },
     sendMessage(conversationId, message, sendOptions = {}) {
       return requestJson(fetcher, conversationUrl(baseUrl, conversationId, "messages"), {
         method: "POST",
@@ -150,6 +164,7 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
 
 type ClientJsonResult =
   | CreateConversationResult
+  | import("./types.js").StartVoiceResult
   | SendMessageResult
   | RuntimeSnapshotResult
   | ReplayConversationResult

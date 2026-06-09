@@ -12,6 +12,11 @@
       "journeyEmbedding": "openai/text-embedding-3-small"
     }
   },
+  "voice": {
+    "provider": "openai",
+    "apiKeyEnv": "OPENAI_API_KEY",
+    "voice": "alloy"
+  },
   "storage": {
     "sqlitePath": ".data/flight-demo.sqlite",
     "knowledgeIndexPath": ".data/knowledge-index.json"

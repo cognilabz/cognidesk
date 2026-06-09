@@ -53,6 +53,26 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
       "Never show raw Knowledge IDs, source ids, or internal retrieval labels in customer-facing text.",
     ].join("\n"),
   });
+  agent.voice({
+    instructions: [
+      "Use concise spoken responses with no Markdown or visual formatting.",
+      "Ask for one missing booking or travel detail at a time.",
+      "Do not use Widgets in voice; collect and confirm required fields conversationally.",
+      "Confirm before side-effect tools such as mocked booking creation.",
+      "If an answer is long or detail-heavy, offer to continue in chat after the call.",
+    ].join("\n"),
+    modelSet: {
+      provider: "openai",
+      model: "gpt-realtime-2",
+      ...(config.voice?.voice ? { voice: config.voice.voice } : {}),
+    },
+    recording: {
+      enabled: false,
+    },
+    metadata: {
+      capabilityParity: true,
+    },
+  });
   agent.tools.add(
     flightTools.searchFlights,
     flightTools.suggestFlightOptions,

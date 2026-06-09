@@ -2,6 +2,7 @@ import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../defini
 import type { ConversationRecord } from "../storage.js";
 import type {
   AgentModelSet,
+  ConversationChannel,
   GuardResult,
   RuntimeSnapshot,
 } from "../types.js";
@@ -42,6 +43,7 @@ export function executeRuntimeStateMachineTurn(
     conversation: ConversationRecord;
     previousSnapshot: RuntimeSnapshot | null;
     userText: string;
+    channel?: ConversationChannel;
     turn: unknown;
     app: unknown;
     signal?: AbortSignal;
@@ -71,6 +73,7 @@ export function advanceRuntimeStateMachine(
     state: CompiledJourney["states"][number];
     context: Record<string, unknown>;
     userText?: string;
+    channel?: ConversationChannel;
     signal?: AbortSignal;
     emit: RuntimeEventEmitter;
   },

@@ -45,6 +45,28 @@ export type {
   SupportReference,
 } from "./types/events.js";
 export type {
+  CommitVoiceTranscriptInput,
+  CommitVoiceTranscriptReferenceInput,
+  CommitVoiceTranscriptResult,
+  ConversationChannel,
+  RecordVoiceInterruptionInput,
+  StartVoiceConversationInput,
+  StartVoiceResult,
+  StartVoiceSegmentInput,
+  VoiceChannelSegment,
+  VoiceConnection,
+  VoiceConnectionStatus,
+  VoiceIceServer,
+  VoiceModelSet,
+  VoiceProfile,
+  VoiceRecordingPolicy,
+  VoiceRuntimeEventInput,
+  VoiceSelection,
+  VoiceSpeaker,
+  VoiceSocketMetadata,
+  VoiceStartClientHints,
+} from "./types/voice.js";
+export type {
   JourneyContextRecord,
   JourneySummary,
   RuntimeSnapshot,

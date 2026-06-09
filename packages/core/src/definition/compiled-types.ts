@@ -8,6 +8,7 @@ import type {
   GuardResult,
   KnowledgeSource,
   ObjectSchema,
+  VoiceProfile,
   WidgetDefinition,
 } from "../types.js";
 import type {
@@ -29,6 +30,7 @@ export interface CompiledAgent {
   logLevel?: AgentLogLevel;
   behavior: AgentBehaviorOptions;
   postProcessing: AgentPostProcessingOptions;
+  voice?: VoiceProfile;
   journeys: CompiledJourney[];
   tools: AnyTool[];
   knowledge: KnowledgeSource[];
@@ -250,3 +252,5 @@ export interface AgentOptions {
   behavior?: AgentBehaviorOptions;
   postProcessing?: AgentPostProcessingOptions;
 }
+
+export type VoiceProfileOptions = VoiceProfile;

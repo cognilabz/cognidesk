@@ -8,6 +8,7 @@ import type { ReplayedMessage, ReplayedPrompt } from "./replay.js";
 import type {
   AgentModelSet,
   AnyTool,
+  ConversationChannel,
   CustomRuntimeEventDefinition,
   JourneyContextRecord,
   JourneySummary,
@@ -61,6 +62,7 @@ export interface CreateRuntimeConversationInput<TConversationContext = unknown>
 export interface HandleUserMessageInput<TTurn = unknown> {
   conversationId: string;
   text: string;
+  channel?: ConversationChannel;
   turn?: TTurn;
   app?: unknown;
   signal?: AbortSignal;
@@ -72,6 +74,20 @@ export interface HandleUserMessageResult {
   events: RuntimeEvent[];
   text: string;
   activeJourneyId?: string;
+}
+
+export interface HandleVoiceUserMessageInput<TTurn = unknown> extends HandleUserMessageInput<TTurn> {
+  channelSegmentId: string;
+  connectionId?: string;
+  recordingReferenceId?: string;
+  startedAtMs?: number;
+  endedAtMs?: number;
+  transcriptionSource?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface HandleVoiceUserMessageResult extends HandleUserMessageResult {
+  voiceEvents: RuntimeEvent[];
 }
 
 export interface CompactConversationInput {
@@ -167,6 +183,7 @@ export interface CompactConversationResult<TSummary = ConversationCompactionSumm
 export interface StateMachineTurnResult {
   activeStateIds: string[];
   journeyContext: Record<string, unknown>;
+  channel?: ConversationChannel;
   completed?: {
     journeyId: string;
     stateId?: string;

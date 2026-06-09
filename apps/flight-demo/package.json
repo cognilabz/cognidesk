@@ -9,7 +9,8 @@
     "ingest:knowledge": "tsx server/ingest-knowledge.ts",
     "build": "vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run --passWithNoTests --exclude test/voice-user-simulator.integration.test.ts",
+    "test:voice": "vitest run test/voice-user-simulator.integration.test.ts --testTimeout 300000",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -22,8 +23,11 @@
     "@cognidesk/studio-adapter": "workspace:*",
     "@cognidesk/storage-sqlite": "workspace:*",
     "@cognidesk/ui": "workspace:*",
+    "@cognidesk/voice-openai": "workspace:*",
+    "@cognidesk/voice-websocket": "workspace:*",
     "@openrouter/ai-sdk-provider": "^2.9.0",
     "@vitejs/plugin-react": "^5.1.1",
+    "openai": "^6.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "streamdown": "^2.5.0",

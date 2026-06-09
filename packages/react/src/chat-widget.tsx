@@ -142,7 +142,7 @@ export function ChatWidget(props: ChatWidgetProps) {
           type="submit"
           disabled={busy || draft.trim().length === 0}
         >
-          Send
+          {props.sendLabel ?? "Send"}
         </button>
       </form>
       {chat.error ? (

@@ -11,6 +11,7 @@ import type {
   CompiledAgent,
   DelegationJourneyOptions,
   StateMachineJourneyOptions,
+  VoiceProfileOptions,
 } from "./compiled-types.js";
 import {
   DelegationJourneyBuilder,
@@ -28,6 +29,7 @@ export class AgentBuilder<const TId extends string> {
   readonly knowledge = new CapabilityScope<KnowledgeSource>();
   readonly customEvents = new CapabilityScope<AnyCustomRuntimeEvent>();
   readonly widgets: WidgetDefinition[] = [];
+  private voiceProfile?: VoiceProfileOptions;
   private readonly journeys: Array<StateMachineJourneyBuilder<string, ObjectSchema> | DelegationJourneyBuilder<string>> = [];
 
   constructor(readonly id: TId, readonly options: AgentOptions) {}
@@ -55,6 +57,11 @@ export class AgentBuilder<const TId extends string> {
     return this;
   }
 
+  voice(options: VoiceProfileOptions) {
+    this.voiceProfile = options;
+    return this;
+  }
+
   compile(): CompiledAgent {
     const compiledJourneys = this.journeys.map((journey) => journey.compile());
     assertUniqueIds(compiledJourneys, "Journey");
@@ -69,6 +76,7 @@ export class AgentBuilder<const TId extends string> {
       ...(this.options.logLevel ? { logLevel: this.options.logLevel } : {}),
       behavior: this.options.behavior ?? {},
       postProcessing: this.options.postProcessing ?? {},
+      ...(this.voiceProfile ? { voice: this.voiceProfile } : {}),
       journeys: compiledJourneys,
       tools: this.tools.list(),
       knowledge: this.knowledge.list(),
