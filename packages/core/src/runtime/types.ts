@@ -66,6 +66,8 @@ export interface HandleUserMessageInput<TTurn = unknown> {
   turn?: TTurn;
   app?: unknown;
   signal?: AbortSignal;
+  recordUserMessage?: boolean;
+  assistantMessageMode?: "canonical" | "intermediate" | "none";
   onAssistantTextDelta?(textDelta: string): Promise<void> | void;
 }
 

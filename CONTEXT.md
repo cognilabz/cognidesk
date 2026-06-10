@@ -532,13 +532,37 @@ _Avoid_: Audio frames as Runtime Events, provider event log as conversation hist
 A brief spoken acknowledgement used during a Voice Conversation while Cognidesk is validating, retrieving, or executing work. Voice Preambles may keep the conversation alive, but they must not make factual, policy, Journey state, or side-effect claims before Cognidesk has validated the underlying result.
 _Avoid_: Unvalidated answer, side-effect claim, filler treated as final response
 
+**Voice Runtime Context**:
+The model-visible context supplied to the realtime voice model by the Voice Turn Pipeline. Voice Runtime Context includes the full canonical conversation history, including chat messages and Final Voice Transcripts, plus validated Journey, Tool, Knowledge, and interruption state, but excludes raw Runtime Events, Voice Live Signals, audio payloads, provider events, and private internal state.
+_Avoid_: Raw Event Stream prompt, summarized-only voice memory, provider event replay
+
+**Voice Answer Authority**:
+The source-order rule for what the realtime voice model may rely on when speaking. Voice Answer Authority uses Voice Instruction Layer and history for lightweight conversation, Voice Knowledge Projections for grounded facts, Voice Tool Projections and Voice Journey Proposals for customer-specific state or mutation, and chat-oriented model roles only for fallback, repair, summaries, or explicit background work.
+_Avoid_: Guessing domain facts from prompt memory, text agent on every turn, tool-free side-effect claims
+
+**Voice Background Work**:
+Validated Cognidesk work that continues while a Voice Conversation stays responsive to new speech. Voice Background Work may run alongside clarifying questions, side questions, or casual conversation without changing the active Journey state unless Cognidesk validates an intentional Journey Proposal or cancellation.
+_Avoid_: Blocking voice call, implicit state reset, treating small talk as workflow interruption
+
+**Primary Voice Journey**:
+The single Journey that currently owns workflow progress in a Voice Conversation. Voice Conversations may have Voice Background Work and Voice Side Exchanges alongside the Primary Voice Journey, but v1 does not treat multiple independent Journeys as simultaneously active workflow owners.
+_Avoid_: Arbitrary parallel Journeys, implicit task switching, unclear active workflow
+
+**Voice Side Exchange**:
+A customer utterance and assistant reply during a Voice Conversation that belongs in the canonical conversation history but is not intended to advance, cancel, or replace the active Journey or Voice Background Work. Voice Side Exchanges may answer questions or handle casual conversation while preserving Journey state unless Cognidesk validates a contrary intent.
+_Avoid_: Dropping side questions, automatic Journey transition, hidden parallel conversation
+
 **Voice Turn Pipeline**:
-The realtime-optimized runtime path for handling spoken interaction in a Voice Conversation. The Voice Turn Pipeline uses shared Agent, Journey, Tool, and Knowledge definitions but does not run the chat-oriented response pipeline for every spoken exchange.
+The realtime-first runtime path for handling spoken interaction in a Voice Conversation. The Voice Turn Pipeline uses shared Agent, Journey, Tool, and Knowledge definitions, while chat-oriented model roles are reserved for validation, fallback, repair, summaries, or background work rather than every spoken exchange.
 _Avoid_: Chat pipeline with audio, separate conversation runtime
 
 **Voice Journey Proposal**:
-A structured proposed Journey update produced during a Voice Conversation, such as a collected value, transition, clarification, completion, or tool request. Voice Journey Proposals must be validated by Cognidesk before they become Runtime Events or Runtime Snapshot changes.
+A structured proposed Journey update produced during a Voice Conversation, including intent, target Journey or State, proposed values or corrections, requested Tool work, confirmation evidence, spoken response plan, and transcript evidence. Voice Journey Proposals must be validated by Cognidesk before they become Runtime Events, Tool executions, or Runtime Snapshot changes.
 _Avoid_: Direct voice model state mutation, chat matcher requirement for every spoken turn
+
+**Voice Turn Intent**:
+The proposed routing meaning of a customer utterance in a Voice Conversation, such as advancing the active Journey, answering as a Voice Side Exchange, cancelling or replacing work, correcting prior information, or requesting handoff. The realtime voice model may propose Voice Turn Intent, but Cognidesk validates any Journey or workflow effect before mutating state.
+_Avoid_: Treating every utterance as Journey progress, unvalidated cancellation, hidden intent mutation
 
 **Voice Recording**:
 A durable audio artifact associated with a Voice Conversation. A Voice Recording is conversation evidence and replay material rather than the source of truth for Journey state.
@@ -737,7 +761,7 @@ The deterministic layering of Base Agent, global, Journey, State, Tool, Knowledg
 _Avoid_: Ad hoc prompt concatenation
 
 **Voice Instruction Layer**:
-The channel-specific instruction layer that shapes spoken behavior in a Voice Conversation, such as brevity, interruption handling, spoken confirmation, and avoiding visual formatting. Voice Instruction Layers refine the shared Base Agent and Journey instructions rather than replacing them.
+The channel-specific instruction layer that shapes spoken behavior in a Voice Conversation, such as lightweight conversational competence, brevity, interruption handling, spoken confirmation, and avoiding visual formatting. Voice Instruction Layers give the realtime voice model enough standing context to answer simple conversational turns without invoking chat-oriented model roles, while refining rather than replacing shared Base Agent and Journey instructions.
 _Avoid_: Separate voice persona, duplicated base prompt
 
 **Default Voice Instruction Layer**:
@@ -917,8 +941,8 @@ The small provider-facing callable surface used by the realtime voice model to a
 _Avoid_: Exposing the full Runtime API, direct model-owned tool execution, browser-executed tools
 
 **Voice Tool Projection**:
-The provider-facing callable function view of Cognidesk Tools available during a Voice Conversation. Voice Tool Projections expose only the scoped tool schema needed by the realtime model while Cognidesk remains responsible for execution, policy, events, telemetry, and privacy.
-_Avoid_: Provider-owned tool, client-executed Cognidesk Tool
+The controlled provider-facing way for the realtime voice model to request Cognidesk Tool work during a Voice Conversation. Voice Tool Projections do not expose every Cognidesk Tool as a direct provider function by default; Cognidesk validates requested tool names, arguments, scope, confirmations, policy, events, telemetry, and privacy before execution.
+_Avoid_: Provider-owned tool, client-executed Cognidesk Tool, one provider function per tool by default
 
 **Voice Browser Tool Privacy**:
 The voice-channel privacy boundary that keeps provider tool-call events, raw tool arguments, and private tool schemas out of the Voice Browser Protocol. Browser-facing voice surfaces may receive sanitized Cognidesk state or Runtime Event mirrors, but tool execution remains server-side.
@@ -929,7 +953,7 @@ A sanitized live notification sent over the Voice Browser Protocol to help brows
 _Avoid_: Second event stream source of truth, full Runtime Event dump, provider event mirror
 
 **Voice Knowledge Projection**:
-The voice-facing retrieval view of scoped Cognidesk Knowledge Sources available during a Voice Conversation. Voice Knowledge Projections let the Voice Turn Pipeline retrieve grounding on demand without running chat Knowledge Retrieval before every spoken response.
+The voice-facing retrieval view of scoped Cognidesk Knowledge Sources available through the Voice Control Tool Surface during a Voice Conversation. Voice Knowledge Projections let the realtime voice model request grounding for fast answers without running chat Knowledge Retrieval or the chat response model before every spoken response.
 _Avoid_: Mandatory pre-response RAG in voice, separate voice knowledge base
 
 **Knowledge**:

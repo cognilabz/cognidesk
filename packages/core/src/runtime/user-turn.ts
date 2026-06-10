@@ -68,17 +68,21 @@ export async function handleUserMessage<TTurn>(
       }
     }
 
-    logger.debug("Recording user message events");
-    await emit({
-      conversationId: conversation.id,
-      type: "message.started",
-      data: { role: "user" },
-    });
-    await emit({
-      conversationId: conversation.id,
-      type: "message.completed",
-      data: { text: userText },
-    });
+    if (args.input.recordUserMessage !== false) {
+      logger.debug("Recording user message events");
+      await emit({
+        conversationId: conversation.id,
+        type: "message.started",
+        data: { role: "user" },
+      });
+      await emit({
+        conversationId: conversation.id,
+        type: "message.completed",
+        data: { text: userText },
+      });
+    } else {
+      logger.debug("Skipping user message event recording for pre-committed turn");
+    }
 
     const history = await listConversationMessages(args.options.storage, conversation.id);
     const previousSnapshot = await args.options.storage.getSnapshot(conversation.id);
@@ -168,8 +172,11 @@ export async function handleUserMessage<TTurn>(
       visibleCustomEventCount: visibleCustomEvents.length,
     }, "Generating assistant response");
     throwIfTurnInterrupted(turn);
+    const assistantMessageMode = args.input.assistantMessageMode ?? "canonical";
+    const recordAssistantMessage = assistantMessageMode !== "none";
     let assistantStarted = false;
     const ensureAssistantStarted = async () => {
+      if (!recordAssistantMessage) return;
       if (assistantStarted) return;
       await emit({
         conversationId: conversation.id,
@@ -200,6 +207,7 @@ export async function handleUserMessage<TTurn>(
       emit,
       ...(args.options.streaming?.syntheticDeltas ? {
         onTextDelta: async (textDelta: string) => {
+          if (!recordAssistantMessage) return;
           await ensureAssistantStarted();
           streamedTextLength += textDelta.length;
           await emit({
@@ -243,24 +251,27 @@ export async function handleUserMessage<TTurn>(
     throwIfTurnInterrupted(turn);
     logger.debug({ citationSegments: segments?.length ?? 0 }, "Citation processing completed");
 
-    await ensureAssistantStarted();
-    if (args.options.streaming?.syntheticDeltas && assistantText.length > 0 && streamedTextLength === 0) {
+    if (recordAssistantMessage) {
+      await ensureAssistantStarted();
+      if (args.options.streaming?.syntheticDeltas && assistantText.length > 0 && streamedTextLength === 0) {
+        await emit({
+          conversationId: conversation.id,
+          type: "message.delta",
+          data: { textDelta: assistantText },
+        });
+        await args.input.onAssistantTextDelta?.(assistantText);
+      }
       await emit({
         conversationId: conversation.id,
-        type: "message.delta",
-        data: { textDelta: assistantText },
+        type: "message.completed",
+        data: {
+          text: assistantText,
+          ...(assistantMessageMode === "intermediate" ? { intermediate: true } : {}),
+          ...(segments ? { segments } : {}),
+          ...(response.usage ? { usage: response.usage } : {}),
+        },
       });
-      await args.input.onAssistantTextDelta?.(assistantText);
     }
-    await emit({
-      conversationId: conversation.id,
-      type: "message.completed",
-      data: {
-        text: assistantText,
-        ...(segments ? { segments } : {}),
-        ...(response.usage ? { usage: response.usage } : {}),
-      },
-    });
 
     const delegationCompletion = await args.evaluateDelegationCompletion({
       journey: selectedJourney,

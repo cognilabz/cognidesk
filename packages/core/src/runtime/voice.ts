@@ -165,6 +165,8 @@ export async function handleRuntimeVoiceUserMessage<TTurn = unknown>(
     turn?: TTurn;
     app?: unknown;
     signal?: AbortSignal;
+    recordUserMessage?: boolean;
+    assistantMessageMode?: "canonical" | "intermediate" | "none";
     onAssistantTextDelta?(textDelta: string): Promise<void> | void;
   }) => Promise<HandleUserMessageResult>,
   input: HandleVoiceUserMessageInput<TTurn>,
@@ -176,6 +178,8 @@ export async function handleRuntimeVoiceUserMessage<TTurn = unknown>(
     ...(input.turn !== undefined ? { turn: input.turn } : {}),
     ...(input.app !== undefined ? { app: input.app } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
+    ...(input.recordUserMessage !== undefined ? { recordUserMessage: input.recordUserMessage } : {}),
+    ...(input.assistantMessageMode ? { assistantMessageMode: input.assistantMessageMode } : {}),
     ...(input.onAssistantTextDelta ? { onAssistantTextDelta: input.onAssistantTextDelta } : {}),
   });
   const userMessage = findMessageCompletedForRole(result.events, "user");

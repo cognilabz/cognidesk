@@ -7,11 +7,15 @@ import type {
 } from "openai/resources/realtime/realtime";
 import type { VoiceModelSet } from "@cognidesk/core";
 import type {
+  VoiceControlNotification,
+  VoiceControlTool,
   VoiceBrowserClientEvent,
   VoiceBrowserServerEvent,
   VoiceProvider,
+  VoiceProviderConnectInput,
   VoiceProviderEvent,
   VoiceProviderSession,
+  VoiceSocketSession,
 } from "@cognidesk/voice-websocket";
 
 export const OPENAI_REALTIME_V1_MODEL = "gpt-realtime-2";
@@ -76,6 +80,17 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
 
       socket.on("event", (event) => {
         resolvePendingSpeech(event);
+        if (input.control && event.type === "response.function_call_arguments.done") {
+          void handleControlToolCall({
+            event,
+            socket,
+            control: input.control,
+            session: input.session,
+            signal: input.signal,
+            sendProviderEvent,
+          });
+          return;
+        }
         void handleRealtimeEvent(event, sendProviderEvent);
       });
       socket.on("error", (error) => {
@@ -96,6 +111,7 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
           ...(profileModel?.voice ?? options.voice ? { voice: profileModel?.voice ?? options.voice } : {}),
           ...(input.profile?.instructions ? { instructions: input.profile.instructions } : {}),
           ...(options.transcriptionLanguage ? { transcriptionLanguage: options.transcriptionLanguage } : {}),
+          ...(input.control ? { control: input.control } : {}),
         }),
       });
 
@@ -186,6 +202,110 @@ export async function createOpenAIRealtimeSocket(
   return socket;
 }
 
+async function handleControlToolCall(input: {
+  event: Extract<RealtimeServerEvent, { type: "response.function_call_arguments.done" }>;
+  socket: OpenAIRealtimeSocket;
+  control: NonNullable<VoiceProviderConnectInput["control"]>;
+  session: VoiceSocketSession;
+  signal: AbortSignal;
+  sendProviderEvent(event: VoiceProviderEvent): Promise<void>;
+}) {
+  const parsedArguments = parseToolArguments(input.event.arguments);
+  try {
+    const result = await input.control.handleToolCall({
+      session: input.session,
+      name: input.event.name,
+      arguments: parsedArguments,
+      callId: input.event.call_id,
+      itemId: input.event.item_id,
+      responseId: input.event.response_id,
+      signal: input.signal,
+      notify: (notification) => sendControlNotification({
+        socket: input.socket,
+        notification,
+        sendProviderEvent: input.sendProviderEvent,
+      }),
+    });
+    if (result.events?.length) {
+      await input.sendProviderEvent({
+        kind: "runtime_events",
+        events: result.events,
+      });
+    }
+    input.socket.send(createFunctionCallOutput(input.event.call_id, result.output));
+  } catch (error) {
+    input.socket.send(createFunctionCallOutput(input.event.call_id, {
+      ok: false,
+      error: error instanceof Error ? error.message : "Voice control tool failed.",
+    }));
+  }
+  input.socket.send({
+    type: "response.create",
+    response: {
+      conversation: "auto",
+      output_modalities: ["audio"],
+      instructions: "Continue the conversation using the Cognidesk tool result. Speak only customer-facing prose.",
+    },
+  });
+}
+
+async function sendControlNotification(input: {
+  socket: OpenAIRealtimeSocket;
+  notification: VoiceControlNotification;
+  sendProviderEvent(event: VoiceProviderEvent): Promise<void>;
+}) {
+  if (input.notification.events?.length) {
+    await input.sendProviderEvent({
+      kind: "runtime_events",
+      events: input.notification.events,
+    });
+  }
+  input.socket.send(createSystemMessage(input.notification.message));
+  if (input.notification.createResponse === false) return;
+  input.socket.send({
+    type: "response.create",
+    response: {
+      conversation: "auto",
+      output_modalities: ["audio"],
+      instructions: input.notification.responseInstructions
+        ?? "A Cognidesk background update arrived. If it is still relevant to the customer, briefly tell them the result in natural spoken language.",
+    },
+  });
+}
+
+function createFunctionCallOutput(callId: string, output: unknown): RealtimeClientEvent {
+  return {
+    type: "conversation.item.create",
+    item: {
+      type: "function_call_output",
+      call_id: callId,
+      output: JSON.stringify(output),
+    },
+  };
+}
+
+function createSystemMessage(text: string): RealtimeClientEvent {
+  return {
+    type: "conversation.item.create",
+    item: {
+      type: "message",
+      role: "system",
+      content: [{
+        type: "input_text",
+        text,
+      }],
+    },
+  };
+}
+
+function parseToolArguments(value: string) {
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return {};
+  }
+}
+
 async function waitForRealtimeOpen(socket: OpenAIRealtimeWS) {
   if (socket.socket.readyState === socket.socket.OPEN) return;
   await new Promise<void>((resolve, reject) => {
@@ -212,11 +332,27 @@ function buildRealtimeSession(input: {
   voice?: string;
   instructions?: string;
   transcriptionLanguage?: string;
+  control?: {
+    tools: VoiceControlTool[];
+    instructions?: string;
+  };
 }): RealtimeSessionCreateRequest {
+  const realtimeControlEnabled = Boolean(input.control);
+  const realtimeTools = input.control ? input.control.tools.map(toRealtimeFunctionTool) : undefined;
+  const sessionInstructions = buildSessionInstructions({
+    ...(input.instructions ? { profileInstructions: input.instructions } : {}),
+    ...(input.control?.instructions ? { controlInstructions: input.control.instructions } : {}),
+    realtimeControlEnabled,
+  });
   const base: RealtimeSessionCreateRequest = {
     type: "realtime",
     model: input.model,
     output_modalities: ["audio"],
+    ...(realtimeTools ? {
+      tools: realtimeTools,
+      tool_choice: "auto",
+      parallel_tool_calls: false,
+    } : {}),
     reasoning: { effort: "low" },
     audio: {
       input: {
@@ -228,7 +364,7 @@ function buildRealtimeSession(input: {
         },
         turn_detection: {
           type: "server_vad",
-          create_response: false,
+          create_response: realtimeControlEnabled,
           interrupt_response: true,
           prefix_padding_ms: 250,
           silence_duration_ms: 420,
@@ -239,7 +375,18 @@ function buildRealtimeSession(input: {
         ...(input.voice ? { voice: input.voice } : {}),
       },
     },
-    instructions: input.instructions ?? [
+    instructions: sessionInstructions,
+  };
+  return mergeSession(base, input.defaults);
+}
+
+function buildSessionInstructions(input: {
+  profileInstructions?: string;
+  controlInstructions?: string;
+  realtimeControlEnabled: boolean;
+}) {
+  if (!input.realtimeControlEnabled) {
+    return input.profileInstructions ?? [
       "You are the voice transport for a Cognidesk agent.",
       "Transcribe user speech accurately.",
       "# Preambles",
@@ -247,9 +394,28 @@ function buildRealtimeSession(input: {
       "# Language",
       "Prefer German and English. If a short greeting sounds like 'Hallo', treat it as German unless the user clearly continues in another language.",
       "When asked to speak supplied text, preserve the wording and keep the delivery natural and concise.",
-    ].join(" "),
+    ].join(" ");
+  }
+  return [
+    "You are the live realtime voice layer for a Cognidesk customer-support agent.",
+    "Speak naturally and quickly, but keep Cognidesk authoritative for facts, customer-specific state, workflow progress, and side effects.",
+    "Use lightweight conversation and the supplied history for greetings, small talk, clarifications, and interruption recovery.",
+    "Use the available Cognidesk voice control tools for policy knowledge, flight/customer state, tool work, confirmations, or workflow changes.",
+    "Do not claim a booking, policy answer, flight status, eligibility, handoff, or other substantive result until it comes from a control tool result or validated runtime context.",
+    "Ask at most one missing detail at a time.",
+    "Do not mention widgets, buttons, Markdown, JSON, tool names, internal state, Runtime Events, or provider events to the customer.",
+    input.profileInstructions,
+    input.controlInstructions,
+  ].filter(Boolean).join("\n\n");
+}
+
+function toRealtimeFunctionTool(tool: VoiceControlTool): NonNullable<RealtimeSessionCreateRequest["tools"]>[number] {
+  return {
+    type: "function",
+    name: tool.name,
+    ...(tool.description ? { description: tool.description } : {}),
+    ...(tool.parameters ? { parameters: tool.parameters } : {}),
   };
-  return mergeSession(base, input.defaults);
 }
 
 function createSpeechResponse(input: { id: string; text: string }): RealtimeClientEvent {

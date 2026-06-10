@@ -15,6 +15,7 @@ import { createSqliteStorage } from "@cognidesk/storage-sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
 import { getConfiguredVoiceApiKey, loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";
+import { createFlightDemoVoiceControlSurface } from "./voice-control.js";
 
 const otel = process.env.COGNIDESK_OTEL === "true"
   ? startCognideskOtel({
@@ -38,7 +39,7 @@ const config = await loadFlightDemoConfig();
 const sqlitePath = resolveFlightDemoPath(config.storage.sqlitePath);
 await mkdir(dirname(sqlitePath), { recursive: true });
 
-const { agent, models, journeyIndex } = await createFlightDemoRuntimeParts({ config });
+const { agent, models, journeyIndex, knowledgeIndex } = await createFlightDemoRuntimeParts({ config });
 const storage = createSqliteStorage({ filename: sqlitePath });
 const voiceApiKey = getConfiguredVoiceApiKey(config);
 const voiceSessionStore = createInMemoryVoiceSessionStore();
@@ -140,6 +141,12 @@ if (voiceProvider) {
     store: voiceSessionStore,
     runtime,
     provider: voiceProvider,
+    control: createFlightDemoVoiceControlSurface({
+      runtime,
+      agent,
+      models,
+      knowledgeIndex,
+    }),
     ...(agent.voice ? { profile: agent.voice } : {}),
     pathPrefix: "/api/voice/connections",
     turnPreambleMs: 700,

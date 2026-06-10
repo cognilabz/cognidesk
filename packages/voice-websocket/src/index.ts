@@ -183,6 +183,10 @@ export type VoiceProviderEvent =
       event: VoiceBrowserServerEvent;
     }
   | {
+      kind: "runtime_events";
+      events: RuntimeEvent[];
+    }
+  | {
       kind: "error";
       code?: string;
       message: string;
@@ -195,6 +199,7 @@ type VoiceInputTranscriptEvent = Extract<VoiceProviderEvent, { kind: "input_tran
 export interface VoiceProviderConnectInput {
   session: VoiceSocketSession;
   profile?: VoiceProfile;
+  control?: VoiceControlSurface;
   signal: AbortSignal;
   onEvent(event: VoiceProviderEvent): Promise<void> | void;
 }
@@ -209,6 +214,42 @@ export interface VoiceProviderSession {
 export interface VoiceProvider {
   readonly id: string;
   connect(input: VoiceProviderConnectInput): Promise<VoiceProviderSession>;
+}
+
+export interface VoiceControlTool {
+  name: string;
+  description?: string;
+  parameters?: unknown;
+}
+
+export interface VoiceControlToolCall {
+  session: VoiceSocketSession;
+  name: string;
+  arguments: unknown;
+  callId: string;
+  itemId?: string;
+  responseId?: string;
+  signal: AbortSignal;
+  notify?(notification: VoiceControlNotification): Promise<void>;
+}
+
+export interface VoiceControlToolResult {
+  output: unknown;
+  events?: RuntimeEvent[];
+}
+
+export interface VoiceControlNotification {
+  message: string;
+  events?: RuntimeEvent[];
+  responseInstructions?: string;
+  createResponse?: boolean;
+}
+
+export interface VoiceControlSurface {
+  tools: VoiceControlTool[];
+  instructions?: string;
+  createSessionInstructions?(input: { session: VoiceSocketSession }): Promise<string> | string;
+  handleToolCall(input: VoiceControlToolCall): Promise<VoiceControlToolResult> | VoiceControlToolResult;
 }
 
 export interface VoiceSocketLike {
@@ -445,6 +486,17 @@ export interface VoiceRuntime {
   handleVoiceUserMessage<TTurn = unknown>(
     input: HandleVoiceUserMessageInput<TTurn>,
   ): Promise<HandleVoiceUserMessageResult>;
+  commitVoiceTranscript?(input: {
+    conversationId: string;
+    channelSegmentId: string;
+    speaker: "user" | "assistant";
+    text: string;
+    recordingReferenceId?: string;
+    startedAtMs?: number;
+    endedAtMs?: number;
+    transcriptionSource?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<{ events: RuntimeEvent[]; event: RuntimeEvent; message: RuntimeEvent }>;
   recordVoiceInterruption(input: {
     conversationId: string;
     channelSegmentId: string;
@@ -470,6 +522,7 @@ export interface HandleVoiceSocketOptions {
   store: VoiceSessionStore;
   runtime: VoiceRuntime;
   provider: VoiceProvider;
+  control?: VoiceControlSurface;
   profile?: VoiceProfile;
   recorder?: VoiceRecorder;
   reconnectTokenTtlMs?: number;
@@ -505,6 +558,7 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   let closed = false;
   const inputTranscriptDebounceMs = Math.max(0, options.inputTranscriptDebounceMs ?? 350);
   const turnPreambleMs = Math.max(0, options.turnPreambleMs ?? 1_200);
+  const useRealtimeControl = Boolean(options.control);
   let pendingInputTranscript: VoiceInputTranscriptEvent | null = null;
   let pendingInputTranscriptTimer: ReturnType<typeof setTimeout> | null = null;
   let turnPreambleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -572,6 +626,10 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   };
 
   const handleProviderEvent = async (event: VoiceProviderEvent) => {
+    if (event.kind === "runtime_events") {
+      sendRuntimeEvents(event.events);
+      return;
+    }
     if (event.kind === "server_event") {
       if (isAgentResponseSignal(event.event)) clearTurnPreambleTimer();
       send(options.socket, event.event);
@@ -581,6 +639,9 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
           speaker: "assistant",
           audio: event.event.delta,
         });
+      }
+      if (useRealtimeControl && event.event.type === "response.output_audio_transcript.done") {
+        await commitControlAssistantTranscript(event.event.transcript, "openai-realtime");
       }
       return;
     }
@@ -642,7 +703,7 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
 
   const queueInputTranscript = (event: VoiceInputTranscriptEvent) => {
     inputTranscriptQueue = inputTranscriptQueue
-      .then(() => commitInputTranscript(event))
+      .then(() => useRealtimeControl ? commitControlInputTranscript(event) : commitInputTranscript(event))
       .catch((error) => {
         send(options.socket, {
           type: "error",
@@ -654,6 +715,73 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
         });
       });
   };
+
+  const flushPendingInputTranscript = async () => {
+    if (pendingInputTranscriptTimer) {
+      clearTimeout(pendingInputTranscriptTimer);
+      pendingInputTranscriptTimer = null;
+    }
+    const transcript = pendingInputTranscript;
+    pendingInputTranscript = null;
+    if (transcript) queueInputTranscript(transcript);
+    await inputTranscriptQueue;
+  };
+
+  const commitControlInputTranscript = async (event: VoiceInputTranscriptEvent) => {
+    if (!options.runtime.commitVoiceTranscript) return;
+    const committed = await options.runtime.commitVoiceTranscript({
+      conversationId: session.conversation.id,
+      channelSegmentId: session.channelSegment.id,
+      speaker: "user",
+      text: event.text,
+      transcriptionSource: event.transcriptionSource ?? "provider",
+      ...optionalNumberField("startedAtMs", event.startedAtMs),
+      ...optionalNumberField("endedAtMs", event.endedAtMs),
+      ...(event.metadata !== undefined ? { metadata: event.metadata } : {}),
+    });
+    sendRuntimeEvents(committed.events);
+    await options.recorder?.onTranscript?.({
+      session,
+      speaker: "user",
+      text: event.text,
+      runtimeEvent: committed.event,
+    });
+  };
+
+  const commitControlAssistantTranscript = async (text: string | undefined, transcriptionSource: string) => {
+    const normalized = normalizeSpeechText(text ?? "");
+    if (!normalized || !options.runtime.commitVoiceTranscript) return;
+    await flushPendingInputTranscript();
+    const committed = await options.runtime.commitVoiceTranscript({
+      conversationId: session.conversation.id,
+      channelSegmentId: session.channelSegment.id,
+      speaker: "assistant",
+      text: normalized,
+      transcriptionSource,
+    });
+    sendRuntimeEvents(committed.events);
+    await options.recorder?.onTranscript?.({
+      session,
+      speaker: "assistant",
+      text: normalized,
+      runtimeEvent: committed.event,
+    });
+    send(options.socket, {
+      type: "cognidesk.turn.completed",
+      event_id: createId("voice_event"),
+      text: normalized,
+    });
+  };
+
+  const controlSurface = options.control
+    ? {
+        ...options.control,
+        handleToolCall: async (call: VoiceControlToolCall) => {
+          await flushPendingInputTranscript();
+          return options.control!.handleToolCall(call);
+        },
+      }
+    : undefined;
 
   const commitInputTranscript = async (event: VoiceInputTranscriptEvent) => {
     const generation = ++speechGeneration;
@@ -723,9 +851,19 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   };
 
   try {
+    const controlInstructions = await options.control?.createSessionInstructions?.({ session });
     providerSession = await options.provider.connect({
       session,
       ...(options.profile ? { profile: options.profile } : {}),
+      ...(controlSurface ? {
+        control: {
+          ...controlSurface,
+          instructions: [
+            controlSurface.instructions,
+            controlInstructions,
+          ].filter(Boolean).join("\n\n"),
+        },
+      } : {}),
       signal: controller.signal,
       onEvent: handleProviderEvent,
     });
@@ -861,6 +999,7 @@ export interface AttachNodeVoiceWebSocketAdapterOptions {
   store: VoiceSessionStore;
   runtime: VoiceRuntime;
   provider: VoiceProvider;
+  control?: VoiceControlSurface;
   profile?: VoiceProfile;
   recorder?: VoiceRecorder;
   pathPrefix?: string;
@@ -890,6 +1029,7 @@ export function attachNodeVoiceWebSocketAdapter(options: AttachNodeVoiceWebSocke
       store: options.store,
       runtime: options.runtime,
       provider: options.provider,
+      ...(options.control ? { control: options.control } : {}),
       ...(options.profile ? { profile: options.profile } : {}),
       ...(options.recorder ? { recorder: options.recorder } : {}),
       ...(options.reconnectTokenTtlMs !== undefined ? { reconnectTokenTtlMs: options.reconnectTokenTtlMs } : {}),

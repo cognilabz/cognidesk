@@ -97,7 +97,7 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
 
   const compiledAgent = agent.compile();
   const journeyIndex = await buildJourneyIndex(compiledAgent, { embeddingModel: models.journeyEmbedding });
-  return { agent: compiledAgent, models, journeyIndex };
+  return { agent: compiledAgent, models, journeyIndex, knowledgeIndex };
 }
 
 export function createConfiguredModelSet(config: FlightDemoConfig, apiKey: string): AgentModelSet {

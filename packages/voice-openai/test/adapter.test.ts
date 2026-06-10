@@ -4,7 +4,8 @@ import {
   OPENAI_REALTIME_V1_MODEL,
   createOpenAIVoiceProvider,
 } from "../src/index.js";
-import type { VoiceProviderEvent, VoiceSocketSession } from "@cognidesk/voice-websocket";
+import type { VoiceControlNotification, VoiceProviderEvent, VoiceSocketSession } from "@cognidesk/voice-websocket";
+import type { RuntimeEvent } from "@cognidesk/core";
 
 describe("@cognidesk/voice-openai", () => {
   it("configures a gpt-realtime-2 websocket session and translates browser events", async () => {
@@ -193,6 +194,200 @@ describe("@cognidesk/voice-openai", () => {
     await preamble;
   });
 
+  it("exposes Cognidesk voice control tools to the realtime session", async () => {
+    const realtime = new FakeRealtimeSocket();
+    const provider = createOpenAIVoiceProvider({
+      apiKey: "test-key",
+      realtime: async () => realtime,
+    });
+    const providerEvents: VoiceProviderEvent[] = [];
+    const session = fakeVoiceSession();
+
+    await provider.connect({
+      session,
+      signal: new AbortController().signal,
+      control: {
+        tools: [{
+          name: "retrieve_voice_knowledge",
+          description: "Retrieve scoped knowledge.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string" },
+            },
+            required: ["query"],
+          },
+        }],
+        instructions: "Use voice control tools for grounded facts.",
+        handleToolCall(input) {
+          expect(input.session.id).toBe(session.id);
+          expect(input.name).toBe("retrieve_voice_knowledge");
+          expect(input.arguments).toEqual({ query: "baggage allowance" });
+          return {
+            events: [fakeRuntimeEvent("knowledge.retrieved", {
+              sourceName: "flight-policies",
+              itemIds: ["bag-policy"],
+            })],
+            output: {
+              ok: true,
+              items: [{ id: "bag-policy", content: "Economy Light includes one cabin bag." }],
+            },
+          };
+        },
+      },
+      onEvent: (event) => {
+        providerEvents.push(event);
+      },
+    });
+
+    expect(realtime.sent[0]).toMatchObject({
+      type: "session.update",
+      session: {
+        audio: {
+          input: {
+            turn_detection: {
+              create_response: true,
+            },
+          },
+        },
+        tool_choice: "auto",
+        parallel_tool_calls: false,
+        tools: [{
+          type: "function",
+          name: "retrieve_voice_knowledge",
+        }],
+      },
+    });
+    expect(JSON.stringify(realtime.sent[0])).toContain("Use voice control tools for grounded facts.");
+
+    realtime.emit({
+      type: "response.function_call_arguments.done",
+      event_id: "event_tool_done",
+      response_id: "response_1",
+      item_id: "item_tool",
+      output_index: 0,
+      call_id: "call_1",
+      name: "retrieve_voice_knowledge",
+      arguments: JSON.stringify({ query: "baggage allowance" }),
+    } as RealtimeServerEvent);
+    await flushAsync();
+
+    expect(providerEvents).toEqual([{
+      kind: "runtime_events",
+      events: [expect.objectContaining({
+        type: "knowledge.retrieved",
+      })],
+    }]);
+    expect(realtime.sent[1]).toMatchObject({
+      type: "conversation.item.create",
+      item: {
+        type: "function_call_output",
+        call_id: "call_1",
+      },
+    });
+    expect(JSON.stringify(realtime.sent[1])).toContain("Economy Light includes one cabin bag.");
+    expect(realtime.sent[2]).toMatchObject({
+      type: "response.create",
+      response: {
+        conversation: "auto",
+        output_modalities: ["audio"],
+      },
+    });
+  });
+
+  it("can push later Cognidesk control notifications into the realtime conversation", async () => {
+    const realtime = new FakeRealtimeSocket();
+    const provider = createOpenAIVoiceProvider({
+      apiKey: "test-key",
+      realtime: async () => realtime,
+    });
+    const providerEvents: VoiceProviderEvent[] = [];
+    const session = fakeVoiceSession();
+    const notifications: Array<(notification: VoiceControlNotification) => Promise<void>> = [];
+
+    await provider.connect({
+      session,
+      signal: new AbortController().signal,
+      control: {
+        tools: [{
+          name: "submit_voice_journey_proposal",
+          description: "Submit proposal.",
+          parameters: { type: "object" },
+        }],
+        handleToolCall(input) {
+          if (input.notify) notifications.push(input.notify);
+          return {
+            output: {
+              ok: true,
+              status: "running",
+              workId: "voice_work_1",
+            },
+          };
+        },
+      },
+      onEvent: (event) => {
+        providerEvents.push(event);
+      },
+    });
+
+    realtime.emit({
+      type: "response.function_call_arguments.done",
+      event_id: "event_tool_done",
+      response_id: "response_1",
+      item_id: "item_tool",
+      output_index: 0,
+      call_id: "call_1",
+      name: "submit_voice_journey_proposal",
+      arguments: JSON.stringify({ intent: "advance_journey" }),
+    } as RealtimeServerEvent);
+    await flushAsync();
+
+    const sendNotification = notifications[0];
+    expect(sendNotification).toBeTypeOf("function");
+    expect(realtime.sent[1]).toMatchObject({
+      type: "conversation.item.create",
+      item: {
+        type: "function_call_output",
+        call_id: "call_1",
+      },
+    });
+    expect(realtime.sent[2]).toMatchObject({
+      type: "response.create",
+    });
+
+    if (!sendNotification) throw new Error("Expected control notification callback.");
+    await sendNotification({
+      message: "Cognidesk background work completed.\nValidated result to tell the customer: Flight CL102 is available.",
+      events: [fakeRuntimeEvent("custom.voice.background.completed", {
+        workId: "voice_work_1",
+      })],
+      responseInstructions: "Tell the customer the result briefly.",
+    });
+
+    expect(providerEvents).toEqual([{
+      kind: "runtime_events",
+      events: [expect.objectContaining({
+        type: "custom.voice.background.completed",
+      })],
+    }]);
+    expect(realtime.sent[3]).toMatchObject({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "system",
+      },
+    });
+    expect(JSON.stringify(realtime.sent[3])).toContain("Flight CL102 is available.");
+    expect(realtime.sent[4]).toMatchObject({
+      type: "response.create",
+      response: {
+        conversation: "auto",
+        output_modalities: ["audio"],
+        instructions: "Tell the customer the result briefly.",
+      },
+    });
+  });
+
   it("rejects non-gpt-realtime-2 model settings in v1", async () => {
     const provider = createOpenAIVoiceProvider({
       apiKey: "test-key",
@@ -248,6 +443,17 @@ function responseDoneEvent(): RealtimeServerEvent {
       status: "completed",
     },
   } as RealtimeServerEvent;
+}
+
+function fakeRuntimeEvent(type: RuntimeEvent["type"], data: RuntimeEvent["data"]): RuntimeEvent {
+  return {
+    id: `event_${Math.random().toString(36).slice(2)}`,
+    conversationId: "conversation_1",
+    offset: 1,
+    type,
+    createdAt: "2026-05-25T00:00:00.000Z",
+    data,
+  } as RuntimeEvent;
 }
 
 function flushAsync() {

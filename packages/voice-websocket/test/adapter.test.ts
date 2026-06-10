@@ -235,6 +235,108 @@ describe("@cognidesk/voice-websocket", () => {
       && event.text === "Sure, I can help with your ticket status."
     )).toBe(true);
   });
+
+  it("can commit realtime-control transcripts without invoking the text turn pipeline", async () => {
+    const store = createInMemoryVoiceSessionStore({
+      createToken: createTokenSequence("start-token", "reconnect-token"),
+    });
+    const created = await store.createSession({
+      result: fakeStartVoiceResult(),
+      tokenTtlMs: 60_000,
+    });
+    const socket = new FakeSocket();
+    const runtime = new FakeRuntime();
+    const provider = new FakeProvider();
+
+    await handleVoiceSocket({
+      socket,
+      connectionId: created.session.connection.id,
+      token: created.socket.token,
+      store,
+      runtime,
+      provider,
+      control: {
+        tools: [],
+        handleToolCall: () => ({ output: { ok: true } }),
+      },
+      inputTranscriptDebounceMs: 25,
+    });
+
+    await provider.emitTranscript("What baggage is included?");
+    await flushAsync();
+
+    expect(runtime.voiceTurns).toHaveLength(0);
+    expect(runtime.committedTranscripts).toEqual([]);
+
+    await provider.emitServerEvent({
+      type: "response.output_audio_transcript.done",
+      event_id: "event_transcript_done",
+      response_id: "response_1",
+      item_id: "item_assistant",
+      output_index: 0,
+      content_index: 0,
+      transcript: "Economy Light includes one cabin bag.",
+    });
+    await flushAsync();
+
+    expect(runtime.committedTranscripts).toEqual([
+      expect.objectContaining({
+        speaker: "user",
+        text: "What baggage is included?",
+      }),
+      expect.objectContaining({
+        speaker: "assistant",
+        text: "Economy Light includes one cabin bag.",
+      }),
+    ]);
+    expect(socket.sent.some((event) =>
+      event.type === "cognidesk.turn.completed"
+      && event.text === "Economy Light includes one cabin bag."
+    )).toBe(true);
+  });
+
+  it("flushes pending realtime-control input before control tool calls run", async () => {
+    const store = createInMemoryVoiceSessionStore({
+      createToken: createTokenSequence("start-token", "reconnect-token"),
+    });
+    const created = await store.createSession({
+      result: fakeStartVoiceResult(),
+      tokenTtlMs: 60_000,
+    });
+    const socket = new FakeSocket();
+    const runtime = new FakeRuntime();
+    const provider = new FakeProvider();
+    let committedBeforeTool = 0;
+
+    await handleVoiceSocket({
+      socket,
+      connectionId: created.session.connection.id,
+      token: created.socket.token,
+      store,
+      runtime,
+      provider,
+      control: {
+        tools: [],
+        handleToolCall: () => {
+          committedBeforeTool = runtime.committedTranscripts.length;
+          return { output: { ok: true } };
+        },
+      },
+      inputTranscriptDebounceMs: 25,
+    });
+
+    await provider.emitTranscript("Find flights from Vienna to Berlin tomorrow.");
+    await flushAsync();
+    expect(runtime.committedTranscripts).toHaveLength(0);
+
+    await provider.callControlTool();
+
+    expect(committedBeforeTool).toBe(1);
+    expect(runtime.committedTranscripts[0]).toMatchObject({
+      speaker: "user",
+      text: "Find flights from Vienna to Berlin tomorrow.",
+    });
+  });
 });
 
 class FakeSocket implements VoiceSocketLike {
@@ -286,6 +388,24 @@ class FakeProvider implements VoiceProvider {
       transcriptionSource: "fake-provider",
     });
   }
+
+  async emitServerEvent(event: VoiceBrowserServerEvent) {
+    await this.input?.onEvent({
+      kind: "server_event",
+      event,
+    });
+  }
+
+  async callControlTool() {
+    if (!this.input?.control) throw new Error("Control surface was not connected.");
+    return this.input.control.handleToolCall({
+      session: this.input.session,
+      name: "test_tool",
+      arguments: {},
+      callId: "call_1",
+      signal: this.input.signal,
+    });
+  }
 }
 
 class FakeProviderSession implements VoiceProviderSession {
@@ -313,6 +433,7 @@ class FakeProviderSession implements VoiceProviderSession {
 class FakeRuntime implements VoiceRuntime {
   voiceTurns: Array<HandleVoiceUserMessageInput> = [];
   interruptions: Array<Parameters<VoiceRuntime["recordVoiceInterruption"]>[0]> = [];
+  committedTranscripts: Array<Parameters<NonNullable<VoiceRuntime["commitVoiceTranscript"]>>[0]> = [];
   responseDelayMs = 0;
   responseDeltas: string[] = [];
 
@@ -359,6 +480,23 @@ class FakeRuntime implements VoiceRuntime {
       reason: input.reason,
       offsetMs: input.offsetMs,
     }) as RuntimeEvent;
+  }
+
+  async commitVoiceTranscript(input: Parameters<NonNullable<VoiceRuntime["commitVoiceTranscript"]>>[0]) {
+    this.committedTranscripts.push(input);
+    const started = fakeRuntimeEvent("message.started", { role: input.speaker });
+    const message = fakeRuntimeEvent("message.completed", { text: input.text });
+    const event = fakeRuntimeEvent("voice.transcript.committed", {
+      channelSegmentId: input.channelSegmentId,
+      speaker: input.speaker,
+      messageEventId: message.id,
+      transcriptionSource: input.transcriptionSource,
+    });
+    return {
+      message,
+      event,
+      events: [started, message, event] as RuntimeEvent[],
+    };
   }
 
   async endVoiceSegment(input: Parameters<VoiceRuntime["endVoiceSegment"]>[0]): Promise<RuntimeEvent> {
