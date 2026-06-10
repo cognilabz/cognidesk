@@ -46,6 +46,7 @@ const voiceProvider = voiceApiKey
   ? createOpenAIVoiceProvider({
       apiKey: voiceApiKey,
       ...(config.voice?.voice ? { voice: config.voice.voice } : {}),
+      ...(config.voice?.transcriptionLanguage ? { transcriptionLanguage: config.voice.transcriptionLanguage } : {}),
     })
   : null;
 const runtime = createRuntime({
@@ -141,6 +142,7 @@ if (voiceProvider) {
     provider: voiceProvider,
     ...(agent.voice ? { profile: agent.voice } : {}),
     pathPrefix: "/api/voice/connections",
+    turnPreambleMs: 700,
   });
 }
 

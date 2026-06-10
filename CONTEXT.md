@@ -528,6 +528,10 @@ _Avoid_: Hangup as conversation closure, transport state as support state
 A non-durable, high-frequency voice adapter signal used for live UI or debugging, such as audio frames, partial captions, output audio deltas, or provider event details. Voice Live Signals are separate from Runtime Events.
 _Avoid_: Audio frames as Runtime Events, provider event log as conversation history
 
+**Voice Preamble**:
+A brief spoken acknowledgement used during a Voice Conversation while Cognidesk is validating, retrieving, or executing work. Voice Preambles may keep the conversation alive, but they must not make factual, policy, Journey state, or side-effect claims before Cognidesk has validated the underlying result.
+_Avoid_: Unvalidated answer, side-effect claim, filler treated as final response
+
 **Voice Turn Pipeline**:
 The realtime-optimized runtime path for handling spoken interaction in a Voice Conversation. The Voice Turn Pipeline uses shared Agent, Journey, Tool, and Knowledge definitions but does not run the chat-oriented response pipeline for every spoken exchange.
 _Avoid_: Chat pipeline with audio, separate conversation runtime
@@ -573,7 +577,7 @@ The default behavior where new user input can stop current assistant generation 
 _Avoid_: Concurrent turn processing
 
 **Voice Interruption**:
-A Turn Interruption in a Voice Conversation, typically caused by user speech while the assistant is speaking or generating. Voice Interruption records the interruption itself, distinct from any Aborted Message that records stopped assistant output.
+A Turn Interruption in a Voice Conversation, typically caused by user speech while the assistant is speaking or generating. A Voice Interruption stops live speech immediately and may abort uncommitted non-side-effect work, but it does not pretend to cancel side-effect actions once started.
 _Avoid_: Hidden barge-in, audio-only cancellation
 
 **Voice Interruption Protocol**:
@@ -907,6 +911,10 @@ _Avoid_: Blind side-effect retry
 **Assistant Tool**:
 A Tool exposed to the Base Agent or Active Journey for model-directed use within the current Tool Scope.
 _Avoid_: Deterministic state action
+
+**Voice Control Tool Surface**:
+The small provider-facing callable surface used by the realtime voice model to ask Cognidesk for validated voice work, such as Journey Proposals, Tool Requests, Knowledge Projections, handoff, or chat continuation. It is proposal-first: calls request Cognidesk decisions or execution rather than mutating Journey state directly.
+_Avoid_: Exposing the full Runtime API, direct model-owned tool execution, browser-executed tools
 
 **Voice Tool Projection**:
 The provider-facing callable function view of Cognidesk Tools available during a Voice Conversation. Voice Tool Projections expose only the scoped tool schema needed by the realtime model while Cognidesk remains responsible for execution, policy, events, telemetry, and privacy.

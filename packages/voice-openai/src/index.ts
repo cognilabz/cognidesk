@@ -21,6 +21,7 @@ export interface OpenAIVoiceProviderOptions {
   client?: OpenAI;
   model?: typeof OPENAI_REALTIME_V1_MODEL;
   voice?: string;
+  transcriptionLanguage?: string;
   baseURL?: string;
   realtime?: OpenAIRealtimeFactory;
   sessionDefaults?: Partial<RealtimeSessionCreateRequest>;
@@ -36,6 +37,14 @@ export interface OpenAIRealtimeSocket {
   close(props?: { code: number; reason: string }): void;
   on(event: "event", listener: (event: RealtimeServerEvent) => void): void;
   on(event: "error", listener: (error: unknown) => void): void;
+}
+
+interface PendingSpeech {
+  id: string;
+  responseId?: string;
+  resolve(): void;
+  reject(error: Error): void;
+  timeout: ReturnType<typeof setTimeout>;
 }
 
 export type OpenAIRealtimeFactory = (
@@ -59,14 +68,18 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
       const profileModel = input.profile?.modelSet;
       assertSupportedModel(profileModel);
       const socket = await realtime({ client, model });
+      let speechQueue = Promise.resolve();
+      let pendingSpeech: PendingSpeech | null = null;
       const sendProviderEvent = async (event: VoiceProviderEvent) => {
         await input.onEvent(event);
       };
 
       socket.on("event", (event) => {
+        resolvePendingSpeech(event);
         void handleRealtimeEvent(event, sendProviderEvent);
       });
       socket.on("error", (error) => {
+        rejectPendingSpeech(error);
         void sendProviderEvent({
           kind: "error",
           code: "openai_realtime_error",
@@ -82,6 +95,7 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
           model,
           ...(profileModel?.voice ?? options.voice ? { voice: profileModel?.voice ?? options.voice } : {}),
           ...(input.profile?.instructions ? { instructions: input.profile.instructions } : {}),
+          ...(options.transcriptionLanguage ? { transcriptionLanguage: options.transcriptionLanguage } : {}),
         }),
       });
 
@@ -91,12 +105,73 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
           if (translated) socket.send(translated);
         },
         speak({ text }) {
-          socket.send(createSpeechResponse(text));
+          return enqueueSpeech((id) => createSpeechResponse({ id, text }));
+        },
+        preamble({ text }) {
+          return enqueueSpeech((id) => createPreambleResponse({ id, text }));
         },
         close() {
+          resolvePendingSpeech();
           socket.close({ code: 1000, reason: "Cognidesk voice session closed" });
         },
       };
+
+      function enqueueSpeech(createEvent: (id: string) => RealtimeClientEvent) {
+        const id = createId("cognidesk_voice_speech");
+        const queued = speechQueue.catch(() => undefined).then(() =>
+          new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              if (pendingSpeech?.id === id) {
+                pendingSpeech = null;
+                resolve();
+              }
+            }, 90_000);
+            pendingSpeech = { id, resolve, reject, timeout };
+            try {
+              socket.send(createEvent(id));
+            } catch (error) {
+              clearTimeout(timeout);
+              pendingSpeech = null;
+              reject(error);
+            }
+          })
+        );
+        speechQueue = queued;
+        return queued;
+      }
+
+      function resolvePendingSpeech(event?: RealtimeServerEvent) {
+        if (!pendingSpeech) return;
+        if (!event) {
+          const pending = pendingSpeech;
+          pendingSpeech = null;
+          clearTimeout(pending.timeout);
+          pending.resolve();
+          return;
+        }
+        if (event.type === "response.created") {
+          if (responseHasSpeechId(event.response, pendingSpeech.id) || !pendingSpeech.responseId) {
+            if (event.response.id) pendingSpeech.responseId = event.response.id;
+          }
+          return;
+        }
+        if (event.type !== "response.done") return;
+        const matchesResponseId = Boolean(pendingSpeech.responseId && event.response.id === pendingSpeech.responseId);
+        const matchesSpeechId = responseHasSpeechId(event.response, pendingSpeech.id);
+        if (!matchesResponseId && !matchesSpeechId && pendingSpeech.responseId) return;
+        const pending = pendingSpeech;
+        pendingSpeech = null;
+        clearTimeout(pending.timeout);
+        pending.resolve();
+      }
+
+      function rejectPendingSpeech(error: unknown) {
+        if (!pendingSpeech) return;
+        const pending = pendingSpeech;
+        pendingSpeech = null;
+        clearTimeout(pending.timeout);
+        pending.reject(error instanceof Error ? error : new Error("OpenAI Realtime speech failed."));
+      }
     },
   };
 }
@@ -136,16 +211,21 @@ function buildRealtimeSession(input: {
   model: typeof OPENAI_REALTIME_V1_MODEL;
   voice?: string;
   instructions?: string;
+  transcriptionLanguage?: string;
 }): RealtimeSessionCreateRequest {
   const base: RealtimeSessionCreateRequest = {
     type: "realtime",
     model: input.model,
     output_modalities: ["audio"],
+    reasoning: { effort: "low" },
     audio: {
       input: {
         format: { type: "audio/pcm", rate: 24000 },
         noise_reduction: { type: "near_field" },
-        transcription: { model: "gpt-4o-mini-transcribe" },
+        transcription: {
+          model: "gpt-realtime-whisper",
+          ...(input.transcriptionLanguage ? { language: input.transcriptionLanguage } : {}),
+        },
         turn_detection: {
           type: "server_vad",
           create_response: false,
@@ -162,27 +242,69 @@ function buildRealtimeSession(input: {
     instructions: input.instructions ?? [
       "You are the voice transport for a Cognidesk agent.",
       "Transcribe user speech accurately.",
+      "# Preambles",
+      "When asked for a preamble, generate exactly one brief, natural wait-time sentence. Do not claim a result or repeat the same wording.",
+      "# Language",
+      "Prefer German and English. If a short greeting sounds like 'Hallo', treat it as German unless the user clearly continues in another language.",
       "When asked to speak supplied text, preserve the wording and keep the delivery natural and concise.",
     ].join(" "),
   };
   return mergeSession(base, input.defaults);
 }
 
-function createSpeechResponse(text: string): RealtimeClientEvent {
+function createSpeechResponse(input: { id: string; text: string }): RealtimeClientEvent {
   return {
     type: "response.create",
     response: {
       conversation: "none",
       output_modalities: ["audio"],
+      metadata: {
+        cognidesk_voice_kind: "speech",
+        cognidesk_voice_id: input.id,
+      },
       input: [{
         type: "message",
         role: "user",
         content: [{
           type: "input_text",
-          text: `Read the following text aloud exactly, with a natural service-agent tone and no extra words:\n\n${text}`,
+          text: `Read the following text aloud exactly, with a natural service-agent tone and no extra words:\n\n${input.text}`,
         }],
       }],
       instructions: "Read the supplied text exactly. Do not add a greeting, explanation, or closing.",
+    },
+  };
+}
+
+function createPreambleResponse(input: { id: string; text: string }): RealtimeClientEvent {
+  return {
+    type: "response.create",
+    response: {
+      conversation: "none",
+      output_modalities: ["audio"],
+      metadata: {
+        cognidesk_voice_kind: "preamble",
+        cognidesk_voice_id: input.id,
+      },
+      input: [{
+        type: "message",
+        role: "user",
+        content: [{
+          type: "input_text",
+          text: [
+            "The customer just said:",
+            input.text,
+            "",
+            "Generate and speak one short wait-time preamble for a flight-service voice agent while Cognidesk continues checking the request.",
+          ].join("\n"),
+        }],
+      }],
+      instructions: [
+        "Generate exactly one natural spoken sentence.",
+        "Do not use a fixed phrase. Vary the wording.",
+        "Do not claim a booking, policy result, tool result, queue state, or completion.",
+        "Use German if the customer appears to be speaking German; use English if they appear to be speaking English.",
+        "For the greeting 'Hallo', prefer German.",
+      ].join(" "),
     },
   };
 }
@@ -350,6 +472,18 @@ function mergeSession(
   };
 }
 
+function responseHasSpeechId(response: { metadata?: unknown }, id: string) {
+  const metadata = response.metadata;
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return false;
+  return (metadata as Record<string, unknown>).cognidesk_voice_id === id;
+}
+
 function optionalStringField<TKey extends string>(key: TKey, value: string | undefined) {
   return value ? { [key]: value } as Record<TKey, string> : {};
+}
+
+function createId(prefix: string) {
+  const random = globalThis.crypto?.randomUUID?.()
+    ?? Math.random().toString(36).slice(2);
+  return `${prefix}_${random}`;
 }

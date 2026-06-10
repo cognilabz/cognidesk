@@ -201,7 +201,8 @@ export interface VoiceProviderConnectInput {
 
 export interface VoiceProviderSession {
   send(event: VoiceBrowserClientEvent): Promise<void> | void;
-  speak(input: { text: string; result: HandleVoiceUserMessageResult }): Promise<void> | void;
+  speak(input: { text: string; result?: HandleVoiceUserMessageResult }): Promise<void> | void;
+  preamble?(input: { text: string }): Promise<void> | void;
   close(): Promise<void> | void;
 }
 
@@ -475,7 +476,6 @@ export interface HandleVoiceSocketOptions {
   reconnectGraceMs?: number;
   inputTranscriptDebounceMs?: number;
   turnPreambleMs?: number;
-  turnPreambleText?: string;
   signal?: AbortSignal;
 }
 
@@ -505,11 +505,12 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   let closed = false;
   const inputTranscriptDebounceMs = Math.max(0, options.inputTranscriptDebounceMs ?? 350);
   const turnPreambleMs = Math.max(0, options.turnPreambleMs ?? 1_200);
-  const turnPreambleText = options.turnPreambleText ?? "Einen Moment, ich prüfe das kurz.";
   let pendingInputTranscript: VoiceInputTranscriptEvent | null = null;
   let pendingInputTranscriptTimer: ReturnType<typeof setTimeout> | null = null;
   let turnPreambleTimer: ReturnType<typeof setTimeout> | null = null;
   let inputTranscriptQueue = Promise.resolve();
+  let speechQueue = Promise.resolve();
+  let speechGeneration = 0;
 
   const sendRuntimeEvents = (events: RuntimeEvent[]) => {
     for (const event of events) {
@@ -540,17 +541,33 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
     turnPreambleTimer = null;
   };
 
-  const startTurnPreambleTimer = () => {
+  const queueSpeechAction = (
+    generation: number,
+    action: () => Promise<void> | void,
+  ) => {
+    const queued = speechQueue.catch(() => undefined).then(async () => {
+      if (closed || generation !== speechGeneration) return;
+      await action();
+    });
+    speechQueue = queued.catch((error) => {
+      send(options.socket, {
+        type: "error",
+        event_id: createId("voice_event"),
+        error: {
+          code: "voice_speech_failed",
+          message: error instanceof Error ? error.message : "Failed to queue voice speech.",
+        },
+      });
+    });
+  };
+
+  const startTurnPreambleTimer = (text: string, generation: number) => {
     clearTurnPreambleTimer();
+    if (!providerSession?.preamble) return;
     if (turnPreambleMs === 0) return;
     turnPreambleTimer = setTimeout(() => {
       turnPreambleTimer = null;
-      send(options.socket, {
-        type: "cognidesk.voice.preamble",
-        event_id: createId("voice_event"),
-        text: turnPreambleText,
-        elapsedMs: turnPreambleMs,
-      });
+      queueSpeechAction(generation, () => providerSession?.preamble?.({ text }));
     }, turnPreambleMs);
   };
 
@@ -587,7 +604,6 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
     const text = event.text.trim();
     if (!text) return;
     sendInputTranscriptCompleted(event, text);
-    startTurnPreambleTimer();
     pendingInputTranscript = mergeInputTranscript(
       pendingInputTranscript,
       {
@@ -640,6 +656,26 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   };
 
   const commitInputTranscript = async (event: VoiceInputTranscriptEvent) => {
+    const generation = ++speechGeneration;
+    let assistantSpeechBuffer = "";
+    let assistantSpeechQueued = false;
+    const queueAssistantSpeech = (text: string, result?: HandleVoiceUserMessageResult) => {
+      const normalized = normalizeSpeechText(text);
+      if (!normalized) return;
+      clearTurnPreambleTimer();
+      assistantSpeechQueued = true;
+      queueSpeechAction(generation, () => providerSession?.speak({ text: normalized, ...(result ? { result } : {}) }));
+    };
+    const flushAssistantSpeech = (force: boolean) => {
+      while (true) {
+        const chunk = takeSpeakablePrefix(assistantSpeechBuffer, force);
+        if (!chunk) return;
+        assistantSpeechBuffer = assistantSpeechBuffer.slice(chunk.consumed).trimStart();
+        queueAssistantSpeech(chunk.text);
+        if (!force) return;
+      }
+    };
+    startTurnPreambleTimer(event.text, generation);
     const result = await options.runtime.handleVoiceUserMessage({
       conversationId: session.conversation.id,
       channelSegmentId: session.channelSegment.id,
@@ -649,7 +685,16 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
       ...optionalNumberField("startedAtMs", event.startedAtMs),
       ...optionalNumberField("endedAtMs", event.endedAtMs),
       ...(event.metadata !== undefined ? { metadata: event.metadata } : {}),
+      onAssistantTextDelta: (textDelta) => {
+        assistantSpeechBuffer += textDelta;
+        flushAssistantSpeech(false);
+      },
     });
+    clearTurnPreambleTimer();
+    flushAssistantSpeech(true);
+    if (!assistantSpeechQueued) {
+      queueAssistantSpeech(result.text, result);
+    }
     sendRuntimeEvents(result.events);
     const userRuntimeEvent = result.voiceEvents.find((candidate) =>
       candidate.type === "voice.transcript.committed" && candidate.data.speaker === "user"
@@ -675,7 +720,6 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
       text: result.text,
       ...(result.activeJourneyId ? { activeJourneyId: result.activeJourneyId } : {}),
     });
-    await providerSession?.speak({ text: result.text, result });
   };
 
   try {
@@ -736,6 +780,7 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   options.socket.on("close", (code) => {
     if (closed) return;
     closed = true;
+    speechGeneration++;
     if (pendingInputTranscriptTimer) clearTimeout(pendingInputTranscriptTimer);
     clearTurnPreambleTimer();
     pendingInputTranscript = null;
@@ -787,6 +832,8 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
       return;
     }
     if (event.type === "response.cancel") {
+      speechGeneration++;
+      clearTurnPreambleTimer();
       await providerSession?.send(event);
       const interruption = await options.runtime.recordVoiceInterruption({
         conversationId: session.conversation.id,
@@ -820,7 +867,6 @@ export interface AttachNodeVoiceWebSocketAdapterOptions {
   reconnectTokenTtlMs?: number;
   reconnectGraceMs?: number;
   turnPreambleMs?: number;
-  turnPreambleText?: string;
 }
 
 export function attachNodeVoiceWebSocketAdapter(options: AttachNodeVoiceWebSocketAdapterOptions) {
@@ -849,7 +895,6 @@ export function attachNodeVoiceWebSocketAdapter(options: AttachNodeVoiceWebSocke
       ...(options.reconnectTokenTtlMs !== undefined ? { reconnectTokenTtlMs: options.reconnectTokenTtlMs } : {}),
       ...(options.reconnectGraceMs !== undefined ? { reconnectGraceMs: options.reconnectGraceMs } : {}),
       ...(options.turnPreambleMs !== undefined ? { turnPreambleMs: options.turnPreambleMs } : {}),
-      ...(options.turnPreambleText !== undefined ? { turnPreambleText: options.turnPreambleText } : {}),
     });
   });
 
@@ -1028,6 +1073,48 @@ function isAgentResponseSignal(event: VoiceBrowserServerEvent) {
     || event.type === "response.output_audio_transcript.delta"
     || event.type === "response.output_audio_transcript.done"
     || event.type === "response.done";
+}
+
+function takeSpeakablePrefix(text: string, force: boolean): { text: string; consumed: number } | null {
+  if (!text.trim()) return null;
+  if (force) return { text: normalizeSpeechText(text), consumed: text.length };
+  const sentenceBoundary = findLastSentenceBoundary(text);
+  if (sentenceBoundary > 0) {
+    return {
+      text: normalizeSpeechText(text.slice(0, sentenceBoundary)),
+      consumed: sentenceBoundary,
+    };
+  }
+  if (text.length < 180) return null;
+  const softBoundary = findSoftBoundary(text, 140);
+  if (softBoundary <= 0) return null;
+  return {
+    text: normalizeSpeechText(text.slice(0, softBoundary)),
+    consumed: softBoundary,
+  };
+}
+
+function findLastSentenceBoundary(text: string) {
+  let boundary = -1;
+  const pattern = /[.!?。！？](?:["')\]]+)?\s+/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text)) !== null) {
+    boundary = match.index + match[0].length;
+  }
+  return boundary;
+}
+
+function findSoftBoundary(text: string, minIndex: number) {
+  const candidates = [", ", "; ", ": ", "\n", " "];
+  for (const candidate of candidates) {
+    const boundary = text.lastIndexOf(candidate);
+    if (boundary >= minIndex) return boundary + candidate.length;
+  }
+  return -1;
+}
+
+function normalizeSpeechText(text: string) {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 function debounceMsForTranscript(text: string, baseMs: number) {

@@ -12,6 +12,7 @@ describe("@cognidesk/voice-openai", () => {
     const provider = createOpenAIVoiceProvider({
       apiKey: "test-key",
       voice: "alloy",
+      transcriptionLanguage: "de",
       realtime: async () => realtime,
     });
     const providerEvents: VoiceProviderEvent[] = [];
@@ -38,10 +39,11 @@ describe("@cognidesk/voice-openai", () => {
         model: OPENAI_REALTIME_V1_MODEL,
         instructions: "Speak concisely.",
         output_modalities: ["audio"],
+        reasoning: { effort: "low" },
         audio: {
           input: {
             format: { type: "audio/pcm", rate: 24000 },
-            transcription: { model: "gpt-4o-mini-transcribe" },
+            transcription: { model: "gpt-realtime-whisper", language: "de" },
             turn_detection: {
               type: "server_vad",
               create_response: false,
@@ -127,7 +129,7 @@ describe("@cognidesk/voice-openai", () => {
       onEvent: () => undefined,
     });
 
-    await session.speak({
+    const speaking = session.speak({
       text: "Your flight is confirmed.",
       result: {
         conversation: fakeVoiceSession().conversation,
@@ -142,16 +144,53 @@ describe("@cognidesk/voice-openai", () => {
         text: "Your flight is confirmed.",
       },
     });
+    await flushAsync();
 
     expect(realtime.sent[1]).toMatchObject({
       type: "response.create",
       response: {
         conversation: "none",
         output_modalities: ["audio"],
+        metadata: {
+          cognidesk_voice_kind: "speech",
+        },
         instructions: "Read the supplied text exactly. Do not add a greeting, explanation, or closing.",
       },
     });
     expect(JSON.stringify(realtime.sent[1])).toContain("Your flight is confirmed.");
+    realtime.emit(responseDoneEvent());
+    await speaking;
+  });
+
+  it("creates dynamic realtime preamble responses", async () => {
+    const realtime = new FakeRealtimeSocket();
+    const provider = createOpenAIVoiceProvider({
+      apiKey: "test-key",
+      realtime: async () => realtime,
+    });
+    const session = await provider.connect({
+      session: fakeVoiceSession(),
+      signal: new AbortController().signal,
+      onEvent: () => undefined,
+    });
+
+    const preamble = session.preamble?.({ text: "Hallo" });
+    await flushAsync();
+
+    expect(preamble).toBeDefined();
+    expect(realtime.sent[1]).toMatchObject({
+      type: "response.create",
+      response: {
+        conversation: "none",
+        output_modalities: ["audio"],
+        metadata: {
+          cognidesk_voice_kind: "preamble",
+        },
+      },
+    });
+    expect(JSON.stringify(realtime.sent[1])).toContain("For the greeting 'Hallo', prefer German.");
+    realtime.emit(responseDoneEvent());
+    await preamble;
   });
 
   it("rejects non-gpt-realtime-2 model settings in v1", async () => {
@@ -198,6 +237,23 @@ class FakeRealtimeSocket {
   emit(event: RealtimeServerEvent) {
     for (const listener of this.eventListeners) listener(event);
   }
+}
+
+function responseDoneEvent(): RealtimeServerEvent {
+  return {
+    type: "response.done",
+    event_id: "event_response_done",
+    response: {
+      object: "realtime.response",
+      status: "completed",
+    },
+  } as RealtimeServerEvent;
+}
+
+function flushAsync() {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, 0);
+  });
 }
 
 function fakeVoiceSession(): VoiceSocketSession {

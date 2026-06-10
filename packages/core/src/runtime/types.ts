@@ -66,6 +66,7 @@ export interface HandleUserMessageInput<TTurn = unknown> {
   turn?: TTurn;
   app?: unknown;
   signal?: AbortSignal;
+  onAssistantTextDelta?(textDelta: string): Promise<void> | void;
 }
 
 export interface HandleUserMessageResult {

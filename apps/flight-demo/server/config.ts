@@ -38,6 +38,7 @@ const flightDemoConfigSchema = z.object({
     provider: z.literal("openai"),
     apiKeyEnv: z.string().min(1).default("OPENAI_API_KEY"),
     voice: z.string().min(1).optional(),
+    transcriptionLanguage: z.string().min(2).optional(),
   }).optional(),
   storage: z.object({
     sqlitePath: z.string().min(1),

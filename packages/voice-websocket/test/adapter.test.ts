@@ -159,6 +159,82 @@ describe("@cognidesk/voice-websocket", () => {
     expect(runtime.voiceTurns).toHaveLength(1);
     expect(runtime.voiceTurns[0]?.text).toBe("Choose flight CL102.");
   });
+
+  it("asks the provider for a dynamic preamble while the runtime turn is still pending", async () => {
+    const store = createInMemoryVoiceSessionStore({
+      createToken: createTokenSequence("start-token", "reconnect-token"),
+    });
+    const created = await store.createSession({
+      result: fakeStartVoiceResult(),
+      tokenTtlMs: 60_000,
+    });
+    const socket = new FakeSocket();
+    const runtime = new FakeRuntime();
+    runtime.responseDelayMs = 30;
+    const provider = new FakeProvider();
+
+    await handleVoiceSocket({
+      socket,
+      connectionId: created.session.connection.id,
+      token: created.socket.token,
+      store,
+      runtime,
+      provider,
+      inputTranscriptDebounceMs: 0,
+      turnPreambleMs: 5,
+    });
+
+    await provider.emitTranscript("What baggage is included?");
+    await sleep(15);
+
+    expect(socket.sent.some((event) => event.type === "cognidesk.voice.preamble")).toBe(false);
+    expect(provider.session?.preambles).toEqual(["What baggage is included?"]);
+
+    await sleep(40);
+    expect(provider.session?.spoken).toEqual([
+      "Sure, I can help with your ticket status.",
+    ]);
+  });
+
+  it("speaks assistant text from streaming runtime deltas before the final turn completes", async () => {
+    const store = createInMemoryVoiceSessionStore({
+      createToken: createTokenSequence("start-token", "reconnect-token"),
+    });
+    const created = await store.createSession({
+      result: fakeStartVoiceResult(),
+      tokenTtlMs: 60_000,
+    });
+    const socket = new FakeSocket();
+    const runtime = new FakeRuntime();
+    runtime.responseDeltas = [
+      "Sure, I can help. ",
+      "Your ticket is ready.",
+    ];
+    const provider = new FakeProvider();
+
+    await handleVoiceSocket({
+      socket,
+      connectionId: created.session.connection.id,
+      token: created.socket.token,
+      store,
+      runtime,
+      provider,
+      inputTranscriptDebounceMs: 0,
+      turnPreambleMs: 0,
+    });
+
+    await provider.emitTranscript("Check my ticket.");
+    await flushAsync();
+
+    expect(provider.session?.spoken).toEqual([
+      "Sure, I can help.",
+      "Your ticket is ready.",
+    ]);
+    expect(socket.sent.some((event) =>
+      event.type === "cognidesk.turn.completed"
+      && event.text === "Sure, I can help with your ticket status."
+    )).toBe(true);
+  });
 });
 
 class FakeSocket implements VoiceSocketLike {
@@ -215,6 +291,7 @@ class FakeProvider implements VoiceProvider {
 class FakeProviderSession implements VoiceProviderSession {
   received: VoiceBrowserClientEvent[] = [];
   spoken: string[] = [];
+  preambles: string[] = [];
 
   send(event: VoiceBrowserClientEvent) {
     this.received.push(event);
@@ -222,6 +299,10 @@ class FakeProviderSession implements VoiceProviderSession {
 
   speak(input: { text: string }) {
     this.spoken.push(input.text);
+  }
+
+  preamble(input: { text: string }) {
+    this.preambles.push(input.text);
   }
 
   close() {
@@ -232,9 +313,15 @@ class FakeProviderSession implements VoiceProviderSession {
 class FakeRuntime implements VoiceRuntime {
   voiceTurns: Array<HandleVoiceUserMessageInput> = [];
   interruptions: Array<Parameters<VoiceRuntime["recordVoiceInterruption"]>[0]> = [];
+  responseDelayMs = 0;
+  responseDeltas: string[] = [];
 
   async handleVoiceUserMessage(input: HandleVoiceUserMessageInput): Promise<HandleVoiceUserMessageResult> {
     this.voiceTurns.push(input);
+    if (this.responseDelayMs > 0) await sleep(this.responseDelayMs);
+    for (const delta of this.responseDeltas) {
+      await input.onAssistantTextDelta?.(delta);
+    }
     const events = [
       fakeRuntimeEvent("message.started", { role: "user" }),
       fakeRuntimeEvent("message.completed", { text: input.text }),

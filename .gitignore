@@ -9,3 +9,4 @@ apps/*/.env
 packages/*/.env
 apps/*/*data/
 apps/*/.next
+.codex-demo-logs

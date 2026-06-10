@@ -207,6 +207,7 @@ export async function handleUserMessage<TTurn>(
             type: "message.delta",
             data: { textDelta },
           });
+          await args.input.onAssistantTextDelta?.(textDelta);
         },
       } : {}),
       signal: turn.controller.signal,
@@ -249,6 +250,7 @@ export async function handleUserMessage<TTurn>(
         type: "message.delta",
         data: { textDelta: assistantText },
       });
+      await args.input.onAssistantTextDelta?.(assistantText);
     }
     await emit({
       conversationId: conversation.id,
