@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/voice-openai",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,13 +18,20 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
-    "@cognidesk/voice-websocket": "workspace:*",
+    "@cognidesk/core": "0.0.1",
+    "@cognidesk/voice-websocket": "0.0.1",
     "openai": "^6.1.0"
   },
   "devDependencies": {
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
-  }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist"
+  ]
 }

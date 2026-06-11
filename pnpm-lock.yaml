@@ -35,7 +35,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.0.14
-        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
+        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
 
   apps/flight-demo:
     dependencies:
@@ -263,7 +263,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.0.14
-        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
+        version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@8.0.14(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
 
   packages/core:
     dependencies:
@@ -296,7 +296,7 @@ importers:
   packages/http:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
     devDependencies:
       tsup:
@@ -312,7 +312,7 @@ importers:
   packages/journey-index-json:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
     devDependencies:
       tsup:
@@ -331,7 +331,7 @@ importers:
   packages/model:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
       ai:
         specifier: ^6.0.191
@@ -390,10 +390,10 @@ importers:
   packages/react:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
       '@cognidesk/ui':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../ui
       streamdown:
         specifier: ^2.5.0
@@ -418,7 +418,7 @@ importers:
   packages/storage-sqlite:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
     devDependencies:
       tsup:
@@ -434,10 +434,10 @@ importers:
   packages/studio-adapter:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
       '@cognidesk/studio-contracts':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../studio-contracts
     devDependencies:
       tsup:
@@ -481,7 +481,7 @@ importers:
   packages/test-harness:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
       zod:
         specifier: ^4.3.6
@@ -518,10 +518,10 @@ importers:
   packages/voice-openai:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
       '@cognidesk/voice-websocket':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../voice-websocket
       openai:
         specifier: ^6.1.0
@@ -540,7 +540,7 @@ importers:
   packages/voice-websocket:
     dependencies:
       '@cognidesk/core':
-        specifier: workspace:*
+        specifier: 0.0.1
         version: link:../core
       ws:
         specifier: ^8.21.0

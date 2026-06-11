@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/studio-operator-skills",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "SEE LICENSE IN ../../LICENSES/Cognidesk-Studio-Source-Available-License.txt",
   "type": "module",
   "main": "./dist/index.js",
@@ -27,5 +27,9 @@
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

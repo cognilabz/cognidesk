@@ -12,6 +12,7 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "check": "pnpm typecheck && pnpm test",
+    "packages:sync-readmes": "./scripts/sync-package-readmes.sh",
     "docs:generate": "typedoc",
     "docs:serve": "mkdocs serve",
     "docs:build": "mkdocs build"

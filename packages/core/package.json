@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/core",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -28,5 +28,12 @@
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
-  }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist"
+  ]
 }

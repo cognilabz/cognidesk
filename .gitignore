@@ -7,6 +7,7 @@ coverage/
 *.tsbuildinfo
 apps/*/.env
 packages/*/.env
+packages/*/README.md
 apps/*/*data/
 apps/*/.next
 .codex-demo-logs
