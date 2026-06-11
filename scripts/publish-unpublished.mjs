@@ -79,7 +79,7 @@ function isPublished(pkg) {
 function publish(pkg) {
   const args = [
     "publish",
-    pkg.dir,
+    ".",
     "--access",
     "public",
     "--provenance",
@@ -89,7 +89,7 @@ function publish(pkg) {
   ];
 
   execFileSync("npm", args, {
-    cwd: root,
+    cwd: join(root, pkg.dir),
     stdio: "inherit",
   });
 }
@@ -106,7 +106,7 @@ for (const pkg of sortByInternalDependencies(packageWorkspaces())) {
 
   console.log(`Publishing ${pkg.name}@${pkg.version}`);
   if (dryRun) {
-    console.log(`Dry run: npm publish ${pkg.dir}`);
+    console.log(`Dry run: (cd ${pkg.dir} && npm publish .)`);
     publishedCount += 1;
     continue;
   }
