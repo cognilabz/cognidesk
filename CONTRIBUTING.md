@@ -14,8 +14,8 @@ pnpm check
 ## Repository structure
 
 ```
-packages/          # SDK packages (MIT licensed)
-apps/              # Demo applications
+packages/          # SDK packages and Studio integration surfaces
+apps/              # Demo applications and Cognidesk Studio
 docs/adr/          # Architecture Decision Records
 website/           # Documentation source (mkdocs-material)
 CONTEXT.md         # Domain language definitions
@@ -58,4 +58,11 @@ Open a GitHub issue with:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the
+license that applies to the package, app, or file you modify:
+
+- SDK packages and Studio integration surfaces are licensed under Apache-2.0.
+- Cognidesk Studio source is source-available under the Cognidesk Studio Source
+  Available License.
+
+See [LICENSE](LICENSE) for the repository license map.

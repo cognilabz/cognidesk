@@ -1,21 +1,45 @@
-MIT License
+Cognidesk Licensing
 
 Copyright (c) 2026 Cognilabz
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This repository contains code under two different licensing models.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. Cognidesk SDK
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+The Cognidesk SDK packages are licensed under the Apache License, Version 2.0.
+See LICENSES/Apache-2.0.txt.
+
+This includes the packages published as reusable SDK or integration surfaces,
+plus SDK examples and documentation, including:
+
+- packages/core
+- packages/http
+- packages/journey-index-json
+- packages/model
+- packages/otel
+- packages/react
+- packages/storage-sqlite
+- packages/studio-adapter
+- packages/studio-contracts
+- packages/test-harness
+- packages/ui
+- packages/voice-openai
+- packages/voice-websocket
+- apps/flight-demo
+- docs
+- website
+
+2. Cognidesk Studio
+
+Cognidesk Studio source code is source-available, not open source. It is
+licensed under the Cognidesk Studio Source Available License. See
+LICENSES/Cognidesk-Studio-Source-Available-License.txt.
+
+This includes:
+
+- apps/studio
+- apps/studio-operator-runtime
+- packages/studio-operator-skills
+
+If a file or directory contains a more specific license notice, that notice
+controls for that file or directory.

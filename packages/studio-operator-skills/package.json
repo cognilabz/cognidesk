@@ -1,6 +1,7 @@
 {
   "name": "@cognidesk/studio-operator-skills",
   "version": "0.0.0",
+  "license": "SEE LICENSE IN ../../LICENSES/Cognidesk-Studio-Source-Available-License.txt",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
