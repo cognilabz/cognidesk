@@ -5,6 +5,12 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run checks/build and report publish decisions without publishing"
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -41,4 +47,9 @@ jobs:
         run: pnpm packages:sync-readmes
 
       - name: Publish packages
-        run: pnpm --filter "./packages/*" --recursive publish --access public --provenance --no-git-checks
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            pnpm release:publish -- --dry-run
+          else
+            pnpm release:publish
+          fi

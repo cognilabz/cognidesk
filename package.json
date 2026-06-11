@@ -12,7 +12,11 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "check": "pnpm typecheck && pnpm test",
+    "release:prepare": "node scripts/prepare-release.mjs",
+    "release:bump-all": "node scripts/prepare-release.mjs --all",
+    "release:publish": "node scripts/publish-unpublished.mjs",
     "packages:sync-readmes": "./scripts/sync-package-readmes.sh",
+    "npm:trusted-publisher-checklist": "./scripts/npm-trusted-publisher-checklist.sh",
     "docs:generate": "typedoc",
     "docs:serve": "mkdocs serve",
     "docs:build": "mkdocs build"
