@@ -10,7 +10,10 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "check": "pnpm typecheck && pnpm test"
+    "check": "pnpm typecheck && pnpm test",
+    "docs:generate": "typedoc",
+    "docs:serve": "mkdocs serve",
+    "docs:build": "mkdocs build"
   },
   "pnpm": {
     "overrides": {
@@ -23,6 +26,8 @@
     "tsup": "^8.5.0",
     "tsx": "^4.20.6",
     "turbo": "^2.6.1",
+    "typedoc": "^0.28.19",
+    "typedoc-plugin-markdown": "^4.12.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
   }

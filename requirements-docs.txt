@@ -1,0 +1,4 @@
+mkdocs-material>=9.5
+mkdocs>=1.6
+pillow
+cairosvg

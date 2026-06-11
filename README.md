@@ -1,202 +1,91 @@
+<div align="center">
+
 # Cognidesk
 
-Cognidesk is a TypeScript runtime SDK for building customer support agents as code.
+**TypeScript runtime SDK for building customer support agents as code.**
 
-The current repository is being implemented from the language in [CONTEXT.md](./CONTEXT.md) and the ADRs in [docs/adr](./docs/adr).
+[![MIT License](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 
-## SDK Shape
+[Documentation](https://docs.cognidesk.dev) · [Quick Start](https://docs.cognidesk.dev/getting-started/quick-start/) · [Examples](https://docs.cognidesk.dev/examples/) · [API Reference](https://docs.cognidesk.dev/api-reference/)
 
-```ts
-import { z } from "zod";
-import {
-  buildJourneyIndex,
-  createAgent,
-  createRuntime,
-  customRuntimeEvent,
-  knowledgeSource,
-  tool,
-} from "@cognidesk/core";
-import { createCognideskHttpHandler } from "@cognidesk/http";
+</div>
+
+---
+
+## What is Cognidesk?
+
+Cognidesk gives you full control over AI-powered customer support conversations — state machine journeys, typed tools, knowledge retrieval, and UI — without vendor lock-in. Core is transport-neutral: no HTTP, no framework, no runtime dependency baked in.
+
+```typescript
+import { createAgent, createRuntime, tool } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { z } from "zod";
 
 const findTicket = tool("findTicket", {
   input: z.object({ bookingReference: z.string() }),
   output: z.object({ status: z.string() }),
-  execute: async ({ input }) => ({ status: `Ticket ${input.bookingReference} is confirmed.` }),
-});
-
-const faq = knowledgeSource("support-faq", {
-  query: z.object({ query: z.string() }),
-  metadata: z.object({ source: z.string() }),
-  retrieve: async () => ({
-    items: [{
-      id: "ticket-status-faq",
-      content: "Ticket status is available with the booking reference.",
-      metadata: { source: "faq" },
-    }],
+  execute: async ({ input }) => ({
+    status: `Ticket ${input.bookingReference} is confirmed.`,
   }),
 });
 
-const leadCaptured = customRuntimeEvent("lead.captured", {
-  payload: z.object({ email: z.string().email(), source: z.string() }),
-  visibleToModel: true,
-});
+const agent = createAgent("support", {
+  instructions: "You are a helpful support agent.",
+})
+  .tools.add(findTicket)
+  .compile();
 
-const agentBuilder = createAgent("flight-support", {
-  instructions: "You are a concise customer support agent.",
-});
-agentBuilder.tools.add(findTicket);
-agentBuilder.knowledge.add(faq);
-agentBuilder.customEvents.add(leadCaptured);
-
-const status = agentBuilder.stateMachineJourney("ticket-status", {
-  condition: "Customer wants ticket status",
-  examples: ["Can you check ticket ABC123?"],
-  includeWhen: ({ app, turn }) => app.channel !== "public-kiosk" && turn.allowTicketStatus !== false,
-  context: z.object({
-    bookingReference: z.string().optional(),
-    ticketStatus: z.string().optional(),
-  }),
-  contextReuse: {
-    fields: ["bookingReference"],
-    when: ({ previousContext, turn }) => (
-      previousContext.bookingReference !== undefined
-      && turn.reusePreviousTicket === true
-    ),
-  },
-});
-const states = status.defineStates("identify", "lookup");
-const identify = states.get("identify").collect("bookingReference");
-const lookup = states.get("lookup").runTool(findTicket, {
-  input: ({ context }) => ({ bookingReference: context.bookingReference ?? "" }),
-  assign: { ticketStatus: ({ output }) => output.status },
-});
-status.initial(identify);
-identify.transitionTo(lookup);
-status.alternateEntry(lookup, {
-  description: "Skip identification when the ticket reference was safely reused.",
-  priority: 10,
-  when: ({ context }) => context.bookingReference !== undefined,
-});
-
-const agent = agentBuilder.compile();
-const models = /* OpenAI, OpenRouter, or app-provided ModelAdapter set */;
-const storage = createSqliteStorage({ filename: "support.sqlite" });
-const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
 const runtime = createRuntime({
-  storage,
+  storage: createSqliteStorage({ filename: "data.sqlite" }),
   agent,
   models,
-  journeyIndex,
-  streaming: { syntheticDeltas: true },
-});
-await runtime.initialize();
-const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
-await runtime.emitCustomEvent({
-  conversationId: conversation.id,
-  event: leadCaptured,
-  payload: { email: "customer@example.com", source: "pricing-page" },
-});
-
-const http = createCognideskHttpHandler({ runtime, agentId: agent.id, basePath: "/api" });
-```
-
-Core remains transport-neutral. The HTTP package exposes POST message submission, widget submissions, custom events, Journey Events, intermediate messages, generated wait-time preambles, handoff requests, event history, Event Replay, and SSE event streaming. The React package provides `createCognideskClient`, `useChat`, and `ChatWidget`; assistant message segments can carry knowledge/tool references for source hovers, and optional `message.delta` events let clients render streaming text before final citation segments arrive.
-
-Journey guards can block activation or continuation with structured remediation:
-
-```ts
-const secured = agentBuilder.stateMachineJourney("secured-ticket-review", {
-  condition: "Customer needs secured ticket review",
-  context: z.object({}),
-  guard: ({ app }) => app.authenticated === true
-    ? { allow: true }
-    : {
-        allow: false,
-        code: "auth_required",
-        message: "Authenticate before starting secured review.",
-      },
-});
-secured.initial(secured.state("review"));
-```
-
-State-machine journeys can also declare typed Journey Events for app-driven state changes:
-
-```ts
-const ticketSynced = status.event("ticket.synced", {
-  payload: z.object({ bookingReference: z.string() }),
-  routing: "activeJourneyOnly",
-});
-lookup.on(ticketSynced).target(lookup);
-
-await runtime.emitJourneyEvent({
-  conversationId: conversation.id,
-  event: ticketSynced,
-  payload: { bookingReference: "ABC123" },
-});
-
-const httpWithEvents = createCognideskHttpHandler({
-  runtime,
-  agentId: agent.id,
-  basePath: "/api",
-  customEvents: [leadCaptured],
-  journeyEvents: [ticketSynced],
 });
 ```
 
-React widgets can be replaced by kind and styled through an Appearance Configuration:
+## Features
 
-```tsx
-<ChatWidget
-  client={client}
-  agentId="flight-support"
-  appearance={{
-    variables: { "--cd-color-primary": "#0f172a" },
-    elements: { root: "shadow-lg" },
-    widgets: {
-      confirmation: {
-        elements: {
-          panel: "rounded-md border p-3",
-          primaryButton: "bg-emerald-700",
-        },
-      },
-    },
-  }}
-  widgets={{
-    "seat-map": ({ input, submit }) => (
-      <SeatMap value={input} onSelect={(seatId) => submit({ seatId })} />
-    ),
-  }}
-/>
+- **State Machine Journeys** — deterministic conversation flows with typed context, guards, and alternate entries
+- **Typed Tools & Knowledge** — Zod-validated inputs/outputs with source attribution
+- **Transport Neutral** — core has zero HTTP dependencies; ship anywhere
+- **React UI Kit** — drop-in chat widget with appearance configuration and custom widgets
+- **Voice** — real-time voice via OpenAI Realtime with server-mediated connections
+- **OpenTelemetry** — native spans, metrics, and pre-built Grafana dashboards
+- **SSE Streaming** — real-time token streaming with synthetic deltas
+
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| `@cognidesk/core` | Runtime, agents, journeys, tools, knowledge, events |
+| `@cognidesk/http` | HTTP + SSE transport adapter |
+| `@cognidesk/model` | Model provider adapters (OpenAI, OpenRouter) |
+| `@cognidesk/react` | React hooks and chat widget |
+| `@cognidesk/ui` | Prebuilt UI components |
+| `@cognidesk/storage-sqlite` | SQLite storage adapter |
+| `@cognidesk/otel` | OpenTelemetry instrumentation |
+| `@cognidesk/voice-openai` | OpenAI Realtime voice adapter |
+| `@cognidesk/voice-websocket` | Voice WebSocket adapter |
+| `@cognidesk/journey-index-json` | JSON-based journey index |
+
+## Quick start
+
+```bash
+pnpm add @cognidesk/core @cognidesk/http @cognidesk/storage-sqlite
 ```
 
-## Flight Demo
+Read the full [Quick Start guide →](https://docs.cognidesk.dev/getting-started/quick-start/)
 
-Run the mocked flight service demo:
+## Demo
+
+Run the flight support demo:
 
 ```bash
 docker compose up --build
 ```
 
-Then open `http://localhost:5173`. The API is served at `http://localhost:8787/api` and persists SQLite data in the `flight_demo_data` Docker volume.
-
-For local development without Docker, run these in separate terminals:
-
-```bash
-pnpm demo
-```
-
-This starts the demo API and Vite frontend in Turbo's terminal UI so you can switch between each service's logs. The API is served at `http://localhost:8787/api` and the frontend at `http://localhost:5173`.
-
-Run the OpenTelemetry LGTM demo stack:
-
-```bash
-docker compose -f docker-compose.otel.yml up --build
-```
-
-This starts the flight demo with full telemetry content, an OpenTelemetry Collector, Tempo, Prometheus, Loki, Promtail, and Grafana. Open `http://localhost:3000` for provisioned Cognidesk dashboards. The demo still requires real model credentials in your environment, such as `OPENROUTER_KEY` for the default `apps/flight-demo/config.json`.
-
-If your local Docker environment cannot create bridge networks, `docker-compose.otel.host.yml` provides the same stack on host networking for local verification.
+Open `http://localhost:5173` for the frontend, `http://localhost:8787/api` for the API.
 
 ## Development
 
@@ -204,3 +93,11 @@ If your local Docker environment cannot create bridge networks, `docker-compose.
 pnpm install
 pnpm check
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, architecture decisions, and pull request guidelines.
+
+## License
+
+[MIT](LICENSE) — built by [Cognilabz](https://cognilabz.com)

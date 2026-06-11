@@ -10,3 +10,5 @@ packages/*/.env
 apps/*/*data/
 apps/*/.next
 .codex-demo-logs
+site/
+.cachewebsite/api-reference/generated/

@@ -1,0 +1,152 @@
+site_name: Cognidesk
+site_url: https://docs.cognidesk.dev
+site_description: TypeScript runtime SDK for building customer support agents as code.
+site_author: Cognilabz
+repo_url: https://github.com/cognilabz/cognidesk
+repo_name: cognilabz/cognidesk
+edit_uri: edit/main/website/
+copyright: Built by <a href="https://cognilabz.com">Cognilabz</a>
+
+docs_dir: website
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - header.autohide
+
+plugins:
+  - search
+  - social
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      base_path:
+        - website
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/cognilabz/cognidesk
+  version:
+    provider: mike
+  generator: false
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quick-start.md
+  - Concepts:
+      - concepts/index.md
+      - Agents: concepts/agents.md
+      - Journeys: concepts/journeys.md
+      - Tools: concepts/tools.md
+      - Knowledge Sources: concepts/knowledge-sources.md
+      - Runtime Events: concepts/runtime-events.md
+      - Transport Neutrality: concepts/transport-neutrality.md
+  - Guides:
+      - guides/index.md
+      - Agents & Instructions: guides/agents-and-instructions.md
+      - Tools: guides/tools.md
+      - Knowledge Sources: guides/knowledge-sources.md
+      - Journeys: guides/journeys.md
+      - Custom Events: guides/custom-events.md
+      - Storage: guides/storage.md
+      - Models & Providers: guides/models-and-providers.md
+      - HTTP Transport: guides/http-transport.md
+      - SSE Streaming: guides/sse-streaming.md
+      - React UI: guides/react-ui.md
+      - Voice: guides/voice.md
+      - Observability: guides/observability.md
+  - API Reference:
+      - api-reference/index.md
+      - "@cognidesk/core": api-reference/core.md
+      - "@cognidesk/http": api-reference/http.md
+      - "@cognidesk/model": api-reference/model.md
+      - "@cognidesk/react": api-reference/react.md
+      - "@cognidesk/ui": api-reference/ui.md
+      - "@cognidesk/storage-sqlite": api-reference/storage-sqlite.md
+      - "@cognidesk/otel": api-reference/otel.md
+      - "@cognidesk/voice-openai": api-reference/voice-openai.md
+      - "@cognidesk/voice-websocket": api-reference/voice-websocket.md
+      - "@cognidesk/journey-index-json": api-reference/journey-index-json.md
+  - Examples:
+      - examples/index.md
+      - Flight Demo: examples/flight-demo.md
+  - Community:
+      - community/index.md
+      - Contributing: community/contributing.md
+      - Changelog: community/changelog.md

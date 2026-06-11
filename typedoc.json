@@ -1,0 +1,31 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "plugin": ["typedoc-plugin-markdown"],
+  "entryPoints": [
+    "packages/core/dist/index.d.ts",
+    "packages/http/dist/index.d.ts",
+    "packages/model/dist/index.d.ts",
+    "packages/react/dist/index.d.ts",
+    "packages/ui/dist/index.d.ts",
+    "packages/storage-sqlite/dist/index.d.ts",
+    "packages/otel/dist/index.d.ts",
+    "packages/voice-openai/dist/index.d.ts",
+    "packages/voice-websocket/dist/index.d.ts",
+    "packages/journey-index-json/dist/index.d.ts"
+  ],
+  "out": "website/api-reference/generated",
+  "outputFileStrategy": "modules",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "useCodeBlocks": true,
+  "expandObjects": true,
+  "parametersFormat": "table",
+  "enumMembersFormat": "table",
+  "typeDeclarationFormat": "table",
+  "skipErrorChecking": true,
+  "disableSources": true
+}
