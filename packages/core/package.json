@@ -35,5 +35,10 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cognilabz/cognidesk",
+    "directory": "packages/core"
+  }
 }
