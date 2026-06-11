@@ -130,6 +130,35 @@ describe("@cognidesk/voice-websocket", () => {
     )).toBe(true);
   });
 
+  it("can speak an initial greeting once the voice connection is ready", async () => {
+    const store = createInMemoryVoiceSessionStore({
+      createToken: createTokenSequence("start-token", "reconnect-token"),
+    });
+    const created = await store.createSession({
+      result: fakeStartVoiceResult(),
+      tokenTtlMs: 60_000,
+    });
+    const socket = new FakeSocket();
+    const runtime = new FakeRuntime();
+    const provider = new FakeProvider();
+
+    await handleVoiceSocket({
+      socket,
+      connectionId: created.session.connection.id,
+      token: created.socket.token,
+      store,
+      runtime,
+      provider,
+      initialGreeting: "Guten Tag, hier ist der Support.",
+    });
+    await flushAsync();
+
+    expect(socket.sent[0]).toMatchObject({
+      type: "cognidesk.connection.ready",
+    });
+    expect(provider.session?.spoken).toEqual(["Guten Tag, hier ist der Support."]);
+  });
+
   it("coalesces adjacent provider transcript fragments into one runtime turn", async () => {
     const store = createInMemoryVoiceSessionStore({
       createToken: createTokenSequence("start-token", "reconnect-token"),

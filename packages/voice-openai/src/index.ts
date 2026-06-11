@@ -244,7 +244,12 @@ async function handleControlToolCall(input: {
     response: {
       conversation: "auto",
       output_modalities: ["audio"],
-      instructions: "Continue the conversation using the Cognidesk tool result. Speak only customer-facing prose.",
+      instructions: [
+        "Continue the conversation using the Cognidesk tool result.",
+        "Follow the active session instructions for language, brevity, tone, confirmations, and follow-up policy.",
+        "If the tool result contains voiceGuidance, obey it before deciding what to say.",
+        "Speak only customer-facing prose.",
+      ].join(" "),
     },
   });
 }
@@ -264,13 +269,13 @@ async function sendControlNotification(input: {
   if (input.notification.createResponse === false) return;
   input.socket.send({
     type: "response.create",
-    response: {
-      conversation: "auto",
-      output_modalities: ["audio"],
-      instructions: input.notification.responseInstructions
-        ?? "A Cognidesk background update arrived. If it is still relevant to the customer, briefly tell them the result in natural spoken language.",
-    },
-  });
+      response: {
+        conversation: "auto",
+        output_modalities: ["audio"],
+        instructions: input.notification.responseInstructions
+        ?? "A Cognidesk background update arrived. Follow the active session instructions and any guidance in the update; if it is still relevant, briefly tell the customer the result in natural spoken language.",
+      },
+    });
 }
 
 function createFunctionCallOutput(callId: string, output: unknown): RealtimeClientEvent {

@@ -525,6 +525,7 @@ export interface HandleVoiceSocketOptions {
   control?: VoiceControlSurface;
   profile?: VoiceProfile;
   recorder?: VoiceRecorder;
+  initialGreeting?: string;
   reconnectTokenTtlMs?: number;
   reconnectGraceMs?: number;
   inputTranscriptDebounceMs?: number;
@@ -890,6 +891,9 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
     lastAckSequence: session.lastAckSequence,
   });
   await issueReconnect();
+  if (options.initialGreeting?.trim()) {
+    queueSpeechAction(speechGeneration, () => providerSession?.speak({ text: options.initialGreeting!.trim() }));
+  }
 
   options.socket.on("message", (data) => {
     void handleClientMessage(String(data)).catch((error) => {
@@ -1003,6 +1007,7 @@ export interface AttachNodeVoiceWebSocketAdapterOptions {
   profile?: VoiceProfile;
   recorder?: VoiceRecorder;
   pathPrefix?: string;
+  initialGreeting?: string;
   reconnectTokenTtlMs?: number;
   reconnectGraceMs?: number;
   turnPreambleMs?: number;
@@ -1032,6 +1037,7 @@ export function attachNodeVoiceWebSocketAdapter(options: AttachNodeVoiceWebSocke
       ...(options.control ? { control: options.control } : {}),
       ...(options.profile ? { profile: options.profile } : {}),
       ...(options.recorder ? { recorder: options.recorder } : {}),
+      ...(options.initialGreeting !== undefined ? { initialGreeting: options.initialGreeting } : {}),
       ...(options.reconnectTokenTtlMs !== undefined ? { reconnectTokenTtlMs: options.reconnectTokenTtlMs } : {}),
       ...(options.reconnectGraceMs !== undefined ? { reconnectGraceMs: options.reconnectGraceMs } : {}),
       ...(options.turnPreambleMs !== undefined ? { turnPreambleMs: options.turnPreambleMs } : {}),
