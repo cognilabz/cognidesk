@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 
-[Documentation](https://docs.cognidesk.dev) · [Quick Start](https://docs.cognidesk.dev/getting-started/quick-start/) · [Examples](https://docs.cognidesk.dev/examples/) · [API Reference](https://docs.cognidesk.dev/api-reference/)
+[Documentation](https://cognidesk.cognilabz.com) · [Quick Start](https://cognidesk.cognilabz.com/getting-started/quick-start/) · [Examples](https://cognidesk.cognilabz.com/examples/) · [API Reference](https://cognidesk.cognilabz.com/api-reference/)
 
 </div>
 
@@ -76,7 +76,7 @@ const runtime = createRuntime({
 pnpm add @cognidesk/core @cognidesk/http @cognidesk/storage-sqlite
 ```
 
-Read the full [Quick Start guide →](https://docs.cognidesk.dev/getting-started/quick-start/)
+Read the full [Quick Start guide →](https://cognidesk.cognilabz.com/getting-started/quick-start/)
 
 ## Demo
 

@@ -11,4 +11,5 @@ apps/*/*data/
 apps/*/.next
 .codex-demo-logs
 site/
-.cachewebsite/api-reference/generated/
+.cache/
+website/api-reference/generated/
