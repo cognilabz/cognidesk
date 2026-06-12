@@ -14,7 +14,7 @@ Complete type signatures and exports for every Cognidesk package.
 | [`@cognidesk/model`](model.md) | Model provider adapters |
 | [`@cognidesk/react`](react.md) | React hooks and chat widget |
 | [`@cognidesk/ui`](ui.md) | Prebuilt UI components |
-| [`@cognidesk/storage-sqlite`](storage-sqlite.md) | SQLite storage adapter |
+| [`@cognidesk/storage`](storage.md) | Storage adapters |
 | [`@cognidesk/otel`](otel.md) | OpenTelemetry instrumentation |
 | [`@cognidesk/voice-openai`](voice-openai.md) | OpenAI Realtime voice adapter |
 | [`@cognidesk/voice-websocket`](voice-websocket.md) | Voice WebSocket adapter |

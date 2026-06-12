@@ -22,7 +22,7 @@
     "@cognidesk/otel": "workspace:*",
     "@cognidesk/react": "workspace:*",
     "@cognidesk/studio-adapter": "workspace:*",
-    "@cognidesk/storage-sqlite": "workspace:*",
+    "@cognidesk/storage": "workspace:*",
     "@cognidesk/ui": "workspace:*",
     "@cognidesk/voice-openai": "workspace:*",
     "@cognidesk/voice-websocket": "workspace:*",

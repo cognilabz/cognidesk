@@ -1,4 +1,4 @@
-# storage-sqlite/dist
+# storage/dist/sqlite
 
 ## Classes
 
@@ -6,7 +6,7 @@
 
 #### Implements
 
-- [`StorageAdapter`](../core/dist.md#storageadapter)
+- [`StorageAdapter`](../../core/dist.md#storageadapter)
 
 #### Constructors
 
@@ -46,7 +46,7 @@ appendEvent<TEvent>(event): Promise<RuntimeEvent>;
 
 | Type Parameter |
 | ------ |
-| `TEvent` *extends* [`RuntimeEventInput`](../core/dist.md#runtimeeventinput) |
+| `TEvent` *extends* [`RuntimeEventInput`](../../core/dist.md#runtimeeventinput) |
 
 ###### Parameters
 
@@ -56,11 +56,11 @@ appendEvent<TEvent>(event): Promise<RuntimeEvent>;
 
 ###### Returns
 
-`Promise`\<[`RuntimeEvent`](../core/dist.md#runtimeevent)\>
+`Promise`\<[`RuntimeEvent`](../../core/dist.md#runtimeevent)\>
 
 ###### Implementation of
 
-[`StorageAdapter`](../core/dist.md#storageadapter).[`appendEvent`](../core/dist.md#appendevent)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`appendEvent`](../../core/dist.md#appendevent)
 
 ##### close()
 
@@ -88,15 +88,15 @@ createConversation<TConversationContext>(input): Promise<ConversationRecord<TCon
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | [`CreateConversationInput`](../core/dist.md#createconversationinput)\<`TConversationContext`\> |
+| `input` | [`CreateConversationInput`](../../core/dist.md#createconversationinput)\<`TConversationContext`\> |
 
 ###### Returns
 
-`Promise`\<[`ConversationRecord`](../core/dist.md#conversationrecord)\<`TConversationContext`\>\>
+`Promise`\<[`ConversationRecord`](../../core/dist.md#conversationrecord)\<`TConversationContext`\>\>
 
 ###### Implementation of
 
-[`StorageAdapter`](../core/dist.md#storageadapter).[`createConversation`](../core/dist.md#createconversation-1)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`createConversation`](../../core/dist.md#createconversation-1)
 
 ##### getConversation()
 
@@ -118,11 +118,11 @@ getConversation<TConversationContext>(conversationId): Promise<ConversationRecor
 
 ###### Returns
 
-`Promise`\<[`ConversationRecord`](../core/dist.md#conversationrecord)\<`TConversationContext`\>\>
+`Promise`\<[`ConversationRecord`](../../core/dist.md#conversationrecord)\<`TConversationContext`\>\>
 
 ###### Implementation of
 
-[`StorageAdapter`](../core/dist.md#storageadapter).[`getConversation`](../core/dist.md#getconversation)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`getConversation`](../../core/dist.md#getconversation)
 
 ##### getSnapshot()
 
@@ -138,25 +138,25 @@ getSnapshot(conversationId): Promise<RuntimeSnapshot>;
 
 ###### Returns
 
-`Promise`\<[`RuntimeSnapshot`](../core/dist.md#runtimesnapshot)\>
+`Promise`\<[`RuntimeSnapshot`](../../core/dist.md#runtimesnapshot)\>
 
 ###### Implementation of
 
-[`StorageAdapter`](../core/dist.md#storageadapter).[`getSnapshot`](../core/dist.md#getsnapshot-1)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`getSnapshot`](../../core/dist.md#getsnapshot-1)
 
 ##### initialize()
 
 ```ts
-initialize(): void;
+initialize(): Promise<void>;
 ```
 
 ###### Returns
 
-`void`
+`Promise`\<`void`\>
 
 ###### Implementation of
 
-[`StorageAdapter`](../core/dist.md#storageadapter).[`initialize`](../core/dist.md#initialize-1)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`initialize`](../../core/dist.md#initialize-1)
 
 ##### listEvents()
 
@@ -168,15 +168,15 @@ listEvents(options): Promise<RuntimeEvent[]>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ListEventsOptions`](../core/dist.md#listeventsoptions) |
+| `options` | [`ListEventsOptions`](../../core/dist.md#listeventsoptions) |
 
 ###### Returns
 
-`Promise`\<[`RuntimeEvent`](../core/dist.md#runtimeevent)[]\>
+`Promise`\<[`RuntimeEvent`](../../core/dist.md#runtimeevent)[]\>
 
 ###### Implementation of
 
-[`StorageAdapter`](../core/dist.md#storageadapter).[`listEvents`](../core/dist.md#listevents-1)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`listEvents`](../../core/dist.md#listevents-1)
 
 ##### saveSnapshot()
 
@@ -188,7 +188,7 @@ saveSnapshot(snapshot): Promise<void>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `snapshot` | [`RuntimeSnapshot`](../core/dist.md#runtimesnapshot) |
+| `snapshot` | [`RuntimeSnapshot`](../../core/dist.md#runtimesnapshot) |
 
 ###### Returns
 
@@ -196,7 +196,7 @@ saveSnapshot(snapshot): Promise<void>;
 
 ###### Implementation of
 
-[`StorageAdapter`](../core/dist.md#storageadapter).[`saveSnapshot`](../core/dist.md#savesnapshot)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`saveSnapshot`](../../core/dist.md#savesnapshot)
 
 ##### updateConversationLifecycle()
 
@@ -209,38 +209,58 @@ updateConversationLifecycle(conversationId, lifecycle): Promise<ConversationReco
 | Parameter | Type |
 | ------ | ------ |
 | `conversationId` | `string` |
-| `lifecycle` | [`ConversationLifecycle`](../core/dist.md#conversationlifecycle) |
+| `lifecycle` | [`ConversationLifecycle`](../../core/dist.md#conversationlifecycle) |
 
 ###### Returns
 
-`Promise`\<[`ConversationRecord`](../core/dist.md#conversationrecord)\<`unknown`\>\>
+`Promise`\<[`ConversationRecord`](../../core/dist.md#conversationrecord)\<`unknown`\>\>
 
 ###### Implementation of
 
-[`StorageAdapter`](../core/dist.md#storageadapter).[`updateConversationLifecycle`](../core/dist.md#updateconversationlifecycle)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`updateConversationLifecycle`](../../core/dist.md#updateconversationlifecycle)
 
-## Interfaces
+## Type Aliases
+
+### SqliteStorageDatabase
+
+```ts
+type SqliteStorageDatabase = LibSQLDatabase<typeof sqliteStorageSchema>;
+```
+
+***
 
 ### SqliteStorageOptions
 
-#### Properties
-
-##### busyTimeoutMs?
-
 ```ts
-optional busyTimeoutMs?: number;
-```
-
-##### filename
-
-```ts
-filename: string;
-```
-
-##### journalMode?
-
-```ts
-optional journalMode?: "delete" | "wal" | "memory";
+type SqliteStorageOptions = 
+  | {
+  authToken?: never;
+  client?: never;
+  db?: never;
+  filename: string;
+  url?: never;
+}
+  | {
+  authToken?: string;
+  client?: never;
+  db?: never;
+  filename?: never;
+  url: string;
+}
+  | {
+  authToken?: never;
+  client: Client;
+  db?: never;
+  filename?: never;
+  url?: never;
+}
+  | {
+  authToken?: never;
+  client?: never;
+  db: SqliteStorageDatabase;
+  filename?: never;
+  url?: never;
+};
 ```
 
 ## Functions

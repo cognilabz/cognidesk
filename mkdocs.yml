@@ -138,7 +138,7 @@ nav:
       - "@cognidesk/model": api-reference/model.md
       - "@cognidesk/react": api-reference/react.md
       - "@cognidesk/ui": api-reference/ui.md
-      - "@cognidesk/storage-sqlite": api-reference/storage-sqlite.md
+      - "@cognidesk/storage": api-reference/storage.md
       - "@cognidesk/otel": api-reference/otel.md
       - "@cognidesk/voice-openai": api-reference/voice-openai.md
       - "@cognidesk/voice-websocket": api-reference/voice-websocket.md

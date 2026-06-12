@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRuntime, type CognideskRuntime, type CompiledAgent } from "@cognidesk/core";
-import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import type { VoiceControlNotification, VoiceSocketSession } from "@cognidesk/voice-websocket";
 import { createFlightDemoRuntimeParts } from "../server/flight-agent.js";
 import { createFlightDemoVoiceControlSurface } from "../server/voice-control.js";

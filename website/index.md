@@ -50,7 +50,7 @@ Cognidesk is a TypeScript runtime SDK that gives you full control over conversat
 
 ```typescript
 import { createAgent, createRuntime, tool } from "@cognidesk/core";
-import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { z } from "zod";
 
 const findTicket = tool("findTicket", {

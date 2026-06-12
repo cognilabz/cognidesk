@@ -1,11 +1,18 @@
 import { mkdtemp, rm } from "node:fs/promises";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { describe, expect, it } from "vitest";
+import { join } from "node:path";
 import { createRuntime } from "@cognidesk/core";
-import { createSqliteStorage } from "../src/index.js";
+import { describe, expect, it } from "vitest";
+import { defineStorageAdapterConformanceSuite } from "../src/conformance.js";
+import { createSqliteStorage, type SqliteStorageAdapter } from "../src/sqlite.js";
 
-async function withStorage<T>(fn: (filename: string) => Promise<T>) {
+defineStorageAdapterConformanceSuite<SqliteStorageAdapter>({
+  name: "SQLite storage adapter",
+  createStorage: () => createSqliteStorage({ filename: ":memory:" }),
+  cleanup: (storage) => storage.close(),
+});
+
+async function withStorageFile<T>(fn: (filename: string) => Promise<T>) {
   const dir = await mkdtemp(join(tmpdir(), "cognidesk-sqlite-"));
   try {
     return await fn(join(dir, "test.sqlite"));
@@ -14,9 +21,9 @@ async function withStorage<T>(fn: (filename: string) => Promise<T>) {
   }
 }
 
-describe("SQLite storage adapter", () => {
+describe("SQLite runtime integration", () => {
   it("persists conversations, events, and snapshots in a real sqlite file", async () => {
-    await withStorage(async (filename) => {
+    await withStorageFile(async (filename) => {
       const storage = createSqliteStorage({ filename });
       const runtime = createRuntime({ storage });
       await runtime.initialize();
@@ -48,30 +55,8 @@ describe("SQLite storage adapter", () => {
       const snapshot = await runtime.getSnapshot(conversation.id);
       expect(snapshot?.conversationId).toBe(conversation.id);
       expect(snapshot?.lifecycle).toBe("closed");
-    });
-  });
 
-  it("does not truncate event history when no limit is supplied", async () => {
-    await withStorage(async (filename) => {
-      const storage = createSqliteStorage({ filename });
-      const runtime = createRuntime({ storage });
-      await runtime.initialize();
-      const conversation = await runtime.createConversation({
-        id: "conv_many",
-        agentId: "flight-service",
-        context: {},
-      });
-
-      for (let index = 0; index < 501; index += 1) {
-        await runtime.emit({
-          conversationId: conversation.id,
-          type: "message.completed",
-          data: { text: `Event ${index}` },
-        });
-      }
-
-      expect(await runtime.listEvents(conversation.id)).toHaveLength(502);
-      expect(await storage.listEvents({ conversationId: conversation.id, limit: 500 })).toHaveLength(500);
+      storage.close();
     });
   });
 });

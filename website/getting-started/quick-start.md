@@ -6,7 +6,7 @@ Build a working customer support agent in under 5 minutes.
 
 ```typescript title="agent.ts"
 import { createAgent, createRuntime, tool } from "@cognidesk/core";
-import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { z } from "zod";
 
 // Define a tool the agent can use
