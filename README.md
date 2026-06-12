@@ -21,7 +21,7 @@ Cognidesk gives you full control over AI-powered customer support conversations 
 
 ```typescript
 import { createAgent, createRuntime, tool } from "@cognidesk/core";
-import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { z } from "zod";
 
 const findTicket = tool("findTicket", {
@@ -64,7 +64,7 @@ const runtime = createRuntime({
 | `@cognidesk/model` | Model provider adapters (OpenAI, OpenRouter) |
 | `@cognidesk/react` | React hooks and chat widget |
 | `@cognidesk/ui` | Prebuilt UI components |
-| `@cognidesk/storage-sqlite` | SQLite storage adapter |
+| `@cognidesk/storage` | Storage adapters |
 | `@cognidesk/otel` | OpenTelemetry instrumentation |
 | `@cognidesk/voice-openai` | OpenAI Realtime voice adapter |
 | `@cognidesk/voice-websocket` | Voice WebSocket adapter |
@@ -73,7 +73,7 @@ const runtime = createRuntime({
 ## Quick start
 
 ```bash
-pnpm add @cognidesk/core @cognidesk/http @cognidesk/storage-sqlite
+pnpm add @cognidesk/core @cognidesk/http @cognidesk/storage @libsql/client
 ```
 
 Read the full [Quick Start guide →](https://cognidesk.cognilabz.com/getting-started/quick-start/)

@@ -7,13 +7,35 @@ This guide covers configuring conversation persistence.
 
 ## SQLite storage
 
-The built-in SQLite adapter provides zero-config persistence:
+The built-in SQLite adapter provides local conversation persistence:
+
+```bash
+pnpm add @cognidesk/storage @libsql/client
+```
 
 ```typescript
-import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 
 const storage = createSqliteStorage({
   filename: "conversations.sqlite",
+});
+
+const runtime = createRuntime({ storage, agent, models });
+```
+
+## Postgres storage
+
+Use Postgres for production deployments that need a server database:
+
+```bash
+pnpm add @cognidesk/storage pg
+```
+
+```typescript
+import { createPostgresStorage } from "@cognidesk/storage/postgres";
+
+const storage = createPostgresStorage({
+  url: process.env.DATABASE_URL!,
 });
 
 const runtime = createRuntime({ storage, agent, models });
@@ -23,19 +45,19 @@ const runtime = createRuntime({ storage, agent, models });
 
 The storage interface is defined in `@cognidesk/core`. Any implementation that satisfies the contract can be used:
 
-- Conversation CRUD
-- Turn persistence
-- Journey state snapshots
-- Event storage and replay
+- Conversation records
+- Runtime Event storage and replay
+- Runtime Snapshot persistence
+- Conversation lifecycle updates
 
 ## Custom storage adapters
 
 Implement the storage interface to use your own database:
 
 ```typescript
-import type { Storage } from "@cognidesk/core";
+import type { StorageAdapter } from "@cognidesk/core";
 
-const customStorage: Storage = {
+const customStorage: StorageAdapter = {
   // Implement the storage contract
 };
 ```

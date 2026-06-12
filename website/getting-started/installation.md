@@ -31,7 +31,7 @@ Cognidesk is modular. Install only what you need:
 | `@cognidesk/model` | Model provider adapters |
 | `@cognidesk/react` | React hooks and chat widget |
 | `@cognidesk/ui` | Prebuilt UI components |
-| `@cognidesk/storage-sqlite` | SQLite storage adapter |
+| `@cognidesk/storage` | Storage adapters |
 | `@cognidesk/otel` | OpenTelemetry instrumentation |
 | `@cognidesk/voice-openai` | Voice via OpenAI Realtime |
 | `@cognidesk/voice-websocket` | Voice WebSocket adapter |
@@ -42,13 +42,13 @@ Cognidesk is modular. Install only what you need:
 === "pnpm"
 
     ```bash
-    pnpm add @cognidesk/core @cognidesk/http @cognidesk/model @cognidesk/storage-sqlite
+    pnpm add @cognidesk/core @cognidesk/http @cognidesk/model @cognidesk/storage @libsql/client
     ```
 
 === "npm"
 
     ```bash
-    npm install @cognidesk/core @cognidesk/http @cognidesk/model @cognidesk/storage-sqlite
+    npm install @cognidesk/core @cognidesk/http @cognidesk/model @cognidesk/storage @libsql/client
     ```
 
 ## TypeScript configuration

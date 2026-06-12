@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRuntime, type CognideskRuntime, type RuntimeEvent } from "@cognidesk/core";
-import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { createFlightDemoRuntimeParts } from "../server/flight-agent.js";
 import { createTestKnowledgeIndex, createTestModelSet, testConfig } from "./fixtures.js";
 

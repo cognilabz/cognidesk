@@ -1,0 +1,72 @@
+{
+  "name": "@cognidesk/storage",
+  "version": "0.0.2",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./sqlite": {
+      "types": "./dist/sqlite.d.ts",
+      "import": "./dist/sqlite.js"
+    },
+    "./postgres": {
+      "types": "./dist/postgres.d.ts",
+      "import": "./dist/postgres.js"
+    },
+    "./conformance": {
+      "types": "./dist/conformance.d.ts",
+      "import": "./dist/conformance.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/sqlite.ts src/postgres.ts src/conformance.ts --format esm --dts --sourcemap --platform node --external @libsql/client --external pg",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@cognidesk/core": "0.0.2",
+    "drizzle-orm": "^0.45.2"
+  },
+  "peerDependencies": {
+    "@libsql/client": ">=0.17.0",
+    "pg": ">=8.16.0",
+    "vitest": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@libsql/client": {
+      "optional": true
+    },
+    "pg": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@libsql/client": "^0.17.3",
+    "@types/pg": "^8.16.0",
+    "pg": "^8.16.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cognilabz/cognidesk",
+    "directory": "packages/storage"
+  }
+}

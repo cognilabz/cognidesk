@@ -14,3 +14,6 @@ apps/*/.next
 site/
 .cache/
 website/api-reference/generated/
+!website/api-reference/generated/
+!website/api-reference/generated/storage/
+!website/api-reference/generated/storage/**

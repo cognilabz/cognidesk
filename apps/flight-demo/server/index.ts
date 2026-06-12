@@ -11,7 +11,7 @@ import {
   createVoiceSocketHandshake,
 } from "@cognidesk/voice-websocket";
 import { startCognideskDemoTelemetrySeed, startCognideskOtel } from "@cognidesk/otel";
-import { createSqliteStorage } from "@cognidesk/storage-sqlite";
+import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
 import { getConfiguredVoiceApiKey, loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";

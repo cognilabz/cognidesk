@@ -18,7 +18,7 @@ plus SDK examples and documentation, including:
 - packages/model
 - packages/otel
 - packages/react
-- packages/storage-sqlite
+- packages/storage
 - packages/studio-adapter
 - packages/studio-contracts
 - packages/test-harness

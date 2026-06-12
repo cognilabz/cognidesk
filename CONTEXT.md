@@ -225,12 +225,20 @@ Application-owned setup that chooses a Vercel AI SDK provider and creates AI SDK
 _Avoid_: SDK-owned OpenAI package, SDK-owned OpenRouter package, provider-specific prompt identity
 
 **Storage Adapter**:
-An SDK integration that persists conversations, Runtime Events, snapshots, and runtime state through a consistent Cognidesk interface. SQLite is the first intended Storage Adapter.
+An SDK integration that persists conversations, Runtime Events, snapshots, and runtime state through a consistent Cognidesk interface. Storage Adapters preserve per-conversation Runtime Event ordering and do not create Runtime Events outside a Conversation.
 _Avoid_: Hardcoded persistence backend
 
+**SQL Storage Adapter**:
+A Storage Adapter backed by a relational SQL database. SQL Storage Adapters share the same conversation, Runtime Event, and Runtime Snapshot semantics while allowing database-specific storage details.
+_Avoid_: One-off SQL backend, ORM-specific adapter
+
 **SQLite Storage Adapter**:
-The first concrete Storage Adapter for Cognidesk. It lives in a separate library package rather than inside the core runtime package.
+The SQLite-backed concrete SQL Storage Adapter for Cognidesk.
 _Avoid_: Core-embedded SQLite, in-memory test storage
+
+**Postgres Storage Adapter**:
+The Postgres-backed concrete SQL Storage Adapter for Cognidesk.
+_Avoid_: App-owned custom Postgres persistence, hosted runtime database
 
 **Starter Application**:
 A runnable example application that composes Cognidesk Core with concrete adapters such as SQLite, model providers, SSE Streaming, and default UI packages.

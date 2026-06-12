@@ -31,7 +31,7 @@ packages/          # SDK packages
   model/           # Model provider adapters
   react/           # React hooks and chat widget
   ui/              # Prebuilt UI components
-  storage-sqlite/  # SQLite storage adapter
+  storage/         # Storage adapters
   otel/            # OpenTelemetry instrumentation
   voice-openai/    # OpenAI Realtime voice adapter
   voice-websocket/ # Voice WebSocket adapter
