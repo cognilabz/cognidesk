@@ -95,6 +95,8 @@ pnpm install
 pnpm check
 ```
 
+See [docs/releasing.md](docs/releasing.md) for SDK dev and stable release flow.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, architecture decisions, and pull request guidelines.

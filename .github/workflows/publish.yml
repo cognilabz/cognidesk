@@ -2,10 +2,20 @@ name: Publish SDK
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Publish mode to run"
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - stable
       dry_run:
         description: "Run checks/build and report publish decisions without publishing"
         required: false
@@ -17,7 +27,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: npm-publish-${{ github.ref }}
+  group: npm-publish
   cancel-in-progress: false
 
 jobs:
@@ -26,6 +36,38 @@ jobs:
     environment: npm-production
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select publish mode
+        id: publish-mode
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            mode="${{ inputs.mode }}"
+            dry_run="${{ inputs.dry_run }}"
+          elif [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            mode="dev"
+            dry_run="false"
+          elif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            mode="stable"
+            dry_run="false"
+          else
+            echo "Unsupported ref: ${GITHUB_REF}" >&2
+            exit 1
+          fi
+
+          if [ "${mode}" = "stable" ] && [ "${dry_run}" != "true" ] && [ "${GITHUB_REF_TYPE}" != "tag" ]; then
+            echo "Stable publishing requires a vX.Y.Z tag." >&2
+            exit 1
+          fi
+
+          if [ "${mode}" = "dev" ] && [ "${dry_run}" != "true" ] && [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "Dev publishing requires the main branch." >&2
+            exit 1
+          fi
+
+          echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
+          echo "dry_run=${dry_run}" >> "${GITHUB_OUTPUT}"
+          echo "Selected ${mode} publish mode (dry_run=${dry_run})."
 
       - uses: actions/setup-node@v4
         with:
@@ -48,6 +90,24 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare dev version
+        if: steps.publish-mode.outputs.mode == 'dev'
+        run: pnpm release:prepare-dev
+
+      - name: Refresh dev lockfile
+        if: steps.publish-mode.outputs.mode == 'dev'
+        run: pnpm install --lockfile-only
+
+      - name: Verify stable release
+        if: steps.publish-mode.outputs.mode == 'stable'
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            pnpm release:verify-stable -- --tag "${GITHUB_REF_NAME}"
+          else
+            pnpm release:verify-stable
+          fi
+
       - name: Check
         run: pnpm check
 
@@ -58,9 +118,18 @@ jobs:
         run: pnpm packages:sync-readmes
 
       - name: Publish packages
+        shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
-            pnpm release:publish -- --dry-run
+          args=()
+
+          if [ "${{ steps.publish-mode.outputs.mode }}" = "dev" ]; then
+            args+=(--tag dev --fail-on-existing)
           else
-            pnpm release:publish
+            args+=(--tag latest)
           fi
+
+          if [ "${{ steps.publish-mode.outputs.dry_run }}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+
+          pnpm release:publish -- "${args[@]}"

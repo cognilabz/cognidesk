@@ -1,0 +1,68 @@
+# Releasing SDK packages
+
+The SDK packages use a fixed-version release train. Every publishable package in
+`packages/*` must share the same version, and internal `@cognidesk/*`
+dependencies are pinned to that exact train version.
+
+Publishable packages are discovered from package metadata: `private` must not be
+`true`, and `publishConfig` must be present.
+
+## Dev releases
+
+Every push to `main` publishes all SDK packages to the npm `dev` dist-tag.
+
+Committed package versions stay stable, for example `0.0.2`. In CI, the publish
+workflow temporarily rewrites package manifests to the next patch prerelease:
+
+```text
+0.0.2       -> committed stable source version
+0.0.3-dev.N -> generated dev publish version
+```
+
+`N` is derived from versions already published to npm. If `0.0.3-dev.0` and
+`0.0.3-dev.1` exist, the next `main` publish is `0.0.3-dev.2`.
+
+Install the early-access channel with:
+
+```bash
+pnpm add @cognidesk/core@dev
+```
+
+Preview the next dev version locally without changing files:
+
+```bash
+pnpm release:prepare-dev -- --dry-run
+```
+
+## Stable releases
+
+Stable releases are intentional and use the npm `latest` dist-tag. Prepare a
+release by bumping the whole SDK train:
+
+```bash
+pnpm release:prepare
+```
+
+For a non-interactive bump:
+
+```bash
+pnpm release:prepare -- --bump minor
+```
+
+The script updates all publishable package versions, exact internal dependency
+versions, and `pnpm-lock.yaml`. It then prints the commit and tag commands.
+
+Stable publishing requires a matching `vX.Y.Z` tag. If package manifests say
+`0.0.3`, the release tag must be `v0.0.3`.
+
+```bash
+pnpm check
+git add packages pnpm-lock.yaml
+git commit -m "Release SDK 0.0.3"
+git tag v0.0.3
+git push origin main v0.0.3
+```
+
+When the release commit lands on `main`, the dev workflow starts the next dev
+line automatically. For example, after `0.0.3` is committed, `main` publishes
+`0.0.4-dev.0`.
