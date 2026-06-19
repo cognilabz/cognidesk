@@ -170,4 +170,61 @@ export function registerPromptContextTests() {
     expect(explanation.resolvedContextKeys).toEqual(["customer", "locale"]);
     expect(explanation.channelPolicy).toMatchObject({ id: "email-support" });
   });
+
+  it("does not expose an unrelated same-kind concrete runtime channel policy", async () => {
+    const captured: { input?: TextGenerationInput } = {};
+    const agent = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async (input) => {
+            captured.input = input;
+            return { text: "This response should remain untrimmed." };
+          },
+        },
+      }),
+      channels: [{
+        id: "email-support",
+        channel: "email",
+        enabled: true,
+        channelSetIds: [],
+        providerPackageIds: ["email.gmail"],
+        enabledCapabilities: ["receive", "send", "handoff"],
+        flowActivations: [],
+        behavior: {
+          tone: "support",
+          maxWords: 1,
+        },
+        handoff: {
+          enabled: true,
+          providerPackageIds: ["ticketing.servicenow"],
+          destinations: ["support"],
+          sdkControlled: true,
+          policyIds: ["handoff"],
+        },
+        policies: {},
+      }],
+    });
+    const conversation = await runtime.createConversation({
+      agentId: agent.id,
+      context: {},
+      channel: { channelId: "email-billing", kind: "email" },
+    });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Can you help by email?",
+    });
+    const payload = captured.input?.promptPayload as Record<string, any>;
+
+    expect(result.text).toBe("This response should remain untrimmed.");
+    expect(payload.channelPolicy).toBeNull();
+    expect(payload.handoffPolicy).toBeNull();
+  });
 }

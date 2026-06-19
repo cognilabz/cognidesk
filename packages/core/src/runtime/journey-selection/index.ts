@@ -12,6 +12,7 @@ import type {
   RuntimeSnapshot,
 } from "../../types.js";
 import { waitForAbort } from "../cancellation.js";
+import { resolveRuntimeChannelPolicy } from "../channel-policy.js";
 import { guardAllows } from "../context.js";
 import { isAbortLikeError } from "../errors.js";
 import {
@@ -156,16 +157,13 @@ async function filterCandidatesByChannelPolicy(args: {
   logger: ReturnType<typeof runtimeLogger>;
 }) {
   if (!args.channel || args.channels.length === 0 || args.candidates.length === 0) return args.candidates;
-  const policies = args.channels.filter((policy) => {
-    const channelMatches = policy.channel === args.channel?.kind || policy.id === args.channel?.channelId;
-    return channelMatches && policy.enabled !== false;
-  });
-  if (policies.length === 0) return args.candidates;
+  const policy = resolveRuntimeChannelPolicy(args.channels, args.channel);
+  if (!policy) return args.candidates;
 
   const allowed: RankedJourneyCandidate[] = [];
   for (const candidate of args.candidates) {
-    const activation = policies
-      .flatMap((policy) => policy.flowActivations.map((flow) => ({ policy, flow })))
+    const activation = policy.flowActivations
+      .map((flow) => ({ policy, flow }))
       .find(({ flow }) => flow.journeyId === candidate.journeyId);
     if (!activation || activation.flow.enabled) {
       allowed.push(candidate);

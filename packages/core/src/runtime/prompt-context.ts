@@ -8,6 +8,7 @@ import {
   type ModelToolDefinition,
   type ModelVisiblePromptPayload,
 } from "../types.js";
+import { resolveRuntimeChannelPolicy } from "./channel-policy.js";
 import type { RuntimeOptions, StateMachineTurnResult } from "./types.js";
 
 type UnknownRecord = Record<string, unknown>;
@@ -240,11 +241,6 @@ function resolveAgentChannelPolicy(agent: CompiledAgent, channel: ChannelContext
     Object.assign(merged, policy);
   }
   return hasPolicy ? merged : undefined;
-}
-
-function resolveRuntimeChannelPolicy(policies: ChannelPolicyConfig[], channel: ChannelContext) {
-  return policies.find((policy) => policy.id === channel.channelId)
-    ?? policies.find((policy) => policy.channel === channel.kind);
 }
 
 function redactContextPaths(value: unknown, paths: string[]): unknown {

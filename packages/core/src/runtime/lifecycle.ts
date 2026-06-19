@@ -4,6 +4,10 @@ import {
   type ChannelPolicyConfig,
   type RuntimeSnapshot,
 } from "../types.js";
+import {
+  channelPolicyIdsForKind,
+  resolveRuntimeChannelPolicy,
+} from "./channel-policy.js";
 import { createLifecycleSnapshot } from "./snapshots.js";
 import type {
   HandleUserMessageResult,
@@ -170,22 +174,22 @@ async function assertHandoffAllowed(args: {
   const conversation = await requireConversationRecord(args.storage, args.conversationId);
   if (!conversation.channel) return undefined;
   const channel = defineChannelContext(conversation.channel);
-  const policies = args.channels.filter((policy) =>
-    policy.enabled !== false
-    && (policy.channel === channel.kind || policy.id === channel.channelId)
-  );
-  if (policies.length === 0) return undefined;
-  const allowedPolicy = policies.find((policy) =>
-    policy.handoff?.enabled === true || (!policy.handoff && policy.enabledCapabilities.includes("handoff"))
-  );
-  if (allowedPolicy) return allowedPolicy;
+  const policy = resolveRuntimeChannelPolicy(args.channels, channel);
+  const policyIdsForKind = channelPolicyIdsForKind(args.channels, channel);
+  if (!policy && policyIdsForKind.length === 0) return undefined;
+  if (
+    policy
+    && (policy.handoff?.enabled === true || (!policy.handoff && policy.enabledCapabilities.includes("handoff")))
+  ) {
+    return policy;
+  }
 
   await args.emit({
     conversationId: args.conversationId,
     type: "custom.channel.handoff.blocked",
     data: {
       channel,
-      channelPolicyIds: policies.map((policy) => policy.id),
+      channelPolicyIds: policy ? [policy.id] : policyIdsForKind,
       reason: "handoff-disabled-for-channel",
     },
   });

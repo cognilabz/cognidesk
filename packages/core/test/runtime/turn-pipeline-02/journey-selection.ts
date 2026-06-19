@@ -179,6 +179,89 @@ export function registerJourneySelectionTests() {
     });
   });
 
+  it("does not apply an unrelated same-kind concrete channel flow policy", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const context = z.object({ bookingReference: z.string().optional() });
+    const booking = agentBuilder.stateMachineJourney("book-flight", {
+      condition: "Customer wants to book a flight",
+      context,
+    });
+    booking.initial(booking.state("collectBooking"));
+    const ticket = agentBuilder.stateMachineJourney("ticket-status", {
+      condition: "Customer wants ticket status information",
+      always: true,
+      context,
+    });
+    ticket.initial(ticket.state("identifyTicket"));
+
+    const agent = agentBuilder.compile();
+    const models = createModels({
+      matcher: {
+        provider: "test",
+        model: "matcher",
+        generateText: async () => {
+          const structured = {
+            candidates: [
+              { journeyId: "book-flight", confidence: 0.95, reason: "The user asks to book a flight." },
+              { journeyId: "ticket-status", confidence: 0.4, reason: "Fallback support flow." },
+            ],
+          };
+          return { text: JSON.stringify(structured), structured };
+        },
+      },
+      journeyEmbedding: {
+        provider: "test",
+        model: "embedding",
+        generateText: async () => ({ text: "" }),
+        embed: async ({ text }: { text: string }) => ({
+          embedding: vectorForMatcherTest(text),
+          model: "embedding",
+          dimensions: 2,
+        }),
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex,
+      topKJourneys: 2,
+      channels: [{
+        id: "sms-support",
+        channel: "sms",
+        enabled: true,
+        channelSetIds: [],
+        providerPackageIds: [],
+        enabledCapabilities: ["receive", "send"],
+        flowActivations: [{
+          journeyId: "book-flight",
+          enabled: false,
+          providerPackageIds: [],
+          policyIds: [],
+          reason: "Booking flow requires richer selection UI than SMS.",
+        }],
+        policies: {},
+      }],
+    });
+    const conversation = await runtime.createConversation({
+      agentId: agent.id,
+      context: {},
+      channel: { channelId: "sms-billing", kind: "sms" },
+    });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "I want to book a flight.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(result.activeJourneyId).toBe("book-flight");
+    expect(events.find((event) => event.type === "custom.channel.flow.disabled")).toBeUndefined();
+  });
+
   it("passes the full conversation transcript to the journey matcher", async () => {
     let matcherPrompt = "";
     let responseCount = 0;
