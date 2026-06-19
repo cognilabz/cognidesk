@@ -1,0 +1,515 @@
+// Generated endpoint chunk for GenesysCloudFullApi.
+// Do not edit by hand; run scripts/split-generated-client-modules.mjs after updating provider specs.
+
+import type {
+  GenesysCloudGeneratedOperationCaller,
+  GenesysCloudFullApiOperationArgs,
+  GenesysCloudFullApiOperationInput,
+  GenesysCloudFullApiPathParamValue,
+} from "../../full-api-client.generated.js";
+import type { GenesysCloudFullApiOperationResponseMap } from "../../full-api-schema-types.generated.js";
+
+// Hardened literal operation keys for generated SDK typing.
+export const GenesysCloudFullApiWorkforceManagement04OperationKeys = [
+  "postWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets",
+  "postWorkforcemanagementBusinessunitServicegoaltemplates",
+  "postWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs",
+  "postWorkforcemanagementBusinessunitShifttradingTradesQueryJobs",
+  "postWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs",
+  "postWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs",
+  "postWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs",
+  "postWorkforcemanagementBusinessunitStaffinggroups",
+  "postWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery",
+  "postWorkforcemanagementBusinessunitStaffinggroupsQuery",
+  "postWorkforcemanagementBusinessunitTimeofflimits",
+  "postWorkforcemanagementBusinessunitTimeofflimitsValuesQuery",
+  "postWorkforcemanagementBusinessunitTimeoffplans",
+  "postWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery",
+  "postWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery",
+  "postWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery",
+  "postWorkforcemanagementBusinessunitWeekScheduleCopy",
+  "postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations",
+  "postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl",
+  "postWorkforcemanagementBusinessunitWeekScheduleReschedule",
+  "postWorkforcemanagementBusinessunitWeekSchedules",
+  "postWorkforcemanagementBusinessunitWeekSchedulesGenerate",
+  "postWorkforcemanagementBusinessunitWeekSchedulesImport",
+  "postWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl",
+  "postWorkforcemanagementBusinessunitWeekScheduleUpdate",
+  "postWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl",
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastCopy",
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate",
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsImport",
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl",
+  "postWorkforcemanagementBusinessunitWorkplanbidCopy",
+  "postWorkforcemanagementBusinessunitWorkplanbidGroups",
+  "postWorkforcemanagementBusinessunitWorkplanbids",
+  "postWorkforcemanagementCalendarUrlIcs",
+  "postWorkforcemanagementHistoricaldataBulkRemoveJobs",
+  "postWorkforcemanagementHistoricaldataValidate",
+  "postWorkforcemanagementIntegrationsHriTimeofftypesJobs",
+  "postWorkforcemanagementManagementunitAgentschedulesSearch",
+  "postWorkforcemanagementManagementunitAgentsWorkplansQuery",
+  "postWorkforcemanagementManagementunitHistoricaladherencequery",
+  "postWorkforcemanagementManagementunitMove",
+  "postWorkforcemanagementManagementunits",
+  "postWorkforcemanagementManagementunitSchedulesSearch",
+  "postWorkforcemanagementManagementunitShrinkageJobs",
+  "postWorkforcemanagementManagementunitTimeofflimits",
+  "postWorkforcemanagementManagementunitTimeofflimitsValuesQuery",
+  "postWorkforcemanagementManagementunitTimeoffplans",
+  "postWorkforcemanagementManagementunitTimeoffrequests",
+  "postWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery",
+  "postWorkforcemanagementManagementunitTimeoffrequestsQuery",
+  "postWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery",
+  "postWorkforcemanagementManagementunitUserTimeoffbalanceJobs",
+  "postWorkforcemanagementManagementunitUserTimeoffrequestsEstimate",
+  "postWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs",
+  "postWorkforcemanagementManagementunitWeekShifttradeMatch",
+  "postWorkforcemanagementManagementunitWeekShifttrades",
+  "postWorkforcemanagementManagementunitWeekShifttradesSearch",
+  "postWorkforcemanagementManagementunitWeekShifttradesStateBulk",
+  "postWorkforcemanagementManagementunitWorkplanCopy",
+  "postWorkforcemanagementManagementunitWorkplanrotationCopy",
+  "postWorkforcemanagementManagementunitWorkplanrotations",
+  "postWorkforcemanagementManagementunitWorkplans",
+  "postWorkforcemanagementManagementunitWorkplanValidate",
+  "postWorkforcemanagementNotificationsUpdate",
+  "postWorkforcemanagementSchedules",
+  "postWorkforcemanagementShifttradingTradeJobs",
+  "postWorkforcemanagementShifttradingTradeMatchJobs",
+  "postWorkforcemanagementShifttradingTradesJobs",
+  "postWorkforcemanagementShifttradingTradesMineQueryJobs",
+  "postWorkforcemanagementShifttradingTradeStateJobs",
+  "postWorkforcemanagementTeamAdherenceHistorical",
+  "postWorkforcemanagementTeamShrinkageJobs",
+  "postWorkforcemanagementTimeoffbalanceJobs",
+  "postWorkforcemanagementTimeofflimitsAvailableQuery",
+  "postWorkforcemanagementTimeoffrequests",
+  "postWorkforcemanagementTimeoffrequestsEstimate",
+  "postWorkforcemanagementTimeoffrequestsIntegrationstatusQuery",
+  "postWorkforcemanagementUnavailabletimesQuery",
+  "postWorkforcemanagementUnavailabletimesValidationJobs",
+  "putWorkforcemanagementAgentIntegrationsHris"
+] as const;
+export type GenesysCloudFullApiWorkforceManagement04OperationKey = typeof GenesysCloudFullApiWorkforceManagement04OperationKeys[number];
+// End hardened literal operation keys.
+
+export interface GenesysCloudFullApiWorkforceManagement04OperationPathParamMap {
+  "postWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitServicegoaltemplates": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitShifttradingTradesQueryJobs": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitStaffinggroups": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitStaffinggroupsQuery": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitTimeofflimits": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitTimeofflimitsValuesQuery": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitTimeoffplans": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue; "scheduleId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekScheduleCopy": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue; "scheduleId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue; "scheduleId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue; "scheduleId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekScheduleReschedule": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue; "scheduleId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekSchedules": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekSchedulesGenerate": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekSchedulesImport": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekScheduleUpdate": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue; "scheduleId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekId": GenesysCloudFullApiPathParamValue; "scheduleId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastCopy": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekDateId": GenesysCloudFullApiPathParamValue; "forecastId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekDateId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsImport": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekDateId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl": { "businessUnitId": GenesysCloudFullApiPathParamValue; "weekDateId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWorkplanbidCopy": { "businessUnitId": GenesysCloudFullApiPathParamValue; "bidId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWorkplanbidGroups": { "businessUnitId": GenesysCloudFullApiPathParamValue; "bidId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementBusinessunitWorkplanbids": { "businessUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementCalendarUrlIcs": {};
+  "postWorkforcemanagementHistoricaldataBulkRemoveJobs": {};
+  "postWorkforcemanagementHistoricaldataValidate": {};
+  "postWorkforcemanagementIntegrationsHriTimeofftypesJobs": { "hrisIntegrationId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitAgentschedulesSearch": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitAgentsWorkplansQuery": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitHistoricaladherencequery": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitMove": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunits": {};
+  "postWorkforcemanagementManagementunitSchedulesSearch": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitShrinkageJobs": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitTimeofflimits": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitTimeofflimitsValuesQuery": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitTimeoffplans": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitTimeoffrequests": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitTimeoffrequestsQuery": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitUserTimeoffbalanceJobs": { "managementUnitId": GenesysCloudFullApiPathParamValue; "userId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitUserTimeoffrequestsEstimate": { "managementUnitId": GenesysCloudFullApiPathParamValue; "userId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs": { "managementUnitId": GenesysCloudFullApiPathParamValue; "userId": GenesysCloudFullApiPathParamValue; "timeOffRequestId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWeekShifttradeMatch": { "managementUnitId": GenesysCloudFullApiPathParamValue; "weekDateId": GenesysCloudFullApiPathParamValue; "tradeId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWeekShifttrades": { "managementUnitId": GenesysCloudFullApiPathParamValue; "weekDateId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWeekShifttradesSearch": { "managementUnitId": GenesysCloudFullApiPathParamValue; "weekDateId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWeekShifttradesStateBulk": { "managementUnitId": GenesysCloudFullApiPathParamValue; "weekDateId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWorkplanCopy": { "managementUnitId": GenesysCloudFullApiPathParamValue; "workPlanId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWorkplanrotationCopy": { "managementUnitId": GenesysCloudFullApiPathParamValue; "workPlanRotationId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWorkplanrotations": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWorkplans": { "managementUnitId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementManagementunitWorkplanValidate": { "managementUnitId": GenesysCloudFullApiPathParamValue; "workPlanId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementNotificationsUpdate": {};
+  "postWorkforcemanagementSchedules": {};
+  "postWorkforcemanagementShifttradingTradeJobs": { "tradeId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementShifttradingTradeMatchJobs": { "tradeId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementShifttradingTradesJobs": {};
+  "postWorkforcemanagementShifttradingTradesMineQueryJobs": {};
+  "postWorkforcemanagementShifttradingTradeStateJobs": { "tradeId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementTeamAdherenceHistorical": { "teamId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementTeamShrinkageJobs": { "teamId": GenesysCloudFullApiPathParamValue };
+  "postWorkforcemanagementTimeoffbalanceJobs": {};
+  "postWorkforcemanagementTimeofflimitsAvailableQuery": {};
+  "postWorkforcemanagementTimeoffrequests": {};
+  "postWorkforcemanagementTimeoffrequestsEstimate": {};
+  "postWorkforcemanagementTimeoffrequestsIntegrationstatusQuery": {};
+  "postWorkforcemanagementUnavailabletimesQuery": {};
+  "postWorkforcemanagementUnavailabletimesValidationJobs": {};
+  "putWorkforcemanagementAgentIntegrationsHris": { "agentId": GenesysCloudFullApiPathParamValue };
+}
+
+export interface GenesysCloudFullApiWorkforceManagement04OperationRequestMap {
+  "postWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets">;
+  "postWorkforcemanagementBusinessunitServicegoaltemplates": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitServicegoaltemplates">;
+  "postWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs">;
+  "postWorkforcemanagementBusinessunitShifttradingTradesQueryJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitShifttradingTradesQueryJobs">;
+  "postWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs">;
+  "postWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs">;
+  "postWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs">;
+  "postWorkforcemanagementBusinessunitStaffinggroups": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitStaffinggroups">;
+  "postWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery">;
+  "postWorkforcemanagementBusinessunitStaffinggroupsQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitStaffinggroupsQuery">;
+  "postWorkforcemanagementBusinessunitTimeofflimits": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitTimeofflimits">;
+  "postWorkforcemanagementBusinessunitTimeofflimitsValuesQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitTimeofflimitsValuesQuery">;
+  "postWorkforcemanagementBusinessunitTimeoffplans": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitTimeoffplans">;
+  "postWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery">;
+  "postWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery">;
+  "postWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery">;
+  "postWorkforcemanagementBusinessunitWeekScheduleCopy": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekScheduleCopy">;
+  "postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations">;
+  "postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl">;
+  "postWorkforcemanagementBusinessunitWeekScheduleReschedule": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekScheduleReschedule">;
+  "postWorkforcemanagementBusinessunitWeekSchedules": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekSchedules">;
+  "postWorkforcemanagementBusinessunitWeekSchedulesGenerate": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekSchedulesGenerate">;
+  "postWorkforcemanagementBusinessunitWeekSchedulesImport": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekSchedulesImport">;
+  "postWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl">;
+  "postWorkforcemanagementBusinessunitWeekScheduleUpdate": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekScheduleUpdate">;
+  "postWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl">;
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastCopy": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekShorttermforecastCopy">;
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate">;
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsImport": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekShorttermforecastsImport">;
+  "postWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl">;
+  "postWorkforcemanagementBusinessunitWorkplanbidCopy": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWorkplanbidCopy">;
+  "postWorkforcemanagementBusinessunitWorkplanbidGroups": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWorkplanbidGroups">;
+  "postWorkforcemanagementBusinessunitWorkplanbids": GenesysCloudFullApiOperationInput<"postWorkforcemanagementBusinessunitWorkplanbids">;
+  "postWorkforcemanagementCalendarUrlIcs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementCalendarUrlIcs">;
+  "postWorkforcemanagementHistoricaldataBulkRemoveJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementHistoricaldataBulkRemoveJobs">;
+  "postWorkforcemanagementHistoricaldataValidate": GenesysCloudFullApiOperationInput<"postWorkforcemanagementHistoricaldataValidate">;
+  "postWorkforcemanagementIntegrationsHriTimeofftypesJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementIntegrationsHriTimeofftypesJobs">;
+  "postWorkforcemanagementManagementunitAgentschedulesSearch": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitAgentschedulesSearch">;
+  "postWorkforcemanagementManagementunitAgentsWorkplansQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitAgentsWorkplansQuery">;
+  "postWorkforcemanagementManagementunitHistoricaladherencequery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitHistoricaladherencequery">;
+  "postWorkforcemanagementManagementunitMove": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitMove">;
+  "postWorkforcemanagementManagementunits": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunits">;
+  "postWorkforcemanagementManagementunitSchedulesSearch": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitSchedulesSearch">;
+  "postWorkforcemanagementManagementunitShrinkageJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitShrinkageJobs">;
+  "postWorkforcemanagementManagementunitTimeofflimits": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitTimeofflimits">;
+  "postWorkforcemanagementManagementunitTimeofflimitsValuesQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitTimeofflimitsValuesQuery">;
+  "postWorkforcemanagementManagementunitTimeoffplans": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitTimeoffplans">;
+  "postWorkforcemanagementManagementunitTimeoffrequests": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitTimeoffrequests">;
+  "postWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery">;
+  "postWorkforcemanagementManagementunitTimeoffrequestsQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitTimeoffrequestsQuery">;
+  "postWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery">;
+  "postWorkforcemanagementManagementunitUserTimeoffbalanceJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitUserTimeoffbalanceJobs">;
+  "postWorkforcemanagementManagementunitUserTimeoffrequestsEstimate": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitUserTimeoffrequestsEstimate">;
+  "postWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs">;
+  "postWorkforcemanagementManagementunitWeekShifttradeMatch": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWeekShifttradeMatch">;
+  "postWorkforcemanagementManagementunitWeekShifttrades": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWeekShifttrades">;
+  "postWorkforcemanagementManagementunitWeekShifttradesSearch": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWeekShifttradesSearch">;
+  "postWorkforcemanagementManagementunitWeekShifttradesStateBulk": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWeekShifttradesStateBulk">;
+  "postWorkforcemanagementManagementunitWorkplanCopy": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWorkplanCopy">;
+  "postWorkforcemanagementManagementunitWorkplanrotationCopy": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWorkplanrotationCopy">;
+  "postWorkforcemanagementManagementunitWorkplanrotations": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWorkplanrotations">;
+  "postWorkforcemanagementManagementunitWorkplans": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWorkplans">;
+  "postWorkforcemanagementManagementunitWorkplanValidate": GenesysCloudFullApiOperationInput<"postWorkforcemanagementManagementunitWorkplanValidate">;
+  "postWorkforcemanagementNotificationsUpdate": GenesysCloudFullApiOperationInput<"postWorkforcemanagementNotificationsUpdate">;
+  "postWorkforcemanagementSchedules": GenesysCloudFullApiOperationInput<"postWorkforcemanagementSchedules">;
+  "postWorkforcemanagementShifttradingTradeJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementShifttradingTradeJobs">;
+  "postWorkforcemanagementShifttradingTradeMatchJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementShifttradingTradeMatchJobs">;
+  "postWorkforcemanagementShifttradingTradesJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementShifttradingTradesJobs">;
+  "postWorkforcemanagementShifttradingTradesMineQueryJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementShifttradingTradesMineQueryJobs">;
+  "postWorkforcemanagementShifttradingTradeStateJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementShifttradingTradeStateJobs">;
+  "postWorkforcemanagementTeamAdherenceHistorical": GenesysCloudFullApiOperationInput<"postWorkforcemanagementTeamAdherenceHistorical">;
+  "postWorkforcemanagementTeamShrinkageJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementTeamShrinkageJobs">;
+  "postWorkforcemanagementTimeoffbalanceJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementTimeoffbalanceJobs">;
+  "postWorkforcemanagementTimeofflimitsAvailableQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementTimeofflimitsAvailableQuery">;
+  "postWorkforcemanagementTimeoffrequests": GenesysCloudFullApiOperationInput<"postWorkforcemanagementTimeoffrequests">;
+  "postWorkforcemanagementTimeoffrequestsEstimate": GenesysCloudFullApiOperationInput<"postWorkforcemanagementTimeoffrequestsEstimate">;
+  "postWorkforcemanagementTimeoffrequestsIntegrationstatusQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementTimeoffrequestsIntegrationstatusQuery">;
+  "postWorkforcemanagementUnavailabletimesQuery": GenesysCloudFullApiOperationInput<"postWorkforcemanagementUnavailabletimesQuery">;
+  "postWorkforcemanagementUnavailabletimesValidationJobs": GenesysCloudFullApiOperationInput<"postWorkforcemanagementUnavailabletimesValidationJobs">;
+  "putWorkforcemanagementAgentIntegrationsHris": GenesysCloudFullApiOperationInput<"putWorkforcemanagementAgentIntegrationsHris">;
+}
+
+export interface GenesysCloudFullApiWorkforceManagement04GeneratedClient {
+  PostWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets"]>;
+  PostWorkforcemanagementBusinessunitServicegoaltemplates(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitServicegoaltemplates">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitServicegoaltemplates"]>;
+  PostWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs"]>;
+  PostWorkforcemanagementBusinessunitShifttradingTradesQueryJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingTradesQueryJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitShifttradingTradesQueryJobs"]>;
+  PostWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs"]>;
+  PostWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs"]>;
+  PostWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs"]>;
+  PostWorkforcemanagementBusinessunitStaffinggroups(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitStaffinggroups">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitStaffinggroups"]>;
+  PostWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery"]>;
+  PostWorkforcemanagementBusinessunitStaffinggroupsQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitStaffinggroupsQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitStaffinggroupsQuery"]>;
+  PostWorkforcemanagementBusinessunitTimeofflimits(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitTimeofflimits">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitTimeofflimits"]>;
+  PostWorkforcemanagementBusinessunitTimeofflimitsValuesQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitTimeofflimitsValuesQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitTimeofflimitsValuesQuery"]>;
+  PostWorkforcemanagementBusinessunitTimeoffplans(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitTimeoffplans">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitTimeoffplans"]>;
+  PostWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery"]>;
+  PostWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery"]>;
+  PostWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery"]>;
+  PostWorkforcemanagementBusinessunitWeekScheduleCopy(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleCopy">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekScheduleCopy"]>;
+  PostWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations"]>;
+  PostWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl"]>;
+  PostWorkforcemanagementBusinessunitWeekScheduleReschedule(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleReschedule">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekScheduleReschedule"]>;
+  PostWorkforcemanagementBusinessunitWeekSchedules(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedules">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekSchedules"]>;
+  PostWorkforcemanagementBusinessunitWeekSchedulesGenerate(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulesGenerate">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekSchedulesGenerate"]>;
+  PostWorkforcemanagementBusinessunitWeekSchedulesImport(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulesImport">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekSchedulesImport"]>;
+  PostWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl"]>;
+  PostWorkforcemanagementBusinessunitWeekScheduleUpdate(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleUpdate">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekScheduleUpdate"]>;
+  PostWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl"]>;
+  PostWorkforcemanagementBusinessunitWeekShorttermforecastCopy(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekShorttermforecastCopy">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekShorttermforecastCopy"]>;
+  PostWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate"]>;
+  PostWorkforcemanagementBusinessunitWeekShorttermforecastsImport(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekShorttermforecastsImport">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekShorttermforecastsImport"]>;
+  PostWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl"]>;
+  PostWorkforcemanagementBusinessunitWorkplanbidCopy(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWorkplanbidCopy">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWorkplanbidCopy"]>;
+  PostWorkforcemanagementBusinessunitWorkplanbidGroups(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWorkplanbidGroups">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWorkplanbidGroups"]>;
+  PostWorkforcemanagementBusinessunitWorkplanbids(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWorkplanbids">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementBusinessunitWorkplanbids"]>;
+  PostWorkforcemanagementCalendarUrlIcs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementCalendarUrlIcs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementCalendarUrlIcs"]>;
+  PostWorkforcemanagementHistoricaldataBulkRemoveJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementHistoricaldataBulkRemoveJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementHistoricaldataBulkRemoveJobs"]>;
+  PostWorkforcemanagementHistoricaldataValidate(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementHistoricaldataValidate">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementHistoricaldataValidate"]>;
+  PostWorkforcemanagementIntegrationsHriTimeofftypesJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementIntegrationsHriTimeofftypesJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementIntegrationsHriTimeofftypesJobs"]>;
+  PostWorkforcemanagementManagementunitAgentschedulesSearch(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitAgentschedulesSearch">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitAgentschedulesSearch"]>;
+  PostWorkforcemanagementManagementunitAgentsWorkplansQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitAgentsWorkplansQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitAgentsWorkplansQuery"]>;
+  PostWorkforcemanagementManagementunitHistoricaladherencequery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitHistoricaladherencequery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitHistoricaladherencequery"]>;
+  PostWorkforcemanagementManagementunitMove(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitMove">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitMove"]>;
+  PostWorkforcemanagementManagementunits(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunits">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunits"]>;
+  PostWorkforcemanagementManagementunitSchedulesSearch(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitSchedulesSearch">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitSchedulesSearch"]>;
+  PostWorkforcemanagementManagementunitShrinkageJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitShrinkageJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitShrinkageJobs"]>;
+  PostWorkforcemanagementManagementunitTimeofflimits(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeofflimits">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitTimeofflimits"]>;
+  PostWorkforcemanagementManagementunitTimeofflimitsValuesQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeofflimitsValuesQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitTimeofflimitsValuesQuery"]>;
+  PostWorkforcemanagementManagementunitTimeoffplans(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffplans">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitTimeoffplans"]>;
+  PostWorkforcemanagementManagementunitTimeoffrequests(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffrequests">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitTimeoffrequests"]>;
+  PostWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery"]>;
+  PostWorkforcemanagementManagementunitTimeoffrequestsQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffrequestsQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitTimeoffrequestsQuery"]>;
+  PostWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery"]>;
+  PostWorkforcemanagementManagementunitUserTimeoffbalanceJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitUserTimeoffbalanceJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitUserTimeoffbalanceJobs"]>;
+  PostWorkforcemanagementManagementunitUserTimeoffrequestsEstimate(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitUserTimeoffrequestsEstimate">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitUserTimeoffrequestsEstimate"]>;
+  PostWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs"]>;
+  PostWorkforcemanagementManagementunitWeekShifttradeMatch(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWeekShifttradeMatch">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWeekShifttradeMatch"]>;
+  PostWorkforcemanagementManagementunitWeekShifttrades(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWeekShifttrades">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWeekShifttrades"]>;
+  PostWorkforcemanagementManagementunitWeekShifttradesSearch(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWeekShifttradesSearch">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWeekShifttradesSearch"]>;
+  PostWorkforcemanagementManagementunitWeekShifttradesStateBulk(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWeekShifttradesStateBulk">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWeekShifttradesStateBulk"]>;
+  PostWorkforcemanagementManagementunitWorkplanCopy(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplanCopy">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWorkplanCopy"]>;
+  PostWorkforcemanagementManagementunitWorkplanrotationCopy(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplanrotationCopy">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWorkplanrotationCopy"]>;
+  PostWorkforcemanagementManagementunitWorkplanrotations(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplanrotations">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWorkplanrotations"]>;
+  PostWorkforcemanagementManagementunitWorkplans(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplans">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWorkplans"]>;
+  PostWorkforcemanagementManagementunitWorkplanValidate(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplanValidate">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementManagementunitWorkplanValidate"]>;
+  PostWorkforcemanagementNotificationsUpdate(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementNotificationsUpdate">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementNotificationsUpdate"]>;
+  PostWorkforcemanagementSchedules(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementSchedules">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementSchedules"]>;
+  PostWorkforcemanagementShifttradingTradeJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradeJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementShifttradingTradeJobs"]>;
+  PostWorkforcemanagementShifttradingTradeMatchJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradeMatchJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementShifttradingTradeMatchJobs"]>;
+  PostWorkforcemanagementShifttradingTradesJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradesJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementShifttradingTradesJobs"]>;
+  PostWorkforcemanagementShifttradingTradesMineQueryJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradesMineQueryJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementShifttradingTradesMineQueryJobs"]>;
+  PostWorkforcemanagementShifttradingTradeStateJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradeStateJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementShifttradingTradeStateJobs"]>;
+  PostWorkforcemanagementTeamAdherenceHistorical(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTeamAdherenceHistorical">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementTeamAdherenceHistorical"]>;
+  PostWorkforcemanagementTeamShrinkageJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTeamShrinkageJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementTeamShrinkageJobs"]>;
+  PostWorkforcemanagementTimeoffbalanceJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeoffbalanceJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementTimeoffbalanceJobs"]>;
+  PostWorkforcemanagementTimeofflimitsAvailableQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeofflimitsAvailableQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementTimeofflimitsAvailableQuery"]>;
+  PostWorkforcemanagementTimeoffrequests(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeoffrequests">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementTimeoffrequests"]>;
+  PostWorkforcemanagementTimeoffrequestsEstimate(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeoffrequestsEstimate">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementTimeoffrequestsEstimate"]>;
+  PostWorkforcemanagementTimeoffrequestsIntegrationstatusQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeoffrequestsIntegrationstatusQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementTimeoffrequestsIntegrationstatusQuery"]>;
+  PostWorkforcemanagementUnavailabletimesQuery(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementUnavailabletimesQuery">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementUnavailabletimesQuery"]>;
+  PostWorkforcemanagementUnavailabletimesValidationJobs(...args: GenesysCloudFullApiOperationArgs<"postWorkforcemanagementUnavailabletimesValidationJobs">): Promise<GenesysCloudFullApiOperationResponseMap["postWorkforcemanagementUnavailabletimesValidationJobs"]>;
+  PutWorkforcemanagementAgentIntegrationsHris(...args: GenesysCloudFullApiOperationArgs<"putWorkforcemanagementAgentIntegrationsHris">): Promise<GenesysCloudFullApiOperationResponseMap["putWorkforcemanagementAgentIntegrationsHris"]>;
+}
+
+export const GenesysCloudFullApiWorkforceManagement04GeneratedFunctionNames = [
+  "PostWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets",
+  "PostWorkforcemanagementBusinessunitServicegoaltemplates",
+  "PostWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs",
+  "PostWorkforcemanagementBusinessunitShifttradingTradesQueryJobs",
+  "PostWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs",
+  "PostWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs",
+  "PostWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs",
+  "PostWorkforcemanagementBusinessunitStaffinggroups",
+  "PostWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery",
+  "PostWorkforcemanagementBusinessunitStaffinggroupsQuery",
+  "PostWorkforcemanagementBusinessunitTimeofflimits",
+  "PostWorkforcemanagementBusinessunitTimeofflimitsValuesQuery",
+  "PostWorkforcemanagementBusinessunitTimeoffplans",
+  "PostWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery",
+  "PostWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery",
+  "PostWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery",
+  "PostWorkforcemanagementBusinessunitWeekScheduleCopy",
+  "PostWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations",
+  "PostWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl",
+  "PostWorkforcemanagementBusinessunitWeekScheduleReschedule",
+  "PostWorkforcemanagementBusinessunitWeekSchedules",
+  "PostWorkforcemanagementBusinessunitWeekSchedulesGenerate",
+  "PostWorkforcemanagementBusinessunitWeekSchedulesImport",
+  "PostWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl",
+  "PostWorkforcemanagementBusinessunitWeekScheduleUpdate",
+  "PostWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl",
+  "PostWorkforcemanagementBusinessunitWeekShorttermforecastCopy",
+  "PostWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate",
+  "PostWorkforcemanagementBusinessunitWeekShorttermforecastsImport",
+  "PostWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl",
+  "PostWorkforcemanagementBusinessunitWorkplanbidCopy",
+  "PostWorkforcemanagementBusinessunitWorkplanbidGroups",
+  "PostWorkforcemanagementBusinessunitWorkplanbids",
+  "PostWorkforcemanagementCalendarUrlIcs",
+  "PostWorkforcemanagementHistoricaldataBulkRemoveJobs",
+  "PostWorkforcemanagementHistoricaldataValidate",
+  "PostWorkforcemanagementIntegrationsHriTimeofftypesJobs",
+  "PostWorkforcemanagementManagementunitAgentschedulesSearch",
+  "PostWorkforcemanagementManagementunitAgentsWorkplansQuery",
+  "PostWorkforcemanagementManagementunitHistoricaladherencequery",
+  "PostWorkforcemanagementManagementunitMove",
+  "PostWorkforcemanagementManagementunits",
+  "PostWorkforcemanagementManagementunitSchedulesSearch",
+  "PostWorkforcemanagementManagementunitShrinkageJobs",
+  "PostWorkforcemanagementManagementunitTimeofflimits",
+  "PostWorkforcemanagementManagementunitTimeofflimitsValuesQuery",
+  "PostWorkforcemanagementManagementunitTimeoffplans",
+  "PostWorkforcemanagementManagementunitTimeoffrequests",
+  "PostWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery",
+  "PostWorkforcemanagementManagementunitTimeoffrequestsQuery",
+  "PostWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery",
+  "PostWorkforcemanagementManagementunitUserTimeoffbalanceJobs",
+  "PostWorkforcemanagementManagementunitUserTimeoffrequestsEstimate",
+  "PostWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs",
+  "PostWorkforcemanagementManagementunitWeekShifttradeMatch",
+  "PostWorkforcemanagementManagementunitWeekShifttrades",
+  "PostWorkforcemanagementManagementunitWeekShifttradesSearch",
+  "PostWorkforcemanagementManagementunitWeekShifttradesStateBulk",
+  "PostWorkforcemanagementManagementunitWorkplanCopy",
+  "PostWorkforcemanagementManagementunitWorkplanrotationCopy",
+  "PostWorkforcemanagementManagementunitWorkplanrotations",
+  "PostWorkforcemanagementManagementunitWorkplans",
+  "PostWorkforcemanagementManagementunitWorkplanValidate",
+  "PostWorkforcemanagementNotificationsUpdate",
+  "PostWorkforcemanagementSchedules",
+  "PostWorkforcemanagementShifttradingTradeJobs",
+  "PostWorkforcemanagementShifttradingTradeMatchJobs",
+  "PostWorkforcemanagementShifttradingTradesJobs",
+  "PostWorkforcemanagementShifttradingTradesMineQueryJobs",
+  "PostWorkforcemanagementShifttradingTradeStateJobs",
+  "PostWorkforcemanagementTeamAdherenceHistorical",
+  "PostWorkforcemanagementTeamShrinkageJobs",
+  "PostWorkforcemanagementTimeoffbalanceJobs",
+  "PostWorkforcemanagementTimeofflimitsAvailableQuery",
+  "PostWorkforcemanagementTimeoffrequests",
+  "PostWorkforcemanagementTimeoffrequestsEstimate",
+  "PostWorkforcemanagementTimeoffrequestsIntegrationstatusQuery",
+  "PostWorkforcemanagementUnavailabletimesQuery",
+  "PostWorkforcemanagementUnavailabletimesValidationJobs",
+  "PutWorkforcemanagementAgentIntegrationsHris"
+] as const satisfies readonly (keyof GenesysCloudFullApiWorkforceManagement04GeneratedClient)[];
+
+export function createGenesysCloudFullApiWorkforceManagement04GeneratedClient(
+  callOperation: GenesysCloudGeneratedOperationCaller,
+): GenesysCloudFullApiWorkforceManagement04GeneratedClient {
+  return {
+    PostWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets: (...args) => callOperation("postWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitSchedulebidsEffectiveschedulesets">)),
+    PostWorkforcemanagementBusinessunitServicegoaltemplates: (...args) => callOperation("postWorkforcemanagementBusinessunitServicegoaltemplates", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitServicegoaltemplates">)),
+    PostWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs: (...args) => callOperation("postWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingTradesEvaluateJobs">)),
+    PostWorkforcemanagementBusinessunitShifttradingTradesQueryJobs: (...args) => callOperation("postWorkforcemanagementBusinessunitShifttradingTradesQueryJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingTradesQueryJobs">)),
+    PostWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs: (...args) => callOperation("postWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingTradesStateBulkJobs">)),
+    PostWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs: (...args) => callOperation("postWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingUnmatchedSearchJobs">)),
+    PostWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs: (...args) => callOperation("postWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitShifttradingWeeksSummaryJobs">)),
+    PostWorkforcemanagementBusinessunitStaffinggroups: (...args) => callOperation("postWorkforcemanagementBusinessunitStaffinggroups", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitStaffinggroups">)),
+    PostWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery: (...args) => callOperation("postWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitStaffinggroupsPlanninggroupsQuery">)),
+    PostWorkforcemanagementBusinessunitStaffinggroupsQuery: (...args) => callOperation("postWorkforcemanagementBusinessunitStaffinggroupsQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitStaffinggroupsQuery">)),
+    PostWorkforcemanagementBusinessunitTimeofflimits: (...args) => callOperation("postWorkforcemanagementBusinessunitTimeofflimits", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitTimeofflimits">)),
+    PostWorkforcemanagementBusinessunitTimeofflimitsValuesQuery: (...args) => callOperation("postWorkforcemanagementBusinessunitTimeofflimitsValuesQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitTimeofflimitsValuesQuery">)),
+    PostWorkforcemanagementBusinessunitTimeoffplans: (...args) => callOperation("postWorkforcemanagementBusinessunitTimeoffplans", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitTimeoffplans">)),
+    PostWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery: (...args) => callOperation("postWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitUnavailabletimesSchedulesQuery">)),
+    PostWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery: (...args) => callOperation("postWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitUnavailabletimesSettingsQuery">)),
+    PostWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleAgentschedulesQuery">)),
+    PostWorkforcemanagementBusinessunitWeekScheduleCopy: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekScheduleCopy", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleCopy">)),
+    PostWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculations">)),
+    PostWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulePerformancepredictionsRecalculationsUploadurl">)),
+    PostWorkforcemanagementBusinessunitWeekScheduleReschedule: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekScheduleReschedule", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleReschedule">)),
+    PostWorkforcemanagementBusinessunitWeekSchedules: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekSchedules", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedules">)),
+    PostWorkforcemanagementBusinessunitWeekSchedulesGenerate: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekSchedulesGenerate", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulesGenerate">)),
+    PostWorkforcemanagementBusinessunitWeekSchedulesImport: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekSchedulesImport", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulesImport">)),
+    PostWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekSchedulesImportUploadurl">)),
+    PostWorkforcemanagementBusinessunitWeekScheduleUpdate: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekScheduleUpdate", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleUpdate">)),
+    PostWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekScheduleUpdateUploadurl">)),
+    PostWorkforcemanagementBusinessunitWeekShorttermforecastCopy: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekShorttermforecastCopy", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekShorttermforecastCopy">)),
+    PostWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekShorttermforecastsGenerate">)),
+    PostWorkforcemanagementBusinessunitWeekShorttermforecastsImport: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekShorttermforecastsImport", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekShorttermforecastsImport">)),
+    PostWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl: (...args) => callOperation("postWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWeekShorttermforecastsImportUploadurl">)),
+    PostWorkforcemanagementBusinessunitWorkplanbidCopy: (...args) => callOperation("postWorkforcemanagementBusinessunitWorkplanbidCopy", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWorkplanbidCopy">)),
+    PostWorkforcemanagementBusinessunitWorkplanbidGroups: (...args) => callOperation("postWorkforcemanagementBusinessunitWorkplanbidGroups", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWorkplanbidGroups">)),
+    PostWorkforcemanagementBusinessunitWorkplanbids: (...args) => callOperation("postWorkforcemanagementBusinessunitWorkplanbids", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementBusinessunitWorkplanbids">)),
+    PostWorkforcemanagementCalendarUrlIcs: (...args) => callOperation("postWorkforcemanagementCalendarUrlIcs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementCalendarUrlIcs">)),
+    PostWorkforcemanagementHistoricaldataBulkRemoveJobs: (...args) => callOperation("postWorkforcemanagementHistoricaldataBulkRemoveJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementHistoricaldataBulkRemoveJobs">)),
+    PostWorkforcemanagementHistoricaldataValidate: (...args) => callOperation("postWorkforcemanagementHistoricaldataValidate", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementHistoricaldataValidate">)),
+    PostWorkforcemanagementIntegrationsHriTimeofftypesJobs: (...args) => callOperation("postWorkforcemanagementIntegrationsHriTimeofftypesJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementIntegrationsHriTimeofftypesJobs">)),
+    PostWorkforcemanagementManagementunitAgentschedulesSearch: (...args) => callOperation("postWorkforcemanagementManagementunitAgentschedulesSearch", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitAgentschedulesSearch">)),
+    PostWorkforcemanagementManagementunitAgentsWorkplansQuery: (...args) => callOperation("postWorkforcemanagementManagementunitAgentsWorkplansQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitAgentsWorkplansQuery">)),
+    PostWorkforcemanagementManagementunitHistoricaladherencequery: (...args) => callOperation("postWorkforcemanagementManagementunitHistoricaladherencequery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitHistoricaladherencequery">)),
+    PostWorkforcemanagementManagementunitMove: (...args) => callOperation("postWorkforcemanagementManagementunitMove", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitMove">)),
+    PostWorkforcemanagementManagementunits: (...args) => callOperation("postWorkforcemanagementManagementunits", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunits">)),
+    PostWorkforcemanagementManagementunitSchedulesSearch: (...args) => callOperation("postWorkforcemanagementManagementunitSchedulesSearch", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitSchedulesSearch">)),
+    PostWorkforcemanagementManagementunitShrinkageJobs: (...args) => callOperation("postWorkforcemanagementManagementunitShrinkageJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitShrinkageJobs">)),
+    PostWorkforcemanagementManagementunitTimeofflimits: (...args) => callOperation("postWorkforcemanagementManagementunitTimeofflimits", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeofflimits">)),
+    PostWorkforcemanagementManagementunitTimeofflimitsValuesQuery: (...args) => callOperation("postWorkforcemanagementManagementunitTimeofflimitsValuesQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeofflimitsValuesQuery">)),
+    PostWorkforcemanagementManagementunitTimeoffplans: (...args) => callOperation("postWorkforcemanagementManagementunitTimeoffplans", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffplans">)),
+    PostWorkforcemanagementManagementunitTimeoffrequests: (...args) => callOperation("postWorkforcemanagementManagementunitTimeoffrequests", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffrequests">)),
+    PostWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery: (...args) => callOperation("postWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffrequestsIntegrationstatusQuery">)),
+    PostWorkforcemanagementManagementunitTimeoffrequestsQuery: (...args) => callOperation("postWorkforcemanagementManagementunitTimeoffrequestsQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffrequestsQuery">)),
+    PostWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery: (...args) => callOperation("postWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitTimeoffrequestsWaitlistpositionsQuery">)),
+    PostWorkforcemanagementManagementunitUserTimeoffbalanceJobs: (...args) => callOperation("postWorkforcemanagementManagementunitUserTimeoffbalanceJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitUserTimeoffbalanceJobs">)),
+    PostWorkforcemanagementManagementunitUserTimeoffrequestsEstimate: (...args) => callOperation("postWorkforcemanagementManagementunitUserTimeoffrequestsEstimate", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitUserTimeoffrequestsEstimate">)),
+    PostWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs: (...args) => callOperation("postWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitUserTimeoffrequestTimeoffbalanceJobs">)),
+    PostWorkforcemanagementManagementunitWeekShifttradeMatch: (...args) => callOperation("postWorkforcemanagementManagementunitWeekShifttradeMatch", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWeekShifttradeMatch">)),
+    PostWorkforcemanagementManagementunitWeekShifttrades: (...args) => callOperation("postWorkforcemanagementManagementunitWeekShifttrades", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWeekShifttrades">)),
+    PostWorkforcemanagementManagementunitWeekShifttradesSearch: (...args) => callOperation("postWorkforcemanagementManagementunitWeekShifttradesSearch", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWeekShifttradesSearch">)),
+    PostWorkforcemanagementManagementunitWeekShifttradesStateBulk: (...args) => callOperation("postWorkforcemanagementManagementunitWeekShifttradesStateBulk", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWeekShifttradesStateBulk">)),
+    PostWorkforcemanagementManagementunitWorkplanCopy: (...args) => callOperation("postWorkforcemanagementManagementunitWorkplanCopy", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplanCopy">)),
+    PostWorkforcemanagementManagementunitWorkplanrotationCopy: (...args) => callOperation("postWorkforcemanagementManagementunitWorkplanrotationCopy", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplanrotationCopy">)),
+    PostWorkforcemanagementManagementunitWorkplanrotations: (...args) => callOperation("postWorkforcemanagementManagementunitWorkplanrotations", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplanrotations">)),
+    PostWorkforcemanagementManagementunitWorkplans: (...args) => callOperation("postWorkforcemanagementManagementunitWorkplans", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplans">)),
+    PostWorkforcemanagementManagementunitWorkplanValidate: (...args) => callOperation("postWorkforcemanagementManagementunitWorkplanValidate", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementManagementunitWorkplanValidate">)),
+    PostWorkforcemanagementNotificationsUpdate: (...args) => callOperation("postWorkforcemanagementNotificationsUpdate", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementNotificationsUpdate">)),
+    PostWorkforcemanagementSchedules: (...args) => callOperation("postWorkforcemanagementSchedules", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementSchedules">)),
+    PostWorkforcemanagementShifttradingTradeJobs: (...args) => callOperation("postWorkforcemanagementShifttradingTradeJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradeJobs">)),
+    PostWorkforcemanagementShifttradingTradeMatchJobs: (...args) => callOperation("postWorkforcemanagementShifttradingTradeMatchJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradeMatchJobs">)),
+    PostWorkforcemanagementShifttradingTradesJobs: (...args) => callOperation("postWorkforcemanagementShifttradingTradesJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradesJobs">)),
+    PostWorkforcemanagementShifttradingTradesMineQueryJobs: (...args) => callOperation("postWorkforcemanagementShifttradingTradesMineQueryJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradesMineQueryJobs">)),
+    PostWorkforcemanagementShifttradingTradeStateJobs: (...args) => callOperation("postWorkforcemanagementShifttradingTradeStateJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementShifttradingTradeStateJobs">)),
+    PostWorkforcemanagementTeamAdherenceHistorical: (...args) => callOperation("postWorkforcemanagementTeamAdherenceHistorical", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTeamAdherenceHistorical">)),
+    PostWorkforcemanagementTeamShrinkageJobs: (...args) => callOperation("postWorkforcemanagementTeamShrinkageJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTeamShrinkageJobs">)),
+    PostWorkforcemanagementTimeoffbalanceJobs: (...args) => callOperation("postWorkforcemanagementTimeoffbalanceJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeoffbalanceJobs">)),
+    PostWorkforcemanagementTimeofflimitsAvailableQuery: (...args) => callOperation("postWorkforcemanagementTimeofflimitsAvailableQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeofflimitsAvailableQuery">)),
+    PostWorkforcemanagementTimeoffrequests: (...args) => callOperation("postWorkforcemanagementTimeoffrequests", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeoffrequests">)),
+    PostWorkforcemanagementTimeoffrequestsEstimate: (...args) => callOperation("postWorkforcemanagementTimeoffrequestsEstimate", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeoffrequestsEstimate">)),
+    PostWorkforcemanagementTimeoffrequestsIntegrationstatusQuery: (...args) => callOperation("postWorkforcemanagementTimeoffrequestsIntegrationstatusQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementTimeoffrequestsIntegrationstatusQuery">)),
+    PostWorkforcemanagementUnavailabletimesQuery: (...args) => callOperation("postWorkforcemanagementUnavailabletimesQuery", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementUnavailabletimesQuery">)),
+    PostWorkforcemanagementUnavailabletimesValidationJobs: (...args) => callOperation("postWorkforcemanagementUnavailabletimesValidationJobs", ...(args as GenesysCloudFullApiOperationArgs<"postWorkforcemanagementUnavailabletimesValidationJobs">)),
+    PutWorkforcemanagementAgentIntegrationsHris: (...args) => callOperation("putWorkforcemanagementAgentIntegrationsHris", ...(args as GenesysCloudFullApiOperationArgs<"putWorkforcemanagementAgentIntegrationsHris">)),
+  };
+}

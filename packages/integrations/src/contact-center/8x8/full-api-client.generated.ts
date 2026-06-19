@@ -1,0 +1,275 @@
+// Generated from official 8x8 Contact Center OpenAPI specs.
+// Do not edit by hand; run scripts/generate-8x8-contact-center-api.mjs after checking upstream docs.
+
+import type { EightByEightOperationRequestInput } from "./index.js";
+import type {
+  EightByEightContactCenterApiOperationQueryMap,
+  EightByEightContactCenterApiOperationQueryRequiredMap,
+  EightByEightContactCenterApiOperationRequestBodyMap,
+  EightByEightContactCenterApiOperationRequestBodyRequiredMap,
+  EightByEightContactCenterApiOperationResponseMap,
+} from "./full-api-schema-types.generated.js";
+import {
+  createEightByEightContactCenterApiAgentStatusGeneratedClient,
+  EightByEightContactCenterApiAgentStatusGeneratedFunctionNames,
+  type EightByEightContactCenterApiAgentStatusGeneratedClient,
+  type EightByEightContactCenterApiAgentStatusOperationPathParamMap,
+  type EightByEightContactCenterApiAgentStatusOperationRequestMap,
+} from "./full-api.generated/client/agent-status-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiAgentsGeneratedClient,
+  EightByEightContactCenterApiAgentsGeneratedFunctionNames,
+  type EightByEightContactCenterApiAgentsGeneratedClient,
+  type EightByEightContactCenterApiAgentsOperationPathParamMap,
+  type EightByEightContactCenterApiAgentsOperationRequestMap,
+} from "./full-api.generated/client/agents-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiAttachmentsGeneratedClient,
+  EightByEightContactCenterApiAttachmentsGeneratedFunctionNames,
+  type EightByEightContactCenterApiAttachmentsGeneratedClient,
+  type EightByEightContactCenterApiAttachmentsOperationPathParamMap,
+  type EightByEightContactCenterApiAttachmentsOperationRequestMap,
+} from "./full-api.generated/client/attachments-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiAuthenticationGeneratedClient,
+  EightByEightContactCenterApiAuthenticationGeneratedFunctionNames,
+  type EightByEightContactCenterApiAuthenticationGeneratedClient,
+  type EightByEightContactCenterApiAuthenticationOperationPathParamMap,
+  type EightByEightContactCenterApiAuthenticationOperationRequestMap,
+} from "./full-api.generated/client/authentication-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiCampaignControlGeneratedClient,
+  EightByEightContactCenterApiCampaignControlGeneratedFunctionNames,
+  type EightByEightContactCenterApiCampaignControlGeneratedClient,
+  type EightByEightContactCenterApiCampaignControlOperationPathParamMap,
+  type EightByEightContactCenterApiCampaignControlOperationRequestMap,
+} from "./full-api.generated/client/campaign-control-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiCardsGeneratedClient,
+  EightByEightContactCenterApiCardsGeneratedFunctionNames,
+  type EightByEightContactCenterApiCardsGeneratedClient,
+  type EightByEightContactCenterApiCardsOperationPathParamMap,
+  type EightByEightContactCenterApiCardsOperationRequestMap,
+} from "./full-api.generated/client/cards-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiChannelsGeneratedClient,
+  EightByEightContactCenterApiChannelsGeneratedFunctionNames,
+  type EightByEightContactCenterApiChannelsGeneratedClient,
+  type EightByEightContactCenterApiChannelsOperationPathParamMap,
+  type EightByEightContactCenterApiChannelsOperationRequestMap,
+} from "./full-api.generated/client/channels-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiChatGeneratedClient,
+  EightByEightContactCenterApiChatGeneratedFunctionNames,
+  type EightByEightContactCenterApiChatGeneratedClient,
+  type EightByEightContactCenterApiChatOperationPathParamMap,
+  type EightByEightContactCenterApiChatOperationRequestMap,
+} from "./full-api.generated/client/chat-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiConversationsGeneratedClient,
+  EightByEightContactCenterApiConversationsGeneratedFunctionNames,
+  type EightByEightContactCenterApiConversationsGeneratedClient,
+  type EightByEightContactCenterApiConversationsOperationPathParamMap,
+  type EightByEightContactCenterApiConversationsOperationRequestMap,
+} from "./full-api.generated/client/conversations-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiEvaluationsGeneratedClient,
+  EightByEightContactCenterApiEvaluationsGeneratedFunctionNames,
+  type EightByEightContactCenterApiEvaluationsGeneratedClient,
+  type EightByEightContactCenterApiEvaluationsOperationPathParamMap,
+  type EightByEightContactCenterApiEvaluationsOperationRequestMap,
+} from "./full-api.generated/client/evaluations-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiExternalCampaignAPIGeneratedClient,
+  EightByEightContactCenterApiExternalCampaignAPIGeneratedFunctionNames,
+  type EightByEightContactCenterApiExternalCampaignAPIGeneratedClient,
+  type EightByEightContactCenterApiExternalCampaignAPIOperationPathParamMap,
+  type EightByEightContactCenterApiExternalCampaignAPIOperationRequestMap,
+} from "./full-api.generated/client/external-campaign-api-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiGroupsGeneratedClient,
+  EightByEightContactCenterApiGroupsGeneratedFunctionNames,
+  type EightByEightContactCenterApiGroupsGeneratedClient,
+  type EightByEightContactCenterApiGroupsOperationPathParamMap,
+  type EightByEightContactCenterApiGroupsOperationRequestMap,
+} from "./full-api.generated/client/groups-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiInteractionsGeneratedClient,
+  EightByEightContactCenterApiInteractionsGeneratedFunctionNames,
+  type EightByEightContactCenterApiInteractionsGeneratedClient,
+  type EightByEightContactCenterApiInteractionsOperationPathParamMap,
+  type EightByEightContactCenterApiInteractionsOperationRequestMap,
+} from "./full-api.generated/client/interactions-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiJwkKeysGeneratedClient,
+  EightByEightContactCenterApiJwkKeysGeneratedFunctionNames,
+  type EightByEightContactCenterApiJwkKeysGeneratedClient,
+  type EightByEightContactCenterApiJwkKeysOperationPathParamMap,
+  type EightByEightContactCenterApiJwkKeysOperationRequestMap,
+} from "./full-api.generated/client/jwk-keys-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiMessagesGeneratedClient,
+  EightByEightContactCenterApiMessagesGeneratedFunctionNames,
+  type EightByEightContactCenterApiMessagesGeneratedClient,
+  type EightByEightContactCenterApiMessagesOperationPathParamMap,
+  type EightByEightContactCenterApiMessagesOperationRequestMap,
+} from "./full-api.generated/client/messages-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiParticipantsGeneratedClient,
+  EightByEightContactCenterApiParticipantsGeneratedFunctionNames,
+  type EightByEightContactCenterApiParticipantsGeneratedClient,
+  type EightByEightContactCenterApiParticipantsOperationPathParamMap,
+  type EightByEightContactCenterApiParticipantsOperationRequestMap,
+} from "./full-api.generated/client/participants-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiPhoneCallsGeneratedClient,
+  EightByEightContactCenterApiPhoneCallsGeneratedFunctionNames,
+  type EightByEightContactCenterApiPhoneCallsGeneratedClient,
+  type EightByEightContactCenterApiPhoneCallsOperationPathParamMap,
+  type EightByEightContactCenterApiPhoneCallsOperationRequestMap,
+} from "./full-api.generated/client/phone-calls-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiQueuesGeneratedClient,
+  EightByEightContactCenterApiQueuesGeneratedFunctionNames,
+  type EightByEightContactCenterApiQueuesGeneratedClient,
+  type EightByEightContactCenterApiQueuesOperationPathParamMap,
+  type EightByEightContactCenterApiQueuesOperationRequestMap,
+} from "./full-api.generated/client/queues-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiRecordManagementGeneratedClient,
+  EightByEightContactCenterApiRecordManagementGeneratedFunctionNames,
+  type EightByEightContactCenterApiRecordManagementGeneratedClient,
+  type EightByEightContactCenterApiRecordManagementOperationPathParamMap,
+  type EightByEightContactCenterApiRecordManagementOperationRequestMap,
+} from "./full-api.generated/client/record-management-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiReportAccessGeneratedClient,
+  EightByEightContactCenterApiReportAccessGeneratedFunctionNames,
+  type EightByEightContactCenterApiReportAccessGeneratedClient,
+  type EightByEightContactCenterApiReportAccessOperationPathParamMap,
+  type EightByEightContactCenterApiReportAccessOperationRequestMap,
+} from "./full-api.generated/client/report-access-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiReportDefintionsGeneratedClient,
+  EightByEightContactCenterApiReportDefintionsGeneratedFunctionNames,
+  type EightByEightContactCenterApiReportDefintionsGeneratedClient,
+  type EightByEightContactCenterApiReportDefintionsOperationPathParamMap,
+  type EightByEightContactCenterApiReportDefintionsOperationRequestMap,
+} from "./full-api.generated/client/report-defintions-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiSpeechAnalyticsGeneratedClient,
+  EightByEightContactCenterApiSpeechAnalyticsGeneratedFunctionNames,
+  type EightByEightContactCenterApiSpeechAnalyticsGeneratedClient,
+  type EightByEightContactCenterApiSpeechAnalyticsOperationPathParamMap,
+  type EightByEightContactCenterApiSpeechAnalyticsOperationRequestMap,
+} from "./full-api.generated/client/speech-analytics-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiUsersGeneratedClient,
+  EightByEightContactCenterApiUsersGeneratedFunctionNames,
+  type EightByEightContactCenterApiUsersGeneratedClient,
+  type EightByEightContactCenterApiUsersOperationPathParamMap,
+  type EightByEightContactCenterApiUsersOperationRequestMap,
+} from "./full-api.generated/client/users-chunk.generated.js";
+import {
+  createEightByEightContactCenterApiWebHooksGeneratedClient,
+  EightByEightContactCenterApiWebHooksGeneratedFunctionNames,
+  type EightByEightContactCenterApiWebHooksGeneratedClient,
+  type EightByEightContactCenterApiWebHooksOperationPathParamMap,
+  type EightByEightContactCenterApiWebHooksOperationRequestMap,
+} from "./full-api.generated/client/web-hooks-chunk.generated.js";
+
+export type EightByEightContactCenterApiPathParamValue = string | number;
+export interface EightByEightContactCenterApiOperationPathParamMap extends EightByEightContactCenterApiAgentStatusOperationPathParamMap, EightByEightContactCenterApiAgentsOperationPathParamMap, EightByEightContactCenterApiAttachmentsOperationPathParamMap, EightByEightContactCenterApiAuthenticationOperationPathParamMap, EightByEightContactCenterApiCampaignControlOperationPathParamMap, EightByEightContactCenterApiCardsOperationPathParamMap, EightByEightContactCenterApiChannelsOperationPathParamMap, EightByEightContactCenterApiChatOperationPathParamMap, EightByEightContactCenterApiConversationsOperationPathParamMap, EightByEightContactCenterApiEvaluationsOperationPathParamMap, EightByEightContactCenterApiExternalCampaignAPIOperationPathParamMap, EightByEightContactCenterApiGroupsOperationPathParamMap, EightByEightContactCenterApiInteractionsOperationPathParamMap, EightByEightContactCenterApiJwkKeysOperationPathParamMap, EightByEightContactCenterApiMessagesOperationPathParamMap, EightByEightContactCenterApiParticipantsOperationPathParamMap, EightByEightContactCenterApiPhoneCallsOperationPathParamMap, EightByEightContactCenterApiQueuesOperationPathParamMap, EightByEightContactCenterApiRecordManagementOperationPathParamMap, EightByEightContactCenterApiReportAccessOperationPathParamMap, EightByEightContactCenterApiReportDefintionsOperationPathParamMap, EightByEightContactCenterApiSpeechAnalyticsOperationPathParamMap, EightByEightContactCenterApiUsersOperationPathParamMap, EightByEightContactCenterApiWebHooksOperationPathParamMap {}
+
+export type EightByEightContactCenterApiOperationKey = keyof EightByEightContactCenterApiOperationPathParamMap & string;
+
+export type EightByEightContactCenterApiOperationQueryInput<OperationKey extends EightByEightContactCenterApiOperationKey> =
+  EightByEightContactCenterApiOperationQueryRequiredMap[OperationKey] extends true
+    ? { query: EightByEightContactCenterApiOperationQueryMap[OperationKey] }
+    : { query?: EightByEightContactCenterApiOperationQueryMap[OperationKey] };
+
+export type EightByEightContactCenterApiOperationBodyInput<OperationKey extends EightByEightContactCenterApiOperationKey> =
+  [EightByEightContactCenterApiOperationRequestBodyMap[OperationKey]] extends [never]
+    ? { body?: never }
+    : EightByEightContactCenterApiOperationRequestBodyRequiredMap[OperationKey] extends true
+      ? { body: EightByEightContactCenterApiOperationRequestBodyMap[OperationKey] }
+      : { body?: EightByEightContactCenterApiOperationRequestBodyMap[OperationKey] };
+
+export type EightByEightContactCenterApiOperationInput<OperationKey extends EightByEightContactCenterApiOperationKey> = Omit<EightByEightOperationRequestInput, "pathParams" | "query" | "body"> & (
+  {} extends EightByEightContactCenterApiOperationPathParamMap[OperationKey]
+    ? { pathParams?: never }
+    : { pathParams: EightByEightContactCenterApiOperationPathParamMap[OperationKey] }
+) & EightByEightContactCenterApiOperationQueryInput<OperationKey> & EightByEightContactCenterApiOperationBodyInput<OperationKey>;
+
+export interface EightByEightContactCenterApiOperationRequestMap extends EightByEightContactCenterApiAgentStatusOperationRequestMap, EightByEightContactCenterApiAgentsOperationRequestMap, EightByEightContactCenterApiAttachmentsOperationRequestMap, EightByEightContactCenterApiAuthenticationOperationRequestMap, EightByEightContactCenterApiCampaignControlOperationRequestMap, EightByEightContactCenterApiCardsOperationRequestMap, EightByEightContactCenterApiChannelsOperationRequestMap, EightByEightContactCenterApiChatOperationRequestMap, EightByEightContactCenterApiConversationsOperationRequestMap, EightByEightContactCenterApiEvaluationsOperationRequestMap, EightByEightContactCenterApiExternalCampaignAPIOperationRequestMap, EightByEightContactCenterApiGroupsOperationRequestMap, EightByEightContactCenterApiInteractionsOperationRequestMap, EightByEightContactCenterApiJwkKeysOperationRequestMap, EightByEightContactCenterApiMessagesOperationRequestMap, EightByEightContactCenterApiParticipantsOperationRequestMap, EightByEightContactCenterApiPhoneCallsOperationRequestMap, EightByEightContactCenterApiQueuesOperationRequestMap, EightByEightContactCenterApiRecordManagementOperationRequestMap, EightByEightContactCenterApiReportAccessOperationRequestMap, EightByEightContactCenterApiReportDefintionsOperationRequestMap, EightByEightContactCenterApiSpeechAnalyticsOperationRequestMap, EightByEightContactCenterApiUsersOperationRequestMap, EightByEightContactCenterApiWebHooksOperationRequestMap {}
+
+export type EightByEightContactCenterApiOperationArgs<OperationKey extends EightByEightContactCenterApiOperationKey> = {} extends EightByEightContactCenterApiOperationPathParamMap[OperationKey]
+  ? [input?: EightByEightContactCenterApiOperationRequestMap[OperationKey]]
+  : [input: EightByEightContactCenterApiOperationRequestMap[OperationKey]];
+
+export type EightByEightGeneratedOperationCaller = <OperationKey extends EightByEightContactCenterApiOperationKey>(
+  operationKey: OperationKey,
+  ...args: EightByEightContactCenterApiOperationArgs<OperationKey>
+) => Promise<EightByEightContactCenterApiOperationResponseMap[OperationKey]>;
+
+export interface EightByEightContactCenterApiGeneratedClient extends EightByEightContactCenterApiAgentStatusGeneratedClient, EightByEightContactCenterApiAgentsGeneratedClient, EightByEightContactCenterApiAttachmentsGeneratedClient, EightByEightContactCenterApiAuthenticationGeneratedClient, EightByEightContactCenterApiCampaignControlGeneratedClient, EightByEightContactCenterApiCardsGeneratedClient, EightByEightContactCenterApiChannelsGeneratedClient, EightByEightContactCenterApiChatGeneratedClient, EightByEightContactCenterApiConversationsGeneratedClient, EightByEightContactCenterApiEvaluationsGeneratedClient, EightByEightContactCenterApiExternalCampaignAPIGeneratedClient, EightByEightContactCenterApiGroupsGeneratedClient, EightByEightContactCenterApiInteractionsGeneratedClient, EightByEightContactCenterApiJwkKeysGeneratedClient, EightByEightContactCenterApiMessagesGeneratedClient, EightByEightContactCenterApiParticipantsGeneratedClient, EightByEightContactCenterApiPhoneCallsGeneratedClient, EightByEightContactCenterApiQueuesGeneratedClient, EightByEightContactCenterApiRecordManagementGeneratedClient, EightByEightContactCenterApiReportAccessGeneratedClient, EightByEightContactCenterApiReportDefintionsGeneratedClient, EightByEightContactCenterApiSpeechAnalyticsGeneratedClient, EightByEightContactCenterApiUsersGeneratedClient, EightByEightContactCenterApiWebHooksGeneratedClient {}
+
+export const EIGHT_BY_EIGHT_CONTACT_CENTER_API_GENERATED_FUNCTION_COUNT = 135 as const;
+export const EIGHT_BY_EIGHT_CONTACT_CENTER_API_GENERATED_FUNCTION_NAMES = [
+  ...EightByEightContactCenterApiAgentStatusGeneratedFunctionNames,
+  ...EightByEightContactCenterApiAgentsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiAttachmentsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiAuthenticationGeneratedFunctionNames,
+  ...EightByEightContactCenterApiCampaignControlGeneratedFunctionNames,
+  ...EightByEightContactCenterApiCardsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiChannelsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiChatGeneratedFunctionNames,
+  ...EightByEightContactCenterApiConversationsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiEvaluationsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiExternalCampaignAPIGeneratedFunctionNames,
+  ...EightByEightContactCenterApiGroupsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiInteractionsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiJwkKeysGeneratedFunctionNames,
+  ...EightByEightContactCenterApiMessagesGeneratedFunctionNames,
+  ...EightByEightContactCenterApiParticipantsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiPhoneCallsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiQueuesGeneratedFunctionNames,
+  ...EightByEightContactCenterApiRecordManagementGeneratedFunctionNames,
+  ...EightByEightContactCenterApiReportAccessGeneratedFunctionNames,
+  ...EightByEightContactCenterApiReportDefintionsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiSpeechAnalyticsGeneratedFunctionNames,
+  ...EightByEightContactCenterApiUsersGeneratedFunctionNames,
+  ...EightByEightContactCenterApiWebHooksGeneratedFunctionNames,
+] as const satisfies readonly (keyof EightByEightContactCenterApiGeneratedClient)[];
+
+export function createEightByEightContactCenterApiGeneratedClient(
+  callOperation: EightByEightGeneratedOperationCaller,
+): EightByEightContactCenterApiGeneratedClient {
+  return Object.assign(
+    {},
+    createEightByEightContactCenterApiAgentStatusGeneratedClient(callOperation),
+    createEightByEightContactCenterApiAgentsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiAttachmentsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiAuthenticationGeneratedClient(callOperation),
+    createEightByEightContactCenterApiCampaignControlGeneratedClient(callOperation),
+    createEightByEightContactCenterApiCardsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiChannelsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiChatGeneratedClient(callOperation),
+    createEightByEightContactCenterApiConversationsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiEvaluationsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiExternalCampaignAPIGeneratedClient(callOperation),
+    createEightByEightContactCenterApiGroupsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiInteractionsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiJwkKeysGeneratedClient(callOperation),
+    createEightByEightContactCenterApiMessagesGeneratedClient(callOperation),
+    createEightByEightContactCenterApiParticipantsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiPhoneCallsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiQueuesGeneratedClient(callOperation),
+    createEightByEightContactCenterApiRecordManagementGeneratedClient(callOperation),
+    createEightByEightContactCenterApiReportAccessGeneratedClient(callOperation),
+    createEightByEightContactCenterApiReportDefintionsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiSpeechAnalyticsGeneratedClient(callOperation),
+    createEightByEightContactCenterApiUsersGeneratedClient(callOperation),
+    createEightByEightContactCenterApiWebHooksGeneratedClient(callOperation),
+  ) as EightByEightContactCenterApiGeneratedClient;
+}
