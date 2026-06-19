@@ -13,8 +13,9 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
   });
   const collectRoute = booking.state("collectRoute")
     .instructions([
-      "A route-details form is shown when origin, destination, or departure date is missing.",
-      "When the form is visible, ask the customer to use the form below instead of asking them to send those values separately in chat.",
+      "In chat or web channels, a route-details form is shown when origin, destination, or departure date is missing.",
+      "When that form is visible, ask the customer to use the form below instead of asking them to send those values separately in chat.",
+      "In voice channels, no form or widget is shown; ask conversationally for one missing travel detail at a time and never tell the customer to use a form.",
       "Use one short sentence and do not repeat the same form instruction.",
       "Interpret relative travel dates using 2026-05-26 as today.",
       "Store departureDate as YYYY-MM-DD; for example, tomorrow is 2026-05-27.",

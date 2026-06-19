@@ -1,9 +1,9 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { StudioAgentIntrospection } from "@cognidesk/studio-contracts";
+import type { StudioAgentIntrospection, StudioConfigurationSurface } from "@cognidesk/studio-contracts";
 import { getStudioSession } from "@/server/auth";
 import { userRole } from "@/server/rbac";
-import { ensureDefaultTarget, fetchIntrospection, targetHealth } from "@/server/target";
+import { ensureDefaultTarget, fetchConfigurationSurface, fetchIntrospection, targetHealth } from "@/server/target";
 import type { DashboardRow, Health, User } from "@/components/studio/types";
 
 export async function requireStudioPageContext() {
@@ -42,6 +42,21 @@ export async function loadIntrospectionResult(): Promise<
       ok: false,
       value: null,
       error: error instanceof Error ? error.message : "Introspection failed",
+    };
+  }
+}
+
+export async function loadConfigurationResult(): Promise<
+  | { ok: true; value: StudioConfigurationSurface; error: null }
+  | { ok: false; value: null; error: string }
+> {
+  try {
+    return { ok: true, value: await fetchConfigurationSurface(), error: null };
+  } catch (error) {
+    return {
+      ok: false,
+      value: null,
+      error: error instanceof Error ? error.message : "Configuration surface failed",
     };
   }
 }

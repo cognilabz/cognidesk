@@ -1,0 +1,30 @@
+{
+  "models": {
+    "provider": "anthropic",
+    "apiKeyEnv": "ANTHROPIC_API_KEY",
+    "roles": {
+      "response": "claude-sonnet-4-5",
+      "compaction": "claude-sonnet-4-5",
+      "matcher": "claude-sonnet-4-5",
+      "extraction": "claude-sonnet-4-5",
+      "citationPostProcessing": "claude-sonnet-4-5",
+      "journeyEmbedding": "text-embedding-3-small"
+    },
+    "embedding": {
+      "provider": "openai",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    }
+  },
+  "voice": {
+    "provider": "google-speech",
+    "accessTokenEnv": "GOOGLE_CLOUD_ACCESS_TOKEN",
+    "languageCode": "en-US",
+    "voiceName": "en-US-Chirp3-HD-Achernar",
+    "speechToTextModel": "latest_short",
+    "audioEncoding": "LINEAR16"
+  },
+  "storage": {
+    "sqlitePath": ".data/flight-demo.sqlite",
+    "knowledgeIndexPath": ".data/knowledge-index.json"
+  }
+}

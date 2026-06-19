@@ -1,0 +1,118 @@
+import { defineProviderPackage } from "@cognidesk/core";
+
+export const cognideskStudioAdapterProviderManifest = defineProviderPackage({
+  id: "studio.adapter",
+  name: "Cognidesk Studio Adapter",
+  packageName: "@cognidesk/studio-adapter",
+  provider: "cognidesk",
+  category: "studio",
+  trustLevel: "official",
+  directions: ["bidirectional"],
+  channelAudiences: ["internal-support"],
+  coverage: {
+    scope: "local-protocol",
+    notes: [
+      "This package exposes Cognidesk Studio Target health, introspection, configuration, conversation inspection, and telemetry bridge endpoints for an SDK-user-mounted Studio Target.",
+      "It is not a general admin API, external provider API, Studio database API, artifact store API, source sandbox API, or RBAC service.",
+      "Configuration mutation is limited to forwarding validated operator change requests to an SDK-host-provided updateConfiguration handler; this package does not mutate SDK target configuration by itself.",
+    ],
+    evidence: [
+      { label: "CONTEXT.md Studio Adapter definition" },
+      { label: "CONTEXT.md Studio Introspection API definition" },
+      { label: "CONTEXT.md Studio Configuration Surface definition" },
+    ],
+  },
+  credentialRequirements: [
+    {
+      id: "studio-service-token",
+      label: "Studio service token",
+      description: "Optional bearer token used by Studio to authenticate to the target adapter.",
+      required: false,
+    },
+  ],
+  capabilities: [
+    {
+      capability: "studio.health",
+      label: "Target health",
+      description: "Exposes target health metadata for Studio.",
+      audiences: ["internal-support"],
+      providerObjects: [{ kind: "studioTarget", label: "Studio Target" }],
+      extension: true,
+    },
+    {
+      capability: "studio.introspection",
+      label: "Agent introspection",
+      description: "Exposes read-only agent, journey, tool, knowledge, and widget metadata to Studio.",
+      audiences: ["internal-support"],
+      providerObjects: [{ kind: "studioAgentIntrospection", label: "Studio Agent Introspection" }],
+      exposesSensitiveData: true,
+      extension: true,
+    },
+    {
+      capability: "studio.configuration",
+      label: "Derived configuration surface",
+      description: "Exposes channel and policy metadata derived from the compiled SDK target.",
+      audiences: ["internal-support"],
+      providerObjects: [{ kind: "studioConfigurationSurface", label: "Studio Configuration Surface" }],
+      exposesSensitiveData: true,
+      extension: true,
+    },
+    {
+      capability: "studio.configuration-mutation",
+      label: "Configuration mutation bridge",
+      description: "Forwards validated Studio operator configuration change requests to the SDK-host-provided updateConfiguration handler.",
+      audiences: ["internal-support"],
+      providerObjects: [{ kind: "studioConfigurationChange", label: "Studio Configuration Change" }],
+      sideEffect: true,
+      exposesSensitiveData: true,
+      changesWorkflow: true,
+      extension: true,
+    },
+    {
+      capability: "studio.conversations",
+      label: "Conversation inspection",
+      description: "Exposes configured Conversation summaries, Runtime Events, and Runtime Snapshots to Studio.",
+      audiences: ["internal-support"],
+      providerObjects: [
+        { kind: "conversation", label: "Conversation" },
+        { kind: "runtimeEvent", label: "Runtime Event" },
+        { kind: "runtimeSnapshot", label: "Runtime Snapshot" },
+      ],
+      exposesSensitiveData: true,
+      extension: true,
+    },
+    {
+      capability: "studio.telemetry",
+      label: "Telemetry bridge",
+      description: "Optionally exposes SDK-user-configured metrics and trace summaries to Studio.",
+      audiences: ["internal-support"],
+      providerObjects: [
+        { kind: "metricQuery", label: "Metric Query" },
+        { kind: "traceSummary", label: "Trace Summary" },
+      ],
+      exposesSensitiveData: true,
+      extension: true,
+    },
+  ],
+  privacyNotes: [
+    "The Studio Adapter is read-only for target runtime state in this package; optional configuration changes are delegated to SDK-host code.",
+    "Studio-visible data can include instructions, tool metadata, knowledge names, conversation data, derived channel policy metadata, and telemetry summaries.",
+  ],
+  limitations: [
+    "The adapter does not mutate SDK target configuration without an SDK-host-provided updateConfiguration handler.",
+    "Provider readiness, credential grants, and external integration checks must be derived from SDK/provider code paths, not a parallel Studio config surface.",
+    "Live readiness depends on mounting the adapter behind the SDK user's service authentication and network boundary.",
+  ],
+  metadata: {
+    surfaceCoverage: {
+      health: "typed-read",
+      introspection: "typed-read",
+      derivedConfiguration: "typed-read",
+      configurationMutation: "delegated-to-host-handler",
+      conversations: "typed-read",
+      telemetry: "delegated-read",
+      externalProviderCredentials: "not-covered",
+    },
+  },
+  maintainers: [{ name: "Cognidesk", type: "official" }],
+});

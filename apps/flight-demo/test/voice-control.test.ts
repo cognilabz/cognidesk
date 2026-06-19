@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRuntime, type CognideskRuntime, type CompiledAgent } from "@cognidesk/core";
+import { createRuntime, type AgentModelSet, type CognideskRuntime, type CompiledAgent, type ModelAdapter } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import type { VoiceControlNotification, VoiceSocketSession } from "@cognidesk/voice-websocket";
 import { createFlightDemoRuntimeParts } from "../server/flight-agent.js";
@@ -105,16 +105,53 @@ describe("flight demo voice control", () => {
     expect(replay.messages.filter((message) => message.role === "user")).toHaveLength(1);
     expect(replay.messages.filter((message) => message.role === "assistant")).toHaveLength(0);
   });
+
+  it("does not tell voice customers to use a missing route form", async () => {
+    const { runtime, agent, models, knowledgeIndex, session } = await setupVoiceControlRuntime(createFormReferencingVoiceModelSet());
+    const surface = createFlightDemoVoiceControlSurface({ runtime, agent, models, knowledgeIndex });
+
+    await runtime.commitVoiceTranscript({
+      conversationId: session.conversation.id,
+      channelSegmentId: session.channelSegment.id,
+      speaker: "user",
+      text: "Ich möchte einen Flug buchen.",
+      transcriptionSource: "test",
+    });
+
+    const result = await surface.handleToolCall({
+      session,
+      name: "submit_voice_journey_proposal",
+      arguments: {
+        intent: "advance_journey",
+        userTranscript: "Ich möchte einen Flug buchen.",
+        targetJourneyId: "book-flight",
+        background: false,
+      },
+      callId: "call_1",
+      signal: new AbortController().signal,
+    });
+
+    const resultText = String((result.output as { resultText?: unknown }).resultText ?? "");
+    expect(result.output).toMatchObject({
+      ok: true,
+      status: "completed",
+      targetJourneyId: "book-flight",
+    });
+    expect(resultText).toMatch(/Von wo nach wo/);
+    expect(resultText).not.toMatch(/\bform(?:ular)?\b/i);
+
+    const replay = await runtime.replayConversation({ conversationId: session.conversation.id });
+    expect(replay.openPrompts).toEqual([]);
+  });
 });
 
-async function setupVoiceControlRuntime(): Promise<{
+async function setupVoiceControlRuntime(models = createTestModelSet()): Promise<{
   runtime: CognideskRuntime;
   agent: CompiledAgent;
-  models: ReturnType<typeof createTestModelSet>;
+  models: AgentModelSet;
   knowledgeIndex: FlightKnowledgeIndex;
   session: VoiceSocketSession;
 }> {
-  const models = createTestModelSet();
   const knowledgeIndex = await createTestKnowledgeIndex(models);
   const { agent, journeyIndex } = await createFlightDemoRuntimeParts({
     config: testConfig,
@@ -143,6 +180,24 @@ async function setupVoiceControlRuntime(): Promise<{
     knowledgeIndex,
     session,
   };
+}
+
+function createFormReferencingVoiceModelSet(): AgentModelSet {
+  const models = createTestModelSet();
+  const baseResponse = models.response;
+  const response: ModelAdapter = {
+    ...baseResponse,
+    generateText: async (input) => {
+      if (input.role === "response") {
+        return {
+          text: "Gern — bitte nutze das Formular für Abflug, Ziel und Reisedatum.",
+          usage: { inputTokens: 10, outputTokens: 10, totalTokens: 20 },
+        };
+      }
+      return baseResponse.generateText(input);
+    },
+  };
+  return { ...models, response };
 }
 
 async function waitFor(assertion: () => boolean, timeoutMs = 1_000) {

@@ -1,0 +1,39 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - strong [ref=e7]: Voice
+        - generic [ref=e8]: Ready
+      - generic [ref=e9]:
+        - button "Start" [ref=e10] [cursor=pointer]
+        - button "Mute" [disabled] [ref=e11]
+    - generic [ref=e12]:
+      - generic [ref=e13]: Flight support
+      - log [ref=e14]:
+        - generic [ref=e18]: Find flights from Vienna to Berlin on 2026-05-27.
+        - generic [ref=e26]:
+          - paragraph [ref=e27]: "I found 1 available flight from Vienna to Berlin on 2026-05-27:"
+          - list [ref=e28]:
+            - listitem [ref=e29]: "CL102 — Vienna → Berlin Departure: 10:30 Status: scheduled Price: 205"
+          - paragraph [ref=e30]: If you want, you can choose CL102.
+        - generic [ref=e32]:
+          - generic [ref=e34]: Choose this flight
+          - button "CL102 — Vienna to Berlin 2026-05-27 10:30 · €205 · scheduled" [disabled] [ref=e36]:
+            - generic [ref=e37]: CL102 — Vienna to Berlin
+            - generic [ref=e38]: 2026-05-27 10:30 · €205 · scheduled
+        - paragraph [ref=e41]: CL102 — Vienna → Berlin, 2026-05-27 10:30:00+02:00, €205 selected. Please add the passenger name to continue.
+        - generic [ref=e43]:
+          - generic [ref=e45]: Passenger name
+          - textbox "Passenger name" [disabled] [ref=e46]:
+            - /placeholder: Alex Morgan
+            - text: Alex Morgan
+        - generic [ref=e49]:
+          - strong [ref=e50]: Confirm mocked booking
+          - generic [ref=e51]: "Review the mocked booking details before creating the booking. Selected Flight Id: CL102 Passenger Name: Alex Morgan Flight: CL102 — Vienna to Berlin — 2026-05-27 10:30 — €205"
+          - generic [ref=e52]:
+            - button "Confirm" [ref=e53] [cursor=pointer]
+            - button "Not now" [ref=e54] [cursor=pointer]
+      - generic [ref=e15]:
+        - textbox "Message" [ref=e16]:
+          - /placeholder: Ask about booking, ticket status, or flight info
+        - button "Send" [disabled] [ref=e17]

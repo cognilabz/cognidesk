@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { flightDemoRoot, loadFlightDemoConfig, requireConfiguredApiKey, resolveFlightDemoPath } from "./config.js";
+import { flightDemoRoot, loadFlightDemoConfig, requireConfiguredModelApiKeys, resolveFlightDemoPath } from "./config.js";
 import { createConfiguredModelSet } from "./flight-agent.js";
 import {
   buildFlightKnowledgeIndex,
@@ -8,8 +8,8 @@ import {
 } from "./knowledge-index.js";
 
 const config = await loadFlightDemoConfig();
-const apiKey = requireConfiguredApiKey(config);
-const embeddingModel = createConfiguredModelSet(config, apiKey).journeyEmbedding;
+const apiKeys = requireConfiguredModelApiKeys(config);
+const embeddingModel = createConfiguredModelSet(config, apiKeys).journeyEmbedding;
 
 const documents = await loadFlightKnowledgeDocuments(join(flightDemoRoot(), "knowledge", "documents.json"));
 const index = await buildFlightKnowledgeIndex({ documents, embeddingModel });

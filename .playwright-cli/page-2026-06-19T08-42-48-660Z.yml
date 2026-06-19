@@ -1,0 +1,33 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - strong [ref=e7]: Voice
+        - generic [ref=e8]: Ready
+      - generic [ref=e9]:
+        - button "Start" [ref=e10] [cursor=pointer]
+        - button "Mute" [disabled] [ref=e11]
+    - generic [ref=e12]:
+      - generic [ref=e13]: Flight support
+      - log [ref=e14]:
+        - generic [ref=e18]: Find flights from Vienna to Berlin tomorrow.
+        - generic [ref=e23]:
+          - paragraph [ref=e24]: "I found 1 flight from Vienna to Berlin on 2026-05-27:"
+          - list [ref=e25]:
+            - listitem [ref=e26]: CL102 — 10:30 AM, scheduled, €205
+          - paragraph [ref=e27]: If you want, you can pick CL102 and I’ll help with the next step.
+        - generic [ref=e29]:
+          - generic [ref=e31]: Choose this flight
+          - button "CL102 — Vienna to Berlin 2026-05-27 10:30 · €205 · scheduled" [disabled] [ref=e33]:
+            - generic [ref=e34]: CL102 — Vienna to Berlin
+            - generic [ref=e35]: 2026-05-27 10:30 · €205 · scheduled
+        - paragraph [ref=e38]: CL102 — Vienna → Berlin, 2026-05-27 10:30:00+02:00, €205 selected. Please add the passenger name to continue.
+        - generic [ref=e40]:
+          - generic [ref=e42]: Passenger name
+          - textbox "Passenger name" [disabled] [ref=e43]:
+            - /placeholder: Alex Morgan
+            - text: Alex Morgan
+      - generic [ref=e15]:
+        - textbox "Message" [ref=e16]:
+          - /placeholder: Ask about booking, ticket status, or flight info
+        - button "Send" [disabled] [ref=e17]

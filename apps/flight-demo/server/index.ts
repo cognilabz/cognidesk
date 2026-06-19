@@ -2,9 +2,21 @@ import { createServer, type IncomingMessage } from "node:http";
 import { once } from "node:events";
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
+import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
+import { StartStreamTranscriptionCommand, TranscribeStreamingClient } from "@aws-sdk/client-transcribe-streaming";
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createRuntime } from "@cognidesk/core";
-import { createOpenAIVoiceProvider } from "@cognidesk/voice-openai";
+import {
+  createAwsSpeechVoiceProvider,
+  type AwsPollySynthesizeCommandInput,
+  type AwsSdkCommandConstructor,
+  type AwsTranscribeStreamingCommandInput,
+} from "@cognidesk/integrations/voice/aws-speech";
+import { createAzureSpeechVoiceProvider } from "@cognidesk/integrations/voice/azure-speech";
+import { createDeepgramSpeechVoiceProvider } from "@cognidesk/integrations/voice/deepgram";
+import { createElevenLabsSpeechVoiceProvider } from "@cognidesk/integrations/voice/elevenlabs";
+import { createGoogleSpeechVoiceProvider } from "@cognidesk/integrations/voice/google-speech";
+import { createOpenAIVoiceProvider } from "@cognidesk/integrations/voice/openai";
 import {
   attachNodeVoiceWebSocketAdapter,
   createInMemoryVoiceSessionStore,
@@ -13,7 +25,13 @@ import {
 import { startCognideskDemoTelemetrySeed, startCognideskOtel } from "@cognidesk/otel";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
-import { getConfiguredVoiceApiKey, loadFlightDemoConfig, resolveFlightDemoPath } from "./config.js";
+import {
+  getConfiguredVoiceProviderSecrets,
+  loadFlightDemoConfig,
+  resolveFlightDemoPath,
+  type ConfiguredVoiceProviderSecrets,
+  type FlightDemoConfig,
+} from "./config.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";
 import { createFlightDemoVoiceControlSurface } from "./voice-control.js";
 
@@ -41,15 +59,9 @@ await mkdir(dirname(sqlitePath), { recursive: true });
 
 const { agent, models, journeyIndex, knowledgeIndex } = await createFlightDemoRuntimeParts({ config });
 const storage = createSqliteStorage({ filename: sqlitePath });
-const voiceApiKey = getConfiguredVoiceApiKey(config);
+const voiceSecrets = getConfiguredVoiceProviderSecrets(config);
 const voiceSessionStore = createInMemoryVoiceSessionStore();
-const voiceProvider = voiceApiKey
-  ? createOpenAIVoiceProvider({
-      apiKey: voiceApiKey,
-      ...(config.voice?.voice ? { voice: config.voice.voice } : {}),
-      ...(config.voice?.transcriptionLanguage ? { transcriptionLanguage: config.voice.transcriptionLanguage } : {}),
-    })
-  : null;
+const voiceProvider = createConfiguredVoiceProvider(config, voiceSecrets);
 const runtime = createRuntime({
   storage,
   agent,
@@ -161,6 +173,99 @@ server.on("close", () => {
   demoTelemetrySeed?.shutdown();
   void otel?.shutdown().catch(() => undefined);
 });
+
+function createConfiguredVoiceProvider(
+  config: FlightDemoConfig,
+  secrets: ConfiguredVoiceProviderSecrets | undefined,
+) {
+  if (!config.voice || !secrets) return null;
+  switch (config.voice.provider) {
+    case "openai": {
+      if (secrets.provider !== "openai") throw new Error("OpenAI voice configuration received mismatched credentials.");
+      return createOpenAIVoiceProvider({
+        apiKey: secrets.apiKey,
+        ...(config.voice.voice ? { voice: config.voice.voice } : {}),
+        ...(config.voice.transcriptionLanguage ? { transcriptionLanguage: config.voice.transcriptionLanguage } : {}),
+      });
+    }
+    case "elevenlabs": {
+      if (secrets.provider !== "elevenlabs") {
+        throw new Error("ElevenLabs voice configuration received mismatched credentials.");
+      }
+      return createElevenLabsSpeechVoiceProvider({
+        apiKey: secrets.apiKey,
+        voiceId: config.voice.voiceId,
+        ...(config.voice.textToSpeechModelId ? { textToSpeechModelId: config.voice.textToSpeechModelId } : {}),
+        ...(config.voice.speechToTextModelId ? { speechToTextModelId: config.voice.speechToTextModelId } : {}),
+        ...(config.voice.languageCode !== undefined ? { languageCode: config.voice.languageCode } : {}),
+        ...(config.voice.outputFormat ? { outputFormat: config.voice.outputFormat } : {}),
+      });
+    }
+    case "azure-speech": {
+      if (secrets.provider !== "azure-speech") {
+        throw new Error("Azure Speech voice configuration received mismatched credentials.");
+      }
+      return createAzureSpeechVoiceProvider({
+        speechKey: secrets.speechKey,
+        region: secrets.region,
+        voiceName: config.voice.voiceName,
+        ...(config.voice.language ? { language: config.voice.language } : {}),
+        ...(config.voice.outputFormat ? { outputFormat: config.voice.outputFormat } : {}),
+      });
+    }
+    case "aws-speech": {
+      if (secrets.provider !== "aws-speech") {
+        throw new Error("AWS Speech voice configuration received mismatched credentials.");
+      }
+      const awsClientOptions = {
+        region: secrets.region,
+        credentials: {
+          accessKeyId: secrets.accessKeyId,
+          secretAccessKey: secrets.secretAccessKey,
+          ...(secrets.sessionToken ? { sessionToken: secrets.sessionToken } : {}),
+        },
+      };
+      const startStreamTranscriptionCommand =
+        StartStreamTranscriptionCommand as unknown as AwsSdkCommandConstructor<AwsTranscribeStreamingCommandInput>;
+      const synthesizeSpeechCommand =
+        SynthesizeSpeechCommand as unknown as AwsSdkCommandConstructor<AwsPollySynthesizeCommandInput>;
+      return createAwsSpeechVoiceProvider({
+        transcribeStreamingClient: new TranscribeStreamingClient(awsClientOptions),
+        StartStreamTranscriptionCommand: startStreamTranscriptionCommand,
+        pollyClient: new PollyClient(awsClientOptions),
+        SynthesizeSpeechCommand: synthesizeSpeechCommand,
+        voiceId: config.voice.voiceId,
+        languageCode: config.voice.languageCode,
+        ...(config.voice.engine ? { engine: config.voice.engine } : {}),
+        ...(config.voice.outputFormat ? { outputFormat: config.voice.outputFormat } : {}),
+      });
+    }
+    case "google-speech": {
+      if (secrets.provider !== "google-speech") {
+        throw new Error("Google Cloud Speech voice configuration received mismatched credentials.");
+      }
+      return createGoogleSpeechVoiceProvider({
+        voiceName: config.voice.voiceName,
+        accessToken: secrets.accessToken,
+        languageCode: config.voice.languageCode,
+        ...(config.voice.speechToTextModel ? { recognitionModel: config.voice.speechToTextModel } : {}),
+        ...(config.voice.audioEncoding ? { audioEncoding: config.voice.audioEncoding } : {}),
+      });
+    }
+    case "deepgram": {
+      if (secrets.provider !== "deepgram") {
+        throw new Error("Deepgram voice configuration received mismatched credentials.");
+      }
+      return createDeepgramSpeechVoiceProvider({
+        apiKey: secrets.apiKey,
+        textToSpeechModel: config.voice.textToSpeechModel,
+        ...(config.voice.speechToTextModel ? { speechToTextModel: config.voice.speechToTextModel } : {}),
+        ...(config.voice.language ? { language: config.voice.language } : {}),
+        ...(config.voice.encoding ? { encoding: config.voice.encoding } : {}),
+      });
+    }
+  }
+}
 
 function toWebRequest(request: IncomingMessage, port: number) {
   const host = request.headers.host ?? `localhost:${port}`;

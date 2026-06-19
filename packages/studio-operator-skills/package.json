@@ -14,11 +14,12 @@
   },
   "files": [
     "dist",
+    "!dist/**/*.map",
     "skill-pack.json",
     "skills"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --sourcemap",
+    "build": "tsup src/index.ts --format esm --dts --clean",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "tsc -p tsconfig.json --noEmit"

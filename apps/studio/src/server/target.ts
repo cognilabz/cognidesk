@@ -2,9 +2,11 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import {
   StudioAgentIntrospectionSchema,
+  StudioConfigurationSurfaceSchema,
   StudioDashboardDataQuerySchema,
   StudioTargetManifestSchema,
   type StudioAgentIntrospection,
+  type StudioConfigurationSurface,
   type StudioDashboardDataQuery,
   type StudioTargetManifest,
 } from "@cognidesk/studio-contracts";
@@ -83,6 +85,13 @@ export async function fetchIntrospection(): Promise<StudioAgentIntrospection> {
   return StudioAgentIntrospectionSchema.parse(await response.json());
 }
 
+export async function fetchConfigurationSurface(): Promise<StudioConfigurationSurface> {
+  const manifest = await currentTarget();
+  const response = await adapterFetch(manifest, "/configuration");
+  if (!response.ok) throw new Error(`Studio Adapter configuration returned ${response.status}`);
+  return StudioConfigurationSurfaceSchema.parse(await response.json());
+}
+
 export async function fetchConversationEvents(conversationId: string, afterOffset = 0) {
   const manifest = await currentTarget();
   const response = await adapterFetch(manifest, `/conversations/${encodeURIComponent(conversationId)}/events?afterOffset=${afterOffset}`);
@@ -107,6 +116,14 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
         source: parsed,
         capturedAt: new Date().toISOString(),
         data: await fetchIntrospection(),
+      };
+    case "cognidesk.configuration":
+      return {
+        id: randomUUID(),
+        title: "Studio Configuration Surface",
+        source: parsed,
+        capturedAt: new Date().toISOString(),
+        data: await fetchConfigurationSurface(),
       };
     case "cognidesk.conversations":
       return {

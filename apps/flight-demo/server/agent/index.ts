@@ -2,11 +2,13 @@ import {
   buildJourneyIndex,
   createAgent,
   type AgentModelSet,
+  type VoiceModelSet,
 } from "@cognidesk/core";
 import {
   loadFlightDemoConfig,
-  requireConfiguredApiKey,
+  requireConfiguredModelApiKeys,
   resolveFlightDemoPath,
+  type ConfiguredModelApiKeys,
   type FlightDemoConfig,
 } from "../config.js";
 import {
@@ -19,8 +21,7 @@ import { addBookFlightJourney } from "./journeys/book-flight.js";
 import { addHandoffJourney } from "./journeys/handoff.js";
 import { addTicketStatusJourney } from "./journeys/ticket-status.js";
 import { createFlightKnowledgeSource } from "./knowledge/source.js";
-import { createOpenAIModelSet } from "./models/openai-model-set.js";
-import { createOpenRouterModelSet } from "./models/openrouter-model-set.js";
+import { createAiSdkModelSet } from "./models/ai-sdk-model-set.js";
 import { flightTools } from "./tools/flight-tools.js";
 
 export interface CreateFlightDemoRuntimePartsOptions {
@@ -31,7 +32,7 @@ export interface CreateFlightDemoRuntimePartsOptions {
 
 export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRuntimePartsOptions = {}) {
   const config = options.config ?? await loadFlightDemoConfig();
-  const models = options.models ?? createConfiguredModelSet(config, requireConfiguredApiKey(config));
+  const models = options.models ?? createConfiguredModelSet(config, requireConfiguredModelApiKeys(config));
   const knowledgeIndex = options.knowledgeIndex
     ?? await loadFlightKnowledgeIndex(resolveFlightDemoPath(config.storage.knowledgeIndexPath));
   assertCompatibleKnowledgeIndex(knowledgeIndex, models.journeyEmbedding);
@@ -40,6 +41,7 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
     index: knowledgeIndex,
     embeddingModel: models.journeyEmbedding,
   });
+  const voiceModelSet = createFlightDemoVoiceModelSet(config);
   const agent = createAgent("flight-service", {
     logLevel: "debug",
     instructions: [
@@ -70,11 +72,7 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
       "If the user says 'Hallo', treat it as German unless they clearly continue in another language.",
       "Reply in the language the user is using, and code-switch only when the user does.",
     ].join("\n"),
-    modelSet: {
-      provider: "openai",
-      model: "gpt-realtime-2",
-      ...(config.voice?.voice ? { voice: config.voice.voice } : {}),
-    },
+    modelSet: voiceModelSet,
     recording: {
       enabled: false,
     },
@@ -100,13 +98,61 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
   return { agent: compiledAgent, models, journeyIndex, knowledgeIndex };
 }
 
-export function createConfiguredModelSet(config: FlightDemoConfig, apiKey: string): AgentModelSet {
-  if (config.models.provider === "openrouter") {
-    return createOpenRouterModelSet(config.models, apiKey);
+function createFlightDemoVoiceModelSet(config: FlightDemoConfig): VoiceModelSet {
+  if (!config.voice) {
+    return {
+      provider: "openai",
+      model: "gpt-realtime-2",
+    };
   }
-  return createOpenAIModelSet(config.models, apiKey);
+  switch (config.voice.provider) {
+    case "openai":
+      return {
+        provider: "openai",
+        model: "gpt-realtime-2",
+        ...(config.voice.voice ? { voice: config.voice.voice } : {}),
+      };
+    case "elevenlabs":
+      return {
+        provider: "elevenlabs",
+        model: config.voice.textToSpeechModelId ?? "elevenlabs-speech",
+        voice: config.voice.voiceId,
+      };
+    case "azure-speech":
+      return {
+        provider: "azure-speech",
+        model: "azure-speech-stt-tts",
+        voice: config.voice.voiceName,
+      };
+    case "aws-speech":
+      return {
+        provider: "aws-speech",
+        model: "aws-transcribe-polly",
+        voice: config.voice.voiceId,
+      };
+    case "google-speech":
+      return {
+        provider: "google-speech",
+        model: config.voice.textToSpeechModel ?? "google-speech-tts",
+        voice: config.voice.voiceName,
+      };
+    case "deepgram":
+      return {
+        provider: "deepgram",
+        model: config.voice.textToSpeechModel,
+        voice: config.voice.textToSpeechModel,
+      };
+  }
 }
 
+export function createConfiguredModelSet(
+  config: FlightDemoConfig,
+  apiKeys: ConfiguredModelApiKeys | string,
+): AgentModelSet {
+  return createAiSdkModelSet(config.models, apiKeys);
+}
+
+export { createAiSdkModelSet } from "./models/ai-sdk-model-set.js";
 export { createOpenAIModelSet } from "./models/openai-model-set.js";
 export { createOpenRouterModelSet } from "./models/openrouter-model-set.js";
 export { flightTools } from "./tools/flight-tools.js";

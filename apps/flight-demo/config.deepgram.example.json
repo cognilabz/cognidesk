@@ -1,0 +1,30 @@
+{
+  "models": {
+    "provider": "anthropic",
+    "apiKeyEnv": "ANTHROPIC_API_KEY",
+    "roles": {
+      "response": "claude-sonnet-4-5",
+      "compaction": "claude-sonnet-4-5",
+      "matcher": "claude-sonnet-4-5",
+      "extraction": "claude-sonnet-4-5",
+      "citationPostProcessing": "claude-sonnet-4-5",
+      "journeyEmbedding": "text-embedding-3-small"
+    },
+    "embedding": {
+      "provider": "openai",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    }
+  },
+  "voice": {
+    "provider": "deepgram",
+    "apiKeyEnv": "DEEPGRAM_API_KEY",
+    "language": "en-US",
+    "speechToTextModel": "nova-3",
+    "textToSpeechModel": "aura-2-thalia-en",
+    "encoding": "linear16"
+  },
+  "storage": {
+    "sqlitePath": ".data/flight-demo.sqlite",
+    "knowledgeIndexPath": ".data/knowledge-index.json"
+  }
+}
