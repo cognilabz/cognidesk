@@ -10,6 +10,7 @@ import {
   handoffCategoryProfile,
   integrationProviderReferences,
   integrationCategoryProfiles,
+  isIntegrationProviderReferenceAvailable,
   loadProviderIntegrationManifest,
   messagingCategoryProfile,
   requireIntegrationCategoryProfile,
@@ -206,13 +207,25 @@ describe("integration category profiles", () => {
     })).toThrow("Integration category profile 'bad-ticketing' declares operation alias");
   });
 
-  it("attaches category profiles and operation declarations to all matching provider manifests", async () => {
+  it("does not advertise provider modules that are absent from this PR slice", async () => {
+    expect(integrationProviderReferences).toEqual([]);
+    expect(isIntegrationProviderReferenceAvailable("ticketing.zendesk")).toBe(false);
+    await expect(loadProviderIntegrationManifest({
+      id: "ticketing.zendesk",
+      category: "ticketing",
+      provider: "zendesk",
+      importPath: "@cognidesk/integrations/ticketing/zendesk",
+      modulePath: "./ticketing/zendesk/index.js",
+      manifestExport: "zendeskTicketingProviderManifest",
+    })).rejects.toThrow("not available in this @cognidesk/integrations slice");
+  });
+
+  it("attaches category profiles and operation declarations to advertised matching provider manifests", async () => {
     const profiledCategories = new Set(integrationCategoryProfiles.map((profile) => profile.category));
     const profiledReferences = integrationProviderReferences.filter((reference) =>
       profiledCategories.has(reference.category)
     );
 
-    expect(profiledReferences.length).toBeGreaterThan(20);
     for (const reference of profiledReferences) {
       const profile = requireIntegrationCategoryProfile(reference.category);
       const manifest = await loadProviderIntegrationManifest(reference);

@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { parse } from "../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/index.js";
+import { parse } from "yaml";
 
 const SPEC_SOURCE = "https://raw.githubusercontent.com/ringcentral/engage-digital-api-docs/master/specs/engage-digital_openapi3.yaml";
 const DOCS_SOURCE = "https://developers.ringcentral.com/engage-digital-api";
