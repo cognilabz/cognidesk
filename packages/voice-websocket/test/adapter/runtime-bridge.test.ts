@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createInMemoryVoiceSessionStore, handleVoiceSocket, type VoiceProvider } from "../../src/index.js";
+import {
+  createInMemoryVoiceSessionStore,
+  handleVoiceSocket,
+  type VoiceProvider,
+  type VoiceProviderSession,
+} from "../../src/index.js";
 import { createTokenSequence, FakeProvider, FakeRuntime, FakeSocket, flushAsync, fakeStartVoiceResult, sleep } from "./helpers.js";
 
 describe("@cognidesk/voice-websocket runtime bridge", () => {
@@ -155,6 +160,71 @@ describe("@cognidesk/voice-websocket runtime bridge", () => {
       }));
     });
 
+    it("ends the claimed session when the socket closes before provider connection finishes", async () => {
+      const store = createInMemoryVoiceSessionStore({
+        createToken: createTokenSequence("start-token", "reconnect-token"),
+      });
+      const created = await store.createSession({
+        result: fakeStartVoiceResult(),
+        tokenTtlMs: 60_000,
+      });
+      const socket = new FakeSocket();
+      const runtime = new FakeRuntime();
+      const connectStarted = deferred<void>();
+      const providerConnected = deferred<VoiceProviderSession>();
+      let providerCloseCount = 0;
+      const providerSession: VoiceProviderSession = {
+        send() {
+          return undefined;
+        },
+        speak() {
+          return undefined;
+        },
+        close() {
+          providerCloseCount++;
+        },
+      };
+      const provider: VoiceProvider = {
+        id: "slow-provider",
+        async connect() {
+          connectStarted.resolve();
+          return providerConnected.promise;
+        },
+      };
+
+      const handling = handleVoiceSocket({
+        socket,
+        connectionId: created.session.connection.id,
+        token: created.socket.token,
+        store,
+        runtime,
+        provider,
+      });
+
+      await connectStarted.promise;
+      socket.close(1000, "Browser closed during setup");
+      await flushAsync();
+
+      await expect(store.getSession(created.session.id)).resolves.toMatchObject({
+        status: "ended",
+      });
+      expect(runtime.endedSegments).toEqual([
+        {
+          conversationId: created.session.conversation.id,
+          channelSegmentId: created.session.channelSegment.id,
+          connectionId: created.session.connection.id,
+          reason: "socket_closed",
+        },
+      ]);
+
+      providerConnected.resolve(providerSession);
+      await handling;
+
+      expect(socket.sent.map((event) => event.type)).not.toContain("cognidesk.connection.ready");
+      expect(socket.sent.map((event) => event.type)).not.toContain("cognidesk.connection.reconnect_token");
+      expect(providerCloseCount).toBe(1);
+    });
+
     it("coalesces adjacent provider transcript fragments into one runtime turn", async () => {
       const store = createInMemoryVoiceSessionStore({
         createToken: createTokenSequence("start-token", "reconnect-token"),
@@ -261,3 +331,11 @@ describe("@cognidesk/voice-websocket runtime bridge", () => {
       )).toBe(true);
     });
 });
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}

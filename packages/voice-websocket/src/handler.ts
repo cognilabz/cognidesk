@@ -113,6 +113,20 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
     turnPreambleTimer = null;
   };
 
+  const handleSocketClose = (code?: number) => {
+    if (!cleanupConnection()) return;
+    const normalClose = code === undefined || code === 1000 || code === 1001;
+    if (normalClose) {
+      void endSession("socket_closed");
+    } else {
+      void options.store.markReconnecting(
+        session.id,
+        new Date(),
+        options.reconnectGraceMs ?? 30_000,
+      );
+    }
+  };
+
   const queueSpeechAction = (
     generation: number,
     action: () => Promise<void> | void,
@@ -301,6 +315,19 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
       }
     : undefined;
 
+  options.socket.on("error", (error) => {
+    send(options.socket, {
+      type: "error",
+      event_id: createId("voice_event"),
+      error: {
+        code: "voice_socket_error",
+        message: error instanceof Error ? error.message : "Voice socket error.",
+      },
+    });
+  });
+
+  options.socket.on("close", handleSocketClose);
+
   const commitInputTranscript = async (event: VoiceInputTranscriptEvent) => {
     const generation = ++speechGeneration;
     let assistantSpeechBuffer = "";
@@ -385,7 +412,12 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
       signal: controller.signal,
       onEvent: handleProviderEvent,
     });
+    if (closed) {
+      void providerSession.close();
+      return;
+    }
   } catch (error) {
+    if (closed) return;
     cleanupConnection();
     await endSession("provider_connect_failed");
     send(options.socket, {
@@ -425,31 +457,6 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
         },
       });
     });
-  });
-
-  options.socket.on("error", (error) => {
-    send(options.socket, {
-      type: "error",
-      event_id: createId("voice_event"),
-      error: {
-        code: "voice_socket_error",
-        message: error instanceof Error ? error.message : "Voice socket error.",
-      },
-    });
-  });
-
-  options.socket.on("close", (code) => {
-    if (!cleanupConnection()) return;
-    const normalClose = code === undefined || code === 1000 || code === 1001;
-    if (normalClose) {
-      void endSession("socket_closed");
-    } else {
-      void options.store.markReconnecting(
-        session.id,
-        new Date(),
-        options.reconnectGraceMs ?? 30_000,
-      );
-    }
   });
 
   async function handleClientMessage(raw: string) {
