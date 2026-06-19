@@ -2,7 +2,7 @@ services:
   flight-demo:
     build:
       context: .
-    command: sh -c "pnpm --filter @cognidesk/flight-demo dev:server & pnpm --filter @cognidesk/flight-demo dev --host 0.0.0.0"
+    command: sh -c "pnpm --filter @cognidesk/flight-demo ingest:knowledge && (pnpm --filter @cognidesk/flight-demo dev:server & pnpm --filter @cognidesk/flight-demo dev --host 0.0.0.0)"
     environment:
       HOST: "0.0.0.0"
       PORT: "8787"
@@ -12,6 +12,8 @@ services:
       COGNIDESK_OTEL: "${COGNIDESK_OTEL:-false}"
       COGNIDESK_TELEMETRY_CONTENT: "${COGNIDESK_TELEMETRY_CONTENT:-redacted}"
       OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENROUTER_KEY: "${OPENROUTER_KEY:-}"
     ports:
       - "5173:5173"
       - "8787:8787"

@@ -17,3 +17,8 @@ website/api-reference/generated/
 !website/api-reference/generated/
 !website/api-reference/generated/storage/
 !website/api-reference/generated/storage/**
+!website/api-reference/generated/integrations/
+!website/api-reference/generated/integrations/**
+!website/api-reference/generated/integrations/dist/
+!website/api-reference/generated/integrations/dist/**
+docs/provider-coverage/

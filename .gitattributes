@@ -1,0 +1,4 @@
+# Generated provider client surfaces are reviewed through their source specs and
+# generator scripts, not hand-edited diffs.
+packages/integrations/src/**/*-client.generated.ts linguist-generated=true
+packages/integrations/src/**/*.generated/client/*-chunk.generated.ts linguist-generated=true
