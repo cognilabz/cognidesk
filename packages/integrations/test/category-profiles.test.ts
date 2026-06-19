@@ -3,6 +3,7 @@ import {
   categoryOperationAliases,
   contactCenterCategoryProfile,
   defineIntegrationCategoryProfile,
+  defineIntegrationProviderPackage,
   deriveProviderCapabilityCoverage,
   emailCategoryProfile,
   findCategoryOperation,
@@ -252,6 +253,41 @@ describe("integration category profiles", () => {
       }
     }
   }, 30000);
+
+  it("does not infer concrete category operations from broad provider capabilities", () => {
+    const manifest = defineIntegrationProviderPackage({
+      id: "ticketing.capability-only",
+      name: "Capability-only Ticketing",
+      packageName: "@cognidesk/integrations",
+      provider: "capabilitydesk",
+      category: "ticketing",
+      directions: ["bidirectional"],
+      capabilities: [
+        { capability: "read-provider-object" },
+        { capability: "send" },
+        { capability: "create-provider-object" },
+        { capability: "update-provider-object" },
+        { capability: "search-provider-object" },
+        { capability: "draft" },
+        { capability: "handoff" },
+        { capability: "link-provider-object" },
+        { capability: "attach" },
+      ],
+      operations: [],
+    });
+    const categoryProfile = manifest.metadata?.categoryProfile as {
+      conformant: boolean;
+      matchedOperations: string[];
+      missingRequiredOperations: string[];
+    };
+
+    expect(manifest.operations).toEqual([]);
+    expect(categoryProfile).toMatchObject({
+      conformant: false,
+      matchedOperations: [],
+      missingRequiredOperations: ["ticket.read", "ticket.comment.create"],
+    });
+  });
 });
 
 function expectAliases(profile: IntegrationCategoryProfile, aliases: readonly string[]) {
