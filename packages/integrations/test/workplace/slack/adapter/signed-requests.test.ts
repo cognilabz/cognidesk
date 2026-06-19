@@ -35,7 +35,7 @@ describe("@cognidesk/integrations", () => {
         },
         body,
       });
-  
+
       expect(validateSlackRequestSignature({
         signingSecret,
         rawBody: body,
@@ -43,7 +43,7 @@ describe("@cognidesk/integrations", () => {
         signature,
         nowSeconds: timestamp,
       })).toBe(true);
-  
+
       const parsed = await parseSlackSignedRequest(request, {
         signingSecret,
         nowSeconds: timestamp,
@@ -72,12 +72,12 @@ describe("@cognidesk/integrations", () => {
         },
         body,
       });
-  
+
       const parsed = await parseSlackSignedRequest(request, {
         signingSecret,
         nowSeconds: timestamp,
       });
-  
+
       expect(parsed.payload).toMatchObject({
         type: "block_actions",
         user: { id: "U_AGENT" },
@@ -90,7 +90,7 @@ describe("@cognidesk/integrations", () => {
       const timestamp = 1_710_000_000;
       const body = "token=legacy&team_id=T123";
       const signature = signSlack({ signingSecret, timestamp, body });
-  
+
       expect(validateSlackRequestSignature({
         signingSecret,
         rawBody: body,

@@ -40,7 +40,7 @@ describe("@cognidesk/integrations", () => {
           }),
         },
       });
-  
+
       expect(result.status).toBe("credential-blocked");
       expect(result.checks.some((check) =>
         check.id === "provider.live.auth" && check.status === "credential-blocked"
@@ -80,7 +80,7 @@ describe("@cognidesk/integrations", () => {
           }),
         },
       });
-  
+
       expect(result.status).toBe("passed");
       expect(result.checks).toContainEqual(expect.objectContaining({
         id: "provider.live.auth",

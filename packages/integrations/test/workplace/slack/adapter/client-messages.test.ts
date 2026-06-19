@@ -31,14 +31,14 @@ describe("@cognidesk/integrations", () => {
         botToken: "xoxb-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const result = await client.postMessage({
         channel: "C123",
         text: "Reset link sent.",
         threadTs: "1710000000.000000",
         metadata: { event_type: "cognidesk_reply", event_payload: { conversationId: "conversation_1" } },
       });
-  
+
       expect(result.ts).toBe("1710000000.000100");
       expect(fetchMock).toHaveBeenCalledWith(
         "https://slack.com/api/chat.postMessage",
@@ -70,14 +70,14 @@ describe("@cognidesk/integrations", () => {
         botToken: "xoxb-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       let caught: unknown;
       try {
         await client.postMessage({ channel: "C123", text: "Slow down." });
       } catch (error) {
         caught = error;
       }
-  
+
       expect(caught).toBeInstanceOf(ProviderApiError);
       expect(caught).toMatchObject({
         provider: "slack",
@@ -101,9 +101,9 @@ describe("@cognidesk/integrations", () => {
         botToken: "xoxb-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await client.conversationsHistory({ channel: "C123", signal: controller.signal });
-  
+
       const request = (fetchMock.mock.calls[0] as unknown[])[1] as RequestInit;
       expect(request.signal).toBe(controller.signal);
     });
@@ -119,14 +119,14 @@ describe("@cognidesk/integrations", () => {
         botToken: "xoxb-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const result = await client.postInternalAssistMessage({
         channel: "C123",
         user: "U_AGENT",
         text: "Suggested answer: ask for the invoice number.",
         threadTs: "1710000000.000000",
       });
-  
+
       expect(result.message_ts).toBe("1710000000.000200");
       const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { body: string }];
       expect(url).toBe("https://slack.com/api/chat.postEphemeral");
@@ -151,13 +151,13 @@ describe("@cognidesk/integrations", () => {
         botToken: "xoxb-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await client.updateMessage({
         channel: "C123",
         ts: "1710000000.000100",
         text: "Updated support note.",
       });
-  
+
       const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { body: string }];
       expect(url).toBe("https://slack.com/api/chat.update");
       expect(JSON.parse(init.body)).toEqual({
@@ -179,14 +179,14 @@ describe("@cognidesk/integrations", () => {
         botToken: "xoxb-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const history = await client.conversationsHistory({
         channel: "C123",
         oldest: "1709999999.000000",
         limit: 5,
         includeAllMetadata: true,
       });
-  
+
       expect(history.messages).toHaveLength(1);
       const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
       expect(url).toBe("https://slack.com/api/conversations.history?channel=C123&include_all_metadata=true&limit=5&oldest=1709999999.000000");
@@ -214,7 +214,7 @@ describe("@cognidesk/integrations", () => {
         botToken: "xoxb-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await expect(client.conversationsReplies({
         channel: "C123",
         ts: "1710000000.000000",
@@ -236,7 +236,7 @@ describe("@cognidesk/integrations", () => {
         initialComment: "Attached receipt.",
         threadTs: "1710000000.000000",
       })).resolves.toMatchObject({ files: [{ id: "F123" }] });
-  
+
       expect(fetchMock).toHaveBeenNthCalledWith(
         1,
         "https://slack.com/api/conversations.replies?channel=C123&ts=1710000000.000000&limit=5",

@@ -26,7 +26,7 @@ describe("@cognidesk/integrations", () => {
         botToken: "xoxb-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await expect(client.webApi.ChatScheduleMessage({
         body: {
           channel: "C123",
@@ -37,11 +37,11 @@ describe("@cognidesk/integrations", () => {
       await expect(client.requestOperation("GET /conversations.list", {
         query: { types: "public_channel,private_channel", limit: 50 },
       })).resolves.toMatchObject({ ok: true, channels: [] });
-  
+
       await expect(client.webApi.FilesUpload({
         body: { channels: "C123", filename: "receipt.txt", content: "receipt" },
       })).resolves.toMatchObject({ ok: true });
-  
+
       expect(fetchMock).toHaveBeenNthCalledWith(
         1,
         "https://slack.com/api/chat.scheduleMessage",
