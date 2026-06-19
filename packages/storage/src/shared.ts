@@ -116,3 +116,33 @@ export function snapshotFromRow(row: RuntimeSnapshotRow): RuntimeSnapshot {
 export function storageMissingConversationError(conversationId: string) {
   return new Error(`Conversation '${conversationId}' does not exist.`);
 }
+
+export function isApprovalPending(events: RuntimeEvent[], approvalId: string, now = Date.now()) {
+  let requested: Extract<RuntimeEvent, { type: "approval.requested" }> | undefined;
+  let resolved = false;
+  for (const event of events) {
+    if (event.type === "approval.requested" && event.data.approvalId === approvalId) {
+      requested = event;
+      continue;
+    }
+    if (event.type === "approval.resolved" && event.data.approvalId === approvalId) {
+      resolved = true;
+    }
+  }
+  if (!requested || resolved) return false;
+  return !requested.data.expiresAt || Date.parse(requested.data.expiresAt) > now;
+}
+
+export function hasActiveVoiceSegment(events: RuntimeEvent[]) {
+  const active = new Set<string>();
+  for (const event of events) {
+    if (event.type === "voice.segment.started") {
+      active.add(event.data.channelSegmentId);
+      continue;
+    }
+    if (event.type === "voice.segment.ended" || event.type === "voice.connection.failed") {
+      active.delete(event.data.channelSegmentId);
+    }
+  }
+  return active.size > 0;
+}

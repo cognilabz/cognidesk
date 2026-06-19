@@ -23,6 +23,8 @@ import {
 import {
   conversationFromRow,
   eventFromRow,
+  hasActiveVoiceSegment,
+  isApprovalPending,
   nowIso,
   normalizeConversationChannel,
   runtimeEventFromParts,
@@ -31,6 +33,7 @@ import {
 } from "./shared.js";
 
 export type SqliteStorageDatabase = LibSQLDatabase<typeof sqliteStorageSchema>;
+type SqliteTransaction = Parameters<Parameters<SqliteStorageDatabase["transaction"]>[0]>[0];
 
 export type SqliteStorageOptions =
   | {
@@ -145,36 +148,43 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
   async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {
     return this.enqueueWrite(() => this.db.transaction(async (tx) => {
-      const conversation = await tx.select({ id: sqliteConversations.id })
-        .from(sqliteConversations)
-        .where(eq(sqliteConversations.id, event.conversationId))
-        .limit(1)
-        .get();
-      if (!conversation) throw storageMissingConversationError(event.conversationId);
+      await this.requireConversation(tx, event.conversationId);
+      return this.insertRuntimeEvent(tx, event);
+    }));
+  }
 
-      const nextOffsetRow = await tx.select({
-        nextOffset: sql<number>`COALESCE(MAX(${sqliteRuntimeEvents.offset}), 0) + 1`,
-      })
-        .from(sqliteRuntimeEvents)
-        .where(eq(sqliteRuntimeEvents.conversationId, event.conversationId))
-        .get();
-      const offset = Number(nextOffsetRow?.nextOffset ?? 1);
-      const id = event.id ?? randomUUID();
-      const createdAt = event.createdAt ?? nowIso();
-      await tx.insert(sqliteRuntimeEvents).values({
-        id,
-        conversationId: event.conversationId,
-        offset,
-        type: event.type,
-        telemetryTraceId: event.telemetry?.traceId ?? null,
-        telemetrySpanId: event.telemetry?.spanId ?? null,
-        dataJson: JSON.stringify(event.data),
-        createdAt,
-      });
-      await tx.update(sqliteConversations)
-        .set({ updatedAt: createdAt })
-        .where(eq(sqliteConversations.id, event.conversationId));
-      return runtimeEventFromParts(event, id, offset, createdAt);
+  async appendEventIfApprovalPending<TEvent extends RuntimeEventInput<"approval.resolved">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null> {
+    return this.enqueueWrite(() => this.db.transaction(async (tx) => {
+      await this.requireConversation(tx, event.conversationId);
+      const approvalEvents = await tx.select().from(sqliteRuntimeEvents)
+        .where(and(
+          eq(sqliteRuntimeEvents.conversationId, event.conversationId),
+          sql`${sqliteRuntimeEvents.type} IN ('approval.requested', 'approval.resolved')`,
+          sql`json_extract(${sqliteRuntimeEvents.dataJson}, '$.approvalId') = ${event.data.approvalId}`,
+        ))
+        .orderBy(asc(sqliteRuntimeEvents.offset))
+        .all();
+      if (!isApprovalPending(approvalEvents.map(eventFromRow), event.data.approvalId)) return null;
+      return this.insertRuntimeEvent(tx, event);
+    }));
+  }
+
+  async appendEventIfNoActiveVoiceSegment<TEvent extends RuntimeEventInput<"voice.segment.started">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null> {
+    return this.enqueueWrite(() => this.db.transaction(async (tx) => {
+      await this.requireConversation(tx, event.conversationId);
+      const voiceEvents = await tx.select().from(sqliteRuntimeEvents)
+        .where(and(
+          eq(sqliteRuntimeEvents.conversationId, event.conversationId),
+          sql`${sqliteRuntimeEvents.type} IN ('voice.segment.started', 'voice.segment.ended', 'voice.connection.failed')`,
+        ))
+        .orderBy(asc(sqliteRuntimeEvents.offset))
+        .all();
+      if (hasActiveVoiceSegment(voiceEvents.map(eventFromRow))) return null;
+      return this.insertRuntimeEvent(tx, event);
     }));
   }
 
@@ -255,6 +265,44 @@ export class SqliteStorageAdapter implements StorageAdapter {
     const run = this.writeQueue.then(operation, operation);
     this.writeQueue = run.then(() => undefined, () => undefined);
     return run;
+  }
+
+  private async requireConversation(tx: SqliteTransaction, conversationId: string) {
+    const conversation = await tx.update(sqliteConversations)
+      .set({ updatedAt: sql`${sqliteConversations.updatedAt}` })
+      .where(eq(sqliteConversations.id, conversationId))
+      .returning({ id: sqliteConversations.id })
+      .get();
+    if (!conversation) throw storageMissingConversationError(conversationId);
+  }
+
+  private async insertRuntimeEvent<TEvent extends RuntimeEventInput>(
+    tx: SqliteTransaction,
+    event: TEvent,
+  ): Promise<RuntimeEvent> {
+    const nextOffsetRow = await tx.select({
+      nextOffset: sql<number>`COALESCE(MAX(${sqliteRuntimeEvents.offset}), 0) + 1`,
+    })
+      .from(sqliteRuntimeEvents)
+      .where(eq(sqliteRuntimeEvents.conversationId, event.conversationId))
+      .get();
+    const offset = Number(nextOffsetRow?.nextOffset ?? 1);
+    const id = event.id ?? randomUUID();
+    const createdAt = event.createdAt ?? nowIso();
+    await tx.insert(sqliteRuntimeEvents).values({
+      id,
+      conversationId: event.conversationId,
+      offset,
+      type: event.type,
+      telemetryTraceId: event.telemetry?.traceId ?? null,
+      telemetrySpanId: event.telemetry?.spanId ?? null,
+      dataJson: JSON.stringify(event.data),
+      createdAt,
+    });
+    await tx.update(sqliteConversations)
+      .set({ updatedAt: createdAt })
+      .where(eq(sqliteConversations.id, event.conversationId));
+    return runtimeEventFromParts(event, id, offset, createdAt);
   }
 }
 

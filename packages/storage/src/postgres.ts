@@ -21,6 +21,8 @@ import {
 import {
   conversationFromRow,
   eventFromRow,
+  hasActiveVoiceSegment,
+  isApprovalPending,
   nowIso,
   normalizeConversationChannel,
   runtimeEventFromParts,
@@ -30,6 +32,7 @@ import {
 
 export type PostgresStorageDatabase = NodePgDatabase<typeof postgresStorageSchema>;
 export type PostgresStorageClient = Pool | Client;
+type PostgresTransaction = Parameters<Parameters<PostgresStorageDatabase["transaction"]>[0]>[0];
 
 export type PostgresStorageOptions =
   | {
@@ -136,34 +139,41 @@ export class PostgresStorageAdapter implements StorageAdapter {
 
   async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {
     return this.db.transaction(async (tx) => {
-      const lockedConversation = await tx.update(postgresConversations)
-        .set({ updatedAt: sql`${postgresConversations.updatedAt}` })
-        .where(eq(postgresConversations.id, event.conversationId))
-        .returning({ id: postgresConversations.id });
-      if (!lockedConversation[0]) throw storageMissingConversationError(event.conversationId);
+      await this.lockConversation(tx, event.conversationId);
+      return this.insertRuntimeEvent(tx, event);
+    });
+  }
 
-      const [nextOffsetRow] = await tx.select({
-        nextOffset: sql<number>`COALESCE(MAX(${postgresRuntimeEvents.offset}), 0) + 1`,
-      })
-        .from(postgresRuntimeEvents)
-        .where(eq(postgresRuntimeEvents.conversationId, event.conversationId));
-      const offset = Number(nextOffsetRow?.nextOffset ?? 1);
-      const id = event.id ?? randomUUID();
-      const createdAt = event.createdAt ?? nowIso();
-      await tx.insert(postgresRuntimeEvents).values({
-        id,
-        conversationId: event.conversationId,
-        offset,
-        type: event.type,
-        telemetryTraceId: event.telemetry?.traceId ?? null,
-        telemetrySpanId: event.telemetry?.spanId ?? null,
-        dataJson: event.data,
-        createdAt,
-      });
-      await tx.update(postgresConversations)
-        .set({ updatedAt: createdAt })
-        .where(eq(postgresConversations.id, event.conversationId));
-      return runtimeEventFromParts(event, id, offset, createdAt);
+  async appendEventIfApprovalPending<TEvent extends RuntimeEventInput<"approval.resolved">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null> {
+    return this.db.transaction(async (tx) => {
+      await this.lockConversation(tx, event.conversationId);
+      const approvalEvents = await tx.select().from(postgresRuntimeEvents)
+        .where(and(
+          eq(postgresRuntimeEvents.conversationId, event.conversationId),
+          sql`${postgresRuntimeEvents.type} IN ('approval.requested', 'approval.resolved')`,
+          sql`${postgresRuntimeEvents.dataJson}->>'approvalId' = ${event.data.approvalId}`,
+        ))
+        .orderBy(asc(postgresRuntimeEvents.offset));
+      if (!isApprovalPending(approvalEvents.map(eventFromRow), event.data.approvalId)) return null;
+      return this.insertRuntimeEvent(tx, event);
+    });
+  }
+
+  async appendEventIfNoActiveVoiceSegment<TEvent extends RuntimeEventInput<"voice.segment.started">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null> {
+    return this.db.transaction(async (tx) => {
+      await this.lockConversation(tx, event.conversationId);
+      const voiceEvents = await tx.select().from(postgresRuntimeEvents)
+        .where(and(
+          eq(postgresRuntimeEvents.conversationId, event.conversationId),
+          sql`${postgresRuntimeEvents.type} IN ('voice.segment.started', 'voice.segment.ended', 'voice.connection.failed')`,
+        ))
+        .orderBy(asc(postgresRuntimeEvents.offset));
+      if (hasActiveVoiceSegment(voiceEvents.map(eventFromRow))) return null;
+      return this.insertRuntimeEvent(tx, event);
     });
   }
 
@@ -221,6 +231,42 @@ export class PostgresStorageAdapter implements StorageAdapter {
     for (const statement of postgresMigrationStatements) {
       await this.db.execute(sql.raw(statement));
     }
+  }
+
+  private async lockConversation(tx: PostgresTransaction, conversationId: string) {
+    const lockedConversation = await tx.update(postgresConversations)
+      .set({ updatedAt: sql`${postgresConversations.updatedAt}` })
+      .where(eq(postgresConversations.id, conversationId))
+      .returning({ id: postgresConversations.id });
+    if (!lockedConversation[0]) throw storageMissingConversationError(conversationId);
+  }
+
+  private async insertRuntimeEvent<TEvent extends RuntimeEventInput>(
+    tx: PostgresTransaction,
+    event: TEvent,
+  ): Promise<RuntimeEvent> {
+    const [nextOffsetRow] = await tx.select({
+      nextOffset: sql<number>`COALESCE(MAX(${postgresRuntimeEvents.offset}), 0) + 1`,
+    })
+      .from(postgresRuntimeEvents)
+      .where(eq(postgresRuntimeEvents.conversationId, event.conversationId));
+    const offset = Number(nextOffsetRow?.nextOffset ?? 1);
+    const id = event.id ?? randomUUID();
+    const createdAt = event.createdAt ?? nowIso();
+    await tx.insert(postgresRuntimeEvents).values({
+      id,
+      conversationId: event.conversationId,
+      offset,
+      type: event.type,
+      telemetryTraceId: event.telemetry?.traceId ?? null,
+      telemetrySpanId: event.telemetry?.spanId ?? null,
+      dataJson: event.data,
+      createdAt,
+    });
+    await tx.update(postgresConversations)
+      .set({ updatedAt: createdAt })
+      .where(eq(postgresConversations.id, event.conversationId));
+    return runtimeEventFromParts(event, id, offset, createdAt);
   }
 }
 
