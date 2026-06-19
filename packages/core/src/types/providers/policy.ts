@@ -300,10 +300,7 @@ function resolveCapabilityPolicy(
     );
     if (exactPolicy) return exactPolicy.enabled !== false ? exactPolicy : undefined;
     if (request.channelId === request.channel) {
-      return channels.find((candidate) =>
-        candidate.enabled !== false
-        && candidate.channel === request.channel
-      );
+      return undefined;
     }
     return channels.find((candidate) =>
       candidate.id === request.channel

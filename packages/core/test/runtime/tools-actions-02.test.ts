@@ -271,7 +271,7 @@ describe("runtime tools and actions 02", () => {
       agent,
       models: createModels({ response }),
       channels: [{
-        id: "sms-support",
+        id: "sms",
         channel: "sms",
         enabled: true,
         channelSetIds: [],
@@ -347,7 +347,7 @@ describe("runtime tools and actions 02", () => {
       agent,
       models: createModels({ response }),
       channels: [{
-        id: "sms-support",
+        id: "sms",
         channel: "sms",
         enabled: true,
         channelSetIds: [],
@@ -414,7 +414,7 @@ describe("runtime tools and actions 02", () => {
       models,
       journeyIndex: await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding }),
       channels: [{
-        id: "ticketing-support",
+        id: "ticketing",
         channel: "ticketing",
         enabled: true,
         channelSetIds: [],

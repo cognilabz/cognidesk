@@ -27,6 +27,15 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
           id: "conv_1",
           agentId: "flight-service",
           context: { locale: "en" },
+          channel: {
+            channelId: "email.support",
+            kind: "email",
+            provider: "gmail",
+            externalThreadId: "thread_123",
+            capabilities: {
+              attachments: true,
+            },
+          },
         });
 
         expect(conversation).toMatchObject({
@@ -34,6 +43,18 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
           agentId: "flight-service",
           lifecycle: "active",
           context: { locale: "en" },
+          channel: {
+            channelId: "email.support",
+            kind: "email",
+            provider: "gmail",
+            externalThreadId: "thread_123",
+            capabilities: {
+              async: true,
+              threaded: true,
+              html: true,
+              attachments: true,
+            },
+          },
         });
         await expect(storage.createConversation({
           id: "conv_1",
@@ -43,6 +64,18 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
 
         const storedConversation = await storage.getConversation<{ locale: string }>("conv_1");
         expect(storedConversation?.context.locale).toBe("en");
+        expect(storedConversation?.channel).toMatchObject({
+          channelId: "email.support",
+          kind: "email",
+          provider: "gmail",
+          externalThreadId: "thread_123",
+          capabilities: {
+            async: true,
+            threaded: true,
+            html: true,
+            attachments: true,
+          },
+        });
 
         const event = await storage.appendEvent({
           conversationId: "conv_1",
@@ -55,6 +88,10 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
 
         const updated = await storage.updateConversationLifecycle("conv_1", "closed");
         expect(updated?.lifecycle).toBe("closed");
+        expect(updated?.channel).toMatchObject({
+          channelId: "email.support",
+          kind: "email",
+        });
         expect(await storage.updateConversationLifecycle("missing", "closed")).toBeNull();
 
         const snapshot: RuntimeSnapshot = {

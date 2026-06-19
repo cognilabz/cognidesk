@@ -24,6 +24,7 @@ import {
   conversationFromRow,
   eventFromRow,
   nowIso,
+  normalizeConversationChannel,
   runtimeEventFromParts,
   snapshotFromRow,
   storageMissingConversationError,
@@ -100,11 +101,13 @@ export class SqliteStorageAdapter implements StorageAdapter {
     const id = input.id ?? randomUUID();
     const createdAt = nowIso();
     const lifecycle: ConversationLifecycle = "active";
+    const channel = normalizeConversationChannel(input.channel);
     await this.db.insert(sqliteConversations).values({
       id,
       agentId: input.agentId,
       lifecycle,
       contextJson: JSON.stringify(input.context),
+      channelJson: channel ? JSON.stringify(channel) : null,
       createdAt,
       updatedAt: createdAt,
     });
@@ -113,6 +116,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
       agentId: input.agentId,
       lifecycle,
       context: input.context,
+      ...(channel ? { channel } : {}),
       createdAt,
       updatedAt: createdAt,
     };
@@ -236,6 +240,15 @@ export class SqliteStorageAdapter implements StorageAdapter {
     for (const statement of sqliteMigrationStatements) {
       await this.db.run(statement);
     }
+    await this.addColumnIfMissing("conversations", "channel_json", "TEXT");
+  }
+
+  private async addColumnIfMissing(table: string, column: string, definition: string) {
+    try {
+      await this.db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    } catch (error) {
+      if (!isDuplicateColumnError(error)) throw error;
+    }
   }
 
   private enqueueWrite<T>(operation: () => Promise<T>): Promise<T> {
@@ -263,12 +276,33 @@ function sqliteFilenameToUrl(filename: string) {
   return `file:${filename}`;
 }
 
+function isDuplicateColumnError(error: unknown) {
+  return collectErrorMessages(error).some((message) =>
+    /duplicate column|already exists/i.test(message)
+  );
+}
+
+function collectErrorMessages(error: unknown): string[] {
+  const messages: string[] = [];
+  let current = error;
+  while (current) {
+    if (current instanceof Error) messages.push(current.message);
+    if (typeof current === "string") messages.push(current);
+    if (typeof current !== "object") break;
+    const cause = "cause" in current ? (current as { cause?: unknown }).cause : undefined;
+    if (!cause || cause === current) break;
+    current = cause;
+  }
+  return messages;
+}
+
 const sqliteMigrationStatements = [
   `CREATE TABLE IF NOT EXISTS conversations (
     id TEXT PRIMARY KEY,
     agent_id TEXT NOT NULL,
     lifecycle TEXT NOT NULL CHECK (lifecycle IN ('active', 'handoff', 'closed')),
     context_json TEXT NOT NULL,
+    channel_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`,

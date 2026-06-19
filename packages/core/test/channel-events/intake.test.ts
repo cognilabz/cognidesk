@@ -266,7 +266,7 @@ describe("channel event intake runtime", () => {
       const runtime = createRuntime({
         storage: new RecordingStorage(),
         channels: [defineChannelPolicy({
-          id: "email-support",
+          id: "email",
           channel: "email",
           enabledCapabilities: ["draft"],
         })],

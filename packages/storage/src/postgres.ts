@@ -22,6 +22,7 @@ import {
   conversationFromRow,
   eventFromRow,
   nowIso,
+  normalizeConversationChannel,
   runtimeEventFromParts,
   snapshotFromRow,
   storageMissingConversationError,
@@ -91,11 +92,13 @@ export class PostgresStorageAdapter implements StorageAdapter {
     const id = input.id ?? randomUUID();
     const createdAt = nowIso();
     const lifecycle: ConversationLifecycle = "active";
+    const channel = normalizeConversationChannel(input.channel);
     await this.db.insert(postgresConversations).values({
       id,
       agentId: input.agentId,
       lifecycle,
       contextJson: input.context,
+      channelJson: channel ?? null,
       createdAt,
       updatedAt: createdAt,
     });
@@ -104,6 +107,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
       agentId: input.agentId,
       lifecycle,
       context: input.context,
+      ...(channel ? { channel } : {}),
       createdAt,
       updatedAt: createdAt,
     };
@@ -230,9 +234,11 @@ const postgresMigrationStatements = [
     agent_id TEXT NOT NULL,
     lifecycle TEXT NOT NULL CHECK (lifecycle IN ('active', 'handoff', 'closed')),
     context_json JSONB NOT NULL,
+    channel_json JSONB,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`,
+  "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS channel_json JSONB",
   `CREATE TABLE IF NOT EXISTS runtime_events (
     id TEXT PRIMARY KEY,
     conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
