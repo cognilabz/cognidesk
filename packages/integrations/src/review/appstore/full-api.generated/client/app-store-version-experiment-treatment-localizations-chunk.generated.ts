@@ -1,0 +1,77 @@
+// Generated endpoint chunk for AppStoreFullApi.
+// Do not edit by hand; run scripts/split-generated-client-modules.mjs after updating provider specs.
+
+import type {
+  AppStoreGeneratedOperationCaller,
+  AppStoreFullApiOperationArgs,
+  AppStoreFullApiOperationInput,
+  AppStoreFullApiPathParamValue,
+} from "../../full-api-client.generated.js";
+import type { AppStoreFullApiOperationResponseMap } from "../../full-api-schema-types.generated.js";
+
+// Hardened literal operation keys for generated SDK typing.
+export const AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsOperationKeys = [
+  "appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelated",
+  "appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelationship",
+  "appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelated",
+  "appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelationship",
+  "appStoreVersionExperimentTreatmentLocalizations_createInstance",
+  "appStoreVersionExperimentTreatmentLocalizations_deleteInstance",
+  "appStoreVersionExperimentTreatmentLocalizations_getInstance"
+] as const;
+export type AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsOperationKey = typeof AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsOperationKeys[number];
+// End hardened literal operation keys.
+
+export interface AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsOperationPathParamMap {
+  "appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelated": { "id": AppStoreFullApiPathParamValue };
+  "appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelationship": { "id": AppStoreFullApiPathParamValue };
+  "appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelated": { "id": AppStoreFullApiPathParamValue };
+  "appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelationship": { "id": AppStoreFullApiPathParamValue };
+  "appStoreVersionExperimentTreatmentLocalizations_createInstance": {};
+  "appStoreVersionExperimentTreatmentLocalizations_deleteInstance": { "id": AppStoreFullApiPathParamValue };
+  "appStoreVersionExperimentTreatmentLocalizations_getInstance": { "id": AppStoreFullApiPathParamValue };
+}
+
+export interface AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsOperationRequestMap {
+  "appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelated": AppStoreFullApiOperationInput<"appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelated">;
+  "appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelationship": AppStoreFullApiOperationInput<"appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelationship">;
+  "appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelated": AppStoreFullApiOperationInput<"appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelated">;
+  "appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelationship": AppStoreFullApiOperationInput<"appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelationship">;
+  "appStoreVersionExperimentTreatmentLocalizations_createInstance": AppStoreFullApiOperationInput<"appStoreVersionExperimentTreatmentLocalizations_createInstance">;
+  "appStoreVersionExperimentTreatmentLocalizations_deleteInstance": AppStoreFullApiOperationInput<"appStoreVersionExperimentTreatmentLocalizations_deleteInstance">;
+  "appStoreVersionExperimentTreatmentLocalizations_getInstance": AppStoreFullApiOperationInput<"appStoreVersionExperimentTreatmentLocalizations_getInstance">;
+}
+
+export interface AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsGeneratedClient {
+  AppStoreVersionExperimentTreatmentLocalizationsAppPreviewSetsGetToManyRelated(...args: AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelated">): Promise<AppStoreFullApiOperationResponseMap["appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelated"]>;
+  AppStoreVersionExperimentTreatmentLocalizationsAppPreviewSetsGetToManyRelationship(...args: AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelationship">): Promise<AppStoreFullApiOperationResponseMap["appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelationship"]>;
+  AppStoreVersionExperimentTreatmentLocalizationsAppScreenshotSetsGetToManyRelated(...args: AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelated">): Promise<AppStoreFullApiOperationResponseMap["appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelated"]>;
+  AppStoreVersionExperimentTreatmentLocalizationsAppScreenshotSetsGetToManyRelationship(...args: AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelationship">): Promise<AppStoreFullApiOperationResponseMap["appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelationship"]>;
+  AppStoreVersionExperimentTreatmentLocalizationsCreateInstance(...args: AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_createInstance">): Promise<AppStoreFullApiOperationResponseMap["appStoreVersionExperimentTreatmentLocalizations_createInstance"]>;
+  AppStoreVersionExperimentTreatmentLocalizationsDeleteInstance(...args: AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_deleteInstance">): Promise<AppStoreFullApiOperationResponseMap["appStoreVersionExperimentTreatmentLocalizations_deleteInstance"]>;
+  AppStoreVersionExperimentTreatmentLocalizationsGetInstance(...args: AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_getInstance">): Promise<AppStoreFullApiOperationResponseMap["appStoreVersionExperimentTreatmentLocalizations_getInstance"]>;
+}
+
+export const AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsGeneratedFunctionNames = [
+  "AppStoreVersionExperimentTreatmentLocalizationsAppPreviewSetsGetToManyRelated",
+  "AppStoreVersionExperimentTreatmentLocalizationsAppPreviewSetsGetToManyRelationship",
+  "AppStoreVersionExperimentTreatmentLocalizationsAppScreenshotSetsGetToManyRelated",
+  "AppStoreVersionExperimentTreatmentLocalizationsAppScreenshotSetsGetToManyRelationship",
+  "AppStoreVersionExperimentTreatmentLocalizationsCreateInstance",
+  "AppStoreVersionExperimentTreatmentLocalizationsDeleteInstance",
+  "AppStoreVersionExperimentTreatmentLocalizationsGetInstance"
+] as const satisfies readonly (keyof AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsGeneratedClient)[];
+
+export function createAppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsGeneratedClient(
+  callOperation: AppStoreGeneratedOperationCaller,
+): AppStoreFullApiAppStoreVersionExperimentTreatmentLocalizationsGeneratedClient {
+  return {
+    AppStoreVersionExperimentTreatmentLocalizationsAppPreviewSetsGetToManyRelated: (...args) => callOperation("appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelated", ...(args as AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelated">)),
+    AppStoreVersionExperimentTreatmentLocalizationsAppPreviewSetsGetToManyRelationship: (...args) => callOperation("appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelationship", ...(args as AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_appPreviewSets_getToManyRelationship">)),
+    AppStoreVersionExperimentTreatmentLocalizationsAppScreenshotSetsGetToManyRelated: (...args) => callOperation("appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelated", ...(args as AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelated">)),
+    AppStoreVersionExperimentTreatmentLocalizationsAppScreenshotSetsGetToManyRelationship: (...args) => callOperation("appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelationship", ...(args as AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_appScreenshotSets_getToManyRelationship">)),
+    AppStoreVersionExperimentTreatmentLocalizationsCreateInstance: (...args) => callOperation("appStoreVersionExperimentTreatmentLocalizations_createInstance", ...(args as AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_createInstance">)),
+    AppStoreVersionExperimentTreatmentLocalizationsDeleteInstance: (...args) => callOperation("appStoreVersionExperimentTreatmentLocalizations_deleteInstance", ...(args as AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_deleteInstance">)),
+    AppStoreVersionExperimentTreatmentLocalizationsGetInstance: (...args) => callOperation("appStoreVersionExperimentTreatmentLocalizations_getInstance", ...(args as AppStoreFullApiOperationArgs<"appStoreVersionExperimentTreatmentLocalizations_getInstance">)),
+  };
+}
