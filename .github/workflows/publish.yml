@@ -108,11 +108,11 @@ jobs:
             pnpm release:verify-stable
           fi
 
-      - name: Check
-        run: pnpm check
-
       - name: Build
         run: pnpm build
+
+      - name: Check
+        run: pnpm check
 
       - name: Sync package READMEs
         run: pnpm packages:sync-readmes
