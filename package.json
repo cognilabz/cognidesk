@@ -16,6 +16,7 @@
     "release:prepare-dev": "node scripts/prepare-dev-release.mjs",
     "release:verify-stable": "node scripts/verify-stable-release.mjs",
     "release:publish": "node scripts/publish-unpublished.mjs",
+    "packages:check-version-train": "node scripts/check-package-version-train.mjs",
     "packages:sync-readmes": "./scripts/sync-package-readmes.sh",
     "npm:trusted-publisher-checklist": "./scripts/npm-trusted-publisher-checklist.sh",
     "docs:generate": "typedoc",
