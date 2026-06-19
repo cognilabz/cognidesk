@@ -59,4 +59,42 @@ describe("SQLite runtime integration", () => {
       storage.close();
     });
   });
+
+  it("shares active voice segment state across sqlite adapter instances", async () => {
+    await withStorageFile(async (filename) => {
+      const first = createSqliteStorage({ filename });
+      const second = createSqliteStorage({ filename });
+      try {
+        await Promise.all([first.initialize(), second.initialize()]);
+        await first.createConversation({ id: "conv_voice_cross_adapter", agentId: "agent", context: {} });
+
+        await expect(first.appendEventIfNoActiveVoiceSegment({
+          conversationId: "conv_voice_cross_adapter",
+          type: "voice.segment.started",
+          data: {
+            channelSegmentId: "voice_segment_first",
+            connectionId: "voice_connection_first",
+            adapter: "test",
+          },
+        })).resolves.toMatchObject({
+          type: "voice.segment.started",
+          data: { channelSegmentId: "voice_segment_first" },
+        });
+        await expect(second.appendEventIfNoActiveVoiceSegment({
+          conversationId: "conv_voice_cross_adapter",
+          type: "voice.segment.started",
+          data: {
+            channelSegmentId: "voice_segment_second",
+            connectionId: "voice_connection_second",
+            adapter: "test",
+          },
+        })).resolves.toBeNull();
+        const events = await first.listEvents({ conversationId: "conv_voice_cross_adapter" });
+        expect(events.filter((event) => event.type === "voice.segment.started")).toHaveLength(1);
+      } finally {
+        first.close();
+        second.close();
+      }
+    });
+  });
 });

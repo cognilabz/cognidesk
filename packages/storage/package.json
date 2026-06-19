@@ -21,16 +21,20 @@
     "./conformance": {
       "types": "./dist/conformance.d.ts",
       "import": "./dist/conformance.js"
+    },
+    "./manifests": {
+      "types": "./dist/manifests.d.ts",
+      "import": "./dist/manifests.js"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/sqlite.ts src/postgres.ts src/conformance.ts --format esm --dts --sourcemap --platform node --external @libsql/client --external pg",
+    "build": "tsup src/index.ts src/sqlite.ts src/postgres.ts src/conformance.ts src/manifests.ts --format esm --dts --clean --platform node --external @libsql/client --external pg",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "0.0.2",
+    "@cognidesk/core": "workspace:*",
     "drizzle-orm": "^0.45.2"
   },
   "peerDependencies": {
@@ -62,7 +66,8 @@
     "registry": "https://registry.npmjs.org/"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.map"
   ],
   "repository": {
     "type": "git",

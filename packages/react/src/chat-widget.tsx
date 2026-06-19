@@ -6,8 +6,7 @@ import {
   resolveElementClassName,
   resolveInlineStyle,
 } from "@cognidesk/ui";
-import type { ChatMessage } from "./event-reducer.js";
-import type { ChatActivity } from "./event-reducer.js";
+import { PENDING_PROMPT_DISPLAY_OFFSET, type ChatActivity, type ChatMessage } from "./event-reducer.js";
 import { defaultWidgetRenderers } from "./default-widgets.js";
 import { collectSupportSourceLinks, formatSupportReferences, type SupportSourceLink } from "./support-references.js";
 import type { ChatWidgetProps } from "./types.js";
@@ -38,13 +37,15 @@ export function ChatWidget(props: ChatWidgetProps) {
       offset: message.offset ?? Number.MAX_SAFE_INTEGER,
       message,
     })),
-    ...chat.prompts.map((prompt) => ({
-      type: "prompt" as const,
-      id: prompt.promptId,
-      offset: prompt.displayOffset ?? prompt.offset,
-      originalOffset: prompt.offset,
-      prompt,
-    })),
+    ...chat.prompts
+      .filter((prompt) => prompt.displayOffset !== PENDING_PROMPT_DISPLAY_OFFSET)
+      .map((prompt) => ({
+        type: "prompt" as const,
+        id: prompt.promptId,
+        offset: prompt.displayOffset ?? prompt.offset,
+        originalOffset: prompt.offset,
+        prompt,
+      })),
   ].sort((left, right) => left.offset - right.offset || ("originalOffset" in left ? left.originalOffset : left.offset) - ("originalOffset" in right ? right.originalOffset : right.offset) || (left.type === "message" ? -1 : 1))), [chat.messages, chat.prompts]);
   const scrollKey = [
     chat.messages.map((message) => `${message.id}:${message.status}:${message.text.length}`).join("|"),

@@ -11,6 +11,8 @@ import type {
   VoiceControlTool,
   VoiceBrowserClientEvent,
   VoiceBrowserServerEvent,
+  VoiceJsonObject,
+  VoiceJsonValue,
   VoiceProvider,
   VoiceProviderConnectInput,
   VoiceProviderEvent,
@@ -99,7 +101,7 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
           kind: "error",
           code: "openai_realtime_error",
           message: error instanceof Error ? error.message : "OpenAI Realtime socket error.",
-          details: error,
+          details: toVoiceJsonValue(error),
         });
       });
 
@@ -269,13 +271,13 @@ async function sendControlNotification(input: {
   if (input.notification.createResponse === false) return;
   input.socket.send({
     type: "response.create",
-      response: {
-        conversation: "auto",
-        output_modalities: ["audio"],
-        instructions: input.notification.responseInstructions
+    response: {
+      conversation: "auto",
+      output_modalities: ["audio"],
+      instructions: input.notification.responseInstructions
         ?? "A Cognidesk background update arrived. Follow the active session instructions and any guidance in the update; if it is still relevant, briefly tell the customer the result in natural spoken language.",
-      },
-    });
+    },
+  });
 }
 
 function createFunctionCallOutput(callId: string, output: unknown): RealtimeClientEvent {
@@ -303,9 +305,9 @@ function createSystemMessage(text: string): RealtimeClientEvent {
   };
 }
 
-function parseToolArguments(value: string) {
+function parseToolArguments(value: string): VoiceJsonValue {
   try {
-    return JSON.parse(value) as unknown;
+    return JSON.parse(value) as VoiceJsonValue;
   } catch {
     return {};
   }
@@ -473,7 +475,7 @@ function createPreambleResponse(input: { id: string; text: string }): RealtimeCl
         "Generate exactly one natural spoken sentence.",
         "Do not use a fixed phrase. Vary the wording.",
         "Do not claim a booking, policy result, tool result, queue state, or completion.",
-        "Use German if the customer appears to be speaking German; use English if they appear to be speaking English.",
+        "Use German if the customer appears to be speaking German; use English if the customer appears to be speaking English.",
         "For the greeting 'Hallo', prefer German.",
       ].join(" "),
     },
@@ -510,6 +512,7 @@ function translateBrowserEvent(event: VoiceBrowserClientEvent): RealtimeClientEv
     case "session.update":
       return null;
   }
+  return null;
 }
 
 async function handleRealtimeEvent(
@@ -593,7 +596,7 @@ function translateServerEvent(event: RealtimeServerEvent): VoiceBrowserServerEve
       return {
         type: "response.done",
         event_id: event.event_id,
-        response: event.response,
+        response: event.response as unknown as VoiceJsonObject,
       };
     case "error":
       return {
@@ -602,7 +605,7 @@ function translateServerEvent(event: RealtimeServerEvent): VoiceBrowserServerEve
         error: {
           code: event.error.code ?? event.error.type,
           message: event.error.message,
-          details: event.error,
+          details: event.error as unknown as VoiceJsonValue,
         },
       };
     default:
@@ -651,6 +654,20 @@ function responseHasSpeechId(response: { metadata?: unknown }, id: string) {
 
 function optionalStringField<TKey extends string>(key: TKey, value: string | undefined) {
   return value ? { [key]: value } as Record<TKey, string> : {};
+}
+
+function toVoiceJsonValue(value: unknown): VoiceJsonValue {
+  if (
+    value === null
+    || typeof value === "string"
+    || typeof value === "number"
+    || typeof value === "boolean"
+    || Array.isArray(value)
+    || (typeof value === "object" && value !== null)
+  ) {
+    return value as VoiceJsonValue;
+  }
+  return String(value);
 }
 
 function createId(prefix: string) {

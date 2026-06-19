@@ -1,4 +1,5 @@
-import type { CognideskHttpRuntime } from "../src/index.js";
+import type { CognideskHttpRuntime, HandleChannelEventInput, HandleChannelEventResult } from "../src/index.js";
+import { defineChannelContext, defineChannelEvent } from "@cognidesk/core";
 import type {
   ConversationRecord,
   CreateRuntimeConversationInput,
@@ -54,6 +55,48 @@ export class FakeRuntime implements CognideskHttpRuntime {
       events: [event],
       text: `Handled: ${input.text}`,
       activeJourneyId: "ticket-status",
+    };
+  }
+
+  async handleChannelEvent(input: HandleChannelEventInput): Promise<HandleChannelEventResult> {
+    const channelEvent = defineChannelEvent(input.event);
+    const text = eventPayloadText(input.event.payload);
+    if (channelEvent.kind !== "message" || !input.conversationId || !text) {
+      return {
+        channelEvent,
+        intake: {
+          outcome: "ignored",
+          bindingOutcome: "ignore",
+          ...(input.conversationId ? { conversationId: input.conversationId } : {}),
+          handling: "not-required",
+          reason: "Unsupported fake runtime channel event.",
+        },
+        events: [],
+        disposition: "no-op",
+      };
+    }
+    const result = await this.handleUserMessage({
+      conversationId: input.conversationId,
+      text,
+      channel: defineChannelContext(channelEvent.channel),
+      ...(eventPayloadTurn(input.event.payload) !== undefined ? { turn: eventPayloadTurn(input.event.payload) } : {}),
+      ...(input.app !== undefined ? { app: input.app } : {}),
+    });
+    return {
+      channelEvent,
+      intake: {
+        outcome: "accepted",
+        bindingOutcome: "resume-existing",
+        conversationId: result.conversation.id,
+        handling: "started",
+      },
+      conversation: result.conversation,
+      turn: result,
+      snapshot: result.snapshot,
+      events: result.events,
+      text: result.text,
+      ...(result.activeJourneyId ? { activeJourneyId: result.activeJourneyId } : {}),
+      disposition: "model-turn",
     };
   }
 
@@ -304,4 +347,17 @@ export class FakeRuntime implements CognideskHttpRuntime {
   }
 
   private snapshot: RuntimeSnapshot | null = null;
+}
+
+function eventPayloadTurn(payload: unknown) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return undefined;
+  return (payload as { turn?: unknown }).turn;
+}
+
+function eventPayloadText(payload: unknown) {
+  if (typeof payload === "string") return payload;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return undefined;
+  const text = (payload as { text?: unknown; message?: unknown }).text
+    ?? (payload as { text?: unknown; message?: unknown }).message;
+  return typeof text === "string" ? text : undefined;
 }

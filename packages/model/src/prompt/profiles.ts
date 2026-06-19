@@ -6,13 +6,13 @@ import type {
   ModelPromptProfileRenderInput,
   PromptTask,
 } from "@cognidesk/core";
-import { bundledPromptProfiles } from "./prompt-assets.js";
+import { bundledPromptProfiles } from "./assets.js";
 import {
   promptTemplateFields,
   promptTasks,
   type BundledPromptProfile,
   type PromptTemplateMap,
-} from "./prompt-types.js";
+} from "./types.js";
 
 export type PromptOverrideValue =
   | string

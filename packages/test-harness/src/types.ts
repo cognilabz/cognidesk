@@ -2,6 +2,7 @@ import type {
   CreateRuntimeConversationInput,
   HandleUserMessageResult,
   ModelAdapter,
+  ConversationChannelInput,
   RuntimeEvent,
 } from "@cognidesk/core";
 
@@ -66,6 +67,38 @@ export type ScenarioAssertion =
     }
   | {
       id: string;
+      type: "eventPayloadMatches";
+      eventType: RuntimeEvent["type"];
+      expected: Record<string, unknown>;
+    }
+  | {
+      id: string;
+      type: "policyBlocked";
+      code?: string;
+      toolName?: string;
+    }
+  | {
+      id: string;
+      type: "toolCalled";
+      toolName: string;
+    }
+  | {
+      id: string;
+      type: "toolNotCalled";
+      toolName: string;
+    }
+  | {
+      id: string;
+      type: "assistantMaxWords";
+      maxWords: number;
+    }
+  | {
+      id: string;
+      type: "assistantMaxCharacters";
+      maxCharacters: number;
+    }
+  | {
+      id: string;
       type: "custom";
       description?: string;
       evaluate: (input: ScenarioAssertionInput) => MaybePromise<boolean | { passed: boolean; reasoning?: string }>;
@@ -90,6 +123,7 @@ export interface HarnessScenario {
   name?: string;
   description?: string;
   agentId: string;
+  channel?: ConversationChannelInput;
   context?: unknown;
   user: SimulatedUserDefinition;
   maxTurns?: number;
