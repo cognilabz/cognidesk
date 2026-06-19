@@ -30,7 +30,7 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const json = await client.fullApi.CreateAgentRoute({
         json: { conversation_config: {} },
       } as never);
@@ -38,7 +38,7 @@ describe("@cognidesk/integrations", () => {
         pathParams: { conversation_id: "conv_123" },
         responseType: "arrayBuffer",
       }) as ArrayBuffer;
-  
+
       expect(json).toMatchObject({ ok: true });
       expect(new Uint8Array(bytes)).toEqual(new Uint8Array([1, 2]));
       expect(fetchMock.mock.calls[0]?.[0]).toBe(
@@ -65,7 +65,7 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       // @ts-expect-error Minimal fixture intentionally exercises request routing; official schema requires full agent config.
       await expect(client.fullApi.CreateAgentRoute({
         json: { conversation_config: {} },
@@ -84,7 +84,7 @@ describe("@cognidesk/integrations", () => {
       await expect(client.requestOperation("GET /v1/convai/batch-calling/{batch_id}", {
         pathParams: { batch_id: "batch_123" },
       })).resolves.toMatchObject({ ok: true });
-  
+
       expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
         "https://api.elevenlabs.io/v1/convai/agents/create",
         "https://api.elevenlabs.io/v1/convai/phone-numbers",
@@ -107,7 +107,7 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: vi.fn(async () => new Response("{}", { status: 200 })) as unknown as typeof fetch,
       });
-  
+
       // @ts-expect-error Missing path params intentionally exercises runtime validation.
       await expect(client.fullApi.GetBatchCall()).rejects.toThrow("Missing ElevenLabs path parameter 'batch_id'");
       // @ts-expect-error Invalid operation id intentionally exercises runtime validation.

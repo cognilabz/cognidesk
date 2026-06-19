@@ -36,7 +36,7 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const signed = await client.getConversationSignedUrl({
         agentId: "agent_123",
         includeConversationId: true,
@@ -50,7 +50,7 @@ describe("@cognidesk/integrations", () => {
       });
       const details = await client.getConversation("conv_123");
       const audio = await client.getConversationAudio("conv_123");
-  
+
       expect(signed).toMatchObject({ signed_url: "wss://signed.example.test", conversation_id: "conv_123" });
       expect(conversations.conversations[0]?.conversation_id).toBe("conv_123");
       expect(details.agent_id).toBe("agent_123");
@@ -78,7 +78,7 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await client.listHistory({ pageSize: 5, voiceId: "voice_123" });
       await client.getHistoryItem("hist_123");
       await client.getHistoryAudio("hist_123");
@@ -87,7 +87,7 @@ describe("@cognidesk/integrations", () => {
       await client.createSingleUseToken({ tokenType: "tts_websocket" });
       await client.getUser();
       await client.getUserSubscription();
-  
+
       expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
         "https://api.elevenlabs.io/v1/history?page_size=5&voice_id=voice_123",
         "https://api.elevenlabs.io/v1/history/hist_123",

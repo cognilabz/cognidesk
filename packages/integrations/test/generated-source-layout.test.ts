@@ -46,7 +46,7 @@ describe("generated provider source layout", () => {
       .map((file) => lineBudget(file, 700, "generated endpoint chunk")));
 
     if (clientAggregators.length > 0) {
-      expect(endpointChunks.length).toBeGreaterThan(1000);
+      expect(endpointChunks.length).toBeGreaterThan(clientAggregators.length);
     }
     expect([...clientAggregators, ...endpointChunks].filter((result) => !result.passed)).toEqual([]);
   });

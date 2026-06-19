@@ -12,15 +12,19 @@
     }
   },
   "scripts": {
-    "build": "pnpm --filter @cognidesk/core build && tsup src/index.ts --format esm --dts --clean",
-    "typecheck": "pnpm --filter @cognidesk/core build && tsc -p tsconfig.json --noEmit",
+    "build:deps": "pnpm --filter @cognidesk/core --filter @cognidesk/voice-websocket --filter @cognidesk/test-harness build",
+    "build": "pnpm run build:deps && tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "pnpm run build:deps && tsc -p tsconfig.json --noEmit",
     "test": "pnpm run build && vitest run",
-    "lint": "tsc -p tsconfig.json --noEmit"
+    "lint": "pnpm run build:deps && tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@cognidesk/core": "workspace:*"
   },
   "devDependencies": {
+    "@cognidesk/test-harness": "workspace:*",
+    "@cognidesk/voice-websocket": "workspace:*",
+    "openai": "^6.42.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"

@@ -27,7 +27,7 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const audio = await client.createSpeech({
         voiceId: "voice_123",
         text: "Your flight is confirmed.",
@@ -39,7 +39,7 @@ describe("@cognidesk/integrations", () => {
           similarity_boost: 0.8,
         },
       });
-  
+
       expect(new Uint8Array(audio)).toEqual(new Uint8Array([1, 2, 3]));
       expect(fetchMock).toHaveBeenCalledWith(
         "https://api.elevenlabs.io/v1/text-to-speech/voice_123?enable_logging=false&output_format=mp3_44100_128",
@@ -74,13 +74,13 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const stream = await client.streamSpeech({
         voiceId: "voice_123",
         text: "Streaming response.",
         optimizeStreamingLatency: 1,
       });
-  
+
       expect(stream).toBeInstanceOf(ReadableStream);
       expect(fetchMock).toHaveBeenCalledWith(
         "https://api.elevenlabs.io/v1/text-to-speech/voice_123/stream?optimize_streaming_latency=1",
@@ -103,12 +103,12 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const response = await client.createSpeechWithTiming({
         voiceId: "voice_123",
         text: "Hello",
       });
-  
+
       expect(response.audio_base64).toBe("AQID");
       expect(fetchMock).toHaveBeenCalledWith(
         "https://api.elevenlabs.io/v1/text-to-speech/voice_123/with-timestamps",
@@ -128,13 +128,13 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await client.streamSpeechWithTiming({
         voiceId: "voice_123",
         text: "Timed stream",
         outputFormat: "mp3_44100_128",
       });
-  
+
       expect(fetchMock).toHaveBeenCalledWith(
         "https://api.elevenlabs.io/v1/text-to-speech/voice_123/stream/with-timestamps?output_format=mp3_44100_128",
         expect.objectContaining({ method: "POST" }),
@@ -152,7 +152,7 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await client.createTranscript({
         sourceUrl: "https://media.example.test/call.mp3",
         modelId: "scribe_v2",
@@ -162,7 +162,7 @@ describe("@cognidesk/integrations", () => {
       });
       const transcript = await client.getTranscript("tr_123");
       await client.deleteTranscript("tr_123");
-  
+
       expect(transcript.text).toBe("Hello world!");
       const request = (fetchMock.mock.calls[0] as unknown[])[1] as { body: FormData };
       expect(request.body.get("source_url")).toBe("https://media.example.test/call.mp3");
@@ -184,7 +184,7 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: vi.fn() as unknown as typeof fetch,
       });
-  
+
       await expect(client.createTranscript({}))
         .rejects.toThrow("Exactly one of file or sourceUrl");
       await expect(client.createTranscript({
@@ -205,7 +205,7 @@ describe("@cognidesk/integrations", () => {
         fetch: fetchMock as unknown as typeof fetch,
       });
       const audio = new Blob(["abc"], { type: "audio/mpeg" });
-  
+
       await client.createVoiceChange({
         voiceId: "voice_123",
         file: audio,
@@ -223,7 +223,7 @@ describe("@cognidesk/integrations", () => {
         fileName: "input.mp3",
         text: "hello",
       });
-  
+
       expect(alignment).toEqual({ characters: [] });
       expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
         "https://api.elevenlabs.io/v1/speech-to-speech/voice_123?output_format=mp3_44100_128",
@@ -254,17 +254,17 @@ describe("@cognidesk/integrations", () => {
         apiKey: "test-key",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       const voices = await client.listVoices();
       const models = await client.listModels();
-  
+
       expect(voices.voices[0]).toMatchObject({ voice_id: "voice_123", name: "Rachel" });
       expect(models[0]).toMatchObject({ model_id: "eleven_multilingual_v2", can_do_text_to_speech: true });
     });
 
   it("builds documented Text to Speech websocket URLs without exposing xi-api-key in query params", () => {
       const client = createElevenLabsVoiceClient({ apiKey: "server-key" });
-  
+
       expect(client.buildTextToSpeechWebSocketUrl({
         voiceId: "voice_123",
         modelId: "eleven_flash_v2_5",
@@ -274,7 +274,7 @@ describe("@cognidesk/integrations", () => {
       })).toBe(
         "wss://api.elevenlabs.io/v1/text-to-speech/voice_123/stream-input?single_use_token=token_123&model_id=eleven_flash_v2_5&output_format=ulaw_8000&sync_alignment=true",
       );
-  
+
       expect(client.buildMultiContextTextToSpeechWebSocketUrl({
         voiceId: "voice_123",
         modelId: "eleven_flash_v2_5",

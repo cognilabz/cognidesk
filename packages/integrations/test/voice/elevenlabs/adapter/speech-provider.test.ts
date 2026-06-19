@@ -52,14 +52,14 @@ describe("@cognidesk/integrations", () => {
           events.push(event);
         },
       });
-  
+
       await session.send({
         type: "input_audio_buffer.append",
         audio: Buffer.from(new Int16Array([1200, 1400, 0, 0]).buffer).toString("base64"),
       });
       await session.send({ type: "input_audio_buffer.commit" });
       await session.speak({ text: "Your ticket is confirmed." });
-  
+
       expect(events).toEqual(expect.arrayContaining([
         expect.objectContaining({
           kind: "input_transcript.completed",
