@@ -7,7 +7,12 @@ import {
   type CompiledAgent,
   type RuntimeEvent,
 } from "@cognidesk/core";
-import type { VoiceControlSurface, VoiceControlToolCall, VoiceControlToolResult } from "@cognidesk/voice-websocket";
+import type {
+  VoiceControlSurface,
+  VoiceControlToolCall,
+  VoiceControlToolResult,
+  VoiceJsonValue,
+} from "@cognidesk/voice-websocket";
 import {
   searchFlightKnowledgeIndex,
   type FlightKnowledgeIndex,
@@ -89,7 +94,7 @@ export function createFlightDemoVoiceControlSurface(input: {
         properties: {
           intent: {
             type: "string",
-            enum: voiceTurnIntents,
+            enum: [...voiceTurnIntents],
           },
           userTranscript: {
             type: "string",
@@ -632,9 +637,9 @@ async function retrieveVoiceKnowledge(
       ok: true,
       items: items.map((item) => ({
         id: item.id,
-        title: item.title,
         content: item.content,
-        score: item.score,
+        ...(item.title !== undefined ? { title: item.title } : {}),
+        ...(item.score !== undefined ? { score: item.score } : {}),
         metadata: {
           ...item.metadata,
           url: item.metadata.url ?? `/docs/${item.metadata.documentId}.html`,
@@ -714,7 +719,7 @@ async function requestToolRun(
       output: {
         ok: true,
         toolName: tool.name,
-        result: parsedOutput,
+        ...(parsedOutput !== undefined ? { result: parsedOutput as VoiceJsonValue } : {}),
       },
     };
   } catch (error) {
