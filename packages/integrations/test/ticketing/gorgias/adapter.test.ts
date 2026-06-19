@@ -11,6 +11,7 @@ import {
   type GorgiasCreateTicketPayload,
   type GorgiasListResponse,
   type GorgiasTicket,
+  type GorgiasTicketingClient,
   type GorgiasTicketMessage,
   type GorgiasUpdateTicketPayload,
 } from "../../../src/ticketing/gorgias/index.js";
@@ -56,7 +57,6 @@ describe("@cognidesk/integrations", () => {
   });
 
   it("exposes typed Gorgias helper request and response contracts", () => {
-    const client = createGorgiasTicketingClient({ apiBaseUrl: "https://example.gorgias.com" });
     const messagePayload: GorgiasCreateTicketMessagePayload = {
       channel: "internal-note",
       from_agent: true,
@@ -75,16 +75,27 @@ describe("@cognidesk/integrations", () => {
       tags: [{ name: "handoff" }],
     };
 
-    expectTypeOf(client.createTicket(ticketPayload)).toEqualTypeOf<Promise<GorgiasTicket>>();
-    expectTypeOf(client.updateTicket(123, patchPayload)).toEqualTypeOf<Promise<GorgiasTicket>>();
-    expectTypeOf(client.getTicket(123)).toEqualTypeOf<Promise<GorgiasTicket>>();
-    expectTypeOf(client.createTicketMessage(123, messagePayload, { action: "force" }))
+    expectTypeOf<Parameters<GorgiasTicketingClient["createTicket"]>>()
+      .toEqualTypeOf<[GorgiasCreateTicketPayload]>();
+    expectTypeOf<ReturnType<GorgiasTicketingClient["createTicket"]>>()
+      .toEqualTypeOf<Promise<GorgiasTicket>>();
+    expectTypeOf<Parameters<GorgiasTicketingClient["updateTicket"]>[1]>()
+      .toEqualTypeOf<GorgiasUpdateTicketPayload>();
+    expectTypeOf<ReturnType<GorgiasTicketingClient["updateTicket"]>>()
+      .toEqualTypeOf<Promise<GorgiasTicket>>();
+    expectTypeOf<ReturnType<GorgiasTicketingClient["getTicket"]>>()
+      .toEqualTypeOf<Promise<GorgiasTicket>>();
+    expectTypeOf<Parameters<GorgiasTicketingClient["createTicketMessage"]>[1]>()
+      .toEqualTypeOf<GorgiasCreateTicketMessagePayload>();
+    expectTypeOf<ReturnType<GorgiasTicketingClient["createTicketMessage"]>>()
       .toEqualTypeOf<Promise<GorgiasTicketMessage>>();
-    expectTypeOf(client.listTickets({ order_by: "updated_datetime:desc", limit: 25, ticket_ids: [123] }))
+    expectTypeOf<ReturnType<GorgiasTicketingClient["listTickets"]>>()
       .toEqualTypeOf<Promise<GorgiasListResponse<GorgiasTicket>>>();
-    expectTypeOf(client.listMessages({ order_by: "created_datetime:desc", ticket_id: 123 }))
+    expectTypeOf<ReturnType<GorgiasTicketingClient["listMessages"]>>()
       .toEqualTypeOf<Promise<GorgiasListResponse<GorgiasTicketMessage>>>();
-    expectTypeOf(client.readiness()).toEqualTypeOf<Promise<GorgiasAccount>>();
+    expectTypeOf<ReturnType<GorgiasTicketingClient["readiness"]>>()
+      .toEqualTypeOf<Promise<GorgiasAccount>>();
+    void [messagePayload, ticketPayload, patchPayload];
 
     // @ts-expect-error Gorgias create-ticket requires at least one message.
     const invalidTicketPayload: GorgiasCreateTicketPayload = { subject: "Missing first message" };
