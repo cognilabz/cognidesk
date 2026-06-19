@@ -2,7 +2,7 @@ import process from "node:process";
 import { metrics, SpanStatusCode, trace } from "@opentelemetry/api";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
-import { Resource } from "@opentelemetry/resources";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 
@@ -36,7 +36,7 @@ export interface CognideskDemoTelemetrySeedHandle {
 export function startCognideskOtel(options: CognideskOtelOptions): CognideskOtelHandle {
   const baseEndpoint = trimTrailingSlash(options.otlpEndpoint ?? process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "http://localhost:4318");
   const sdk = new NodeSDK({
-    resource: new Resource({
+    resource: resourceFromAttributes({
       "service.name": options.serviceName,
       ...(options.serviceVersion ? { "service.version": options.serviceVersion } : {}),
       ...(options.environment ? { "deployment.environment.name": options.environment } : {}),
