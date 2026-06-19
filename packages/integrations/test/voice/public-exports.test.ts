@@ -16,14 +16,13 @@ describe("voice public exports", () => {
   it("declares packages used by public voice entrypoints as runtime dependencies", async () => {
     const packageJsonPath = join(dirname(fileURLToPath(import.meta.url)), "../../package.json");
     const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as {
+      version: string;
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
 
-    expect(packageJson.dependencies).toMatchObject({
-      "@cognidesk/voice-websocket": "workspace:*",
-      openai: "^6.42.0",
-    });
+    expect(packageJson.dependencies).toMatchObject({ openai: "^6.42.0" });
+    expect(["workspace:*", packageJson.version]).toContain(packageJson.dependencies?.["@cognidesk/voice-websocket"]);
     expect(packageJson.devDependencies).not.toHaveProperty("@cognidesk/voice-websocket");
     expect(packageJson.devDependencies).not.toHaveProperty("openai");
   });
