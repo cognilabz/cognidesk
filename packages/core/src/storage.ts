@@ -1,10 +1,11 @@
-import type { RuntimeEvent, RuntimeSnapshot, ConversationLifecycle } from "./types.js";
+import type { ConversationChannel, ConversationChannelInput, RuntimeEvent, RuntimeSnapshot, ConversationLifecycle } from "./types.js";
 
 export interface ConversationRecord<TConversationContext = unknown> {
   id: string;
   agentId: string;
   lifecycle: ConversationLifecycle;
   context: TConversationContext;
+  channel?: ConversationChannel;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +27,7 @@ export interface CreateConversationInput<TConversationContext = unknown> {
   id?: string;
   agentId: string;
   context: TConversationContext;
+  channel?: ConversationChannelInput;
 }
 
 export interface StorageAdapter {
@@ -47,6 +49,14 @@ export interface StorageAdapter {
   appendEvent<TEvent extends RuntimeEventInput>(
     event: TEvent,
   ): Promise<RuntimeEvent>;
+
+  appendEventIfApprovalPending?<TEvent extends RuntimeEventInput<"approval.resolved">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null>;
+
+  appendEventIfNoActiveVoiceSegment?<TEvent extends RuntimeEventInput<"voice.segment.started">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null>;
 
   listEvents(options: ListEventsOptions): Promise<RuntimeEvent[]>;
 

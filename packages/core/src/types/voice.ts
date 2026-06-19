@@ -1,7 +1,6 @@
 import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
 import type { RuntimeEvent } from "./events.js";
-
-export type ConversationChannel = "chat" | "voice";
+export type { ConversationChannel } from "./providers.js";
 
 export type VoiceConnectionStatus = "starting" | "connected" | "ended" | "failed";
 

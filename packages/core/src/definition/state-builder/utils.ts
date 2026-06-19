@@ -1,9 +1,9 @@
-import type { AnyTool } from "../types.js";
-import type { ToolRunOptions } from "./primitives.js";
+import type { AnyTool } from "../../types.js";
+import type { ToolRunOptions } from "../primitives.js";
 import type {
   CollectedField,
   FieldWidgetOption,
-} from "./state-builder-types.js";
+} from "./types.js";
 
 export function resolveFieldWidget(widgetOption: FieldWidgetOption | undefined) {
   if (!widgetOption) return null;

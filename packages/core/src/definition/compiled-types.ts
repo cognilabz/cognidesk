@@ -8,6 +8,12 @@ import type {
   GuardResult,
   KnowledgeSource,
   ObjectSchema,
+  CapabilityAvailabilityInput,
+  ChannelPolicyConfigInput,
+  ChannelSetConfigInput,
+  ProviderCredentialStatusInput,
+  ProviderManifestInput,
+  ProviderReadinessInput,
   VoiceProfile,
   WidgetDefinition,
 } from "../types.js";
@@ -28,6 +34,10 @@ export interface CompiledAgent {
   id: string;
   instructions: string;
   logLevel?: AgentLogLevel;
+  persona?: AgentPersonaOptions;
+  channels?: AgentChannelPolicyMap;
+  configuration?: AgentConfigurationOptions;
+  handoff?: AgentHandoffPolicyOptions;
   behavior: AgentBehaviorOptions;
   postProcessing: AgentPostProcessingOptions;
   voice?: VoiceProfile;
@@ -246,9 +256,36 @@ export interface AgentPostProcessingOptions {
 
 export type AgentLogLevel = "trace" | "debug" | "info" | "error";
 
+export type AgentPolicyValue =
+  | string
+  | number
+  | boolean
+  | null
+  | AgentPolicyValue[]
+  | { [key: string]: AgentPolicyValue };
+
+export type AgentPersonaOptions = Record<string, AgentPolicyValue>;
+export type AgentChannelPolicyOptions = Record<string, AgentPolicyValue>;
+export type AgentChannelPolicyMap = Record<string, AgentChannelPolicyOptions>;
+export type AgentHandoffPolicyOptions = Record<string, AgentPolicyValue>;
+
+export interface AgentConfigurationOptions {
+  channelSets?: ChannelSetConfigInput[];
+  channels?: ChannelPolicyConfigInput[];
+  providerPackages?: ProviderManifestInput[];
+  capabilityAvailability?: CapabilityAvailabilityInput[];
+  credentialStatuses?: ProviderCredentialStatusInput[];
+  providerReadiness?: ProviderReadinessInput[];
+  policyIds?: string[];
+}
+
 export interface AgentOptions {
   instructions: string;
   logLevel?: AgentLogLevel;
+  persona?: AgentPersonaOptions;
+  channels?: AgentChannelPolicyMap;
+  configuration?: AgentConfigurationOptions;
+  handoff?: AgentHandoffPolicyOptions;
   behavior?: AgentBehaviorOptions;
   postProcessing?: AgentPostProcessingOptions;
 }

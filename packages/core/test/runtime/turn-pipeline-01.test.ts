@@ -103,6 +103,80 @@ describe("runtime turn pipeline 01", () => {
     });
   });
 
+  it("persists channel context, renders channel-aware instructions, and emits channel events", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    const emailJourney = agentBuilder.stateMachineJourney("email-support", {
+      condition: "Customer needs email support",
+      context: z.object({}),
+    });
+    emailJourney.initial(emailJourney.state("respond"));
+    const agent = agentBuilder.compile();
+    let capturedSystem = "";
+    const models = createModels({
+      response: {
+        provider: "test",
+        model: "response",
+        generateText: async (input: TextGenerationInput) => {
+          capturedSystem = input.messages.find((message) => message.role === "system")?.content ?? "";
+          return { text: "Thanks for emailing support." };
+        },
+      },
+    });
+    const journeyIndex = await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding });
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({ storage, agent, models, journeyIndex });
+
+    const conversation = await runtime.createConversation({
+      agentId: agent.id,
+      context: {},
+      channel: {
+        channelId: "email.gmail",
+        kind: "email",
+        provider: "gmail",
+        externalThreadId: "thread_123",
+        capabilities: {
+          attachments: true,
+        },
+      },
+    });
+    const storedConversation = await storage.getConversation(conversation.id);
+    expect(storedConversation?.channel).toMatchObject({
+      kind: "email",
+      provider: "gmail",
+      externalThreadId: "thread_123",
+    });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Please answer my email.",
+    });
+
+    expect(capturedSystem).toContain("Current support channel: email.");
+    expect(capturedSystem).toContain("draft-first");
+    const events = await runtime.listEvents(conversation.id);
+    expect(events.map((event) => event.type)).toEqual(expect.arrayContaining([
+      "channel.received",
+      "channel.sent",
+    ]));
+    expect(events.find((event) => event.type === "channel.received")?.data).toMatchObject({
+      channel: {
+        kind: "email",
+        provider: "gmail",
+        externalThreadId: "thread_123",
+      },
+      text: "Please answer my email.",
+    });
+    expect(events.find((event) => event.type === "channel.sent")?.data).toMatchObject({
+      channel: {
+        kind: "email",
+        provider: "gmail",
+      },
+      text: "Thanks for emailing support.",
+    });
+  });
+
   it("renders model prompt profiles with task payloads before model calls", async () => {
     const agent = createAgent("flight-service", {
       instructions: "Help customers with flights.",

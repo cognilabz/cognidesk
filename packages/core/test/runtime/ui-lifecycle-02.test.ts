@@ -137,6 +137,51 @@ describe("runtime UI and lifecycle events 02", () => {
     });
   });
 
+  it("blocks handoff when the configured channel policy does not enable it", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels(),
+      channels: [{
+        id: "sms-support",
+        channel: "sms",
+        enabled: true,
+        channelSetIds: [],
+        providerPackageIds: [],
+        enabledCapabilities: ["receive", "send"],
+        flowActivations: [],
+        handoff: {
+          enabled: false,
+          providerPackageIds: [],
+          destinations: [],
+          sdkControlled: true,
+          policyIds: ["handoff"],
+        },
+        policies: {},
+      }],
+    });
+    const conversation = await runtime.createConversation({
+      agentId: agent.id,
+      context: {},
+      channel: { channelId: "sms-support", kind: "sms" },
+    });
+
+    await expect(runtime.requestHandoff({
+      conversationId: conversation.id,
+      reason: "Customer asked for a human",
+    })).rejects.toThrow("Handoff is not enabled for channel 'sms-support'.");
+
+    expect(await runtime.getSnapshot(conversation.id)).toMatchObject({ lifecycle: "active" });
+    expect((await runtime.listEvents(conversation.id)).at(-1)).toMatchObject({
+      type: "custom.channel.handoff.blocked",
+      data: {
+        channelPolicyIds: ["sms-support"],
+        reason: "handoff-disabled-for-channel",
+      },
+    });
+  });
+
   it("resumes a handoff conversation back to active lifecycle", async () => {
     const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({

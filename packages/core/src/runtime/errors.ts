@@ -6,8 +6,7 @@ export class AbortError extends Error {
 }
 
 export function isAbortLikeError(error: unknown) {
-  if (error instanceof Error) {
-    return error.name === "AbortError" || error.message === "interrupted_by_new_message";
-  }
-  return false;
+  if (!error || typeof error !== "object") return false;
+  const maybeError = error as { name?: unknown; message?: unknown };
+  return maybeError.name === "AbortError" || maybeError.message === "interrupted_by_new_message";
 }

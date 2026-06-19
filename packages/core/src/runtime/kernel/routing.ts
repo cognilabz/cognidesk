@@ -1,11 +1,12 @@
-import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../definition.js";
-import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
+import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../../definition.js";
+import type { ConversationRecord, RuntimeEventInput } from "../../storage.js";
 import type {
   AgentModelSet,
+  ChannelContext,
   GuardResult,
   RuntimeEvent,
   RuntimeSnapshot,
-} from "../types.js";
+} from "../../types.js";
 import {
   evaluateRuntimeDelegationCompletion,
   resolveRuntimeJourneyEventRoute,
@@ -13,13 +14,13 @@ import {
   selectRuntimeEventTransition,
   selectRuntimeJourney,
   selectRuntimeTransition,
-} from "./facade-routing.js";
-import type { RuntimeCore, RuntimeConversationMessage } from "./kernel-core.js";
+} from "../facade/routing.js";
+import type { RuntimeCore, RuntimeConversationMessage } from "./core.js";
 import type {
   HandleUserMessageInput,
   RuntimeOptions,
   StateMachineTurnResult,
-} from "./types.js";
+} from "../types.js";
 
 export function createRuntimeRouting(
   options: RuntimeOptions,
@@ -35,6 +36,7 @@ export function createRuntimeRouting(
       history: RuntimeConversationMessage[];
       input: HandleUserMessageInput<TTurn>;
       userText: string;
+      channel?: ChannelContext;
       emit: RuntimeEmit;
     }) {
       return selectRuntimeJourney({

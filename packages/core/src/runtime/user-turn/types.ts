@@ -3,6 +3,7 @@ import type { ConversationRecord, RuntimeEventInput } from "../../storage.js";
 import type {
   AgentModelSet,
   AnyTool,
+  ChannelContext,
   MessageSegment,
   ModelAdapter,
   ModelMessage,
@@ -46,6 +47,7 @@ export interface HandleUserMessageDeps<TTurn> {
     history: ConversationMessage[];
     input: HandleUserMessageInput<TTurn>;
     userText: string;
+    channel?: ChannelContext;
     emit: RuntimeEmit;
   }): Promise<CompiledJourney | null>;
   executeStateMachineTurn(input: {
@@ -54,6 +56,7 @@ export interface HandleUserMessageDeps<TTurn> {
     conversation: ConversationRecord;
     previousSnapshot: RuntimeSnapshot | null;
     userText: string;
+    channel?: ChannelContext;
     turn: unknown;
     app: unknown;
     signal?: AbortSignal;
@@ -83,6 +86,7 @@ export interface HandleUserMessageDeps<TTurn> {
     modelTools: ModelToolDefinition[];
     selectedJourney: CompiledJourney | null;
     stateMachineTurn: StateMachineTurnResult | null;
+    channel?: ChannelContext;
     signal?: AbortSignal;
     onTextDelta?(textDelta: string): Promise<void> | void;
     emit: RuntimeEmit;

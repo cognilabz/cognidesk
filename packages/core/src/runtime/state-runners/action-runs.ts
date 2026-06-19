@@ -5,9 +5,9 @@ import {
   telemetrySpanNames,
   withTelemetrySpan,
 } from "../../telemetry.js";
-import { AbortError, isAbortLikeError } from "../errors.js";
+import { abortErrorFromSignal, runWithAbort, throwIfSignalAborted } from "../cancellation.js";
 import type { RuntimeEventEmitter, RuntimeOptions } from "../types.js";
-import { emitRetryNotice } from "./retry.js";
+import { emitRetryNotice, shouldRetryExecutionFailure, type RetryPlan } from "./retry.js";
 
 export async function runStateActionRuns(args: {
   options: RuntimeOptions;
@@ -29,12 +29,12 @@ export async function runStateActionRuns(args: {
     }
 
     await emitActionStarted(args, actionRun.action.name);
-    const maxAttempts = actionExecutionMaxAttempts(args.options, actionRun.action);
+    const retryPlan = actionExecutionRetryPlan(args.options, actionRun.action);
     let lastError: unknown = null;
     try {
-      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      for (let attempt = 1; attempt <= retryPlan.maxAttempts; attempt += 1) {
         try {
-          if (args.signal?.aborted) throw args.signal.reason ?? new AbortError("aborted");
+          throwIfSignalAborted(args.signal);
           await withTelemetrySpan(args.options, {
             name: telemetrySpanNames.actionExecute,
             attributes: {
@@ -51,13 +51,14 @@ export async function runStateActionRuns(args: {
                 [telemetryAttributes.actionName]: actionRun.action.name,
               },
             },
-          }, () => actionRun.action.run({ input: parsedInput.data }));
+          }, () => runWithAbort(() => actionRun.action.run({ input: parsedInput.data }), args.signal));
           lastError = null;
           break;
         } catch (error) {
-          if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+          if (args.signal?.aborted) throw abortErrorFromSignal(args.signal);
           lastError = error;
-          if (attempt >= maxAttempts) break;
+          if (attempt >= retryPlan.maxAttempts) break;
+          if (!shouldRetryExecutionFailure(error, retryPlan)) break;
           const retryNotice = actionRun.action.retry && typeof actionRun.action.retry === "object"
             ? actionRun.action.retry.notice
             : undefined;
@@ -72,7 +73,7 @@ export async function runStateActionRuns(args: {
       if (lastError) throw lastError;
       await emitActionSuccess(args, actionRun.action.name);
     } catch (error) {
-      if (isAbortLikeError(error) && args.signal?.aborted) throw error;
+      if (args.signal?.aborted) throw abortErrorFromSignal(args.signal);
       const message = error instanceof Error ? error.message : "State action failed.";
       await emitActionFailure(args, actionRun.action.name, message, "state_action_failed");
     }
@@ -80,11 +81,24 @@ export async function runStateActionRuns(args: {
 }
 
 export function actionExecutionMaxAttempts(options: RuntimeOptions, actionDefinition: ActionDefinition) {
-  if (actionDefinition.retry === false) return 1;
+  return actionExecutionRetryPlan(options, actionDefinition).maxAttempts;
+}
+
+export function actionExecutionRetryPlan(options: RuntimeOptions, actionDefinition: ActionDefinition): RetryPlan {
+  if (actionDefinition.retry === false) return { maxAttempts: 1, retryUnclassifiedFailures: false };
   if (actionDefinition.retry && typeof actionDefinition.retry === "object" && actionDefinition.retry.maxAttempts !== undefined) {
-    return Math.max(1, actionDefinition.retry.maxAttempts);
+    return { maxAttempts: Math.max(1, actionDefinition.retry.maxAttempts), retryUnclassifiedFailures: true };
   }
-  return Math.max(1, options.toolRetry?.maxAttempts ?? 2);
+  if (actionDefinition.retry && typeof actionDefinition.retry === "object") {
+    return {
+      maxAttempts: Math.max(1, options.toolRetry?.maxAttempts ?? 2),
+      retryUnclassifiedFailures: true,
+    };
+  }
+  return {
+    maxAttempts: Math.max(1, options.toolRetry?.maxAttempts ?? 2),
+    retryUnclassifiedFailures: options.toolRetry?.maxAttempts !== undefined,
+  };
 }
 
 async function emitActionStarted(args: ActionRunContext, actionName: string) {

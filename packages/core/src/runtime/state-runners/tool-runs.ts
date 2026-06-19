@@ -12,7 +12,10 @@ import { setPathValue } from "../context.js";
 import { isAbortLikeError } from "../errors.js";
 import { createToolConfirmationPromptId } from "../journey-state.js";
 import type { RuntimeEventEmitter, RuntimeOptions } from "../types.js";
+import type { ConversationChannel } from "../../types.js";
+import { evaluateToolPolicyUse, policyBlockForEvent } from "../policy-enforcement.js";
 import { executeToolWithRetry } from "./retry.js";
+import { evaluateToolApprovalUse, requestToolApproval } from "../approvals.js";
 
 export async function runStateToolRuns(args: {
   options: RuntimeOptions;
@@ -28,6 +31,7 @@ export async function runStateToolRuns(args: {
   context: Record<string, unknown>;
   actionType: "entry" | "exit" | "transition";
   confirmedPromptId?: string;
+  channel?: ConversationChannel;
   signal?: AbortSignal;
   emit: RuntimeEventEmitter;
 }): Promise<string | null> {
@@ -62,6 +66,53 @@ export async function runStateToolRuns(args: {
     }
 
     logger.debug({ toolName: toolRun.tool.name }, "State tool execution starting");
+    const policyDecision = evaluateToolPolicyUse({
+      options: args.options,
+      conversation: args.conversation,
+      tool: toolRun.tool,
+      ...(args.channel ? { channel: args.channel } : {}),
+    });
+    if (policyDecision && !policyDecision.allowed) {
+      const policyBlock = policyBlockForEvent(policyDecision);
+      logger.warn({
+        toolName: toolRun.tool.name,
+        code: policyDecision.code,
+        blockers: policyDecision.blockers,
+      }, "State tool run blocked by channel policy");
+      await emitToolCompleted(args, toolRun.tool.name, false, policyDecision.message, undefined, false, policyBlock);
+      return toolRun.onFailureId ?? null;
+    }
+    const approvalDecision = evaluateToolApprovalUse(args.options, {
+      conversation: args.conversation,
+      tool: toolRun.tool,
+      input: parsedInput.data,
+      ...(args.channel ? { channel: args.channel } : {}),
+      journeyId: args.journey.id,
+      stateId: args.state.id,
+    });
+    if (approvalDecision.outcome === "require-approval") {
+      const approval = await requestToolApproval({
+        emit: args.emit,
+        conversation: args.conversation,
+        tool: toolRun.tool,
+        input: parsedInput.data,
+        decision: approvalDecision,
+        ...(args.channel ? { channel: args.channel } : {}),
+        journeyId: args.journey.id,
+        stateId: args.state.id,
+      });
+      await emitToolCompleted(
+        args,
+        toolRun.tool.name,
+        false,
+        approval.data.reason ?? "Tool execution is pending approval.",
+        undefined,
+        false,
+        undefined,
+        { approvalId: approval.data.approvalId, status: "requested" },
+      );
+      return null;
+    }
     await emitToolStarted(args, toolRun.tool.name);
     try {
       const idempotencyKey = toolRun.tool.idempotencyKey?.({
@@ -157,6 +208,8 @@ async function emitToolCompleted(
   error?: string,
   result?: unknown,
   _traceCompleted = true,
+  policyBlock?: { code: string; message: string; blockers: Array<{ code: string; message: string; kind?: string }> },
+  approval?: { approvalId: string; status: "requested" | "resolved" },
 ) {
   await args.emit({
     conversationId: args.conversation.id,
@@ -168,6 +221,8 @@ async function emitToolCompleted(
       stateId: args.state.id,
       ...(result !== undefined ? { result } : {}),
       ...(error ? { error } : {}),
+      ...(policyBlock ? { policyBlock } : {}),
+      ...(approval ? { approval } : {}),
     },
   });
 }
@@ -177,5 +232,6 @@ type ToolRunContext = {
   journey: CompiledJourney;
   conversation: ConversationRecord;
   state: CompiledJourney["states"][number];
+  channel?: ConversationChannel;
   emit: RuntimeEventEmitter;
 };

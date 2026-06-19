@@ -7,6 +7,7 @@ import {
   telemetrySpanNames,
   withTelemetrySpan,
 } from "../../telemetry.js";
+import { waitForAbort } from "../cancellation.js";
 import { resolveActiveStates } from "../journey-state.js";
 import { parseKnowledgeQuery, uniqueKnowledgeSources } from "../tools.js";
 import type {
@@ -59,10 +60,10 @@ export async function retrieveKnowledge(args: {
           ...(args.journey ? { [telemetryAttributes.journeyId]: args.journey.id } : {}),
         },
       },
-    }, () => source.retrieve({
-        query,
-        ...(args.signal ? { signal: args.signal } : {}),
-      }));
+    }, () => waitForAbort(source.retrieve({
+      query,
+      ...(args.signal ? { signal: args.signal } : {}),
+    }), args.signal));
     addTelemetryContentEvent(args.options, telemetryEventNames.knowledgeItems, {
       "cognidesk.knowledge.source.name": source.name,
       "cognidesk.knowledge.query": query,

@@ -4,6 +4,7 @@ import {
   action,
   buildJourneyIndex,
   createAgent,
+  defineChannelContext,
   createRuntime,
   customRuntimeEvent,
   endConversationTool,
@@ -213,6 +214,75 @@ describe("runtime delegation, privacy, and compaction 01", () => {
     expect(modelPrompt).not.toContain("model-secret");
     expect((await runtime.listEvents(conversation.id)).find((event) => event.type === "custom.audit.note")?.data).toEqual({
       note: "[event]",
+    });
+  });
+
+  it("applies channel-specific privacy hooks to persisted channel events", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async () => ({ text: "We will email phil@example.com with details." }),
+        },
+      }),
+      privacy: {
+        redactInboundChannelEvent: ({ event }) => ({
+          ...event,
+          data: {
+            ...event.data,
+            text: (event.data.text ?? "").replace("card 4111", "[card]"),
+            payload: { redacted: "inbound" },
+          },
+        }),
+        redactOutboundChannelMessage: ({ event }) => ({
+          ...event,
+          data: {
+            ...event.data,
+            text: (event.data.text ?? "").replace("phil@example.com", "[email]"),
+            payload: { redacted: "outbound" },
+          },
+        }),
+      },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "My card 4111 needs help.",
+      channel: defineChannelContext({
+        channelId: "email.gmail",
+        kind: "email",
+        provider: "gmail",
+      }),
+      turn: { providerPayload: "raw-channel-payload" },
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(result.text).toBe("We will email phil@example.com with details.");
+    expect(events.find((event) => event.type === "message.completed")?.data).toEqual({
+      text: "My card 4111 needs help.",
+    });
+    expect(events.find((event) => event.type === "channel.received")?.data).toMatchObject({
+      text: "My [card] needs help.",
+      payload: { redacted: "inbound" },
+      channel: {
+        channelId: "email.gmail",
+        kind: "email",
+        provider: "gmail",
+      },
+    });
+    expect(events.find((event) => event.type === "channel.sent")?.data).toMatchObject({
+      text: "We will email [email] with details.",
+      payload: { redacted: "outbound" },
+      channel: {
+        channelId: "email.gmail",
+        kind: "email",
+        provider: "gmail",
+      },
     });
   });
 

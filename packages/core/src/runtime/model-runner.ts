@@ -9,9 +9,11 @@ import {
   type TelemetrySpanOptions,
 } from "../telemetry.js";
 import type { ConversationRecord } from "../storage.js";
+import { waitForAbort } from "./cancellation.js";
 import type {
   AgentModelSet,
   AnyTool,
+  ConversationChannel,
   ModelAdapter,
   ModelMessage,
   ModelVisiblePromptPayload,
@@ -27,6 +29,8 @@ import { redactModelInput } from "./privacy.js";
 import { executeToolWithRetry } from "./state-runners.js";
 import { createToolResultMessage, uniqueTools } from "./tools.js";
 import type { RuntimeEventEmitter, RuntimeOptions, StateMachineTurnResult } from "./types.js";
+import { evaluateToolPolicyUse, policyBlockForEvent } from "./policy-enforcement.js";
+import { evaluateToolApprovalUse, requestToolApproval } from "./approvals.js";
 
 export async function generateTextWithTrace(args: {
   options: RuntimeOptions;
@@ -73,13 +77,13 @@ export async function generateTextWithTrace(args: {
       })),
     });
     const redactedInput = await redactModelInput(args.options, args.conversationId, args.input);
-    const output = await args.model.generateText({
+    const output = await waitForAbort(args.model.generateText({
       ...redactedInput,
       messages: await applyModelPromptProfile({
         model: args.model,
         input: redactedInput,
       }),
-    });
+    }), args.input.signal);
     logger.debug({
       role: args.input.role,
       provider: args.model.provider,
@@ -127,6 +131,7 @@ export async function generateResponseWithTools(args: {
   modelTools: ModelToolDefinition[];
   selectedJourney: CompiledJourney | null;
   stateMachineTurn: StateMachineTurnResult | null;
+  channel?: ConversationChannel;
   signal?: AbortSignal;
   onTextDelta?(textDelta: string): Promise<void> | void;
   emit: RuntimeEventEmitter;
@@ -195,6 +200,7 @@ export async function generateResponseWithTools(args: {
       tools: args.tools,
       selectedJourney: args.selectedJourney,
       stateMachineTurn: args.stateMachineTurn,
+      ...(args.channel ? { channel: args.channel } : {}),
       emit: args.emit,
       ...(args.signal ? { signal: args.signal } : {}),
     });
@@ -221,6 +227,7 @@ export async function executeModelToolCalls(args: {
   tools: AnyTool[];
   selectedJourney: CompiledJourney | null;
   stateMachineTurn: StateMachineTurnResult | null;
+  channel?: ConversationChannel;
   signal?: AbortSignal;
   emit: RuntimeEventEmitter;
 }): Promise<ModelMessage[]> {
@@ -252,6 +259,74 @@ export async function executeModelToolCalls(args: {
         data: { toolName: toolDefinition.name, success: false, error },
       });
       messages.push(createToolResultMessage(call, { error }));
+      continue;
+    }
+
+    const policyDecision = evaluateToolPolicyUse({
+      options: args.options,
+      conversation: args.conversation,
+      tool: toolDefinition,
+      ...(args.channel ? { channel: args.channel } : {}),
+    });
+    if (policyDecision && !policyDecision.allowed) {
+      const policyBlock = policyBlockForEvent(policyDecision);
+      const error = policyDecision.message;
+      logger.warn({
+        toolName: toolDefinition.name,
+        code: policyDecision.code,
+        blockers: policyDecision.blockers,
+      }, "Model tool call blocked by channel policy");
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "tool.completed",
+        data: {
+          toolName: toolDefinition.name,
+          success: false,
+          ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+          error,
+          policyBlock,
+        },
+      });
+      messages.push(createToolResultMessage(call, { error, policyBlock }));
+      continue;
+    }
+
+    const approvalDecision = evaluateToolApprovalUse(args.options, {
+      conversation: args.conversation,
+      tool: toolDefinition,
+      input: parsedInput.data,
+      ...(args.channel ? { channel: args.channel } : {}),
+      ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+      ...(args.stateMachineTurn?.activeStateIds[0] ? { stateId: args.stateMachineTurn.activeStateIds[0] } : {}),
+    });
+    if (approvalDecision.outcome === "require-approval") {
+      const approval = await requestToolApproval({
+        emit: args.emit,
+        conversation: args.conversation,
+        tool: toolDefinition,
+        input: parsedInput.data,
+        decision: approvalDecision,
+        ...(args.channel ? { channel: args.channel } : {}),
+        ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+        ...(args.stateMachineTurn?.activeStateIds[0] ? { stateId: args.stateMachineTurn.activeStateIds[0] } : {}),
+      });
+      const pending = {
+        approvalId: approval.data.approvalId,
+        status: "pending-approval",
+        reason: approval.data.reason,
+      };
+      await args.emit({
+        conversationId: args.conversation.id,
+        type: "tool.completed",
+        data: {
+          toolName: toolDefinition.name,
+          success: false,
+          ...(args.selectedJourney ? { journeyId: args.selectedJourney.id } : {}),
+          error: approval.data.reason ?? "Tool execution is pending approval.",
+          approval: { approvalId: approval.data.approvalId, status: "requested" },
+        },
+      });
+      messages.push(createToolResultMessage(call, pending));
       continue;
     }
 

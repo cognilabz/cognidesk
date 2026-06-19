@@ -170,7 +170,11 @@ describe("runtime tools and actions 02", () => {
       output: z.object({ status: z.string() }),
       execute: async ({ input }) => {
         attempts += 1;
-        if (attempts === 1) throw new Error("temporary outage");
+        if (attempts === 1) {
+          const error = new Error("service unavailable") as Error & { status: number };
+          error.status = 503;
+          throw error;
+        }
         return { status: `${input.bookingReference}:confirmed` };
       },
     });
@@ -222,6 +226,223 @@ describe("runtime tools and actions 02", () => {
     expect(events[5]).toMatchObject({
       type: "message.completed",
       data: { intermediate: true },
+    });
+  });
+
+  it("blocks consequential model-requested tools until channel policy is configured", async () => {
+    let attempts = 0;
+    const sendSms = tool("sendSms", {
+      description: "Send an SMS to the customer.",
+      input: z.object({ body: z.string() }),
+      output: z.object({ sent: z.boolean() }),
+      sideEffect: true,
+      policy: {
+        capability: "send",
+        externallyVisible: true,
+        requiredPolicyIds: ["approval"],
+      },
+      execute: async () => {
+        attempts += 1;
+        return { sent: true };
+      },
+    });
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (!input.messages.some((message) => message.role === "tool")) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_1",
+              name: "sendSms",
+              input: { body: "Your booking changed." },
+            }],
+          };
+        }
+        return { text: "I cannot send that until policy is configured." };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(sendSms);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+      channels: [{
+        id: "sms-support",
+        channel: "sms",
+        enabled: true,
+        channelSetIds: [],
+        providerPackageIds: [],
+        enabledCapabilities: ["receive"],
+        flowActivations: [],
+        policies: {},
+      }],
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {}, channel: "sms" });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Send me the booking change by SMS.",
+      channel: "sms",
+    });
+    const toolEvents = (await runtime.listEvents(conversation.id)).filter((event) => event.type === "tool.completed");
+
+    expect(result.text).toBe("I cannot send that until policy is configured.");
+    expect(attempts).toBe(0);
+    expect(toolEvents).toHaveLength(1);
+    expect(toolEvents[0]).toMatchObject({
+      type: "tool.completed",
+      data: {
+        toolName: "sendSms",
+        success: false,
+        policyBlock: {
+          code: "capability-not-enabled",
+        },
+      },
+    });
+  });
+
+  it("allows consequential model-requested tools when channel capability and required policy exist", async () => {
+    let attempts = 0;
+    const sendSms = tool("sendSms", {
+      description: "Send an SMS to the customer.",
+      input: z.object({ body: z.string() }),
+      output: z.object({ sent: z.boolean() }),
+      sideEffect: true,
+      policy: {
+        capability: "send",
+        externallyVisible: true,
+        requiredPolicyIds: ["approval"],
+      },
+      execute: async () => {
+        attempts += 1;
+        return { sent: true };
+      },
+    });
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (!input.messages.some((message) => message.role === "tool")) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_1",
+              name: "sendSms",
+              input: { body: "Your booking changed." },
+            }],
+          };
+        }
+        return { text: "Sent." };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(sendSms);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+      channels: [{
+        id: "sms-support",
+        channel: "sms",
+        enabled: true,
+        channelSetIds: [],
+        providerPackageIds: [],
+        enabledCapabilities: ["receive", "send"],
+        flowActivations: [],
+        policies: {
+          approval: { owner: "sdk-user", requiredFor: ["send"] },
+        },
+      }],
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {}, channel: "sms" });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Send me the booking change by SMS.",
+      channel: "sms",
+    });
+    const toolEvents = (await runtime.listEvents(conversation.id)).filter((event) => event.type === "tool.completed");
+
+    expect(attempts).toBe(1);
+    expect(toolEvents.at(-1)).toMatchObject({
+      type: "tool.completed",
+      data: {
+        toolName: "sendSms",
+        success: true,
+        result: { sent: true },
+      },
+    });
+  });
+
+  it("blocks consequential state-machine tool runs until channel policy is configured", async () => {
+    let attempts = 0;
+    const updateTicket = tool("updateTicket", {
+      description: "Update an external ticket record.",
+      input: z.object({ ticketId: z.string() }),
+      output: z.object({ updated: z.boolean() }),
+      policy: {
+        capability: "update-provider-object",
+        changesWorkflow: true,
+        requiredPolicyIds: ["approval"],
+      },
+      execute: async () => {
+        attempts += 1;
+        return { updated: true };
+      },
+    });
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const journey = agentBuilder.stateMachineJourney("ticket-update", {
+      condition: "Customer updates a ticket",
+      context: z.object({}),
+    });
+    const start = journey.state("start").runTool(updateTicket, {
+      input: () => ({ ticketId: "INC-42" }),
+    });
+    const done = journey.final("done");
+    journey.initial(start);
+    start.transitionTo(done);
+    const agent = agentBuilder.compile();
+    const models = createModels();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models,
+      journeyIndex: await buildJourneyIndex(agent, { embeddingModel: models.journeyEmbedding }),
+      channels: [{
+        id: "ticketing-support",
+        channel: "ticketing",
+        enabled: true,
+        channelSetIds: [],
+        providerPackageIds: [],
+        enabledCapabilities: ["receive", "update-provider-object"],
+        flowActivations: [],
+        policies: {},
+      }],
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {}, channel: "ticketing" });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Please update my ticket.",
+      channel: "ticketing",
+    });
+    const toolEvents = (await runtime.listEvents(conversation.id)).filter((event) => event.type === "tool.completed");
+
+    expect(attempts).toBe(0);
+    expect(toolEvents[0]).toMatchObject({
+      type: "tool.completed",
+      data: {
+        toolName: "updateTicket",
+        success: false,
+        policyBlock: {
+          code: "missing-policy",
+        },
+      },
     });
   });
 });

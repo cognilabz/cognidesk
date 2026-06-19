@@ -1,10 +1,10 @@
 import type { z } from "zod";
-import type { StateBuilder } from "./state-builder.js";
+import type { StateBuilder } from "./index.js";
 import type {
   ActionDefinition,
   ConfirmationPolicy,
   MaybePromise,
-} from "./primitives.js";
+} from "../primitives.js";
 import type {
   AnyTool,
   GuardContext,
@@ -12,7 +12,7 @@ import type {
   ObjectSchema,
   WidgetDefinition,
   WidgetPromptDefinition,
-} from "../types.js";
+} from "../../types.js";
 
 export type InferObject<TSchema extends ObjectSchema> = z.infer<TSchema>;
 export type FieldWidgetOption = WidgetDefinition | WidgetPromptDefinition;

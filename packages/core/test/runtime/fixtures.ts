@@ -10,6 +10,7 @@ import type {
   RuntimeSnapshot,
   StorageAdapter,
 } from "../../src/index.js";
+import { defineChannelContext } from "../../src/index.js";
 
 export function createModels(overrides: Partial<AgentModelSet> = {}): AgentModelSet {
   const response = {
@@ -99,6 +100,7 @@ export class RecordingStorage implements StorageAdapter {
       agentId: input.agentId,
       lifecycle: "active" as ConversationLifecycle,
       context: input.context,
+      ...(input.channel ? { channel: defineChannelContext(input.channel) } : {}),
       createdAt: now,
       updatedAt: now,
     };
@@ -136,6 +138,22 @@ export class RecordingStorage implements StorageAdapter {
     return stored;
   }
 
+  async appendEventIfApprovalPending<TEvent extends RuntimeEventInput<"approval.resolved">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null> {
+    const events = this.events.get(event.conversationId) ?? [];
+    if (!isApprovalPending(events, event.data.approvalId)) return null;
+    return this.appendEvent(event);
+  }
+
+  async appendEventIfNoActiveVoiceSegment<TEvent extends RuntimeEventInput<"voice.segment.started">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null> {
+    const events = this.events.get(event.conversationId) ?? [];
+    if (hasActiveVoiceSegment(events)) return null;
+    return this.appendEvent(event);
+  }
+
   async listEvents(options: ListEventsOptions): Promise<RuntimeEvent[]> {
     return (this.events.get(options.conversationId) ?? [])
       .filter((event) => options.afterOffset === undefined || event.offset > options.afterOffset)
@@ -149,4 +167,34 @@ export class RecordingStorage implements StorageAdapter {
   async getSnapshot(conversationId: string): Promise<RuntimeSnapshot | null> {
     return this.snapshots.get(conversationId) ?? null;
   }
+}
+
+function isApprovalPending(events: RuntimeEvent[], approvalId: string) {
+  let requested: Extract<RuntimeEvent, { type: "approval.requested" }> | undefined;
+  let resolved = false;
+  for (const event of events) {
+    if (event.type === "approval.requested" && event.data.approvalId === approvalId) {
+      requested = event;
+      continue;
+    }
+    if (event.type === "approval.resolved" && event.data.approvalId === approvalId) {
+      resolved = true;
+    }
+  }
+  if (!requested || resolved) return false;
+  return !requested.data.expiresAt || Date.parse(requested.data.expiresAt) > Date.now();
+}
+
+function hasActiveVoiceSegment(events: RuntimeEvent[]) {
+  const active = new Set<string>();
+  for (const event of events) {
+    if (event.type === "voice.segment.started") {
+      active.add(event.data.channelSegmentId);
+      continue;
+    }
+    if (event.type === "voice.segment.ended" || event.type === "voice.connection.failed") {
+      active.delete(event.data.channelSegmentId);
+    }
+  }
+  return active.size > 0;
 }

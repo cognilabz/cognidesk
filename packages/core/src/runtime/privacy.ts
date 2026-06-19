@@ -28,6 +28,8 @@ export function createPrivacyStorageAdapter(
   privacy: RuntimeOptions["privacy"],
 ): StorageAdapter {
   if (!privacy?.redactConversationContext
+    && !privacy?.redactInboundChannelEvent
+    && !privacy?.redactOutboundChannelMessage
     && !privacy?.redactRuntimeEvent
     && !privacy?.redactRuntimeSnapshot
   ) {
@@ -60,10 +62,12 @@ export function createPrivacyStorageAdapter(
       return storage.updateConversationLifecycle(conversationId, lifecycle);
     },
     async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent) {
-      if (!privacy.redactRuntimeEvent) return storage.appendEvent(event);
+      const context = await privacyContextForStorage(storage, event.conversationId);
+      const channelRedacted = await redactChannelRuntimeEvent(privacy, context, event);
+      if (!privacy.redactRuntimeEvent) return storage.appendEvent(channelRedacted as TEvent);
       const redacted = await privacy.redactRuntimeEvent({
-        ...await privacyContextForStorage(storage, event.conversationId),
-        event,
+        ...context,
+        event: channelRedacted,
       });
       return storage.appendEvent(redacted as TEvent);
     },
@@ -82,6 +86,30 @@ export function createPrivacyStorageAdapter(
       return storage.getSnapshot(conversationId);
     },
   };
+}
+
+async function redactChannelRuntimeEvent<TEvent extends RuntimeEventInput>(
+  privacy: NonNullable<RuntimeOptions["privacy"]>,
+  context: Awaited<ReturnType<typeof privacyContextForStorage>>,
+  event: TEvent,
+): Promise<RuntimeEventInput> {
+  if (event.type === "channel.received" && privacy.redactInboundChannelEvent) {
+    const channelEvent = event as RuntimeEventInput<"channel.received">;
+    return privacy.redactInboundChannelEvent({
+      ...context,
+      event: channelEvent,
+      channel: channelEvent.data.channel,
+    });
+  }
+  if (event.type === "channel.sent" && privacy.redactOutboundChannelMessage) {
+    const channelEvent = event as RuntimeEventInput<"channel.sent">;
+    return privacy.redactOutboundChannelMessage({
+      ...context,
+      event: channelEvent,
+      channel: channelEvent.data.channel,
+    });
+  }
+  return event;
 }
 
 export async function redactModelInput(
