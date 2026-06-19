@@ -29,6 +29,7 @@ import type {
 } from "../../src/index.js";
 
 import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherTest } from "./fixtures.js";
+import { createPrivacyStorageAdapter } from "../../src/runtime/privacy.js";
 
 describe("runtime delegation, privacy, and compaction 01", () => {
   it("completes delegation journeys when completion criteria are satisfied", async () => {
@@ -283,6 +284,92 @@ describe("runtime delegation, privacy, and compaction 01", () => {
         kind: "email",
         provider: "gmail",
       },
+    });
+  });
+
+  it("preserves atomic storage hooks while redacting their events", async () => {
+    const storage = new RecordingStorage();
+    const conversation = await storage.createConversation({ agentId: "flight-service", context: {} });
+    const wrapped = createPrivacyStorageAdapter(storage, {
+      redactRuntimeEvent: ({ event }) => {
+        if (event.type === "approval.resolved") {
+          const approvalEvent = event as RuntimeEventInput<"approval.resolved">;
+          return {
+            ...approvalEvent,
+            data: {
+              ...approvalEvent.data,
+              result: "[result]",
+            },
+          };
+        }
+        if (event.type === "voice.segment.started") {
+          const voiceEvent = event as RuntimeEventInput<"voice.segment.started">;
+          return {
+            ...voiceEvent,
+            data: {
+              ...voiceEvent.data,
+              provider: "[provider]",
+            },
+          };
+        }
+        return event;
+      },
+    });
+
+    expect(wrapped.appendEventIfApprovalPending).toEqual(expect.any(Function));
+    expect(wrapped.appendEventIfNoActiveVoiceSegment).toEqual(expect.any(Function));
+
+    await wrapped.appendEvent({
+      conversationId: conversation.id,
+      type: "approval.requested",
+      data: {
+        approvalId: "approval_1",
+        toolName: "book-flight",
+        input: {},
+        supportedResolutions: ["approve"],
+      },
+    });
+    const approvalResolution = await wrapped.appendEventIfApprovalPending?.({
+      conversationId: conversation.id,
+      type: "approval.resolved",
+      data: {
+        approvalId: "approval_1",
+        resolution: "approve",
+        toolName: "book-flight",
+        executed: true,
+        result: "raw-result",
+      },
+    });
+    const firstVoiceSegment = await wrapped.appendEventIfNoActiveVoiceSegment?.({
+      conversationId: conversation.id,
+      type: "voice.segment.started",
+      data: {
+        channelSegmentId: "segment_1",
+        connectionId: "connection_1",
+        adapter: "test",
+        provider: "raw-provider",
+      },
+    });
+    const secondVoiceSegment = await wrapped.appendEventIfNoActiveVoiceSegment?.({
+      conversationId: conversation.id,
+      type: "voice.segment.started",
+      data: {
+        channelSegmentId: "segment_2",
+        connectionId: "connection_2",
+        adapter: "test",
+        provider: "raw-provider",
+      },
+    });
+    const events = await storage.listEvents({ conversationId: conversation.id });
+
+    expect(approvalResolution?.data).toMatchObject({ result: "[result]" });
+    expect(firstVoiceSegment?.data).toMatchObject({ provider: "[provider]" });
+    expect(secondVoiceSegment).toBeNull();
+    expect(events.find((event) => event.type === "approval.resolved")?.data).toMatchObject({
+      result: "[result]",
+    });
+    expect(events.find((event) => event.type === "voice.segment.started")?.data).toMatchObject({
+      provider: "[provider]",
     });
   });
 

@@ -299,6 +299,17 @@ function resolveCapabilityPolicy(
       && candidate.channel === request.channel
     );
     if (exactPolicy) return exactPolicy.enabled !== false ? exactPolicy : undefined;
+    if (request.channelId === request.channel) {
+      return channels.find((candidate) =>
+        candidate.enabled !== false
+        && candidate.channel === request.channel
+      );
+    }
+    return channels.find((candidate) =>
+      candidate.id === request.channel
+      && candidate.enabled !== false
+      && candidate.channel === request.channel
+    );
   }
   return channels.find((candidate) =>
     candidate.enabled !== false

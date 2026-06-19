@@ -222,6 +222,50 @@ describe("provider policy and vocabulary contracts", () => {
         allowed: false,
         code: "capability-not-enabled",
       });
+
+      expect(evaluateCapabilityUse({
+        request: {
+          channel: "email",
+          channelId: "email.billing",
+          capability: "send",
+          externallyVisible: true,
+          requiredPolicyIds: ["approval"],
+        },
+        channels: [{
+          id: "email.support",
+          channel: "email",
+          enabledCapabilities: ["send"],
+          policies: {
+            approval: { reviewer: "operator" },
+          },
+        }],
+      })).toMatchObject({
+        allowed: false,
+        code: "missing-channel-configuration",
+      });
+
+      expect(evaluateCapabilityUse({
+        request: {
+          channel: "email",
+          channelId: "email.billing",
+          capability: "send",
+          externallyVisible: true,
+          requiredPolicyIds: ["approval"],
+        },
+        channels: [{
+          id: "email",
+          channel: "email",
+          enabledCapabilities: ["send"],
+          policies: {
+            approval: { reviewer: "operator" },
+          },
+        }],
+      })).toMatchObject({
+        allowed: true,
+        policy: {
+          id: "email",
+        },
+      });
     });
 
     it("enforces provider outbound direction only for SDK-declared outbound use", () => {
