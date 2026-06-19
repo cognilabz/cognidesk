@@ -16,14 +16,19 @@ export function useChat(options: UseChatOptions) {
   const createConversationRef = useRef<Promise<string> | null>(null);
   const stopStreamRef = useRef<(() => void) | null>(null);
   const streamConversationIdRef = useRef<string | null>(null);
+  const formatActivityLabel = options.formatActivityLabel;
 
   const applyEvent = useCallback((event: Parameters<typeof reduceChatRuntimeEvent>[1]) => {
     setChatState((current) => {
-      const next = reduceChatRuntimeEvent(current, event);
+      const next = reduceChatRuntimeEvent(
+        current,
+        event,
+        formatActivityLabel ? { formatActivityLabel } : undefined,
+      );
       lastOffsetRef.current = next.lastOffset;
       return next;
     });
-  }, []);
+  }, [formatActivityLabel]);
 
   const stopStream = useCallback(() => {
     stopStreamRef.current?.();
@@ -53,6 +58,7 @@ export function useChat(options: UseChatOptions) {
     createConversationRef.current = options.client.createConversation({
       agentId: options.agentId,
       context: options.initialContext ?? {},
+      ...(options.channel !== undefined ? { channel: options.channel } : {}),
     }).then((result) => {
       setConversationId(result.conversation.id);
       options.onConversationCreated?.(result.conversation.id);
@@ -91,7 +97,9 @@ export function useChat(options: UseChatOptions) {
     try {
       const idToUse = await ensureConversation();
       setStatus("sending");
-      const result = await options.client.sendMessage(idToUse, trimmed);
+      const result = await options.client.sendMessage(idToUse, trimmed, {
+        ...(options.channel !== undefined ? { channel: options.channel } : {}),
+      });
       setChatState((current) => ({
         ...current,
         messages: current.messages.map((message) => (
@@ -112,7 +120,7 @@ export function useChat(options: UseChatOptions) {
       }));
       setStatus("error");
     }
-  }, [applyEvent, ensureConversation, options.client]);
+  }, [applyEvent, ensureConversation, options.channel, options.client]);
 
   const submitWidget = useCallback(async (input: { promptId: string; widgetKind: string; output: unknown }) => {
     if (!conversationId) throw new Error("A conversation is required before submitting widgets.");

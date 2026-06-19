@@ -6,7 +6,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.map"
   ],
   "exports": {
     ".": {
@@ -16,7 +17,7 @@
     "./styles.css": "./dist/styles.css"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --sourcemap && cp src/styles.css dist/styles.css",
+    "build": "tsup src/index.ts --format esm --dts --clean && cp src/styles.css dist/styles.css",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "tsc -p tsconfig.json --noEmit"

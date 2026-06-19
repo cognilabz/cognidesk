@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { isValidElement } from "react";
-import { collectSupportSourceLinks, createCognideskClient, defaultWidgetRenderers, formatSupportReferences, reduceChatRuntimeEvent } from "../src/index.js";
+import {
+  collectSupportSourceLinks,
+  createCognideskClient,
+  defaultWidgetRenderers,
+  formatSupportReferences,
+  reduceChatRuntimeEvent,
+} from "../src/index.js";
+import { PENDING_PROMPT_DISPLAY_OFFSET } from "../src/event-reducer.js";
 import type { RuntimeEvent } from "@cognidesk/core";
 
 describe("React client events and widgets", () => {
@@ -28,6 +35,32 @@ describe("React client events and widgets", () => {
     expect(FakeEventSource.last?.url).toBe("http://localhost/conversations/conversation_1/events/stream?after=4");
     expect(FakeEventSource.last?.closed).toBe(true);
     expect(events[0]?.type).toBe("message.completed");
+  });
+
+  it("passes stream auth options to EventSource factories", () => {
+    const eventSourceOptions: Array<EventSourceInit & { headers?: HeadersInit }> = [];
+    const client = createCognideskClient({
+      baseUrl: "http://localhost",
+      headers: { authorization: "Bearer stream-token" },
+      credentials: "include",
+      createEventSource: (url, init) => {
+        eventSourceOptions.push(init);
+        return new FakeEventSource(url, init) as unknown as EventSource;
+      },
+    });
+
+    client.streamEvents("conversation_1", {
+      onEvent: () => {},
+    }, {
+      afterOffset: 4,
+      headers: { "x-stream-client": "polyfill" },
+    });
+
+    const headers = new Headers(eventSourceOptions[0]?.headers);
+    expect(FakeEventSource.last?.url).toBe("http://localhost/conversations/conversation_1/events/stream?after=4");
+    expect(eventSourceOptions[0]?.withCredentials).toBe(true);
+    expect(headers.get("authorization")).toBe("Bearer stream-token");
+    expect(headers.get("x-stream-client")).toBe("polyfill");
   });
 
   it("formats support references for citation hovers", () => {
@@ -86,6 +119,15 @@ describe("React client events and widgets", () => {
     expect(prompted.prompts).toEqual([{
       promptId: "prompt_1",
       offset: 1,
+      displayOffset: PENDING_PROMPT_DISPLAY_OFFSET,
+      kind: "confirmation",
+      input: { title: "Confirm", message: "Proceed?" },
+      status: "open",
+    }]);
+    expect(completed.prompts).toEqual([{
+      promptId: "prompt_1",
+      offset: 1,
+      displayOffset: 2.1,
       kind: "confirmation",
       input: { title: "Confirm", message: "Proceed?" },
       status: "open",
@@ -113,7 +155,44 @@ describe("React client events and widgets", () => {
       status: "submitted",
       output: { confirmed: true },
     }]);
+    expect(submitted.activities.at(-1)).toEqual({
+      id: "widget:prompt_1",
+      label: "Submitting response",
+      status: "running",
+    });
     expect(submitted.lastOffset).toBe(4);
+  });
+
+  it("shows confirmation prompts that arrive after the latest assistant message", () => {
+    const assistantMessage = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: "CL102 selected. Please add the passenger name to continue." },
+    });
+    const prompted = reduceChatRuntimeEvent(assistantMessage, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "ui.prompted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        promptId: "confirm:book-flight:book:bookFlight",
+        widgetKind: "confirmation",
+        input: { title: "Confirm mocked booking", message: "Review the mocked booking details." },
+      },
+    });
+
+    expect(prompted.prompts).toEqual([{
+      promptId: "confirm:book-flight:book:bookFlight",
+      offset: 2,
+      displayOffset: 2,
+      kind: "confirmation",
+      input: { title: "Confirm mocked booking", message: "Review the mocked booking details." },
+      status: "open",
+    }]);
   });
 
   it("reduces assistant message deltas into one streaming message", () => {
@@ -200,7 +279,7 @@ describe("React client events and widgets", () => {
       offset: 2,
       type: "tool.started",
       createdAt: "2026-05-25T00:00:00.000Z",
-      data: { toolName: "searchFlights", journeyId: "book-flight" },
+      data: { toolName: "lookupAccountDetails", journeyId: "account-support" },
     });
     const toolCompleted = reduceChatRuntimeEvent(toolStarted, {
       id: "event_3",
@@ -208,7 +287,7 @@ describe("React client events and widgets", () => {
       offset: 3,
       type: "tool.completed",
       createdAt: "2026-05-25T00:00:00.000Z",
-      data: { toolName: "searchFlights", success: true, journeyId: "book-flight", result: { flights: [] } },
+      data: { toolName: "lookupAccountDetails", success: true, journeyId: "account-support", result: { account: {} } },
     });
     const knowledge = reduceChatRuntimeEvent(toolCompleted, {
       id: "event_4",
@@ -216,7 +295,7 @@ describe("React client events and widgets", () => {
       offset: 4,
       type: "knowledge.retrieved",
       createdAt: "2026-05-25T00:00:00.000Z",
-      data: { sourceName: "flight-policies", itemIds: ["bags"] },
+      data: { sourceName: "support-articles", itemIds: ["account"] },
     });
 
     expect(thinking.activities).toEqual([{
@@ -225,15 +304,38 @@ describe("React client events and widgets", () => {
       status: "running",
     }]);
     expect(toolStarted.activities.at(-1)).toEqual({
-      id: "tool:searchFlights",
-      label: "Searching flights",
+      id: "tool:lookupAccountDetails",
+      label: "Lookup Account Details",
       status: "running",
     });
-    expect(toolCompleted.activities.some((activity) => activity.id === "tool:searchFlights")).toBe(false);
+    expect(toolCompleted.activities.some((activity) => activity.id === "tool:lookupAccountDetails")).toBe(false);
     expect(knowledge.activities.at(-1)).toEqual({
-      id: "knowledge:flight-policies",
-      label: "Checking policy documents",
+      id: "knowledge:support-articles",
+      label: "Checking knowledge",
       status: "done",
+    });
+  });
+
+  it("uses configured activity labels when provided", () => {
+    const toolStarted = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "tool.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { toolName: "lookupAccountDetails", journeyId: "account-support" },
+    }, {
+      formatActivityLabel: ({ kind, name, defaultLabel }) => (
+        kind === "tool" && name === "lookupAccountDetails"
+          ? "Checking account"
+          : defaultLabel
+      ),
+    });
+
+    expect(toolStarted.activities.at(-1)).toEqual({
+      id: "tool:lookupAccountDetails",
+      label: "Checking account",
+      status: "running",
     });
   });
 
@@ -407,7 +509,7 @@ class FakeEventSource {
   readonly listeners = new Map<string, Array<(event: MessageEvent) => void>>();
   closed = false;
 
-  constructor(readonly url: string) {
+  constructor(readonly url: string, readonly init?: EventSourceInit & { headers?: HeadersInit }) {
     FakeEventSource.last = this;
   }
 

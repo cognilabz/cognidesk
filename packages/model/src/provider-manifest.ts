@@ -1,0 +1,95 @@
+import { defineProviderPackage } from "@cognidesk/core";
+
+export const cognideskModelProviderManifest = defineProviderPackage({
+  id: "model.ai-sdk",
+  name: "AI SDK Model Adapter",
+  packageName: "@cognidesk/model",
+  provider: "ai-sdk",
+  category: "model",
+  trustLevel: "official",
+  directions: ["bidirectional"],
+  channelAudiences: ["customer-facing", "internal-support", "mixed"],
+  coverage: {
+    scope: "provider-api-subset",
+    notes: [
+      "This package adapts Cognidesk model roles to Vercel AI SDK generateText, streamText, tool projection, and embedding calls.",
+      "It is not a full Vercel AI SDK or underlying model-provider API implementation; provider-specific model features, files, vector stores, administration, billing, and safety APIs remain SDK-user/provider concerns.",
+    ],
+    evidence: [
+      { label: "AI SDK generateText and streamText", url: "https://ai-sdk.dev/docs/ai-sdk-core/generating-text" },
+      { label: "AI SDK embeddings", url: "https://ai-sdk.dev/docs/ai-sdk-core/embeddings" },
+    ],
+  },
+  credentialRequirements: [
+    {
+      id: "model-provider-credential",
+      label: "Model provider credential",
+      description: "Provider credentials are supplied by the SDK user through the selected AI SDK model provider.",
+      required: false,
+    },
+  ],
+  capabilities: [
+    {
+      capability: "model.generate-text",
+      label: "Generate text",
+      description: "Runs Cognidesk language-model roles through Vercel AI SDK compatible language models.",
+      audiences: ["customer-facing", "internal-support"],
+      providerObjects: [{ kind: "modelResponse", label: "Model Response" }],
+      requiresCredential: true,
+      exposesSensitiveData: true,
+      extension: true,
+    },
+    {
+      capability: "model.stream-text",
+      label: "Stream text",
+      description: "Streams text deltas for supported model roles while preserving Cognidesk model adapter output.",
+      audiences: ["customer-facing", "internal-support"],
+      providerObjects: [{ kind: "modelResponse", label: "Model Response" }],
+      requiresCredential: true,
+      exposesSensitiveData: true,
+      extension: true,
+    },
+    {
+      capability: "model.call-tools",
+      label: "Call model tools",
+      description: "Projects SDK-user-approved tool definitions to the selected model provider.",
+      audiences: ["customer-facing", "internal-support"],
+      providerObjects: [{ kind: "modelToolCall", label: "Model Tool Call" }],
+      requiresCredential: true,
+      sideEffect: true,
+      changesWorkflow: true,
+      extension: true,
+    },
+    {
+      capability: "model.embed",
+      label: "Embed text",
+      description: "Creates embeddings through Vercel AI SDK compatible embedding models.",
+      audiences: ["internal-support"],
+      providerObjects: [{ kind: "embedding", label: "Embedding" }],
+      requiresCredential: true,
+      exposesSensitiveData: true,
+      extension: true,
+    },
+  ],
+  privacyNotes: [
+    "Prompts, tool schemas, model messages, and embedding inputs are sent to the SDK-user-selected model provider.",
+    "Credentials are owned by the SDK user and are not stored by this package.",
+  ],
+  limitations: [
+    "Live partner readiness depends on the selected AI SDK provider, model, credentials, rate limits, and scopes.",
+    "Prompt profiles and model role configuration remain SDK-user owned.",
+  ],
+  metadata: {
+    surfaceCoverage: {
+      generateText: "typed",
+      streamText: "typed",
+      toolCalling: "typed-projection",
+      embeddings: "typed",
+      providerFiles: "not-covered",
+      vectorStores: "not-covered",
+      providerAdmin: "not-covered",
+      billing: "not-covered",
+    },
+  },
+  maintainers: [{ name: "Cognidesk", type: "official" }],
+});

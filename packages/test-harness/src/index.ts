@@ -14,6 +14,8 @@ import type {
 } from "./types.js";
 
 export type * from "./types.js";
+export type * from "./providers.js";
+export { deriveProviderCategoryCoverage, runProviderConformance } from "./providers.js";
 
 const judgeSchema = z.object({
   score: z.number().min(0).max(1),
@@ -61,6 +63,7 @@ export class CognideskTestHarness {
       this.validateScenario(scenario);
       const conversation = await withDeadline(this.options.client.createConversation({
         agentId: scenario.agentId,
+        ...(scenario.channel ? { channel: scenario.channel } : {}),
         context: scenario.context ?? {},
       }), deadline);
       conversationId = conversation.id;

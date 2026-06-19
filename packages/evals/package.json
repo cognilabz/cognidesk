@@ -1,6 +1,6 @@
 {
-  "name": "@cognidesk/voice-openai",
-  "version": "0.0.2",
+  "name": "@cognidesk/evals",
+  "version": "0.0.1",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,15 +12,14 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --sourcemap",
+    "build": "tsup src/index.ts --format esm --dts --clean",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "0.0.2",
-    "@cognidesk/voice-websocket": "0.0.2",
-    "openai": "^6.1.0"
+    "@cognidesk/core": "workspace:*",
+    "@cognidesk/test-harness": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.0",
@@ -32,11 +31,12 @@
     "registry": "https://registry.npmjs.org/"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.map"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/cognilabz/cognidesk",
-    "directory": "packages/voice-openai"
+    "directory": "packages/evals"
   }
 }

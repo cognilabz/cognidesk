@@ -1,4 +1,5 @@
 import type { MessageSegment, RuntimeEvent } from "@cognidesk/core";
+import type { ChatActivityLabelFormatter, ChatActivityLabelInput } from "./types.js";
 
 export interface ChatMessage {
   id: string;
@@ -25,6 +26,8 @@ export interface ChatActivity {
   status: "running" | "done";
 }
 
+export const PENDING_PROMPT_DISPLAY_OFFSET = Number.MAX_SAFE_INTEGER;
+
 export interface ChatEventReducerState {
   messages: ChatMessage[];
   prompts: PromptState[];
@@ -33,9 +36,14 @@ export interface ChatEventReducerState {
   pendingMessageRole?: "user" | "assistant" | undefined;
 }
 
+export interface ChatEventReducerOptions {
+  formatActivityLabel?: ChatActivityLabelFormatter;
+}
+
 export function reduceChatRuntimeEvent(
   state: ChatEventReducerState,
   event: RuntimeEvent,
+  options?: ChatEventReducerOptions,
 ): ChatEventReducerState {
   if (event.offset <= state.lastOffset) return state;
   const lastOffset = Math.max(state.lastOffset, event.offset);
@@ -52,7 +60,11 @@ export function reduceChatRuntimeEvent(
       pendingMessageRole: "assistant",
       activities: upsertActivity(clearWidgetActivities(state.activities), {
         id: "response",
-        label: "Writing response",
+        label: resolveActivityLabel(options, {
+          kind: "response",
+          event,
+          defaultLabel: "Writing response",
+        }),
         status: "running",
       }),
       messages: [
@@ -202,7 +214,16 @@ export function reduceChatRuntimeEvent(
       activities: state.activities.filter((activity) => activity.id.startsWith("tool:")),
       prompts: [
         ...state.prompts.filter((prompt) => prompt.promptId !== event.data.promptId),
-        { promptId: event.data.promptId, offset: event.offset, kind: event.data.widgetKind, input: event.data.input, status: "open" },
+        {
+          promptId: event.data.promptId,
+          offset: event.offset,
+          displayOffset: shouldDisplayPromptImmediately(event.data.promptId, event.data.widgetKind)
+            ? event.offset
+            : PENDING_PROMPT_DISPLAY_OFFSET,
+          kind: event.data.widgetKind,
+          input: event.data.input,
+          status: "open",
+        },
       ],
     };
   }
@@ -212,7 +233,12 @@ export function reduceChatRuntimeEvent(
       lastOffset,
       activities: upsertActivity(state.activities, {
         id: `widget:${event.data.promptId}`,
-        label: "Formular wird gesendet",
+        label: resolveActivityLabel(options, {
+          kind: "widget",
+          event,
+          name: event.data.widgetKind,
+          defaultLabel: "Submitting response",
+        }),
         status: "running",
       }),
       prompts: state.prompts.map((prompt) => (
@@ -233,7 +259,11 @@ export function reduceChatRuntimeEvent(
       lastOffset,
       activities: upsertActivity(state.activities, {
         id: "intent",
-        label: "Understanding request",
+        label: resolveActivityLabel(options, {
+          kind: "intent",
+          event,
+          defaultLabel: "Understanding request",
+        }),
         status: "running",
       }),
     };
@@ -269,7 +299,11 @@ export function reduceChatRuntimeEvent(
       lastOffset,
       activities: upsertActivity(state.activities, {
         id: "extraction",
-        label: "Reading details",
+        label: resolveActivityLabel(options, {
+          kind: "extraction",
+          event,
+          defaultLabel: "Reading details",
+        }),
         status: "running",
       }),
     };
@@ -288,7 +322,12 @@ export function reduceChatRuntimeEvent(
       lastOffset,
       activities: upsertActivity(clearWidgetActivities(state.activities), {
         id: `action:${event.data.actionName}`,
-        label: formatActionActivity(event.data.actionName),
+        label: resolveActivityLabel(options, {
+          kind: "action",
+          event,
+          name: event.data.actionName,
+          defaultLabel: formatActionActivity(event.data.actionName),
+        }),
         status: "running",
       }),
     };
@@ -306,7 +345,12 @@ export function reduceChatRuntimeEvent(
       lastOffset,
       activities: upsertActivity(clearWidgetActivities(state.activities), {
         id: `tool:${event.data.toolName}`,
-        label: formatToolActivity(event.data.toolName),
+        label: resolveActivityLabel(options, {
+          kind: "tool",
+          event,
+          name: event.data.toolName,
+          defaultLabel: formatToolActivity(event.data.toolName),
+        }),
         status: "running",
       }),
     };
@@ -324,7 +368,12 @@ export function reduceChatRuntimeEvent(
       lastOffset,
       activities: upsertActivity(state.activities, {
         id: `knowledge:${event.data.sourceName}`,
-        label: "Checking policy documents",
+        label: resolveActivityLabel(options, {
+          kind: "knowledge",
+          event,
+          name: event.data.sourceName,
+          defaultLabel: "Checking knowledge",
+        }),
         status: "done",
       }),
     };
@@ -358,21 +407,12 @@ function clearWidgetActivities(activities: ChatActivity[]) {
   return activities.filter((activity) => !activity.id.startsWith("widget:"));
 }
 
+function resolveActivityLabel(options: ChatEventReducerOptions | undefined, input: ChatActivityLabelInput) {
+  return options?.formatActivityLabel?.(input) ?? input.defaultLabel;
+}
+
 function formatToolActivity(toolName: string) {
-  const labels: Record<string, string> = {
-    searchFlights: "Searching flights",
-    suggestFlightOptions: "Finding alternatives",
-    bookFlight: "Creating mocked booking",
-    getTicketStatus: "Checking booking status",
-    getFlightInfo: "Checking flight details",
-    searchDemoTrains: "Verbindungen prüfen",
-    bookDemoTicket: "Buchung vorbereiten",
-    getDemoTicketStatus: "Buchung prüfen",
-    lookupDelayScenario: "Verspätung prüfen",
-    getRefundGuidance: "Fahrgastrechte prüfen",
-    prepareSmsLink: "SMS vorbereiten",
-  };
-  return labels[toolName] ?? humanizeName(toolName);
+  return humanizeName(toolName);
 }
 
 function formatActionActivity(actionName: string) {
@@ -407,10 +447,16 @@ function promptJourneyId(promptId: string) {
 
 function anchorPendingPrompts(prompts: PromptState[], assistantOffset: number) {
   return prompts.map((prompt) => (
-    prompt.status === "open" && prompt.displayOffset === undefined && prompt.offset < assistantOffset
+    prompt.status === "open"
+      && (prompt.displayOffset === undefined || prompt.displayOffset === PENDING_PROMPT_DISPLAY_OFFSET)
+      && prompt.offset < assistantOffset
       ? { ...prompt, displayOffset: assistantOffset + 0.1 }
       : prompt
   ));
+}
+
+function shouldDisplayPromptImmediately(promptId: string, widgetKind: string) {
+  return widgetKind === "confirmation" && promptId.startsWith("confirm:");
 }
 
 function parsePromptParts(promptId: string, kind: "field" | "confirm-field") {

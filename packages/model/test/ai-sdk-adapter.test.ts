@@ -1,15 +1,83 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { z } from "zod";
 import { MockEmbeddingModelV3, MockLanguageModelV3 } from "ai/test";
 import {
+  cognideskModelProviderManifest,
   cognideskEmbeddingModel,
   cognideskModel,
   createModelPromptProfile,
   createModelSet,
   normalizeLogicalModelSlug,
+  type AiSdkProviderOptions,
+  type CognideskModelOptions,
 } from "../src/index.js";
 
 describe("cognideskModel", () => {
+  it("exports an official provider manifest for AI SDK model adapters", () => {
+    expect(cognideskModelProviderManifest).toMatchObject({
+      id: "model.ai-sdk",
+      packageName: "@cognidesk/model",
+      category: "model",
+      provider: "ai-sdk",
+      trustLevel: "official",
+      directions: ["bidirectional"],
+      coverage: {
+        scope: "provider-api-subset",
+      },
+    });
+    expect(cognideskModelProviderManifest.coverage.notes.join(" "))
+      .toContain("not a full Vercel AI SDK or underlying model-provider API implementation");
+    expect(cognideskModelProviderManifest.coverage.evidence.map((evidence) => evidence.url))
+      .toEqual(expect.arrayContaining([
+        "https://ai-sdk.dev/docs/ai-sdk-core/generating-text",
+        "https://ai-sdk.dev/docs/ai-sdk-core/embeddings",
+      ]));
+    expect(cognideskModelProviderManifest.capabilities.map((capability) => capability.capability))
+      .toEqual(expect.arrayContaining([
+        "model.generate-text",
+        "model.stream-text",
+        "model.call-tools",
+        "model.embed",
+      ]));
+    expect(cognideskModelProviderManifest.capabilities.every((capability) => capability.extension)).toBe(true);
+  });
+
+  it("types provider options with the AI SDK provider-options contract", () => {
+    const providerOptions = {
+      openai: {
+        reasoningEffort: "low",
+      },
+    } satisfies AiSdkProviderOptions;
+    const options: CognideskModelOptions = {
+      model: new MockLanguageModelV3({
+        provider: "test",
+        modelId: "test-language",
+        doGenerate: {
+          content: [{ type: "text", text: "ok" }],
+          finishReason: { unified: "stop", raw: "stop" },
+          usage: {
+            inputTokens: {
+              total: 1,
+              noCache: 1,
+              cacheRead: undefined,
+              cacheWrite: undefined,
+            },
+            outputTokens: {
+              total: 1,
+              text: 1,
+              reasoning: undefined,
+            },
+          },
+          warnings: [],
+        },
+      }),
+      providerOptions,
+    };
+
+    expectTypeOf(options.providerOptions).toEqualTypeOf<AiSdkProviderOptions | undefined>();
+    expect(options.providerOptions?.openai?.reasoningEffort).toBe("low");
+  });
+
   it("adapts text generation, tools, metadata, and usage", async () => {
     const languageModel = new MockLanguageModelV3({
       provider: "test",

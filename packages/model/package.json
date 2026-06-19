@@ -12,13 +12,13 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --sourcemap --loader .md=text",
+    "build": "tsup src/index.ts --format esm --dts --clean --loader .md=text",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "0.0.2",
+    "@cognidesk/core": "workspace:*",
     "ai": "^6.0.191",
     "nunjucks": "^3.2.4"
   },
@@ -34,7 +34,8 @@
     "registry": "https://registry.npmjs.org/"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.map"
   ],
   "repository": {
     "type": "git",
