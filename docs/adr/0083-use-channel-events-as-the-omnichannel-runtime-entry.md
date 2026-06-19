@@ -1,0 +1,7 @@
+# Use Channel Events as the omnichannel runtime entry
+
+Cognidesk will use Channel Events as the outer runtime entry for support-channel interaction across chat, voice, email, messaging, ticketing, schedules, provider webhooks, application events, and operator actions. Channel-specific APIs may remain as convenience wrappers, but they should create Channel Event Envelopes and pass through Channel Event Intake, Conversation Binding, policy, capability checks, and Channel Event Handling rather than defining separate runtime entry architectures.
+
+Channel Event Intake is distinct from Channel Event Handling: intake validates, normalizes, deduplicates, authenticates or verifies, binds to at most one Primary Conversation, and returns an immediate Intake Result, while handling may route Journeys, run models, resolve Channel Output Intents, create drafts or Pending Support Actions, execute provider operations, or hand off. External Events remain Journey-level internal routing signals below the Channel Event boundary; schedules and provider callbacks wake the runtime through Channel Events, not delayed tool calls or direct External Event entry.
+
+This favors a single omnichannel mental model over channel-specific convenience as the core architecture. Chat, voice, email, ticketing, messaging, and scheduled support may still have tailored adapters and developer ergonomics, but their support semantics must pass through the same intake, binding, policy, handling, output-resolution, audit, and serialization boundaries.

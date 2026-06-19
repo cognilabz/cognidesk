@@ -1,6 +1,2792 @@
 # react/dist
 
+## Classes
+
+### CognideskApiError
+
+#### Extends
+
+- `Error`
+
+#### Constructors
+
+##### Constructor
+
+```ts
+new CognideskApiError(message, input): CognideskApiError;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+| `input` | \{ `body`: `unknown`; `response`: `Response`; `status`: `number`; \} |
+| `input.body` | `unknown` |
+| `input.response` | `Response` |
+| `input.status` | `number` |
+
+###### Returns
+
+[`CognideskApiError`](#cognideskapierror)
+
+###### Overrides
+
+```ts
+Error.constructor
+```
+
+#### Properties
+
+##### body
+
+```ts
+readonly body: unknown;
+```
+
+##### response
+
+```ts
+readonly response: Response;
+```
+
+##### status
+
+```ts
+readonly status: number;
+```
+
 ## Interfaces
+
+### ChannelEventShortcutEnvelope
+
+#### Extends
+
+- `Omit`\<`Partial`\<[`ChannelEventEnvelopeInput`](../core/dist.md#channeleventenvelopeinput)\<`TPayload`, `TRawPayload`\>\>, `"actor"`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+##### channel?
+
+```ts
+optional channel?: ConversationChannelInput;
+```
+
+###### Inherited from
+
+```ts
+Omit.channel
+```
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+###### Inherited from
+
+```ts
+Omit.direction
+```
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+```ts
+Omit.id
+```
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Overrides
+
+```ts
+Omit.identity
+```
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+```ts
+Omit.intent
+```
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+```ts
+Omit.kind
+```
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+```ts
+Omit.metadata
+```
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+```ts
+Omit.nature
+```
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+```ts
+Omit.occurredAt
+```
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+```ts
+Omit.payload
+```
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+```ts
+Omit.source
+```
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+##### turn?
+
+```ts
+optional turn?: unknown;
+```
+
+***
+
+### ChannelEventSubmitInput
+
+#### Extends
+
+- `Omit`\<[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>, `"event"`\>
+
+#### Extended by
+
+- [`ChannelHandoffEventInput`](#channelhandoffeventinput)
+- [`ChannelHandoffReviewEventInput`](#channelhandoffrevieweventinput)
+- [`ChannelMessageEventInput`](#channelmessageeventinput)
+- [`ChannelOutputResolutionEventInput`](#channeloutputresolutioneventinput)
+- [`OutboundContactChannelEventInput`](#outboundcontactchanneleventinput)
+- [`ProviderObjectChannelEventInput`](#providerobjectchanneleventinput)
+- [`ScheduledChannelEventInput`](#scheduledchanneleventinput)
+- [`VoiceTurnChannelEventInput`](#voiceturnchanneleventinput)
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+```ts
+Omit.agentId
+```
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+```ts
+Omit.app
+```
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+```ts
+Omit.binding
+```
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+##### channel?
+
+```ts
+optional channel?: ConversationChannelInput;
+```
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+```ts
+Omit.conversationContext
+```
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+```ts
+Omit.conversationId
+```
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+```ts
+Omit.createConversation
+```
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+```ts
+Omit.handling
+```
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+```ts
+Omit.signal
+```
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+```ts
+Omit.onAssistantTextDelta
+```
+
+***
+
+### ChannelHandoffEventInput
+
+#### Extends
+
+- [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`actor`](#actor-1)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`agentId`](#agentid-1)
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`app`](#app)
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`attachments`](#attachments-1)
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`binding`](#binding)
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`body`](#body-2)
+
+##### channel
+
+```ts
+channel: ConversationChannelInput;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`channel`](#channel-1)
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationContext`](#conversationcontext)
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationId`](#conversationid-1)
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`createConversation`](#createconversation)
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`dedupeKey`](#dedupekey-1)
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`deliveryId`](#deliveryid)
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`direction`](#direction-1)
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`event`](#event)
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`eventId`](#eventid)
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`externalObjectIds`](#externalobjectids)
+
+##### fromChannel?
+
+```ts
+optional fromChannel?: ConversationChannelInput;
+```
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`handling`](#handling)
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`id`](#id-1)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identity`](#identity-1)
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityKey`](#identitykey-1)
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityMetadata`](#identitymetadata-1)
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityStreamId`](#identitystreamid-1)
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`message`](#message-1)
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`metadata`](#metadata-1)
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`nature`](#nature-1)
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`occurredAt`](#occurredat-1)
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`payload`](#payload-1)
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`provider`](#provider)
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerObject`](#providerobject-1)
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerPackageId`](#providerpackageid)
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`raw`](#raw-1)
+
+##### reason?
+
+```ts
+optional reason?: string;
+```
+
+##### reasonCode?
+
+```ts
+optional reasonCode?: string;
+```
+
+##### reasonLabel?
+
+```ts
+optional reasonLabel?: string;
+```
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`receivedAt`](#receivedat)
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sequence`](#sequence-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`signal`](#signal)
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`source`](#source-1)
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceId`](#sourceid)
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceType`](#sourcetype)
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`status`](#status-2)
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`streamId`](#streamid)
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`subject`](#subject-1)
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`summary`](#summary-1)
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`text`](#text-1)
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`turn`](#turn-1)
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`verified`](#verified)
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`onAssistantTextDelta`](#onassistanttextdelta)
+
+***
+
+### ChannelHandoffReviewEventInput
+
+#### Extends
+
+- [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`actor`](#actor-1)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`agentId`](#agentid-1)
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`app`](#app)
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`attachments`](#attachments-1)
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`binding`](#binding)
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`body`](#body-2)
+
+##### channel
+
+```ts
+channel: ConversationChannelInput;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`channel`](#channel-1)
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationContext`](#conversationcontext)
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationId`](#conversationid-1)
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`createConversation`](#createconversation)
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`dedupeKey`](#dedupekey-1)
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`deliveryId`](#deliveryid)
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`direction`](#direction-1)
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`event`](#event)
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`eventId`](#eventid)
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`externalObjectIds`](#externalobjectids)
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`handling`](#handling)
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`id`](#id-1)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identity`](#identity-1)
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityKey`](#identitykey-1)
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityMetadata`](#identitymetadata-1)
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityStreamId`](#identitystreamid-1)
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`message`](#message-1)
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`metadata`](#metadata-1)
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`nature`](#nature-1)
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`occurredAt`](#occurredat-1)
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`payload`](#payload-1)
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`provider`](#provider)
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerObject`](#providerobject-1)
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerPackageId`](#providerpackageid)
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`raw`](#raw-1)
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`receivedAt`](#receivedat)
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sequence`](#sequence-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`signal`](#signal)
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`source`](#source-1)
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceId`](#sourceid)
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceType`](#sourcetype)
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`status`](#status-2)
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`streamId`](#streamid)
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`subject`](#subject-1)
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`summary`](#summary-1)
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`text`](#text-1)
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`turn`](#turn-1)
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`verified`](#verified)
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`onAssistantTextDelta`](#onassistanttextdelta)
+
+***
+
+### ChannelMessageEventInput
+
+#### Extends
+
+- [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`actor`](#actor-1)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`agentId`](#agentid-1)
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`app`](#app)
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`attachments`](#attachments-1)
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`binding`](#binding)
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`body`](#body-2)
+
+##### channel
+
+```ts
+channel: ConversationChannelInput;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`channel`](#channel-1)
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationContext`](#conversationcontext)
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationId`](#conversationid-1)
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`createConversation`](#createconversation)
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`dedupeKey`](#dedupekey-1)
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`deliveryId`](#deliveryid)
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound";
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`direction`](#direction-1)
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`event`](#event)
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`eventId`](#eventid)
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`externalObjectIds`](#externalobjectids)
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`handling`](#handling)
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`id`](#id-1)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identity`](#identity-1)
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityKey`](#identitykey-1)
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityMetadata`](#identitymetadata-1)
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityStreamId`](#identitystreamid-1)
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`message`](#message-1)
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`metadata`](#metadata-1)
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`nature`](#nature-1)
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`occurredAt`](#occurredat-1)
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`payload`](#payload-1)
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`provider`](#provider)
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerObject`](#providerobject-1)
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerPackageId`](#providerpackageid)
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`raw`](#raw-1)
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`receivedAt`](#receivedat)
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sequence`](#sequence-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`signal`](#signal)
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`source`](#source-1)
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceId`](#sourceid)
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceType`](#sourcetype)
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`status`](#status-2)
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`streamId`](#streamid)
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`subject`](#subject-1)
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`summary`](#summary-1)
+
+##### text
+
+```ts
+text: string;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`text`](#text-1)
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`turn`](#turn-1)
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`verified`](#verified)
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`onAssistantTextDelta`](#onassistanttextdelta)
+
+***
+
+### ChannelOutputResolutionEventInput
+
+#### Extends
+
+- [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`actor`](#actor-1)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`agentId`](#agentid-1)
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`app`](#app)
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`attachments`](#attachments-1)
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`binding`](#binding)
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`body`](#body-2)
+
+##### channel
+
+```ts
+channel: ConversationChannelInput;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`channel`](#channel-1)
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationContext`](#conversationcontext)
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationId`](#conversationid-1)
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`createConversation`](#createconversation)
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`dedupeKey`](#dedupekey-1)
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`deliveryId`](#deliveryid)
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`direction`](#direction-1)
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`event`](#event)
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`eventId`](#eventid)
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`externalObjectIds`](#externalobjectids)
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`handling`](#handling)
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`id`](#id-1)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identity`](#identity-1)
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityKey`](#identitykey-1)
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityMetadata`](#identitymetadata-1)
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityStreamId`](#identitystreamid-1)
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`message`](#message-1)
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`metadata`](#metadata-1)
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`nature`](#nature-1)
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`occurredAt`](#occurredat-1)
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`payload`](#payload-1)
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`provider`](#provider)
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerObject`](#providerobject-1)
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerPackageId`](#providerpackageid)
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`raw`](#raw-1)
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`receivedAt`](#receivedat)
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sequence`](#sequence-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`signal`](#signal)
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`source`](#source-1)
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceId`](#sourceid)
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceType`](#sourcetype)
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`status`](#status-2)
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`streamId`](#streamid)
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`subject`](#subject-1)
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`summary`](#summary-1)
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`text`](#text-1)
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`turn`](#turn-1)
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`verified`](#verified)
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`onAssistantTextDelta`](#onassistanttextdelta)
+
+***
 
 ### ChatActivity
 
@@ -22,6 +2808,48 @@ label: string;
 
 ```ts
 status: "running" | "done";
+```
+
+***
+
+### ChatActivityLabelInput
+
+#### Properties
+
+##### defaultLabel
+
+```ts
+defaultLabel: string;
+```
+
+##### event
+
+```ts
+event: RuntimeEvent;
+```
+
+##### kind
+
+```ts
+kind: ChatActivityLabelKind;
+```
+
+##### name?
+
+```ts
+optional name?: string;
+```
+
+***
+
+### ChatEventReducerOptions
+
+#### Properties
+
+##### formatActivityLabel?
+
+```ts
+optional formatActivityLabel?: ChatActivityLabelFormatter;
 ```
 
 ***
@@ -93,7 +2921,7 @@ optional segments?: MessageSegment[];
 ##### status
 
 ```ts
-status: "failed" | "sending" | "streaming" | "sent" | "aborted";
+status: "failed" | "aborted" | "sending" | "streaming" | "sent";
 ```
 
 ##### text
@@ -120,6 +2948,12 @@ optional agentId?: string;
 optional appearance?: AppearanceConfiguration;
 ```
 
+##### channel?
+
+```ts
+optional channel?: ConversationChannelInput;
+```
+
 ##### client
 
 ```ts
@@ -130,6 +2964,12 @@ client: CognideskClient;
 
 ```ts
 optional conversationId?: string;
+```
+
+##### formatActivityLabel?
+
+```ts
+optional formatActivityLabel?: ChatActivityLabelFormatter;
 ```
 
 ##### initialContext?
@@ -211,6 +3051,7 @@ optional onWidgetSubmit(args): void;
 closeConversation(conversationId, input?): Promise<{
   conversation: {
      agentId: string;
+     channel?: ConversationChannel;
      context: unknown;
      createdAt: string;
      id: string;
@@ -233,6 +3074,7 @@ closeConversation(conversationId, input?): Promise<{
 `Promise`\<\{
   `conversation`: \{
      `agentId`: `string`;
+     `channel?`: [`ConversationChannel`](../core/dist.md#conversationchannel);
      `context`: `unknown`;
      `createdAt`: `string`;
      `id`: `string`;
@@ -297,10 +3139,7 @@ createConversation(input?): Promise<CreateConversationResult>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `input?` | \{ `agentId?`: `string`; `context?`: `unknown`; `id?`: `string`; \} |
-| `input.agentId?` | `string` |
-| `input.context?` | `unknown` |
-| `input.id?` | `string` |
+| `input?` | [`CreateConversationInput`](#createconversationinput) |
 
 ###### Returns
 
@@ -310,8 +3149,8 @@ createConversation(input?): Promise<CreateConversationResult>;
 
 ```ts
 emitCustomEvent(
-   conversationId, 
-   eventName, 
+   conversationId,
+   eventName,
    input?): Promise<{
   event: RuntimeEvent;
 }>;
@@ -384,8 +3223,8 @@ emitIntermediateMessage(conversationId, input): Promise<{
 
 ```ts
 emitJourneyEvent(
-   conversationId, 
-   eventName, 
+   conversationId,
+   eventName,
    input?): Promise<{
   event: RuntimeEvent;
   events: RuntimeEvent[];
@@ -433,6 +3272,22 @@ emitJourneyEvent(
   \};
 \}\>
 
+##### finalizeVoiceTurn()
+
+```ts
+finalizeVoiceTurn(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`VoiceTurnChannelEventInput`](#voiceturnchanneleventinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
+
 ##### getSnapshot()
 
 ```ts
@@ -448,6 +3303,22 @@ getSnapshot(conversationId): Promise<RuntimeSnapshotResult>;
 ###### Returns
 
 `Promise`\<[`RuntimeSnapshotResult`](#runtimesnapshotresult)\>
+
+##### handleChannelEvent()
+
+```ts
+handleChannelEvent(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelEventSubmitInput`](#channeleventsubmitinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
 
 ##### listEvents()
 
@@ -471,6 +3342,54 @@ listEvents(conversationId, options?): Promise<{
   `events`: [`RuntimeEvent`](../core/dist.md#runtimeevent)[];
 \}\>
 
+##### receiveMessage()
+
+```ts
+receiveMessage(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelMessageEventInput`](#channelmessageeventinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
+
+##### recordChannelOutputResolution()
+
+```ts
+recordChannelOutputResolution(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelOutputResolutionEventInput`](#channeloutputresolutioneventinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
+
+##### recordProviderUpdate()
+
+```ts
+recordProviderUpdate(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ProviderObjectChannelEventInput`](#providerobjectchanneleventinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
+
 ##### replayConversation()
 
 ```ts
@@ -489,12 +3408,45 @@ replayConversation(conversationId, options?): Promise<ReplayConversationResult>;
 
 `Promise`\<[`ReplayConversationResult`](#replayconversationresult)\>
 
+##### requestChannelHandoff()
+
+```ts
+requestChannelHandoff(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelHandoffEventInput`](#channelhandoffeventinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
+
+##### requestChannelHandoffReview()
+
+```ts
+requestChannelHandoffReview(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelHandoffReviewEventInput`](#channelhandoffrevieweventinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
+
 ##### requestHandoff()
 
 ```ts
 requestHandoff(conversationId, input): Promise<{
   conversation: {
      agentId: string;
+     channel?: ConversationChannel;
      context: unknown;
      createdAt: string;
      id: string;
@@ -520,6 +3472,7 @@ requestHandoff(conversationId, input): Promise<{
 `Promise`\<\{
   `conversation`: \{
      `agentId`: `string`;
+     `channel?`: [`ConversationChannel`](../core/dist.md#conversationchannel);
      `context`: `unknown`;
      `createdAt`: `string`;
      `id`: `string`;
@@ -529,12 +3482,45 @@ requestHandoff(conversationId, input): Promise<{
   `event`: [`RuntimeEvent`](../core/dist.md#runtimeevent);
 \}\>
 
+##### requestOutboundContact()
+
+```ts
+requestOutboundContact(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`OutboundContactChannelEventInput`](#outboundcontactchanneleventinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
+
+##### resolveChannelOutput()
+
+```ts
+resolveChannelOutput(input): Promise<ResolveChannelOutputResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ResolveChannelOutputInput`](#resolvechanneloutputinput) |
+
+###### Returns
+
+`Promise`\<[`ResolveChannelOutputResult`](#resolvechanneloutputresult)\<`unknown`\>\>
+
 ##### resumeConversation()
 
 ```ts
 resumeConversation(conversationId, input?): Promise<{
   conversation: {
      agentId: string;
+     channel?: ConversationChannel;
      context: unknown;
      createdAt: string;
      id: string;
@@ -559,6 +3545,7 @@ resumeConversation(conversationId, input?): Promise<{
 `Promise`\<\{
   `conversation`: \{
      `agentId`: `string`;
+     `channel?`: [`ConversationChannel`](../core/dist.md#conversationchannel);
      `context`: `unknown`;
      `createdAt`: `string`;
      `id`: `string`;
@@ -572,8 +3559,8 @@ resumeConversation(conversationId, input?): Promise<{
 
 ```ts
 sendMessage(
-   conversationId, 
-   message, 
+   conversationId,
+   message,
 options?): Promise<SendMessageResult>;
 ```
 
@@ -583,8 +3570,9 @@ options?): Promise<SendMessageResult>;
 | ------ | ------ |
 | `conversationId` | `string` |
 | `message` | `string` |
-| `options?` | \{ `app?`: `unknown`; `turn?`: `unknown`; \} |
+| `options?` | \{ `app?`: `unknown`; `channel?`: [`ConversationChannelInput`](../core/dist.md#conversationchannelinput); `turn?`: `unknown`; \} |
 | `options.app?` | `unknown` |
+| `options.channel?` | [`ConversationChannelInput`](../core/dist.md#conversationchannelinput) |
 | `options.turn?` | `unknown` |
 
 ###### Returns
@@ -635,8 +3623,8 @@ startVoiceSegment(conversationId, input?): Promise<StartVoiceResult>;
 
 ```ts
 streamEvents(
-   conversationId, 
-   handlers, 
+   conversationId,
+   handlers,
    options?): () => void;
 ```
 
@@ -648,12 +3636,27 @@ streamEvents(
 | `handlers` | \{ `onError?`: `void`; `onEvent`: `void`; \} |
 | `handlers.onError?` |
 | `handlers.onEvent?` |
-| `options?` | \{ `afterOffset?`: `number`; \} |
-| `options.afterOffset?` | `number` |
+| `options?` | [`CognideskStreamEventsOptions`](#cognideskstreameventsoptions) |
 
 ###### Returns
 
 () => `void`
+
+##### submitScheduledEvent()
+
+```ts
+submitScheduledEvent(input): Promise<HandleChannelEventResult<unknown>>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ScheduledChannelEventInput`](#scheduledchanneleventinput) |
+
+###### Returns
+
+`Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
 
 ##### submitWidget()
 
@@ -691,6 +3694,24 @@ submitWidget(conversationId, input): Promise<{
 baseUrl: string;
 ```
 
+##### createEventSource?
+
+```ts
+optional createEventSource?: CognideskEventSourceFactory;
+```
+
+Use a factory for EventSource implementations that need constructor
+options beyond the browser-native EventSourceInit, such as auth headers.
+
+##### credentials?
+
+```ts
+optional credentials?: RequestCredentials;
+```
+
+Shared credentials mode for fetch requests. "include" also enables
+EventSource withCredentials unless streamEvents overrides it.
+
 ##### EventSource?
 
 ```ts
@@ -707,6 +3728,12 @@ optional EventSource?: (url, eventSourceInitDict?) => EventSource;
 ###### Returns
 
 `EventSource`
+
+##### eventSourceOptions?
+
+```ts
+optional eventSourceOptions?: CognideskEventSourceOptions;
+```
 
 ##### fetch?
 
@@ -729,7 +3756,7 @@ optional fetch?: {
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | `RequestInfo` \| `URL` |
+| `input` | `URL` \| `RequestInfo` |
 | `init?` | `RequestInit` |
 
 ###### Returns
@@ -755,6 +3782,155 @@ optional fetch?: {
 
 `Promise`\<`Response`\>
 
+##### headers?
+
+```ts
+optional headers?: HeadersInit;
+```
+
+Shared headers for fetch requests. These are also passed to streamEvents
+factories/polyfills that support header-based EventSource authentication.
+
+##### requestOptions?
+
+```ts
+optional requestOptions?:
+  | CognideskRequestOptions
+  | CognideskRequestOptionsResolver;
+```
+
+Shared request options, or a resolver for per-operation options such as
+auth headers, AbortSignal, cache mode, or credentials.
+
+***
+
+### CognideskEventSourceOptions
+
+#### Extends
+
+- `EventSourceInit`
+
+#### Extended by
+
+- [`CognideskStreamEventsOptions`](#cognideskstreameventsoptions)
+
+#### Properties
+
+##### headers?
+
+```ts
+optional headers?: HeadersInit;
+```
+
+***
+
+### CognideskRequestContext
+
+#### Properties
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+##### method
+
+```ts
+method: "GET" | "POST";
+```
+
+##### operation
+
+```ts
+operation: CognideskRequestOperation;
+```
+
+##### url
+
+```ts
+url: string;
+```
+
+***
+
+### CognideskStreamEventsOptions
+
+#### Extends
+
+- [`CognideskEventSourceOptions`](#cognideskeventsourceoptions)
+
+#### Properties
+
+##### afterOffset?
+
+```ts
+optional afterOffset?: number;
+```
+
+##### createEventSource?
+
+```ts
+optional createEventSource?: CognideskEventSourceFactory;
+```
+
+##### EventSource?
+
+```ts
+optional EventSource?: (url, eventSourceInitDict?) => EventSource;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `url` | `string` \| `URL` |
+| `eventSourceInitDict?` | `EventSourceInit` |
+
+###### Returns
+
+`EventSource`
+
+##### headers?
+
+```ts
+optional headers?: HeadersInit;
+```
+
+###### Inherited from
+
+[`CognideskEventSourceOptions`](#cognideskeventsourceoptions).[`headers`](#headers-1)
+
+***
+
+### CreateConversationInput
+
+#### Properties
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+##### channel?
+
+```ts
+optional channel?: ConversationChannelInput;
+```
+
+##### context?
+
+```ts
+optional context?: unknown;
+```
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
 ***
 
 ### CreateConversationResult
@@ -766,6 +3942,7 @@ optional fetch?: {
 ```ts
 conversation: {
   agentId: string;
+  channel?: ConversationChannel;
   context: unknown;
   createdAt: string;
   id: string;
@@ -778,6 +3955,12 @@ conversation: {
 
 ```ts
 agentId: string;
+```
+
+###### channel?
+
+```ts
+optional channel?: ConversationChannel;
 ```
 
 ###### context
@@ -809,6 +3992,520 @@ lifecycle: string;
 ```ts
 updatedAt: string;
 ```
+
+***
+
+### OutboundContactChannelEventInput
+
+#### Extends
+
+- [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`actor`](#actor-1)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`agentId`](#agentid-1)
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`app`](#app)
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`attachments`](#attachments-1)
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`binding`](#binding)
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`body`](#body-2)
+
+##### channel
+
+```ts
+channel: ConversationChannelInput;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`channel`](#channel-1)
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationContext`](#conversationcontext)
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationId`](#conversationid-1)
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`createConversation`](#createconversation)
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`dedupeKey`](#dedupekey-1)
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`deliveryId`](#deliveryid)
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`direction`](#direction-1)
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`event`](#event)
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`eventId`](#eventid)
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`externalObjectIds`](#externalobjectids)
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`handling`](#handling)
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`id`](#id-1)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identity`](#identity-1)
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityKey`](#identitykey-1)
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityMetadata`](#identitymetadata-1)
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityStreamId`](#identitystreamid-1)
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`message`](#message-1)
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`metadata`](#metadata-1)
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`nature`](#nature-1)
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`occurredAt`](#occurredat-1)
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`payload`](#payload-1)
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`provider`](#provider)
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerObject`](#providerobject-1)
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerPackageId`](#providerpackageid)
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`raw`](#raw-1)
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`receivedAt`](#receivedat)
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sequence`](#sequence-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`signal`](#signal)
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`source`](#source-1)
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceId`](#sourceid)
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceType`](#sourcetype)
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`status`](#status-2)
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`streamId`](#streamid)
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`subject`](#subject-1)
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`summary`](#summary-1)
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`text`](#text-1)
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`turn`](#turn-1)
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`verified`](#verified)
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`onAssistantTextDelta`](#onassistanttextdelta)
 
 ***
 
@@ -860,6 +4557,520 @@ status: "open" | "submitted";
 
 ***
 
+### ProviderObjectChannelEventInput
+
+#### Extends
+
+- [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`actor`](#actor-1)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`agentId`](#agentid-1)
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`app`](#app)
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`attachments`](#attachments-1)
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`binding`](#binding)
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`body`](#body-2)
+
+##### channel
+
+```ts
+channel: ConversationChannelInput;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`channel`](#channel-1)
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationContext`](#conversationcontext)
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationId`](#conversationid-1)
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`createConversation`](#createconversation)
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`dedupeKey`](#dedupekey-1)
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`deliveryId`](#deliveryid)
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`direction`](#direction-1)
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`event`](#event)
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`eventId`](#eventid)
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`externalObjectIds`](#externalobjectids)
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`handling`](#handling)
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`id`](#id-1)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identity`](#identity-1)
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityKey`](#identitykey-1)
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityMetadata`](#identitymetadata-1)
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityStreamId`](#identitystreamid-1)
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`message`](#message-1)
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`metadata`](#metadata-1)
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`nature`](#nature-1)
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`occurredAt`](#occurredat-1)
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`payload`](#payload-1)
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`provider`](#provider)
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerObject`](#providerobject-1)
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerPackageId`](#providerpackageid)
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`raw`](#raw-1)
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`receivedAt`](#receivedat)
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sequence`](#sequence-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`signal`](#signal)
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`source`](#source-1)
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceId`](#sourceid)
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceType`](#sourcetype)
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`status`](#status-2)
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`streamId`](#streamid)
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`subject`](#subject-1)
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`summary`](#summary-1)
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`text`](#text-1)
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`turn`](#turn-1)
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`verified`](#verified)
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`onAssistantTextDelta`](#onassistanttextdelta)
+
+***
+
 ### ReplayConversationResult
 
 #### Properties
@@ -869,6 +5080,7 @@ status: "open" | "submitted";
 ```ts
 conversation: {
   agentId: string;
+  channel?: ConversationChannel;
   context: unknown;
   createdAt: string;
   id: string;
@@ -881,6 +5093,12 @@ conversation: {
 
 ```ts
 agentId: string;
+```
+
+###### channel?
+
+```ts
+optional channel?: ConversationChannel;
 ```
 
 ###### context
@@ -1151,6 +5369,520 @@ updatedAt: string;
 
 ***
 
+### ScheduledChannelEventInput
+
+#### Extends
+
+- [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`actor`](#actor-1)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`agentId`](#agentid-1)
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`app`](#app)
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`attachments`](#attachments-1)
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`binding`](#binding)
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`body`](#body-2)
+
+##### channel
+
+```ts
+channel: ConversationChannelInput;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`channel`](#channel-1)
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationContext`](#conversationcontext)
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationId`](#conversationid-1)
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`createConversation`](#createconversation)
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`dedupeKey`](#dedupekey-1)
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`deliveryId`](#deliveryid)
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`direction`](#direction-1)
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`event`](#event)
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`eventId`](#eventid)
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`externalObjectIds`](#externalobjectids)
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`handling`](#handling)
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`id`](#id-1)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identity`](#identity-1)
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityKey`](#identitykey-1)
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityMetadata`](#identitymetadata-1)
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityStreamId`](#identitystreamid-1)
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`message`](#message-1)
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`metadata`](#metadata-1)
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`nature`](#nature-1)
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`occurredAt`](#occurredat-1)
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`payload`](#payload-1)
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`provider`](#provider)
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerObject`](#providerobject-1)
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerPackageId`](#providerpackageid)
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`raw`](#raw-1)
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`receivedAt`](#receivedat)
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sequence`](#sequence-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`signal`](#signal)
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`source`](#source-1)
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceId`](#sourceid)
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceType`](#sourcetype)
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`status`](#status-2)
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`streamId`](#streamid)
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`subject`](#subject-1)
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`summary`](#summary-1)
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`text`](#text-1)
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`turn`](#turn-1)
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`verified`](#verified)
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`onAssistantTextDelta`](#onassistanttextdelta)
+
+***
+
 ### SendMessageResult
 
 #### Properties
@@ -1282,6 +6014,7 @@ status: string;
 ```ts
 conversation: {
   agentId: string;
+  channel?: ConversationChannel;
   context: unknown;
   createdAt: string;
   id: string;
@@ -1294,6 +6027,12 @@ conversation: {
 
 ```ts
 agentId: string;
+```
+
+###### channel?
+
+```ts
+optional channel?: ConversationChannel;
 ```
 
 ###### context
@@ -1409,6 +6148,12 @@ optional url?: string;
 optional agentId?: string;
 ```
 
+##### channel?
+
+```ts
+optional channel?: ConversationChannelInput;
+```
+
 ##### client
 
 ```ts
@@ -1419,6 +6164,12 @@ client: CognideskClient;
 
 ```ts
 optional conversationId?: string;
+```
+
+##### formatActivityLabel?
+
+```ts
+optional formatActivityLabel?: ChatActivityLabelFormatter;
 ```
 
 ##### initialContext?
@@ -1832,6 +6583,526 @@ optional onOpen(): void;
 
 ***
 
+### VoiceTurnChannelEventInput
+
+#### Extends
+
+- [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\>
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Properties
+
+##### actor?
+
+```ts
+optional actor?: ChannelEventActorInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`actor`](#actor-1)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`agentId`](#agentid-1)
+
+##### app?
+
+```ts
+optional app?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`app`](#app)
+
+##### attachments?
+
+```ts
+optional attachments?: unknown[];
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`attachments`](#attachments-1)
+
+##### binding?
+
+```ts
+optional binding?: ChannelEventBindingInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`binding`](#binding)
+
+##### body?
+
+```ts
+optional body?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`body`](#body-2)
+
+##### channel?
+
+```ts
+optional channel?: ConversationChannelInput;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`channel`](#channel-1)
+
+##### conversationContext?
+
+```ts
+optional conversationContext?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationContext`](#conversationcontext)
+
+##### conversationId?
+
+```ts
+optional conversationId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`conversationId`](#conversationid-1)
+
+##### createConversation?
+
+```ts
+optional createConversation?: CreateRuntimeConversationInput;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`createConversation`](#createconversation)
+
+##### dedupeKey?
+
+```ts
+optional dedupeKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`dedupeKey`](#dedupekey-1)
+
+##### deliveryId?
+
+```ts
+optional deliveryId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`deliveryId`](#deliveryid)
+
+##### direction?
+
+```ts
+optional direction?: "outbound" | "inbound" | "internal";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`direction`](#direction-1)
+
+##### event?
+
+```ts
+optional event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`event`](#event)
+
+##### eventId?
+
+```ts
+optional eventId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`eventId`](#eventid)
+
+##### externalObjectIds?
+
+```ts
+optional externalObjectIds?: Record<string, string>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`externalObjectIds`](#externalobjectids)
+
+##### handling?
+
+```ts
+optional handling?: ChannelEventHandlingInput<TTurn>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`handling`](#handling)
+
+##### id?
+
+```ts
+optional id?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`id`](#id-1)
+
+##### idempotencyKey?
+
+```ts
+optional idempotencyKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`idempotencyKey`](#idempotencykey-1)
+
+##### identity?
+
+```ts
+optional identity?: ChannelEventIdentity;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identity`](#identity-1)
+
+##### identityKey?
+
+```ts
+optional identityKey?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityKey`](#identitykey-1)
+
+##### identityMetadata?
+
+```ts
+optional identityMetadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityMetadata`](#identitymetadata-1)
+
+##### identityStreamId?
+
+```ts
+optional identityStreamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`identityStreamId`](#identitystreamid-1)
+
+##### intent?
+
+```ts
+optional intent?: ChannelEventIntent;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
+
+##### kind?
+
+```ts
+optional kind?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
+
+##### message?
+
+```ts
+optional message?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`message`](#message-1)
+
+##### metadata?
+
+```ts
+optional metadata?: Record<string, unknown>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`metadata`](#metadata-1)
+
+##### nature?
+
+```ts
+optional nature?: ChannelEventNature;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`nature`](#nature-1)
+
+##### occurredAt?
+
+```ts
+optional occurredAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`occurredAt`](#occurredat-1)
+
+##### payload?
+
+```ts
+optional payload?: TPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`payload`](#payload-1)
+
+##### provider?
+
+```ts
+optional provider?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`provider`](#provider)
+
+##### providerObject?
+
+```ts
+optional providerObject?: unknown;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerObject`](#providerobject-1)
+
+##### providerPackageId?
+
+```ts
+optional providerPackageId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`providerPackageId`](#providerpackageid)
+
+##### raw?
+
+```ts
+optional raw?: TRawPayload;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`raw`](#raw-1)
+
+##### receivedAt?
+
+```ts
+optional receivedAt?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`receivedAt`](#receivedat)
+
+##### sequence?
+
+```ts
+optional sequence?: string | number;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sequence`](#sequence-1)
+
+##### signal?
+
+```ts
+optional signal?: AbortSignal;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`signal`](#signal)
+
+##### source?
+
+```ts
+optional source?: ChannelEventSourceEvidence<TRawPayload>;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`source`](#source-1)
+
+##### sourceId?
+
+```ts
+optional sourceId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceId`](#sourceid)
+
+##### sourceType?
+
+```ts
+optional sourceType?:
+  | "application"
+  | "provider-adapter"
+  | "schedule-adapter"
+  | "operator-surface";
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`sourceType`](#sourcetype)
+
+##### status?
+
+```ts
+optional status?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`status`](#status-2)
+
+##### streamId?
+
+```ts
+optional streamId?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`streamId`](#streamid)
+
+##### subject?
+
+```ts
+optional subject?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`subject`](#subject-1)
+
+##### summary?
+
+```ts
+optional summary?: string;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`summary`](#summary-1)
+
+##### text?
+
+```ts
+optional text?: string;
+```
+
+###### Overrides
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`text`](#text-1)
+
+##### transcript?
+
+```ts
+optional transcript?: string;
+```
+
+##### turn?
+
+```ts
+optional turn?: TTurn;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`turn`](#turn-1)
+
+##### verified?
+
+```ts
+optional verified?: boolean;
+```
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`verified`](#verified)
+
+#### Methods
+
+##### onAssistantTextDelta()?
+
+```ts
+optional onAssistantTextDelta(textDelta): void | Promise<void>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `textDelta` | `string` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+###### Inherited from
+
+[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`onAssistantTextDelta`](#onassistanttextdelta)
+
+***
+
 ### WidgetRendererProps
 
 #### Properties
@@ -1898,10 +7169,175 @@ submit(output): void;
 
 ## Type Aliases
 
+### ChannelEventActorInput
+
+```ts
+type ChannelEventActorInput =
+  | ChannelEventActor
+  | ChannelEventActorType;
+```
+
+***
+
+### ChannelEventRequestBody
+
+```ts
+type ChannelEventRequestBody<TPayload, TTurn> = Omit<HandleChannelEventInput<TPayload, TTurn>, "signal" | "onAssistantTextDelta">;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TTurn` | `unknown` |
+
+***
+
+### ChatActivityLabelFormatter
+
+```ts
+type ChatActivityLabelFormatter = (input) => string | undefined;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChatActivityLabelInput`](#chatactivitylabelinput) |
+
+#### Returns
+
+`string` \| `undefined`
+
+***
+
+### ChatActivityLabelKind
+
+```ts
+type ChatActivityLabelKind =
+  | "response"
+  | "widget"
+  | "intent"
+  | "extraction"
+  | "action"
+  | "tool"
+  | "knowledge";
+```
+
+***
+
+### CognideskEventSourceFactory
+
+```ts
+type CognideskEventSourceFactory = (url, options) => EventSource;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `url` | `string` |
+| `options` | [`CognideskEventSourceOptions`](#cognideskeventsourceoptions) |
+
+#### Returns
+
+`EventSource`
+
+***
+
+### CognideskRequestOperation
+
+```ts
+type CognideskRequestOperation =
+  | "createConversation"
+  | "handleChannelEvent"
+  | "receiveMessage"
+  | "recordProviderUpdate"
+  | "finalizeVoiceTurn"
+  | "requestOutboundContact"
+  | "submitScheduledEvent"
+  | "resolveChannelOutput"
+  | "recordChannelOutputResolution"
+  | "requestChannelHandoff"
+  | "requestChannelHandoffReview"
+  | "startVoiceConversation"
+  | "startVoiceSegment"
+  | "sendMessage"
+  | "listEvents"
+  | "submitWidget"
+  | "emitCustomEvent"
+  | "emitJourneyEvent"
+  | "emitIntermediateMessage"
+  | "emitGeneratedPreamble"
+  | "compactConversation"
+  | "closeConversation"
+  | "requestHandoff"
+  | "resumeConversation"
+  | "getSnapshot"
+  | "replayConversation";
+```
+
+***
+
+### CognideskRequestOptions
+
+```ts
+type CognideskRequestOptions = Omit<RequestInit, "body" | "method">;
+```
+
+***
+
+### CognideskRequestOptionsResolver
+
+```ts
+type CognideskRequestOptionsResolver = (context) => CognideskRequestOptions | undefined;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `context` | [`CognideskRequestContext`](#cognideskrequestcontext) |
+
+#### Returns
+
+[`CognideskRequestOptions`](#cognideskrequestoptions) \| `undefined`
+
+***
+
+### ResolveChannelOutputInput
+
+```ts
+type ResolveChannelOutputInput<TPayload> = ResolveChannelOutputInput<TPayload>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | `unknown` |
+
+***
+
+### ResolveChannelOutputResult
+
+```ts
+type ResolveChannelOutputResult<TPayload> = ResolveChannelOutputResult<TPayload>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | `unknown` |
+
+***
+
 ### VoiceConnectionStatus
 
 ```ts
-type VoiceConnectionStatus = 
+type VoiceConnectionStatus =
   | "idle"
   | "requestingPermission"
   | "connecting"
@@ -1915,7 +7351,7 @@ type VoiceConnectionStatus =
 ### VoiceProtocolClientEvent
 
 ```ts
-type VoiceProtocolClientEvent = 
+type VoiceProtocolClientEvent =
   | {
   event_id?: string;
   session?: Record<string, unknown>;
@@ -2057,6 +7493,136 @@ function collectSupportSourceLinks(references): SupportSourceLink[];
 
 ***
 
+### createChannelEventInput()
+
+```ts
+function createChannelEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
+
+***
+
+### createChannelEventRequestBody()
+
+```ts
+function createChannelEventRequestBody<TPayload, TRawPayload, TTurn>(input): ChannelEventRequestBody<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelEventSubmitInput`](#channeleventsubmitinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`ChannelEventRequestBody`](#channeleventrequestbody)\<`TPayload`, `TTurn`\>
+
+***
+
+### createChannelHandoffEventInput()
+
+```ts
+function createChannelHandoffEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelHandoffEventInput`](#channelhandoffeventinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
+
+***
+
+### createChannelHandoffReviewEventInput()
+
+```ts
+function createChannelHandoffReviewEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelHandoffReviewEventInput`](#channelhandoffrevieweventinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
+
+***
+
+### createChannelOutputResolutionEventInput()
+
+```ts
+function createChannelOutputResolutionEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelOutputResolutionEventInput`](#channeloutputresolutioneventinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
+
+***
+
 ### createCognideskClient()
 
 ```ts
@@ -2075,6 +7641,110 @@ function createCognideskClient(options): CognideskClient;
 
 ***
 
+### createMessageChannelEventInput()
+
+```ts
+function createMessageChannelEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ChannelMessageEventInput`](#channelmessageeventinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
+
+***
+
+### createOutboundContactChannelEventInput()
+
+```ts
+function createOutboundContactChannelEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`OutboundContactChannelEventInput`](#outboundcontactchanneleventinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
+
+***
+
+### createProviderObjectChannelEventInput()
+
+```ts
+function createProviderObjectChannelEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ProviderObjectChannelEventInput`](#providerobjectchanneleventinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
+
+***
+
+### createScheduledChannelEventInput()
+
+```ts
+function createScheduledChannelEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`ScheduledChannelEventInput`](#scheduledchanneleventinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
+
+***
+
 ### createVoiceProtocolClient()
 
 ```ts
@@ -2090,6 +7760,32 @@ function createVoiceProtocolClient(options): VoiceProtocolClient;
 #### Returns
 
 [`VoiceProtocolClient`](#voiceprotocolclient)
+
+***
+
+### createVoiceTurnChannelEventInput()
+
+```ts
+function createVoiceTurnChannelEventInput<TPayload, TRawPayload, TTurn>(input): HandleChannelEventInput<TPayload, TTurn>;
+```
+
+#### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TPayload` | [`NormalizedChannelPayloadInput`](../core/dist.md#normalizedchannelpayloadinput) |
+| `TRawPayload` | `unknown` |
+| `TTurn` | `unknown` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input` | [`VoiceTurnChannelEventInput`](#voiceturnchanneleventinput)\<`TPayload`, `TRawPayload`, `TTurn`\> |
+
+#### Returns
+
+[`HandleChannelEventInput`](../core/dist.md#handlechanneleventinput)\<`TPayload`, `TTurn`\>
 
 ***
 
@@ -2114,7 +7810,10 @@ function formatSupportReferences(references): string;
 ### reduceChatRuntimeEvent()
 
 ```ts
-function reduceChatRuntimeEvent(state, event): ChatEventReducerState;
+function reduceChatRuntimeEvent(
+   state,
+   event,
+   options?): ChatEventReducerState;
 ```
 
 #### Parameters
@@ -2123,6 +7822,7 @@ function reduceChatRuntimeEvent(state, event): ChatEventReducerState;
 | ------ | ------ |
 | `state` | [`ChatEventReducerState`](#chateventreducerstate) |
 | `event` | [`RuntimeEvent`](../core/dist.md#runtimeevent) |
+| `options?` | [`ChatEventReducerOptions`](#chateventreduceroptions) |
 
 #### Returns
 
@@ -2201,3 +7901,177 @@ function useVoice(options): UseVoiceResult;
 #### Returns
 
 [`UseVoiceResult`](#usevoiceresult)
+
+## References
+
+### ChannelEventActor
+
+Re-exports [ChannelEventActor](../core/dist.md#channeleventactor)
+
+***
+
+### ChannelEventActorType
+
+Re-exports [ChannelEventActorType](../core/dist.md#channeleventactortype-1)
+
+***
+
+### ChannelEventBindingOutcome
+
+Re-exports [ChannelEventBindingOutcome](../core/dist.md#channeleventbindingoutcome)
+
+***
+
+### ChannelEventDirection
+
+Re-exports [ChannelEventDirection](../core/dist.md#channeleventdirection)
+
+***
+
+### ChannelEventEnvelope
+
+Re-exports [ChannelEventEnvelope](../core/dist.md#channeleventenvelope)
+
+***
+
+### ChannelEventEnvelopeInput
+
+Re-exports [ChannelEventEnvelopeInput](../core/dist.md#channeleventenvelopeinput)
+
+***
+
+### ChannelEventHandlingDisposition
+
+Re-exports [ChannelEventHandlingDisposition](../core/dist.md#channeleventhandlingdisposition)
+
+***
+
+### ChannelEventIdentity
+
+Re-exports [ChannelEventIdentity](../core/dist.md#channeleventidentity)
+
+***
+
+### ChannelEventIntakeResult
+
+Re-exports [ChannelEventIntakeResult](../core/dist.md#channeleventintakeresult)
+
+***
+
+### ChannelEventIntakeStatus
+
+Re-exports [ChannelEventIntakeStatus](../core/dist.md#channeleventintakestatus)
+
+***
+
+### ChannelEventIntent
+
+Re-exports [ChannelEventIntent](../core/dist.md#channeleventintent)
+
+***
+
+### ChannelEventKind
+
+Re-exports [ChannelEventKind](../core/dist.md#channeleventkind)
+
+***
+
+### ChannelEventNature
+
+Re-exports [ChannelEventNature](../core/dist.md#channeleventnature)
+
+***
+
+### ChannelEventSourceEvidence
+
+Re-exports [ChannelEventSourceEvidence](../core/dist.md#channeleventsourceevidence)
+
+***
+
+### ChannelEventSourceType
+
+Re-exports [ChannelEventSourceType](../core/dist.md#channeleventsourcetype)
+
+***
+
+### ChannelOutputDeliveryMode
+
+Re-exports [ChannelOutputDeliveryMode](../core/dist.md#channeloutputdeliverymode)
+
+***
+
+### ChannelOutputIntent
+
+Re-exports [ChannelOutputIntent](../core/dist.md#channeloutputintent)
+
+***
+
+### ChannelOutputIntentInput
+
+Re-exports [ChannelOutputIntentInput](../core/dist.md#channeloutputintentinput)
+
+***
+
+### ChannelOutputIntentKind
+
+Re-exports [ChannelOutputIntentKind](../core/dist.md#channeloutputintentkind-1)
+
+***
+
+### ChannelOutputResolution
+
+Re-exports [ChannelOutputResolution](../core/dist.md#channeloutputresolution)
+
+***
+
+### ChannelOutputResolutionDecision
+
+Re-exports [ChannelOutputResolutionDecision](../core/dist.md#channeloutputresolutiondecision)
+
+***
+
+### ChannelOutputResolutionOutcome
+
+Re-exports [ChannelOutputResolutionOutcome](../core/dist.md#channeloutputresolutionoutcome-1)
+
+***
+
+### ChannelOutputResolutionPayload
+
+Re-exports [ChannelOutputResolutionPayload](../core/dist.md#channeloutputresolutionpayload-1)
+
+***
+
+### ChannelOutputResolutionStatus
+
+Re-exports [ChannelOutputResolutionStatus](../core/dist.md#channeloutputresolutionstatus-1)
+
+***
+
+### ChannelSourceEvidence
+
+Re-exports [ChannelSourceEvidence](../core/dist.md#channelsourceevidence)
+
+***
+
+### HandleChannelEventInput
+
+Re-exports [HandleChannelEventInput](../core/dist.md#handlechanneleventinput)
+
+***
+
+### HandleChannelEventResult
+
+Re-exports [HandleChannelEventResult](../core/dist.md#handlechanneleventresult)
+
+***
+
+### NormalizedChannelPayload
+
+Re-exports [NormalizedChannelPayload](../core/dist.md#normalizedchannelpayload)
+
+***
+
+### NormalizedChannelPayloadInput
+
+Re-exports [NormalizedChannelPayloadInput](../core/dist.md#normalizedchannelpayloadinput)

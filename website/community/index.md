@@ -22,6 +22,14 @@ Cognidesk is open source and welcomes contributions.
 
     [:octicons-arrow-right-24: Changelog](changelog.md)
 
+-   :material-map-outline:{ .lg .middle } **Repository Map**
+
+    ---
+
+    Find the package, app, docs, and operations ownership map for the monorepo.
+
+    [:octicons-arrow-right-24: Repository Map](repository-map.md)
+
 </div>
 
 ## Links

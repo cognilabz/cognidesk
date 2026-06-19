@@ -57,12 +57,67 @@ Stable publishing requires a matching `vX.Y.Z` tag. If package manifests say
 
 ```bash
 pnpm check
+pnpm build
+pnpm release:verify-packages
 git add packages pnpm-lock.yaml
 git commit -m "Release SDK 0.0.3"
 git tag v0.0.3
 git push origin main v0.0.3
 ```
 
+`pnpm release:verify-packages` expects built `dist` output. It verifies the
+public export paths for `@cognidesk/core`, `@cognidesk/http`,
+`@cognidesk/react`, and every `@cognidesk/integrations` export subpath from a
+temporary consumer-style `node_modules`, and prints the integrations `dist` and
+declaration chunk size report.
+
 When the release commit lands on `main`, the dev workflow starts the next dev
 line automatically. For example, after `0.0.3` is committed, `main` publishes
 `0.0.4-dev.0`.
+
+## Provider-generated surfaces
+
+Provider API surfaces are regenerated explicitly by maintainers, not during
+`npm install`, `pnpm install`, or consumer package installation. Install-time
+generation would make SDK installs network-dependent and harder to audit.
+
+List available provider generators:
+
+```bash
+pnpm providers:generate:list
+```
+
+Regenerate provider surfaces after checking the upstream provider docs/specs:
+
+```bash
+pnpm providers:generate
+```
+
+That command runs the provider generator scripts, hardens generated request and
+response typing, and then splits generated endpoint clients into smaller
+resource/tag chunks behind the stable `*-client.generated.ts` compatibility
+files. The generated schema DTO files may remain shared when provider component
+types are cross-cutting.
+
+For a local split-only refresh after generated files already exist:
+
+```bash
+pnpm providers:split-generated
+```
+
+Before releasing a provider-generation change, review generated diffs and run:
+
+```bash
+pnpm --filter @cognidesk/integrations build
+pnpm release:verify-packages
+pnpm providers:check
+```
+
+`@cognidesk/integrations` uses a build-only `prepack` hook so packed artifacts
+contain current `dist` output. Its test guardrails also check that normal
+runtime dependencies stay limited to internal SDK packages, provider SDKs remain
+optional peers backed by dev dependencies for local builds, published `dist`
+stays under 100 MiB, and declaration chunks stay under 7 MiB. The integrations
+build cleans stale artifacts and does not publish source maps because the
+generated provider surface is already large. It must not run networked provider
+generation from install-time hooks.

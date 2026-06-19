@@ -23,7 +23,7 @@ plus SDK examples and documentation, including:
 - packages/studio-contracts
 - packages/test-harness
 - packages/ui
-- packages/voice-openai
+- packages/integrations
 - packages/voice-websocket
 - apps/flight-demo
 - docs

@@ -3,7 +3,7 @@
 OpenTelemetry instrumentation for Cognidesk.
 
 !!! info "Auto-generated from source"
-    The complete type reference below is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
+    The complete type reference is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
 
 ## Overview
 
@@ -21,4 +21,4 @@ Native OpenTelemetry integration that instruments the runtime with spans, metric
 
 ## Full type reference
 
---8<-- "api-reference/generated/otel/dist.md"
+Open the generated [`@cognidesk/otel` type reference](generated/otel/dist.md).

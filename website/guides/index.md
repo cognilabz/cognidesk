@@ -1,6 +1,12 @@
 # Guides
 
-Step-by-step walkthroughs for every Cognidesk capability. Each guide assumes you've read the [Concepts](../concepts/index.md) section.
+Step-by-step walkthroughs and working notes for Cognidesk capabilities. Each
+guide assumes you've read the [Concepts](../concepts/index.md) section.
+
+!!! note "Guide status"
+    Some core guides are intentionally marked as work in progress while the API
+    surface is still settling. Use the Quick Start, Flight Demo, and API
+    reference when you need the most runnable examples today.
 
 ## Core
 
@@ -14,6 +20,7 @@ Step-by-step walkthroughs for every Cognidesk capability. Each guide assumes you
 
 - [Storage](storage.md) — configure conversation persistence
 - [Models & Providers](models-and-providers.md) — set up LLM providers
+- [Provider Integrations](provider-packages.md) — configure scoped external provider modules, capabilities, readiness, and handoff surfaces
 
 ## Transport
 
@@ -28,3 +35,5 @@ Step-by-step walkthroughs for every Cognidesk capability. Each guide assumes you
 
 - [Voice](voice.md) — real-time voice conversations
 - [Observability](observability.md) — OpenTelemetry integration
+- [Provider Integration Catalog](provider-integrations-catalog.md) — inspect every official provider subpath, scope, capabilities, setup, and boundaries
+- [Omnichannel NG Changes](omnichannel-changes.md) — review the new SDK configuration, channel, policy, handoff, Studio, and integration-package rules

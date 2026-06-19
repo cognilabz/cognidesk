@@ -3,7 +3,7 @@
 JSON-based journey index for intent matching.
 
 !!! info "Auto-generated from source"
-    The complete type reference below is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
+    The complete type reference is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
 
 ## Overview
 
@@ -13,4 +13,4 @@ Provides a JSON-serializable journey index for environments where embedding-base
 
 ## Full type reference
 
---8<-- "api-reference/generated/journey-index-json/dist.md"
+Open the generated [`@cognidesk/journey-index-json` type reference](generated/journey-index-json/dist.md).

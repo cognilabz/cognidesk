@@ -3,20 +3,22 @@
 Model provider adapters for LLM integration.
 
 !!! info "Auto-generated from source"
-    The complete type reference below is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
+    The complete type reference is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
 
 ## Overview
 
 The model package provides adapters for connecting the Cognidesk runtime to LLM providers. It implements the `ModelAdapter` interface defined in `@cognidesk/core`.
 
-## Supported providers
+## Supported provider inputs
 
-- OpenAI (GPT-4o, GPT-4, GPT-3.5-turbo)
-- OpenRouter (multi-model routing)
-- Any OpenAI-compatible API
+- Any Vercel AI SDK compatible language model for runtime roles.
+- Any Vercel AI SDK compatible embedding model for `journeyEmbedding`.
+- Custom implementations of `ModelAdapter` from `@cognidesk/core`.
+
+Use `createModelSet` to map concrete provider models into Cognidesk roles such as `response`, `matcher`, `extraction`, `citationPostProcessing`, `compaction`, and `journeyEmbedding`.
 
 ---
 
 ## Full type reference
 
---8<-- "api-reference/generated/model/dist.md"
+Open the generated [`@cognidesk/model` type reference](generated/model/dist.md).

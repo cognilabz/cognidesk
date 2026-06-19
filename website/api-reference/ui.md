@@ -3,7 +3,7 @@
 Prebuilt UI components for Cognidesk chat interfaces.
 
 !!! info "Auto-generated from source"
-    The complete type reference below is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
+    The complete type reference is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
 
 ## Overview
 
@@ -17,4 +17,4 @@ Components accept an `appearance` prop for customization via CSS variables and e
 
 ## Full type reference
 
---8<-- "api-reference/generated/ui/dist.md"
+Open the generated [`@cognidesk/ui` type reference](generated/ui/dist.md).

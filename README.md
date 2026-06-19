@@ -7,7 +7,7 @@
 [![SDK License](https://img.shields.io/badge/SDK-Apache--2.0-purple.svg)](LICENSES/Apache-2.0.txt)
 [![Studio License](https://img.shields.io/badge/Studio-source--available-slate.svg)](LICENSES/Cognidesk-Studio-Source-Available-License.txt)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-24+-green.svg)](https://nodejs.org/)
 
 [Documentation](https://cognidesk.cognilabz.com) · [Quick Start](https://cognidesk.cognilabz.com/getting-started/quick-start/) · [Examples](https://cognidesk.cognilabz.com/examples/) · [API Reference](https://cognidesk.cognilabz.com/api-reference/)
 
@@ -41,7 +41,7 @@ const agent = createAgent("support", {
 const runtime = createRuntime({
   storage: createSqliteStorage({ filename: "data.sqlite" }),
   agent,
-  models,
+  models, // See the Quick Start for createModelSet configuration.
 });
 ```
 
@@ -66,32 +66,58 @@ const runtime = createRuntime({
 | `@cognidesk/ui` | Prebuilt UI components |
 | `@cognidesk/storage` | Storage adapters |
 | `@cognidesk/otel` | OpenTelemetry instrumentation |
-| `@cognidesk/voice-openai` | OpenAI Realtime voice adapter |
+| `@cognidesk/integrations` | External Provider Integrations with category/provider subpaths, such as `@cognidesk/integrations/email/gmail`, `@cognidesk/integrations/voice/openai`, and `@cognidesk/integrations/voice/elevenlabs` |
 | `@cognidesk/voice-websocket` | Voice WebSocket adapter |
 | `@cognidesk/journey-index-json` | JSON-based journey index |
 
 ## Quick start
 
 ```bash
-pnpm add @cognidesk/core @cognidesk/http @cognidesk/storage @libsql/client
+pnpm add @cognidesk/core @cognidesk/http @cognidesk/model @cognidesk/storage @libsql/client @ai-sdk/openai zod
 ```
 
 Read the full [Quick Start guide →](https://cognidesk.cognilabz.com/getting-started/quick-start/)
 
 ## Demo
 
-Run the flight support demo:
+Repository development uses Node.js 24 and the pinned pnpm version from
+`package.json`:
+
+```bash
+corepack enable
+pnpm install
+```
+
+Run the flight support demo locally:
+
+```bash
+cp apps/flight-demo/config.openrouter.example.json apps/flight-demo/config.json
+export OPENROUTER_KEY=sk-or-...
+pnpm --filter @cognidesk/flight-demo ingest:knowledge
+pnpm demo
+```
+
+Open `http://localhost:5173` for the demo frontend,
+`http://localhost:8787/api` for the API, and `http://localhost:3000` for
+Cognidesk Studio. The default local Studio login is
+`admin@local.cognidesk.dev` / `cognidesk-studio-admin`.
+
+Docker uses the same config and model credentials:
 
 ```bash
 docker compose up --build
 ```
 
-Open `http://localhost:5173` for the frontend, `http://localhost:8787/api` for the API.
+Use the OpenTelemetry compose file when you want Grafana, Tempo, Prometheus,
+Loki, and Promtail:
+
+```bash
+docker compose -f docker-compose.otel.yml up --build
+```
 
 ## Development
 
 ```bash
-pnpm install
 pnpm check
 ```
 

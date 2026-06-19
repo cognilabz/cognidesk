@@ -1,20 +1,328 @@
 # Cognidesk
 
-Cognidesk is a TypeScript chatbot SDK context for building customer support agents as code.
+Cognidesk is a TypeScript SDK context for building workflow-aware AI support agents across customer support channels.
 
 ## Language
 
 **Runtime SDK**:
-A portable TypeScript package that executes customer support conversations from developer-provided definitions. It owns the conversation loop, path selection, tool execution, state snapshots, and emitted UI/runtime events.
+A portable TypeScript package that executes customer support conversations from developer-provided definitions across supported Conversation Channels. It owns the conversation loop, path selection, tool execution, state snapshots, and emitted UI/runtime events.
 _Avoid_: Definition-only SDK, hosted-only runtime
+
+**Omnichannel Runtime Surface**:
+The small developer-facing runtime surface for omnichannel support: submit Channel Events, resolve pending Channel Outputs, configure channel policies and capabilities, and connect Channel Event Sources. Channel-specific APIs may exist as convenience wrappers, but they do not define separate runtime entry architectures.
+_Avoid_: Chat API as core model, voice API as separate runtime, provider-specific runtime entrypoint
+
+**Omnichannel Support Agent**:
+A Cognidesk support agent that can serve customers across multiple Conversation Channels while preserving shared support capability, policies, Knowledge, Tools, Journeys, handoff rules, evaluations, and observability. Channel behavior may be adapted for the interaction style, constraints, and expectations of each Conversation Channel without turning the agent into separate channel-specific products.
+_Avoid_: Chatbot, separate agent per channel, identical behavior in every channel
+
+**Core Support Channels**:
+The first customer support channels Cognidesk's product promise centers on: chat, voice, email, and ticketing. Voice may be inbound or outbound, and ticketing includes enterprise support systems such as Zendesk, Intercom, Freshdesk, Salesforce Service Cloud, Microsoft Dynamics 365 Customer Service, Oracle Service, SAP Service Cloud, Pega Customer Service, Zoho Desk, Front, Help Scout, Gorgias, Kustomer, HubSpot, and ServiceNow. Other support-channel families may be supported through Provider Categories without weakening the core promise.
+_Avoid_: Every possible channel as v1 promise, chat-only scope
+
+**Channel Configuration**:
+The SDK user's explicit choice of which Conversation Channels are available for a Cognidesk application. A Cognidesk application may be single-channel, use a small channel set, or enable broader omnichannel continuity; channels can be configured minimally, but no channel is enabled accidentally.
+_Avoid_: Mandatory omnichannel setup, SDK-owned channel rollout, one required channel set, implicit channel enablement
+
+**Channel Policy**:
+The SDK user's configurable rules for how an agent behaves in a Conversation Channel, such as tone expression, length, media use, approval requirements, privacy constraints, and handoff behavior. Channel Policy adapts Agent Persona to a channel's interaction style without changing the agent identity unless the SDK user configures that intentionally; unspecified side-effect, externally visible, sensitive, or workflow-changing actions fail closed as missing configuration rather than silently using Cognidesk business defaults.
+_Avoid_: Hard-coded channel behavior, hidden default behavior, one SDK-wide tone, unconfigurable channel rules, missing policy as permission
+
+**Channel Capability**:
+A generic SDK concept describing what a configured Conversation Channel and Provider Integration can support, such as receiving, sending, drafting, threading, attachments, media, handoff, scheduling, cleanup, Provider Object operations, notifications, transfers, or artifacts. Channel Capabilities are declared by provider capability and enabled by SDK-user configuration rather than being hard-coded for a specific channel like email or voice; customer-facing and internal support visibility are audience metadata rather than separate capabilities.
+_Avoid_: Email-only capability model, provider capability as permission, hard-coded channel feature list
+
+**Channel Event**:
+A channel-scoped occurrence that is the primary support-level runtime entry for Cognidesk channel interaction, including chat messages, voice session starts, finalized voice turn events, customer messages, inbound calls, provider ticket updates, operator resumes, outbound-contact requests, and due Scheduled Support Actions. Channel Events carry Conversation Channel context and remain subject to Conversation Binding, Channel Policy, Channel Capabilities, Journey routing, and approval; high-frequency transport signals such as voice audio deltas remain Voice Live Signals rather than Channel Events.
+_Avoid_: Trigger, startpoint, provider webhook as workflow authority, scheduled side effect, chat-specific runtime entry, voice-specific runtime entry, every audio frame as event
+
+**Channel Event Envelope**:
+The provider-neutral shape of a Channel Event, carrying generic support axes such as event nature, direction, intent, actor, channel context, source references, and payload. The envelope keeps routing, policy, and observability consistent across channels while allowing provider-specific data to remain attached as source payload rather than becoming separate runtime entry concepts.
+_Avoid_: Email event type as architecture, voice-only start payload, provider payload as routing contract
+
+**Channel Event Vocabulary**:
+The small extensible set of provider-neutral values used in a Channel Event Envelope for axes such as event nature, direction, intent, and actor. Cognidesk supplies core vocabulary for cross-channel policy and Studio visibility, while Provider Integrations and SDK users may extend it when unknown values remain visible and fail safely.
+_Avoid_: Closed provider-specific event enum, arbitrary ungoverned strings, hidden unsupported event kind
+
+**Normalized Channel Payload**:
+The support-relevant, provider-neutral data extracted into a Channel Event Envelope for policy, routing, Studio, evaluation, and handling. Normalized Channel Payloads do not replace provider evidence; they expose the parts Cognidesk and the SDK user intentionally understand.
+_Avoid_: Raw provider payload as routing model, prompt-only event data, hidden normalization
+
+**Channel Source Evidence**:
+The provider or application source references, raw payload, signature evidence, delivery metadata, and external object identifiers attached to a Channel Event for audit, deduplication, replay, troubleshooting, or provider follow-up. Channel Source Evidence is governed by privacy and retention policy and must not become the primary cross-channel routing contract.
+_Avoid_: Raw payload as support context, unretained provider evidence, provider IDs as conversation model
+
+**Channel Event Source**:
+The origin that creates a Channel Event Envelope for Cognidesk: Provider Adapter, Application, Schedule Adapter, or Operator Surface. Channel Event Sources may normalize, verify, and deduplicate source data, but support workflow decisions remain with Conversation Binding, policy, and Journey routing.
+_Avoid_: Provider adapter as workflow owner, webhook as automatic conversation, scheduler as action executor
+
+**Channel Event Intake**:
+The support-level entry phase that validates, normalizes, deduplicates, authenticates or verifies, binds, and policy-checks a Channel Event before support work is handled. Channel Event Intake may start, resume, link, ignore, defer, handoff-review, or block a Channel Event without running model, Tool, Knowledge, or provider-operation work.
+_Avoid_: Raw webhook handling as support work, model-first intake, adapter-owned workflow decision
+
+**Channel Event Identity**:
+The stable identity used during Channel Event Intake to deduplicate, order, audit, and safely retry a Channel Event. Provider Integrations and SDK users supply the concrete identity strategy from source references, event IDs, provider object IDs, channel IDs, timestamps, or application keys rather than relying on Journey Handling to detect duplicates.
+_Avoid_: Best-effort model dedupe, duplicate webhook as new support work, provider retry as separate conversation
+
+**Channel Event Source Stream**:
+The ordered source-specific stream from which related Channel Events arrive, such as a chat session, voice Channel Segment, email mailbox history stream, ticket event stream, provider webhook stream, or application schedule stream. Source Streams support intake ordering and deduplication without implying global ordering across all channels in a Conversation.
+_Avoid_: Global provider ordering, conversation-wide webhook sequence, unrelated source events as one stream
+
+**Channel Event Intake Result**:
+The immediate result of Channel Event Intake, telling the Channel Event Source whether the event was accepted for handling, ignored, deferred, routed to handoff review, or blocked. Intake Results acknowledge admission and routing decisions without promising that asynchronous Channel Event Handling has completed.
+_Avoid_: Webhook response as final support answer, model response as intake result, provider delivery as admission
+
+**Channel Event Handling**:
+The support-work phase after Channel Event Intake that may route Journeys, run models, use Knowledge, execute or propose Tools, create drafts, request approval, perform provider operations, produce responses, create artifacts, or hand off. Channel Event Handling operates only after a Channel Event is bound or otherwise admitted by intake.
+_Avoid_: Intake as full workflow, provider adapter as handler, bypassing policy after binding
+
+**Channel Event Handling Disposition**:
+The selected handling path for an accepted Channel Event, such as no-op, record-only, deterministic Journey Event, model turn, output resolution, provider operation, or handoff review. Accepting a Channel Event does not imply that Cognidesk must run a model or produce a customer-facing response.
+_Avoid_: Accepted means model turn, every event gets assistant reply, webhook as prompt
+
+**Conversation Handling Serialization**:
+The runtime guarantee that admitted Channel Event Handling which mutates or responds from the same Primary Conversation is sequenced so Journey state, Tool effects, approvals, and customer-facing outputs remain coherent. Conversation Handling Serialization does not require global ordering of all Channel Event Source Streams before intake.
+_Avoid_: Parallel state mutation in one conversation, source ordering as conversation ordering, duplicate output race
+
+**Channel Output**:
+A support-relevant result produced by Channel Event Handling for a configured audience and delivery mode, such as a customer-facing message, voice reply, email draft, ticket note, approval request, artifact, provider update, notification, or handoff review. Channel Output is distinct from the technical acknowledgement returned to a Channel Event Source during intake.
+_Avoid_: Webhook response as customer reply, every output as send, draft as sent message, provider acknowledgement as support response
+
+**Channel Output Intent**:
+The semantic intent for a Channel Output before delivery or provider execution, such as replying to a customer, creating a draft, adding an internal note, updating a provider object, requesting approval, creating an artifact, notifying, or routing to handoff review. Channel Output Intents are resolved through Channel Policy, Channel Capabilities, approval, and Provider Integrations rather than being treated as direct provider calls.
+_Avoid_: Tool call as output intent, send-first response, provider API operation as support semantics
+
+**Channel Output Intent Producer**:
+The source that proposes a Channel Output Intent, such as an agent response, Journey action, Tool result, operator action, policy action, or scheduled action. Different producers may propose outputs, but they do not bypass the shared output policy and delivery path.
+_Avoid_: Model as only output source, operator shortcut around policy, tool result as automatic send
+
+**Channel Output Resolution**:
+The policy-governed decision that turns a Channel Output Intent into a delivered output, draft, Pending Support Action, Support Artifact, provider operation, handoff review, denial, or no-op. Channel Output Resolution is the shared path for outputs regardless of whether the intent was produced by an agent, Journey, Tool, operator, policy, or schedule; chat may resolve quickly for developer experience, but it is not a separate output model.
+_Avoid_: Direct send from producer, provider operation as resolution policy, per-channel output shortcut, chat as default output architecture
+
+**Conversation Binding**:
+The SDK-user-governed association between a Channel Event and a Cognidesk Conversation, determining whether support handling continues in an existing Conversation, starts a new Conversation, links related history, or does not enter the runtime. Conversation Binding uses channel and application context rather than allowing provider thread IDs, schedules, or adapters to unilaterally decide workflow.
+_Avoid_: Conversation resolution, provider thread as conversation, webhook-created workflow, implicit reopen
+
+**Primary Conversation Binding**:
+The single primary Conversation selected or created for a Channel Event during Conversation Binding. A Channel Event may link related history or produce follow-on outputs, but it must not fan out into multiple primary Conversations during intake.
+_Avoid_: Multi-conversation intake, provider webhook fan-out, equal primary bindings
+
+**Conversation Binding Outcome**:
+The decision produced by Conversation Binding: start a new Conversation, resume an existing Conversation, link related history while starting a new Conversation, ignore the Channel Event, defer handling, route to handoff review, or block handling. Binding Outcomes express support semantics and must not be hidden inside provider adapters.
+_Avoid_: Provider-specific start mode, implicit reopen, adapter-owned routing result
+
+**Provider Object**:
+An external provider or application object exposed through a Provider Integration, such as a ticket, case, ServiceNow incident, CRM note, support task, knowledge-base article, or other SDK-user-defined provider-side object. Cognidesk does not own a universal Provider Object schema; SDK users decide how Provider Objects map to support workflows and policies.
+_Avoid_: Cognidesk runtime record, universal ticket schema, SDK-owned case model
+
+**Provider Object Operation**:
+A Channel Capability for creating, reading, updating, deleting, searching, linking, or otherwise acting on Provider Objects. Provider Object Operations expose external-system capability without making Cognidesk own the provider's object schema or the SDK user's business workflow.
+_Avoid_: Cognidesk-owned ticket operation, universal case lifecycle, provider object as Runtime Storage
+
+**Extension Channel Capability**:
+A Provider Integration or SDK-user-defined Channel Capability outside Cognidesk's core capability vocabulary. Extension Channel Capabilities must be declared, visible through Studio Configuration Surface, and governed by policy when they affect external state, sensitive data, workflow, Outbound Contact, Support Artifacts, or customer-visible behavior.
+_Avoid_: Hidden provider feature, undeclared side effect, custom capability outside policy
+
+**Draft and Approval Policy**:
+The SDK user's configurable rules for when Cognidesk may send, draft, suggest, internally note, defer, escalate, or require human approval before acting in a Conversation Channel. Draft and Approval Policy is especially relevant for asynchronous or higher-risk channels such as email and ticketing, but it is not limited to any provider.
+_Avoid_: Always auto-send, always human-reviewed, provider-owned approval logic
+
+**Runtime Approval Decision**:
+The policy-derived outcome that decides whether a support action may execute immediately, requires confirmation or human approval, becomes a draft, is deferred, is denied, or moves to handoff. Runtime Approval Decisions are based on operation metadata, channel, audience, provider capability, risk, identity, consent, and application policy rather than a standalone tool permission flag.
+_Avoid_: Tool approval boolean, Studio Approval Gate, provider-owned approval, approval as permission grant
+
+**Pending Support Action**:
+A durable support action proposal that is waiting for approval, denial, editing, expiry, cancellation, or another application-owned resolution before Cognidesk executes the side effect or resumes handling. Pending Support Actions preserve the provider operation, channel, audience, policy reason, risk metadata, and audit links without keeping model or tool compute running.
+_Avoid_: In-memory approval callback, hidden paused tool call, draft as the only pending state
+
+**Approval Resolution Policy**:
+The combined package-authored operation metadata and SDK-user configuration that determines which resolutions are allowed for a Pending Support Action, such as approval, denial, editing, expiry, cancellation, or returning the proposal for revision. Editable approval is possible only when both the operation metadata and SDK-user policy allow it.
+_Avoid_: Always-editable approval, operator-only rule, provider-owned approval outcome
+
+**Risk Policy**:
+The SDK user's configurable rules for identifying and handling higher-risk situations across channels, Tools, handoff, drafts, customer context, and side effects. Cognidesk provides policy hooks, but the SDK user owns what counts as risky and whether the outcome is confirmation, approval, draft-only handling, escalation, denial, or another application action.
+_Avoid_: SDK-owned risk taxonomy, hidden safety trigger, channel-only safety rule
+
+**Confirmation Policy**:
+The SDK user's configurable rules for when a customer, human operator, or application must confirm a side-effect action before Cognidesk proceeds. Confirmation behavior depends on SDK configuration, channel, Tool, Risk Policy, customer state, and business process rather than built-in Cognidesk defaults.
+_Avoid_: Universal hard-coded confirmation, side-effect without configured policy, confirmation as chat-only behavior
+
+**Sensitive Data Exposure Policy**:
+The SDK user's configurable rules for when sensitive information may be shown, sent, spoken, logged, summarized, attached, evaluated, or exposed through a Conversation Channel, Provider Integration, UI, telemetry, or artifact. Sensitive Data Exposure Policy may vary by channel, Channel Audience, provider, action type, Application Context, and customer state, and is governed separately from side effects because exposure can be risky even when no external system is mutated.
+_Avoid_: Treating read-only as always safe, one global privacy switch, hidden PII exposure
+
+**Evaluation Policy**:
+The SDK user's configured definition of what acceptable agent behavior means for a Cognidesk application, channel, Journey, Tool, Risk Policy, or handoff path. Cognidesk provides evaluation machinery and reusable checks, but evaluation expectations are SDK-configured rather than SDK-defaulted.
+_Avoid_: Built-in quality defaults, SDK-owned success criteria, one universal eval standard
+
+**Policy Template**:
+An example or starter configuration that demonstrates a common Channel Policy, Risk Policy, Confirmation Policy, Draft and Approval Policy, or Evaluation Policy pattern. Policy Templates are documentation and developer-experience aids only; they do not affect runtime behavior unless the SDK user explicitly chooses them.
+_Avoid_: Runtime default, hidden policy, required starter behavior
+
+**SDK-User Reason Taxonomy**:
+The SDK user's own set of reason codes, labels, and explanations for policy, approval, risk, privacy, retention, consent, blocking, deferral, handoff review, Channel Handoff, or other support decisions. Cognidesk may provide typed reason slots, policy references, metadata, and example templates, but it does not define a built-in business taxonomy for why a decision was made.
+_Avoid_: SDK-owned reason list, hard-coded risk reasons, template examples as runtime semantics
+
+**Action Audience**:
+The configured visibility of a specific action or capability use: customer-facing, internal support, or mixed. Action Audience determines who the result is for without changing the underlying Channel Capability, such as send, draft, notify, update-record, transfer, or artifact creation.
+_Avoid_: Customer-facing action as capability, internal support action as capability, hidden action visibility
+
+**Auditable Support Action**:
+A durable support-relevant action that should be traceable through Runtime Events or application audit records, regardless of whether its Action Audience is customer-facing, internal support, or mixed. Transient channel signals such as typing indicators, live audio deltas, partial captions, and temporary UI state are operational signals unless the SDK user configures them as auditable.
+_Avoid_: Untraceable support action, transient signal as durable history by default
+
+**Support Artifact**:
+A durable item produced, attached, stored, exported, or referenced during support work, such as a voice recording, transcript, email draft, ticket summary, internal note, attachment, evaluation artifact, screenshot, log, or conversation export. Support Artifacts are governed by SDK-user policies such as Consent Policy, Sensitive Data Exposure Policy, Retention Policy, Channel Policy, and Provider Manifest capabilities.
+_Avoid_: Voice recording as only artifact, ungoverned generated file, artifact as runtime state by default
+
+**Application Context**:
+SDK-user-owned business data made available to Cognidesk during conversation handling, such as customer profile, account state, orders, subscriptions, risk signals, tickets, or preferences. Cognidesk may help resolve, type, redact, and expose Application Context safely, but it does not own a universal customer, account, billing, or CRM schema.
+_Avoid_: Cognidesk customer schema, built-in CRM object, untyped prompt-only context
+
+**Identity Verification Context**:
+Application-owned information about whether a customer, support operator, or external actor is known, authenticated, verified, or requires step-up verification for a specific channel or action. Cognidesk can use Identity Verification Context in policies, but it does not own universal login flows, identity rules, KYC behavior, or verification methods.
+_Avoid_: Cognidesk auth system, universal customer identity, channel identity as sufficient proof
+
+**Consent Policy**:
+The SDK user's configurable consent model, including the consent types, consent states, evidence, scope, expiry, and enforcement rules that apply to channels, recordings, Outbound Contact, internal support actions, artifacts, retention, Sensitive Data Exposure Policy, evaluation artifacts, provider behavior, or domain-specific actions. Cognidesk provides policy surfaces for consent, but it does not define a fixed consent taxonomy or legal consent requirements.
+_Avoid_: Built-in consent types, SDK-owned consent law, recording-only consent
+
+**Retention Policy**:
+The SDK user's configurable rules for how long conversations, messages, transcripts, recordings, Runtime Events, audit records, internal notes, provider artifacts, evaluation artifacts, and related data are kept, exported, deleted, or cleaned up. Cognidesk may provide lifecycle hooks and metadata for retention and deletion workflows, but it does not define universal retention windows or legal deletion rules.
+_Avoid_: SDK-owned retention law, one global retention window, provider cleanup as automatic guarantee
+
+**Agent Persona**:
+The SDK-user-configured behavior and expression model for an agent, such as brand voice, locale, formality, tone, style, empathy, confidence, humor, or escalation voice. Agent Persona is the top-level agent identity, may be simple or detailed, and may use Application Context, but it is distinct from factual business data.
+_Avoid_: Customer profile, fixed SDK tone taxonomy, prompt string only
+
+**Expansion Provider Category**:
+A Provider Category outside the Core Support Channels, such as contact center, messaging, SMS, workplace, social, forms, help center, community, ecommerce, reviews, video, or co-browsing. Expansion Provider Categories extend the omnichannel model without redefining Cognidesk's core support-agent identity.
+_Avoid_: Core channel, unsupported afterthought
 
 **Transport Neutrality**:
 The Runtime SDK's ability to run without depending on a specific HTTP server, framework, streaming protocol, or deployment target.
 _Avoid_: Framework-bound runtime
 
 **Built-In Adapter**:
-An SDK-provided integration for common needs such as HTTP, SSE, storage, model providers, or local development. Built-In Adapters are optional conveniences and do not define the Runtime SDK boundary.
+An SDK-provided adapter for common needs such as HTTP, SSE, storage, model providers, or local development. Built-In Adapters are optional conveniences and do not define the Runtime SDK boundary.
 _Avoid_: Required platform dependency
+
+**Integration Package**:
+The single installable, registry-visible package that contains Cognidesk's external provider integrations. The Integration Package is a distribution and discovery boundary; it does not grant runtime permission or own business policy.
+_Avoid_: Many public provider packages, adapter bundle, runtime permission grant
+
+**Provider Integration**:
+A provider-specific module inside the Integration Package that connects Cognidesk to an external support system or channel provider. A Provider Integration may expose provider capabilities through Adapters, Tools, manifests, auth setup, and channel capabilities, but it does not own business policy such as when to hand off, auto-send, approve, escalate, or treat something as risky.
+_Avoid_: Provider Package, Adapter, provider SDK wrapper, provider-owned business policy
+
+**Connection Definition**:
+An SDK-user or package-author declaration that describes an external MCP server or OpenAPI-described API so Cognidesk can discover and broker provider operations behind Provider Integration surfaces such as Provider Manifests, Tools, credential metadata, and conformance evidence. When a provider offers an equivalent machine-readable API contract, Connection Definitions are the preferred way to back that Provider Integration surface; they are not a separate runtime provider model or permission grant.
+_Avoid_: Runtime connection, direct credential grant, provider replacement, handwritten parallel client
+
+**Equivalent Provider Contract**:
+A provider-supplied MCP or OpenAPI contract that covers the same support-relevant operations Cognidesk intends to expose through a Provider Integration. Equivalence is about provider API behavior, while Cognidesk still supplies the support semantics such as Channel Capabilities, policy, approval, privacy, readiness, limitations, and conformance evidence.
+_Avoid_: Same provider name, partial endpoint overlap, ungoverned generated tool
+
+**Connection-Backed Provider Integration**:
+A Provider Integration whose provider API calls are discovered and brokered through Connection Definitions while the integration still owns the Cognidesk manifest, support semantics, exported tools, conformance evidence, and module boundary. Shared connection primitives may live in common infrastructure, but provider-specific Connection Definitions remain with the Provider Integration.
+_Avoid_: Providerless connection module, generated module outside registry
+
+**Connection Adoption Scope**:
+The chosen boundary for where Connection Definitions are introduced, such as new Provider Integrations, SDK-user integrations, or future explicit migrations of existing integrations. Connection Adoption Scope is an implementation planning boundary and does not imply existing Provider Integrations must be migrated automatically.
+_Avoid_: Implicit migration mandate, rewrite all providers, existing integration deprecation
+
+**Provider Integration Template**:
+A documented starting shape for authoring a Connection-Backed Provider Integration by hand, including Connection Definitions, Operation Aliases, Provider Manifest metadata, credential status, readiness checks, explicit Tool exposure, and conformance tests. Provider Integration Templates support community and SDK-user integrations without making generation or import tooling part of the runtime architecture.
+_Avoid_: Code generator as required path, importer-only community flow, template as conformance proof
+
+**Connection Operation Exposure**:
+The SDK-user choice to expose selected Connection-backed provider operations as model-callable Tools for an Agent, Journey, or channel. Provider Integration availability, registry visibility, or credential configuration does not by itself expose Connection operations to the model.
+_Avoid_: Installed means callable, registry means enabled, all provider operations as tools
+
+**Connection Operation Alias**:
+A Provider Integration-owned stable name for a reviewed provider operation exposed through a Connection Definition. Operation Aliases carry Cognidesk support metadata such as Channel Capability, Provider Object, audience, risk, approval, privacy, and audit semantics so SDK users do not depend directly on raw OpenAPI operation IDs, MCP tool names, or provider naming churn.
+_Avoid_: Raw provider operation as product API, endpoint path as tool name, unreviewed operation selector
+
+**Reviewed Provider Contract**:
+The MCP or OpenAPI contract version, digest, or compatibility range that a Connection-Backed Provider Integration has reviewed and mapped to Cognidesk support semantics. Runtime discovery may inspect the live provider contract, but incompatible changes to reviewed operations, schemas, auth, or model-facing descriptions fail closed rather than silently changing exposed behavior.
+_Avoid_: Silent contract drift, live spec as automatic permission, unpinned dynamic tools
+
+**Provider Trust Level**:
+The maintenance and review confidence shown for a Provider Integration, such as official, verified, community, or experimental. Provider Trust Level helps SDK users evaluate integration provenance and review status, but it does not grant runtime permission or decide business policy.
+_Avoid_: Safety policy, auto-approval, capability level
+
+**Provider Manifest**:
+A descriptive declaration of a Provider Integration's category, Channel Capabilities, auth requirements, privacy notes, provider limitations, and provenance. Provider Manifests help SDK users and tooling understand what a Provider Integration can do, but app configuration decides which capabilities are enabled.
+_Avoid_: Business policy, runtime permission grant, hidden provider behavior
+
+**Provider Conformance**:
+The SDK test-harness evidence that a Provider Integration follows Cognidesk's integration naming, manifest, capability vocabulary, credential-status, fail-closed policy, and optional live-partner check requirements. Provider Conformance distinguishes local contract readiness from live external-partner readiness; missing credentials or unavailable partner test tenants must be reported as credential-blocked rather than treated as passing live readiness.
+_Avoid_: Best-effort provider claim, mock-only partner readiness, hidden credential blocker
+
+**Provider Registry**:
+The discovery and metadata surface for Provider Integrations, searchable by Provider Category, Provider Trust Level, Channel Capabilities, Provider Direction, Channel Audience support, auth requirements, privacy notes, and limitations. The Provider Registry helps SDK users and Studio find and evaluate integrations, but it does not enable runtime behavior by itself.
+_Avoid_: Runtime configuration, marketplace as permission grant, hidden integration behavior
+
+**Capability Availability State**:
+The Studio-visible status of a Provider Integration or Channel Capability, such as available in the Provider Registry, installed in the project, configured in SDK, enabled for a channel, enabled for an agent, enabled for a Journey or Tool, or blocked by missing policy, configuration, credentials, provider support, or permissions. Capability Availability State explains why a capability can or cannot be used without treating discovery as enablement.
+_Avoid_: Available as enabled, installed as configured, hidden missing-policy failure
+
+**Provider Credential Status**:
+The Studio-visible status of credentials required by a Provider Integration, such as required, configured, missing, expired, insufficiently scoped, blocked by permissions, or unavailable to the current operator workflow. Provider Credential Status exposes requirements and readiness without exposing secret values.
+_Avoid_: Secret value in Studio UI, credential presence as permission, hidden credential blocker
+
+**Provider Direction**:
+The declared communication direction a Provider Integration can support: receive-only, send-only, outbound-only, inbound-only, or bidirectional depending on the Provider Category. Provider Direction describes capability in the Provider Manifest, while SDK-user configuration decides whether and how that direction is used in an application.
+_Avoid_: Mandatory bidirectional channel, assumed outbound support, runtime permission, business policy
+
+**Outbound Contact**:
+A configured action initiated from Cognidesk toward a channel or provider, such as an outbound call, email reply, SMS notification, WhatsApp template message, ticket update, or workplace notification. Outbound Contact requires Provider Direction support and SDK-user configuration through Channel Policy, Risk Policy, Confirmation Policy, Draft and Approval Policy, and Action Audience.
+_Avoid_: Voice-only outbound, assumed provider capability, unconfigured proactive contact
+
+**Scheduled Support Action**:
+A configured action or Outbound Contact that is delayed, scheduled, or triggered by an application event, such as a callback, follow-up email, support reminder, SLA reaction, ticket reopen, or order-status notification. The SDK user owns scheduling policy, compliance, retries, cancellation, event triggers, and Action Audience; Provider Integrations only expose supported provider capabilities.
+_Avoid_: SDK-owned campaign scheduler, provider-owned business timing, unconfigured delayed action
+
+**Schedule Adapter**:
+An application or SDK-provided adapter that supplies the clock, queue, persistence, retry, and delivery mechanics for Scheduled Support Actions while Cognidesk defines the support semantics and runtime event boundary. Schedule Adapters trigger Cognidesk through Channel Events rather than bypassing Conversation Binding, Journey routing, or policy.
+_Avoid_: Built-in campaign scheduler, direct delayed tool execution, hidden background worker
+
+**Scheduled External Event**:
+A Journey-level External Event derived from a due Scheduled Support Action after Channel Event intake and Conversation Binding. Scheduled External Events may drive Journey routing, but they are not the outer runtime wakeup mechanism and must not execute provider operations directly.
+_Avoid_: Delayed tool call, scheduled side effect, timer callback as workflow authority
+
+**Scheduled Operation Intent**:
+Optional metadata on a Scheduled Support Action that identifies the provider operation or support action the schedule is likely related to without making that operation the execution target. Scheduled Operation Intent helps Studio, audit, and policy review understand why the schedule exists while the due-time trigger remains a Scheduled External Event.
+_Avoid_: Scheduled operation execution, delayed provider call, operation alias as schedule target
+
+**Channel Audience**:
+The SDK-user-configured audience of a Conversation Channel: customer-facing, internal support, or mixed. Channel Audience determines whether channel behavior is meant for direct customer interaction, support-operator assistance, or both, without changing Cognidesk's Conversation and policy model.
+_Avoid_: All channels as customer chat, internal support as non-conversation, hidden audience assumption
+
+**Provider Category**:
+A product-facing discovery grouping for Provider Integrations that share an adapter, support-channel, or external-system family, such as model, storage, voice, email, ticketing, contact center, handoff, studio, messaging, workplace, social, video, or co-browsing. Provider Categories help SDK users find integrations, while Channel Capabilities describe what those integrations can do and lower-level Adapter names describe runtime boundaries.
+_Avoid_: Domain, adapter type, capability list, package scope
+
+**Integration Category Profile**:
+A provider-neutral default profile for a Provider Category, containing the category's expected Provider Objects, Channel Events, Channel Outputs, Operation Aliases, Data Sources, capability metadata, and conformance expectations. Integration Category Profiles make categories like ticketing, email, voice, messaging, contact center, or handoff useful out of the box without making Core provider-specific or deciding SDK-user business policy; Core owns the shared profile types, while the Integration Package owns the concrete category profiles.
+_Avoid_: Empty category shell, provider-specific runtime, automatic enablement, business policy default
+
+**Category Operation Catalog**:
+The standardized, category-specific Operation Aliases and metadata supplied by an Integration Category Profile, such as `ticket.read`, `ticket.create`, `ticket.update`, `email.send`, `email.draft.create`, `voice.call.hangup`, or `voice.callback.schedule`. Provider Integrations map catalog operations to provider APIs and may declare extensions; Core and Studio reason over operation metadata such as Channel Capability, Provider Object, audience, side effects, workflow impact, privacy, policy, and conformance rather than hard-coding provider-specific alias semantics.
+_Avoid_: Raw provider API list, one catch-all operation, hidden extension behavior, category-specific runtime API
+
+**Provider Capability Coverage**:
+The declared and conformance-derived degree to which a Provider Integration implements an Integration Category Profile, such as partial, standard, or full coverage. Provider Capability Coverage lets SDK users and Studio distinguish useful but limited integrations from complete category implementations without pretending every provider supports every default operation; required Category Operations must pass for category conformance, recommended operations determine whether coverage is standard rather than partial, and optional operations may raise confidence without being mandatory.
+_Avoid_: All-or-nothing category membership, hidden missing operations, provider marketing claim
+
+**Category Operation Level**:
+The expected support level for a Category Operation Catalog entry: required operations define the minimum useful category membership, recommended operations make an integration practically useful for common support workflows, optional operations represent useful category-standard behavior that not every provider supports, and extension operations are provider- or integration-specific additions that remain declared, policy-governed, and conformance-visible.
+_Avoid_: Every operation required, undocumented optional feature, hidden provider extension, support claim without coverage level
+
+**Ticketing Provider Category**:
+The Provider Category for ticketing and service-management systems such as Zendesk, Intercom, Freshdesk, Salesforce Service Cloud, Microsoft Dynamics 365 Customer Service, Oracle Service, SAP Service Cloud, Pega Customer Service, Zoho Desk, Front, Help Scout, Gorgias, Kustomer, HubSpot, and ServiceNow. Ticketing may be customer-facing, internal support, or mixed depending on SDK-user configuration and provider capability.
+_Avoid_: Customer reply channel only, internal-only helpdesk, ticketing as Cognidesk-owned case model
 
 **HTTP Adapter**:
 A Built-In Adapter that exposes the transport-neutral runtime over REST-style POST endpoints and SSE Streaming.
@@ -88,6 +396,10 @@ _Avoid_: Media-only adapter, browser-only provider event handling
 The adapter-internal connection between Cognidesk and a realtime voice provider. Voice Provider Transport choices are hidden behind Voice Connection Adapters and do not define the Voice Browser Protocol.
 _Avoid_: Browser transport, public voice API, provider-specific Core type
 
+**Speech Provider**:
+A Voice Connection Adapter dependency that supplies speech-to-text, text-to-speech, or both for a Voice Conversation while Cognidesk still owns the Agent turn, Journeys, Tools, Knowledge, and durable transcripts. Speech Providers may be used by non-realtime Voice Connections where a background Model Provider produces assistant text.
+_Avoid_: Provider-owned agent runtime, voice model provider as agent brain, transcript-only shortcut
+
 **Voice Call Routing**:
 The application-owned decision that maps an incoming or requested voice connection to a Cognidesk Conversation, an external route, or a rejection. Voice Call Routing may create a new Voice Conversation or attach to an existing one without making caller identity rules part of the SDK.
 _Avoid_: SDK-owned phone lookup, automatic conversation merge
@@ -95,6 +407,10 @@ _Avoid_: SDK-owned phone lookup, automatic conversation merge
 **Model Adapter**:
 An SDK integration that lets the runtime call a configured model through a consistent Cognidesk interface. Model Adapters are created through the Cognidesk model entrypoint, commonly by wrapping Vercel AI SDK model handles.
 _Avoid_: Provider-specific runtime
+
+**Model Provider**:
+An external language or embedding model provider selected by an application for Agent Model Set roles. Model Providers are reached through Model Adapters and are distinct from Provider Integrations and realtime Voice Provider Transport.
+_Avoid_: Generic provider, Provider Integration, Voice Provider, OpenAI-only model support
 
 **AI SDK Model Handle**:
 A Vercel AI SDK language or embedding model object supplied by an application to the Cognidesk model entrypoint. AI SDK Model Handles are allowed at the `@cognidesk/model` boundary but are wrapped before reaching Core runtime APIs.
@@ -221,7 +537,7 @@ A runtime-enforced model result shape for Model Roles that produce machine-read 
 _Avoid_: Prompt-only JSON instruction, unvalidated matcher result
 
 **Provider Model Configuration**:
-Application-owned setup that chooses a Vercel AI SDK provider and creates AI SDK Model Handles for an Agent Model Set. Provider Model Configuration belongs in applications and demos, not separate public Cognidesk provider packages.
+Application-owned setup that chooses a Vercel AI SDK provider and creates AI SDK Model Handles for an Agent Model Set. Provider Model Configuration belongs in applications and demos, not Provider Integrations or the Integration Package.
 _Avoid_: SDK-owned OpenAI package, SDK-owned OpenRouter package, provider-specific prompt identity
 
 **Storage Adapter**:
@@ -281,15 +597,19 @@ The built-in streaming transport for delivering Event Stream updates and chat me
 _Avoid_: WebSocket-first streaming
 
 **External Handoff**:
-A runtime outcome where the assistant pauses because control has moved to a human, external system, or application-managed process. External Handoff can be explicitly resumed.
-_Avoid_: Assistant keeps talking
+A runtime outcome where the assistant pauses because control has moved to a human, external system, or application-managed process. The SDK user owns when and how External Handoff happens, including global, agent, channel, Journey, or state-specific availability; Cognidesk provides the runtime state and resume boundary.
+_Avoid_: Assistant keeps talking, SDK-owned escalation trigger, journey-only handoff
+
+**Handoff Request**:
+A customer, agent, Journey, Tool, or application signal that human or external handling may be needed. A Handoff Request is not itself an External Handoff; the SDK user decides whether to honor, defer, route, clarify, or deny the request according to application policy and provider availability.
+_Avoid_: Automatic handoff, ignored human request, customer request as final routing decision
 
 **Conversation Resume**:
 The explicit return from External Handoff to assistant-managed conversation handling.
 _Avoid_: Implicit assistant restart
 
 **Handoff Adapter**:
-An optional integration that turns an External Handoff into provider-specific behavior such as opening a ticket, live chat, or human support session.
+An optional adapter that turns an External Handoff into provider-specific behavior such as opening a ticket, live chat, transfer, queue, or human support session.
 _Avoid_: Provider-specific core handoff
 
 **Test Harness**:
@@ -311,6 +631,10 @@ _Avoid_: Unit-only voice test, two text agents, provider smoke test without Cogn
 **Cognidesk Studio**:
 An optional self-hosted developer and operator application that attaches to one active Studio Target at a time. Cognidesk Studio helps inspect, monitor, and safely change an SDK application, but it is not required for Runtime SDK execution.
 _Avoid_: Hosted-only platform, required runtime dependency, Test Harness
+
+**Studio Configuration Surface**:
+The Studio-visible and operator-changeable representation of SDK configuration for a Studio Target, including configured channels, Provider Integrations, policies, Agent Persona, Application Context surfaces, Journeys, Tools, Knowledge, handoff behavior, evaluation setup, and observability configuration. Anything configurable in the SDK should be inspectable in Studio and changeable through reviewable Studio operator workflows when the Studio Target grants the necessary scope.
+_Avoid_: Hidden SDK configuration, Studio-only parallel config, operator chat without reviewable change path
 
 **Studio Target**:
 The configured SDK application, Runtime SDK instance, source repository, and observability backend that a Cognidesk Studio instance is attached to. Studio inspection and change workflows operate against Studio Targets rather than against the Runtime SDK as a global service.
@@ -501,28 +825,32 @@ The Agent-level declaration that enables and configures Voice Agent behavior for
 _Avoid_: Separate voice agent definition, transport route config only
 
 **Conversation Channel**:
-The interaction medium through which a customer participates in part of a Cognidesk Conversation, such as chat or voice. Conversation Channel may shape Journey eligibility, instructions, UI behavior, and runtime events without changing the underlying Conversation identity.
-_Avoid_: Separate conversation type, transport as agent identity
+The interaction medium or support surface through which part of a Cognidesk Conversation occurs, such as chat, voice, email, ticketing, or an internal support workspace. Conversation Channel may shape Journey eligibility, Channel Audience, instructions, UI behavior, and runtime events without changing the underlying Conversation identity.
+_Avoid_: Separate conversation type, transport as agent identity, customer chat only
 
 **Channel Compatibility**:
-The declared or inferred suitability of a Journey, Tool, Knowledge Source, or Widget for a Conversation Channel. Cognidesk definitions are shared across chat and voice by default, with Channel Compatibility used only where a capability needs channel-specific restrictions or alternatives.
-_Avoid_: Voice-only copy by default, duplicate journey per channel
+The declared or inferred suitability of a Journey, Tool, Knowledge Source, or Widget for a Conversation Channel. Cognidesk can share definitions across configured channels, while the SDK user decides when a capability is shared, restricted, adapted, or replaced for a channel through Channel Compatibility and Channel Policy.
+_Avoid_: Mandatory sharing across channels, channel-only copy by default, duplicate journey per channel, hidden channel restriction
 
-**Voice Capability Parity**:
-The expectation that a Voice Agent covers the same customer support capabilities as its corresponding chat experience unless a capability is explicitly marked as not voice-compatible. Voice Capability Parity allows channel-specific optimization without reducing what the customer can accomplish.
-_Avoid_: Demo-only voice subset, voice as limited mode
+**Channel Coverage**:
+The SDK-user-configured set of Journeys, Tools, Knowledge Sources, Widgets, handoff paths, and policies available in a Conversation Channel. Cognidesk makes it possible to reuse support capabilities across channels, but the SDK user decides each channel's actual coverage, including activating or deactivating a Journey or flow for separate channels; state-level channel gating is an advanced configuration rather than the default operator mental model.
+_Avoid_: Mandatory capability parity, demo-only channel subset as SDK rule, hidden channel limitation
 
 **Voice-Optimized Definition**:
 A shared Journey, Tool, or Knowledge definition with voice-specific wording, examples, instructions, retrieval behavior, or interaction constraints. Voice-Optimized Definitions preserve the same domain capability while making it work naturally in spoken conversation.
 _Avoid_: Duplicated voice journey, chat wording read aloud
 
 **Voice Conversation**:
-A Cognidesk Conversation while it is participating through a voice channel. Voice Conversations use the normal Conversation, Runtime Event, Runtime Snapshot, Journey, Tool, and Knowledge model while adding voice-specific artifacts and interaction behavior.
-_Avoid_: Realtime-only session, detached call transcript
+A Cognidesk Conversation while it is participating through a voice channel, whether inbound or outbound when the Provider Integration supports that direction. Voice Conversations use the normal Conversation, Runtime Event, Runtime Snapshot, Journey, Tool, and Knowledge model while adding voice-specific artifacts and interaction behavior.
+_Avoid_: Realtime-only session, detached call transcript, inbound-only voice, assumed outbound support
 
 **Channel Segment**:
-A bounded portion of a Cognidesk Conversation that occurs through a specific Conversation Channel. Channel Segments let a Voice Conversation continue into chat while preserving a single conversation identity.
-_Avoid_: Chat-to-voice continuation, separate case per modality
+A bounded portion of a Cognidesk Conversation that occurs through a specific Conversation Channel with its own channel or transport participation lifecycle. Channel Segments let an SDK user preserve one conversation identity across channel changes, such as voice to chat or voice to email, while leaving topic changes, segment endings, and new-chat routing decisions to Conversation Binding and application policy.
+_Avoid_: Separate case per modality, automatic channel switch as new conversation, SDK-owned topic splitting, segment end as conversation closure
+
+**Channel Handoff**:
+An SDK-user-governed transition from one Conversation Channel or Channel Segment to another while preserving the selected Cognidesk Conversation when policy permits. Channel Handoff is distinct from External Handoff to a human or external system, does not imply a new Conversation unless Conversation Binding decides one is required, and leaves handoff reasons, labels, and business rules to SDK-user configuration rather than a built-in SDK taxonomy.
+_Avoid_: Channel handover, channel switch as new case, external handoff, automatic modality transfer, SDK-owned handoff reasons
 
 **Voice-to-Chat Continuation Context**:
 The durable conversation state available when a Voice Conversation continues in chat, including Final Voice Transcripts, Runtime Snapshot state, Journey progress, Tool results, Voice Interruptions, and Voice Recording References when present.
@@ -601,8 +929,8 @@ The explicit ending of a conversation by application code, runtime policy, or an
 _Avoid_: Base Agent completion
 
 **Conversation Lifecycle**:
-The high-level state of a conversation: active, handoff, or closed.
-_Avoid_: Many lifecycle states for v1
+The high-level support state of a conversation, such as active, handoff, or closed. Conversation Lifecycle is distinct from Channel Segment lifecycle, so ending a chat session, voice connection, email thread interaction, or ticket sync does not automatically close the Cognidesk Conversation.
+_Avoid_: Many lifecycle states for v1, transport end as conversation closure
 
 **Turn Interruption**:
 The default behavior where new user input can stop current assistant generation for an Agent. Turn Interruption is constrained during side-effect states and does not automatically cancel side-effect actions once started.
@@ -655,6 +983,10 @@ _Avoid_: Replay-only runtime state
 **Event Replay**:
 The ability to rebuild or inspect conversation state from stored Runtime Events for debugging, evals, audits, or migrations.
 _Avoid_: Snapshot-only opacity
+
+**Conversation Replay**:
+The configured ability to inspect or reconstruct what happened across a Cognidesk Conversation, including messages, Channel Segments, Runtime Events, Tool calls, handoff, drafts, approvals, Internal Support Actions, Support Artifacts, and captured provider events. Conversation Replay content is constrained by Consent Policy, Sensitive Data Exposure Policy, Retention Policy, Privacy Hooks, and telemetry or content-capture configuration.
+_Avoid_: Full raw replay by default, provider event dump, policy-bypassing audit view
 
 **Widget**:
 A typed runtime-declared UI interaction that applications render through their chosen UI layer. The Runtime SDK emits Widget prompts and validates Widget submissions; UI packages provide renderers.
@@ -745,8 +1077,8 @@ A typed event declared inside a State Machine Journey and validated with a Zod S
 _Avoid_: Untyped event string
 
 **External Event**:
-A Journey Event emitted by application code or an adapter rather than generated directly from a user turn. Timers and background triggers are represented as External Events in v1, and matching/routing behavior is controlled by Event Routing Mode.
-_Avoid_: Built-in timer scheduler
+A Journey Event emitted by application code, an adapter, or Channel Event intake rather than generated directly from a customer message turn. External Events are an internal Journey-routing signal below the Channel Event boundary, and matching/routing behavior is controlled by Event Routing Mode.
+_Avoid_: Built-in timer scheduler, outer runtime entrypoint, provider webhook as Journey Event
 
 **Event Routing Mode**:
 The routing setting that determines whether an event triggers no matching, active-Journey-only handling, full Journey matching, or targeted Journey/state handling. User messages default to full matching, while Widget submissions default to active-Journey-only routing.
@@ -772,9 +1104,9 @@ _Avoid_: Ad hoc prompt concatenation
 The channel-specific instruction layer that shapes spoken behavior in a Voice Conversation, such as lightweight conversational competence, brevity, interruption handling, spoken confirmation, and avoiding visual formatting. Voice Instruction Layers give the realtime voice model enough standing context to answer simple conversational turns without invoking chat-oriented model roles, while refining rather than replacing shared Base Agent and Journey instructions.
 _Avoid_: Separate voice persona, duplicated base prompt
 
-**Default Voice Instruction Layer**:
-The SDK-provided Voice Instruction Layer used when a Voice Profile does not supply a custom one. It gives Voice Conversations sensible spoken behavior while remaining overrideable by applications.
-_Avoid_: App-required voice prompt, unchangeable SDK voice style
+**Voice Instruction Template**:
+An example or starter Voice Instruction Layer that demonstrates common spoken behavior patterns. Voice Instruction Templates do not affect runtime behavior unless the SDK user explicitly chooses them.
+_Avoid_: Default voice behavior, unchangeable SDK voice style, hidden spoken instruction
 
 **Action Scheduler**:
 The deterministic runtime process that executes state actions for active Journey States, including logical parallel regions, in declaration order.
@@ -877,8 +1209,8 @@ The per-request portion of Application Context supplied for a specific user mess
 _Avoid_: Durable auth snapshot by default
 
 **Privacy Hook**:
-An app-defined function that redacts or filters data before persistence, model input, traces, logs, or external adapter calls.
-_Avoid_: Hardcoded privacy rules
+An app-defined function that redacts or filters data before it crosses configured boundaries such as persistence, model input, channel output, traces, logs, evaluation artifacts, internal notes, summaries, or external adapter calls. Privacy Hooks provide enforcement surfaces for SDK-user policy rather than defining Cognidesk-owned redaction rules.
+_Avoid_: Hardcoded privacy rules, built-in fixed redaction policy
 
 **Observability Hook**:
 A deprecated app-defined function concept formerly used to receive Cognidesk diagnostic events before OpenTelemetry became the default telemetry model.
@@ -973,8 +1305,8 @@ A uniform SDK abstraction for retrieving Knowledge from documents, vector stores
 _Avoid_: Document store only
 
 **Knowledge Scope**:
-The visibility boundary that determines when a Knowledge Source contributes grounding context. Knowledge may be scoped to the Base Agent, a Journey, or a Journey State.
-_Avoid_: Global RAG only
+The visibility boundary that determines when a Knowledge Source contributes grounding context. Knowledge may be scoped to the Base Agent, a Journey, a Journey State, or configured Conversation Channels according to SDK-user policy.
+_Avoid_: Global RAG only, mandatory cross-channel knowledge, hidden channel knowledge
 
 **Knowledge Item**:
 A retrieved Knowledge result with a standard envelope and typed metadata. The common envelope supports ranking, citations, UI source rendering, and observability while metadata preserves source-specific structure.

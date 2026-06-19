@@ -2,13 +2,16 @@
 
 This guide covers integrating Cognidesk into React applications with the chat widget and hooks.
 
-!!! note "Work in progress"
-    This guide is being written. Check back soon for complete content.
-
 ## Setup
 
 ```bash
 pnpm add @cognidesk/react @cognidesk/ui
+```
+
+Import the default styles once in your app entrypoint:
+
+```typescript
+import "@cognidesk/ui/styles.css";
 ```
 
 ## Client creation
@@ -41,7 +44,7 @@ For custom UI, use the lower-level hook:
 import { useChat } from "@cognidesk/react";
 
 function CustomChat() {
-  const { messages, sendMessage, isStreaming } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     client,
     agentId: "flight-support",
   });
@@ -49,8 +52,11 @@ function CustomChat() {
   return (
     <div>
       {messages.map((m) => (
-        <div key={m.id}>{m.content}</div>
+        <div key={m.id}>{m.text}</div>
       ))}
+      {status === "streaming" ? <span>Streaming...</span> : null}
+      {error ? <strong>{error.message}</strong> : null}
+      <button onClick={() => void sendMessage("Check ticket ABC123")}>Send</button>
     </div>
   );
 }

@@ -66,7 +66,7 @@ optional style?: AppearanceStyle;
 ### AppearanceElementValue
 
 ```ts
-type AppearanceElementValue = 
+type AppearanceElementValue =
   | string
   | AppearanceStyle
   | AppearanceElementObject;
@@ -228,8 +228,8 @@ function resolveInlineStyle(key, appearance?): AppearanceStyle;
 
 ```ts
 function resolveWidgetElementClassName(
-   widgetKind, 
-   key, 
+   widgetKind,
+   key,
    appearance?): string;
 ```
 
@@ -238,7 +238,7 @@ function resolveWidgetElementClassName(
 | Parameter | Type |
 | ------ | ------ |
 | `widgetKind` | `string` |
-| `key` | \| `"input"` \| `"description"` \| `"choice"` \| `"fields"` \| `"panel"` \| `"title"` \| `"actions"` \| `"button"` \| `"primaryButton"` \| `"choiceList"` \| `"choiceLabel"` \| `"choiceDescription"` \| `"field"` \| `"fieldLabel"` |
+| `key` | \| `"input"` \| `"description"` \| `"choice"` \| `"title"` \| `"fields"` \| `"panel"` \| `"actions"` \| `"button"` \| `"primaryButton"` \| `"choiceList"` \| `"choiceLabel"` \| `"choiceDescription"` \| `"field"` \| `"fieldLabel"` |
 | `appearance?` | [`AppearanceConfiguration`](#appearanceconfiguration) |
 
 #### Returns
@@ -251,8 +251,8 @@ function resolveWidgetElementClassName(
 
 ```ts
 function resolveWidgetInlineStyle(
-   widgetKind, 
-   key, 
+   widgetKind,
+   key,
    appearance?): AppearanceStyle;
 ```
 
@@ -261,7 +261,7 @@ function resolveWidgetInlineStyle(
 | Parameter | Type |
 | ------ | ------ |
 | `widgetKind` | `string` |
-| `key` | \| `"input"` \| `"description"` \| `"choice"` \| `"fields"` \| `"panel"` \| `"title"` \| `"actions"` \| `"button"` \| `"primaryButton"` \| `"choiceList"` \| `"choiceLabel"` \| `"choiceDescription"` \| `"field"` \| `"fieldLabel"` |
+| `key` | \| `"input"` \| `"description"` \| `"choice"` \| `"title"` \| `"fields"` \| `"panel"` \| `"actions"` \| `"button"` \| `"primaryButton"` \| `"choiceList"` \| `"choiceLabel"` \| `"choiceDescription"` \| `"field"` \| `"fieldLabel"` |
 | `appearance?` | [`AppearanceConfiguration`](#appearanceconfiguration) |
 
 #### Returns
