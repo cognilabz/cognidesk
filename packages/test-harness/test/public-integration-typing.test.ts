@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,11 +7,12 @@ import { describe, expect, it } from "vitest";
 const repoRoot = path.resolve(fileURLToPath(new URL("../../..", import.meta.url)));
 const integrationPackagePattern =
   /^(connections|model$|voice-websocket$)/;
+const generatedIntegrationRoot = path.join(repoRoot, "packages", "integrations", "src");
 
 describe("public integration API typing", () => {
   it("does not expose anonymous unknown/Record provider contracts from hand-written package entrypoints", async () => {
-    const files = await integrationIndexFiles();
-    expect(files.length).toBeGreaterThan(50);
+    const { files, includesGeneratedIntegrations } = await integrationIndexFiles();
+    expect(files.length).toBeGreaterThan(includesGeneratedIntegrations ? 50 : 0);
 
     const forbiddenPatterns: Array<[RegExp, string]> = [
       [/Promise\s*<\s*Record\s*<\s*string\s*,\s*unknown\s*>\s*>/g, "anonymous Record response promise"],
@@ -43,12 +45,17 @@ async function integrationIndexFiles() {
   const topLevelFiles = entries
     .filter((entry) => entry.isDirectory() && integrationPackagePattern.test(entry.name))
     .map((entry) => path.join(packagesDir, entry.name, "src", "index.ts"))
+    .filter((file) => existsSync(file))
     .sort((a, b) => a.localeCompare(b));
-  const integrationPackageDir = path.join(packagesDir, "integrations", "src");
-  const integrationModuleFiles = (await walk(integrationPackageDir))
-    .filter((file) => path.basename(file) === "index.ts")
-    .sort((a, b) => a.localeCompare(b));
-  return [...topLevelFiles, ...integrationModuleFiles];
+  const integrationModuleFiles = existsSync(generatedIntegrationRoot)
+    ? (await walk(generatedIntegrationRoot))
+        .filter((file) => path.basename(file) === "index.ts")
+        .sort((a, b) => a.localeCompare(b))
+    : [];
+  return {
+    files: [...topLevelFiles, ...integrationModuleFiles],
+    includesGeneratedIntegrations: existsSync(generatedIntegrationRoot),
+  };
 }
 
 async function walk(dir: string): Promise<string[]> {

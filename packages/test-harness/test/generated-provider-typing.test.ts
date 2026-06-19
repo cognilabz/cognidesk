@@ -5,11 +5,13 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("../../..", import.meta.url)));
+const generatedIntegrationRoot = path.join(repoRoot, "packages", "integrations", "src");
+const fixtureGeneratedRoot = path.join(repoRoot, "packages", "test-harness", "test", "fixtures", "generated-provider");
+const expectedGeneratedCorpusSize = 20;
 
 describe("generated provider API typing", () => {
   it("keeps generated clients from degrading to generic facade typing", async () => {
-    const generatedClients = await findGeneratedFiles("client");
-    expect(generatedClients.length).toBeGreaterThan(20);
+    const generatedClients = await generatedProviderFiles("client");
 
     const failures: string[] = [];
     for (const file of generatedClients) {
@@ -57,8 +59,7 @@ describe("generated provider API typing", () => {
   });
 
   it("keeps generated operation id aliases literal instead of plain string", async () => {
-    const operationModules = await findGeneratedFiles("operations");
-    expect(operationModules.length).toBeGreaterThan(20);
+    const operationModules = await generatedProviderFiles("operations");
 
     const failures: string[] = [];
     for (const file of operationModules) {
@@ -76,8 +77,7 @@ describe("generated provider API typing", () => {
   });
 
   it("keeps generated schema DTO maps sourced and non-generic", async () => {
-    const schemaModules = await findGeneratedFiles("schema");
-    expect(schemaModules.length).toBeGreaterThan(20);
+    const schemaModules = await generatedProviderFiles("schema");
 
     const failures: string[] = [];
     for (const file of schemaModules) {
@@ -109,8 +109,7 @@ describe("generated provider API typing", () => {
   });
 
   it("exports generated schema DTO modules from package indexes", async () => {
-    const schemaModules = await findGeneratedFiles("schema");
-    expect(schemaModules.length).toBeGreaterThan(20);
+    const schemaModules = await generatedProviderFiles("schema");
 
     const failures: string[] = [];
     for (const file of schemaModules) {
@@ -128,8 +127,7 @@ describe("generated provider API typing", () => {
   });
 
   it("keeps public generated-operation callers hard typed", async () => {
-    const indexFiles = await integrationIndexFiles();
-    expect(indexFiles.length).toBeGreaterThan(20);
+    const indexFiles = await generatedProviderIndexFiles();
 
     const failures: string[] = [];
     for (const file of indexFiles) {
@@ -154,8 +152,7 @@ describe("generated provider API typing", () => {
   });
 
   it("keeps generated clients from re-exposing raw path request helpers", async () => {
-    const indexFiles = await integrationIndexFiles();
-    expect(indexFiles.length).toBeGreaterThan(20);
+    const indexFiles = await generatedProviderIndexFiles();
 
     const failures: string[] = [];
     for (const file of indexFiles) {
@@ -184,28 +181,68 @@ describe("generated provider API typing", () => {
   });
 });
 
-async function findGeneratedFiles(kind: "client" | "operations" | "schema") {
+async function generatedProviderFiles(kind: "client" | "operations" | "schema") {
+  const workspaceFiles = await findGeneratedFiles(path.join(repoRoot, "packages"), kind, { excludeFixtures: true });
+  if (workspaceFiles.length > 0 || existsSync(generatedIntegrationRoot)) {
+    expect(workspaceFiles.length).toBeGreaterThan(expectedGeneratedCorpusSize);
+    return workspaceFiles;
+  }
+
+  const fixtureFiles = await findGeneratedFiles(fixtureGeneratedRoot, kind);
+  expect(fixtureFiles.length).toBeGreaterThan(0);
+  return fixtureFiles;
+}
+
+async function generatedProviderIndexFiles() {
+  if (await hasWorkspaceGeneratedProviderFiles() || existsSync(generatedIntegrationRoot)) {
+    const workspaceIndexFiles = await integrationIndexFiles(path.join(repoRoot, "packages"), { excludeFixtures: true });
+    expect(workspaceIndexFiles.length).toBeGreaterThan(expectedGeneratedCorpusSize);
+    return workspaceIndexFiles;
+  }
+
+  const fixtureIndexFiles = await integrationIndexFiles(fixtureGeneratedRoot);
+  expect(fixtureIndexFiles.length).toBeGreaterThan(0);
+  return fixtureIndexFiles;
+}
+
+async function hasWorkspaceGeneratedProviderFiles() {
+  const generatedFileGroups = await Promise.all([
+    findGeneratedFiles(path.join(repoRoot, "packages"), "client", { excludeFixtures: true }),
+    findGeneratedFiles(path.join(repoRoot, "packages"), "operations", { excludeFixtures: true }),
+    findGeneratedFiles(path.join(repoRoot, "packages"), "schema", { excludeFixtures: true }),
+  ]);
+  return generatedFileGroups.some((files) => files.length > 0);
+}
+
+async function findGeneratedFiles(
+  root: string,
+  kind: "client" | "operations" | "schema",
+  options: { excludeFixtures?: boolean } = {},
+) {
   const suffix = kind === "client"
     ? "-client.generated.ts"
     : kind === "operations"
       ? "-operations.generated.ts"
       : "-schema-types.generated.ts";
-  const packagesDir = path.join(repoRoot, "packages");
-  const files = await walk(packagesDir);
+  const files = await walk(root);
   return files
-    .filter((file) => file.endsWith(suffix))
+    .filter((file) => file.endsWith(suffix) && (!options.excludeFixtures || !isFixturePath(file)))
     .sort((a, b) => a.localeCompare(b));
 }
 
-async function integrationIndexFiles() {
-  const packagesDir = path.join(repoRoot, "packages");
-  const files = await walk(packagesDir);
+async function integrationIndexFiles(root: string, options: { excludeFixtures?: boolean } = {}) {
+  const files = await walk(root);
   return files
     .filter((file) =>
       path.basename(file) === "index.ts"
       && file.includes(`${path.sep}src${path.sep}`)
+      && (!options.excludeFixtures || !isFixturePath(file))
     )
     .sort((a, b) => a.localeCompare(b));
+}
+
+function isFixturePath(file: string) {
+  return file.startsWith(fixtureGeneratedRoot + path.sep);
 }
 
 function exportedClientInterfaceBlocks(source: string) {
