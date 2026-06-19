@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createInMemoryVoiceSessionStore, handleVoiceSocket } from "../../src/index.js";
+import { createInMemoryVoiceSessionStore, handleVoiceSocket, type VoiceProvider } from "../../src/index.js";
 import { createTokenSequence, FakeProvider, FakeRuntime, FakeSocket, flushAsync, fakeStartVoiceResult, sleep } from "./helpers.js";
 
 describe("@cognidesk/voice-websocket runtime bridge", () => {
@@ -107,6 +107,52 @@ describe("@cognidesk/voice-websocket runtime bridge", () => {
         type: "cognidesk.connection.ready",
       });
       expect(provider.session?.spoken).toEqual(["Guten Tag, hier ist der Support."]);
+    });
+
+    it("ends the claimed session when provider connection fails", async () => {
+      const store = createInMemoryVoiceSessionStore({
+        createToken: createTokenSequence("start-token", "reconnect-token"),
+      });
+      const created = await store.createSession({
+        result: fakeStartVoiceResult(),
+        tokenTtlMs: 60_000,
+      });
+      const socket = new FakeSocket();
+      const runtime = new FakeRuntime();
+      const provider: VoiceProvider = {
+        id: "failing-provider",
+        async connect() {
+          throw new Error("Provider credentials were rejected.");
+        },
+      };
+
+      await handleVoiceSocket({
+        socket,
+        connectionId: created.session.connection.id,
+        token: created.socket.token,
+        store,
+        runtime,
+        provider,
+      });
+
+      await expect(store.getSession(created.session.id)).resolves.toMatchObject({
+        status: "ended",
+      });
+      expect(runtime.endedSegments).toEqual([
+        {
+          conversationId: created.session.conversation.id,
+          channelSegmentId: created.session.channelSegment.id,
+          connectionId: created.session.connection.id,
+          reason: "provider_connect_failed",
+        },
+      ]);
+      expect(socket.sent).toContainEqual(expect.objectContaining({
+        type: "error",
+        error: expect.objectContaining({
+          code: "voice_provider_connect_failed",
+          message: "Provider credentials were rejected.",
+        }),
+      }));
     });
 
     it("coalesces adjacent provider transcript fragments into one runtime turn", async () => {

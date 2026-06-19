@@ -109,6 +109,7 @@ export class FakeRuntime implements VoiceRuntime {
   voiceTurns: Array<HandleVoiceUserMessageInput> = [];
   interruptions: Array<Parameters<VoiceRuntime["recordVoiceInterruption"]>[0]> = [];
   committedTranscripts: Array<Parameters<NonNullable<VoiceRuntime["commitVoiceTranscript"]>>[0]> = [];
+  endedSegments: Array<Parameters<VoiceRuntime["endVoiceSegment"]>[0]> = [];
   responseDelayMs = 0;
   responseDeltas: string[] = [];
 
@@ -175,6 +176,7 @@ export class FakeRuntime implements VoiceRuntime {
   }
 
   async endVoiceSegment(input: Parameters<VoiceRuntime["endVoiceSegment"]>[0]): Promise<RuntimeEvent> {
+    this.endedSegments.push(input);
     return fakeRuntimeEvent("voice.segment.ended", {
       channelSegmentId: input.channelSegmentId,
       connectionId: input.connectionId,

@@ -61,6 +61,29 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   let speechQueue = Promise.resolve();
   let speechGeneration = 0;
 
+  const cleanupConnection = () => {
+    if (closed) return false;
+    closed = true;
+    speechGeneration++;
+    if (pendingInputTranscriptTimer) clearTimeout(pendingInputTranscriptTimer);
+    clearTurnPreambleTimer();
+    pendingInputTranscript = null;
+    controller.abort();
+    options.signal?.removeEventListener("abort", abort);
+    void providerSession?.close();
+    return true;
+  };
+
+  const endSession = async (reason: string) => {
+    await options.store.markEnded(session.id);
+    await options.runtime.endVoiceSegment({
+      conversationId: session.conversation.id,
+      channelSegmentId: session.channelSegment.id,
+      connectionId: session.connection.id,
+      reason,
+    });
+  };
+
   const sendRuntimeEvents = (events: RuntimeEvent[]) => {
     for (const event of events) {
       send(options.socket, {
@@ -363,6 +386,8 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
       onEvent: handleProviderEvent,
     });
   } catch (error) {
+    cleanupConnection();
+    await endSession("provider_connect_failed");
     send(options.socket, {
       type: "error",
       event_id: createId("voice_event"),
@@ -414,25 +439,10 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   });
 
   options.socket.on("close", (code) => {
-    if (closed) return;
-    closed = true;
-    speechGeneration++;
-    if (pendingInputTranscriptTimer) clearTimeout(pendingInputTranscriptTimer);
-    clearTurnPreambleTimer();
-    pendingInputTranscript = null;
-    controller.abort();
-    options.signal?.removeEventListener("abort", abort);
-    void providerSession?.close();
+    if (!cleanupConnection()) return;
     const normalClose = code === undefined || code === 1000 || code === 1001;
     if (normalClose) {
-      void options.store.markEnded(session.id).then(() =>
-        options.runtime.endVoiceSegment({
-          conversationId: session.conversation.id,
-          channelSegmentId: session.channelSegment.id,
-          connectionId: session.connection.id,
-          reason: "socket_closed",
-        })
-      );
+      void endSession("socket_closed");
     } else {
       void options.store.markReconnecting(
         session.id,
