@@ -312,9 +312,11 @@ describe("@cognidesk/integrations", () => {
       application_id: "app-id",
       api_key: "vonage-api-key",
       iat: 1780000000,
+      exp: 1780000060,
       payload_hash: createHash("sha256").update(rawBody).digest("hex"),
     }, secret);
-    expect(verifyVonageWebhookJwt(token, secret, "vonage-api-key")).toMatchObject({ application_id: "app-id" });
+    expect(verifyVonageWebhookJwt(token, secret, "vonage-api-key", { now: () => 1780000001 }))
+      .toMatchObject({ application_id: "app-id" });
     expect(verifyVonageWebhookJwt(token, secret, "wrong-api-key")).toBeUndefined();
 
     const request = new Request("https://example.test/vonage/events", {
@@ -331,6 +333,7 @@ describe("@cognidesk/integrations", () => {
       expectedApiKey: "vonage-api-key",
       requireSignature: true,
       verifyPayloadHash: true,
+      now: () => 1780000001,
     });
 
     expect(webhook).toMatchObject({
@@ -339,6 +342,69 @@ describe("@cognidesk/integrations", () => {
       body: { uuid: "call-uuid", status: "completed" },
       jwtClaims: { application_id: "app-id" },
     });
+  });
+
+  it("rejects expired and not-yet-valid Vonage signed webhook JWTs", async () => {
+    const secret = "signature-secret";
+    const rawBody = JSON.stringify({ uuid: "call-uuid", status: "completed" });
+    const expiredToken = signedWebhookJwt({
+      application_id: "app-id",
+      api_key: "vonage-api-key",
+      iat: 1,
+      exp: 2,
+      payload_hash: createHash("sha256").update(rawBody).digest("hex"),
+    }, secret);
+
+    expect(verifyVonageWebhookJwt(expiredToken, secret, "vonage-api-key", { now: () => 1780000000 }))
+      .toBeUndefined();
+    await expect(parseVonageWebhook(new Request("https://example.test/vonage/events", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${expiredToken}`,
+        "content-type": "application/json",
+      },
+      body: rawBody,
+    }), {
+      signatureSecret: secret,
+      expectedApiKey: "vonage-api-key",
+      requireSignature: true,
+      now: () => 1780000000,
+    })).rejects.toThrow("Vonage webhook signature verification failed.");
+
+    const notYetValidToken = signedWebhookJwt({
+      application_id: "app-id",
+      api_key: "vonage-api-key",
+      iat: 1780000000,
+      nbf: 1780000100,
+      exp: 1780000200,
+    }, secret);
+
+    expect(verifyVonageWebhookJwt(notYetValidToken, secret, "vonage-api-key", { now: () => 1780000000 }))
+      .toBeUndefined();
+  });
+
+  it("applies configured clock skew to Vonage webhook JWT time validation", () => {
+    const secret = "signature-secret";
+    const recentlyExpiredToken = signedWebhookJwt({
+      application_id: "app-id",
+      api_key: "vonage-api-key",
+      exp: 1780000000,
+    }, secret);
+    const almostValidToken = signedWebhookJwt({
+      application_id: "app-id",
+      api_key: "vonage-api-key",
+      nbf: 1780000010,
+      exp: 1780000100,
+    }, secret);
+
+    expect(verifyVonageWebhookJwt(recentlyExpiredToken, secret, "vonage-api-key", {
+      now: () => 1780000005,
+      clockSkewSeconds: 10,
+    })).toMatchObject({ application_id: "app-id" });
+    expect(verifyVonageWebhookJwt(almostValidToken, secret, "vonage-api-key", {
+      now: () => 1780000000,
+      clockSkewSeconds: 10,
+    })).toMatchObject({ application_id: "app-id" });
   });
 
   it("parses default GET answer and event webhooks from query parameters", async () => {
@@ -384,6 +450,7 @@ describe("@cognidesk/integrations", () => {
     const token = signedWebhookJwt({
       application_id: "app-id",
       iat: 1780000000,
+      exp: 1780000060,
       payload_hash: createHash("sha256").update("different-payload").digest("hex"),
     }, secret);
     const request = new Request("https://example.test/vonage/events", {
@@ -399,6 +466,7 @@ describe("@cognidesk/integrations", () => {
       signatureSecret: secret,
       requireSignature: true,
       verifyPayloadHash: true,
+      now: () => 1780000001,
     })).rejects.toThrow("Vonage webhook payload hash verification failed.");
   });
 

@@ -117,6 +117,13 @@ export interface ParseVonageWebhookOptions {
   expectedApiKey?: string;
   requireSignature?: boolean;
   verifyPayloadHash?: boolean;
+  now?: () => number;
+  clockSkewSeconds?: number;
+}
+
+export interface VonageWebhookJwtVerificationOptions {
+  now?: () => number;
+  clockSkewSeconds?: number;
 }
 
 export interface VonageJwtOptions {

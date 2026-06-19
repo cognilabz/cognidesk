@@ -3,6 +3,7 @@ import type {
   ParseVonageWebhookOptions,
   VonageVoiceJsonObject,
   VonageWebhook,
+  VonageWebhookJwtVerificationOptions,
 } from "./contracts.js";
 
 export async function parseVonageWebhook(
@@ -12,7 +13,7 @@ export async function parseVonageWebhook(
   const { body, rawBody } = await readWebhookBody(request);
   const token = bearerToken(request.headers.get("authorization"));
   const claims = token && options.signatureSecret
-    ? verifyVonageWebhookJwt(token, options.signatureSecret, options.expectedApiKey)
+    ? verifyVonageWebhookJwt(token, options.signatureSecret, options.expectedApiKey, webhookJwtVerificationOptions(options))
     : undefined;
   const verified = Boolean(claims);
   if ((options.requireSignature ?? true) && !verified) {
@@ -34,6 +35,7 @@ export function verifyVonageWebhookJwt(
   token: string,
   signatureSecret: string,
   expectedApiKey?: string,
+  options: VonageWebhookJwtVerificationOptions = {},
 ): VonageVoiceJsonObject | undefined {
   const parts = token.split(".");
   if (parts.length !== 3) return undefined;
@@ -48,13 +50,42 @@ export function verifyVonageWebhookJwt(
   if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) return undefined;
   const claims = JSON.parse(base64urlDecode(encodedPayload)) as VonageVoiceJsonObject;
   if (expectedApiKey && claims.api_key !== expectedApiKey) return undefined;
+  if (!verifyJwtTimeClaims(claims, options)) return undefined;
   return claims;
+}
+
+function verifyJwtTimeClaims(
+  claims: VonageVoiceJsonObject,
+  options: VonageWebhookJwtVerificationOptions,
+) {
+  const now = options.now?.() ?? Math.floor(Date.now() / 1000);
+  const clockSkewSeconds = Math.max(0, options.clockSkewSeconds ?? 0);
+  const expiration = numericDateClaim(claims.exp);
+  if (Number.isNaN(expiration)) return false;
+  if (expiration !== undefined && now - clockSkewSeconds >= expiration) return false;
+  const notBefore = numericDateClaim(claims.nbf);
+  if (Number.isNaN(notBefore)) return false;
+  if (notBefore !== undefined && now + clockSkewSeconds < notBefore) return false;
+  return true;
+}
+
+function numericDateClaim(value: VonageVoiceJsonObject[string]) {
+  if (value === undefined) return undefined;
+  if (typeof value !== "number" || !Number.isFinite(value)) return Number.NaN;
+  return value;
 }
 
 function verifyVonagePayloadHash(rawBody: string, claims: VonageVoiceJsonObject | undefined) {
   if (typeof claims?.payload_hash !== "string") return false;
   const expected = createHash("sha256").update(rawBody).digest("hex");
   return expected === claims.payload_hash;
+}
+
+function webhookJwtVerificationOptions(options: ParseVonageWebhookOptions): VonageWebhookJwtVerificationOptions {
+  return {
+    ...(options.now ? { now: options.now } : {}),
+    ...(options.clockSkewSeconds !== undefined ? { clockSkewSeconds: options.clockSkewSeconds } : {}),
+  };
 }
 
 async function readWebhookBody(request: Request): Promise<{ body: VonageVoiceJsonObject; rawBody: string }> {
