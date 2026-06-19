@@ -115,7 +115,7 @@ describe("@cognidesk/integrations", () => {
         spec: { operationCount: EBAY_SELECTED_API_OPERATION_COUNT },
         functions: [...ebaySelectedApiFunctionCatalog],
       }));
-  
+
       expect(operationsArtifact.spec.specs).toHaveLength(ebaySelectedApiSpecs.length);
       expect(operationsArtifact.spec.pathCount).toBe(EBAY_SELECTED_API_PATH_COUNT);
       expect(operationsArtifact.spec.operationCount).toBe(EBAY_SELECTED_API_OPERATION_COUNT);
@@ -148,7 +148,7 @@ describe("@cognidesk/integrations", () => {
         marketplaceId: "EBAY_US",
         notificationVerificationTokenConfigured: true,
       });
-  
+
       expect(statuses).toHaveLength(7);
       expect(statuses.filter((status) => status.requirementId !== "ebay-digital-signature-key").every((status) => status.state === "configured")).toBe(true);
       expect(statuses.find((status) => status.requirementId === "ebay-digital-signature-key")?.state).toBe("not-required");

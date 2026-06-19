@@ -32,7 +32,7 @@ describe("@cognidesk/integrations", () => {
         verificationToken: "verification_token_12345678901234567890",
         endpoint: "https://example.test/ebay/notifications",
       });
-  
+
       expect(result.challengeResponse).toBe(
         "412bfd036564c49f0b676e8fc1a1a78d5c0cadcf2d31d9e118735d6e6bd13588",
       );
@@ -48,7 +48,7 @@ describe("@cognidesk/integrations", () => {
         accessToken: "oauth-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await client.createNotificationDestination({
         name: "Cognidesk notifications",
         destinationUrl: "https://example.test/ebay/notifications",
@@ -72,7 +72,7 @@ describe("@cognidesk/integrations", () => {
       await client.deleteNotificationSubscription("subscription-1");
       await client.getNotificationTopic("ORDER_CONFIRMATION");
       await client.getNotificationTopics({ limit: 25, continuationToken: "next-page" });
-  
+
       expect(fetchMock).toHaveBeenNthCalledWith(
         1,
         "https://api.ebay.com/commerce/notification/v1/destination",
@@ -146,14 +146,14 @@ describe("@cognidesk/integrations", () => {
         applicationAccessToken: "application-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await expect(client.getUser()).resolves.toMatchObject({ userId: "seller-1" });
       await expect(client.getNotificationPublicKey("public-key-1"))
         .resolves.toMatchObject({ key: "public-key" });
       await expect(client.createSigningKey()).resolves.toMatchObject({ signingKeyId: "signing-key-1" });
       await expect(client.getSigningKey("signing-key-1")).resolves.toMatchObject({ signingKeyId: "signing-key-1" });
       await expect(client.getSigningKeys()).resolves.toMatchObject({ signingKeyId: "signing-key-1" });
-  
+
       expect(fetchMock).toHaveBeenNthCalledWith(
         1,
         "https://apiz.ebay.com/commerce/identity/v1/user/",
@@ -199,7 +199,7 @@ describe("@cognidesk/integrations", () => {
         accessToken: "user-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await expect(client.getNotificationPublicKey("public-key-1"))
         .rejects.toThrow("client credentials grant");
       expect(fetchMock).not.toHaveBeenCalled();
@@ -219,7 +219,7 @@ describe("@cognidesk/integrations", () => {
         signature,
         digest: "SHA1",
       })).toString("base64");
-  
+
       expect(parseEbayNotificationSignatureHeader(encodedHeader)).toMatchObject({ kid: "public-key-1" });
       expect(verifyEbayNotificationSignature({
         rawBody,
@@ -243,7 +243,7 @@ describe("@cognidesk/integrations", () => {
         signature,
       })).toString("base64");
       expect(() => parseEbayNotificationSignatureHeader(missingDigestHeader)).toThrow("missing kid, algorithm, digest, or signature");
-  
+
       const webhook = await parseEbayNotificationWebhook(
         new Request("https://example.test/ebay", {
           method: "POST",
@@ -259,7 +259,7 @@ describe("@cognidesk/integrations", () => {
           expectedSharedSecret: "gateway-secret",
         },
       );
-  
+
       expect(webhook).toMatchObject({
         topic: "ORDER_CONFIRMATION",
         notificationId: "notification-1",

@@ -41,12 +41,12 @@ describe("@cognidesk/integrations", () => {
         signRequest,
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await expect(client.issueRefund("order-1", {
         reasonForRefund: "BUYER_CANCELLED",
         comment: "Configured support action.",
       })).resolves.toMatchObject({ refundId: "refund-1" });
-  
+
       const init = (fetchMock.mock.calls[0] as unknown[])[1] as { body: string; headers: Record<string, string> };
       expect(signRequest).toHaveBeenCalledWith(expect.objectContaining({
         method: "POST",
@@ -69,7 +69,7 @@ describe("@cognidesk/integrations", () => {
         requireDigitalSignatureForRefunds: true,
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await expect(client.issueRefund("order-1", { reasonForRefund: "BUYER_CANCELLED" }))
         .rejects.toThrow("eBay digital signature key material is required");
       expect(fetchMock).not.toHaveBeenCalled();
@@ -86,7 +86,7 @@ describe("@cognidesk/integrations", () => {
         publicKeyJwe: "public-key-jwe",
         created: 1781710000,
       });
-  
+
       expect(headers["content-digest"]).toBe(`sha-256=:${createHash("sha256").update(body).digest("base64")}:`);
       expect(headers["x-ebay-signature-key"]).toBe("public-key-jwe");
       expect(headers["signature-input"]).toBe('sig1=("content-digest" "x-ebay-signature-key" "@method" "@path" "@authority");created=1781710000');

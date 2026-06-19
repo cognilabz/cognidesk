@@ -161,7 +161,7 @@ export interface AppStoreReviewResponseInput {
 }
 
 export interface AppStoreUpdateReviewResponseInput {
-  responseId: string;
+  reviewId: string;
   responseBody: string;
 }
 

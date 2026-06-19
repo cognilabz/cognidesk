@@ -100,8 +100,8 @@ export function createAppStoreReviewsClient(options: AppStoreReviewsClientOption
             type: "customerReviewResponses",
             attributes: { responseBody: input.responseBody },
             relationships: {
-              reviewResponse: {
-                data: { type: "customerReviewResponses", id: input.responseId },
+              review: {
+                data: { type: "customerReviews", id: input.reviewId },
               },
             },
           },

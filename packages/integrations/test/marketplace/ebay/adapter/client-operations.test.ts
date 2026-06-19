@@ -37,7 +37,7 @@ describe("@cognidesk/integrations", () => {
         marketplaceId: "EBAY_US",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await expect(client.getOrder("order-1")).resolves.toMatchObject({ orderId: "order-1" });
       const search = await client.searchOrders({
         orderIds: ["order-1", "order-2"],
@@ -45,7 +45,7 @@ describe("@cognidesk/integrations", () => {
         offset: 0,
         filter: ["creationdate:[2026-06-01T00:00:00.000Z..]"],
       });
-  
+
       expect(search.orders).toHaveLength(1);
       expect(fetchMock).toHaveBeenNthCalledWith(
         1,
@@ -72,7 +72,7 @@ describe("@cognidesk/integrations", () => {
         marketplaceId: "EBAY_DE",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await client.createShippingFulfillment("order-1", {
         shippingCarrierCode: "DHL",
         trackingNumber: "tracking-1",
@@ -81,7 +81,7 @@ describe("@cognidesk/integrations", () => {
         reasonForRefund: "BUYER_CANCELLED",
         comment: "Configured support action.",
       });
-  
+
       expect(fetchMock).toHaveBeenNthCalledWith(
         1,
         "https://api.ebay.com/sell/fulfillment/v1/order/order-1/shipping_fulfillment",
@@ -104,7 +104,7 @@ describe("@cognidesk/integrations", () => {
         accessToken: "oauth-token",
         fetch: fetchMock as unknown as typeof fetch,
       });
-  
+
       await client.getConversations({ limit: 5, filter: "conversation_status:{ACTIVE}" });
       await client.sendMessage({ conversationId: "conversation-1", messageText: "We can help." });
       await client.bulkUpdateConversations({
@@ -116,7 +116,7 @@ describe("@cognidesk/integrations", () => {
       await client.acceptPaymentDispute("dispute-1", { note: "Configured operator decision." });
       await client.addPaymentDisputeEvidence("dispute-1", { evidenceType: "PROOF_OF_DELIVERY" });
       await client.updatePaymentDisputeEvidence("dispute-1", { evidenceId: "evidence-1" });
-  
+
       expect(fetchMock).toHaveBeenNthCalledWith(
         1,
         "https://api.ebay.com/commerce/message/v1/conversation?limit=5&filter=conversation_status%3A%7BACTIVE%7D",

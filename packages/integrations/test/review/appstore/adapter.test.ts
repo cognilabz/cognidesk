@@ -189,13 +189,21 @@ describe("@cognidesk/integrations", () => {
     });
 
     await client.createOrUpdateReviewResponse({ reviewId: "review_1", responseBody: "Thanks for the feedback." });
-    await client.updateReviewResponse({ responseId: "response_1", responseBody: "Updated response." });
+    await client.updateReviewResponse({ reviewId: "review_1", responseBody: "Updated response." });
 
     const createRequest = (fetchMock.mock.calls[0] as unknown[])[1] as { body: string };
     expect(JSON.parse(createRequest.body)).toMatchObject({
       data: {
         type: "customerReviewResponses",
         attributes: { responseBody: "Thanks for the feedback." },
+        relationships: { review: { data: { type: "customerReviews", id: "review_1" } } },
+      },
+    });
+    const updateRequest = (fetchMock.mock.calls[1] as unknown[])[1] as { body: string };
+    expect(JSON.parse(updateRequest.body)).toMatchObject({
+      data: {
+        type: "customerReviewResponses",
+        attributes: { responseBody: "Updated response." },
         relationships: { review: { data: { type: "customerReviews", id: "review_1" } } },
       },
     });
