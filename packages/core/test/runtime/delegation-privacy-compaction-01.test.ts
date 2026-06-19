@@ -4,6 +4,7 @@ import {
   action,
   buildJourneyIndex,
   createAgent,
+  defineChannelContext,
   createRuntime,
   customRuntimeEvent,
   endConversationTool,
@@ -28,6 +29,7 @@ import type {
 } from "../../src/index.js";
 
 import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherTest } from "./fixtures.js";
+import { createPrivacyStorageAdapter } from "../../src/runtime/privacy.js";
 
 describe("runtime delegation, privacy, and compaction 01", () => {
   it("completes delegation journeys when completion criteria are satisfied", async () => {
@@ -213,6 +215,161 @@ describe("runtime delegation, privacy, and compaction 01", () => {
     expect(modelPrompt).not.toContain("model-secret");
     expect((await runtime.listEvents(conversation.id)).find((event) => event.type === "custom.audit.note")?.data).toEqual({
       note: "[event]",
+    });
+  });
+
+  it("applies channel-specific privacy hooks to persisted channel events", async () => {
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async () => ({ text: "We will email phil@example.com with details." }),
+        },
+      }),
+      privacy: {
+        redactInboundChannelEvent: ({ event }) => ({
+          ...event,
+          data: {
+            ...event.data,
+            text: (event.data.text ?? "").replace("card 4111", "[card]"),
+            payload: { redacted: "inbound" },
+          },
+        }),
+        redactOutboundChannelMessage: ({ event }) => ({
+          ...event,
+          data: {
+            ...event.data,
+            text: (event.data.text ?? "").replace("phil@example.com", "[email]"),
+            payload: { redacted: "outbound" },
+          },
+        }),
+      },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "My card 4111 needs help.",
+      channel: defineChannelContext({
+        channelId: "email.gmail",
+        kind: "email",
+        provider: "gmail",
+      }),
+      turn: { providerPayload: "raw-channel-payload" },
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(result.text).toBe("We will email phil@example.com with details.");
+    expect(events.find((event) => event.type === "message.completed")?.data).toEqual({
+      text: "My card 4111 needs help.",
+    });
+    expect(events.find((event) => event.type === "channel.received")?.data).toMatchObject({
+      text: "My [card] needs help.",
+      payload: { redacted: "inbound" },
+      channel: {
+        channelId: "email.gmail",
+        kind: "email",
+        provider: "gmail",
+      },
+    });
+    expect(events.find((event) => event.type === "channel.sent")?.data).toMatchObject({
+      text: "We will email [email] with details.",
+      payload: { redacted: "outbound" },
+      channel: {
+        channelId: "email.gmail",
+        kind: "email",
+        provider: "gmail",
+      },
+    });
+  });
+
+  it("preserves atomic storage hooks while redacting their events", async () => {
+    const storage = new RecordingStorage();
+    const conversation = await storage.createConversation({ agentId: "flight-service", context: {} });
+    const wrapped = createPrivacyStorageAdapter(storage, {
+      redactRuntimeEvent: ({ event }) => {
+        if (event.type === "approval.resolved") {
+          const approvalEvent = event as RuntimeEventInput<"approval.resolved">;
+          return {
+            ...approvalEvent,
+            data: {
+              ...approvalEvent.data,
+              result: "[result]",
+            },
+          };
+        }
+        if (event.type === "voice.segment.started") {
+          const voiceEvent = event as RuntimeEventInput<"voice.segment.started">;
+          return {
+            ...voiceEvent,
+            data: {
+              ...voiceEvent.data,
+              provider: "[provider]",
+            },
+          };
+        }
+        return event;
+      },
+    });
+
+    expect(wrapped.appendEventIfApprovalPending).toEqual(expect.any(Function));
+    expect(wrapped.appendEventIfNoActiveVoiceSegment).toEqual(expect.any(Function));
+
+    await wrapped.appendEvent({
+      conversationId: conversation.id,
+      type: "approval.requested",
+      data: {
+        approvalId: "approval_1",
+        toolName: "book-flight",
+        input: {},
+        supportedResolutions: ["approve"],
+      },
+    });
+    const approvalResolution = await wrapped.appendEventIfApprovalPending?.({
+      conversationId: conversation.id,
+      type: "approval.resolved",
+      data: {
+        approvalId: "approval_1",
+        resolution: "approve",
+        toolName: "book-flight",
+        executed: true,
+        result: "raw-result",
+      },
+    });
+    const firstVoiceSegment = await wrapped.appendEventIfNoActiveVoiceSegment?.({
+      conversationId: conversation.id,
+      type: "voice.segment.started",
+      data: {
+        channelSegmentId: "segment_1",
+        connectionId: "connection_1",
+        adapter: "test",
+        provider: "raw-provider",
+      },
+    });
+    const secondVoiceSegment = await wrapped.appendEventIfNoActiveVoiceSegment?.({
+      conversationId: conversation.id,
+      type: "voice.segment.started",
+      data: {
+        channelSegmentId: "segment_2",
+        connectionId: "connection_2",
+        adapter: "test",
+        provider: "raw-provider",
+      },
+    });
+    const events = await storage.listEvents({ conversationId: conversation.id });
+
+    expect(approvalResolution?.data).toMatchObject({ result: "[result]" });
+    expect(firstVoiceSegment?.data).toMatchObject({ provider: "[provider]" });
+    expect(secondVoiceSegment).toBeNull();
+    expect(events.find((event) => event.type === "approval.resolved")?.data).toMatchObject({
+      result: "[result]",
+    });
+    expect(events.find((event) => event.type === "voice.segment.started")?.data).toMatchObject({
+      provider: "[provider]",
     });
   });
 

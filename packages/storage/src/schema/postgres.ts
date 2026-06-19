@@ -5,6 +5,7 @@ export const postgresConversations = pgTable("conversations", {
   agentId: text("agent_id").notNull(),
   lifecycle: text("lifecycle", { enum: ["active", "handoff", "closed"] }).notNull(),
   contextJson: jsonb("context_json").notNull(),
+  channelJson: jsonb("channel_json"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

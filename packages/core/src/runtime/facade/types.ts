@@ -1,5 +1,5 @@
-import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../definition.js";
-import type { ConversationRecord } from "../storage.js";
+import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../../definition.js";
+import type { ConversationRecord } from "../../storage.js";
 import type {
   AgentModelSet,
   ConversationChannel,
@@ -7,8 +7,8 @@ import type {
   RuntimeSnapshot,
   TextGenerationInput,
   TextGenerationOutput,
-} from "../types.js";
-import type { RuntimeEventEmitter } from "./types.js";
+} from "../../types.js";
+import type { RuntimeEventEmitter } from "../types.js";
 
 export interface RuntimeStateMachineDeps {
   generateTextWithTrace: (input: {
@@ -36,7 +36,7 @@ export interface RuntimeStateMachineDeps {
 
 export interface RuntimeStateInteractionDeps {
   options: {
-    storage: import("../storage.js").StorageAdapter;
+    storage: import("../../storage.js").StorageAdapter;
     agent?: CompiledAgent;
   };
   emit: RuntimeEventEmitter;
@@ -80,6 +80,7 @@ type StateRunArgs = {
   state: CompiledJourney["states"][number];
   context: Record<string, unknown>;
   actionType: "entry" | "exit" | "transition";
+  channel?: ConversationChannel;
   signal?: AbortSignal;
   emit: RuntimeEventEmitter;
 };

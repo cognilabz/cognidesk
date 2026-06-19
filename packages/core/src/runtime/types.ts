@@ -1,18 +1,35 @@
 import type { z } from "zod";
 import type { Logger } from "pino";
-import type { JourneyCandidate } from "../journey-index.js";
 import type { ConversationRecord, CreateConversationInput, RuntimeEventInput } from "../storage.js";
-import type { ActionDefinition, CompiledAgent, CompiledJourney, EventRoutingMode, JourneyEventDefinition } from "../definition.js";
-import type { ConversationCompactionSummary } from "./schemas.js";
+import type { CompiledAgent } from "../definition.js";
 import type { ReplayedMessage, ReplayedPrompt } from "./replay.js";
+import type { RuntimeApprovalEvaluationInput } from "./types/operations.js";
 import type {
   AgentModelSet,
-  AnyTool,
+  CapabilityUseDecision,
+  ChannelEvent,
+  ChannelEventBindingOutcome,
+  ChannelEventEnvelopeInput,
+  ChannelEventHandlingDisposition,
+  ChannelEventIntakeResult,
+  ChannelContext,
+  ChannelOutputIntent,
+  ChannelOutputIntentInput,
+  ChannelOutputResolution,
+  ChannelOutputResolutionDecision,
+  ChannelOutputResolutionPayload,
+  ChannelOutputResolverInput,
+  ChannelOutputResolverResult,
   ConversationChannel,
-  CustomRuntimeEventDefinition,
-  JourneyContextRecord,
-  JourneySummary,
+  ConversationChannelInput,
   KnowledgeItem,
+  CapabilityAvailability,
+  ChannelPolicyConfig,
+  ChannelSetConfig,
+  ProviderCredentialStatus,
+  ProviderManifest,
+  ProviderReadiness,
+  RuntimeApprovalDecision,
   RuntimeEvent,
   RuntimeSnapshot,
 } from "../types.js";
@@ -24,6 +41,20 @@ export type RetrievedKnowledgeItem = KnowledgeItem & {
   sourceName: string;
 };
 
+export interface RuntimeContextResolveInput<TTurn = unknown> {
+  conversation: ConversationRecord;
+  turn: TTurn;
+  channel?: ChannelContext;
+  app: unknown;
+  text: string;
+}
+
+export interface RuntimeContextOptions<TTurn = unknown> {
+  resolve?(input: RuntimeContextResolveInput<TTurn>): unknown | Promise<unknown>;
+  schema?: z.ZodType;
+  redact?: string[];
+}
+
 export interface RuntimeOptions {
   storage: import("../storage.js").StorageAdapter;
   agent?: CompiledAgent;
@@ -31,6 +62,7 @@ export interface RuntimeOptions {
   journeyIndex?: import("../journey-index.js").JourneyIndex;
   topKJourneys?: number;
   app?: unknown;
+  context?: RuntimeContextOptions;
   knowledgeLimit?: number;
   privacy?: PrivacyHooks;
   telemetry?: RuntimeTelemetryOptions;
@@ -54,6 +86,28 @@ export interface RuntimeOptions {
     maxAttempts?: number;
     notice?: string;
   };
+  approval?: {
+    evaluate?(input: RuntimeApprovalEvaluationInput): RuntimeApprovalDecision | null | undefined;
+  };
+  channelOutput?: {
+    resolve?(input: ChannelOutputResolutionPolicyInput): ChannelOutputResolutionDecision | null | undefined | Promise<ChannelOutputResolutionDecision | null | undefined>;
+    execute?(input: ChannelOutputResolverInput): ChannelOutputResolverResult | Promise<ChannelOutputResolverResult>;
+  };
+  channelSets?: ChannelSetConfig[];
+  channels?: ChannelPolicyConfig[];
+  providerPackages?: ProviderManifest[];
+  capabilityAvailability?: CapabilityAvailability[];
+  providerCredentialStatuses?: ProviderCredentialStatus[];
+  providerReadiness?: ProviderReadiness[];
+}
+
+export interface RuntimeConfigurationSource {
+  channelSets?: ChannelSetConfig[];
+  channels?: ChannelPolicyConfig[];
+  providerPackages?: ProviderManifest[];
+  capabilityAvailability?: CapabilityAvailability[];
+  credentialStatuses?: ProviderCredentialStatus[];
+  providerReadiness?: ProviderReadiness[];
 }
 
 export interface CreateRuntimeConversationInput<TConversationContext = unknown>
@@ -77,6 +131,122 @@ export interface HandleUserMessageResult {
   events: RuntimeEvent[];
   text: string;
   activeJourneyId?: string;
+}
+
+export interface ChannelEventBindingInput {
+  outcome?: ChannelEventBindingOutcome;
+  conversationId?: string;
+  agentId?: string;
+  conversationContext?: unknown;
+  linkedConversationId?: string;
+  reason?: string;
+  reasonCode?: string;
+  reasonLabel?: string;
+  blockers?: Array<{ code: string; message: string; kind?: string }>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ChannelEventHandlingInput<TTurn = unknown> {
+  disposition?: ChannelEventHandlingDisposition;
+  text?: string;
+  turn?: TTurn;
+  recordUserMessage?: HandleUserMessageInput<TTurn>["recordUserMessage"];
+  assistantMessageMode?: HandleUserMessageInput<TTurn>["assistantMessageMode"];
+}
+
+export interface HandleChannelEventInput<TPayload = unknown, TTurn = unknown> {
+  event: ChannelEventEnvelopeInput<TPayload>;
+  conversationId?: string;
+  agentId?: string;
+  conversationContext?: unknown;
+  createConversation?: CreateRuntimeConversationInput;
+  binding?: ChannelEventBindingInput;
+  handling?: ChannelEventHandlingInput<TTurn>;
+  app?: unknown;
+  signal?: AbortSignal;
+  onAssistantTextDelta?(textDelta: string): Promise<void> | void;
+}
+
+export interface HandleChannelEventResult<TPayload = unknown> {
+  channelEvent: ChannelEvent<TPayload>;
+  intake: ChannelEventIntakeResult;
+  disposition: ChannelEventHandlingDisposition;
+  conversation?: ConversationRecord;
+  turn?: HandleUserMessageResult;
+  snapshot?: RuntimeSnapshot;
+  events: RuntimeEvent[];
+  text?: string;
+  activeJourneyId?: string;
+}
+
+export interface RequestOutboundContactInput<TPayload = unknown> {
+  conversationId?: string;
+  agentId?: string;
+  conversationContext?: unknown;
+  channel: ConversationChannelInput;
+  text?: string;
+  payload?: TPayload;
+  app?: unknown;
+  signal?: AbortSignal;
+  binding?: ChannelEventBindingInput;
+  handling?: ChannelEventHandlingInput;
+}
+
+export interface RequestChannelHandoffReviewInput<TPayload = unknown> {
+  conversationId?: string;
+  agentId?: string;
+  conversationContext?: unknown;
+  channel: ConversationChannelInput;
+  payload?: TPayload;
+  reason?: string;
+  reasonCode?: string;
+  reasonLabel?: string;
+  app?: unknown;
+  signal?: AbortSignal;
+  binding?: ChannelEventBindingInput;
+  handling?: ChannelEventHandlingInput;
+}
+
+export interface RequestChannelHandoffInput<TPayload = unknown> {
+  conversationId: string;
+  fromChannel?: ConversationChannelInput;
+  toChannel: ConversationChannelInput;
+  payload?: TPayload;
+  reason?: string;
+  reasonCode?: string;
+  reasonLabel?: string;
+  app?: unknown;
+  signal?: AbortSignal;
+  binding?: ChannelEventBindingInput;
+  handling?: ChannelEventHandlingInput;
+}
+
+export interface ChannelOutputResolutionPolicyInput<TPayload = unknown> {
+  conversation: ConversationRecord;
+  intent: ChannelOutputIntent<TPayload>;
+  channel: ChannelContext;
+  defaultResolution: ChannelOutputResolutionDecision;
+  capabilityDecision?: CapabilityUseDecision;
+  app: unknown;
+}
+
+export interface ResolveChannelOutputInput<TPayload = unknown> {
+  conversationId: string;
+  intent: ChannelOutputIntentInput<TPayload>;
+  resolution?: ChannelOutputResolutionDecision;
+  app?: unknown;
+  signal?: AbortSignal;
+}
+
+export interface ResolveChannelOutputResult<TPayload = unknown> {
+  conversation?: ConversationRecord;
+  outputIntent: ChannelOutputIntent<TPayload>;
+  resolution: ChannelOutputResolution;
+  channelEvent?: ChannelEvent<ChannelOutputResolutionPayload<TPayload>>;
+  event?: RuntimeEvent;
+  events: RuntimeEvent[];
+  shouldExecute: boolean;
+  execution?: ChannelOutputResolverResult;
 }
 
 export interface HandleVoiceUserMessageInput<TTurn = unknown> extends HandleUserMessageInput<TTurn> {
@@ -114,6 +284,22 @@ export interface ReplayConversationResult {
   openPrompts: ReplayedPrompt[];
 }
 
+export interface ExplainTurnInput<TTurn = unknown> extends HandleUserMessageInput<TTurn> {}
+
+export interface ExplainTurnResult {
+  conversationId: string;
+  agentId: string;
+  channel?: ChannelContext;
+  persona?: unknown;
+  agentChannelPolicy?: unknown;
+  channelPolicy?: unknown;
+  handoffPolicy?: unknown;
+  conversationContext?: unknown;
+  resolvedContext?: unknown;
+  resolvedContextKeys: string[];
+  policyEventData: Record<string, unknown>;
+}
+
 export interface SubmitWidgetInput {
   conversationId: string;
   promptId: string;
@@ -139,100 +325,5 @@ export interface EmitGeneratedPreambleResult {
   events: RuntimeEvent[];
 }
 
-export interface EmitCustomEventInput<TEvent extends CustomRuntimeEventDefinition = CustomRuntimeEventDefinition> {
-  conversationId: string;
-  event: TEvent;
-  payload: z.infer<TEvent["payload"]>;
-}
-
-export interface EmitJourneyEventInput<TEvent extends JourneyEventDefinition = JourneyEventDefinition> {
-  conversationId: string;
-  event: TEvent;
-  payload: z.infer<TEvent["payload"]>;
-  routing?: EventRoutingMode;
-  target?: {
-    journeyId?: string;
-    stateId?: string;
-  };
-  app?: unknown;
-  signal?: AbortSignal;
-}
-
-export interface EmitJourneyEventResult {
-  event: RuntimeEvent;
-  snapshot: RuntimeSnapshot | null;
-  events: RuntimeEvent[];
-}
-
-export interface RequestHandoffInput {
-  conversationId: string;
-  reason: string;
-  summary?: string;
-  payload?: unknown;
-}
-
-export interface ResumeConversationInput {
-  conversationId: string;
-  reason?: string;
-  payload?: unknown;
-}
-
-export interface CompactConversationResult<TSummary = ConversationCompactionSummary> {
-  summary: TSummary;
-  snapshot: RuntimeSnapshot;
-  events: RuntimeEvent[];
-}
-
-export interface StateMachineTurnResult {
-  activeStateIds: string[];
-  journeyContext: Record<string, unknown>;
-  channel?: ConversationChannel;
-  completed?: {
-    journeyId: string;
-    stateId?: string;
-  };
-}
-
-export interface VisibleCustomEventContext {
-  type: string;
-  offset: number;
-  data: unknown;
-}
-
-export interface ConversationMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-export type RankedJourneyCandidate = JourneyCandidate & {
-  matchConfidence?: number;
-  matchReason?: string;
-};
-
-export interface ActiveTurn {
-  id: string;
-  conversationId: string;
-  controller: AbortController;
-  interruptedByNewMessage: boolean;
-  abortEvent?: Promise<RuntimeEvent>;
-  interruptedEvent?: RuntimeEvent;
-  cleanup(): void;
-}
-
-export type RuntimeEventEmitter = <TEvent extends RuntimeEventInput>(event: TEvent) => Promise<RuntimeEvent>;
-
-export interface StateActionRunArgs {
-  journey: CompiledJourney;
-  conversation: ConversationRecord;
-  state: CompiledJourney["states"][number];
-  context: Record<string, unknown>;
-  actionType: "entry" | "exit" | "transition";
-  signal?: AbortSignal;
-  emit: RuntimeEventEmitter;
-}
-
-export interface ActionRunRetryTarget {
-  action: ActionDefinition;
-}
-
 export type { ReplayedMessage, ReplayedPrompt };
+export * from "./types/operations.js";

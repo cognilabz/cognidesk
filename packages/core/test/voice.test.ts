@@ -65,6 +65,31 @@ describe("voice contracts", () => {
     })).rejects.toThrow("requires an agent");
   });
 
+  it("allows at most one active voice segment under concurrent starts", async () => {
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({ storage });
+    const conversation = await runtime.createConversation({
+      agentId: "flight-service",
+      context: {},
+    });
+
+    const results = await Promise.allSettled(Array.from({ length: 6 }, () => runtime.startVoiceSegment({
+      conversationId: conversation.id,
+    })));
+
+    const started = results.filter((result) => result.status === "fulfilled");
+    const rejected = results.filter((result) => result.status === "rejected");
+    expect(started).toHaveLength(1);
+    expect(rejected).toHaveLength(5);
+    for (const result of rejected) {
+      expect(result.reason).toBeInstanceOf(Error);
+      expect((result.reason as Error).message).toContain("already has an active voice segment");
+    }
+
+    const events = await runtime.listEvents(conversation.id);
+    expect(events.filter((event) => event.type === "voice.segment.started")).toHaveLength(1);
+  });
+
   it("commits finalized voice transcripts as canonical messages plus voice metadata", async () => {
     const storage = new RecordingStorage();
     const runtime = createRuntime({ storage });

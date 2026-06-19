@@ -6,16 +6,16 @@ import {
   createLifecycleInterruptionResult as createLifecycleInterruptionResultWithStorage,
   requireActiveConversation,
   requireConversationRecord as requireConversationRecordWithStorage,
-} from "./lifecycle.js";
+} from "../lifecycle.js";
 import type {
   HandleUserMessageResult,
   RequestHandoffInput,
   ResumeConversationInput,
   RuntimeEventEmitter,
   RuntimeOptions,
-} from "./types.js";
-import type { ConversationRecord } from "../storage.js";
-import type { RuntimeEvent } from "../types.js";
+} from "../types.js";
+import type { ConversationRecord } from "../../storage.js";
+import type { RuntimeEvent } from "../../types.js";
 
 export function requireRuntimeConversation(
   options: RuntimeOptions,
@@ -66,6 +66,7 @@ export function applyRuntimeHandoffRequest(
 ) {
   return applyHandoffRequestWithStorage({
     storage: options.storage,
+    ...(options.channels ? { channels: options.channels } : {}),
     ...args,
   });
 }
@@ -93,6 +94,7 @@ export function applyRuntimeBuiltInLifecycleTool(
 ) {
   return applyBuiltInLifecycleToolWithStorage({
     storage: options.storage,
+    ...(options.channels ? { channels: options.channels } : {}),
     ...args,
   });
 }

@@ -11,6 +11,7 @@ import type {
   SideEffectTool,
   ToolExecutionContext,
   ToolDefinition,
+  ToolPolicyOptions,
   WidgetDefinition,
   WidgetPromptDefinition,
 } from "../types.js";
@@ -99,6 +100,7 @@ export function tool<
   input: TInputSchema;
   output: TOutputSchema;
   sideEffect?: TSideEffect;
+  policy?: ToolPolicyOptions;
   idempotencyKey?: (args: {
     input: z.infer<TInputSchema>;
     conversationId: string;
@@ -113,6 +115,7 @@ export function tool<
     sideEffect: (config.sideEffect ?? false) as TSideEffect,
     execute: config.execute,
     ...(config.description ? { description: config.description } : {}),
+    ...(config.policy ? { policy: config.policy } : {}),
     ...(config.idempotencyKey ? { idempotencyKey: config.idempotencyKey } : {}),
   };
 }

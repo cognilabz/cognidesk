@@ -49,6 +49,7 @@ export const telemetrySpanNames = {
   runtimeReplayConversation: "cognidesk.runtime.replay_conversation",
   runtimeSubmitWidget: "cognidesk.runtime.submit_widget",
   runtimeGetSnapshot: "cognidesk.runtime.get_snapshot",
+  runtimeHandleChannelEvent: "cognidesk.runtime.handle_channel_event",
   runtimeHandleUserMessage: "cognidesk.runtime.handle_user_message",
   runtimeCloseConversation: "cognidesk.runtime.close_conversation",
   runtimeRequestHandoff: "cognidesk.runtime.request_handoff",

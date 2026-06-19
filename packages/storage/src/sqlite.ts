@@ -23,13 +23,17 @@ import {
 import {
   conversationFromRow,
   eventFromRow,
+  hasActiveVoiceSegment,
+  isApprovalPending,
   nowIso,
+  normalizeConversationChannel,
   runtimeEventFromParts,
   snapshotFromRow,
   storageMissingConversationError,
 } from "./shared.js";
 
 export type SqliteStorageDatabase = LibSQLDatabase<typeof sqliteStorageSchema>;
+type SqliteTransaction = Parameters<Parameters<SqliteStorageDatabase["transaction"]>[0]>[0];
 
 export type SqliteStorageOptions =
   | {
@@ -100,11 +104,13 @@ export class SqliteStorageAdapter implements StorageAdapter {
     const id = input.id ?? randomUUID();
     const createdAt = nowIso();
     const lifecycle: ConversationLifecycle = "active";
+    const channel = normalizeConversationChannel(input.channel);
     await this.db.insert(sqliteConversations).values({
       id,
       agentId: input.agentId,
       lifecycle,
       contextJson: JSON.stringify(input.context),
+      channelJson: channel ? JSON.stringify(channel) : null,
       createdAt,
       updatedAt: createdAt,
     });
@@ -113,6 +119,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
       agentId: input.agentId,
       lifecycle,
       context: input.context,
+      ...(channel ? { channel } : {}),
       createdAt,
       updatedAt: createdAt,
     };
@@ -141,36 +148,43 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
   async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {
     return this.enqueueWrite(() => this.db.transaction(async (tx) => {
-      const conversation = await tx.select({ id: sqliteConversations.id })
-        .from(sqliteConversations)
-        .where(eq(sqliteConversations.id, event.conversationId))
-        .limit(1)
-        .get();
-      if (!conversation) throw storageMissingConversationError(event.conversationId);
+      await this.requireConversation(tx, event.conversationId);
+      return this.insertRuntimeEvent(tx, event);
+    }));
+  }
 
-      const nextOffsetRow = await tx.select({
-        nextOffset: sql<number>`COALESCE(MAX(${sqliteRuntimeEvents.offset}), 0) + 1`,
-      })
-        .from(sqliteRuntimeEvents)
-        .where(eq(sqliteRuntimeEvents.conversationId, event.conversationId))
-        .get();
-      const offset = Number(nextOffsetRow?.nextOffset ?? 1);
-      const id = event.id ?? randomUUID();
-      const createdAt = event.createdAt ?? nowIso();
-      await tx.insert(sqliteRuntimeEvents).values({
-        id,
-        conversationId: event.conversationId,
-        offset,
-        type: event.type,
-        telemetryTraceId: event.telemetry?.traceId ?? null,
-        telemetrySpanId: event.telemetry?.spanId ?? null,
-        dataJson: JSON.stringify(event.data),
-        createdAt,
-      });
-      await tx.update(sqliteConversations)
-        .set({ updatedAt: createdAt })
-        .where(eq(sqliteConversations.id, event.conversationId));
-      return runtimeEventFromParts(event, id, offset, createdAt);
+  async appendEventIfApprovalPending<TEvent extends RuntimeEventInput<"approval.resolved">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null> {
+    return this.enqueueWrite(() => this.db.transaction(async (tx) => {
+      await this.requireConversation(tx, event.conversationId);
+      const approvalEvents = await tx.select().from(sqliteRuntimeEvents)
+        .where(and(
+          eq(sqliteRuntimeEvents.conversationId, event.conversationId),
+          sql`${sqliteRuntimeEvents.type} IN ('approval.requested', 'approval.resolved')`,
+          sql`json_extract(${sqliteRuntimeEvents.dataJson}, '$.approvalId') = ${event.data.approvalId}`,
+        ))
+        .orderBy(asc(sqliteRuntimeEvents.offset))
+        .all();
+      if (!isApprovalPending(approvalEvents.map(eventFromRow), event.data.approvalId)) return null;
+      return this.insertRuntimeEvent(tx, event);
+    }));
+  }
+
+  async appendEventIfNoActiveVoiceSegment<TEvent extends RuntimeEventInput<"voice.segment.started">>(
+    event: TEvent,
+  ): Promise<RuntimeEvent | null> {
+    return this.enqueueWrite(() => this.db.transaction(async (tx) => {
+      await this.requireConversation(tx, event.conversationId);
+      const voiceEvents = await tx.select().from(sqliteRuntimeEvents)
+        .where(and(
+          eq(sqliteRuntimeEvents.conversationId, event.conversationId),
+          sql`${sqliteRuntimeEvents.type} IN ('voice.segment.started', 'voice.segment.ended', 'voice.connection.failed')`,
+        ))
+        .orderBy(asc(sqliteRuntimeEvents.offset))
+        .all();
+      if (hasActiveVoiceSegment(voiceEvents.map(eventFromRow))) return null;
+      return this.insertRuntimeEvent(tx, event);
     }));
   }
 
@@ -236,12 +250,59 @@ export class SqliteStorageAdapter implements StorageAdapter {
     for (const statement of sqliteMigrationStatements) {
       await this.db.run(statement);
     }
+    await this.addColumnIfMissing("conversations", "channel_json", "TEXT");
+  }
+
+  private async addColumnIfMissing(table: string, column: string, definition: string) {
+    try {
+      await this.db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    } catch (error) {
+      if (!isDuplicateColumnError(error)) throw error;
+    }
   }
 
   private enqueueWrite<T>(operation: () => Promise<T>): Promise<T> {
     const run = this.writeQueue.then(operation, operation);
     this.writeQueue = run.then(() => undefined, () => undefined);
     return run;
+  }
+
+  private async requireConversation(tx: SqliteTransaction, conversationId: string) {
+    const conversation = await tx.update(sqliteConversations)
+      .set({ updatedAt: sql`${sqliteConversations.updatedAt}` })
+      .where(eq(sqliteConversations.id, conversationId))
+      .returning({ id: sqliteConversations.id })
+      .get();
+    if (!conversation) throw storageMissingConversationError(conversationId);
+  }
+
+  private async insertRuntimeEvent<TEvent extends RuntimeEventInput>(
+    tx: SqliteTransaction,
+    event: TEvent,
+  ): Promise<RuntimeEvent> {
+    const nextOffsetRow = await tx.select({
+      nextOffset: sql<number>`COALESCE(MAX(${sqliteRuntimeEvents.offset}), 0) + 1`,
+    })
+      .from(sqliteRuntimeEvents)
+      .where(eq(sqliteRuntimeEvents.conversationId, event.conversationId))
+      .get();
+    const offset = Number(nextOffsetRow?.nextOffset ?? 1);
+    const id = event.id ?? randomUUID();
+    const createdAt = event.createdAt ?? nowIso();
+    await tx.insert(sqliteRuntimeEvents).values({
+      id,
+      conversationId: event.conversationId,
+      offset,
+      type: event.type,
+      telemetryTraceId: event.telemetry?.traceId ?? null,
+      telemetrySpanId: event.telemetry?.spanId ?? null,
+      dataJson: JSON.stringify(event.data),
+      createdAt,
+    });
+    await tx.update(sqliteConversations)
+      .set({ updatedAt: createdAt })
+      .where(eq(sqliteConversations.id, event.conversationId));
+    return runtimeEventFromParts(event, id, offset, createdAt);
   }
 }
 
@@ -263,12 +324,33 @@ function sqliteFilenameToUrl(filename: string) {
   return `file:${filename}`;
 }
 
+function isDuplicateColumnError(error: unknown) {
+  return collectErrorMessages(error).some((message) =>
+    /duplicate column|already exists/i.test(message)
+  );
+}
+
+function collectErrorMessages(error: unknown): string[] {
+  const messages: string[] = [];
+  let current = error;
+  while (current) {
+    if (current instanceof Error) messages.push(current.message);
+    if (typeof current === "string") messages.push(current);
+    if (typeof current !== "object") break;
+    const cause = "cause" in current ? (current as { cause?: unknown }).cause : undefined;
+    if (!cause || cause === current) break;
+    current = cause;
+  }
+  return messages;
+}
+
 const sqliteMigrationStatements = [
   `CREATE TABLE IF NOT EXISTS conversations (
     id TEXT PRIMARY KEY,
     agent_id TEXT NOT NULL,
     lifecycle TEXT NOT NULL CHECK (lifecycle IN ('active', 'handoff', 'closed')),
     context_json TEXT NOT NULL,
+    channel_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`,

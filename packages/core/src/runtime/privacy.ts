@@ -28,13 +28,15 @@ export function createPrivacyStorageAdapter(
   privacy: RuntimeOptions["privacy"],
 ): StorageAdapter {
   if (!privacy?.redactConversationContext
+    && !privacy?.redactInboundChannelEvent
+    && !privacy?.redactOutboundChannelMessage
     && !privacy?.redactRuntimeEvent
     && !privacy?.redactRuntimeSnapshot
   ) {
     return storage;
   }
 
-  return {
+  const adapter: StorageAdapter = {
     initialize() {
       return storage.initialize?.();
     },
@@ -60,12 +62,7 @@ export function createPrivacyStorageAdapter(
       return storage.updateConversationLifecycle(conversationId, lifecycle);
     },
     async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent) {
-      if (!privacy.redactRuntimeEvent) return storage.appendEvent(event);
-      const redacted = await privacy.redactRuntimeEvent({
-        ...await privacyContextForStorage(storage, event.conversationId),
-        event,
-      });
-      return storage.appendEvent(redacted as TEvent);
+      return storage.appendEvent(await redactRuntimeEventForStorage(storage, privacy, event));
     },
     listEvents(options) {
       return storage.listEvents(options);
@@ -82,6 +79,63 @@ export function createPrivacyStorageAdapter(
       return storage.getSnapshot(conversationId);
     },
   };
+
+  if (storage.appendEventIfApprovalPending) {
+    adapter.appendEventIfApprovalPending = async <TEvent extends RuntimeEventInput<"approval.resolved">>(
+      event: TEvent,
+    ) => storage.appendEventIfApprovalPending!(
+      await redactRuntimeEventForStorage(storage, privacy, event),
+    );
+  }
+
+  if (storage.appendEventIfNoActiveVoiceSegment) {
+    adapter.appendEventIfNoActiveVoiceSegment = async <TEvent extends RuntimeEventInput<"voice.segment.started">>(
+      event: TEvent,
+    ) => storage.appendEventIfNoActiveVoiceSegment!(
+      await redactRuntimeEventForStorage(storage, privacy, event),
+    );
+  }
+
+  return adapter;
+}
+
+async function redactRuntimeEventForStorage<TEvent extends RuntimeEventInput>(
+  storage: StorageAdapter,
+  privacy: NonNullable<RuntimeOptions["privacy"]>,
+  event: TEvent,
+): Promise<TEvent> {
+  const context = await privacyContextForStorage(storage, event.conversationId);
+  const channelRedacted = await redactChannelRuntimeEvent(privacy, context, event);
+  if (!privacy.redactRuntimeEvent) return channelRedacted as TEvent;
+  const redacted = await privacy.redactRuntimeEvent({
+    ...context,
+    event: channelRedacted,
+  });
+  return redacted as TEvent;
+}
+
+async function redactChannelRuntimeEvent<TEvent extends RuntimeEventInput>(
+  privacy: NonNullable<RuntimeOptions["privacy"]>,
+  context: Awaited<ReturnType<typeof privacyContextForStorage>>,
+  event: TEvent,
+): Promise<RuntimeEventInput> {
+  if (event.type === "channel.received" && privacy.redactInboundChannelEvent) {
+    const channelEvent = event as RuntimeEventInput<"channel.received">;
+    return privacy.redactInboundChannelEvent({
+      ...context,
+      event: channelEvent,
+      channel: channelEvent.data.channel,
+    });
+  }
+  if (event.type === "channel.sent" && privacy.redactOutboundChannelMessage) {
+    const channelEvent = event as RuntimeEventInput<"channel.sent">;
+    return privacy.redactOutboundChannelMessage({
+      ...context,
+      event: channelEvent,
+      channel: channelEvent.data.channel,
+    });
+  }
+  return event;
 }
 
 export async function redactModelInput(

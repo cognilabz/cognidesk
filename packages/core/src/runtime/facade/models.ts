@@ -1,5 +1,5 @@
-import type { CompiledAgent, CompiledJourney } from "../definition.js";
-import type { ConversationRecord } from "../storage.js";
+import type { CompiledAgent, CompiledJourney } from "../../definition.js";
+import type { ConversationRecord } from "../../storage.js";
 import type {
   AgentModelSet,
   AnyTool,
@@ -9,21 +9,21 @@ import type {
   RuntimeEvent,
   TextGenerationInput,
   TextGenerationOutput,
-} from "../types.js";
-import { createCitationSegments as createCitationSegmentsWithDeps } from "./citations.js";
+} from "../../types.js";
+import { createCitationSegments as createCitationSegmentsWithDeps } from "../citations.js";
 import {
   compactConversation as compactConversationWithDeps,
   compactIfNeeded as compactIfNeededWithDeps,
-} from "./compaction.js";
+} from "../compaction.js";
 import {
   generateResponseWithTools as generateResponseWithToolsWithDeps,
   generateTextWithTrace as generateTextWithTraceWithDeps,
-} from "./model-runner.js";
+} from "../model-runner.js";
 import {
   redactAssistantMessage as redactAssistantMessageWithOptions,
   redactModelMessages as redactModelMessagesWithOptions,
   redactUserMessage as redactUserMessageWithOptions,
-} from "./privacy.js";
+} from "../privacy.js";
 import type {
   CompactConversationInput,
   CompactConversationResult,
@@ -31,7 +31,7 @@ import type {
   RuntimeEventEmitter,
   RuntimeOptions,
   StateMachineTurnResult,
-} from "./types.js";
+} from "../types.js";
 
 export function requireRuntimeAgent(options: RuntimeOptions) {
   if (!options.agent) throw new Error("Runtime requires an agent to handle messages.");

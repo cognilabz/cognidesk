@@ -1,11 +1,11 @@
-import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../definition.js";
-import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
+import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../../definition.js";
+import type { ConversationRecord, RuntimeEventInput } from "../../storage.js";
 import type {
   AgentModelSet,
   GuardResult,
   RuntimeEvent,
   RuntimeSnapshot,
-} from "../types.js";
+} from "../../types.js";
 import {
   advanceRuntimeStateMachine,
   emitRuntimeConfirmationPrompts,
@@ -18,12 +18,12 @@ import {
   runRuntimeStateActionRuns,
   runRuntimeStateToolRuns,
   validateRuntimeWidgetSubmission,
-} from "./facade-state.js";
-import type { RuntimeCore } from "./kernel-core.js";
-import type { RuntimeRouting } from "./kernel-routing.js";
+} from "../facade/state.js";
+import type { RuntimeCore } from "./core.js";
+import type { RuntimeRouting } from "./routing.js";
 
 export function createRuntimeState(
-  options: { storage: import("../storage.js").StorageAdapter; agent?: CompiledAgent },
+  options: { storage: import("../../storage.js").StorageAdapter; agent?: CompiledAgent },
   core: RuntimeCore,
   routing: RuntimeRouting,
 ) {

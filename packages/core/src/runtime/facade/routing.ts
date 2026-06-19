@@ -1,28 +1,29 @@
-import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../definition.js";
-import type { ConversationRecord } from "../storage.js";
+import type { CompiledAgent, CompiledJourney, EventRoutingMode } from "../../definition.js";
+import type { ConversationRecord } from "../../storage.js";
 import type {
   AgentModelSet,
+  ChannelContext,
   GuardResult,
   ModelAdapter,
   RuntimeSnapshot,
   TextGenerationInput,
   TextGenerationOutput,
-} from "../types.js";
+} from "../../types.js";
 import {
   telemetryAttributes,
   telemetrySpanNames,
   withTelemetrySpan,
-} from "../telemetry.js";
+} from "../../telemetry.js";
 import {
   evaluateDelegationCompletion as evaluateDelegationCompletionWithDeps,
   retrieveKnowledge as retrieveKnowledgeWithDeps,
   selectJourney as selectJourneyWithDeps,
-} from "./journey-selection.js";
+} from "../journey-selection.js";
 import {
   resolveJourneyEventRoute as resolveJourneyEventRouteWithDeps,
   selectEventTransition as selectEventTransitionWithDeps,
   selectTransition as selectTransitionWithDeps,
-} from "./transitions.js";
+} from "../transitions.js";
 import type {
   ConversationMessage,
   HandleUserMessageInput,
@@ -30,7 +31,7 @@ import type {
   RuntimeEventEmitter,
   RuntimeOptions,
   StateMachineTurnResult,
-} from "./types.js";
+} from "../types.js";
 
 export function selectRuntimeJourney<TTurn>(
   deps: {
@@ -56,6 +57,7 @@ export function selectRuntimeJourney<TTurn>(
     history: ConversationMessage[];
     input: HandleUserMessageInput<TTurn>;
     userText: string;
+    channel?: ChannelContext;
     emit: RuntimeEventEmitter;
   },
 ) {

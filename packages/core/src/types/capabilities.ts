@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { TelemetryContext } from "../telemetry.js";
+import type { ActionAudience, ChannelCapability } from "./providers.js";
 
 type Primitive = string | number | boolean | bigint | symbol | null | undefined | Date;
 type StringKey<T> = Extract<keyof T, string>;
@@ -47,6 +48,55 @@ export interface ToolExecutionContext<TInput, TApp = unknown> {
   signal?: AbortSignal;
 }
 
+export type ApprovalRequirement = "never" | "policy" | "required";
+export type ApprovalResolutionMode =
+  | "approve"
+  | "deny"
+  | "edit"
+  | "expire"
+  | "cancel"
+  | "return-to-agent";
+
+export interface ToolApprovalOptions {
+  requirement?: ApprovalRequirement;
+  supportedResolutions?: ApprovalResolutionMode[];
+  editableFields?: string[];
+  reason?: string;
+  expiresAt?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export type RuntimeApprovalOutcome =
+  | "allow"
+  | "require-approval"
+  | "draft"
+  | "deny"
+  | "defer"
+  | "handoff";
+
+export interface RuntimeApprovalDecision {
+  outcome: RuntimeApprovalOutcome;
+  reason?: string;
+  supportedResolutions?: ApprovalResolutionMode[];
+  editableFields?: string[];
+  expiresAt?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ToolPolicyOptions {
+  capability?: ChannelCapability;
+  providerPackageId?: string;
+  operationAlias?: string;
+  providerOperation?: string;
+  actionAudience?: ActionAudience;
+  outbound?: boolean;
+  externallyVisible?: boolean;
+  exposesSensitiveData?: boolean;
+  changesWorkflow?: boolean;
+  requiredPolicyIds?: string[];
+  approval?: ToolApprovalOptions;
+}
+
 export interface ToolDefinition<
   TName extends string = string,
   TInputSchema extends z.ZodType = z.ZodType,
@@ -59,6 +109,7 @@ export interface ToolDefinition<
   input: TInputSchema;
   output: TOutputSchema;
   sideEffect: TSideEffect;
+  policy?: ToolPolicyOptions;
   idempotencyKey?: (args: {
     input: z.infer<TInputSchema>;
     conversationId: string;

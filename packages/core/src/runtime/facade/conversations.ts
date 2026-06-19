@@ -1,4 +1,5 @@
-import { replayRuntimeEvents } from "./replay.js";
+import { replayRuntimeEvents } from "../replay.js";
+import { defineChannelContext } from "../../types.js";
 import type {
   CreateRuntimeConversationInput,
   ReplayConversationInput,
@@ -6,16 +7,19 @@ import type {
   RuntimeEventEmitter,
   RuntimeOptions,
   SubmitWidgetInput,
-} from "./types.js";
-import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
-import type { RuntimeEvent } from "../types.js";
+} from "../types.js";
+import type { ConversationRecord, RuntimeEventInput } from "../../storage.js";
+import type { RuntimeEvent } from "../../types.js";
 
 export async function createRuntimeConversation<TConversationContext = unknown>(
   options: RuntimeOptions,
   emit: RuntimeEventEmitter,
   input: CreateRuntimeConversationInput<TConversationContext>,
 ): Promise<ConversationRecord<TConversationContext>> {
-  const conversation = await options.storage.createConversation(input);
+  const normalizedInput = input.channel
+    ? { ...input, channel: defineChannelContext(input.channel) }
+    : input;
+  const conversation = await options.storage.createConversation(normalizedInput);
   await options.storage.saveSnapshot({
     conversationId: conversation.id,
     lifecycle: conversation.lifecycle,
@@ -27,6 +31,7 @@ export async function createRuntimeConversation<TConversationContext = unknown>(
     type: "custom.conversation.created",
     data: {
       agentId: conversation.agentId,
+      ...(conversation.channel ? { channel: conversation.channel } : {}),
     },
   });
   return conversation;

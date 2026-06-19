@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
-import type { CompiledAgent, EventRoutingMode, JourneyEventDefinition } from "../definition.js";
-import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
+import type { CompiledAgent, EventRoutingMode, JourneyEventDefinition } from "../../definition.js";
+import type { ConversationRecord, RuntimeEventInput } from "../../storage.js";
 import {
   activeRuntimeEventTelemetry,
   recordRuntimeEventMetric,
   telemetryEventNames,
   addTelemetryContentEvent,
-} from "../telemetry.js";
+} from "../../telemetry.js";
 import type {
   AgentModelSet,
   CustomRuntimeEventDefinition,
@@ -16,12 +16,12 @@ import type {
   RuntimeSnapshot,
   TextGenerationInput,
   TextGenerationOutput,
-} from "../types.js";
-import { listConversationMessages } from "./history.js";
+} from "../../types.js";
+import { listConversationMessages } from "../history.js";
 import {
   createGeneratedPreambleMessages,
   normalizeGeneratedPreamble,
-} from "./rendering.js";
+} from "../rendering.js";
 import type {
   EmitCustomEventInput,
   EmitGeneratedPreambleInput,
@@ -31,7 +31,7 @@ import type {
   EmitJourneyEventResult,
   RuntimeEventEmitter,
   RuntimeOptions,
-} from "./types.js";
+} from "../types.js";
 
 export async function emitRuntimeEvent<TEvent extends RuntimeEventInput>(
   options: RuntimeOptions,

@@ -1,4 +1,4 @@
-import type { StorageAdapter, RuntimeSnapshot } from "@cognidesk/core";
+import type { RuntimeEvent, RuntimeSnapshot, StorageAdapter } from "@cognidesk/core";
 import { describe, expect, it } from "vitest";
 
 export interface StorageAdapterConformanceOptions<TStorage extends StorageAdapter = StorageAdapter> {
@@ -27,6 +27,15 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
           id: "conv_1",
           agentId: "flight-service",
           context: { locale: "en" },
+          channel: {
+            channelId: "email.support",
+            kind: "email",
+            provider: "gmail",
+            externalThreadId: "thread_123",
+            capabilities: {
+              attachments: true,
+            },
+          },
         });
 
         expect(conversation).toMatchObject({
@@ -34,6 +43,18 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
           agentId: "flight-service",
           lifecycle: "active",
           context: { locale: "en" },
+          channel: {
+            channelId: "email.support",
+            kind: "email",
+            provider: "gmail",
+            externalThreadId: "thread_123",
+            capabilities: {
+              async: true,
+              threaded: true,
+              html: true,
+              attachments: true,
+            },
+          },
         });
         await expect(storage.createConversation({
           id: "conv_1",
@@ -43,6 +64,18 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
 
         const storedConversation = await storage.getConversation<{ locale: string }>("conv_1");
         expect(storedConversation?.context.locale).toBe("en");
+        expect(storedConversation?.channel).toMatchObject({
+          channelId: "email.support",
+          kind: "email",
+          provider: "gmail",
+          externalThreadId: "thread_123",
+          capabilities: {
+            async: true,
+            threaded: true,
+            html: true,
+            attachments: true,
+          },
+        });
 
         const event = await storage.appendEvent({
           conversationId: "conv_1",
@@ -55,6 +88,10 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
 
         const updated = await storage.updateConversationLifecycle("conv_1", "closed");
         expect(updated?.lifecycle).toBe("closed");
+        expect(updated?.channel).toMatchObject({
+          channelId: "email.support",
+          kind: "email",
+        });
         expect(await storage.updateConversationLifecycle("missing", "closed")).toBeNull();
 
         const snapshot: RuntimeSnapshot = {
@@ -113,6 +150,152 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
 
         const events = await storage.listEvents({ conversationId: "conv_concurrent" });
         expect(events.map((event) => event.offset)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      });
+    });
+
+    it("atomically resolves each pending approval once", async () => {
+      await withStorage(async (storage) => {
+        if (!storage.appendEventIfApprovalPending) {
+          throw new Error("Storage adapter must implement appendEventIfApprovalPending.");
+        }
+        await storage.createConversation({ id: "conv_approval", agentId: "agent", context: {} });
+
+        expect(await storage.appendEventIfApprovalPending({
+          conversationId: "conv_approval",
+          type: "approval.resolved",
+          data: {
+            approvalId: "approval_missing",
+            resolution: "approve",
+            toolName: "sendEmail",
+            executed: true,
+          },
+        })).toBeNull();
+
+        await storage.appendEvent({
+          conversationId: "conv_approval",
+          type: "approval.requested",
+          data: {
+            approvalId: "approval_1",
+            toolName: "sendEmail",
+            input: { recipient: "user@example.com" },
+            supportedResolutions: ["approve", "reject"],
+            expiresAt: new Date(Date.now() + 60_000).toISOString(),
+          },
+        });
+
+        const attempts = await Promise.all([
+          storage.appendEventIfApprovalPending({
+            conversationId: "conv_approval",
+            type: "approval.resolved",
+            data: {
+              approvalId: "approval_1",
+              resolution: "approve",
+              toolName: "sendEmail",
+              resolvedBy: "operator_1",
+              executed: true,
+            },
+          }),
+          storage.appendEventIfApprovalPending({
+            conversationId: "conv_approval",
+            type: "approval.resolved",
+            data: {
+              approvalId: "approval_1",
+              resolution: "approve",
+              toolName: "sendEmail",
+              resolvedBy: "operator_2",
+              executed: true,
+            },
+          }),
+        ]);
+
+        const stored = attempts.filter((event): event is RuntimeEvent => event !== null);
+        expect(stored).toHaveLength(1);
+        expect(stored[0]?.offset).toBe(2);
+        expect(await storage.appendEventIfApprovalPending({
+          conversationId: "conv_approval",
+          type: "approval.resolved",
+          data: {
+            approvalId: "approval_1",
+            resolution: "approve",
+            toolName: "sendEmail",
+            resolvedBy: "operator_3",
+            executed: true,
+          },
+        })).toBeNull();
+
+        const events = await storage.listEvents({ conversationId: "conv_approval" });
+        expect(events.filter((event) => event.type === "approval.resolved")).toHaveLength(1);
+        expect(events.map((event) => event.offset)).toEqual([1, 2]);
+      });
+    });
+
+    it("atomically allows only one active voice segment", async () => {
+      await withStorage(async (storage) => {
+        if (!storage.appendEventIfNoActiveVoiceSegment) {
+          throw new Error("Storage adapter must implement appendEventIfNoActiveVoiceSegment.");
+        }
+        await storage.createConversation({ id: "conv_voice", agentId: "agent", context: {} });
+
+        const attempts = await Promise.all([
+          storage.appendEventIfNoActiveVoiceSegment({
+            conversationId: "conv_voice",
+            type: "voice.segment.started",
+            data: {
+              channelSegmentId: "voice_segment_1",
+              connectionId: "connection_1",
+              adapter: "test",
+            },
+          }),
+          storage.appendEventIfNoActiveVoiceSegment({
+            conversationId: "conv_voice",
+            type: "voice.segment.started",
+            data: {
+              channelSegmentId: "voice_segment_2",
+              connectionId: "connection_2",
+              adapter: "test",
+            },
+          }),
+        ]);
+
+        const started = attempts.filter((event): event is Extract<RuntimeEvent, { type: "voice.segment.started" }> =>
+          event?.type === "voice.segment.started"
+        );
+        expect(started).toHaveLength(1);
+        expect(await storage.appendEventIfNoActiveVoiceSegment({
+          conversationId: "conv_voice",
+          type: "voice.segment.started",
+          data: {
+            channelSegmentId: "voice_segment_blocked",
+            connectionId: "connection_blocked",
+            adapter: "test",
+          },
+        })).toBeNull();
+
+        await storage.appendEvent({
+          conversationId: "conv_voice",
+          type: "voice.segment.ended",
+          data: {
+            channelSegmentId: started[0]!.data.channelSegmentId,
+            connectionId: started[0]!.data.connectionId,
+            reason: "complete",
+          },
+        });
+
+        const next = await storage.appendEventIfNoActiveVoiceSegment({
+          conversationId: "conv_voice",
+          type: "voice.segment.started",
+          data: {
+            channelSegmentId: "voice_segment_3",
+            connectionId: "connection_3",
+            adapter: "test",
+          },
+        });
+        expect(next?.type).toBe("voice.segment.started");
+        expect(next?.data).toMatchObject({ channelSegmentId: "voice_segment_3" });
+
+        const events = await storage.listEvents({ conversationId: "conv_voice" });
+        expect(events.filter((event) => event.type === "voice.segment.started")).toHaveLength(2);
+        expect(events.map((event) => event.offset)).toEqual([1, 2, 3]);
       });
     });
   });

@@ -188,6 +188,89 @@ describe("runtime turn pipeline 03", () => {
     ]);
   });
 
+  it("interrupts an active generation even when the model ignores the abort signal", async () => {
+    const firstResponseStarted = deferred<void>();
+    let responseCalls = 0;
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (input.role !== "response") return { text: "{}" };
+        responseCalls += 1;
+        if (responseCalls === 1) {
+          firstResponseStarted.resolve();
+          return new Promise<never>(() => {});
+        }
+        return { text: "Second answer." };
+      },
+    };
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const first = runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "First question.",
+    });
+    await firstResponseStarted.promise;
+    const second = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Second question.",
+    });
+    const firstResult = await first;
+
+    expect(firstResult.text).toBe("");
+    expect(second.text).toBe("Second answer.");
+    expect(firstResult.events.map((event) => event.type)).toContain("message.aborted");
+  });
+
+  it("aborts parent-cancelled turns even when the model ignores the abort signal", async () => {
+    const firstResponseStarted = deferred<void>();
+    let responseCalls = 0;
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (input.role !== "response") return { text: "{}" };
+        responseCalls += 1;
+        if (responseCalls === 1) {
+          firstResponseStarted.resolve();
+          return new Promise<never>(() => {});
+        }
+        return { text: "Recovered." };
+      },
+    };
+    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    const controller = new AbortController();
+
+    const first = runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "First question.",
+      signal: controller.signal,
+    });
+    await firstResponseStarted.promise;
+    controller.abort();
+    await expect(first).rejects.toMatchObject({ name: "AbortError" });
+    const second = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Second question.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(second.text).toBe("Recovered.");
+    expect(events.map((event) => event.type)).not.toContain("message.aborted");
+  });
+
   it("can opt out of interrupting active generations at the agent level", async () => {
     const firstResponseStarted = deferred<void>();
     const releaseFirstResponse = deferred<void>();

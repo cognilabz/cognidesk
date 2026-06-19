@@ -1,6 +1,6 @@
-import type { CompiledAgent, CompiledJourney } from "../definition.js";
-import { runtimeLogger } from "../logging.js";
-import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
+import type { CompiledAgent, CompiledJourney } from "../../definition.js";
+import { runtimeLogger } from "../../logging.js";
+import type { ConversationRecord, RuntimeEventInput } from "../../storage.js";
 import type {
   AnyTool,
   CustomRuntimeEventDefinition,
@@ -11,19 +11,23 @@ import type {
   RuntimeSnapshot,
   TextGenerationInput,
   TextGenerationOutput,
-} from "../types.js";
+} from "../../types.js";
+import {
+  listPendingSupportActions,
+  resolvePendingSupportAction,
+} from "../approvals.js";
 import {
   createRuntimeConversation,
   listRuntimeEvents,
   replayRuntimeConversation,
-} from "./facade-conversations.js";
+} from "../facade/conversations.js";
 import {
   emitRuntimeCustomEvent,
   emitRuntimeEvent,
   emitRuntimeGeneratedPreamble,
   emitRuntimeIntermediateMessage,
   resolveRuntimeCustomEvent,
-} from "./facade-events.js";
+} from "../facade/events.js";
 import {
   applyRuntimeBuiltInLifecycleTool,
   applyRuntimeConversationClosure,
@@ -32,7 +36,7 @@ import {
   createRuntimeLifecycleInterruptionResult,
   requireRuntimeConversation,
   requireRuntimeConversationRecord,
-} from "./facade-lifecycle.js";
+} from "../facade/lifecycle.js";
 import {
   compactRuntimeConversation,
   compactRuntimeIfNeeded,
@@ -44,7 +48,7 @@ import {
   redactRuntimeUserMessage,
   requireRuntimeAgent,
   requireRuntimeModels,
-} from "./facade-models.js";
+} from "../facade/models.js";
 import type {
   CompactConversationInput,
   ConversationMessage,
@@ -55,9 +59,10 @@ import type {
   RequestHandoffInput,
   ResumeConversationInput,
   RetrievedKnowledgeItem,
+  ResolvePendingSupportActionInput,
   RuntimeOptions,
   StateMachineTurnResult,
-} from "./types.js";
+} from "../types.js";
 
 export function createRuntimeCore(options: RuntimeOptions) {
   const logger = runtimeLogger(options);
@@ -105,6 +110,18 @@ export function createRuntimeCore(options: RuntimeOptions) {
     },
     replayConversation(input: { conversationId: string; afterOffset?: number }) {
       return replayRuntimeConversation(options, core.requireConversationRecord, input);
+    },
+    listPendingSupportActions(conversationId: string) {
+      return listPendingSupportActions(options, conversationId);
+    },
+    resolvePendingSupportAction(input: ResolvePendingSupportActionInput) {
+      return resolvePendingSupportAction({
+        options,
+        requireAgent: core.requireAgent,
+        requireConversation: core.requireConversation,
+        emit: core.emit,
+        applyBuiltInLifecycleTool: core.applyBuiltInLifecycleTool,
+      }, input);
     },
     getSnapshot(conversationId: string): Promise<RuntimeSnapshot | null> {
       return options.storage.getSnapshot(conversationId);

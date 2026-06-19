@@ -86,6 +86,176 @@ describe("runtime tools and actions 03", () => {
     });
   });
 
+  it("does not retry unclassified tool failures by default", async () => {
+    let attempts = 0;
+    const lookupTicket = tool("lookupTicket", {
+      input: z.object({ bookingReference: z.string() }),
+      output: z.object({ status: z.string() }),
+      execute: async () => {
+        attempts += 1;
+        throw new Error("bad request");
+      },
+    });
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (!input.messages.some((message) => message.role === "tool")) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_lookup",
+              name: "lookupTicket",
+              input: { bookingReference: "ABC123" },
+            }],
+          };
+        }
+        return { text: "Could not look up the ticket." };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(lookupTicket);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Look up ABC123.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(attempts).toBe(1);
+    expect(events.filter((event) => (
+      event.type === "message.completed" && event.data.intermediate
+    ))).toHaveLength(0);
+    expect(events.filter((event) => event.type === "tool.completed").at(0)).toMatchObject({
+      data: {
+        success: false,
+        error: "bad request",
+      },
+    });
+  });
+
+  it("preserves explicit retry config for unclassified tool failures", async () => {
+    let attempts = 0;
+    const lookupTicket = tool("lookupTicket", {
+      input: z.object({ bookingReference: z.string() }),
+      output: z.object({ status: z.string() }),
+      execute: async ({ input }) => {
+        attempts += 1;
+        if (attempts === 1) throw new Error("unclassified outage");
+        return { status: `${input.bookingReference}:confirmed` };
+      },
+    });
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (!input.messages.some((message) => message.role === "tool")) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_lookup",
+              name: "lookupTicket",
+              input: { bookingReference: "ABC123" },
+            }],
+          };
+        }
+        return { text: "Recovered." };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(lookupTicket);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+      toolRetry: { maxAttempts: 2, notice: "Trying the ticket lookup again." },
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Look up ABC123.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(result.text).toBe("Recovered.");
+    expect(attempts).toBe(2);
+    expect(events).toContainEqual(expect.objectContaining({
+      type: "message.completed",
+      data: expect.objectContaining({
+        text: "Trying the ticket lookup again.",
+        intermediate: true,
+      }),
+    }));
+  });
+
+  it("retries idempotent side-effect tools on transient failures", async () => {
+    let attempts = 0;
+    const chargeCard = tool("chargeCard", {
+      input: z.object({ amount: z.number() }),
+      output: z.object({ charged: z.boolean() }),
+      sideEffect: true,
+      idempotencyKey: ({ input }) => `charge:${input.amount}`,
+      execute: async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          const error = new Error("service unavailable") as Error & { status: number };
+          error.status = 503;
+          throw error;
+        }
+        return { charged: true };
+      },
+    });
+    const response = {
+      provider: "test",
+      model: "response",
+      generateText: async (input: TextGenerationInput) => {
+        if (!input.messages.some((message) => message.role === "tool")) {
+          return {
+            text: "",
+            toolCalls: [{
+              id: "call_charge",
+              name: "chargeCard",
+              input: { amount: 10 },
+            }],
+          };
+        }
+        return { text: "Charged." };
+      },
+    };
+    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    agentBuilder.tools.add(chargeCard);
+    const agent = agentBuilder.compile();
+    const runtime = createRuntime({
+      storage: new RecordingStorage(),
+      agent,
+      models: createModels({ response }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+
+    await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Charge me.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(attempts).toBe(2);
+    expect(events.filter((event) => event.type === "tool.completed").at(0)).toMatchObject({
+      data: {
+        success: true,
+        result: { charged: true },
+      },
+    });
+  });
+
   it("applies built-in lifecycle tools requested by the response model", async () => {
     const response = {
       provider: "test",

@@ -3,6 +3,7 @@ import type { CompiledAgent } from "../definition.js";
 import type { ConversationRecord, StorageAdapter } from "../storage.js";
 import type { RuntimeEvent } from "../types.js";
 import { AbortError } from "./errors.js";
+import { abortErrorFromSignal } from "./cancellation.js";
 import type { ActiveTurn, HandleUserMessageResult, RuntimeEventEmitter } from "./types.js";
 
 export async function beginUserTurn(args: {
@@ -17,7 +18,7 @@ export async function beginUserTurn(args: {
   let interruptedEvent: RuntimeEvent | undefined;
   if (previous && shouldInterrupt) {
     previous.interruptedByNewMessage = true;
-    previous.controller.abort(new Error("interrupted_by_new_message"));
+    previous.controller.abort(new AbortError("interrupted_by_new_message"));
     previous.abortEvent ??= args.emit({
       conversationId: args.conversationId,
       type: "message.aborted",
@@ -27,7 +28,7 @@ export async function beginUserTurn(args: {
   }
 
   const controller = new AbortController();
-  const abortFromParent = () => controller.abort(args.signal?.reason ?? new Error("aborted"));
+  const abortFromParent = () => controller.abort(args.signal ? abortErrorFromSignal(args.signal) : new AbortError("aborted"));
   if (args.signal?.aborted) abortFromParent();
   else args.signal?.addEventListener("abort", abortFromParent, { once: true });
 
@@ -52,6 +53,7 @@ export function finishUserTurn(activeTurns: Map<string, ActiveTurn>, turn: Activ
 
 export function throwIfTurnInterrupted(turn: ActiveTurn) {
   if (turn.interruptedByNewMessage) throw new AbortError("interrupted_by_new_message");
+  if (turn.controller.signal.aborted) throw abortErrorFromSignal(turn.controller.signal);
 }
 
 export async function createAbortedTurnResult(args: {

@@ -2,6 +2,7 @@ import type { CompiledJourney } from "../../definition.js";
 import type { ConversationRecord, RuntimeEventInput } from "../../storage.js";
 import type {
   AgentModelSet,
+  ConversationChannel,
   ModelAdapter,
   RuntimeEvent,
   TextGenerationInput,
@@ -44,6 +45,7 @@ type RunStateToolRuns = (args: {
   context: Record<string, unknown>;
   actionType: "entry" | "exit" | "transition";
   confirmedPromptId?: string;
+  channel?: ConversationChannel;
   signal?: AbortSignal;
   emit: RuntimeEmit;
 }) => Promise<string | null>;
