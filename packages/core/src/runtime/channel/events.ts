@@ -96,6 +96,7 @@ export function resolveChannelEventCapabilityDecision(args: {
   return evaluateCapabilityUse({
     request: {
       channel: args.channelEvent.channel.kind,
+      channelId: args.channelEvent.channel.channelId,
       capability,
       ...(args.channelEvent.source?.providerPackageId ? { providerPackageId: args.channelEvent.source.providerPackageId } : {}),
       outbound: args.channelEvent.direction === "outbound",
@@ -142,6 +143,7 @@ export function resolveChannelOutputCapabilityDecision(args: {
   return evaluateCapabilityUse({
     request: {
       channel: args.channel.kind,
+      channelId: args.channel.channelId,
       capability,
       ...(args.intent.providerPackageId ? { providerPackageId: args.intent.providerPackageId } : {}),
       ...(args.intent.actionAudience ? { actionAudience: args.intent.actionAudience } : {}),

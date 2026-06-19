@@ -42,6 +42,7 @@ export function evaluateToolPolicyUse(input: {
   return evaluateCapabilityUse({
     request: {
       channel: channel.kind,
+      channelId: channel.channelId,
       capability: policy?.capability ?? "model.call-tools",
       ...(policy?.providerPackageId ? { providerPackageId: policy.providerPackageId } : {}),
       ...(policy?.actionAudience ? { actionAudience: policy.actionAudience } : {}),

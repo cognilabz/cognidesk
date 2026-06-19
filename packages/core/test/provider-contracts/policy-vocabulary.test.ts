@@ -169,6 +169,61 @@ describe("provider policy and vocabulary contracts", () => {
       });
     });
 
+    it("fails closed for disabled policies and isolates policies with the same channel kind", () => {
+      expect(evaluateCapabilityUse({
+        request: {
+          channel: "email",
+          channelId: "email.support",
+          capability: "send",
+          externallyVisible: true,
+          requiredPolicyIds: ["approval"],
+        },
+        channels: [{
+          id: "email.support",
+          channel: "email",
+          enabled: false,
+          enabledCapabilities: ["send"],
+          policies: {
+            approval: { reviewer: "operator" },
+          },
+        }],
+      })).toMatchObject({
+        allowed: false,
+        code: "missing-channel-configuration",
+      });
+
+      expect(evaluateCapabilityUse({
+        request: {
+          channel: "email",
+          channelId: "email.billing",
+          capability: "send",
+          externallyVisible: true,
+          requiredPolicyIds: ["approval"],
+        },
+        channels: [
+          {
+            id: "email.support",
+            channel: "email",
+            enabledCapabilities: ["send"],
+            policies: {
+              approval: { reviewer: "operator" },
+            },
+          },
+          {
+            id: "email.billing",
+            channel: "email",
+            enabledCapabilities: ["draft"],
+            policies: {
+              approval: { reviewer: "operator" },
+            },
+          },
+        ],
+      })).toMatchObject({
+        allowed: false,
+        code: "capability-not-enabled",
+      });
+    });
+
     it("enforces provider outbound direction only for SDK-declared outbound use", () => {
       const providerPackages = [
         defineProviderPackage({

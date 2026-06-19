@@ -161,6 +161,7 @@ export type ChannelPolicyConfigInput = z.input<typeof ChannelPolicyConfigSchema>
 
 export const CapabilityUseRequestSchema = z.object({
   channel: ConversationChannelKindSchema,
+  channelId: z.string().min(1).optional(),
   capability: ChannelCapabilitySchema,
   providerPackageId: z.string().min(1).optional(),
   actionAudience: ActionAudienceSchema.optional(),
@@ -207,11 +208,12 @@ export function evaluateCapabilityUse(input: {
   const channels = input.channels.map((channel) => ChannelPolicyConfigSchema.parse(channel));
   const availability = (input.availability ?? []).map((candidate) => CapabilityAvailabilitySchema.parse(candidate));
   const providerPackages = (input.providerPackages ?? []).map((candidate) => ProviderManifestSchema.parse(candidate));
-  const policy = channels.find((candidate) => candidate.channel === request.channel);
+  const policy = resolveCapabilityPolicy(channels, request);
   if (!policy) {
-    return blocked("missing-channel-configuration", `Channel '${request.channel}' is not configured.`, [{
+    const channelReference = request.channelId ? `${request.channel}/${request.channelId}` : request.channel;
+    return blocked("missing-channel-configuration", `Channel '${channelReference}' is not configured.`, [{
       code: "missing-channel-configuration",
-      message: `Channel '${request.channel}' is not configured.`,
+      message: `Channel '${channelReference}' is not configured.`,
       kind: "missing-configuration",
     }]);
   }
@@ -285,6 +287,23 @@ export function evaluateCapabilityUse(input: {
   }
 
   return { allowed: true, policy };
+}
+
+function resolveCapabilityPolicy(
+  channels: ChannelPolicyConfig[],
+  request: CapabilityUseRequest,
+): ChannelPolicyConfig | undefined {
+  if (request.channelId) {
+    const exactPolicy = channels.find((candidate) =>
+      candidate.id === request.channelId
+      && candidate.channel === request.channel
+    );
+    if (exactPolicy) return exactPolicy.enabled !== false ? exactPolicy : undefined;
+  }
+  return channels.find((candidate) =>
+    candidate.enabled !== false
+    && candidate.channel === request.channel
+  );
 }
 
 function blocked(

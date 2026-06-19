@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRuntime, type RuntimeEvent } from "../../src/index.js";
+import { createRuntime, defineChannelPolicy, type RuntimeEvent } from "../../src/index.js";
 import { RecordingStorage } from "../runtime/fixtures.js";
 import { ticketingOutputConfiguration } from "./helpers.js";
 
@@ -178,6 +178,71 @@ describe("channel output resolution runtime", () => {
           reasonCode: "missing-policy",
         },
       });
+    });
+
+    it("uses the concrete channel policy instead of another policy with the same channel kind", async () => {
+      const config = ticketingOutputConfiguration();
+      const runtime = createRuntime({
+        storage: new RecordingStorage(),
+        providerPackages: config.providerPackages,
+        channels: [
+          defineChannelPolicy({
+            id: "ticketing.default",
+            channel: "ticketing",
+            providerPackageIds: ["ticketing.front"],
+            enabledCapabilities: ["send"],
+            outbound: {
+              enabled: true,
+              providerPackageIds: ["ticketing.front"],
+              requiresProviderOutboundSupport: true,
+              policyIds: ["front-send-policy"],
+            },
+            policies: { "front-send-policy": { reviewer: "operator" } },
+          }),
+          defineChannelPolicy({
+            id: "front.ticketing",
+            channel: "ticketing",
+            providerPackageIds: ["ticketing.front"],
+            enabledCapabilities: ["draft"],
+            outbound: {
+              enabled: true,
+              providerPackageIds: ["ticketing.front"],
+              requiresProviderOutboundSupport: true,
+              policyIds: ["front-send-policy"],
+            },
+            policies: { "front-send-policy": { reviewer: "operator" } },
+          }),
+        ],
+      });
+      const conversation = await runtime.createConversation({
+        agentId: "support",
+        context: {},
+        channel: {
+          channelId: "front.ticketing",
+          kind: "ticketing",
+          provider: "front",
+        },
+      });
+
+      const result = await runtime.resolveChannelOutput({
+        conversationId: conversation.id,
+        intent: {
+          kind: "message.reply",
+          text: "Customer-visible update.",
+          providerPackageId: "ticketing.front",
+          capability: "send",
+          actionAudience: "customer-facing",
+          externallyVisible: true,
+          requiredPolicyIds: ["front-send-policy"],
+        },
+      });
+
+      expect(result.resolution).toMatchObject({
+        outcome: "block",
+        status: "blocked",
+        reasonCode: "capability-not-enabled",
+      });
+      expect(result.shouldExecute).toBe(false);
     });
 
     it("lets SDK policy hooks return approval-shaped Channel Output outcomes without built-in business reasons", async () => {
