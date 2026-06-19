@@ -9,18 +9,58 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./voice/aws-speech": {
+      "types": "./dist/voice/aws-speech/index.d.ts",
+      "import": "./dist/voice/aws-speech/index.js"
+    },
+    "./voice/azure-speech": {
+      "types": "./dist/voice/azure-speech/index.d.ts",
+      "import": "./dist/voice/azure-speech/index.js"
+    },
+    "./voice/deepgram": {
+      "types": "./dist/voice/deepgram/index.d.ts",
+      "import": "./dist/voice/deepgram/index.js"
+    },
+    "./voice/elevenlabs": {
+      "types": "./dist/voice/elevenlabs/index.d.ts",
+      "import": "./dist/voice/elevenlabs/index.js"
+    },
+    "./voice/google-speech": {
+      "types": "./dist/voice/google-speech/index.d.ts",
+      "import": "./dist/voice/google-speech/index.js"
+    },
+    "./voice/openai": {
+      "types": "./dist/voice/openai/index.d.ts",
+      "import": "./dist/voice/openai/index.js"
+    },
+    "./voice/sip": {
+      "types": "./dist/voice/sip/index.d.ts",
+      "import": "./dist/voice/sip/index.js"
+    },
+    "./voice/twilio": {
+      "types": "./dist/voice/twilio/index.d.ts",
+      "import": "./dist/voice/twilio/index.js"
+    },
+    "./voice/vonage": {
+      "types": "./dist/voice/vonage/index.d.ts",
+      "import": "./dist/voice/vonage/index.js"
     }
   },
   "scripts": {
-    "build": "pnpm --filter @cognidesk/core build && tsup src/index.ts --format esm --dts --clean",
-    "typecheck": "pnpm --filter @cognidesk/core build && tsc -p tsconfig.json --noEmit",
+    "build:deps": "pnpm --filter @cognidesk/core --filter @cognidesk/voice-websocket --filter @cognidesk/test-harness build",
+    "build": "pnpm run build:deps && tsup src/index.ts src/voice/aws-speech/index.ts src/voice/azure-speech/index.ts src/voice/deepgram/index.ts src/voice/elevenlabs/index.ts src/voice/google-speech/index.ts src/voice/openai/index.ts src/voice/sip/index.ts src/voice/twilio/index.ts src/voice/vonage/index.ts --format esm --dts --clean --external openai",
+    "typecheck": "pnpm run build:deps && tsc -p tsconfig.json --noEmit",
     "test": "pnpm run build && vitest run",
-    "lint": "tsc -p tsconfig.json --noEmit"
+    "lint": "pnpm run build:deps && tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*"
+    "@cognidesk/core": "workspace:*",
+    "@cognidesk/voice-websocket": "workspace:*",
+    "openai": "^6.42.0"
   },
   "devDependencies": {
+    "@cognidesk/test-harness": "workspace:*",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"

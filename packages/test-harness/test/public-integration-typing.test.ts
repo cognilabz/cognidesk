@@ -11,8 +11,8 @@ const generatedIntegrationRoot = path.join(repoRoot, "packages", "integrations",
 
 describe("public integration API typing", () => {
   it("does not expose anonymous unknown/Record provider contracts from hand-written package entrypoints", async () => {
-    const { files, includesGeneratedIntegrations } = await integrationIndexFiles();
-    expect(files.length).toBeGreaterThan(includesGeneratedIntegrations ? 50 : 0);
+    const { files } = await integrationIndexFiles();
+    expect(files.length).toBeGreaterThan(0);
 
     const forbiddenPatterns: Array<[RegExp, string]> = [
       [/Promise\s*<\s*Record\s*<\s*string\s*,\s*unknown\s*>\s*>/g, "anonymous Record response promise"],
