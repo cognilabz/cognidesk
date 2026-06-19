@@ -200,7 +200,7 @@ describe("@cognidesk/integrations/voice/openai", () => {
       },
     });
     expect(JSON.stringify(realtime.sent[1])).toContain("Your flight is confirmed.");
-    realtime.emit(responseDoneEvent());
+    realtime.emit(responseDoneEvent(speechIdFromSentEvent(realtime.sent[1])));
     await speaking;
   });
 
@@ -231,8 +231,93 @@ describe("@cognidesk/integrations/voice/openai", () => {
       },
     });
     expect(JSON.stringify(realtime.sent[1])).toContain("For the greeting 'Hallo', prefer German.");
-    realtime.emit(responseDoneEvent());
+    realtime.emit(responseDoneEvent(speechIdFromSentEvent(realtime.sent[1])));
     await preamble;
+  });
+
+  it("does not resolve queued speech from unrelated response lifecycle events", async () => {
+    const realtime = new FakeRealtimeSocket();
+    const provider = createOpenAIVoiceProvider({
+      apiKey: "test-key",
+      realtime: async () => realtime,
+    });
+    const session = await provider.connect({
+      session: fakeVoiceSession(),
+      signal: new AbortController().signal,
+      onEvent: () => undefined,
+    });
+    let firstResolved = false;
+    let secondResolved = false;
+
+    const first = Promise.resolve(session.speak({ text: "First requested speech." }));
+    first.then(() => {
+      firstResolved = true;
+    });
+    await flushAsync();
+    const firstSpeechId = speechIdFromSentEvent(realtime.sent[1]);
+
+    const second = Promise.resolve(session.speak({ text: "Second requested speech." }));
+    second.then(() => {
+      secondResolved = true;
+    });
+    await flushAsync();
+    expect(realtime.sent).toHaveLength(2);
+
+    realtime.emit({
+      type: "response.created",
+      event_id: "event_unrelated_created",
+      response: {
+        object: "realtime.response",
+        id: "response_unrelated",
+        status: "in_progress",
+      },
+    } as RealtimeServerEvent);
+    realtime.emit({
+      type: "response.done",
+      event_id: "event_unrelated_done",
+      response: {
+        object: "realtime.response",
+        id: "response_unrelated",
+        status: "completed",
+      },
+    } as RealtimeServerEvent);
+    await flushAsync();
+
+    expect(firstResolved).toBe(false);
+    expect(secondResolved).toBe(false);
+    expect(realtime.sent).toHaveLength(2);
+
+    realtime.emit({
+      type: "response.created",
+      event_id: "event_first_created",
+      response: {
+        object: "realtime.response",
+        id: "response_first",
+        status: "in_progress",
+        metadata: {
+          cognidesk_voice_id: firstSpeechId,
+        },
+      },
+    } as RealtimeServerEvent);
+    realtime.emit({
+      type: "response.done",
+      event_id: "event_first_done",
+      response: {
+        object: "realtime.response",
+        id: "response_first",
+        status: "completed",
+      },
+    } as RealtimeServerEvent);
+    await first;
+    await flushAsync();
+
+    expect(firstResolved).toBe(true);
+    expect(secondResolved).toBe(false);
+    expect(realtime.sent).toHaveLength(3);
+
+    realtime.emit(responseDoneEvent(speechIdFromSentEvent(realtime.sent[2])));
+    await second;
+    expect(secondResolved).toBe(true);
   });
 
   it("forwards realtime response lifecycle payloads as JSON browser protocol events", async () => {
@@ -494,3 +579,13 @@ describe("@cognidesk/integrations/voice/openai", () => {
     })).rejects.toThrow("supports only gpt-realtime-2");
   });
 });
+
+function speechIdFromSentEvent(event: unknown) {
+  if (!event || typeof event !== "object" || !("response" in event)) {
+    throw new Error("Expected realtime response.create event.");
+  }
+  const response = (event as { response?: { metadata?: { cognidesk_voice_id?: unknown } } }).response;
+  const speechId = response?.metadata?.cognidesk_voice_id;
+  if (typeof speechId !== "string") throw new Error("Expected Cognidesk speech id metadata.");
+  return speechId;
+}

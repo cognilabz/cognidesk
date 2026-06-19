@@ -144,7 +144,7 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
           return;
         }
         if (event.type === "response.created") {
-          if (responseHasSpeechId(event.response, pendingSpeech.id) || !pendingSpeech.responseId) {
+          if (responseHasSpeechId(event.response, pendingSpeech.id)) {
             if (event.response.id) pendingSpeech.responseId = event.response.id;
           }
           return;
@@ -152,7 +152,7 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
         if (event.type !== "response.done") return;
         const matchesResponseId = Boolean(pendingSpeech.responseId && event.response.id === pendingSpeech.responseId);
         const matchesSpeechId = responseHasSpeechId(event.response, pendingSpeech.id);
-        if (!matchesResponseId && !matchesSpeechId && pendingSpeech.responseId) return;
+        if (!matchesResponseId && !matchesSpeechId) return;
         const pending = pendingSpeech;
         pendingSpeech = null;
         clearTimeout(pending.timeout);

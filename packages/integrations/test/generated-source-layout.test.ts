@@ -70,7 +70,7 @@ describe("generated provider source layout", () => {
     expect(failures).toEqual([]);
   });
 
-  it("keeps provider SDKs out of install-time dependencies", async () => {
+  it("keeps install-time dependencies limited to public runtime requirements", async () => {
     const manifest = JSON.parse(await readFile(path.join(integrationsPackage, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
@@ -83,6 +83,8 @@ describe("generated provider source layout", () => {
 
     expect(Object.keys(manifest.dependencies ?? {}).sort()).toEqual([
       "@cognidesk/core",
+      "@cognidesk/voice-websocket",
+      "openai",
     ]);
     expect(manifest.optionalDependencies ?? {}).toEqual({});
     expect(manifest.bundledDependencies ?? manifest.bundleDependencies ?? []).toEqual([]);

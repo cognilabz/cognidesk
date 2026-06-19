@@ -28,13 +28,14 @@ export class FakeRealtimeSocket {
   }
 }
 
-export function responseDoneEvent(): RealtimeServerEvent {
+export function responseDoneEvent(cognideskVoiceId?: string): RealtimeServerEvent {
   return {
     type: "response.done",
     event_id: "event_response_done",
     response: {
       object: "realtime.response",
       status: "completed",
+      ...(cognideskVoiceId ? { metadata: { cognidesk_voice_id: cognideskVoiceId } } : {}),
     },
   } as RealtimeServerEvent;
 }
