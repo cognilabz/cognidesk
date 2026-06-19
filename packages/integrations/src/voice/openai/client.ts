@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import type {
   RealtimeClientEvent,
   RealtimeServerEvent,
@@ -41,10 +41,6 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
   if (model !== OPENAI_REALTIME_V1_MODEL) {
     throw new Error(`@cognidesk/integrations/voice/openai v1 supports only ${OPENAI_REALTIME_V1_MODEL}.`);
   }
-  const client = options.client ?? new OpenAI({
-    apiKey: options.apiKey,
-    ...(options.baseURL ? { baseURL: options.baseURL } : {}),
-  });
   const realtime = options.realtime ?? createOpenAIRealtimeSocket;
 
   return {
@@ -52,6 +48,7 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
     async connect(input): Promise<VoiceProviderSession> {
       const profileModel = input.profile?.modelSet;
       assertSupportedModel(profileModel);
+      const client = options.client ?? await createOpenAIClient(options);
       const socket = await realtime({ client, model });
       let speechQueue = Promise.resolve();
       let pendingSpeech: PendingSpeech | null = null;
@@ -171,6 +168,14 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
       }
     },
   };
+}
+
+async function createOpenAIClient(options: OpenAIVoiceProviderOptions): Promise<OpenAI> {
+  const { default: OpenAI } = await import("openai");
+  return new OpenAI({
+    apiKey: options.apiKey,
+    ...(options.baseURL ? { baseURL: options.baseURL } : {}),
+  });
 }
 
 export const createOpenAIVoiceAdapter = createOpenAIVoiceProvider;

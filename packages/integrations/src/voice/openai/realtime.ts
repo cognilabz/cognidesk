@@ -1,9 +1,10 @@
-import { OpenAIRealtimeWS } from "openai/realtime/ws";
+import type { OpenAIRealtimeWS } from "openai/realtime/ws";
 import type { OpenAIRealtimeFactoryInput, OpenAIRealtimeSocket } from "./contracts.js";
 
 export async function createOpenAIRealtimeSocket(
   input: OpenAIRealtimeFactoryInput,
 ): Promise<OpenAIRealtimeSocket> {
+  const { OpenAIRealtimeWS } = await import("openai/realtime/ws");
   const socket = await OpenAIRealtimeWS.create(input.client, { model: input.model });
   await waitForRealtimeOpen(socket);
   return socket;
