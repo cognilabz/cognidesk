@@ -1,4 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 import {
   clientFileSuffix,
   operationsFileSuffix,
@@ -14,7 +15,7 @@ import {
   renderClientFile,
 } from "./harden-generated-client-types/surface-files.mjs";
 
-const files = await walk(packagesDir);
+const files = await walk(path.join(packagesDir, "integrations", "src"));
 const operationFiles = files
   .filter((file) => file.endsWith(operationsFileSuffix))
   .sort((a, b) => a.localeCompare(b));
