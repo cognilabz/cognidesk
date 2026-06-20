@@ -201,6 +201,40 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
       });
     });
 
+    it("paginates conversations losslessly when updatedAt values are tied", async () => {
+      await withStorage(async (storage) => {
+        const updatedAt = "2099-02-01T00:00:00.000Z";
+        for (const id of ["conv_cursor_a", "conv_cursor_b", "conv_cursor_c", "conv_cursor_d"]) {
+          await storage.createConversation({ id, agentId: "support", context: {} });
+          await storage.appendEvent({
+            conversationId: id,
+            type: "message.completed",
+            createdAt: updatedAt,
+            data: { text: id },
+          });
+        }
+
+        const firstPage = await storage.listConversations({ agentId: "support", limit: 2 });
+        expect(firstPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_a", "conv_cursor_b"]);
+
+        const cursor = firstPage[1];
+        expect(cursor).toBeDefined();
+        const secondPage = await storage.listConversations({
+          agentId: "support",
+          before: { updatedAt: cursor!.updatedAt, id: cursor!.id },
+          limit: 2,
+        });
+        expect(secondPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_c", "conv_cursor_d"]);
+
+        const previousPage = await storage.listConversations({
+          agentId: "support",
+          after: { updatedAt: secondPage[0]!.updatedAt, id: secondPage[0]!.id },
+          limit: 2,
+        });
+        expect(previousPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_a", "conv_cursor_b"]);
+      });
+    });
+
     it("rejects orphan events and snapshots", async () => {
       await withStorage(async (storage) => {
         await expect(storage.appendEvent({

@@ -120,6 +120,16 @@ export class RecordingStorage implements StorageAdapter {
   ): Promise<ConversationRecord<TConversationContext>[]> {
     return Array.from(this.conversations.values())
       .filter((conversation) => options.agentId === undefined || conversation.agentId === options.agentId)
+      .filter((conversation) =>
+        options.before === undefined
+        || conversation.updatedAt < options.before.updatedAt
+        || (conversation.updatedAt === options.before.updatedAt && conversation.id > options.before.id)
+      )
+      .filter((conversation) =>
+        options.after === undefined
+        || conversation.updatedAt > options.after.updatedAt
+        || (conversation.updatedAt === options.after.updatedAt && conversation.id < options.after.id)
+      )
       .filter((conversation) => options.beforeUpdatedAt === undefined || conversation.updatedAt < options.beforeUpdatedAt)
       .filter((conversation) => options.afterUpdatedAt === undefined || conversation.updatedAt > options.afterUpdatedAt)
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt) || left.id.localeCompare(right.id))

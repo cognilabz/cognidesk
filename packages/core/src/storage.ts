@@ -23,9 +23,18 @@ export interface ListEventsOptions {
   limit?: number;
 }
 
+export interface ConversationListCursor {
+  updatedAt: string;
+  id: string;
+}
+
 export interface ListConversationsOptions {
   agentId?: string;
+  before?: ConversationListCursor;
+  after?: ConversationListCursor;
+  /** Timestamp-only range filter. Use `before` for lossless cursor pagination. */
   beforeUpdatedAt?: string;
+  /** Timestamp-only range filter. Use `after` for lossless cursor pagination. */
   afterUpdatedAt?: string;
   limit?: number;
 }

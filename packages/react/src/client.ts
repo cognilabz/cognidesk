@@ -101,6 +101,10 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
     listConversations(listOptions = {}) {
       const suffix = queryString({
         agentId: listOptions.agentId,
+        beforeUpdatedAt: listOptions.before?.updatedAt,
+        beforeId: listOptions.before?.id,
+        afterUpdatedAt: listOptions.after?.updatedAt,
+        afterId: listOptions.after?.id,
         before: listOptions.beforeUpdatedAt,
         after: listOptions.afterUpdatedAt,
         limit: listOptions.limit,

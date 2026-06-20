@@ -10,7 +10,7 @@ import type {
   RuntimeSnapshot,
   StorageAdapter,
 } from "@cognidesk/core";
-import { and, asc, desc, eq, gt, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Client, Pool, PoolConfig } from "pg";
 import {
@@ -132,6 +132,20 @@ export class PostgresStorageAdapter implements StorageAdapter {
   ): Promise<ConversationRecord<TConversationContext>[]> {
     const filters = [
       ...(options.agentId ? [eq(postgresConversations.agentId, options.agentId)] : []),
+      ...(options.before ? [or(
+        lt(postgresConversations.updatedAt, options.before.updatedAt),
+        and(
+          eq(postgresConversations.updatedAt, options.before.updatedAt),
+          gt(postgresConversations.id, options.before.id),
+        ),
+      )] : []),
+      ...(options.after ? [or(
+        gt(postgresConversations.updatedAt, options.after.updatedAt),
+        and(
+          eq(postgresConversations.updatedAt, options.after.updatedAt),
+          lt(postgresConversations.id, options.after.id),
+        ),
+      )] : []),
       ...(options.beforeUpdatedAt ? [lt(postgresConversations.updatedAt, options.beforeUpdatedAt)] : []),
       ...(options.afterUpdatedAt ? [gt(postgresConversations.updatedAt, options.afterUpdatedAt)] : []),
     ];
@@ -306,6 +320,8 @@ const postgresMigrationStatements = [
     updated_at TEXT NOT NULL
   )`,
   "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS channel_json JSONB",
+  "CREATE INDEX IF NOT EXISTS conversations_updated_id_idx ON conversations(updated_at, id)",
+  "CREATE INDEX IF NOT EXISTS conversations_agent_updated_id_idx ON conversations(agent_id, updated_at, id)",
   `CREATE TABLE IF NOT EXISTS runtime_events (
     id TEXT PRIMARY KEY,
     conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,

@@ -60,12 +60,22 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           if (!options.runtime.listConversations) return json({ error: "Conversation listing is not supported by this runtime" }, 501, responseOptions);
           const limit = parseOptionalInteger(url.searchParams.get("limit"), "limit");
           const agentId = optionalSearchString(url.searchParams, "agentId");
-          const beforeUpdatedAt = optionalSearchString(url.searchParams, "before");
-          const afterUpdatedAt = optionalSearchString(url.searchParams, "after");
+          const beforeUpdatedAt = optionalSearchString(url.searchParams, "beforeUpdatedAt") ?? optionalSearchString(url.searchParams, "before");
+          const afterUpdatedAt = optionalSearchString(url.searchParams, "afterUpdatedAt") ?? optionalSearchString(url.searchParams, "after");
+          const beforeId = optionalSearchString(url.searchParams, "beforeId");
+          const afterId = optionalSearchString(url.searchParams, "afterId");
+          if ((beforeId && !beforeUpdatedAt) || (beforeUpdatedAt && beforeId === undefined && url.searchParams.has("beforeId"))) {
+            throw new HttpInputError("beforeUpdatedAt and beforeId must be provided together.");
+          }
+          if ((afterId && !afterUpdatedAt) || (afterUpdatedAt && afterId === undefined && url.searchParams.has("afterId"))) {
+            throw new HttpInputError("afterUpdatedAt and afterId must be provided together.");
+          }
           const conversations = await options.runtime.listConversations({
             ...(agentId ? { agentId } : {}),
-            ...(beforeUpdatedAt ? { beforeUpdatedAt } : {}),
-            ...(afterUpdatedAt ? { afterUpdatedAt } : {}),
+            ...(beforeUpdatedAt && beforeId ? { before: { updatedAt: beforeUpdatedAt, id: beforeId } } : {}),
+            ...(afterUpdatedAt && afterId ? { after: { updatedAt: afterUpdatedAt, id: afterId } } : {}),
+            ...(beforeUpdatedAt && !beforeId ? { beforeUpdatedAt } : {}),
+            ...(afterUpdatedAt && !afterId ? { afterUpdatedAt } : {}),
             ...(limit !== undefined ? { limit } : {}),
           });
           return json({ conversations }, 200, responseOptions);

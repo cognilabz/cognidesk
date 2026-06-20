@@ -8,7 +8,10 @@ export const postgresConversations = pgTable("conversations", {
   channelJson: jsonb("channel_json"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
-});
+}, (table) => [
+  index("conversations_updated_id_idx").on(table.updatedAt, table.id),
+  index("conversations_agent_updated_id_idx").on(table.agentId, table.updatedAt, table.id),
+]);
 
 export const postgresRuntimeEvents = pgTable("runtime_events", {
   id: text("id").primaryKey(),

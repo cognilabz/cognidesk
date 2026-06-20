@@ -292,6 +292,12 @@ describe("createCognideskClient HTTP route calls", () => {
         afterUpdatedAt: "2026-05-24T00:00:00.000Z",
         limit: 5,
       });
+      await client.listConversations({
+        agentId: "flight-service",
+        before: { updatedAt: "2026-05-27T00:00:00.000Z", id: "conversation_9" },
+        after: { updatedAt: "2026-05-24T00:00:00.000Z", id: "conversation_1" },
+        limit: 2,
+      });
       await client.startVoiceConversation({
         agentId: "flight-service",
         context: { locale: "en" },
@@ -359,6 +365,10 @@ describe("createCognideskClient HTTP route calls", () => {
         },
         {
           url: "http://localhost/api/conversations?agentId=flight-service&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z&limit=5",
+          body: {},
+        },
+        {
+          url: "http://localhost/api/conversations?agentId=flight-service&beforeUpdatedAt=2026-05-27T00%3A00%3A00.000Z&beforeId=conversation_9&afterUpdatedAt=2026-05-24T00%3A00%3A00.000Z&afterId=conversation_1&limit=2",
           body: {},
         },
         {

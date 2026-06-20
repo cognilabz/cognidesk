@@ -50,4 +50,33 @@ describe("runtime conversations", () => {
       { id: "conv_old", context: { locale: "en" } },
     ]);
   });
+
+  it("lists conversations through the runtime with a composite cursor", async () => {
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({ storage });
+    const updatedAt = "2099-02-01T00:00:00.000Z";
+
+    for (const id of ["conv_cursor_a", "conv_cursor_b", "conv_cursor_c", "conv_cursor_d"]) {
+      await runtime.createConversation({ id, agentId: "flight-service", context: {} });
+      await runtime.emit({
+        conversationId: id,
+        type: "message.completed",
+        createdAt: updatedAt,
+        data: { text: id },
+      });
+    }
+
+    const firstPage = await runtime.listConversations({ agentId: "flight-service", limit: 2 });
+    expect(firstPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_a", "conv_cursor_b"]);
+
+    const cursor = firstPage[1]!;
+    await expect(runtime.listConversations({
+      agentId: "flight-service",
+      before: { updatedAt: cursor.updatedAt, id: cursor.id },
+      limit: 2,
+    })).resolves.toMatchObject([
+      { id: "conv_cursor_c" },
+      { id: "conv_cursor_d" },
+    ]);
+  });
 });

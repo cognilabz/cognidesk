@@ -2,6 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRuntime } from "@cognidesk/core";
+import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { defineStorageAdapterConformanceSuite } from "../src/conformance.js";
 import { createSqliteStorage, type SqliteStorageAdapter } from "../src/sqlite.js";
@@ -22,6 +23,30 @@ async function withStorageFile<T>(fn: (filename: string) => Promise<T>) {
 }
 
 describe("SQLite runtime integration", () => {
+  it("creates conversation listing indexes during initialization", async () => {
+    await withStorageFile(async (filename) => {
+      const storage = createSqliteStorage({ filename });
+      try {
+        await storage.initialize();
+        const client = createClient({ url: `file:${filename}` });
+        try {
+          const result = await client.execute({
+            sql: "SELECT name FROM sqlite_master WHERE type = 'index' AND name IN (?, ?) ORDER BY name",
+            args: ["conversations_agent_updated_id_idx", "conversations_updated_id_idx"],
+          });
+          expect(result.rows.map((row) => row.name)).toEqual([
+            "conversations_agent_updated_id_idx",
+            "conversations_updated_id_idx",
+          ]);
+        } finally {
+          client.close();
+        }
+      } finally {
+        storage.close();
+      }
+    });
+  });
+
   it("persists conversations, events, and snapshots in a real sqlite file", async () => {
     await withStorageFile(async (filename) => {
       const storage = createSqliteStorage({ filename });
