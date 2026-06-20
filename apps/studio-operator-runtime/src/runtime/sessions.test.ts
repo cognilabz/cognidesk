@@ -13,6 +13,7 @@ vi.mock("./sandbox.js", () => {
 });
 
 const socket = { readyState: WebSocket.OPEN, send: vi.fn() } as unknown as WebSocket;
+const sessionId = "11111111-1111-4111-8111-111111111111";
 
 describe("operator runtime session authorization", () => {
   beforeEach(() => {
@@ -29,11 +30,11 @@ describe("operator runtime session authorization", () => {
   });
 
   it("lets the owning user resume an in-memory session turn", async () => {
-    sessions.set("session-1", session({ userId: "owner" }));
+    sessions.set(sessionId, session({ userId: "owner" }));
 
     await handleClientMessage(socket, claims({ userId: "owner" }), JSON.stringify({
       type: "turn.start",
-      sessionId: "session-1",
+      sessionId,
       message: "continue",
     }));
 
@@ -41,21 +42,21 @@ describe("operator runtime session authorization", () => {
       threadId: "thread-1",
       message: "continue",
     }));
-    expect(sessions.get("session-1")?.currentTurnId).toBe("next-turn");
+    expect(sessions.get(sessionId)?.currentTurnId).toBe("next-turn");
   });
 
   it("blocks a non-owner from resuming or interrupting an in-memory session", async () => {
-    sessions.set("session-1", session({ userId: "owner", currentTurnId: "turn-1" }));
+    sessions.set(sessionId, session({ userId: "owner", currentTurnId: "turn-1" }));
 
     await expect(handleClientMessage(socket, claims({ userId: "intruder" }), JSON.stringify({
       type: "turn.start",
-      sessionId: "session-1",
+      sessionId,
       message: "take over",
     }))).rejects.toThrow("Operator session access denied");
 
     await expect(handleClientMessage(socket, claims({ userId: "intruder" }), JSON.stringify({
       type: "turn.interrupt",
-      sessionId: "session-1",
+      sessionId,
     }))).rejects.toThrow("Operator session access denied");
 
     expect(codex.startTurn).not.toHaveBeenCalled();
@@ -63,25 +64,25 @@ describe("operator runtime session authorization", () => {
   });
 
   it("lets an admin interrupt another user's in-memory session", async () => {
-    sessions.set("session-1", session({ userId: "owner", currentTurnId: "turn-1" }));
+    sessions.set(sessionId, session({ userId: "owner", currentTurnId: "turn-1" }));
 
     await handleClientMessage(socket, claims({ userId: "admin", role: "admin" }), JSON.stringify({
       type: "turn.interrupt",
-      sessionId: "session-1",
+      sessionId,
     }));
 
     expect(codex.interruptTurn).toHaveBeenCalledWith("thread-1", "turn-1");
   });
 
   it("lets a caller with admin scope resume another user's in-memory session", async () => {
-    sessions.set("session-1", session({ userId: "owner" }));
+    sessions.set(sessionId, session({ userId: "owner" }));
 
     await handleClientMessage(socket, claims({
       userId: "scoped",
       permissions: ["admin:manage"],
     }), JSON.stringify({
       type: "turn.start",
-      sessionId: "session-1",
+      sessionId,
       message: "authorized takeover",
     }));
 
@@ -92,39 +93,39 @@ describe("operator runtime session authorization", () => {
   });
 
   it("lets the owning user reuse an existing session id when starting a session", async () => {
-    sessions.set("session-1", session({ userId: "owner", threadId: "old-thread" }));
-    threadToSession.set("old-thread", "session-1");
+    sessions.set(sessionId, session({ userId: "owner", threadId: "old-thread" }));
+    threadToSession.set("old-thread", sessionId);
 
     await handleClientMessage(socket, claims({ userId: "owner" }), JSON.stringify({
       type: "session.start",
-      sessionId: "session-1",
+      sessionId,
       targetId: "target-2",
       modelId: "gpt-5",
     }));
 
-    expect(prepareSandbox).toHaveBeenCalledWith("session-1");
+    expect(prepareSandbox).toHaveBeenCalledWith(sessionId);
     expect(codex.startThread).toHaveBeenCalledWith(expect.objectContaining({
-      cwd: "/tmp/cognidesk-test/session-1",
+      cwd: `/tmp/cognidesk-test/${sessionId}`,
       model: "gpt-5",
     }));
-    expect(sessions.get("session-1")).toEqual(expect.objectContaining({
-      sessionId: "session-1",
+    expect(sessions.get(sessionId)).toEqual(expect.objectContaining({
+      sessionId,
       targetId: "target-2",
       userId: "owner",
       threadId: "new-thread",
       modelId: "gpt-5",
     }));
-    expect(threadToSession.get("new-thread")).toBe("session-1");
+    expect(threadToSession.get("new-thread")).toBe(sessionId);
   });
 
   it("blocks a non-owner from overwriting an existing session id", async () => {
     const existing = session({ userId: "owner", threadId: "old-thread" });
-    sessions.set("session-1", existing);
-    threadToSession.set("old-thread", "session-1");
+    sessions.set(sessionId, existing);
+    threadToSession.set("old-thread", sessionId);
 
     await expect(handleClientMessage(socket, claims({ userId: "intruder" }), JSON.stringify({
       type: "session.start",
-      sessionId: "session-1",
+      sessionId,
       targetId: "target-2",
       message: "hijack",
     }))).rejects.toThrow("Operator session access denied");
@@ -132,29 +133,46 @@ describe("operator runtime session authorization", () => {
     expect(prepareSandbox).not.toHaveBeenCalled();
     expect(codex.startThread).not.toHaveBeenCalled();
     expect(codex.startTurn).not.toHaveBeenCalled();
-    expect(sessions.get("session-1")).toBe(existing);
-    expect(threadToSession.get("old-thread")).toBe("session-1");
+    expect(sessions.get(sessionId)).toBe(existing);
+    expect(threadToSession.get("old-thread")).toBe(sessionId);
   });
 
   it("lets a caller with admin scope overwrite another user's existing session id", async () => {
-    sessions.set("session-1", session({ userId: "owner", threadId: "old-thread" }));
+    sessions.set(sessionId, session({ userId: "owner", threadId: "old-thread" }));
 
     await handleClientMessage(socket, claims({
       userId: "scoped",
       permissions: ["admin:manage"],
     }), JSON.stringify({
       type: "session.start",
-      sessionId: "session-1",
+      sessionId,
       targetId: "target-2",
     }));
 
     expect(codex.startThread).toHaveBeenCalled();
-    expect(sessions.get("session-1")).toEqual(expect.objectContaining({
+    expect(sessions.get(sessionId)).toEqual(expect.objectContaining({
       targetId: "target-2",
       userId: "scoped",
       threadId: "new-thread",
     }));
-    expect(threadToSession.get("new-thread")).toBe("session-1");
+    expect(threadToSession.get("new-thread")).toBe(sessionId);
+  });
+
+  it("rejects path-like session ids before preparing a sandbox", async () => {
+    await expect(handleClientMessage(socket, claims(), JSON.stringify({
+      type: "session.start",
+      sessionId: "../outside",
+      targetId: "target-1",
+    }))).rejects.toThrow();
+
+    await expect(handleClientMessage(socket, claims(), JSON.stringify({
+      type: "turn.start",
+      sessionId: "../outside",
+      message: "continue",
+    }))).rejects.toThrow();
+
+    expect(prepareSandbox).not.toHaveBeenCalled();
+    expect(codex.startThread).not.toHaveBeenCalled();
   });
 });
 
@@ -168,7 +186,7 @@ function claims(overrides: Partial<StudioClaims> = {}): StudioClaims {
 
 function session(overrides: Partial<OperatorSession> = {}): OperatorSession {
   return {
-    sessionId: "session-1",
+    sessionId,
     targetId: "target-1",
     userId: "owner",
     sandboxPath: "/tmp/cognidesk-test",

@@ -13,10 +13,13 @@ export type StudioOperatorSurface = z.infer<typeof StudioOperatorSurfaceSchema>;
 export const StudioOperatorReasoningEffortSchema = z.enum(["none", "minimal", "low", "medium", "high", "xhigh"]);
 export type StudioOperatorReasoningEffort = z.infer<typeof StudioOperatorReasoningEffortSchema>;
 
+export const StudioOperatorSessionIdSchema = z.string().uuid();
+export type StudioOperatorSessionId = z.infer<typeof StudioOperatorSessionIdSchema>;
+
 export const StudioOperatorClientEventSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("session.start"),
-    sessionId: z.string().optional(),
+    sessionId: StudioOperatorSessionIdSchema.optional(),
     targetId: z.string(),
     modelId: z.string().optional(),
     reasoningEffort: StudioOperatorReasoningEffortSchema.optional(),
@@ -24,18 +27,18 @@ export const StudioOperatorClientEventSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("turn.start"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     message: z.string(),
     modelId: z.string().optional(),
     reasoningEffort: StudioOperatorReasoningEffortSchema.optional(),
   }),
   z.object({
     type: z.literal("turn.interrupt"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
   }),
   z.object({
     type: z.literal("approval.resolve"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     approvalId: z.string(),
     approved: z.boolean(),
     payload: z.unknown().optional(),
@@ -46,13 +49,13 @@ export type StudioOperatorClientEvent = z.infer<typeof StudioOperatorClientEvent
 export const StudioOperatorServerEventSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("session.ready"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     targetId: z.string(),
     modelId: z.string().optional(),
   }),
   z.object({
     type: z.literal("activity"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     message: z.string(),
     detail: z.string().optional(),
     category: z.string().optional(),
@@ -62,34 +65,34 @@ export const StudioOperatorServerEventSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("assistant.delta"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     delta: z.string(),
   }),
   z.object({
     type: z.literal("artifact.upserted"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     artifact: z.record(z.string(), z.unknown()),
   }),
   z.object({
     type: z.literal("reasoning.summary"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     summary: z.string(),
   }),
   z.object({
     type: z.literal("tool.started"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     name: z.string(),
     input: z.unknown().optional(),
   }),
   z.object({
     type: z.literal("tool.completed"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     name: z.string(),
     output: z.unknown().optional(),
   }),
   z.object({
     type: z.literal("sandbox.diff.updated"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     summary: z.string(),
     files: z.array(z.object({
       path: z.string(),
@@ -98,14 +101,14 @@ export const StudioOperatorServerEventSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("validation.completed"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     commandId: z.string(),
     exitCode: z.number().int(),
     output: z.string(),
   }),
   z.object({
     type: z.literal("approval.required"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
     approvalId: z.string(),
     action: z.enum(["publish_dashboard", "create_pr", "grant_credentials", "update_configuration"]),
     title: z.string(),
@@ -113,11 +116,11 @@ export const StudioOperatorServerEventSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("turn.completed"),
-    sessionId: z.string(),
+    sessionId: StudioOperatorSessionIdSchema,
   }),
   z.object({
     type: z.literal("error"),
-    sessionId: z.string().optional(),
+    sessionId: StudioOperatorSessionIdSchema.optional(),
     message: z.string(),
   }),
 ]);

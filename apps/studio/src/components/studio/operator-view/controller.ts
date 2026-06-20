@@ -26,6 +26,7 @@ import {
   toolStartedEntry,
   validationCompletedEntry,
 } from "./event-builders";
+import { operatorEventSessionId, shouldApplyOperatorEvent } from "./event-routing";
 import { useOperatorViewLayout } from "./layout";
 import {
   createOperatorSession,
@@ -46,6 +47,7 @@ export function useOperatorController(props: OperatorViewProps) {
   const assistantDraftRef = useRef("");
   const assistantMessageIdRef = useRef<string | null>(null);
   const operatorSessionIdRef = useRef<string | null>(null);
+  const activeTurnSessionIdRef = useRef<string | null>(null);
   const persistQueueRef = useRef(Promise.resolve());
   const [operatorSessionId, setOperatorSessionId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<OperatorSessionRow[]>(props.initialSessions);
@@ -119,6 +121,14 @@ export function useOperatorController(props: OperatorViewProps) {
   }
 
   async function openOperatorSession(id: string) {
+    if (activeTurnSessionIdRef.current && activeTurnSessionIdRef.current !== id) {
+      pushOperatorEvent({
+        kind: "error",
+        title: "Finish or stop the current Operator turn before switching sessions.",
+        status: "error",
+      });
+      return;
+    }
     const data = await fetchOperatorSession(id);
     if (!data) return;
     setOperatorSessionId(id);
@@ -191,6 +201,7 @@ export function useOperatorController(props: OperatorViewProps) {
         operatorSessionIdRef.current = sessionId;
         setSessions((items) => [nextSession, ...items.filter((item) => item.id !== nextSession.id)]);
         await persistOperatorMessage(sessionId, "user", message);
+        activeTurnSessionIdRef.current = sessionId;
         socket.send(JSON.stringify({
           type: "session.start",
           sessionId,
@@ -201,6 +212,7 @@ export function useOperatorController(props: OperatorViewProps) {
         }));
       } else {
         await persistOperatorMessage(sessionId, "user", message);
+        activeTurnSessionIdRef.current = sessionId;
         socket.send(JSON.stringify({
           type: "turn.start",
           sessionId,
@@ -211,6 +223,7 @@ export function useOperatorController(props: OperatorViewProps) {
       }
     } catch (error) {
       setIsWorking(false);
+      activeTurnSessionIdRef.current = null;
       pushOperatorEvent({
         kind: "error",
         title: error instanceof Error ? error.message : "Operator connection failed",
@@ -220,13 +233,14 @@ export function useOperatorController(props: OperatorViewProps) {
   }
 
   async function stopOperatorTurn() {
-    const sessionId = operatorSessionIdRef.current;
+    const sessionId = activeTurnSessionIdRef.current ?? operatorSessionIdRef.current;
     if (!sessionId) return;
     try {
       const socket = await ensureOperatorSocket();
       socket.send(JSON.stringify({ type: "turn.interrupt", sessionId }));
       setIsWorking(false);
-      finishAssistantSegment();
+      activeTurnSessionIdRef.current = null;
+      finishAssistantSegment({ sessionId });
       pushOperatorEvent({
         kind: "activity",
         title: "Interrupt requested",
@@ -264,35 +278,41 @@ export function useOperatorController(props: OperatorViewProps) {
   }
 
   function handleOperatorEvent(event: OperatorEvent) {
+    const eventSessionId = operatorEventSessionId(event);
+    if (!shouldApplyOperatorEvent(event, operatorSessionIdRef.current, activeTurnSessionIdRef.current)) return;
     if (event.type === "session.ready") {
       setOperatorSessionId(event.sessionId);
       operatorSessionIdRef.current = event.sessionId;
     } else if (event.type === "assistant.delta") {
       appendAssistantDelta(event.delta);
     } else if (event.type === "activity") {
-      pushOperatorEvent(activityEventEntry(event, isWorking));
+      pushOperatorEvent(activityEventEntry(event, isWorking), eventSessionId);
     } else if (event.type === "reasoning.summary") {
-      pushOperatorEvent(reasoningSummaryEntry(event));
+      pushOperatorEvent(reasoningSummaryEntry(event), eventSessionId);
     } else if (event.type === "tool.started") {
-      pushOperatorEvent(toolStartedEntry(event));
+      pushOperatorEvent(toolStartedEntry(event), eventSessionId);
     } else if (event.type === "tool.completed") {
-      pushOperatorEvent(toolCompletedEntry(event));
+      pushOperatorEvent(toolCompletedEntry(event), eventSessionId);
     } else if (event.type === "artifact.upserted") {
       pushArtifactEvent(event.artifact);
     } else if (event.type === "sandbox.diff.updated") {
       setDiffFiles(event.files);
-      pushOperatorEvent(diffUpdatedEntry(event));
+      pushOperatorEvent(diffUpdatedEntry(event), eventSessionId);
     } else if (event.type === "validation.completed") {
-      pushOperatorEvent(validationCompletedEntry(event));
+      pushOperatorEvent(validationCompletedEntry(event), eventSessionId);
     } else if (event.type === "approval.required") {
-      pushOperatorEvent(approvalRequiredEntry(event));
+      pushOperatorEvent(approvalRequiredEntry(event), eventSessionId);
     } else if (event.type === "error") {
       setIsWorking(false);
-      pushOperatorEvent({ kind: "error", title: event.message, status: "error" });
+      if (eventSessionId && activeTurnSessionIdRef.current === eventSessionId) {
+        activeTurnSessionIdRef.current = null;
+      }
+      pushOperatorEvent({ kind: "error", title: event.message, status: "error" }, eventSessionId);
     } else if (event.type === "turn.completed") {
       setIsWorking(false);
+      activeTurnSessionIdRef.current = null;
       markActivityEventsComplete();
-      finishAssistantSegment({ reloadSessions: Boolean(event.sessionId) });
+      finishAssistantSegment({ reloadSessions: Boolean(event.sessionId), sessionId: event.sessionId });
       void surfaceDashboardChanges();
     }
   }
@@ -330,12 +350,12 @@ export function useOperatorController(props: OperatorViewProps) {
     )));
   }
 
-  function finishAssistantSegment(options: { reloadSessions?: boolean } = {}) {
+  function finishAssistantSegment(options: { reloadSessions?: boolean; sessionId?: string | null } = {}) {
     const text = assistantDraftRef.current.trim();
     markAssistantComplete();
     assistantDraftRef.current = "";
     assistantMessageIdRef.current = null;
-    const sessionId = operatorSessionIdRef.current;
+    const sessionId = options.sessionId ?? operatorSessionIdRef.current;
     if (sessionId && text) {
       queuePersistOperatorMessage(sessionId, "assistant", text, options);
     } else if (options.reloadSessions) {
@@ -351,12 +371,12 @@ export function useOperatorController(props: OperatorViewProps) {
     )));
   }
 
-  function pushOperatorEvent(event: Omit<OperatorEventEntry, "id">) {
+  function pushOperatorEvent(event: Omit<OperatorEventEntry, "id">, eventSessionId?: string | null) {
     const entry: OperatorEventEntry = { id: crypto.randomUUID(), ...event };
     if (entry.kind === "activity" && !shouldDisplayActivityEvent(entry)) return;
-    finishAssistantSegment();
+    finishAssistantSegment({ sessionId: eventSessionId ?? null });
     setChatItems((items) => [...items, { id: entry.id, event: entry, type: "event" }]);
-    const sessionId = operatorSessionIdRef.current;
+    const sessionId = eventSessionId ?? operatorSessionIdRef.current;
     if (sessionId) {
       queuePersistOperatorMessage(sessionId, "tool", { type: "operator.event", event: entry });
     }
@@ -402,6 +422,7 @@ export function useOperatorController(props: OperatorViewProps) {
     setInput("");
     assistantDraftRef.current = "";
     assistantMessageIdRef.current = null;
+    activeTurnSessionIdRef.current = null;
   }
 
   function reviseDashboardFromPanel() {

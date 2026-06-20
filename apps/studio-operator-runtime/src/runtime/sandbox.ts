@@ -1,12 +1,13 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { spawn } from "node:child_process";
 import { getStudioOperatorSkillPack } from "@cognidesk/studio-operator-skills";
 
 const sandboxRoot = process.env.STUDIO_OPERATOR_SANDBOX_ROOT ?? "/tmp/cognidesk-studio-sandboxes";
+const sessionIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function prepareSandbox(sessionId: string) {
-  const path = join(sandboxRoot, sessionId);
+  const path = sandboxPathForSession(sessionId);
   await rm(path, { recursive: true, force: true });
   await mkdir(path, { recursive: true });
   const repoUrl = process.env.STUDIO_SOURCE_REPO_URL;
@@ -21,6 +22,19 @@ export async function prepareSandbox(sessionId: string) {
     }
   }
   await writeFile(join(path, "AGENTS.md"), buildSandboxAgentsFile(), "utf8");
+  return path;
+}
+
+export function sandboxPathForSession(sessionId: string) {
+  if (!sessionIdPattern.test(sessionId)) {
+    throw new Error("Invalid operator session id");
+  }
+  const root = resolve(sandboxRoot);
+  const path = resolve(root, sessionId);
+  const relativePath = relative(root, path);
+  if (!relativePath || relativePath.startsWith(`..${sep}`) || relativePath === ".." || isAbsolute(relativePath)) {
+    throw new Error("Operator sandbox path escaped sandbox root");
+  }
   return path;
 }
 
