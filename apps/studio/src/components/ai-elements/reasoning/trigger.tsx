@@ -8,8 +8,8 @@ import { BrainIcon, ChevronDownIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { memo } from "react";
 
-import { Shimmer } from "./shimmer";
-import { useReasoning } from "./reasoning-context";
+import { Shimmer } from "../shimmer";
+import { useReasoning } from "./context";
 
 export type ReasoningTriggerProps = ComponentProps<
   typeof CollapsibleTrigger

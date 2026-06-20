@@ -2,17 +2,34 @@
 
 import { useMemo, useState } from "react";
 import { Bot, PanelLeftClose, PanelLeftOpen, Workflow } from "lucide-react";
-import type { StudioAgentIntrospection, StudioJourneySummary } from "@cognidesk/studio-contracts";
+import type { StudioAgentIntrospection, StudioConfigurationSurface, StudioJourneySummary } from "@cognidesk/studio-contracts";
 import { JourneyGraph } from "@/components/journey-graph";
-import { activeJourneyRows, knowledgeRows, toolRows, widgetRows } from "./data";
+import {
+  activeJourneyRows,
+  agentPolicyRows,
+  capabilityAvailabilityRows,
+  channelBehaviorRows,
+  channelFlowRows,
+  channelHandoffRows,
+  channelConfigurationRows,
+  channelPolicyRows,
+  channelSetRows,
+  knowledgeRows,
+  providerCredentialRows,
+  providerPackageRows,
+  providerReadinessRows,
+  toolRows,
+  widgetRows,
+} from "./data";
 import { formatDateTime } from "./format";
 import { DataTable, EmptyState, PageHeader, Panel, PanelHeader } from "./ui";
 
-type AgentSection = "overview" | "instructions" | "journeys" | "tools" | "knowledge" | "widgets";
+type AgentSection = "overview" | "instructions" | "configuration" | "journeys" | "tools" | "knowledge" | "widgets";
 
 const agentSections: Array<[AgentSection, string]> = [
   ["overview", "Overview"],
   ["instructions", "Instructions"],
+  ["configuration", "Configuration"],
   ["journeys", "Journeys"],
   ["tools", "Tools"],
   ["knowledge", "Knowledge"],
@@ -21,12 +38,15 @@ const agentSections: Array<[AgentSection, string]> = [
 
 export function AgentsView(props: {
   introspection: StudioAgentIntrospection | null;
+  configuration: StudioConfigurationSurface | null;
   error: string | null;
+  configurationError?: string | null;
 }) {
   const { error, introspection } = props;
   const [section, setSection] = useState<AgentSection>("journeys");
   const [activeJourneyId, setActiveJourneyId] = useState(introspection?.journeys[0]?.id ?? "");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const configuration = props.configuration ?? introspection?.configurationSurface ?? null;
   const stateMachines = introspection?.journeys.filter((journey) => journey.kind === "stateMachine") ?? [];
   const delegations = introspection?.journeys.filter((journey) => journey.kind === "delegation") ?? [];
   const activeJourney = useMemo(() => {
@@ -34,8 +54,19 @@ export function AgentsView(props: {
     return introspection.journeys.find((journey) => journey.id === activeJourneyId) ?? introspection.journeys[0] ?? null;
   }, [activeJourneyId, introspection]);
 
-  if (!introspection) {
+  if (!introspection && !configuration) {
     return <section className="p-8"><EmptyState title="Agent configuration" text={error ?? "Waiting for Studio Adapter data."} /></section>;
+  }
+
+  if (!introspection) {
+    return (
+      <section>
+        <PageHeader eyebrow="Agent builder" title="Configuration" />
+        <div className="p-8">
+          <ConfigurationSection configuration={configuration} error={props.configurationError ?? error} />
+        </div>
+      </section>
+    );
   }
 
   let sectionContent;
@@ -52,6 +83,11 @@ export function AgentsView(props: {
             ["Widgets", String(introspection.agent.widgetCount)],
           ]}
         />
+        <DataTable
+          columns={["Configuration", "Fields"]}
+          rows={agentPolicyRows(introspection)}
+          emptyText="No agent-level policy returned."
+        />
       </Panel>
     );
   } else if (section === "instructions") {
@@ -61,6 +97,8 @@ export function AgentsView(props: {
         <pre className="whitespace-pre-wrap px-5 py-4 font-mono text-sm leading-7 text-slate-800">{introspection.agent.instructions || "No instructions returned."}</pre>
       </Panel>
     );
+  } else if (section === "configuration") {
+    sectionContent = <ConfigurationSection configuration={configuration} error={props.configurationError ?? null} />;
   } else if (section === "tools") {
     sectionContent = <Panel><PanelHeader title="Tools" /><DataTable columns={["Name", "Side effect", "Description"]} rows={toolRows(introspection)} emptyText="No tools returned." /></Panel>;
   } else if (section === "knowledge") {
@@ -77,7 +115,9 @@ export function AgentsView(props: {
         <div className={`mb-5 flex items-start gap-3 ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           <div className={sidebarCollapsed ? "hidden" : ""}>
             <strong className="block text-slate-950">{introspection.agent.id}</strong>
-            <span className="text-sm text-slate-500">{introspection.agent.journeyCount} journeys / {introspection.agent.toolCount} tools</span>
+            <span className="text-sm text-slate-500">
+              {introspection.agent.journeyCount} journeys / {introspection.agent.toolCount} tools
+            </span>
           </div>
           <button
             className="grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 max-xl:hidden"
@@ -113,6 +153,110 @@ export function AgentsView(props: {
         <div className="p-8">{sectionContent}</div>
       </section>
     </section>
+  );
+}
+
+function ConfigurationSection(props: {
+  configuration: StudioConfigurationSurface | null;
+  error?: string | null;
+}) {
+  if (!props.configuration) {
+    return (
+      <EmptyState
+        title="Configuration surface"
+        text={props.error ?? "No configuration surface returned by the Studio Adapter."}
+      />
+    );
+  }
+  const { configuration } = props;
+  return (
+    <div className="grid gap-4">
+      <Panel>
+        <PanelHeader
+          title="Channel sets"
+          detail={`Captured ${formatDateTime(configuration.capturedAt)}`}
+        />
+        <DataTable
+          columns={["Set", "State", "Channel IDs", "Channels", "Conversation continuity", "Metadata"]}
+          rows={channelSetRows(configuration)}
+          emptyText="No channel sets returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader
+          title="Channels"
+        />
+        <DataTable
+          columns={["ID", "Channel", "Audience", "State", "Sets", "Providers", "Capabilities", "Policies", "Metadata"]}
+          rows={channelConfigurationRows(configuration)}
+          emptyText="No channel configuration returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="Flow activation by channel" />
+        <DataTable
+          columns={["Channel", "Journey", "State", "Policies", "Providers", "Reason", "Metadata"]}
+          rows={channelFlowRows(configuration)}
+          emptyText="No per-channel flow activation returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="Outbound and handoff policy" />
+        <DataTable
+          columns={["Channel", "Policy", "State", "Providers / destinations", "Gate", "Policy IDs", "Metadata"]}
+          rows={channelHandoffRows(configuration)}
+          emptyText="No outbound or handoff policy returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="SDK policy details" />
+        <DataTable
+          columns={["Channel", "Policy", "Owner", "Fields"]}
+          rows={channelPolicyRows(configuration)}
+          emptyText="No SDK policy details returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="Channel behavior" />
+        <DataTable
+          columns={["Channel", "Tone", "Max words", "Max chars", "Markdown", "Widgets", "Draft first", "Other policy"]}
+          rows={channelBehaviorRows(configuration)}
+          emptyText="No channel behavior policy returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="Provider packages" />
+        <DataTable
+          columns={["Provider", "Package", "Category", "Trust", "Coverage", "Directions", "Audience", "Capabilities", "Credentials", "Privacy", "Limitations", "Maintainers", "Metadata"]}
+          rows={providerPackageRows(configuration)}
+          emptyText="No provider packages returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="Capability availability" />
+        <DataTable
+          columns={["Provider", "Capability", "Status", "Enabled for", "Blockers", "Metadata"]}
+          rows={capabilityAvailabilityRows(configuration)}
+          emptyText="No capability availability returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="Provider readiness" />
+        <DataTable
+          columns={["Provider", "Status", "Live", "Sandbox", "Source", "Checked", "Blockers", "Actions", "Metadata"]}
+          rows={providerReadinessRows(configuration)}
+          emptyText="No provider readiness returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="Credential status" />
+        <DataTable
+          columns={["Provider", "Requirement", "State", "Scopes", "Expires", "Message"]}
+          rows={providerCredentialRows(configuration)}
+          emptyText="No credential status returned."
+        />
+      </Panel>
+    </div>
   );
 }
 
@@ -208,6 +352,7 @@ function titleForSection(section: AgentSection) {
   return {
     overview: "Overview",
     instructions: "Instructions",
+    configuration: "Configuration",
     journeys: "Journeys",
     tools: "Tools",
     knowledge: "Knowledge",

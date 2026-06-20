@@ -3,7 +3,7 @@ import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
-import { buttonGroupVariants } from "@/components/ui/button-group-variants"
+import { buttonGroupVariants } from "./variants"
 
 function ButtonGroup({
   className,

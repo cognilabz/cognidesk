@@ -4,7 +4,7 @@ import * as React from "react"
 import type { VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
-import { inputGroupAddonVariants } from "@/components/ui/input-group-addon-variants"
+import { inputGroupAddonVariants } from "./variants"
 
 function InputGroupAddon({
   className,

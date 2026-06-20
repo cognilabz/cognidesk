@@ -1,0 +1,33 @@
+{
+  "models": {
+    "provider": "anthropic",
+    "apiKeyEnv": "ANTHROPIC_API_KEY",
+    "roles": {
+      "response": "claude-sonnet-4-5",
+      "compaction": "claude-sonnet-4-5",
+      "matcher": "claude-sonnet-4-5",
+      "extraction": "claude-sonnet-4-5",
+      "citationPostProcessing": "claude-sonnet-4-5",
+      "journeyEmbedding": "text-embedding-3-small"
+    },
+    "embedding": {
+      "provider": "openai",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    }
+  },
+  "voice": {
+    "provider": "aws-speech",
+    "accessKeyIdEnv": "AWS_ACCESS_KEY_ID",
+    "secretAccessKeyEnv": "AWS_SECRET_ACCESS_KEY",
+    "sessionTokenEnv": "AWS_SESSION_TOKEN",
+    "regionEnv": "AWS_REGION",
+    "languageCode": "en-US",
+    "voiceId": "Joanna",
+    "engine": "neural",
+    "outputFormat": "pcm"
+  },
+  "storage": {
+    "sqlitePath": ".data/flight-demo.sqlite",
+    "knowledgeIndexPath": ".data/knowledge-index.json"
+  }
+}

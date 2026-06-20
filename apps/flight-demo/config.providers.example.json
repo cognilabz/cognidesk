@@ -1,0 +1,30 @@
+{
+  "models": {
+    "provider": "anthropic",
+    "apiKeyEnv": "ANTHROPIC_API_KEY",
+    "roles": {
+      "response": "claude-sonnet-4-5",
+      "compaction": "claude-sonnet-4-5",
+      "matcher": "claude-sonnet-4-5",
+      "extraction": "claude-sonnet-4-5",
+      "citationPostProcessing": "claude-sonnet-4-5",
+      "journeyEmbedding": "text-embedding-3-small"
+    },
+    "embedding": {
+      "provider": "openai",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    }
+  },
+  "voice": {
+    "provider": "elevenlabs",
+    "apiKeyEnv": "ELEVENLABS_API_KEY",
+    "voiceId": "replace-with-elevenlabs-voice-id",
+    "textToSpeechModelId": "eleven_multilingual_v2",
+    "speechToTextModelId": "scribe_v1",
+    "languageCode": "en"
+  },
+  "storage": {
+    "sqlitePath": ".data/flight-demo.sqlite",
+    "knowledgeIndexPath": ".data/knowledge-index.json"
+  }
+}

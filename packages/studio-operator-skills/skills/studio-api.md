@@ -16,6 +16,9 @@ runtime instructions. Useful v1 endpoints:
 
 - `GET /api/studio/introspection` explains the compiled Agent, Journeys,
   Tools, Knowledge, Widgets, and prompt-visible instructions.
+- `GET /api/studio/configuration` returns read-only metadata derived from the
+  compiled SDK target, such as channel policy details exposed by the Agent
+  definition. It is not a separate Studio-owned target config.
 - `GET /api/studio/dashboards` lists saved dashboard artifacts.
 - `GET /api/studio/conversations` lists recent Studio conversation summaries.
 - `POST /api/studio/dashboards` saves a dashboard draft with `title`, `slug`,

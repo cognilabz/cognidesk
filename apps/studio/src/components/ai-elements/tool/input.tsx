@@ -3,8 +3,8 @@
 import { cn } from "@/lib/utils";
 import type { ComponentProps } from "react";
 
-import { CodeBlock } from "./code-block";
-import type { ToolPart } from "./tool";
+import { CodeBlock } from "../code-block";
+import type { ToolPart } from "./index";
 
 export type ToolInputProps = ComponentProps<"div"> & {
   input: ToolPart["input"];

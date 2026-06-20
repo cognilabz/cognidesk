@@ -2,9 +2,11 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import {
   StudioAgentIntrospectionSchema,
+  StudioConfigurationSurfaceSchema,
   StudioDashboardDataQuerySchema,
   StudioTargetManifestSchema,
   type StudioAgentIntrospection,
+  type StudioConfigurationSurface,
   type StudioDashboardDataQuery,
   type StudioTargetManifest,
 } from "@cognidesk/studio-contracts";
@@ -13,6 +15,7 @@ import { loadStudioTargetManifest, studioEnv } from "@/server/config";
 import { listStudioConversations } from "@/server/conversations";
 import { db, ensureStudioDatabase } from "@/server/db/client";
 import { studioTargets } from "@/server/db/schema";
+import { createStudioAdapterHeaders } from "@/server/target-adapter-auth";
 
 export async function ensureDefaultTarget(userId?: string | null): Promise<StudioTargetManifest> {
   await ensureStudioDatabase();
@@ -83,6 +86,13 @@ export async function fetchIntrospection(): Promise<StudioAgentIntrospection> {
   return StudioAgentIntrospectionSchema.parse(await response.json());
 }
 
+export async function fetchConfigurationSurface(): Promise<StudioConfigurationSurface> {
+  const manifest = await currentTarget();
+  const response = await adapterFetch(manifest, "/configuration");
+  if (!response.ok) throw new Error(`Studio Adapter configuration returned ${response.status}`);
+  return StudioConfigurationSurfaceSchema.parse(await response.json());
+}
+
 export async function fetchConversationEvents(conversationId: string, afterOffset = 0) {
   const manifest = await currentTarget();
   const response = await adapterFetch(manifest, `/conversations/${encodeURIComponent(conversationId)}/events?afterOffset=${afterOffset}`);
@@ -107,6 +117,14 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
         source: parsed,
         capturedAt: new Date().toISOString(),
         data: await fetchIntrospection(),
+      };
+    case "cognidesk.configuration":
+      return {
+        id: randomUUID(),
+        title: "Studio Configuration Surface",
+        source: parsed,
+        capturedAt: new Date().toISOString(),
+        data: await fetchConfigurationSurface(),
       };
     case "cognidesk.conversations":
       return {
@@ -201,8 +219,7 @@ async function adapterFetch(manifest: StudioTargetManifest, path: string, init: 
   const env = studioEnv();
   const basePath = manifest.runtime.studioAdapterBasePath.replace(/\/+$/, "");
   const suffix = path.startsWith("/") ? path : `/${path}`;
-  const headers = new Headers(init.headers);
-  if (env.targetServiceToken) headers.set("authorization", `Bearer ${env.targetServiceToken}`);
+  const headers = createStudioAdapterHeaders(manifest, env.targetServiceToken, init.headers);
   return await fetch(new URL(`${basePath}${suffix}`, manifest.runtime.baseUrl), {
     ...init,
     headers,

@@ -7,7 +7,7 @@ import "streamdown/styles.css";
 import "./styles.css";
 
 function App() {
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [chatConversationId, setChatConversationId] = useState<string | null>(null);
   const client = useMemo(() => createCognideskClient({
     baseUrl: import.meta.env.VITE_COGNIDESK_API_URL ?? "http://localhost:8787/api",
   }), []);
@@ -15,16 +15,15 @@ function App() {
     client,
     agentId: "flight-service",
     initialContext: {},
-    onConversationCreated: setConversationId,
   });
 
   const handleWidgetSubmit = async (args: { promptId: string; kind: string; output: unknown }) => {
-    if (!conversationId) return;
-    const { events } = await client.listEvents(conversationId);
+    if (!chatConversationId) return;
+    const { events } = await client.listEvents(chatConversationId);
     if (isFlightSelectionPrompt(args.promptId)) {
-      const snapshot = await client.getSnapshot(conversationId);
+      const snapshot = await client.getSnapshot(chatConversationId);
       const summary = formatSelectedFlightFromSnapshot(snapshot.snapshot?.journeyContext);
-      await client.emitIntermediateMessage(conversationId, {
+      await client.emitIntermediateMessage(chatConversationId, {
         text: summary
           ? `${summary} selected. Please add the passenger name to continue.`
           : "Flight selected. Please add the passenger name to continue.",
@@ -39,7 +38,7 @@ function App() {
       const booking = [...events].reverse().find(isSuccessfulBookingEvent);
       const result = booking?.data.result;
       if (!isRecord(result) || typeof result.bookingReference !== "string") return;
-      await client.emitIntermediateMessage(conversationId, {
+      await client.emitIntermediateMessage(chatConversationId, {
         text: `Mock booking confirmed. Booking reference: **${result.bookingReference}**.`,
         visibleToModel: true,
       });
@@ -50,14 +49,14 @@ function App() {
       const searchResult = search?.data.result;
       if (isRecord(searchResult) && Array.isArray(searchResult.flights)) {
         if (searchResult.flights.length > 0) {
-          await client.emitIntermediateMessage(conversationId, {
+          await client.emitIntermediateMessage(chatConversationId, {
             text: `${formatFlights(searchResult.flights)}\n\nChoose a flight to continue.`,
           });
           return;
         }
         const suggestions = [...events].reverse().find(isSuccessfulSuggestionEvent);
         const suggestionResult = suggestions?.data.result;
-        await client.emitIntermediateMessage(conversationId, {
+        await client.emitIntermediateMessage(chatConversationId, {
           text: formatNoFlights(searchResult, suggestionResult),
         });
       }
@@ -89,11 +88,11 @@ function App() {
         <ChatWidget
           client={client}
           agentId="flight-service"
-          {...(conversationId ? { conversationId } : {})}
+          {...(chatConversationId ? { conversationId: chatConversationId } : {})}
           title="Flight support"
           placeholder="Ask about booking, ticket status, or flight info"
           widgets={{ confirmation: ConfirmationWidget }}
-          onConversationCreated={setConversationId}
+          onConversationCreated={setChatConversationId}
           onWidgetSubmit={(args) => {
             void handleWidgetSubmit(args);
           }}

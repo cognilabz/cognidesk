@@ -18,7 +18,7 @@ The demo agent is split by authoring concern so it can be used as a reference sh
 
 ## Configuration
 
-Copy `config.example.json` or `config.openrouter.example.json` to `config.json`. The config file chooses the provider and model for each runtime role. API keys stay in environment variables and should not be committed.
+Copy `config.example.json`, `config.openrouter.example.json`, `config.providers.example.json`, `config.azure-speech.example.json`, `config.aws-speech.example.json`, `config.google-speech.example.json`, or `config.deepgram.example.json` to `config.json`. The config file chooses the provider and model for each runtime role. API keys stay in environment variables and should not be committed.
 
 For OpenRouter, put this in the repository root `.env`:
 
@@ -27,6 +27,58 @@ OPENROUTER_KEY=sk-or-...
 ```
 
 The demo server and ingestion script load `.env` automatically from the repository root and from `apps/flight-demo/.env`.
+
+Supported text model providers are:
+
+- `openai`
+- `openrouter`
+- `anthropic`
+- `google`
+- `mistral`
+- `cohere`
+- `groq`
+- `xai`
+- `azure-openai`
+- `openai-compatible`
+
+The demo still needs embeddings for the Journey Index and Knowledge retrieval. `openai`, `openrouter`, `google`, `mistral`, `cohere`, `azure-openai`, and `openai-compatible` can provide `roles.journeyEmbedding` directly. `anthropic`, `groq`, and `xai` need a separate `models.embedding` block, as shown in `config.providers.example.json`.
+
+Default API key environment variables:
+
+| Provider | Env var |
+| --- | --- |
+| `openai` | `OPENAI_API_KEY` |
+| `openrouter` | `OPENROUTER_KEY` |
+| `anthropic` | `ANTHROPIC_API_KEY` |
+| `google` | `GOOGLE_GENERATIVE_AI_API_KEY` |
+| `mistral` | `MISTRAL_API_KEY` |
+| `cohere` | `COHERE_API_KEY` |
+| `groq` | `GROQ_API_KEY` |
+| `xai` | `XAI_API_KEY` |
+| `azure-openai` | `AZURE_OPENAI_API_KEY` |
+| `openai-compatible` | `OPENAI_COMPATIBLE_API_KEY` |
+
+`azure-openai` also requires either `resourceName` or `baseURL`. `openai-compatible` requires `baseURL` and accepts an optional `name`, which is used as the provider name for the AI SDK adapter.
+
+Supported voice providers are:
+
+- `openai` for OpenAI Realtime voice sessions
+- `elevenlabs` for ElevenLabs speech-to-text and text-to-speech with the configured Cognidesk Agent Model Set as the background LLM
+- `azure-speech` for Azure AI Speech STT/TTS with the configured Cognidesk Agent Model Set as the background LLM
+- `aws-speech` for Amazon Transcribe and Amazon Polly STT/TTS with the configured Cognidesk Agent Model Set as the background LLM
+- `google-speech` for Google Cloud Speech-to-Text and Text-to-Speech with the configured Cognidesk Agent Model Set as the background LLM
+- `deepgram` for Deepgram STT/TTS with the configured Cognidesk Agent Model Set as the background LLM
+
+Default voice environment variables:
+
+| Provider | Env vars |
+| --- | --- |
+| `openai` | `OPENAI_API_KEY` |
+| `elevenlabs` | `ELEVENLABS_API_KEY` |
+| `azure-speech` | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` |
+| `aws-speech` | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`; optional `AWS_SESSION_TOKEN` |
+| `google-speech` | `GOOGLE_CLOUD_ACCESS_TOKEN` |
+| `deepgram` | `DEEPGRAM_API_KEY` |
 
 Default text role mapping:
 
@@ -50,7 +102,7 @@ OpenRouter text role mapping in `config.openrouter.example.json`:
 
 The JSON Knowledge Index in `.data/knowledge-index.json` is app-owned demo infrastructure. It is intentionally not a Cognidesk v1 Knowledge database package or a recommendation for production retrieval storage.
 
-The demo still uses Cognidesk's `KnowledgeSource` contract and Cognidesk's OpenAI model adapter for embeddings. Ranking is embedding-only cosine similarity for v1.
+The demo still uses Cognidesk's `KnowledgeSource` contract and the configured embedding Model Provider. Ranking is embedding-only cosine similarity for v1.
 
 Run ingestion after creating `config.json`:
 

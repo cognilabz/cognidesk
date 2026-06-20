@@ -7,7 +7,7 @@ import { OpenAIRealtimeWS } from "openai/realtime/ws";
 import type { RealtimeClientEvent, RealtimeServerEvent } from "openai/resources/realtime/realtime";
 import { createRuntime, type RuntimeEvent } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
-import { createOpenAIVoiceProvider } from "@cognidesk/voice-openai";
+import { createOpenAIVoiceProvider } from "@cognidesk/integrations/voice/openai";
 import {
   createInMemoryVoiceSessionStore,
   handleVoiceSocket,
