@@ -2,6 +2,7 @@ import { replayRuntimeEvents } from "../replay.js";
 import { defineChannelContext } from "../../types.js";
 import type {
   CreateRuntimeConversationInput,
+  ListRuntimeConversationsOptions,
   ReplayConversationInput,
   ReplayConversationResult,
   RuntimeEventEmitter,
@@ -46,6 +47,13 @@ export function listRuntimeEvents(
     conversationId,
     ...(afterOffset !== undefined ? { afterOffset } : {}),
   });
+}
+
+export function listRuntimeConversations<TConversationContext = unknown>(
+  options: RuntimeOptions,
+  input: ListRuntimeConversationsOptions = {},
+) {
+  return options.storage.listConversations<TConversationContext>(input);
 }
 
 export async function listAllRuntimeEvents(

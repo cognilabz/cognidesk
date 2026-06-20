@@ -84,6 +84,8 @@ export type {
   CognideskStreamEventsOptions,
   CreateConversationInput,
   CreateConversationResult,
+  ListConversationsOptions,
+  ListConversationsResult,
   ReplayConversationResult,
   ResolveChannelOutputInput,
   ResolveChannelOutputResult,

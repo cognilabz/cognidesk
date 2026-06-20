@@ -1,6 +1,7 @@
 import type {
   ConversationRecord,
   CreateConversationInput,
+  ListConversationsOptions,
   RuntimeEventInput,
   StorageAdapter,
 } from "../storage.js";
@@ -57,6 +58,9 @@ export function createPrivacyStorageAdapter(
     },
     getConversation<TConversationContext = unknown>(conversationId: string) {
       return storage.getConversation<TConversationContext>(conversationId);
+    },
+    listConversations<TConversationContext = unknown>(options?: ListConversationsOptions) {
+      return storage.listConversations<TConversationContext>(options);
     },
     updateConversationLifecycle(conversationId, lifecycle) {
       return storage.updateConversationLifecycle(conversationId, lifecycle);

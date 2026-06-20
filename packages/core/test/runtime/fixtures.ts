@@ -3,6 +3,7 @@ import type {
   ConversationLifecycle,
   ConversationRecord,
   CreateConversationInput,
+  ListConversationsOptions,
   ListEventsOptions,
   TextGenerationInput,
   RuntimeEvent,
@@ -114,6 +115,17 @@ export class RecordingStorage implements StorageAdapter {
     return (this.conversations.get(conversationId) as ConversationRecord<TConversationContext> | undefined) ?? null;
   }
 
+  async listConversations<TConversationContext = unknown>(
+    options: ListConversationsOptions = {},
+  ): Promise<ConversationRecord<TConversationContext>[]> {
+    return Array.from(this.conversations.values())
+      .filter((conversation) => options.agentId === undefined || conversation.agentId === options.agentId)
+      .filter((conversation) => options.beforeUpdatedAt === undefined || conversation.updatedAt < options.beforeUpdatedAt)
+      .filter((conversation) => options.afterUpdatedAt === undefined || conversation.updatedAt > options.afterUpdatedAt)
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt) || left.id.localeCompare(right.id))
+      .slice(0, options.limit) as ConversationRecord<TConversationContext>[];
+  }
+
   async updateConversationLifecycle(
     conversationId: string,
     lifecycle: ConversationLifecycle,
@@ -135,6 +147,8 @@ export class RecordingStorage implements StorageAdapter {
     } as RuntimeEvent;
     events.push(stored);
     this.events.set(event.conversationId, events);
+    const conversation = this.conversations.get(event.conversationId);
+    if (conversation) this.conversations.set(event.conversationId, { ...conversation, updatedAt: stored.createdAt });
     return stored;
   }
 

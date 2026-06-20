@@ -3,13 +3,14 @@ import type {
   ConversationLifecycle,
   ConversationRecord,
   CreateConversationInput,
+  ListConversationsOptions,
   ListEventsOptions,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,
   StorageAdapter,
 } from "@cognidesk/core";
-import { and, asc, eq, gt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Client, Pool, PoolConfig } from "pg";
 import {
@@ -124,6 +125,26 @@ export class PostgresStorageAdapter implements StorageAdapter {
       .limit(1);
     const row = rows[0];
     return row ? conversationFromRow<TConversationContext>(row) : null;
+  }
+
+  async listConversations<TConversationContext = unknown>(
+    options: ListConversationsOptions = {},
+  ): Promise<ConversationRecord<TConversationContext>[]> {
+    const filters = [
+      ...(options.agentId ? [eq(postgresConversations.agentId, options.agentId)] : []),
+      ...(options.beforeUpdatedAt ? [lt(postgresConversations.updatedAt, options.beforeUpdatedAt)] : []),
+      ...(options.afterUpdatedAt ? [gt(postgresConversations.updatedAt, options.afterUpdatedAt)] : []),
+    ];
+    const query = filters.length > 0
+      ? this.db.select().from(postgresConversations)
+        .where(and(...filters))
+        .orderBy(desc(postgresConversations.updatedAt), asc(postgresConversations.id))
+      : this.db.select().from(postgresConversations)
+        .orderBy(desc(postgresConversations.updatedAt), asc(postgresConversations.id));
+    const rows = options.limit === undefined
+      ? await query
+      : await query.limit(options.limit);
+    return rows.map((row) => conversationFromRow<TConversationContext>(row));
   }
 
   async updateConversationLifecycle(

@@ -14,6 +14,20 @@ describe("createCognideskClient HTTP route calls", () => {
         baseUrl: "http://localhost/api/",
         fetch: async (url, init) => {
           requests.push({ url: String(url), body: JSON.parse(String(init?.body ?? "{}")) as unknown });
+          if (String(url).includes("/conversations?")) {
+            return Response.json({
+              conversations: [
+                {
+                  id: "conversation_1",
+                  agentId: "flight-service",
+                  lifecycle: "active",
+                  context: {},
+                  createdAt: "2026-05-25T00:00:00.000Z",
+                  updatedAt: "2026-05-25T00:00:00.000Z",
+                },
+              ],
+            });
+          }
           if (String(url).endsWith("/conversations")) {
             return Response.json({
               conversation: {
@@ -272,6 +286,12 @@ describe("createCognideskClient HTTP route calls", () => {
       });
 
       const created = await client.createConversation({ agentId: "flight-service", context: { locale: "en" }, channel });
+      const listed = await client.listConversations({
+        agentId: "flight-service",
+        beforeUpdatedAt: "2026-05-27T00:00:00.000Z",
+        afterUpdatedAt: "2026-05-24T00:00:00.000Z",
+        limit: 5,
+      });
       await client.startVoiceConversation({
         agentId: "flight-service",
         context: { locale: "en" },
@@ -336,6 +356,10 @@ describe("createCognideskClient HTTP route calls", () => {
         {
           url: "http://localhost/api/conversations",
           body: { agentId: "flight-service", context: { locale: "en" }, channel },
+        },
+        {
+          url: "http://localhost/api/conversations?agentId=flight-service&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z&limit=5",
+          body: {},
         },
         {
           url: "http://localhost/api/voice/conversations",
@@ -433,6 +457,7 @@ describe("createCognideskClient HTTP route calls", () => {
         conversationId: "conversation_1",
         handling: "started",
       });
+      expect(listed.conversations).toHaveLength(1);
       expect(sent.activeJourneyId).toBe("ticket-status");
       expect(sent.text).toBe("Handled: hello");
     });

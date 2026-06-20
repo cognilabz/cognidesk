@@ -6,13 +6,14 @@ import type {
   ConversationLifecycle,
   ConversationRecord,
   CreateConversationInput,
+  ListConversationsOptions,
   ListEventsOptions,
   RuntimeEvent,
   RuntimeEventInput,
   RuntimeSnapshot,
   StorageAdapter,
 } from "@cognidesk/core";
-import { and, asc, eq, gt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, sql } from "drizzle-orm";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import {
   sqliteConversations,
@@ -133,6 +134,26 @@ export class SqliteStorageAdapter implements StorageAdapter {
       .limit(1)
       .get();
     return row ? conversationFromRow<TConversationContext>(row) : null;
+  }
+
+  async listConversations<TConversationContext = unknown>(
+    options: ListConversationsOptions = {},
+  ): Promise<ConversationRecord<TConversationContext>[]> {
+    const filters = [
+      ...(options.agentId ? [eq(sqliteConversations.agentId, options.agentId)] : []),
+      ...(options.beforeUpdatedAt ? [lt(sqliteConversations.updatedAt, options.beforeUpdatedAt)] : []),
+      ...(options.afterUpdatedAt ? [gt(sqliteConversations.updatedAt, options.afterUpdatedAt)] : []),
+    ];
+    const query = filters.length > 0
+      ? this.db.select().from(sqliteConversations)
+        .where(and(...filters))
+        .orderBy(desc(sqliteConversations.updatedAt), asc(sqliteConversations.id))
+      : this.db.select().from(sqliteConversations)
+        .orderBy(desc(sqliteConversations.updatedAt), asc(sqliteConversations.id));
+    const rows = options.limit === undefined
+      ? await query.all()
+      : await query.limit(options.limit).all();
+    return rows.map((row) => conversationFromRow<TConversationContext>(row));
   }
 
   async updateConversationLifecycle(

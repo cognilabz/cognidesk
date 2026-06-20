@@ -23,6 +23,13 @@ export interface ListEventsOptions {
   limit?: number;
 }
 
+export interface ListConversationsOptions {
+  agentId?: string;
+  beforeUpdatedAt?: string;
+  afterUpdatedAt?: string;
+  limit?: number;
+}
+
 export interface CreateConversationInput<TConversationContext = unknown> {
   id?: string;
   agentId: string;
@@ -40,6 +47,10 @@ export interface StorageAdapter {
   getConversation<TConversationContext = unknown>(
     conversationId: string,
   ): Promise<ConversationRecord<TConversationContext> | null>;
+
+  listConversations<TConversationContext = unknown>(
+    options?: ListConversationsOptions,
+  ): Promise<ConversationRecord<TConversationContext>[]>;
 
   updateConversationLifecycle(
     conversationId: string,

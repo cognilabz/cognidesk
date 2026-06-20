@@ -7,6 +7,7 @@ import type {
   HandleUserMessageInput,
   HandleUserMessageResult,
   JourneyEventDefinition,
+  ListRuntimeConversationsOptions,
   RequestHandoffInput,
   ReplayConversationInput,
   ReplayConversationResult,
@@ -31,6 +32,27 @@ export class FakeRuntime implements CognideskHttpRuntime {
       createdAt: "2026-05-25T00:00:00.000Z",
       updatedAt: "2026-05-25T00:00:00.000Z",
     };
+  }
+
+  async listConversations(_input: ListRuntimeConversationsOptions = {}): Promise<ConversationRecord[]> {
+    return [
+      {
+        id: "conversation_2",
+        agentId: "flight-service",
+        lifecycle: "active",
+        context: { locale: "de" },
+        createdAt: "2026-05-26T00:00:00.000Z",
+        updatedAt: "2026-05-26T00:00:00.000Z",
+      },
+      {
+        id: "conversation_1",
+        agentId: "flight-service",
+        lifecycle: "active",
+        context: {},
+        createdAt: "2026-05-25T00:00:00.000Z",
+        updatedAt: "2026-05-25T00:00:00.000Z",
+      },
+    ];
   }
 
   async handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult> {

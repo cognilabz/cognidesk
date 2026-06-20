@@ -1,6 +1,7 @@
 export type {
   ConversationRecord,
   CreateConversationInput,
+  ListConversationsOptions,
   ListEventsOptions,
   RuntimeEventInput,
   StorageAdapter,
