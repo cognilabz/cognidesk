@@ -10,8 +10,8 @@ export const sqliteConversations = sqliteTable("conversations", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 }, (table) => [
-  index("conversations_updated_id_idx").on(desc(table.updatedAt), asc(table.id)),
-  index("conversations_agent_updated_id_idx").on(table.agentId, desc(table.updatedAt), asc(table.id)),
+  index("conversations_updated_desc_id_asc_idx").on(desc(table.updatedAt), asc(table.id)),
+  index("conversations_agent_updated_desc_id_asc_idx").on(table.agentId, desc(table.updatedAt), asc(table.id)),
 ]);
 
 export const sqliteRuntimeEvents = sqliteTable("runtime_events", {

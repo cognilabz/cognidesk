@@ -43,23 +43,71 @@ describe("SQLite runtime integration", () => {
         try {
           const result = await client.execute({
             sql: "SELECT name FROM sqlite_master WHERE type = 'index' AND name IN (?, ?) ORDER BY name",
-            args: ["conversations_agent_updated_id_idx", "conversations_updated_id_idx"],
+            args: ["conversations_agent_updated_desc_id_asc_idx", "conversations_updated_desc_id_asc_idx"],
           });
           expect(result.rows.map((row) => row.name)).toEqual([
-            "conversations_agent_updated_id_idx",
-            "conversations_updated_id_idx",
+            "conversations_agent_updated_desc_id_asc_idx",
+            "conversations_updated_desc_id_asc_idx",
           ]);
-          await expectIndexColumns(client, "conversations_updated_id_idx", [
+          await expectIndexColumns(client, "conversations_updated_desc_id_asc_idx", [
             { name: "updated_at", desc: 1 },
             { name: "id", desc: 0 },
           ]);
-          await expectIndexColumns(client, "conversations_agent_updated_id_idx", [
+          await expectIndexColumns(client, "conversations_agent_updated_desc_id_asc_idx", [
             { name: "agent_id", desc: 0 },
             { name: "updated_at", desc: 1 },
             { name: "id", desc: 0 },
           ]);
         } finally {
           client.close();
+        }
+      } finally {
+        storage.close();
+      }
+    });
+  });
+
+  it("adds corrected conversation listing indexes to databases with previous ascending indexes", async () => {
+    await withStorageFile(async (filename) => {
+      const client = createClient({ url: `file:${filename}` });
+      try {
+        await client.execute(`CREATE TABLE conversations (
+          id TEXT PRIMARY KEY,
+          agent_id TEXT NOT NULL,
+          lifecycle TEXT NOT NULL CHECK (lifecycle IN ('active', 'handoff', 'closed')),
+          context_json TEXT NOT NULL,
+          channel_json TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )`);
+        await client.execute("CREATE INDEX conversations_updated_id_idx ON conversations(updated_at ASC, id ASC)");
+        await client.execute(
+          "CREATE INDEX conversations_agent_updated_id_idx ON conversations(agent_id, updated_at ASC, id ASC)",
+        );
+      } finally {
+        client.close();
+      }
+
+      const storage = createSqliteStorage({ filename });
+      try {
+        await storage.initialize();
+        const upgradedClient = createClient({ url: `file:${filename}` });
+        try {
+          await expectIndexColumns(upgradedClient, "conversations_updated_id_idx", [
+            { name: "updated_at", desc: 0 },
+            { name: "id", desc: 0 },
+          ]);
+          await expectIndexColumns(upgradedClient, "conversations_updated_desc_id_asc_idx", [
+            { name: "updated_at", desc: 1 },
+            { name: "id", desc: 0 },
+          ]);
+          await expectIndexColumns(upgradedClient, "conversations_agent_updated_desc_id_asc_idx", [
+            { name: "agent_id", desc: 0 },
+            { name: "updated_at", desc: 1 },
+            { name: "id", desc: 0 },
+          ]);
+        } finally {
+          upgradedClient.close();
         }
       } finally {
         storage.close();
