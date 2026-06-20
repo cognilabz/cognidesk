@@ -26,7 +26,12 @@ import {
   toolStartedEntry,
   validationCompletedEntry,
 } from "./event-builders";
-import { operatorEventSessionId, shouldApplyOperatorEvent } from "./event-routing";
+import {
+  canOpenOperatorSession,
+  canStartNewOperatorSession,
+  operatorEventSessionId,
+  shouldApplyOperatorEvent,
+} from "./event-routing";
 import { useOperatorViewLayout } from "./layout";
 import {
   createOperatorSession,
@@ -90,6 +95,7 @@ export function useOperatorController(props: OperatorViewProps) {
   const hasUserMessages = chatItems.some((item) => item.type === "message" && item.role === "user");
   const visibleChatItems = compactActivityEvents(chatItems);
   const assistantIsTyping = isAssistantTyping(visibleChatItems);
+  const canStartNewSession = canStartNewOperatorSession(activeTurnSessionIdRef.current, isWorking);
   operatorSessionIdRef.current = operatorSessionId;
 
   function openDashboardPanel(options: { resetWidth?: boolean } = {}) {
@@ -102,6 +108,10 @@ export function useOperatorController(props: OperatorViewProps) {
   }
 
   async function startNewSession() {
+    if (!canStartNewOperatorSession(activeTurnSessionIdRef.current, isWorking)) {
+      pushActiveTurnBlockedEvent();
+      return;
+    }
     try {
       const nextSession = await createOperatorSession({
         title: "Untitled Operator session",
@@ -121,12 +131,8 @@ export function useOperatorController(props: OperatorViewProps) {
   }
 
   async function openOperatorSession(id: string) {
-    if (activeTurnSessionIdRef.current && activeTurnSessionIdRef.current !== id) {
-      pushOperatorEvent({
-        kind: "error",
-        title: "Finish or stop the current Operator turn before switching sessions.",
-        status: "error",
-      });
+    if (!canOpenOperatorSession(id, activeTurnSessionIdRef.current)) {
+      pushActiveTurnBlockedEvent();
       return;
     }
     const data = await fetchOperatorSession(id);
@@ -382,6 +388,14 @@ export function useOperatorController(props: OperatorViewProps) {
     }
   }
 
+  function pushActiveTurnBlockedEvent() {
+    pushOperatorEvent({
+      kind: "error",
+      title: "Finish or stop the current Operator turn before switching sessions.",
+      status: "error",
+    });
+  }
+
   function queuePersistOperatorMessage(
     sessionId: string,
     role: "user" | "assistant" | "system" | "tool",
@@ -435,6 +449,7 @@ export function useOperatorController(props: OperatorViewProps) {
     artifacts,
     assistantIsTyping,
     beginRenameSession,
+    canStartNewSession,
     checkDashboardFromChat: (id: string) => checkDashboard(id, openDashboardPanel),
     closeDashboardPanel,
     commitRenameSession,

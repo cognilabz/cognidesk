@@ -86,6 +86,7 @@ export function SessionSidebar(props: {
   renamingTitle: string;
   search: string;
   setRenamingTitle: (title: string) => void;
+  startNewSessionDisabled: boolean;
 }) {
   return (
     <aside className="grid min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] border-r border-slate-200 bg-slate-50 max-lg:hidden dark:border-slate-700 dark:bg-slate-950">
@@ -107,8 +108,9 @@ export function SessionSidebar(props: {
       <div className="px-3 pb-3">
         <Button
           className={cn("w-full justify-start bg-white text-slate-950 hover:bg-slate-100 dark:border dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800", props.collapsed && "justify-center px-0")}
+          disabled={props.startNewSessionDisabled}
           onClick={props.onStartNewSession}
-          title="New session"
+          title={props.startNewSessionDisabled ? "Finish or stop the current Operator turn before switching sessions." : "New session"}
           type="button"
         >
           <PlusIcon />

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { operatorEventSessionId, shouldApplyOperatorEvent } from "./event-routing";
+import {
+  canOpenOperatorSession,
+  canStartNewOperatorSession,
+  operatorEventSessionId,
+  shouldApplyOperatorEvent,
+} from "./event-routing";
 
 const sessionA = "11111111-1111-4111-8111-111111111111";
 const sessionB = "22222222-2222-4222-8222-222222222222";
@@ -33,5 +38,17 @@ describe("operator event routing", () => {
 
     expect(operatorEventSessionId(event)).toBeNull();
     expect(shouldApplyOperatorEvent(event, sessionB, sessionB)).toBe(true);
+  });
+
+  it("blocks starting a new session while a turn is active", () => {
+    expect(canStartNewOperatorSession(sessionA)).toBe(false);
+    expect(canStartNewOperatorSession(null, true)).toBe(false);
+    expect(canStartNewOperatorSession(null)).toBe(true);
+  });
+
+  it("blocks opening a different session while a turn is active", () => {
+    expect(canOpenOperatorSession(sessionA, sessionA)).toBe(true);
+    expect(canOpenOperatorSession(sessionB, sessionA)).toBe(false);
+    expect(canOpenOperatorSession(sessionB, null)).toBe(true);
   });
 });

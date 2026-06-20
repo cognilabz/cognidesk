@@ -15,3 +15,17 @@ export function shouldApplyOperatorEvent(
   if (currentSessionId && eventSessionId !== currentSessionId) return false;
   return true;
 }
+
+export function canOpenOperatorSession(
+  nextSessionId: string,
+  activeTurnSessionId: string | null,
+) {
+  return !activeTurnSessionId || activeTurnSessionId === nextSessionId;
+}
+
+export function canStartNewOperatorSession(
+  activeTurnSessionId: string | null,
+  isWorking = false,
+) {
+  return !activeTurnSessionId && !isWorking;
+}

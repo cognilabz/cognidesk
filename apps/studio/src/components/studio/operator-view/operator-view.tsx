@@ -61,6 +61,7 @@ export function OperatorView(props: OperatorViewProps) {
     artifacts,
     assistantIsTyping,
     beginRenameSession,
+    canStartNewSession,
     checkDashboardFromChat,
     closeDashboardPanel,
     commitRenameSession,
@@ -159,6 +160,7 @@ export function OperatorView(props: OperatorViewProps) {
         onOpenSession={(sessionId) => void openOperatorSession(sessionId)}
         onSearchChange={setSessionSearch}
         onStartNewSession={startNewSession}
+        startNewSessionDisabled={!canStartNewSession}
         onToggleCollapsed={() => setSessionSidebarCollapsed((value) => !value)}
         renamingSessionId={renamingSessionId}
         renamingTitle={renamingTitle}
