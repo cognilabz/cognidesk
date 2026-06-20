@@ -25,15 +25,36 @@ export interface RecordMirroredEventInput {
   discordMessageId?: string;
 }
 
-export interface FlightDemoDiscordStoreOptions {
+export interface DiscordGatewayStore {
+  initialize(): Promise<void>;
+  getBindingByThreadId(discordThreadId: string): Promise<DiscordThreadBinding | null>;
+  listActiveBindings(): Promise<DiscordThreadBinding[]>;
+  listActiveBindingsForConversation(conversationId: string): Promise<DiscordThreadBinding[]>;
+  upsertBinding(input: {
+    discordThreadId: string;
+    conversationId: string;
+    guildId: string;
+    parentChannelId: string;
+    starterUserId?: string;
+    threadName?: string;
+    active?: boolean;
+  }): Promise<DiscordThreadBinding | null>;
+  deactivateBinding(discordThreadId: string): Promise<void>;
+  getLastMirroredOffset(discordThreadId: string): Promise<number>;
+  hasMirroredEvent(discordThreadId: string, runtimeEventId: string): Promise<boolean>;
+  recordMirroredEvent(input: RecordMirroredEventInput): Promise<void>;
+  close(): void;
+}
+
+export interface DiscordSqliteStoreOptions {
   filename: string;
 }
 
-export class FlightDemoDiscordStore {
+export class DiscordSqliteStore implements DiscordGatewayStore {
   private readonly client: Client;
   private initializePromise: Promise<void> | null = null;
 
-  constructor(private readonly options: FlightDemoDiscordStoreOptions) {
+  constructor(private readonly options: DiscordSqliteStoreOptions) {
     this.client = createClient({ url: sqliteFilenameToUrl(options.filename) });
   }
 
@@ -225,8 +246,8 @@ export class FlightDemoDiscordStore {
   }
 }
 
-export function createFlightDemoDiscordStore(options: FlightDemoDiscordStoreOptions) {
-  return new FlightDemoDiscordStore(options);
+export function createDiscordSqliteStore(options: DiscordSqliteStoreOptions) {
+  return new DiscordSqliteStore(options);
 }
 
 function bindingFromRow(row: Record<string, unknown>): DiscordThreadBinding {

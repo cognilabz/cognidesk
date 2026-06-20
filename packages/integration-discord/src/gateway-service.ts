@@ -9,20 +9,25 @@ import {
   type TextChannel,
   type ThreadChannel,
 } from "discord.js";
-import type { EnabledFlightDemoDiscordConfig } from "./config.js";
-import type { DiscordThreadBinding, FlightDemoDiscordStore } from "./discord-store.js";
+import type { DiscordGatewayServiceConfig, DiscordGatewayServiceCopy } from "./config.js";
+import type { DiscordGatewayStore, DiscordThreadBinding } from "./sqlite-store.js";
 
 const DISCORD_PROVIDER_PACKAGE_ID = "community.discord";
 const DISCORD_SOURCE_ID = "discord-gateway";
 const EYE_REACTION = "👀";
 const DONE_REACTION = "✅";
+const DEFAULT_SUPPORT_THREAD_NAME_PREFIX = "Cognidesk support";
+const DEFAULT_SOURCE_THREAD_NAME_PREFIX = "Cognidesk support";
+const DEFAULT_WEB_MESSAGE_PREFIX = "Web";
+const DEFAULT_VOICE_MESSAGE_PREFIX = "Voice";
 
-export interface FlightDemoDiscordServiceOptions {
-  config: EnabledFlightDemoDiscordConfig;
+export interface DiscordGatewayServiceOptions {
+  config: DiscordGatewayServiceConfig;
   botToken: string;
   runtime: CognideskRuntime;
-  store: FlightDemoDiscordStore;
+  store: DiscordGatewayStore;
   agentId: string;
+  copy?: DiscordGatewayServiceCopy;
 }
 
 export interface ContinueConversationInDiscordResult {
@@ -33,7 +38,7 @@ export interface ContinueConversationInDiscordResult {
   discordThreadUrl: string;
 }
 
-export interface FlightDemoDiscordStatus {
+export interface DiscordGatewayStatus {
   enabled: true;
   ready: boolean;
   guildId: string;
@@ -60,14 +65,14 @@ export type DiscordMirrorItem =
       event: Extract<RuntimeEvent, { type: "ui.prompted" }>;
     };
 
-export class FlightDemoDiscordService {
+export class DiscordGatewayService {
   private readonly client: Client;
   private mirrorTimer: NodeJS.Timeout | null = null;
   private mirrorRunning = false;
   private stopped = false;
   private readonly discordSourceThreadsInProgress = new Map<string, number>();
 
-  constructor(private readonly options: FlightDemoDiscordServiceOptions) {
+  constructor(private readonly options: DiscordGatewayServiceOptions) {
     this.client = new Client({
       intents: [
         GatewayIntentBits.Guilds,
@@ -83,12 +88,12 @@ export class FlightDemoDiscordService {
     await this.options.store.initialize();
     this.client.on("messageCreate", (message) => {
       void this.handleDiscordMessage(message).catch((error) => {
-        console.error("Flight demo Discord message handling failed.", error);
+        console.error("Cognidesk Discord Gateway message handling failed.", error);
       });
     });
     await this.client.login(this.options.botToken);
     this.startMirrorLoop();
-    console.log(`Flight demo Discord integration connected as ${this.client.user?.tag ?? "unknown bot"}`);
+    console.log(`Cognidesk Discord Gateway integration connected as ${this.client.user?.tag ?? "unknown bot"}`);
   }
 
   async stop() {
@@ -101,7 +106,7 @@ export class FlightDemoDiscordService {
     this.options.store.close();
   }
 
-  status(): FlightDemoDiscordStatus {
+  status(): DiscordGatewayStatus {
     return {
       enabled: true,
       ready: this.client.isReady(),
@@ -134,9 +139,9 @@ export class FlightDemoDiscordService {
 
     const supportChannel = await this.fetchSupportChannel();
     const thread = await supportChannel.threads.create({
-      name: `Flight support ${shortId(conversationId)}`,
+      name: this.supportThreadName(conversationId),
       autoArchiveDuration: this.options.config.threadAutoArchiveDuration,
-      reason: "Cognidesk flight demo web continuation",
+      reason: "Cognidesk Discord Gateway web continuation",
     });
     const binding = await this.options.store.upsertBinding({
       discordThreadId: thread.id,
@@ -148,9 +153,9 @@ export class FlightDemoDiscordService {
     if (!binding) throw new Error("Failed to persist Discord thread binding.");
 
     await this.mirrorBinding(binding).catch((error) => {
-      console.error("Flight demo Discord initial history mirror failed.", error);
+      console.error("Cognidesk Discord Gateway initial history mirror failed.", error);
     });
-    await thread.send(`Discord continuation is connected. Web: ${this.conversationUrl(conversationId)}`);
+    await thread.send(this.connectedMessage(conversationId));
 
     return {
       enabled: true,
@@ -278,9 +283,9 @@ export class FlightDemoDiscordService {
       await this.mirrorConversation(conversationId);
       await replaceReaction(message, EYE_REACTION, DONE_REACTION, this.client.user?.id);
     } catch (error) {
-      console.error("Flight demo Discord turn failed.", error);
+      console.error("Cognidesk Discord Gateway turn failed.", error);
       await removeReaction(message, EYE_REACTION, this.client.user?.id);
-      await thread.send("The flight demo could not generate a response. Continue on web: " + this.conversationUrlForThread(thread.id));
+      await thread.send(this.turnFailureMessage(thread.id));
     } finally {
       releaseSourceThread();
       typing.stop();
@@ -296,9 +301,9 @@ export class FlightDemoDiscordService {
     if (!message.inGuild()) return null;
     if (message.hasThread && message.thread) return message.thread;
     return message.startThread({
-      name: `Flight support ${shortId(message.author.id)}-${shortId(message.id)}`,
+      name: this.sourceThreadName(message.author.id, message.id),
       autoArchiveDuration: this.options.config.threadAutoArchiveDuration,
-      reason: "Cognidesk flight demo Discord conversation",
+      reason: "Cognidesk Discord Gateway conversation",
     });
   }
 
@@ -393,7 +398,7 @@ export class FlightDemoDiscordService {
           discordMessageId: sent.id,
         });
       } catch (error) {
-        console.error("Flight demo Discord mirror send failed.", error);
+        console.error("Cognidesk Discord Gateway mirror send failed.", error);
         await this.options.store.deactivateBinding(binding.discordThreadId);
         return;
       }
@@ -403,12 +408,37 @@ export class FlightDemoDiscordService {
   private messageMirrorText(item: Extract<DiscordMirrorItem, { kind: "message" }>): string | null {
     if (item.role === "assistant") return item.text;
     if (item.origin === "discord") return null;
-    if (item.origin === "voice") return `Voice: ${item.text}`;
-    return `Web: ${item.text}`;
+    if (item.origin === "voice") return `${this.options.copy?.voiceMessagePrefix ?? DEFAULT_VOICE_MESSAGE_PREFIX}: ${item.text}`;
+    return `${this.options.copy?.webMessagePrefix ?? DEFAULT_WEB_MESSAGE_PREFIX}: ${item.text}`;
   }
 
   private promptFallbackText(conversationId: string) {
-    return `This step needs the web demo. Continue here: ${this.conversationUrl(conversationId)}`;
+    return this.options.copy?.promptFallbackMessage?.({
+      conversationId,
+      conversationUrl: this.conversationUrl(conversationId),
+    }) ?? `This step needs the web experience. Continue here: ${this.conversationUrl(conversationId)}`;
+  }
+
+  private connectedMessage(conversationId: string) {
+    return this.options.copy?.connectedMessage?.({
+      conversationId,
+      conversationUrl: this.conversationUrl(conversationId),
+    }) ?? `Discord continuation is connected. Web: ${this.conversationUrl(conversationId)}`;
+  }
+
+  private turnFailureMessage(discordThreadId: string) {
+    return this.options.copy?.turnFailureMessage?.({
+      discordThreadId,
+      conversationUrl: this.conversationUrlForThread(discordThreadId),
+    }) ?? `Cognidesk could not generate a response. Continue on web: ${this.conversationUrlForThread(discordThreadId)}`;
+  }
+
+  private supportThreadName(conversationId: string) {
+    return `${this.options.copy?.supportThreadNamePrefix ?? DEFAULT_SUPPORT_THREAD_NAME_PREFIX} ${shortId(conversationId)}`;
+  }
+
+  private sourceThreadName(userId: string, messageId: string) {
+    return `${this.options.copy?.sourceThreadNamePrefix ?? DEFAULT_SOURCE_THREAD_NAME_PREFIX} ${shortId(userId)}-${shortId(messageId)}`;
   }
 
   private conversationUrlForThread(discordThreadId: string) {
@@ -433,7 +463,7 @@ export class FlightDemoDiscordService {
           await this.mirrorBinding(binding);
         }
       } catch (error) {
-        console.error("Flight demo Discord mirror loop failed.", error);
+        console.error("Cognidesk Discord Gateway mirror loop failed.", error);
       } finally {
         this.mirrorRunning = false;
         this.scheduleMirrorLoop();
@@ -467,7 +497,7 @@ export class FlightDemoDiscordService {
   private async fetchSupportChannel(): Promise<TextChannel | NewsChannel> {
     const channel = await this.client.channels.fetch(this.options.config.supportChannelId);
     if (!channel || (channel.type !== ChannelType.GuildText && channel.type !== ChannelType.GuildAnnouncement)) {
-      throw new Error("Flight demo Discord supportChannelId must point to a guild text or announcement channel.");
+      throw new Error("Discord supportChannelId must point to a guild text or announcement channel.");
     }
     return channel;
   }
@@ -480,13 +510,13 @@ export class FlightDemoDiscordService {
 
   private requireReady() {
     if (!this.client.isReady()) {
-      throw new Error("Flight demo Discord integration is not ready yet.");
+      throw new Error("Discord Gateway integration is not ready yet.");
     }
   }
 }
 
-export function createFlightDemoDiscordService(options: FlightDemoDiscordServiceOptions) {
-  return new FlightDemoDiscordService(options);
+export function createDiscordGatewayService(options: DiscordGatewayServiceOptions) {
+  return new DiscordGatewayService(options);
 }
 
 export function collectDiscordMirrorItems(events: RuntimeEvent[]): DiscordMirrorItem[] {
@@ -622,7 +652,7 @@ async function removeReaction(message: Message, emoji: string, botUserId: string
   }
 }
 
-function discordThreadUrl(guildId: string, threadId: string) {
+export function discordThreadUrl(guildId: string, threadId: string) {
   return `https://discord.com/channels/${guildId}/${threadId}`;
 }
 

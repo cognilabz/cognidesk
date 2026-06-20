@@ -7,6 +7,11 @@ import { StartStreamTranscriptionCommand, TranscribeStreamingClient } from "@aws
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createRuntime } from "@cognidesk/core";
 import {
+  createDiscordGatewayService,
+  createDiscordSqliteStore,
+  type DiscordGatewayService,
+} from "@cognidesk/integration-discord";
+import {
   createAwsSpeechVoiceProvider,
   type AwsPollySynthesizeCommandInput,
   type AwsSdkCommandConstructor,
@@ -33,8 +38,6 @@ import {
   type ConfiguredVoiceProviderSecrets,
   type FlightDemoConfig,
 } from "./config.js";
-import { createFlightDemoDiscordService, type FlightDemoDiscordService } from "./discord-service.js";
-import { createFlightDemoDiscordStore } from "./discord-store.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";
 import { createFlightDemoVoiceControlSurface } from "./voice-control.js";
 
@@ -82,12 +85,19 @@ const runtime = createRuntime({
 await runtime.initialize();
 
 const discordService = discordIntegration
-  ? createFlightDemoDiscordService({
+  ? createDiscordGatewayService({
       config: discordIntegration.config,
       botToken: discordIntegration.secrets.botToken,
       runtime,
-      store: createFlightDemoDiscordStore({ filename: sqlitePath }),
+      store: createDiscordSqliteStore({ filename: sqlitePath }),
       agentId: agent.id,
+      copy: {
+        supportThreadNamePrefix: "Flight support",
+        sourceThreadNamePrefix: "Flight support",
+        promptFallbackMessage: ({ conversationUrl }) => `This step needs the web demo. Continue here: ${conversationUrl}`,
+        turnFailureMessage: ({ conversationUrl }) =>
+          `The flight demo could not generate a response. Continue on web: ${conversationUrl}`,
+      },
     })
   : null;
 if (discordService) await discordService.start();
@@ -194,7 +204,7 @@ server.on("close", () => {
 
 async function handleFlightDemoDiscordRequest(
   request: Request,
-  service: FlightDemoDiscordService | null,
+  service: DiscordGatewayService | null,
 ) {
   const url = new URL(request.url);
   if (request.method === "OPTIONS") return demoJson({}, 204);

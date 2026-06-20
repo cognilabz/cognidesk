@@ -3,13 +3,28 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { RuntimeEvent } from "@cognidesk/core";
 import { describe, expect, it, vi } from "vitest";
-import { FlightDemoDiscordService, collectDiscordMirrorItems } from "../server/discord-service.js";
-import { createFlightDemoDiscordStore } from "../server/discord-store.js";
+import { DiscordGatewayService, collectDiscordMirrorItems } from "../src/gateway-service.js";
+import { discordGatewayProviderManifest } from "../src/manifest.js";
+import { createDiscordSqliteStore } from "../src/sqlite-store.js";
 
-describe("flight demo Discord store", () => {
+describe("@cognidesk/integration-discord manifest", () => {
+  it("declares Discord Gateway as a separately released integration package", () => {
+    expect(discordGatewayProviderManifest).toMatchObject({
+      id: "community.discord.gateway",
+      packageName: "@cognidesk/integration-discord",
+      provider: "discord",
+      category: "community",
+      trustLevel: "official",
+    });
+    expect(discordGatewayProviderManifest.coverage.notes.join(" "))
+      .toContain("released separately");
+  });
+});
+
+describe("@cognidesk/integration-discord store", () => {
   it("persists thread bindings and mirrored event idempotency", async () => {
     const tempDir = await mkdtemp(join(tmpdir(), "cognidesk-discord-store-"));
-    const store = createFlightDemoDiscordStore({ filename: join(tempDir, "demo.sqlite") });
+    const store = createDiscordSqliteStore({ filename: join(tempDir, "demo.sqlite") });
     try {
       const binding = await store.upsertBinding({
         discordThreadId: "thread_1",
@@ -17,7 +32,7 @@ describe("flight demo Discord store", () => {
         guildId: "guild_1",
         parentChannelId: "channel_1",
         starterUserId: "user_1",
-        threadName: "Flight support",
+        threadName: "Cognidesk support",
       });
 
       expect(binding).toMatchObject({
@@ -55,10 +70,10 @@ describe("flight demo Discord store", () => {
   });
 });
 
-describe("FlightDemoDiscordService mirroring", () => {
+describe("DiscordGatewayService mirroring", () => {
   it("does not poll a Discord thread while a source turn is still in progress", async () => {
     const runtime = { listEvents: vi.fn() };
-    const service = new FlightDemoDiscordService({
+    const service = new DiscordGatewayService({
       agentId: "flight-service",
       botToken: "unused",
       config: discordTestConfig(),
@@ -127,7 +142,7 @@ describe("FlightDemoDiscordService mirroring", () => {
       recordMirroredEvent: vi.fn().mockResolvedValue(undefined),
       deactivateBinding: vi.fn(),
     };
-    const service = new FlightDemoDiscordService({
+    const service = new DiscordGatewayService({
       agentId: "flight-service",
       botToken: "unused",
       config: discordTestConfig(),
