@@ -44,6 +44,8 @@ async function startSession(
   event: Extract<StudioOperatorClientEvent, { type: "session.start" }>,
 ) {
   const sessionId = event.sessionId ?? randomUUID();
+  const existingSession = sessions.get(sessionId);
+  if (existingSession) assertCanAccessSession(claims, existingSession);
   const sandboxPath = await prepareSandbox(sessionId);
   const model = modelForCodex(event.modelId);
   const thread = await codex.startThread({
