@@ -14,7 +14,7 @@ describe("studio adapter", () => {
           },
         },
       });
-  
+
       const response = await adapter.handle(new Request("http://local/api/studio/configuration/changes", {
         method: "POST",
         body: JSON.stringify({
@@ -28,7 +28,7 @@ describe("studio adapter", () => {
           }],
         }),
       }));
-  
+
       expect(response.status).toBe(501);
       expect(await response.json()).toMatchObject({
         accepted: false,
@@ -61,7 +61,7 @@ describe("studio adapter", () => {
           },
         },
       });
-  
+
       const response = await adapter.handle(new Request("http://local/api/studio/configuration/changes", {
         method: "POST",
         body: JSON.stringify({
@@ -76,7 +76,7 @@ describe("studio adapter", () => {
           }],
         }),
       }));
-  
+
       expect(response.status).toBe(202);
       expect(await response.json()).toMatchObject({
         requestId: "cfg-1",

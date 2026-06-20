@@ -4,8 +4,8 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { ImageIcon, Monitor } from "lucide-react";
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
-import { usePromptInputAttachments } from "./context.js";
-import { captureScreenshot } from "./helpers.js";
+import { usePromptInputAttachments } from "./context";
+import { captureScreenshot } from "./helpers";
 
 export type PromptInputActionAddAttachmentsProps = ComponentProps<
   typeof DropdownMenuItem

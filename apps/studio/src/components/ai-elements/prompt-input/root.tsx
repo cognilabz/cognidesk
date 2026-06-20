@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 import {
   LocalAttachmentsContext,
   LocalReferencedSourcesContext,
-} from "./context.js";
-import type { PromptInputProps } from "./types.js";
-import { usePromptInputState } from "./use-prompt-input-state.js";
+} from "./context";
+import type { PromptInputProps } from "./types";
+import { usePromptInputState } from "./use-prompt-input-state";
 
 export const PromptInput = ({
   className,

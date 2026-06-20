@@ -15,7 +15,7 @@ import {
   ProviderAttachmentsContext,
   type AttachmentsContext,
   type PromptInputControllerProps,
-} from "./context.js";
+} from "./context";
 
 export type PromptInputProviderProps = PropsWithChildren<{
   initialInput?: string;

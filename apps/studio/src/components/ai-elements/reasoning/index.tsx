@@ -14,9 +14,9 @@ import {
   useRef,
 } from "react";
 
-import { ReasoningContext } from "./context.js";
-import { ReasoningContent } from "./content.js";
-import { ReasoningTrigger } from "./trigger.js";
+import { ReasoningContext } from "./context";
+import { ReasoningContent } from "./content";
+import { ReasoningTrigger } from "./trigger";
 
 export type ReasoningProps = ComponentProps<typeof Collapsible> & {
   isStreaming?: boolean;
@@ -124,4 +124,4 @@ export const Reasoning = memo(
 
 Reasoning.displayName = "Reasoning";
 export { ReasoningContent, ReasoningTrigger };
-export { useReasoning } from "./context.js";
+export { useReasoning } from "./context";

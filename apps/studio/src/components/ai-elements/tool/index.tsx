@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
-import { ToolInput } from "./input.js";
-import { ToolOutput } from "./output.js";
+import { ToolInput } from "./input";
+import { ToolOutput } from "./output";
 
 export type ToolProps = ComponentProps<typeof Collapsible>;
 

@@ -52,16 +52,16 @@ describe("studio adapter", () => {
           },
         },
       });
-  
+
       const unauthorized = await adapter.handle(new Request("http://local/api/studio/health"));
       expect(unauthorized.status).toBe(401);
-  
+
       const health = await adapter.handle(new Request("http://local/api/studio/health", {
         headers: { authorization: "Bearer secret" },
       }));
       expect(health.status).toBe(200);
       expect(await health.json()).toMatchObject({ ok: true, targetId: "test-target", agentId: "test-agent" });
-  
+
       const introspection = await adapter.handle(new Request("http://local/api/studio/introspection", {
         headers: { authorization: "Bearer secret" },
       }));
@@ -100,9 +100,9 @@ describe("studio adapter", () => {
           },
         },
       });
-  
+
       const response = await adapter.handle(new Request(`http://local${requestPath}`));
-  
+
       expect(response.status).toBe(200);
       expect(await response.json()).toMatchObject({ ok: true, targetId: "test-target", agentId: "test-agent" });
     });

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { use, useCallback, useEffect, useRef, useState } from "react";
-import { CodeBlockContext } from "./context.js";
+import { CodeBlockContext } from "./context";
 
 export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
   onCopy?: () => void;

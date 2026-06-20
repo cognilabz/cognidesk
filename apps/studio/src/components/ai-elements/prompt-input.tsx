@@ -1,3 +1,3 @@
 "use client";
 
-export * from "./prompt-input/index.js";
+export * from "./prompt-input/index";

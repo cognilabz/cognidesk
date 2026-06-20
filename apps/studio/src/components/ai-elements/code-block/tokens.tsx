@@ -10,7 +10,7 @@ import type {
   ThemedToken,
 } from "shiki";
 import { createHighlighter } from "shiki";
-import type { KeyedLine, TokenizedCode } from "./types.js";
+import type { KeyedLine, TokenizedCode } from "./types";
 
 // Shiki uses bitflags for font styles: 1=italic, 2=bold, 4=underline
 // oxlint-disable-next-line eslint(no-bitwise)

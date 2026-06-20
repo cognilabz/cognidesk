@@ -65,11 +65,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     requirePermission(session, "operator:use");
     const { id } = await context.params;
     const body = AppendMessageSchema.parse(await request.json());
-    await appendOperatorMessage({
+    const appended = await appendOperatorMessage({
       sessionId: id,
+      userId: session!.user.id,
+      includeAll: userRole(session!) === "admin",
       role: body.role,
       content: body.content,
     });
+    if (!appended) return Response.json({ error: "Operator session not found" }, { status: 404 });
     return Response.json({ ok: true });
   } catch (error) {
     if (error instanceof Error && !("status" in error)) {

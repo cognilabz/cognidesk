@@ -18,8 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import type { ComponentProps, ReactNode } from "react";
-import { ModelSelectorLogoGroup } from "./logo-group.js";
-import { ModelSelectorName } from "./name.js";
+import { ModelSelectorLogoGroup } from "./logo-group";
+import { ModelSelectorName } from "./name";
 
 export type ModelSelectorProps = ComponentProps<typeof Dialog>;
 

@@ -41,7 +41,7 @@ import {
 import {
   useOptionalPromptInputController,
   usePromptInputAttachments,
-} from "./context.js";
+} from "./context";
 
 export type PromptInputBodyProps = HTMLAttributes<HTMLDivElement>;
 

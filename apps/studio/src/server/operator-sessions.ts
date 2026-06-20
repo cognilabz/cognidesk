@@ -133,9 +133,18 @@ export async function deleteOperatorSession(input: {
 
 export async function appendOperatorMessage(input: {
   sessionId: string;
+  userId: string;
+  includeAll?: boolean;
   role: "user" | "assistant" | "system" | "tool";
   content: unknown;
 }) {
+  const [session] = await db.select().from(operatorSessions)
+    .where(input.includeAll
+      ? eq(operatorSessions.id, input.sessionId)
+      : and(eq(operatorSessions.id, input.sessionId), eq(operatorSessions.userId, input.userId)))
+    .limit(1);
+  if (!session) return false;
+
   const now = new Date();
   await db.insert(operatorMessages).values({
     id: randomUUID(),
@@ -145,6 +154,7 @@ export async function appendOperatorMessage(input: {
     createdAt: now,
   });
   await db.update(operatorSessions).set({ updatedAt: now }).where(eq(operatorSessions.id, input.sessionId));
+  return true;
 }
 
 export async function upsertOperatorArtifact(input: {

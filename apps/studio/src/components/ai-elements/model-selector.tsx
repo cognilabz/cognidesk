@@ -1,1 +1,1 @@
-export * from "./model-selector/index.js";
+export * from "./model-selector/index";

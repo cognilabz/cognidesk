@@ -15,6 +15,7 @@ import { loadStudioTargetManifest, studioEnv } from "@/server/config";
 import { listStudioConversations } from "@/server/conversations";
 import { db, ensureStudioDatabase } from "@/server/db/client";
 import { studioTargets } from "@/server/db/schema";
+import { createStudioAdapterHeaders } from "@/server/target-adapter-auth";
 
 export async function ensureDefaultTarget(userId?: string | null): Promise<StudioTargetManifest> {
   await ensureStudioDatabase();
@@ -218,8 +219,7 @@ async function adapterFetch(manifest: StudioTargetManifest, path: string, init: 
   const env = studioEnv();
   const basePath = manifest.runtime.studioAdapterBasePath.replace(/\/+$/, "");
   const suffix = path.startsWith("/") ? path : `/${path}`;
-  const headers = new Headers(init.headers);
-  if (env.targetServiceToken) headers.set("authorization", `Bearer ${env.targetServiceToken}`);
+  const headers = createStudioAdapterHeaders(manifest, env.targetServiceToken, init.headers);
   return await fetch(new URL(`${basePath}${suffix}`, manifest.runtime.baseUrl), {
     ...init,
     headers,

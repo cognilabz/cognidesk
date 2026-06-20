@@ -17,9 +17,9 @@ import {
   type AttachmentsContext,
   type ReferencedSourcesContext,
   useOptionalPromptInputController,
-} from "./context.js";
-import { convertBlobUrlToDataUrl } from "./helpers.js";
-import type { PromptInputProps } from "./types.js";
+} from "./context";
+import { convertBlobUrlToDataUrl } from "./helpers";
+import type { PromptInputProps } from "./types";
 
 export function usePromptInputState(options: {
   accept: string | undefined;

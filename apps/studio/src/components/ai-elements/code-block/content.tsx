@@ -2,10 +2,10 @@
 
 import type { BundledLanguage } from "shiki";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CodeBlockContext } from "./context.js";
-import { CodeBlockContainer } from "./shell.js";
-import { CodeBlockBody, createRawTokens, highlightCode } from "./tokens.js";
-import type { CodeBlockProps, TokenizedCode } from "./types.js";
+import { CodeBlockContext } from "./context";
+import { CodeBlockContainer } from "./shell";
+import { CodeBlockBody, createRawTokens, highlightCode } from "./tokens";
+import type { CodeBlockProps, TokenizedCode } from "./types";
 
 export const CodeBlockContent = ({
   code,

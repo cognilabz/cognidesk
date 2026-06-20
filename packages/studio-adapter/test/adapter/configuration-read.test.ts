@@ -112,7 +112,7 @@ describe("studio adapter", () => {
           },
         },
       });
-  
+
       const response = await adapter.handle(new Request("http://local/api/studio/configuration"));
       expect(response.status).toBe(200);
       const body = await response.json() as {
@@ -255,7 +255,7 @@ describe("studio adapter", () => {
           }],
         },
       });
-  
+
       const response = await adapter.handle(new Request("http://local/api/studio/configuration"));
       expect(response.status).toBe(200);
       const body = await response.json() as {
@@ -266,7 +266,7 @@ describe("studio adapter", () => {
         }>;
         providerReadiness: Array<{ status: string; metadata?: Record<string, unknown> }>;
       };
-  
+
       expect(body.providerPackages[0]?.capabilities[0]?.providerObjects[0]).toMatchObject({
         schemaName: "serviceRequests",
         metadata: { resource: "serviceRequests" },
@@ -322,7 +322,7 @@ describe("studio adapter", () => {
           },
         },
       });
-  
+
       const response = await adapter.handle(new Request("http://local/api/studio/configuration"));
       expect(response.status).toBe(200);
       const body = await response.json() as {
@@ -330,7 +330,7 @@ describe("studio adapter", () => {
         providerPackages: Array<{ id: string; packageName: string }>;
         providerReadiness: Array<{ providerPackageId: string; status: string }>;
       };
-  
+
       expect(body.channels).toEqual([expect.objectContaining({
         id: "email-support",
         providerPackageIds: ["email.postmark"],
