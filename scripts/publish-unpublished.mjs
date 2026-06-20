@@ -57,23 +57,42 @@ function sortByInternalDependencies(packages) {
   return sorted;
 }
 
-function isPublished(pkg) {
-  const result = spawnSync("npm", ["view", `${pkg.name}@${pkg.packageJson.version}`, "version", "--registry", registry], {
+function npmView(args) {
+  return spawnSync("npm", ["view", ...args, "--registry", registry], {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
+}
 
-  if (result.status === 0) {
-    return true;
+function isNotFound(result) {
+  return result.stderr.includes("E404") || result.stderr.includes("404 Not Found");
+}
+
+function readPublishedState(pkg) {
+  const versionResult = npmView([`${pkg.name}@${pkg.packageJson.version}`, "version"]);
+
+  if (versionResult.status === 0) {
+    return { packageExists: true, versionPublished: true };
   }
 
-  if (result.stderr.includes("E404") || result.stderr.includes("404 Not Found")) {
-    return false;
+  if (!isNotFound(versionResult)) {
+    process.stderr.write(versionResult.stderr);
+    throw new Error(`Unable to check published version for ${pkg.name}@${pkg.packageJson.version}`);
   }
 
-  process.stderr.write(result.stderr);
-  throw new Error(`Unable to check published version for ${pkg.name}@${pkg.packageJson.version}`);
+  const packageResult = npmView([pkg.name, "version"]);
+
+  if (packageResult.status === 0) {
+    return { packageExists: true, versionPublished: false };
+  }
+
+  if (isNotFound(packageResult)) {
+    return { packageExists: false, versionPublished: false };
+  }
+
+  process.stderr.write(packageResult.stderr);
+  throw new Error(`Unable to check package existence for ${pkg.name}`);
 }
 
 function publish(pkg) {
@@ -102,8 +121,11 @@ if (!distTag) {
 
 const packages = sortByInternalDependencies(packageWorkspaces(root));
 const version = assertFixedPackageVersion(packages);
-const decisions = packages.map((pkg) => ({ pkg, published: isPublished(pkg) }));
-const alreadyPublished = decisions.filter(({ published }) => published);
+const decisions = packages.map((pkg) => ({
+  pkg,
+  ...readPublishedState(pkg),
+}));
+const alreadyPublished = decisions.filter(({ versionPublished }) => versionPublished);
 
 console.log(`Publish plan: ${packages.length} packages at ${version} with dist-tag "${distTag}".`);
 
@@ -117,8 +139,14 @@ if (alreadyPublished.length > 0 && failOnExisting) {
 let publishedCount = 0;
 let skippedCount = 0;
 
-for (const { pkg, published } of decisions) {
-  if (published) {
+for (const { pkg, packageExists, versionPublished } of decisions) {
+  if (!packageExists) {
+    console.log(`Skipping ${pkg.name}@${pkg.packageJson.version}; package does not exist on ${registry}.`);
+    skippedCount += 1;
+    continue;
+  }
+
+  if (versionPublished) {
     console.log(`Skipping ${pkg.name}@${pkg.packageJson.version}; already published.`);
     skippedCount += 1;
     continue;
