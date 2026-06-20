@@ -26,12 +26,15 @@ import { startCognideskDemoTelemetrySeed, startCognideskOtel } from "@cognidesk/
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
 import {
+  getConfiguredDiscordIntegration,
   getConfiguredVoiceProviderSecrets,
   loadFlightDemoConfig,
   resolveFlightDemoPath,
   type ConfiguredVoiceProviderSecrets,
   type FlightDemoConfig,
 } from "./config.js";
+import { createFlightDemoDiscordService, type FlightDemoDiscordService } from "./discord-service.js";
+import { createFlightDemoDiscordStore } from "./discord-store.js";
 import { createFlightDemoRuntimeParts } from "./flight-agent.js";
 import { createFlightDemoVoiceControlSurface } from "./voice-control.js";
 
@@ -60,6 +63,7 @@ await mkdir(dirname(sqlitePath), { recursive: true });
 const { agent, models, journeyIndex, knowledgeIndex } = await createFlightDemoRuntimeParts({ config });
 const storage = createSqliteStorage({ filename: sqlitePath });
 const voiceSecrets = getConfiguredVoiceProviderSecrets(config);
+const discordIntegration = getConfiguredDiscordIntegration(config);
 const voiceSessionStore = createInMemoryVoiceSessionStore();
 const voiceProvider = createConfiguredVoiceProvider(config, voiceSecrets);
 const runtime = createRuntime({
@@ -76,6 +80,17 @@ const runtime = createRuntime({
   },
 });
 await runtime.initialize();
+
+const discordService = discordIntegration
+  ? createFlightDemoDiscordService({
+      config: discordIntegration.config,
+      botToken: discordIntegration.secrets.botToken,
+      runtime,
+      store: createFlightDemoDiscordStore({ filename: sqlitePath }),
+      agentId: agent.id,
+    })
+  : null;
+if (discordService) await discordService.start();
 
 const handler = createCognideskHttpHandler({
   runtime,
@@ -108,9 +123,11 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
   try {
     const request = toWebRequest(nodeRequest, port);
     const path = new URL(request.url).pathname;
-    const response = path.startsWith("/api/studio")
-      ? await studioAdapter.handle(request)
-      : await handler.handle(request);
+    const response = path.startsWith("/api/demo/discord")
+      ? await handleFlightDemoDiscordRequest(request, discordService)
+      : path.startsWith("/api/studio")
+        ? await studioAdapter.handle(request)
+        : await handler.handle(request);
     const headers: Record<string, string> = {};
     response.headers.forEach((value, key) => {
       headers[key] = value;
@@ -170,9 +187,59 @@ server.listen(port, host, () => {
 });
 
 server.on("close", () => {
+  void discordService?.stop().catch(() => undefined);
   demoTelemetrySeed?.shutdown();
   void otel?.shutdown().catch(() => undefined);
 });
+
+async function handleFlightDemoDiscordRequest(
+  request: Request,
+  service: FlightDemoDiscordService | null,
+) {
+  const url = new URL(request.url);
+  if (request.method === "OPTIONS") return demoJson({}, 204);
+  if (request.method === "GET" && url.pathname === "/api/demo/discord/status") {
+    return demoJson(service ? service.status() : { enabled: false, ready: false });
+  }
+  if (request.method === "POST" && url.pathname === "/api/demo/discord/continue") {
+    if (!service) return demoJson({ error: "Discord integration is not enabled for the flight demo." }, 501);
+    const body = await request.json().catch(() => null);
+    const conversationId = isRecord(body) && typeof body.conversationId === "string"
+      ? body.conversationId.trim()
+      : "";
+    if (!conversationId) return demoJson({ error: "conversationId is required." }, 400);
+    try {
+      return demoJson(await service.continueConversation(conversationId));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to continue conversation in Discord.";
+      return demoJson({ error: message }, /not ready/i.test(message) ? 503 : 500);
+    }
+  }
+  return demoJson({ error: "Not found" }, 404);
+}
+
+function demoJson(value: unknown, status = 200) {
+  return new Response(status === 204 ? null : JSON.stringify(value), {
+    status,
+    headers: {
+      ...(status === 204 ? {} : { "content-type": "application/json" }),
+      ...demoCorsHeaders(),
+    },
+  });
+}
+
+function demoCorsHeaders() {
+  if (process.env.COGNIDESK_CORS === "false") return {};
+  return {
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-headers": "content-type,authorization",
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
 
 function createConfiguredVoiceProvider(
   config: FlightDemoConfig,

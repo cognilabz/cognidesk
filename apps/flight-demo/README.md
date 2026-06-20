@@ -80,6 +80,32 @@ Default voice environment variables:
 | `google-speech` | `GOOGLE_CLOUD_ACCESS_TOKEN` |
 | `deepgram` | `DEEPGRAM_API_KEY` |
 
+## Discord Continuation
+
+The flight demo can sync one conversation between web chat, web voice, and Discord threads. Discord support is demo-owned and disabled unless `discord.enabled` is true in `config.json`.
+
+1. Create a Discord application and bot, then enable the Message Content Intent for the bot.
+2. Invite the bot to the test guild with these permissions: View Channel, Read Message History, Send Messages, Create Public Threads, Send Messages in Threads, and Add Reactions.
+3. Set `DISCORD_BOT_TOKEN` in the repository root `.env` or `apps/flight-demo/.env`.
+4. Configure the demo:
+
+```json
+{
+  "discord": {
+    "enabled": true,
+    "botTokenEnv": "DISCORD_BOT_TOKEN",
+    "applicationId": "your-application-id",
+    "guildId": "your-guild-id",
+    "supportChannelId": "your-support-channel-id",
+    "webAppUrl": "http://localhost:5173",
+    "threadAutoArchiveDuration": 1440,
+    "mirrorPollIntervalMs": 1000
+  }
+}
+```
+
+Messages sent in the configured support channel create a Discord thread and start a Cognidesk conversation. Messages sent inside that thread resume the same conversation. The web app shows recent conversations in the sidebar and supports `?conversationId=...` resume links. `Continue in Discord` creates or reuses a Discord thread for the active web conversation, stops any active web voice session first, mirrors prior completed messages, and opens the Discord thread.
+
 Default text role mapping:
 
 - `response`: `gpt-5.4-mini`
