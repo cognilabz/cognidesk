@@ -1,3 +1,4 @@
+import { asc, desc } from "drizzle-orm";
 import { index, integer, jsonb, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const postgresConversations = pgTable("conversations", {
@@ -9,8 +10,8 @@ export const postgresConversations = pgTable("conversations", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 }, (table) => [
-  index("conversations_updated_id_idx").on(table.updatedAt, table.id),
-  index("conversations_agent_updated_id_idx").on(table.agentId, table.updatedAt, table.id),
+  index("conversations_updated_id_idx").on(desc(table.updatedAt), asc(table.id)),
+  index("conversations_agent_updated_id_idx").on(table.agentId, desc(table.updatedAt), asc(table.id)),
 ]);
 
 export const postgresRuntimeEvents = pgTable("runtime_events", {

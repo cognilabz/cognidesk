@@ -1,3 +1,4 @@
+import { asc, desc } from "drizzle-orm";
 import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const sqliteConversations = sqliteTable("conversations", {
@@ -9,8 +10,8 @@ export const sqliteConversations = sqliteTable("conversations", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 }, (table) => [
-  index("conversations_updated_id_idx").on(table.updatedAt, table.id),
-  index("conversations_agent_updated_id_idx").on(table.agentId, table.updatedAt, table.id),
+  index("conversations_updated_id_idx").on(desc(table.updatedAt), asc(table.id)),
+  index("conversations_agent_updated_id_idx").on(table.agentId, desc(table.updatedAt), asc(table.id)),
 ]);
 
 export const sqliteRuntimeEvents = sqliteTable("runtime_events", {

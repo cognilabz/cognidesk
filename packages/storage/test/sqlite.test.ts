@@ -22,6 +22,17 @@ async function withStorageFile<T>(fn: (filename: string) => Promise<T>) {
   }
 }
 
+async function expectIndexColumns(
+  client: ReturnType<typeof createClient>,
+  indexName: string,
+  expected: Array<{ name: string; desc: 0 | 1 }>,
+) {
+  const result = await client.execute(`PRAGMA index_xinfo('${indexName}')`);
+  expect(result.rows
+    .filter((row) => Number(row.key) === 1)
+    .map((row) => ({ name: String(row.name), desc: Number(row.desc) }))).toEqual(expected);
+}
+
 describe("SQLite runtime integration", () => {
   it("creates conversation listing indexes during initialization", async () => {
     await withStorageFile(async (filename) => {
@@ -37,6 +48,15 @@ describe("SQLite runtime integration", () => {
           expect(result.rows.map((row) => row.name)).toEqual([
             "conversations_agent_updated_id_idx",
             "conversations_updated_id_idx",
+          ]);
+          await expectIndexColumns(client, "conversations_updated_id_idx", [
+            { name: "updated_at", desc: 1 },
+            { name: "id", desc: 0 },
+          ]);
+          await expectIndexColumns(client, "conversations_agent_updated_id_idx", [
+            { name: "agent_id", desc: 0 },
+            { name: "updated_at", desc: 1 },
+            { name: "id", desc: 0 },
           ]);
         } finally {
           client.close();

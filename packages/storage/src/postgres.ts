@@ -320,8 +320,8 @@ const postgresMigrationStatements = [
     updated_at TEXT NOT NULL
   )`,
   "ALTER TABLE conversations ADD COLUMN IF NOT EXISTS channel_json JSONB",
-  "CREATE INDEX IF NOT EXISTS conversations_updated_id_idx ON conversations(updated_at, id)",
-  "CREATE INDEX IF NOT EXISTS conversations_agent_updated_id_idx ON conversations(agent_id, updated_at, id)",
+  "CREATE INDEX IF NOT EXISTS conversations_updated_id_idx ON conversations(updated_at DESC, id ASC)",
+  "CREATE INDEX IF NOT EXISTS conversations_agent_updated_id_idx ON conversations(agent_id, updated_at DESC, id ASC)",
   `CREATE TABLE IF NOT EXISTS runtime_events (
     id TEXT PRIMARY KEY,
     conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
