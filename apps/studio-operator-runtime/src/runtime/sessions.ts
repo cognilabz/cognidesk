@@ -25,7 +25,7 @@ export async function handleClientMessage(socket: WebSocket, claims: StudioClaim
       await startTurn(socket, claims, event);
       break;
     case "turn.interrupt":
-      await interruptTurn(event.sessionId);
+      await interruptTurn(claims, event.sessionId);
       break;
     case "approval.resolve":
       send(socket, {
@@ -97,6 +97,7 @@ async function startTurn(
     session = sessions.get(event.sessionId);
   }
   if (!session) throw new Error("Operator session could not be started");
+  assertCanAccessSession(claims, session);
   session.socket = socket;
   const model = modelForCodex(event.modelId ?? session.modelId);
   if (event.modelId) session.modelId = event.modelId;
@@ -110,10 +111,17 @@ async function startTurn(
   session.currentTurnId = turn.turn.id;
 }
 
-export async function interruptTurn(sessionId: string) {
+export async function interruptTurn(claims: StudioClaims, sessionId: string) {
   const session = sessions.get(sessionId);
-  if (!session?.currentTurnId) return;
+  if (!session) return;
+  assertCanAccessSession(claims, session);
+  if (!session.currentTurnId) return;
   await codex.interruptTurn(session.threadId, session.currentTurnId);
+}
+
+function assertCanAccessSession(claims: StudioClaims, session: OperatorSession) {
+  if (session.userId === claims.userId || claims.role === "admin" || claims.permissions?.includes("admin:manage")) return;
+  throw new Error("Operator session access denied");
 }
 
 function isStudioClaims(value: unknown): value is { type: "studio.claims" } {

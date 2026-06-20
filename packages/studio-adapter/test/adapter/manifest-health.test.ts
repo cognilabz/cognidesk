@@ -62,6 +62,16 @@ describe("studio adapter", () => {
       expect(health.status).toBe(200);
       expect(await health.json()).toMatchObject({ ok: true, targetId: "test-target", agentId: "test-agent" });
 
+      const customHeaderHealth = await adapter.handle(new Request("http://local/api/studio/health", {
+        headers: { "x-cognidesk-studio-token": "Bearer secret" },
+      }));
+      expect(customHeaderHealth.status).toBe(200);
+
+      const rawCustomHeader = await adapter.handle(new Request("http://local/api/studio/health", {
+        headers: { "x-cognidesk-studio-token": "secret" },
+      }));
+      expect(rawCustomHeader.status).toBe(401);
+
       const introspection = await adapter.handle(new Request("http://local/api/studio/introspection", {
         headers: { authorization: "Bearer secret" },
       }));

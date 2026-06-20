@@ -4,6 +4,7 @@ import type { StudioOperatorReasoningEffort } from "@cognidesk/studio-contracts"
 export interface StudioClaims {
   userId: string;
   role: string;
+  permissions?: string[];
   sessionToken?: string;
 }
 

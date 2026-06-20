@@ -15,7 +15,7 @@ export function isAuthorized(request: Request, serviceToken?: string) {
   if (!serviceToken) return true;
   const authorization = request.headers.get("authorization");
   const tokenHeader = request.headers.get("x-cognidesk-studio-token");
-  return authorization === `Bearer ${serviceToken}` || tokenHeader === serviceToken;
+  return authorization === `Bearer ${serviceToken}` || tokenHeader === `Bearer ${serviceToken}`;
 }
 
 export function withCors(response: Response, cors: boolean) {
