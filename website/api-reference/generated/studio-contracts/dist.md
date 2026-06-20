@@ -234,6 +234,14 @@ type StudioOperatorServerEvent = z.infer<typeof StudioOperatorServerEventSchema>
 
 ***
 
+### StudioOperatorSessionId
+
+```ts
+type StudioOperatorSessionId = z.infer<typeof StudioOperatorSessionIdSchema>;
+```
+
+***
+
 ### StudioOperatorSurface
 
 ```ts
@@ -1723,6 +1731,14 @@ const StudioOperatorServerEventSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
 
 ***
 
+### StudioOperatorSessionIdSchema
+
+```ts
+const StudioOperatorSessionIdSchema: z.ZodString;
+```
+
+***
+
 ### StudioOperatorSurfaceSchema
 
 ```ts
@@ -2438,7 +2454,7 @@ function roleHasPermission(role, permission): boolean;
 
 | Parameter | Type |
 | ------ | ------ |
-| `role` | `"operator"` \| `"viewer"` \| `"dashboard_editor"` \| `"admin"` |
+| `role` | `"operator"` \| `"admin"` \| `"viewer"` \| `"dashboard_editor"` |
 | `permission` | \| `"studio:view"` \| `"dashboards:edit"` \| `"dashboards:publish"` \| `"operator:use"` \| `"operator:publish_code"` \| `"admin:manage"` |
 
 #### Returns

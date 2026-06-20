@@ -1498,6 +1498,7 @@ const cognideskVoiceWebSocketProviderManifest: {
   operations: {
      alias: string;
      audience?: "customer-facing" | "internal-support" | "mixed";
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
      capability: string;
      changesWorkflow?: boolean;
      description?: string;
@@ -1506,12 +1507,23 @@ const cognideskVoiceWebSocketProviderManifest: {
      externallyVisible?: boolean;
      inputSchema?: unknown;
      inputSchemaName?: string;
+     inputSchemaRef?: string;
      label?: string;
      metadata?: Record<string, unknown>;
      outputSchema?: unknown;
      outputSchemaName?: string;
+     outputSchemaRef?: string;
      providerObject?: string;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: Record<string, unknown>;
+        schemaName?: string;
+     }[];
      providerOperation?: string;
+     requiredPolicyIds?: string[];
+     requiresApproval?: boolean;
      requiresCredential?: boolean;
      sideEffect?: boolean;
   }[];
@@ -1540,7 +1552,7 @@ const cognideskVoiceWebSocketProviderManifest: {
 | <a id="property-maintainers"></a> `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
 | <a id="property-metadata"></a> `metadata?` | `Record`\<`string`, `unknown`\> |
 | <a id="property-name"></a> `name` | `string` |
-| <a id="property-operations"></a> `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `providerObject?`: `string`; `providerOperation?`: `string`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| <a id="property-operations"></a> `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
 | <a id="property-packagename"></a> `packageName` | `string` |
 | <a id="property-privacynotes"></a> `privacyNotes` | `string`[] |
 | <a id="property-provider"></a> `provider` | `string` |

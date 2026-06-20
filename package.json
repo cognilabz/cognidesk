@@ -25,7 +25,7 @@
     "packages:check-version-train": "node scripts/check-package-version-train.mjs",
     "packages:sync-readmes": "./scripts/sync-package-readmes.sh",
     "npm:trusted-publisher-checklist": "./scripts/npm-trusted-publisher-checklist.sh",
-    "docs:generate": "pnpm providers:catalog && typedoc",
+    "docs:generate": "node scripts/run-docs-generation.mjs",
     "docs:serve": "mkdocs serve",
     "docs:build": "mkdocs build"
   },

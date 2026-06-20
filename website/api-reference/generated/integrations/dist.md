@@ -907,7 +907,6 @@ const integrationCategoryProfilesByCategory: Readonly<Record<string, Integration
 
 ```ts
 const integrationProviderCategories: (
-  | "community"
   | "voice"
   | "email"
   | "ticketing"
@@ -918,6 +917,7 @@ const integrationProviderCategories: (
   | "social"
   | "form"
   | "helpCenter"
+  | "community"
   | "ecommerce"
   | "marketplace"
   | "review"
@@ -1854,73 +1854,10 @@ function getIntegrationProviderReference(id): IntegrationProviderReference;
 
 ***
 
-### loadProviderIntegration()
+### isIntegrationProviderReferenceAvailable()
 
 ```ts
-function loadProviderIntegration(idOrReference): Promise<
-  | typeof ___cobrowsing_cognidesk_index_js
-  | typeof ___community_discord_index_js
-  | typeof ___community_forum_index_js
-  | typeof ___contact_center_8x8_index_js
-  | typeof ___contact_center_aircall_index_js
-  | typeof ___contact_center_amazon_connect_index_js
-  | typeof ___contact_center_five9_index_js
-  | typeof ___contact_center_genesys_cloud_index_js
-  | typeof ___contact_center_genesys_engage_index_js
-  | typeof ___contact_center_genesys_pureconnect_index_js
-  | typeof ___contact_center_nextiva_index_js
-  | typeof ___contact_center_nice_cxone_index_js
-  | typeof ___contact_center_ringcentral_index_js
-  | typeof ___contact_center_talkdesk_index_js
-  | typeof ___contact_center_zoom_index_js
-  | typeof ___ecommerce_shopify_index_js
-  | typeof ___ecommerce_stripe_index_js
-  | typeof ___email_gmail_index_js
-  | typeof ___email_imap_index_js
-  | typeof ___email_mailgun_index_js
-  | typeof ___email_outlook_index_js
-  | typeof ___email_postmark_index_js
-  | typeof ___email_ses_index_js
-  | typeof ___form_cognidesk_index_js
-  | typeof ___help_center_cognidesk_index_js
-  | typeof ___marketplace_amazon_index_js
-  | typeof ___marketplace_ebay_index_js
-  | typeof ___messaging_rcs_index_js
-  | typeof ___messaging_whatsapp_index_js
-  | typeof ___review_appstore_index_js
-  | typeof ___review_googleplay_index_js
-  | typeof ___sms_twilio_index_js
-  | typeof ___social_instagram_index_js
-  | typeof ___social_messenger_index_js
-  | typeof ___social_tiktok_index_js
-  | typeof ___ticketing_dynamics365_index_js
-  | typeof ___ticketing_freshdesk_index_js
-  | typeof ___ticketing_front_index_js
-  | typeof ___ticketing_gorgias_index_js
-  | typeof ___ticketing_help_scout_index_js
-  | typeof ___ticketing_hubspot_index_js
-  | typeof ___ticketing_intercom_index_js
-  | typeof ___ticketing_kustomer_index_js
-  | typeof ___ticketing_oracle_service_index_js
-  | typeof ___ticketing_pega_customer_service_index_js
-  | typeof ___ticketing_salesforce_index_js
-  | typeof ___ticketing_sap_service_cloud_index_js
-  | typeof ___ticketing_servicenow_index_js
-  | typeof ___ticketing_zendesk_index_js
-  | typeof ___ticketing_zoho_desk_index_js
-  | typeof ___video_whereby_index_js
-  | typeof ___video_zoom_index_js
-  | typeof ___voice_elevenlabs_index_js
-  | typeof ___voice_azure_speech_index_js
-  | typeof ___voice_aws_speech_index_js
-  | typeof ___voice_deepgram_index_js
-  | typeof ___voice_google_speech_index_js
-  | typeof ___voice_openai_index_js
-  | typeof ___voice_sip_index_js
-  | typeof ___voice_twilio_index_js
-  | typeof ___voice_vonage_index_js
-  | typeof ___workplace_slack_index_js
-| typeof ___workplace_teams_index_js>;
+function isIntegrationProviderReferenceAvailable(idOrReference): boolean;
 ```
 
 #### Parameters
@@ -1931,70 +1868,25 @@ function loadProviderIntegration(idOrReference): Promise<
 
 #### Returns
 
-`Promise`\<
-  \| *typeof* `___cobrowsing_cognidesk_index_js`
-  \| *typeof* `___community_discord_index_js`
-  \| *typeof* `___community_forum_index_js`
-  \| *typeof* `___contact_center_8x8_index_js`
-  \| *typeof* `___contact_center_aircall_index_js`
-  \| *typeof* `___contact_center_amazon_connect_index_js`
-  \| *typeof* `___contact_center_five9_index_js`
-  \| *typeof* `___contact_center_genesys_cloud_index_js`
-  \| *typeof* `___contact_center_genesys_engage_index_js`
-  \| *typeof* `___contact_center_genesys_pureconnect_index_js`
-  \| *typeof* `___contact_center_nextiva_index_js`
-  \| *typeof* `___contact_center_nice_cxone_index_js`
-  \| *typeof* `___contact_center_ringcentral_index_js`
-  \| *typeof* `___contact_center_talkdesk_index_js`
-  \| *typeof* `___contact_center_zoom_index_js`
-  \| *typeof* `___ecommerce_shopify_index_js`
-  \| *typeof* `___ecommerce_stripe_index_js`
-  \| *typeof* `___email_gmail_index_js`
-  \| *typeof* `___email_imap_index_js`
-  \| *typeof* `___email_mailgun_index_js`
-  \| *typeof* `___email_outlook_index_js`
-  \| *typeof* `___email_postmark_index_js`
-  \| *typeof* `___email_ses_index_js`
-  \| *typeof* `___form_cognidesk_index_js`
-  \| *typeof* `___help_center_cognidesk_index_js`
-  \| *typeof* `___marketplace_amazon_index_js`
-  \| *typeof* `___marketplace_ebay_index_js`
-  \| *typeof* `___messaging_rcs_index_js`
-  \| *typeof* `___messaging_whatsapp_index_js`
-  \| *typeof* `___review_appstore_index_js`
-  \| *typeof* `___review_googleplay_index_js`
-  \| *typeof* `___sms_twilio_index_js`
-  \| *typeof* `___social_instagram_index_js`
-  \| *typeof* `___social_messenger_index_js`
-  \| *typeof* `___social_tiktok_index_js`
-  \| *typeof* `___ticketing_dynamics365_index_js`
-  \| *typeof* `___ticketing_freshdesk_index_js`
-  \| *typeof* `___ticketing_front_index_js`
-  \| *typeof* `___ticketing_gorgias_index_js`
-  \| *typeof* `___ticketing_help_scout_index_js`
-  \| *typeof* `___ticketing_hubspot_index_js`
-  \| *typeof* `___ticketing_intercom_index_js`
-  \| *typeof* `___ticketing_kustomer_index_js`
-  \| *typeof* `___ticketing_oracle_service_index_js`
-  \| *typeof* `___ticketing_pega_customer_service_index_js`
-  \| *typeof* `___ticketing_salesforce_index_js`
-  \| *typeof* `___ticketing_sap_service_cloud_index_js`
-  \| *typeof* `___ticketing_servicenow_index_js`
-  \| *typeof* `___ticketing_zendesk_index_js`
-  \| *typeof* `___ticketing_zoho_desk_index_js`
-  \| *typeof* `___video_whereby_index_js`
-  \| *typeof* `___video_zoom_index_js`
-  \| *typeof* `___voice_elevenlabs_index_js`
-  \| *typeof* `___voice_azure_speech_index_js`
-  \| *typeof* `___voice_aws_speech_index_js`
-  \| *typeof* `___voice_deepgram_index_js`
-  \| *typeof* `___voice_google_speech_index_js`
-  \| *typeof* `___voice_openai_index_js`
-  \| *typeof* `___voice_sip_index_js`
-  \| *typeof* `___voice_twilio_index_js`
-  \| *typeof* `___voice_vonage_index_js`
-  \| *typeof* `___workplace_slack_index_js`
-  \| *typeof* `___workplace_teams_index_js`\>
+`boolean`
+
+***
+
+### loadProviderIntegration()
+
+```ts
+function loadProviderIntegration(idOrReference): Promise<Record<string, unknown>>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `idOrReference` | \| `string` \| [`IntegrationProviderReference`](#integrationproviderreference) |
+
+#### Returns
+
+`Promise`\<`Record`\<`string`, `unknown`\>\>
 
 ***
 

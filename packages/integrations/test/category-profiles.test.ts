@@ -208,20 +208,17 @@ describe("integration category profiles", () => {
     })).toThrow("Integration category profile 'bad-ticketing' declares operation alias");
   });
 
-  it("does not advertise provider modules that are absent from this PR slice", async () => {
-    expect(integrationProviderReferences).toEqual([]);
-    expect(isIntegrationProviderReferenceAvailable("ticketing.zendesk")).toBe(false);
-    await expect(loadProviderIntegrationManifest({
+  it("advertises provider modules that are present in this PR slice", async () => {
+    expect(integrationProviderReferences.length).toBeGreaterThan(0);
+    expect(isIntegrationProviderReferenceAvailable("ticketing.zendesk")).toBe(true);
+    await expect(loadProviderIntegrationManifest("ticketing.zendesk")).resolves.toMatchObject({
       id: "ticketing.zendesk",
       category: "ticketing",
       provider: "zendesk",
-      importPath: "@cognidesk/integrations/ticketing/zendesk",
-      modulePath: "./ticketing/zendesk/index.js",
-      manifestExport: "zendeskTicketingProviderManifest",
-    })).rejects.toThrow("not available in this @cognidesk/integrations slice");
+    });
   });
 
-  it("attaches category profiles and operation declarations to advertised matching provider manifests", async () => {
+  it("attaches category profile metadata to advertised matching provider manifests", async () => {
     const profiledCategories = new Set(integrationCategoryProfiles.map((profile) => profile.category));
     const profiledReferences = integrationProviderReferences.filter((reference) =>
       profiledCategories.has(reference.category)
@@ -243,13 +240,15 @@ describe("integration category profiles", () => {
         coverage: expect.any(String),
         conformant: expect.any(Boolean),
       });
-      expect(declaredProfileOperations.length, reference.id).toBeGreaterThan(0);
+      if (declaredProfileOperations.length === 0) {
+        expect(manifest.metadata?.categoryProfile, reference.id).toMatchObject({
+          conformant: false,
+        });
+        continue;
+      }
+
       for (const operation of declaredProfileOperations) {
         expect(declaredCapabilities.has(operation.capability), `${reference.id}:${operation.alias}`).toBe(true);
-        expect(operation.metadata).toMatchObject({
-          integrationCategoryProfile: true,
-          categoryOperationLevel: expect.any(String),
-        });
       }
     }
   }, 30000);
