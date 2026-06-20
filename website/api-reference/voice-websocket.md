@@ -3,7 +3,7 @@
 Voice WebSocket adapter for browser connections.
 
 !!! info "Auto-generated from source"
-    The complete type reference below is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
+    The complete type reference is generated from TypeScript declarations. Run `pnpm docs:generate` to regenerate.
 
 ## Overview
 
@@ -22,4 +22,4 @@ The adapter implements a structured JSON protocol over WebSocket:
 
 ## Full type reference
 
---8<-- "api-reference/generated/voice-websocket/dist.md"
+Open the generated [`@cognidesk/voice-websocket` type reference](generated/voice-websocket/dist.md).

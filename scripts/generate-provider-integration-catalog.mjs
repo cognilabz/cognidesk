@@ -1,9 +1,11 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const catalogPath = path.join(repoRoot, "website/guides/provider-integrations-catalog.md");
+const integrationsPackagePath = path.join(repoRoot, "packages/integrations/package.json");
+const integrationsPackageDir = path.dirname(integrationsPackagePath);
 const integrationsIndexPath = path.join(repoRoot, "packages/integrations/dist/index.js");
 
 const categoryLabels = new Map([
@@ -98,6 +100,64 @@ async function loadIntegrationsIndex() {
   }
 }
 
+async function loadProviderManifestEntries() {
+  const index = await loadIntegrationsIndex();
+  if (index.integrationProviderReferences?.length > 0) {
+    const entries = [];
+    for (const reference of index.integrationProviderReferences) {
+      entries.push({
+        reference,
+        manifest: await index.loadProviderIntegrationManifest(reference),
+      });
+    }
+    return entries;
+  }
+
+  const packageJson = JSON.parse(await readFile(integrationsPackagePath, "utf8"));
+  const exportMap = packageJson.exports ?? {};
+  const entries = [];
+
+  for (const [subpath, exportValue] of Object.entries(exportMap)) {
+    if (subpath === "." || subpath.includes("*")) continue;
+    if (!isObject(exportValue) || typeof exportValue.import !== "string") continue;
+
+    const module = await import(pathToFileURL(path.join(integrationsPackageDir, exportValue.import)).href);
+    const manifestEntry = Object.entries(module).find(([, value]) => isProviderManifest(value));
+    if (!manifestEntry) continue;
+
+    const [manifestExport, manifest] = manifestEntry;
+    entries.push({
+      reference: {
+        id: manifest.id,
+        category: manifest.category,
+        provider: manifest.provider,
+        importPath: `@cognidesk/integrations/${subpath.slice(2)}`,
+        modulePath: subpath,
+        manifestExport,
+      },
+      manifest,
+    });
+  }
+
+  entries.sort((left, right) => compareText(left.reference.importPath, right.reference.importPath));
+  return entries;
+}
+
+function isObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isProviderManifest(value) {
+  return isObject(value)
+    && typeof value.id === "string"
+    && typeof value.name === "string"
+    && typeof value.packageName === "string"
+    && typeof value.provider === "string"
+    && typeof value.category === "string"
+    && Array.isArray(value.capabilities)
+    && Array.isArray(value.directions);
+}
+
 function groupProviders(providers) {
   const grouped = new Map();
   for (const provider of providers) {
@@ -173,23 +233,10 @@ function renderCatalog(groupedProviders) {
   return `${lines.join("\n")}\n`;
 }
 
-const { integrationProviderReferences, loadProviderIntegrationManifest } = await loadIntegrationsIndex();
+const providers = await loadProviderManifestEntries();
 
-const providers = [];
-const failures = [];
-
-for (const reference of integrationProviderReferences) {
-  try {
-    const manifest = await loadProviderIntegrationManifest(reference);
-    providers.push({ reference, manifest });
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    failures.push(`${reference.id}: ${reason}`);
-  }
-}
-
-if (failures.length) {
-  throw new Error(`Unable to load ${failures.length} provider manifest(s):\n${failures.join("\n")}`);
+if (providers.length === 0) {
+  throw new Error("Unable to discover provider manifests from packages/integrations/dist. Run 'pnpm --filter @cognidesk/integrations build' before generating the provider catalog.");
 }
 
 const groupedProviders = groupProviders(providers);

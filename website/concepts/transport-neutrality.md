@@ -28,13 +28,13 @@ The runtime exposes a programmatic API. Transport adapters (HTTP, Voice, custom)
 ```typescript
 // Core — no transport awareness
 const runtime = createRuntime({ storage, agent, models });
-const response = await runtime.sendMessage({ conversationId, message });
+const response = await runtime.handleUserMessage({ conversationId, text: message });
 
 // HTTP adapter — wraps core for REST + SSE
 const handler = createCognideskHttpHandler({ runtime, agentId, basePath: "/api" });
 
-// Voice adapter — wraps core for realtime audio
-const voiceHandler = createVoiceHandler({ runtime, agentId });
+// Voice WebSocket adapter — wraps core for realtime browser audio
+attachNodeVoiceWebSocketAdapter({ server, store, runtime, provider });
 ```
 
 ## What this enables
@@ -54,6 +54,6 @@ Cognidesk ships adapters for common transports as separate packages:
 
 - `@cognidesk/http` — REST POST + SSE streaming
 - `@cognidesk/voice-websocket` — Voice browser protocol
-- `@cognidesk/voice-openai` — OpenAI Realtime connection
+- `@cognidesk/integrations/voice/openai` — OpenAI Realtime voice entry channel
 
 These are optional conveniences — you can always build your own adapter against the core API.

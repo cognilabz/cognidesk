@@ -62,6 +62,58 @@ appendEvent<TEvent>(event): Promise<RuntimeEvent>;
 
 [`StorageAdapter`](../../core/dist.md#storageadapter).[`appendEvent`](../../core/dist.md#appendevent)
 
+##### appendEventIfApprovalPending()
+
+```ts
+appendEventIfApprovalPending<TEvent>(event): Promise<RuntimeEvent>;
+```
+
+###### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `TEvent` *extends* [`RuntimeEventInput`](../../core/dist.md#runtimeeventinput)\<`"approval.resolved"`\> |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `event` | `TEvent` |
+
+###### Returns
+
+`Promise`\<[`RuntimeEvent`](../../core/dist.md#runtimeevent)\>
+
+###### Implementation of
+
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`appendEventIfApprovalPending`](../../core/dist.md#appendeventifapprovalpending)
+
+##### appendEventIfNoActiveVoiceSegment()
+
+```ts
+appendEventIfNoActiveVoiceSegment<TEvent>(event): Promise<RuntimeEvent>;
+```
+
+###### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `TEvent` *extends* [`RuntimeEventInput`](../../core/dist.md#runtimeeventinput)\<`"voice.segment.started"`\> |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `event` | `TEvent` |
+
+###### Returns
+
+`Promise`\<[`RuntimeEvent`](../../core/dist.md#runtimeevent)\>
+
+###### Implementation of
+
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`appendEventIfNoActiveVoiceSegment`](../../core/dist.md#appendeventifnoactivevoicesegment)
+
 ##### close()
 
 ```ts
@@ -96,7 +148,7 @@ createConversation<TConversationContext>(input): Promise<ConversationRecord<TCon
 
 ###### Implementation of
 
-[`StorageAdapter`](../../core/dist.md#storageadapter).[`createConversation`](../../core/dist.md#createconversation-1)
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`createConversation`](../../core/dist.md#createconversation-3)
 
 ##### getConversation()
 
@@ -232,7 +284,7 @@ type SqliteStorageDatabase = LibSQLDatabase<typeof sqliteStorageSchema>;
 ### SqliteStorageOptions
 
 ```ts
-type SqliteStorageOptions = 
+type SqliteStorageOptions =
   | {
   authToken?: never;
   client?: never;

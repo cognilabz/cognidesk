@@ -24,7 +24,7 @@ Cognidesk is a TypeScript runtime SDK that gives you full control over conversat
 
     ---
 
-    Learn the domain model: Agents, Journeys, Tools, Knowledge Sources, and Events.
+    Learn the domain model: Agents, Journeys, Tools, Knowledge Sources, Provider Integrations, and Events.
 
     [:octicons-arrow-right-24: Concepts](concepts/index.md)
 
@@ -40,7 +40,7 @@ Cognidesk is a TypeScript runtime SDK that gives you full control over conversat
 
     ---
 
-    Full type signatures and exports for every package.
+    Generated type signatures plus hand-written package summaries.
 
     [:octicons-arrow-right-24: API Reference](api-reference/index.md)
 
@@ -61,16 +61,16 @@ const findTicket = tool("findTicket", {
   }),
 });
 
-const agent = createAgent("support", {
+const agentBuilder = createAgent("support", {
   instructions: "You are a helpful support agent.",
-})
-  .tools.add(findTicket)
-  .compile();
+});
+agentBuilder.tools.add(findTicket);
+const agent = agentBuilder.compile();
 
 const runtime = createRuntime({
   storage: createSqliteStorage({ filename: "data.sqlite" }),
   agent,
-  models, // Your model configuration
+  models, // See the Quick Start for createModelSet configuration
 });
 ```
 
@@ -82,5 +82,6 @@ const runtime = createRuntime({
 | Transport neutral | :material-check: Core has zero HTTP deps | :material-close: Framework-bound |
 | Typed tools & knowledge | :material-check: Zod schemas everywhere | :material-close: Loose typing |
 | Voice support | :material-check: First-class adapter | :material-close: Separate product |
+| Provider Integrations | :material-check: Scoped email, messaging, ticketing, social, workplace, and contact-center modules | :material-close: Flat integrations or vendor lock-in |
 | React UI kit | :material-check: Included | :material-close: Build your own |
 | OpenTelemetry | :material-check: Native spans & metrics | :material-close: Manual instrumentation |

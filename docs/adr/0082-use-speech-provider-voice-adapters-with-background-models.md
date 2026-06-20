@@ -1,0 +1,3 @@
+# Use speech provider voice adapters with background models
+
+Voice support will expand beyond OpenAI Realtime by allowing Voice Connection Adapters backed by Speech Providers such as ElevenLabs and Azure Speech, where provider speech-to-text produces user transcripts, the existing Cognidesk Agent Model Set runs the background agent turn, and provider text-to-speech speaks the assistant response. This supersedes the OpenAI-only voice-model limit in ADR-0051 for non-OpenAI speech pipelines while preserving the separate OpenAI Realtime adapter path and keeping provider-owned agent runtimes out of Cognidesk voice conversations.

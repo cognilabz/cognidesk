@@ -1,6 +1,39 @@
 import type { IntegrationProviderReference } from "./types.js";
+import { cobrowsingProviderReferences } from "./categories/cobrowsing.js";
+import { communityProviderReferences } from "./categories/community.js";
+import { contactCenterProviderReferences } from "./categories/contact-center.js";
+import { ecommerceProviderReferences } from "./categories/ecommerce.js";
+import { emailProviderReferences } from "./categories/email.js";
+import { formProviderReferences } from "./categories/form.js";
+import { helpCenterProviderReferences } from "./categories/help-center.js";
+import { marketplaceProviderReferences } from "./categories/marketplace.js";
+import { messagingProviderReferences } from "./categories/messaging.js";
+import { reviewProviderReferences } from "./categories/review.js";
+import { smsProviderReferences } from "./categories/sms.js";
+import { socialProviderReferences } from "./categories/social.js";
+import { ticketingProviderReferences } from "./categories/ticketing.js";
+import { videoProviderReferences } from "./categories/video.js";
+import { voiceProviderReferences } from "./categories/voice.js";
+import { workplaceProviderReferences } from "./categories/workplace.js";
 
-export const integrationProviderReferences = [] as readonly IntegrationProviderReference[];
+export const integrationProviderReferences = [
+  ...cobrowsingProviderReferences,
+  ...communityProviderReferences,
+  ...contactCenterProviderReferences,
+  ...ecommerceProviderReferences,
+  ...emailProviderReferences,
+  ...formProviderReferences,
+  ...helpCenterProviderReferences,
+  ...marketplaceProviderReferences,
+  ...messagingProviderReferences,
+  ...reviewProviderReferences,
+  ...smsProviderReferences,
+  ...socialProviderReferences,
+  ...ticketingProviderReferences,
+  ...videoProviderReferences,
+  ...voiceProviderReferences,
+  ...workplaceProviderReferences,
+] as const satisfies readonly IntegrationProviderReference[];
 
 export type IntegrationProviderId = typeof integrationProviderReferences[number]["id"];
 

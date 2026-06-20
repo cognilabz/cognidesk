@@ -33,12 +33,21 @@ The handler exposes:
 
 - `POST /conversations` — create a conversation
 - `POST /conversations/:id/messages` — send a message
-- `GET /conversations/:id/events` — SSE event stream
-- `POST /conversations/:id/custom-events` — emit custom events
-- `POST /conversations/:id/journey-events` — emit journey events
+- `GET /conversations/:id/events` — list runtime events
+- `GET /conversations/:id/events/stream` — stream runtime events over SSE
+- `GET /conversations/:id/snapshot` — read the current runtime snapshot
+- `GET /conversations/:id/replay` — replay messages and open prompts
+- `POST /conversations/:id/custom-events/:eventName` — emit a registered custom event
+- `POST /conversations/:id/journey-events/:eventName` — emit a registered journey event
+- `POST /conversations/:id/widgets/:promptId/submissions` — submit a widget response
+- `POST /conversations/:id/handoff` — request handoff
+- `POST /conversations/:id/resume` — resume a conversation
+- `POST /conversations/:id/close` — close a conversation
+- `POST /conversations/:id/compact` — compact conversation history
+- `POST /voice/conversations` and `POST /conversations/:id/voice-segments` — start voice when a voice handshake is configured
 
 ---
 
 ## Full type reference
 
---8<-- "api-reference/generated/http/dist.md"
+Open the generated [`@cognidesk/http` type reference](generated/http/dist.md).

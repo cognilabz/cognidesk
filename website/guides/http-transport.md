@@ -1,9 +1,6 @@
 # HTTP Transport
 
-This guide covers exposing your agent over HTTP using the built-in adapter.
-
-!!! note "Work in progress"
-    This guide is being written. Check back soon for complete content.
+The HTTP adapter exposes a Cognidesk runtime through Web `Request` and `Response` objects. It does not bind Cognidesk Core to Express, Fastify, Hono, Next.js, or any other server framework.
 
 ## Setting up the HTTP handler
 
@@ -15,45 +12,64 @@ const handler = createCognideskHttpHandler({
   agentId: agent.id,
   basePath: "/api",
 });
+
+const response = await handler.handle(request);
 ```
 
 ## Endpoints
 
-The HTTP adapter exposes:
+Paths below include the `basePath` value from the handler example.
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | POST | `/api/conversations` | Create a conversation |
-| POST | `/api/conversations/:id/messages` | Send a message |
-| GET | `/api/conversations/:id/events` | SSE event stream |
-| POST | `/api/conversations/:id/events` | Emit custom events |
-| POST | `/api/conversations/:id/journey-events` | Emit journey events |
+| POST | `/api/voice/conversations` | Start a new voice conversation when voice handshakes are configured |
+| POST | `/api/conversations/:id/voice-segments` | Start a voice segment on an existing conversation |
+| POST | `/api/conversations/:id/messages` | Send a text message |
+| GET | `/api/conversations/:id/events` | List runtime events |
+| GET | `/api/conversations/:id/events/stream` | Stream runtime events over SSE |
+| GET | `/api/conversations/:id/snapshot` | Read the latest runtime snapshot |
+| GET | `/api/conversations/:id/replay` | Replay customer-visible messages and open prompts |
+| POST | `/api/conversations/:id/custom-events/:eventName` | Emit a registered custom runtime event |
+| POST | `/api/conversations/:id/journey-events/:eventName` | Emit a registered journey event |
+| POST | `/api/conversations/:id/widgets/:promptId/submissions` | Submit a widget response |
+| POST | `/api/conversations/:id/handoff` | Request handoff |
+| POST | `/api/conversations/:id/resume` | Resume a paused or handed-off conversation |
+| POST | `/api/conversations/:id/close` | Close a conversation |
+| POST | `/api/conversations/:id/intermediate-messages` | Emit an intermediate assistant message |
+| POST | `/api/conversations/:id/preambles` | Generate and emit a wait-time preamble |
+| POST | `/api/conversations/:id/compact` | Compact conversation history |
 
 ## Framework integration
 
-The handler is framework-agnostic. Adapt it to your server:
+Mount the handler anywhere you can construct a Web `Request`.
 
-=== "Node.js / Express"
+=== "Fetch API"
 
     ```typescript
-    app.use("/api", handler.express());
+    export default {
+      fetch(request: Request) {
+        return handler.handle(request);
+      },
+    };
     ```
 
-=== "Hono"
+=== "Node.js"
 
     ```typescript
-    app.route("/api", handler.hono());
-    ```
+    import { createServer } from "node:http";
 
-=== "Fastify"
-
-    ```typescript
-    fastify.register(handler.fastify(), { prefix: "/api" });
+    const server = createServer(async (nodeRequest, nodeResponse) => {
+      const request = toWebRequest(nodeRequest);
+      const response = await handler.handle(request);
+      nodeResponse.writeHead(response.status, Object.fromEntries(response.headers));
+      nodeResponse.end(response.body ? Buffer.from(await response.arrayBuffer()) : undefined);
+    });
     ```
 
 ## Custom events and journey events
 
-Expose custom events and journey events via HTTP:
+Register event definitions on the handler before exposing event routes:
 
 ```typescript
 const handler = createCognideskHttpHandler({
@@ -64,3 +80,5 @@ const handler = createCognideskHttpHandler({
   journeyEvents: [ticketSynced],
 });
 ```
+
+Clients then post to `/api/conversations/:id/custom-events/leadCaptured` or `/api/conversations/:id/journey-events/ticketSynced` with a JSON `payload`.

@@ -33,7 +33,7 @@ packages/          # SDK packages
   ui/              # Prebuilt UI components
   storage/         # Storage adapters
   otel/            # OpenTelemetry instrumentation
-  voice-openai/    # OpenAI Realtime voice adapter
+  integrations/    # Provider Integrations, including voice/openai
   voice-websocket/ # Voice WebSocket adapter
   ...
 apps/              # Demo applications

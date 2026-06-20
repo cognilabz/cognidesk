@@ -130,8 +130,8 @@ function ensureJourneyIndex(options): Promise<{
 
 ```ts
 function loadFreshJourneyIndex(
-   file, 
-   agent, 
+   file,
+   agent,
    options?): Promise<{
   agentId: string;
   definitionHash: string;

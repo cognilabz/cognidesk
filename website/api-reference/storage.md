@@ -38,10 +38,7 @@ Third-party adapters can use `@cognidesk/storage/conformance` to verify that the
 
 ## Full type reference
 
---8<-- "api-reference/generated/storage/dist.md"
-
---8<-- "api-reference/generated/storage/dist/sqlite.md"
-
---8<-- "api-reference/generated/storage/dist/postgres.md"
-
---8<-- "api-reference/generated/storage/dist/conformance.md"
+- [`@cognidesk/storage`](generated/storage/dist.md)
+- [`@cognidesk/storage/sqlite`](generated/storage/dist/sqlite.md)
+- [`@cognidesk/storage/postgres`](generated/storage/dist/postgres.md)
+- [`@cognidesk/storage/conformance`](generated/storage/dist/conformance.md)
