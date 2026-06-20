@@ -60,6 +60,7 @@ export interface CognideskClientOptions {
 
 export type CognideskRequestOperation =
   | "createConversation"
+  | "listConversations"
   | "handleChannelEvent"
   | "receiveMessage"
   | "recordProviderUpdate"
@@ -126,6 +127,26 @@ export interface CreateConversationInput {
   context?: unknown;
   id?: string;
   channel?: ConversationChannelInput;
+}
+
+export interface ConversationListCursor {
+  updatedAt: string;
+  id: string;
+}
+
+export interface ListConversationsOptions {
+  agentId?: string;
+  before?: ConversationListCursor;
+  after?: ConversationListCursor;
+  /** Timestamp-only range filter. Use `before` for lossless cursor pagination. */
+  beforeUpdatedAt?: string;
+  /** Timestamp-only range filter. Use `after` for lossless cursor pagination. */
+  afterUpdatedAt?: string;
+  limit?: number;
+}
+
+export interface ListConversationsResult {
+  conversations: CreateConversationResult["conversation"][];
 }
 
 export interface StartVoiceResult {
@@ -199,6 +220,7 @@ export interface ReplayConversationResult {
 
 export interface CognideskClient {
   createConversation(input?: CreateConversationInput): Promise<CreateConversationResult>;
+  listConversations(options?: ListConversationsOptions): Promise<ListConversationsResult>;
   handleChannelEvent(input: ChannelEventSubmitInput): Promise<HandleChannelEventResult>;
   receiveMessage(input: ChannelMessageEventInput): Promise<HandleChannelEventResult>;
   recordProviderUpdate(input: ProviderObjectChannelEventInput): Promise<HandleChannelEventResult>;

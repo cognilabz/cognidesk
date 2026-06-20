@@ -14,6 +14,7 @@ import type {
   HandleUserMessageInput,
   HandleUserMessageResult,
   JourneyEventDefinition,
+  ListRuntimeConversationsOptions,
   RequestHandoffInput,
   ReplayConversationInput,
   ReplayConversationResult,
@@ -32,6 +33,7 @@ import type { ChannelEventSubmitInput } from "./channel-events.js";
 
 export interface CognideskHttpRuntime {
   createConversation(input: CreateRuntimeConversationInput): Promise<ConversationRecord>;
+  listConversations?(input?: ListRuntimeConversationsOptions): Promise<ConversationRecord[]>;
   handleChannelEvent?(input: HandleChannelEventInput): Promise<HandleChannelEventResult>;
   handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult>;
   submitWidget?(input: SubmitWidgetInput): Promise<RuntimeEvent>;

@@ -2,6 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRuntime } from "@cognidesk/core";
+import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { defineStorageAdapterConformanceSuite } from "../src/conformance.js";
 import { createSqliteStorage, type SqliteStorageAdapter } from "../src/sqlite.js";
@@ -21,7 +22,99 @@ async function withStorageFile<T>(fn: (filename: string) => Promise<T>) {
   }
 }
 
+async function expectIndexColumns(
+  client: ReturnType<typeof createClient>,
+  indexName: string,
+  expected: Array<{ name: string; desc: 0 | 1 }>,
+) {
+  const result = await client.execute(`PRAGMA index_xinfo('${indexName}')`);
+  expect(result.rows
+    .filter((row) => Number(row.key) === 1)
+    .map((row) => ({ name: String(row.name), desc: Number(row.desc) }))).toEqual(expected);
+}
+
 describe("SQLite runtime integration", () => {
+  it("creates conversation listing indexes during initialization", async () => {
+    await withStorageFile(async (filename) => {
+      const storage = createSqliteStorage({ filename });
+      try {
+        await storage.initialize();
+        const client = createClient({ url: `file:${filename}` });
+        try {
+          const result = await client.execute({
+            sql: "SELECT name FROM sqlite_master WHERE type = 'index' AND name IN (?, ?) ORDER BY name",
+            args: ["conversations_agent_updated_desc_id_asc_idx", "conversations_updated_desc_id_asc_idx"],
+          });
+          expect(result.rows.map((row) => row.name)).toEqual([
+            "conversations_agent_updated_desc_id_asc_idx",
+            "conversations_updated_desc_id_asc_idx",
+          ]);
+          await expectIndexColumns(client, "conversations_updated_desc_id_asc_idx", [
+            { name: "updated_at", desc: 1 },
+            { name: "id", desc: 0 },
+          ]);
+          await expectIndexColumns(client, "conversations_agent_updated_desc_id_asc_idx", [
+            { name: "agent_id", desc: 0 },
+            { name: "updated_at", desc: 1 },
+            { name: "id", desc: 0 },
+          ]);
+        } finally {
+          client.close();
+        }
+      } finally {
+        storage.close();
+      }
+    });
+  });
+
+  it("adds corrected conversation listing indexes to databases with previous ascending indexes", async () => {
+    await withStorageFile(async (filename) => {
+      const client = createClient({ url: `file:${filename}` });
+      try {
+        await client.execute(`CREATE TABLE conversations (
+          id TEXT PRIMARY KEY,
+          agent_id TEXT NOT NULL,
+          lifecycle TEXT NOT NULL CHECK (lifecycle IN ('active', 'handoff', 'closed')),
+          context_json TEXT NOT NULL,
+          channel_json TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )`);
+        await client.execute("CREATE INDEX conversations_updated_id_idx ON conversations(updated_at ASC, id ASC)");
+        await client.execute(
+          "CREATE INDEX conversations_agent_updated_id_idx ON conversations(agent_id, updated_at ASC, id ASC)",
+        );
+      } finally {
+        client.close();
+      }
+
+      const storage = createSqliteStorage({ filename });
+      try {
+        await storage.initialize();
+        const upgradedClient = createClient({ url: `file:${filename}` });
+        try {
+          await expectIndexColumns(upgradedClient, "conversations_updated_id_idx", [
+            { name: "updated_at", desc: 0 },
+            { name: "id", desc: 0 },
+          ]);
+          await expectIndexColumns(upgradedClient, "conversations_updated_desc_id_asc_idx", [
+            { name: "updated_at", desc: 1 },
+            { name: "id", desc: 0 },
+          ]);
+          await expectIndexColumns(upgradedClient, "conversations_agent_updated_desc_id_asc_idx", [
+            { name: "agent_id", desc: 0 },
+            { name: "updated_at", desc: 1 },
+            { name: "id", desc: 0 },
+          ]);
+        } finally {
+          upgradedClient.close();
+        }
+      } finally {
+        storage.close();
+      }
+    });
+  });
+
   it("persists conversations, events, and snapshots in a real sqlite file", async () => {
     await withStorageFile(async (filename) => {
       const storage = createSqliteStorage({ filename });

@@ -40,6 +40,7 @@ import type {
   HandleVoiceUserMessageResult,
   HandleUserMessageInput,
   HandleUserMessageResult,
+  ListRuntimeConversationsOptions,
   ListPendingSupportActionsInput,
   PendingSupportAction,
   ReplayConversationInput,
@@ -110,6 +111,7 @@ export type {
   HandleVoiceUserMessageResult,
   HandleUserMessageInput,
   HandleUserMessageResult,
+  ListRuntimeConversationsOptions,
   ListPendingSupportActionsInput,
   PendingSupportAction,
   ReplayConversationInput,
@@ -234,6 +236,12 @@ export class CognideskRuntime {
     return this.runtimeOperation("list_events", telemetrySpanNames.runtimeListEvents, {
       [telemetryAttributes.conversationId]: conversationId,
     }, () => this.kernel.listEvents(conversationId, afterOffset));
+  }
+
+  listConversations<TConversationContext = unknown>(input: ListRuntimeConversationsOptions = {}) {
+    return this.runtimeOperation("list_conversations", telemetrySpanNames.runtimeListConversations, {
+      ...(input.agentId ? { [telemetryAttributes.agentId]: input.agentId } : {}),
+    }, () => this.kernel.listConversations<TConversationContext>(input));
   }
 
   listPendingSupportActions(input: ListPendingSupportActionsInput | string): Promise<PendingSupportAction[]> {

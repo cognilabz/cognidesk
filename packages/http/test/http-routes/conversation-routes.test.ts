@@ -1,9 +1,69 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createCognideskHttpHandler } from "../../src/index.js";
 import type { ConversationRecord } from "@cognidesk/core";
 import { FakeRuntime } from "../fixtures.js";
 
 describe("HTTP conversation routes", () => {
+  it("lists conversations with filters and pagination", async () => {
+    const runtime = new FakeRuntime();
+    const listConversations = vi.spyOn(runtime, "listConversations");
+    const handler = createCognideskHttpHandler({
+      runtime,
+      cors: true,
+    });
+
+    const response = await handler.handle(new Request(
+      "http://localhost/conversations?agentId=flight-service&limit=2&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z",
+    ));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    expect(listConversations).toHaveBeenCalledWith({
+      agentId: "flight-service",
+      beforeUpdatedAt: "2026-05-27T00:00:00.000Z",
+      afterUpdatedAt: "2026-05-24T00:00:00.000Z",
+      limit: 2,
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      conversations: [
+        { id: "conversation_2", agentId: "flight-service" },
+        { id: "conversation_1", agentId: "flight-service" },
+      ],
+    });
+  });
+
+  it("passes composite conversation list cursors to the runtime", async () => {
+    const runtime = new FakeRuntime();
+    const listConversations = vi.spyOn(runtime, "listConversations");
+    const handler = createCognideskHttpHandler({ runtime });
+
+    const response = await handler.handle(new Request(
+      "http://localhost/conversations?agentId=flight-service&limit=2&beforeUpdatedAt=2026-05-27T00%3A00%3A00.000Z&beforeId=conversation_9&afterUpdatedAt=2026-05-24T00%3A00%3A00.000Z&afterId=conversation_1",
+    ));
+
+    expect(response.status).toBe(200);
+    expect(listConversations).toHaveBeenCalledWith({
+      agentId: "flight-service",
+      before: { updatedAt: "2026-05-27T00:00:00.000Z", id: "conversation_9" },
+      after: { updatedAt: "2026-05-24T00:00:00.000Z", id: "conversation_1" },
+      limit: 2,
+    });
+  });
+
+  it("rejects incomplete composite conversation list cursors", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({ runtime });
+
+    const response = await handler.handle(new Request(
+      "http://localhost/conversations?beforeUpdatedAt=2026-05-27T00%3A00%3A00.000Z&beforeId=",
+    ));
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "beforeUpdatedAt and beforeId must be provided together.",
+    });
+  });
+
   it("creates conversations and posts user messages", async () => {
       const runtime = new FakeRuntime();
       const handler = createCognideskHttpHandler({

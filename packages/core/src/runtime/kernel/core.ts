@@ -18,6 +18,7 @@ import {
 } from "../approvals.js";
 import {
   createRuntimeConversation,
+  listRuntimeConversations,
   listRuntimeEvents,
   replayRuntimeConversation,
 } from "../facade/conversations.js";
@@ -56,6 +57,7 @@ import type {
   EmitCustomEventInput,
   EmitGeneratedPreambleInput,
   EmitIntermediateMessageInput,
+  ListRuntimeConversationsOptions,
   RequestHandoffInput,
   ResumeConversationInput,
   RetrievedKnowledgeItem,
@@ -107,6 +109,9 @@ export function createRuntimeCore(options: RuntimeOptions) {
     },
     listEvents(conversationId: string, afterOffset?: number) {
       return listRuntimeEvents(options, conversationId, afterOffset);
+    },
+    listConversations<TConversationContext = unknown>(input: ListRuntimeConversationsOptions = {}) {
+      return listRuntimeConversations<TConversationContext>(options, input);
     },
     replayConversation(input: { conversationId: string; afterOffset?: number }) {
       return replayRuntimeConversation(options, core.requireConversationRecord, input);

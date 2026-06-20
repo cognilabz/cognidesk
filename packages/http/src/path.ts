@@ -10,10 +10,10 @@ export function stripBasePath(pathname: string, basePath: string) {
   return pathname.slice(basePath.length);
 }
 
-export function parseOptionalInteger(value: string | null) {
+export function parseOptionalInteger(value: string | null, name = "after") {
   if (value === null || value === "") return undefined;
   if (!/^(0|[1-9]\d*)$/.test(value)) {
-    throw new HttpInputError("after must be a non-negative integer.");
+    throw new HttpInputError(`${name} must be a non-negative integer.`);
   }
   return Number(value);
 }

@@ -123,6 +123,118 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
       });
     });
 
+    it("lists conversations by most recent update and supports filters and limits", async () => {
+      await withStorage(async (storage) => {
+        await storage.createConversation({
+          id: "conv_support_old",
+          agentId: "support",
+          context: { tier: "standard" },
+          channel: "chat",
+        });
+        await storage.createConversation({
+          id: "conv_sales",
+          agentId: "sales",
+          context: { tier: "enterprise" },
+          channel: {
+            channelId: "email.sales",
+            kind: "email",
+            provider: "gmail",
+          },
+        });
+        await storage.createConversation({
+          id: "conv_support_new",
+          agentId: "support",
+          context: { tier: "vip" },
+        });
+
+        await storage.appendEvent({
+          conversationId: "conv_support_old",
+          type: "message.completed",
+          createdAt: "2099-01-01T00:00:00.000Z",
+          data: { text: "old" },
+        });
+        await storage.appendEvent({
+          conversationId: "conv_sales",
+          type: "message.completed",
+          createdAt: "2099-01-02T00:00:00.000Z",
+          data: { text: "sales" },
+        });
+        await storage.appendEvent({
+          conversationId: "conv_support_new",
+          type: "message.completed",
+          createdAt: "2099-01-03T00:00:00.000Z",
+          data: { text: "new" },
+        });
+
+        const all = await storage.listConversations<{ tier: string }>({
+          afterUpdatedAt: "2098-12-31T00:00:00.000Z",
+        });
+        expect(all.map((conversation) => conversation.id)).toEqual([
+          "conv_support_new",
+          "conv_sales",
+          "conv_support_old",
+        ]);
+        expect(all[1]).toMatchObject({
+          id: "conv_sales",
+          agentId: "sales",
+          lifecycle: "active",
+          context: { tier: "enterprise" },
+          channel: {
+            channelId: "email.sales",
+            kind: "email",
+            provider: "gmail",
+          },
+          updatedAt: "2099-01-02T00:00:00.000Z",
+        });
+
+        await expect(storage.listConversations({ afterUpdatedAt: "2098-12-31T00:00:00.000Z", limit: 2 }))
+          .resolves.toHaveLength(2);
+        await expect(storage.listConversations({ agentId: "support" }))
+          .resolves.toMatchObject([{ id: "conv_support_new" }, { id: "conv_support_old" }]);
+        await expect(storage.listConversations({
+          afterUpdatedAt: "2098-12-31T00:00:00.000Z",
+          beforeUpdatedAt: "2099-01-03T00:00:00.000Z",
+        }))
+          .resolves.toMatchObject([{ id: "conv_sales" }, { id: "conv_support_old" }]);
+        await expect(storage.listConversations({ afterUpdatedAt: "2099-01-01T00:00:00.000Z" }))
+          .resolves.toMatchObject([{ id: "conv_support_new" }, { id: "conv_sales" }]);
+      });
+    });
+
+    it("paginates conversations losslessly when updatedAt values are tied", async () => {
+      await withStorage(async (storage) => {
+        const updatedAt = "2099-02-01T00:00:00.000Z";
+        for (const id of ["conv_cursor_a", "conv_cursor_b", "conv_cursor_c", "conv_cursor_d"]) {
+          await storage.createConversation({ id, agentId: "support", context: {} });
+          await storage.appendEvent({
+            conversationId: id,
+            type: "message.completed",
+            createdAt: updatedAt,
+            data: { text: id },
+          });
+        }
+
+        const firstPage = await storage.listConversations({ agentId: "support", limit: 2 });
+        expect(firstPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_a", "conv_cursor_b"]);
+
+        const cursor = firstPage[1];
+        expect(cursor).toBeDefined();
+        const secondPage = await storage.listConversations({
+          agentId: "support",
+          before: { updatedAt: cursor!.updatedAt, id: cursor!.id },
+          limit: 2,
+        });
+        expect(secondPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_c", "conv_cursor_d"]);
+
+        const previousPage = await storage.listConversations({
+          agentId: "support",
+          after: { updatedAt: secondPage[0]!.updatedAt, id: secondPage[0]!.id },
+          limit: 2,
+        });
+        expect(previousPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_a", "conv_cursor_b"]);
+      });
+    });
+
     it("rejects orphan events and snapshots", async () => {
       await withStorage(async (storage) => {
         await expect(storage.appendEvent({

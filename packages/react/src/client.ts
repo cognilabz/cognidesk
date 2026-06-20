@@ -29,6 +29,7 @@ import type {
   CognideskStreamEventsOptions,
   CreateConversationResult,
   HandleChannelEventResult,
+  ListConversationsResult,
   ReplayConversationResult,
   ResolveChannelOutputInput,
   ResolveChannelOutputResult,
@@ -96,6 +97,19 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
         headers: { "content-type": "application/json" },
         body: JSON.stringify(input),
       }, "Failed to create conversation");
+    },
+    listConversations(listOptions = {}) {
+      const suffix = queryString({
+        agentId: listOptions.agentId,
+        beforeUpdatedAt: listOptions.before?.updatedAt,
+        beforeId: listOptions.before?.id,
+        afterUpdatedAt: listOptions.after?.updatedAt,
+        afterId: listOptions.after?.id,
+        before: listOptions.beforeUpdatedAt,
+        after: listOptions.afterUpdatedAt,
+        limit: listOptions.limit,
+      });
+      return request("listConversations", `${baseUrl}/conversations${suffix}`, undefined, "Failed to list conversations");
     },
     handleChannelEvent(input) {
       return postChannelEvent("handleChannelEvent", input, "Failed to handle channel event");
@@ -277,6 +291,7 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
 
 type ClientJsonResult =
   | CreateConversationResult
+  | ListConversationsResult
   | HandleChannelEventResult
   | import("./types.js").StartVoiceResult
   | SendMessageResult
@@ -424,8 +439,10 @@ function conversationUrl(baseUrl: string, conversationId: string, path: string) 
   return `${baseUrl}/conversations/${encodeURIComponent(conversationId)}/${path}`;
 }
 
-function queryString(values: { after?: number | undefined }) {
+function queryString(values: Record<string, string | number | undefined>) {
   const params = new URLSearchParams();
-  if (values.after !== undefined) params.set("after", String(values.after));
+  for (const [key, value] of Object.entries(values)) {
+    if (value !== undefined) params.set(key, String(value));
+  }
   return params.size > 0 ? `?${params.toString()}` : "";
 }

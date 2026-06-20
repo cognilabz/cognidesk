@@ -23,6 +23,22 @@ export interface ListEventsOptions {
   limit?: number;
 }
 
+export interface ConversationListCursor {
+  updatedAt: string;
+  id: string;
+}
+
+export interface ListConversationsOptions {
+  agentId?: string;
+  before?: ConversationListCursor;
+  after?: ConversationListCursor;
+  /** Timestamp-only range filter. Use `before` for lossless cursor pagination. */
+  beforeUpdatedAt?: string;
+  /** Timestamp-only range filter. Use `after` for lossless cursor pagination. */
+  afterUpdatedAt?: string;
+  limit?: number;
+}
+
 export interface CreateConversationInput<TConversationContext = unknown> {
   id?: string;
   agentId: string;
@@ -40,6 +56,10 @@ export interface StorageAdapter {
   getConversation<TConversationContext = unknown>(
     conversationId: string,
   ): Promise<ConversationRecord<TConversationContext> | null>;
+
+  listConversations<TConversationContext = unknown>(
+    options?: ListConversationsOptions,
+  ): Promise<ConversationRecord<TConversationContext>[]>;
 
   updateConversationLifecycle(
     conversationId: string,
