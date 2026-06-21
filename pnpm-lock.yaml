@@ -717,11 +717,11 @@ importers:
   packages/voice-openai:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.2
-        version: 0.0.2
+        specifier: workspace:*
+        version: link:../core
       '@cognidesk/voice-websocket':
-        specifier: 0.0.2
-        version: 0.0.2
+        specifier: workspace:*
+        version: link:../voice-websocket
       openai:
         specifier: ^6.1.0
         version: 6.42.0(ws@8.21.0)(zod@4.4.3)
@@ -1221,12 +1221,6 @@ packages:
 
   '@chevrotain/types@11.1.2':
     resolution: {integrity: sha512-U+HFai5+zmJCkK86QsaJtoITlboZHBqrVketcO2ROv865xfCMSFpELQoz1GkX5GzME8pTa+3kbKrZHQtI0gdbw==}
-
-  '@cognidesk/core@0.0.2':
-    resolution: {integrity: sha512-Iz/Ln1fyyZ/dQWbmhFdm7rokZGcl5yyfdhJMIvUqpg/OzlRdTaMHjB9N9VpFChISQkqZ/KL9rYVURM6rWtd+Dw==}
-
-  '@cognidesk/voice-websocket@0.0.2':
-    resolution: {integrity: sha512-VyRZ/NzHE52KJZXDVh17IyqD99fMlBL4R/67T+a+GqisSLlRTeeF7NeIIuFc3aUv4Q9vOOWYvMSDfVstCKmXUA==}
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
@@ -6679,20 +6673,6 @@ snapshots:
   '@braintree/sanitize-url@7.1.2': {}
 
   '@chevrotain/types@11.1.2': {}
-
-  '@cognidesk/core@0.0.2':
-    dependencies:
-      '@opentelemetry/api': 1.9.1
-      pino: 10.3.1
-      zod: 4.4.3
-
-  '@cognidesk/voice-websocket@0.0.2':
-    dependencies:
-      '@cognidesk/core': 0.0.2
-      ws: 8.21.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   '@drizzle-team/brocli@0.10.2': {}
 

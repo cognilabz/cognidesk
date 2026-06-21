@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/voice-openai",
+  "name": "@cognidesk/integration-voice-openai",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",
@@ -18,8 +18,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "0.0.2",
-    "@cognidesk/voice-websocket": "0.0.2",
+    "@cognidesk/core": "workspace:*",
+    "@cognidesk/voice-websocket": "workspace:*",
     "openai": "^6.1.0"
   },
   "devDependencies": {

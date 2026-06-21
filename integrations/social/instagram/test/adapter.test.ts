@@ -11,11 +11,11 @@ import {
   validateInstagramWebhookSignature,
 } from "../src/index.js";
 
-describe("@cognidesk/social-instagram", () => {
+describe("@cognidesk/integration-social-instagram", () => {
   it("declares split-package metadata and bound operations", () => {
     expect(instagramSocialProviderManifest).toMatchObject({
       id: "social.instagram",
-      packageName: "@cognidesk/social-instagram",
+      packageName: "@cognidesk/integration-social-instagram",
       category: "social",
       provider: "instagram",
       coverage: { scope: "support-workflow-subset" },

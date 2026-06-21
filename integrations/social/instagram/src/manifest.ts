@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage as defineProviderPackage } from "@cogn
 export const instagramSocialProviderManifest = defineProviderPackage({
   id: "social.instagram",
   name: "Instagram Direct Messages",
-  packageName: "@cognidesk/social-instagram",
+  packageName: "@cognidesk/integration-social-instagram",
   provider: "instagram",
   category: "social",
   trustLevel: "official",

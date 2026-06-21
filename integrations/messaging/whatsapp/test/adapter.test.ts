@@ -11,11 +11,11 @@ import {
   whatsappMessagingProviderManifest,
 } from "../src/index.js";
 
-describe("@cognidesk/messaging-whatsapp", () => {
+describe("@cognidesk/integration-messaging-whatsapp", () => {
   it("declares split-package metadata and bound operations", () => {
     expect(whatsappMessagingProviderManifest).toMatchObject({
       id: "messaging.whatsapp",
-      packageName: "@cognidesk/messaging-whatsapp",
+      packageName: "@cognidesk/integration-messaging-whatsapp",
       category: "messaging",
       provider: "whatsapp",
       coverage: { scope: "support-workflow-subset" },

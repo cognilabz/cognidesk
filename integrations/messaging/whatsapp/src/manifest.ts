@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage as defineProviderPackage } from "@cogn
 export const whatsappMessagingProviderManifest = defineProviderPackage({
   id: "messaging.whatsapp",
   name: "WhatsApp Business Platform",
-  packageName: "@cognidesk/messaging-whatsapp",
+  packageName: "@cognidesk/integration-messaging-whatsapp",
   provider: "whatsapp",
   category: "messaging",
   trustLevel: "official",

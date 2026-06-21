@@ -11,11 +11,11 @@ import {
   validateMessengerWebhookSignature,
 } from "../src/index.js";
 
-describe("@cognidesk/social-messenger", () => {
+describe("@cognidesk/integration-social-messenger", () => {
   it("declares split-package metadata and bound operations", () => {
     expect(messengerSocialProviderManifest).toMatchObject({
       id: "social.messenger",
-      packageName: "@cognidesk/social-messenger",
+      packageName: "@cognidesk/integration-social-messenger",
       category: "social",
       provider: "messenger",
       coverage: { scope: "support-workflow-subset" },

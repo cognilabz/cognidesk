@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage as defineProviderPackage } from "@cogn
 export const messengerSocialProviderManifest = defineProviderPackage({
   id: "social.messenger",
   name: "Facebook Messenger",
-  packageName: "@cognidesk/social-messenger",
+  packageName: "@cognidesk/integration-social-messenger",
   provider: "messenger",
   category: "social",
   trustLevel: "official",

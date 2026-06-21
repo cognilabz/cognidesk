@@ -2,7 +2,7 @@
 
 Status: implemented for issue #32 after reconciling the issue #20 nested-workspace and issue #21 integration-kit foundations.
 
-This record covers the Meta-owned support-channel integrations previously under `packages/integrations/src/messaging/whatsapp`, `packages/integrations/src/social/instagram`, and `packages/integrations/src/social/messenger`. The split packages are now present at `integrations/messaging/whatsapp`, `integrations/social/instagram`, and `integrations/social/messenger`, using package names `@cognidesk/messaging-whatsapp`, `@cognidesk/social-instagram`, and `@cognidesk/social-messenger`.
+This record covers the Meta-owned support-channel integrations previously under `packages/integrations/src/messaging/whatsapp`, `packages/integrations/src/social/instagram`, and `packages/integrations/src/social/messenger`. The split packages are now present at `integrations/messaging/whatsapp`, `integrations/social/instagram`, and `integrations/social/messenger`, using package names `@cognidesk/integration-messaging-whatsapp`, `@cognidesk/integration-social-instagram`, and `@cognidesk/integration-social-messenger`.
 
 The migration strategy is to keep these providers as normalized support adapters over constrained Meta Graph support slices, with SDK/raw-client escape hatches where the maintained Meta SDK is useful. None of these packages should claim full Meta Graph, full Messenger Platform, full Instagram Platform, or full WhatsApp Business Platform coverage.
 
@@ -18,19 +18,19 @@ The migration strategy is to keep these providers as normalized support adapters
 
 ## Package decisions
 
-### `@cognidesk/messaging-whatsapp`
+### `@cognidesk/integration-messaging-whatsapp`
 
 Use a constrained direct Cloud API support slice instead of the `whatsapp` alpha SDK as the primary runtime dependency. Preserve the existing typed helpers for messages, template payload construction, media, phone-number readiness, business profile read/update, webhook challenge handling, X-Hub-Signature-256 validation, readiness, and credential status.
 
 Expose raw HTTP/Graph client access through `createWhatsAppMessagingClient`. Do not import the official `whatsapp` package from manifest-only exports, and do not add it unless a later audit finds a stable release that covers media/profile/readiness without SDK-owned server bootstrapping.
 
-### `@cognidesk/social-messenger`
+### `@cognidesk/integration-social-messenger`
 
 Use `facebook-nodejs-business-sdk` only inside runtime client code where its Page methods map cleanly to the supported Messenger edges, or keep the current direct Graph support slice when a narrower implementation is simpler and more type-safe. In either case, the package remains a support-workflow subset around Page messages, sender actions, reusable attachments, conversations/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation.
 
 Do not surface legacy Handover Protocol as current Cognidesk handoff coverage. Existing low-level thread-control helpers can remain legacy escape hatches, while Meta Conversation Routing setup stays outside the adapter.
 
-### `@cognidesk/social-instagram`
+### `@cognidesk/integration-social-instagram`
 
 Keep Instagram Messaging on the Business Messaging/Page access token model. Use a constrained Graph support slice for send, conversations, message read, account/page readiness, webhook challenge handling, and X-Hub-Signature-256 validation. `facebook-nodejs-business-sdk` may be available as a raw Graph client escape hatch if it helps SDK users with adjacent Page/Graph reads, but the normalized adapter should not depend on broad Instagram Platform coverage.
 

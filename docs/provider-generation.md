@@ -17,7 +17,7 @@ Use a scoped generator during development when only one provider changed:
 pnpm providers:generate -- --only=generate-elevenlabs-full-api
 ```
 
-The generated source files are committed and published from the owning provider package, such as `@cognidesk/email-gmail` or `@cognidesk/ecommerce-stripe`. Consumer installs must not fetch upstream specs or generate provider code.
+The generated source files are committed and published from the owning provider package, such as `@cognidesk/integration-email-gmail` or `@cognidesk/integration-ecommerce-stripe`. Consumer installs must not fetch upstream specs or generate provider code.
 
 Generated provider files expose the provider's raw API surface; they do not decide the Cognidesk category semantics by themselves. A generated integration normally has four layers:
 
