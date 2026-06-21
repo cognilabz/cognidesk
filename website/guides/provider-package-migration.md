@@ -58,6 +58,7 @@ The codemod parses TypeScript/JavaScript import and named export declarations. I
 | #24 | `@cognidesk/integrations/email/outlook` | `@cognidesk/email-outlook/manifest` | `@cognidesk/email-outlook/runtime` |
 | #25 | `@cognidesk/integrations/workplace/slack` | `@cognidesk/workplace-slack/manifest` | `@cognidesk/workplace-slack/runtime` |
 | #24 | `@cognidesk/integrations/workplace/teams` | `@cognidesk/workplace-teams/manifest` | `@cognidesk/workplace-teams/runtime` |
+| #30 | `@cognidesk/integrations/ecommerce/shopify` | `@cognidesk/ecommerce-shopify/manifest` | `@cognidesk/ecommerce-shopify/runtime` |
 | #30 | `@cognidesk/integrations/ecommerce/stripe` | `@cognidesk/ecommerce-stripe/manifest` | `@cognidesk/ecommerce-stripe/runtime` |
 | #40 | `@cognidesk/integrations/voice/openai` | `@cognidesk/voice-openai/manifest` | `@cognidesk/voice-openai/runtime` |
 

@@ -4534,11 +4534,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ecommerce.shopify",
     "category": "ecommerce",
     "provider": "shopify",
-    "importPath": "@cognidesk/integrations/ecommerce/shopify",
-    "modulePath": "./ecommerce/shopify/index.js",
+    "importPath": "@cognidesk/ecommerce-shopify/manifest",
+    "modulePath": "integrations/ecommerce/shopify/src/manifest.js",
     "manifestExport": "shopifyEcommerceProviderManifest",
     "name": "Shopify",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/ecommerce-shopify",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -4552,7 +4552,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Shopify",
-      "summary": "Official Shopify Admin GraphQL 2026-04 docs are inventoried as 792 root fields (282 QueryRoot, 510 Mutation), but this package implements only selected typed helpers plus a raw Admin GraphQL escape hatch.",
+      "summary": "Coverage is limited to selected Shopify Admin GraphQL support operations backed by the official Shopify Admin API client.",
       "tags": [
         "ecommerce",
         "shopify",
@@ -4666,7 +4666,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "ecommerce.graphql",
         "label": "Run Shopify Admin GraphQL",
-        "description": "Runs SDK-user-selected raw Admin GraphQL operations against the configured Shopify shop as an explicit escape hatch; this does not imply full-provider API coverage.",
+        "description": "Runs SDK-user-selected raw Admin GraphQL operations against the configured Shopify shop as an explicit escape hatch.",
         "audiences": [
           "internal-support"
         ],
@@ -4686,10 +4686,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Official Shopify Admin GraphQL 2026-04 docs are inventoried as 792 root fields (282 QueryRoot, 510 Mutation), but this package implements only selected typed helpers plus a raw Admin GraphQL escape hatch.",
-        "Coverage is limited to selected Shopify Admin GraphQL support primitives: shop, order, customer, and product reads/searches; draft order creation; explicit raw Admin GraphQL escape-hatch execution; and webhook HMAC parsing.",
-        "The package does not implement generated per-root-field Admin GraphQL wrappers, full Shopify Admin API coverage, Storefront, Functions, Payments, Markets, Fulfillment, Inventory, Billing, Checkout, Online Store, REST Admin, or app-management API coverage.",
-        "The SDK user owns Admin API version selection, app scopes, webhook topic registration, commerce mutation policy, privacy, consent, and retention decisions."
+        "Coverage is limited to selected Shopify Admin GraphQL support operations backed by the official Shopify Admin API client.",
+        "The raw Admin GraphQL client remains available as an explicit escape hatch; Storefront, Functions, Payments, REST Admin, and app lifecycle coverage are not implied.",
+        "Generated Shopify per-root-field Admin GraphQL wrappers are intentionally not part of this package."
       ],
       "evidence": [
         {
@@ -4697,32 +4696,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://shopify.dev/docs/api/admin-graphql/latest"
         },
         {
-          "label": "Shopify Admin GraphQL QueryRoot 2026-04 catalog",
-          "url": "https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot"
-        },
-        {
-          "label": "Shopify Admin GraphQL Mutation 2026-04 catalog",
-          "url": "https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation"
-        },
-        {
-          "label": "Shopify Admin GraphQL products query",
-          "url": "https://shopify.dev/docs/api/admin-graphql/latest/queries/products"
+          "label": "Shopify Admin API client",
+          "url": "https://www.npmjs.com/package/@shopify/admin-api-client"
         },
         {
           "label": "Shopify webhook HMAC validation",
           "url": "https://shopify.dev/docs/apps/build/webhooks/subscribe/https#step-5-verify-the-webhook"
-        },
-        {
-          "label": "Shopify Storefront API reference",
-          "url": "https://shopify.dev/docs/api/storefront/latest"
-        },
-        {
-          "label": "Shopify Functions API reference",
-          "url": "https://shopify.dev/docs/api/functions/latest"
-        },
-        {
-          "label": "Shopify payments extensions",
-          "url": "https://shopify.dev/docs/apps/build/payments"
         }
       ]
     },
@@ -4757,16 +4736,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ecommerce.subscription.update",
           "ecommerce.webhookEndpoint.manage"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "shopify.adminGraphql"
+        ]
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ecommerce/shopify",
-      "providerModule": "./ecommerce/shopify/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@shopify/admin-api-client",
+      "runtimePackage": "@cognidesk/ecommerce-shopify",
+      "providerModule": "integrations/ecommerce/shopify/src/manifest.js",
       "manifestExport": "shopifyEcommerceProviderManifest",
-      "manifestSource": "packages/integrations/src/ecommerce/shopify/manifest.ts",
+      "manifestSource": "integrations/ecommerce/shopify/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://shopify.dev/docs/api/admin-graphql/latest"
     },
@@ -4818,9 +4799,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "limitations": [
       "The SDK user chooses Admin API version, scopes, webhook topics, customer visibility, fulfillment behavior, consent rules, and retention policy.",
-      "This package provides API foundations and signature checks; it does not decide when to create draft orders, contact customers, issue discounts, refund orders, or expose commerce data.",
-      "Available fields and mutations depend on the SDK user's Shopify plan, app scopes, shop settings, installed apps, and selected Admin API version.",
-      "The generated Admin GraphQL inventory is a root-field catalog from official docs, not a public static introspection schema and not generated callable coverage for every root field."
+      "This package provides normalized Admin GraphQL support operations and signature checks; it does not decide when to create draft orders, contact customers, issue discounts, refund orders, or expose commerce data."
     ],
     "maintainers": [
       {
@@ -4831,74 +4810,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "defaultGraphqlAdminApiVersion": "2026-04",
       "docs": "https://shopify.dev/docs/api/admin-graphql/latest",
-      "channelCoverage": {
-        "shop": "typed-read",
-        "orders": "typed-read-search",
-        "customers": "typed-read-search",
-        "products": "typed-read-search",
-        "draftOrders": "typed-read-create",
-        "webhooks": "typed-validate-parse",
-        "adminGraphqlEscapeHatch": "typed-raw-graphql-escape-hatch",
-        "adminGraphqlRootFieldCatalog": "generated-inventory-not-generated-wrappers",
-        "storefrontFunctionsPaymentsRestAdminAppSurfaces": "provider-supported-not-implemented",
-        "checkoutFulfillmentInventoryMarketsBillingOnlineStore": "provider-supported-not-typed"
-      },
-      "adminGraphqlSchemaCatalog": {
-        "apiVersion": "2026-04",
-        "generatedAt": "2026-06-18",
-        "docs": "https://shopify.dev/docs/api/admin-graphql/latest",
-        "versionedDocs": "https://shopify.dev/docs/api/admin-graphql/2026-04",
-        "queryRoot": "https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot",
-        "mutation": "https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation",
-        "rootFieldCatalogArtifact": "docs/provider-coverage/shopify-admin-graphql-2026-04-2026-06-18.root-fields.json",
-        "functionCatalogArtifact": "docs/provider-coverage/shopify-admin-graphql-2026-04-2026-06-18.functions.json",
-        "queryRootFieldCount": 282,
-        "mutationFieldCount": 510,
-        "rootFieldCount": 792,
-        "selectedTypedHelperCount": 9,
-        "helperCatalogEntryCount": 14,
-        "selectedTypedRootFieldCount": 8,
-        "generatedPerRootFieldWrapperCount": 0,
-        "rawAdminGraphqlEscapeHatch": true,
-        "fullShopifyPlatformCoverage": false,
-        "publicStaticSchemaAvailability": "no-public-static-schema-json-found-at-checked-official-docs-urls",
-        "platformGaps": [
-          {
-            "surface": "Storefront GraphQL API",
-            "url": "https://shopify.dev/docs/api/storefront/latest",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "Shopify Functions APIs",
-            "url": "https://shopify.dev/docs/api/functions/latest",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "Payments extensions and Payments Apps API",
-            "url": "https://shopify.dev/docs/apps/build/payments",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "Payments app request reference",
-            "url": "https://shopify.dev/docs/apps/build/payments/request-reference",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "REST Admin API",
-            "url": "https://shopify.dev/docs/api/admin-rest",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "App platform surfaces and UI extensions",
-            "url": "https://shopify.dev/docs/apps/build/app-surfaces",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "Webhook subscription management/catalog",
-            "url": "https://shopify.dev/docs/apps/build/webhooks",
-            "status": "signature-parse-only"
-          }
-        ]
+      "sdkPackage": "@shopify/admin-api-client",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@shopify/admin-api-client",
+        "optionalBroaderSdkPackage": "@shopify/shopify-api",
+        "generatedFullProviderApiClone": false,
+        "rawClientEscapeHatch": true
       },
       "rawProviderRequest": {
         "capability": "ecommerce.graphql",
@@ -4934,7 +4852,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ecommerce.subscription.update",
           "ecommerce.webhookEndpoint.manage"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "shopify.adminGraphql"
+        ]
       }
     }
   },
@@ -4942,11 +4862,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ecommerce.stripe",
     "category": "ecommerce",
     "provider": "stripe",
-    "importPath": "@cognidesk/integrations/ecommerce/stripe",
-    "modulePath": "./ecommerce/stripe/index.js",
+    "importPath": "@cognidesk/ecommerce-stripe/manifest",
+    "modulePath": "integrations/ecommerce/stripe/src/manifest.js",
     "manifestExport": "stripeEcommerceProviderManifest",
     "name": "Stripe",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/ecommerce-stripe",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -4960,12 +4880,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Stripe",
-      "summary": "Coverage includes a generated operation catalog for every operation in the official Stripe OpenAPI spec for this API version, exposed through requestOperation(operationId, ...).",
+      "summary": "Coverage is limited to Cognidesk-normalized Stripe commerce support operations backed by the official Stripe SDK.",
       "tags": [
         "ecommerce",
         "stripe",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -4993,7 +4913,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Stripe commerce records",
-        "description": "Reads Stripe customers, payment intents, Checkout Sessions, subscriptions, invoices, refunds, disputes, and account details.",
+        "description": "Reads customers, Checkout Sessions, PaymentIntents, subscriptions, invoices, refunds, and disputes.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -5004,12 +4924,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Stripe Customer"
           },
           {
-            "kind": "stripePaymentIntent",
-            "label": "Stripe PaymentIntent"
-          },
-          {
             "kind": "stripeCheckoutSession",
             "label": "Stripe Checkout Session"
+          },
+          {
+            "kind": "stripePaymentIntent",
+            "label": "Stripe PaymentIntent"
           },
           {
             "kind": "stripeSubscription",
@@ -5026,10 +4946,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "stripeDispute",
             "label": "Stripe Dispute"
-          },
-          {
-            "kind": "stripeWebhookEndpoint",
-            "label": "Stripe Webhook Endpoint"
           }
         ],
         "requiresCredential": true,
@@ -5052,24 +4968,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Stripe Customer"
           },
           {
-            "kind": "stripePaymentIntent",
-            "label": "Stripe PaymentIntent"
-          },
-          {
             "kind": "stripeCheckoutSession",
             "label": "Stripe Checkout Session"
           },
           {
-            "kind": "stripeInvoice",
-            "label": "Stripe Invoice"
-          },
-          {
-            "kind": "stripeDispute",
-            "label": "Stripe Dispute"
-          },
-          {
-            "kind": "stripeWebhookEndpoint",
-            "label": "Stripe Webhook Endpoint"
+            "kind": "stripePaymentIntent",
+            "label": "Stripe PaymentIntent"
           }
         ],
         "requiresCredential": true,
@@ -5081,7 +4985,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "create-provider-object",
         "label": "Create Stripe payment support actions",
-        "description": "Creates Checkout Sessions, PaymentIntents, and refunds only when SDK-user policy permits externally visible commerce mutations.",
+        "description": "Creates Checkout Sessions, PaymentIntents, and refunds when SDK-user policy permits.",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -5110,7 +5014,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "update-provider-object",
         "label": "Update Stripe support records",
-        "description": "Updates subscriptions, disputes, and webhook endpoints, and closes disputes or cancels subscriptions when SDK-user policy permits regulated payment support actions.",
+        "description": "Updates subscriptions and manages webhook endpoints when SDK-user policy permits.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -5119,10 +5023,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "stripeSubscription",
             "label": "Stripe Subscription"
-          },
-          {
-            "kind": "stripeDispute",
-            "label": "Stripe Dispute"
           },
           {
             "kind": "stripeWebhookEndpoint",
@@ -5137,15 +5037,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "ecommerce.payments",
-        "label": "Stripe payment API foundation",
-        "description": "Exposes Stripe support-workflow primitives without deciding checkout, refund, dispute, retention, or consent policy.",
+        "label": "Stripe raw SDK escape hatch",
+        "description": "Exposes the configured official Stripe SDK client for SDK-user-owned advanced operations.",
         "audiences": [
           "internal-support"
         ],
         "providerObjects": [
           {
-            "kind": "stripeApiResult",
-            "label": "Stripe API Result"
+            "kind": "stripeRawClient",
+            "label": "Stripe SDK Client"
           }
         ],
         "requiresCredential": true,
@@ -5156,11 +5056,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes a generated operation catalog for every operation in the official Stripe OpenAPI spec for this API version, exposed through requestOperation(operationId, ...).",
-        "The package also keeps typed convenience helpers for selected commerce support primitives: account, customer, PaymentIntent, Checkout Session, subscription, invoice, refund, dispute, webhook endpoint, Connect account header, and webhook-signature helpers.",
-        "The SDK user owns restricted-key scope selection, checkout and refund policy, dispute evidence policy, Connect account routing, webhook subscriptions, consent, and retention decisions."
+        "Coverage is limited to Cognidesk-normalized Stripe commerce support operations backed by the official Stripe SDK.",
+        "The official Stripe SDK remains available as an explicit raw-client escape hatch; raw SDK coverage is not Cognidesk adapter coverage.",
+        "Generated Stripe full-provider API clones are intentionally not part of this package."
       ],
       "evidence": [
         {
@@ -5168,20 +5068,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://docs.stripe.com/api"
         },
         {
-          "label": "Stripe PaymentIntents API",
-          "url": "https://docs.stripe.com/api/payment_intents"
-        },
-        {
-          "label": "Stripe Checkout Sessions API",
-          "url": "https://docs.stripe.com/api/checkout/sessions"
-        },
-        {
-          "label": "Stripe Subscriptions update API",
-          "url": "https://docs.stripe.com/api/subscriptions/update"
-        },
-        {
-          "label": "Stripe Webhook Endpoints API",
-          "url": "https://docs.stripe.com/api/webhook_endpoints"
+          "label": "Stripe Node SDK",
+          "url": "https://github.com/stripe/stripe-node"
         },
         {
           "label": "Stripe webhook signature verification",
@@ -5190,7 +5078,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -5220,16 +5108,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ecommerce.subscription.update",
           "ecommerce.webhookEndpoint.manage"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "stripe.rawClient"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ecommerce/stripe",
-      "providerModule": "./ecommerce/stripe/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "stripe",
+      "runtimePackage": "@cognidesk/ecommerce-stripe",
+      "providerModule": "integrations/ecommerce/stripe/src/manifest.js",
       "manifestExport": "stripeEcommerceProviderManifest",
-      "manifestSource": "packages/integrations/src/ecommerce/stripe/manifest.ts",
+      "manifestSource": "integrations/ecommerce/stripe/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.stripe.com/api"
     },
@@ -5241,15 +5131,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "stripe-webhook-signing-secret"
       ],
       "optionalCredentialIds": [
-        "stripe-publishable-key",
-        "stripe-connect-mode",
-        "stripe-restricted-key-scopes"
+        "stripe-connect-mode"
       ],
       "credentialRequirements": [
         {
           "id": "stripe-secret-key",
           "label": "Stripe secret key",
-          "description": "Server-side Stripe secret key or restricted key selected and owned by the SDK user.",
+          "description": "Server-side Stripe secret or restricted key selected and owned by the SDK user.",
           "scopes": [
             "customers:read",
             "payment_intents:read",
@@ -5264,16 +5152,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           ],
           "required": true,
           "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "These strings represent Stripe restricted-key permission families for Studio review, not OAuth scopes."
+            "scopeKind": "provider-permission-labels"
           }
-        },
-        {
-          "id": "stripe-publishable-key",
-          "label": "Stripe publishable key",
-          "description": "Optional publishable key surfaced only when the SDK user exposes Stripe-hosted or embedded payment UI.",
-          "scopes": [],
-          "required": false
         },
         {
           "id": "stripe-webhook-signing-secret",
@@ -5285,14 +5165,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "stripe-connect-mode",
           "label": "Stripe Connect mode",
-          "description": "SDK-user-selected account context for platform, connected-account, or organization event handling.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "stripe-restricted-key-scopes",
-          "label": "Stripe restricted key scopes",
-          "description": "SDK-user-declared restricted-key permissions used for Studio readiness and policy review.",
+          "description": "SDK-user-selected account context for platform or connected-account routing.",
           "scopes": [],
           "required": false
         }
@@ -5300,12 +5173,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "privacyNotes": [
       "Stripe records can include customer contact data, billing/shipping addresses, payment state, subscription terms, invoice history, refund reasons, dispute evidence, and account metadata.",
-      "Secret keys, restricted keys, Connect account routing, and webhook signing secrets stay server-side; Studio receives only readiness state and policy-visible metadata."
+      "Secret keys, Connect account routing, and webhook signing secrets stay server-side; Studio receives only readiness state and policy-visible metadata."
     ],
     "limitations": [
       "The SDK user chooses Stripe account mode, restricted-key permissions, event destinations, webhook subscriptions, checkout UI, refund policy, dispute evidence policy, consent, and retention.",
-      "This package provides API foundations and raw-body signature verification; it does not decide when to charge, refund, cancel, submit evidence, or expose payment data to an operator.",
-      "Available records and mutations depend on the SDK user's Stripe account, restricted key, Connect configuration, API version, product access, and provider-side permissions."
+      "This package provides normalized support-operation foundations and raw-client access; it does not decide when to charge, refund, cancel, submit evidence, or expose payment data to an operator."
     ],
     "maintainers": [
       {
@@ -5314,35 +5186,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "defaultApiVersion": "2026-05-27.dahlia",
+      "defaultApiVersion": "2026-05-28.basil",
       "docs": "https://docs.stripe.com/api",
-      "fullProviderApiVerification": {
-        "provider": "stripe",
-        "apiVersion": "2026-05-27.dahlia",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/stripe-2026-05-27.dahlia.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/stripe-2026-05-27.dahlia.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/stripe-2026-05-27.dahlia.functions.json",
-        "documentedOperationCount": 619,
-        "implementedOperationCount": 619,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 619
+      "sdkPackage": "stripe",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "stripe",
+        "generatedFullProviderApiClone": false,
+        "rawClientEscapeHatch": true
       },
-      "channelCoverage": {
-        "fullRestApiOperations": "typed-operation-catalog",
-        "account": "typed-read",
-        "customers": "typed-read-list-search",
-        "paymentIntents": "typed-create-read-list",
-        "checkoutSessions": "typed-create-read-list",
-        "checkoutSessionLineItems": "typed-list",
-        "subscriptions": "typed-read-list-update-cancel",
-        "invoices": "typed-read-list",
-        "refunds": "typed-create-read-list",
-        "disputes": "typed-read-list-update-close",
-        "webhookEndpoints": "typed-create-read-list-update-delete",
-        "webhooks": "typed-validate-parse",
-        "connectAccountHeader": "typed-request-context",
-        "taxTerminalTreasuryIssuingIdentityFilesReporting": "provider-supported-not-typed"
+      "rawProviderRequest": {
+        "capability": "ecommerce.payments",
+        "acknowledgementRequired": true,
+        "coverage": "escape-hatch-not-full-provider-api"
       },
       "categoryProfileId": "ecommerce",
       "integrationCategoryProfileId": "ecommerce",
@@ -5373,7 +5229,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ecommerce.subscription.update",
           "ecommerce.webhookEndpoint.manage"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "stripe.rawClient"
+        ]
       }
     }
   },

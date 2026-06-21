@@ -391,17 +391,17 @@ Evidence: [Zoom Contact Center APIs](https://developers.zoom.us/docs/api/contact
 | Manifest ID | `ecommerce.shopify` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `official-sdk` |
 | Documentation | [https://shopify.dev/docs/api/admin-graphql/latest](https://shopify.dev/docs/api/admin-graphql/latest) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `ecommerce.graphql` |
 | Provider setup | required `shopify-shop-domain`, `shopify-admin-access`; optional `shopify-webhook-secret` |
 
-Coverage: Official Shopify Admin GraphQL 2026-04 docs are inventoried as 792 root fields (282 QueryRoot, 510 Mutation), but this package implements only selected typed helpers plus a raw Admin GraphQL escape hatch.
+Coverage: Coverage is limited to selected Shopify Admin GraphQL support operations backed by the official Shopify Admin API client.
 
 Boundary: The SDK user chooses Admin API version, scopes, webhook topics, customer visibility, fulfillment behavior, consent rules, and retention policy.
 
-Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/admin-graphql/latest); [Shopify Admin GraphQL QueryRoot 2026-04 catalog](https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot); [Shopify Admin GraphQL Mutation 2026-04 catalog](https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation); [Shopify Admin GraphQL products query](https://shopify.dev/docs/api/admin-graphql/latest/queries/products); plus 4 more.
+Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/admin-graphql/latest); [Shopify Admin API client](https://www.npmjs.com/package/@shopify/admin-api-client); [Shopify webhook HMAC validation](https://shopify.dev/docs/apps/build/webhooks/subscribe/https#step-5-verify-the-webhook).
 
 #### Stripe
 
@@ -412,19 +412,19 @@ Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/adm
 | Runtime import | `@cognidesk/ecommerce-stripe/runtime` |
 | Workspace | `integrations/ecommerce/stripe` |
 | Manifest ID | `ecommerce.stripe` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
+| Implementation | `official-sdk` |
 | Documentation | [https://docs.stripe.com/api](https://docs.stripe.com/api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `update-provider-object`, `ecommerce.payments` |
-| Provider setup | required `stripe-secret-key`, `stripe-webhook-signing-secret`; optional `stripe-publishable-key`, `stripe-connect-mode`, `stripe-restricted-key-scopes` |
+| Provider setup | required `stripe-secret-key`, `stripe-webhook-signing-secret`; optional `stripe-connect-mode` |
 
-Coverage: Coverage includes a generated operation catalog for every operation in the official Stripe OpenAPI spec for this API version, exposed through requestOperation(operationId, ...).
+Coverage: Coverage is limited to Cognidesk-normalized Stripe commerce support operations backed by the official Stripe SDK.
 
 Boundary: The SDK user chooses Stripe account mode, restricted-key permissions, event destinations, webhook subscriptions, checkout UI, refund policy, dispute evidence policy, consent, and retention.
 
-Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe PaymentIntents API](https://docs.stripe.com/api/payment_intents); [Stripe Checkout Sessions API](https://docs.stripe.com/api/checkout/sessions); [Stripe Subscriptions update API](https://docs.stripe.com/api/subscriptions/update); plus 2 more.
+Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe Node SDK](https://github.com/stripe/stripe-node); [Stripe webhook signature verification](https://docs.stripe.com/webhooks/signature).
 
 ### Email
 

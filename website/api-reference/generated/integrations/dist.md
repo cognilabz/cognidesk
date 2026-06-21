@@ -1036,20 +1036,6 @@ const integrationProviderReferences: readonly [{
   modulePath: "./contact-center/zoom/index.js";
   provider: "zoom";
 }, {
-  category: "ecommerce";
-  id: "ecommerce.shopify";
-  importPath: "@cognidesk/integrations/ecommerce/shopify";
-  manifestExport: "shopifyEcommerceProviderManifest";
-  modulePath: "./ecommerce/shopify/index.js";
-  provider: "shopify";
-}, {
-  category: "ecommerce";
-  id: "ecommerce.stripe";
-  importPath: "@cognidesk/integrations/ecommerce/stripe";
-  manifestExport: "stripeEcommerceProviderManifest";
-  modulePath: "./ecommerce/stripe/index.js";
-  provider: "stripe";
-}, {
   category: "email";
   id: "email.gmail";
   importPath: "@cognidesk/integrations/email/gmail";
