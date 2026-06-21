@@ -17,6 +17,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1054.0",
     "@better-auth/drizzle-adapter": "^1.6.11",
+    "@cognidesk/integration-catalog": "workspace:*",
     "@cognidesk/studio-contracts": "workspace:*",
     "@libsql/client": "^0.17.3",
     "@radix-ui/react-use-controllable-state": "^1.2.2",

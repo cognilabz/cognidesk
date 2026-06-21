@@ -1,12 +1,10 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const catalogPath = path.join(repoRoot, "website/guides/provider-integrations-catalog.md");
-const integrationsPackagePath = path.join(repoRoot, "packages/integrations/package.json");
-const integrationsPackageDir = path.dirname(integrationsPackagePath);
-const integrationsIndexPath = path.join(repoRoot, "packages/integrations/dist/index.js");
+const integrationCatalogIndexPath = path.join(repoRoot, "packages/integration-catalog/dist/index.js");
 
 const categoryLabels = new Map([
   ["cobrowsing", "Cobrowsing"],
@@ -89,86 +87,37 @@ function firstNonEmpty(values) {
   return values.find((value) => typeof value === "string" && value.trim().length > 0);
 }
 
-async function loadIntegrationsIndex() {
+async function loadIntegrationCatalogIndex() {
   try {
-    return await import(pathToFileURL(integrationsIndexPath).href);
+    return await import(pathToFileURL(integrationCatalogIndexPath).href);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     throw new Error(
-      `Unable to import packages/integrations/dist/index.js. Run 'pnpm --filter @cognidesk/integrations build' before generating the provider catalog. ${reason}`,
+      `Unable to import packages/integration-catalog/dist/index.js. Run 'pnpm --filter @cognidesk/integration-catalog build' before generating the provider catalog. ${reason}`,
     );
   }
 }
 
-async function loadProviderManifestEntries() {
-  const index = await loadIntegrationsIndex();
-  if (index.integrationProviderReferences?.length > 0) {
-    const entries = [];
-    for (const reference of index.integrationProviderReferences) {
-      entries.push({
-        reference,
-        manifest: await index.loadProviderIntegrationManifest(reference),
-      });
-    }
-    return entries;
+async function loadProviderCatalogEntries() {
+  const index = await loadIntegrationCatalogIndex();
+  const entries = index.integrationCatalog;
+  if (!Array.isArray(entries)) {
+    throw new Error("packages/integration-catalog/dist/index.js did not export integrationCatalog.");
   }
-
-  const packageJson = JSON.parse(await readFile(integrationsPackagePath, "utf8"));
-  const exportMap = packageJson.exports ?? {};
-  const entries = [];
-
-  for (const [subpath, exportValue] of Object.entries(exportMap)) {
-    if (subpath === "." || subpath.includes("*")) continue;
-    if (!isObject(exportValue) || typeof exportValue.import !== "string") continue;
-
-    const module = await import(pathToFileURL(path.join(integrationsPackageDir, exportValue.import)).href);
-    const manifestEntry = Object.entries(module).find(([, value]) => isProviderManifest(value));
-    if (!manifestEntry) continue;
-
-    const [manifestExport, manifest] = manifestEntry;
-    entries.push({
-      reference: {
-        id: manifest.id,
-        category: manifest.category,
-        provider: manifest.provider,
-        importPath: `@cognidesk/integrations/${subpath.slice(2)}`,
-        modulePath: subpath,
-        manifestExport,
-      },
-      manifest,
-    });
-  }
-
-  entries.sort((left, right) => compareText(left.reference.importPath, right.reference.importPath));
   return entries;
-}
-
-function isObject(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isProviderManifest(value) {
-  return isObject(value)
-    && typeof value.id === "string"
-    && typeof value.name === "string"
-    && typeof value.packageName === "string"
-    && typeof value.provider === "string"
-    && typeof value.category === "string"
-    && Array.isArray(value.capabilities)
-    && Array.isArray(value.directions);
 }
 
 function groupProviders(providers) {
   const grouped = new Map();
   for (const provider of providers) {
-    const category = provider.reference.category;
+    const category = provider.category;
     const entries = grouped.get(category) ?? [];
     entries.push(provider);
     grouped.set(category, entries);
   }
 
   for (const entries of grouped.values()) {
-    entries.sort((left, right) => compareText(left.manifest.name, right.manifest.name) || compareText(left.reference.importPath, right.reference.importPath));
+    entries.sort((left, right) => compareText(left.name, right.name) || compareText(left.importPath, right.importPath));
   }
 
   return [...grouped.entries()].sort(([left], [right]) => {
@@ -183,7 +132,7 @@ function renderCatalog(groupedProviders) {
     "",
     "# Provider Integration Catalog",
     "",
-    "This catalog is generated from the current Provider Manifests in `@cognidesk/integrations`. It documents the official provider modules that live behind category/provider subpath imports.",
+    "This catalog is generated from serialized metadata in `@cognidesk/integration-catalog`. It documents the official provider modules that live behind category/provider subpath imports without importing provider runtime modules during docs generation.",
     "",
     "`@cognidesk/voice-websocket` is not listed here because it is the browser-facing Cognidesk voice transport, not an external Provider Integration. OpenAI Realtime voice is listed as `@cognidesk/integrations/voice/openai` because it can be the entry channel and the LLM-backed realtime session. Speech Providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram can also back Cognidesk voice sessions while the Cognidesk Agent Model Set remains the background LLM.",
     "",
@@ -192,7 +141,7 @@ function renderCatalog(groupedProviders) {
   ];
 
   for (const [category, providers] of groupedProviders) {
-    const imports = providers.map(({ reference }) => inlineCode(reference.importPath)).join("<br>");
+    const imports = providers.map((provider) => inlineCode(provider.importPath)).join("<br>");
     lines.push(`| ${escapeTableCell(displayCategory(category))} | ${providers.length} | ${escapeTableCell(imports)} |`);
   }
 
@@ -201,26 +150,34 @@ function renderCatalog(groupedProviders) {
   for (const [category, providers] of groupedProviders) {
     lines.push("", `### ${displayCategory(category)}`);
 
-    for (const { reference, manifest } of providers) {
-      const capabilities = manifest.capabilities.map((capability) => capability.capability);
-      const coverageNotes = manifest.coverage?.notes ?? [];
+    for (const provider of providers) {
+      const capabilities = provider.capabilities.map((capability) => capability.capability);
+      const coverageNotes = provider.coverage?.notes ?? [];
       const coverage = firstNonEmpty(coverageNotes) ?? "Coverage details are declared in the provider manifest.";
-      const boundary = firstNonEmpty([...(manifest.limitations ?? []), ...coverageNotes.slice(1), ...(manifest.privacyNotes ?? [])]);
-      const evidence = manifest.coverage?.evidence ?? [];
+      const boundary = firstNonEmpty([...(provider.limitations ?? []), ...coverageNotes.slice(1), ...(provider.privacyNotes ?? [])]);
+      const evidence = provider.coverage?.evidence ?? [];
+      const documentationPath = provider.implementation?.documentationPath;
+      const documentation = documentationPath?.startsWith("http")
+        ? `[${escapeLinkText(documentationPath)}](${documentationPath})`
+        : documentationPath;
 
       lines.push(
         "",
-        `#### ${manifest.name}`,
+        `#### ${provider.name}`,
         "",
         "| Field | Value |",
         "|-------|-------|",
-        `| Import | ${escapeTableCell(inlineCode(reference.importPath))} |`,
-        `| Manifest ID | ${escapeTableCell(inlineCode(manifest.id))} |`,
-        `| Package | ${escapeTableCell(inlineCode(manifest.packageName))} |`,
-        `| Scope | ${escapeTableCell(inlineCode(manifest.coverage?.scope ?? "support-workflow-subset"))} |`,
-        `| Directions | ${escapeTableCell(codeList(manifest.directions))} |`,
+        `| Import | ${escapeTableCell(inlineCode(provider.importPath))} |`,
+        `| Manifest ID | ${escapeTableCell(inlineCode(provider.id))} |`,
+        `| SDK package | ${escapeTableCell(inlineCode(provider.implementation?.sdkPackage ?? provider.packageName))} |`,
+        `| Runtime package | ${escapeTableCell(inlineCode(provider.implementation?.runtimePackage ?? provider.importPath))} |`,
+        `| Scope | ${escapeTableCell(inlineCode(provider.coverage?.scope ?? "support-workflow-subset"))} |`,
+        `| Adapter coverage | ${escapeTableCell(inlineCode(provider.adapterCoverage?.level ?? "unprofiled"))} |`,
+        `| Implementation | ${escapeTableCell(inlineCode(provider.implementation?.strategy ?? "support-workflow-adapter"))} |`,
+        `| Documentation | ${escapeTableCell(documentation ?? "none declared")} |`,
+        `| Directions | ${escapeTableCell(codeList(provider.directions))} |`,
         `| Capabilities | ${escapeTableCell(codeList(capabilities))} |`,
-        `| Provider setup | ${escapeTableCell(credentialSummary(manifest.credentialRequirements ?? []))} |`,
+        `| Provider setup | ${escapeTableCell(credentialSummary(provider.readiness?.credentialRequirements ?? []))} |`,
         "",
         `Coverage: ${coverage}`,
       );
@@ -233,13 +190,13 @@ function renderCatalog(groupedProviders) {
   return `${lines.join("\n")}\n`;
 }
 
-const providers = await loadProviderManifestEntries();
+const providers = await loadProviderCatalogEntries();
 
 if (providers.length === 0) {
-  throw new Error("Unable to discover provider manifests from packages/integrations/dist. Run 'pnpm --filter @cognidesk/integrations build' before generating the provider catalog.");
+  throw new Error("Unable to discover provider metadata from packages/integration-catalog/dist. Run 'pnpm --filter @cognidesk/integration-catalog build' before generating the provider catalog.");
 }
 
 const groupedProviders = groupProviders(providers);
 await mkdir(path.dirname(catalogPath), { recursive: true });
 await writeFile(catalogPath, renderCatalog(groupedProviders));
-console.log(`Generated ${path.relative(repoRoot, catalogPath)} from ${providers.length} provider manifests.`);
+console.log(`Generated ${path.relative(repoRoot, catalogPath)} from ${providers.length} provider catalog entries.`);

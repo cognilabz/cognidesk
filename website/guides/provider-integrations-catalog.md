@@ -2,7 +2,7 @@
 
 # Provider Integration Catalog
 
-This catalog is generated from the current Provider Manifests in `@cognidesk/integrations`. It documents the official provider modules that live behind category/provider subpath imports.
+This catalog is generated from serialized metadata in `@cognidesk/integration-catalog`. It documents the official provider modules that live behind category/provider subpath imports without importing provider runtime modules during docs generation.
 
 `@cognidesk/voice-websocket` is not listed here because it is the browser-facing Cognidesk voice transport, not an external Provider Integration. OpenAI Realtime voice is listed as `@cognidesk/integrations/voice/openai` because it can be the entry channel and the LLM-backed realtime session. Speech Providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram can also back Cognidesk voice sessions while the Cognidesk Agent Model Set remains the background LLM.
 
@@ -35,8 +35,12 @@ This catalog is generated from the current Provider Manifests in `@cognidesk/int
 |-------|-------|
 | Import | `@cognidesk/integrations/cobrowsing/cognidesk` |
 | Manifest ID | `cobrowsing.cognidesk` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/cobrowsing/cognidesk` |
 | Scope | `local-protocol` |
+| Adapter coverage | `partial` |
+| Implementation | `local-protocol` |
+| Documentation | [https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk](https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `receive`, `cobrowsing.validate-session-token`, `cobrowsing.verify-signed-event` |
 | Provider setup | required `cobrowsing-session-store`, `cobrowsing-session-token-signing`, `cobrowsing-consent-policy`, `cobrowsing-recording-redaction-policy`, `cobrowsing-allowed-origins`; optional `cobrowsing-webhook-shared-secret` |
@@ -55,8 +59,12 @@ Evidence: [Cognidesk cobrowsing local protocol module](https://github.com/cognil
 |-------|-------|
 | Import | `@cognidesk/integrations/community/discord` |
 | Manifest ID | `community.discord` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/community/discord` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `standard` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json](https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `thread`, `read-provider-object`, `notify`, `discord.interaction-signature` |
 | Provider setup | required `discord-bot-token`, `discord-application-id`, `discord-public-key`; optional `discord-guild-id`, `discord-channel-id`, `discord-webhook-url` |
@@ -73,8 +81,12 @@ Evidence: [Discord official OpenAPI v10 spec](https://raw.githubusercontent.com/
 |-------|-------|
 | Import | `@cognidesk/integrations/community/forum` |
 | Manifest ID | `community.forum` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/community/forum` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://docs.discourse.org/](https://docs.discourse.org/) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `thread`, `create-provider-object`, `read-provider-object`, `search-provider-object`, `community.webhook-signature` |
 | Provider setup | required `forum-base-url`, `forum-api-key`, `forum-api-username`; optional `forum-webhook-secret` |
@@ -93,8 +105,12 @@ Evidence: [Discourse API docs](https://docs.discourse.org/); [Discourse webhook 
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/8x8` |
 | Manifest ID | `contactCenter.8x8` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/8x8` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff`, `send`, `contact-center.call-control`, `update-provider-object` |
 | Provider setup | required `8x8-contact-center-api-base`, `8x8-contact-center-api-access`; optional `8x8-contact-center-routing` |
@@ -111,8 +127,12 @@ Evidence: [8x8 Contact Center Chat API V2 OpenAPI](https://raw.githubusercontent
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/aircall` |
 | Manifest ID | `contactCenter.aircall` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/aircall` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developer.aircall.io/api-references/](https://developer.aircall.io/api-references/) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff` |
 | Provider setup | required `aircall-api-base`, `aircall-api-access`; optional `aircall-routing` |
@@ -129,8 +149,12 @@ Evidence: [Aircall API References](https://developer.aircall.io/api-references/)
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/amazon-connect` |
 | Manifest ID | `contactCenter.amazon-connect` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/amazon-connect` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://github.com/aws/api-models-aws/tree/main/models](https://github.com/aws/api-models-aws/tree/main/models) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff`, `send`, `transfer`, `read-provider-object` |
 | Provider setup | required `amazon-connect-instance`, `amazon-connect-api-access` |
@@ -147,8 +171,12 @@ Evidence: [AWS official API models for Amazon Connect family](https://github.com
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/five9` |
 | Manifest ID | `contactCenter.five9` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/five9` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.five9.com/products/capabilities/call-center-apis-and-sdks](https://www.five9.com/products/capabilities/call-center-apis-and-sdks) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff` |
 | Provider setup | required `five9-api-base`, `five9-api-access`; optional `five9-routing` |
@@ -165,8 +193,12 @@ Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/ca
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/genesys-cloud` |
 | Manifest ID | `contactCenter.genesys-cloud` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/genesys-cloud` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://api.mypurecloud.com/api/v2/docs/swagger](https://api.mypurecloud.com/api/v2/docs/swagger) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff`, `contact-center.open-messaging-ingress`, `send` |
 | Provider setup | required `genesys-cloud-region`, `genesys-cloud-api-access`; optional `genesys-cloud-routing`, `genesys-cloud-open-messaging` |
@@ -183,8 +215,12 @@ Evidence: [Genesys Cloud Platform API Swagger](https://api.mypurecloud.com/api/v
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/genesys-engage` |
 | Manifest ID | `contactCenter.genesys-engage` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/genesys-engage` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://all.docs.genesys.com/Developer/APIbyService](https://all.docs.genesys.com/Developer/APIbyService) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff`, `contact-center.on-prem-configured-handoff`, `send` |
 | Provider setup | required `genesys-engage-gms-base-url`; optional `genesys-engage-auth`, `genesys-engage-routing` |
@@ -201,8 +237,12 @@ Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIby
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/genesys-pureconnect` |
 | Manifest ID | `contactCenter.genesys-pureconnect` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/genesys-pureconnect` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://all.docs.genesys.com/Developer/APIbyService](https://all.docs.genesys.com/Developer/APIbyService) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff`, `contact-center.pureconnect-session` |
 | Provider setup | required `genesys-pureconnect-icws-base-url`; optional `genesys-pureconnect-session`, `genesys-pureconnect-routing` |
@@ -219,8 +259,12 @@ Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIby
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/nextiva` |
 | Manifest ID | `contactCenter.nextiva` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/nextiva` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.nextiva.com/resources/learn/rest-apis](https://www.nextiva.com/resources/learn/rest-apis) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff`, `nextiva.request` |
 | Provider setup | required `nextiva-contact-center-api-base`, `nextiva-contact-center-api-access`; optional `nextiva-contact-center-authorities`, `nextiva-contact-center-routing` |
@@ -237,8 +281,12 @@ Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/l
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/nice-cxone` |
 | Manifest ID | `contactCenter.nice-cxone` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/nice-cxone` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developer.niceincontact.com/API](https://developer.niceincontact.com/API) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff` |
 | Provider setup | required `nice-cxone-api-base`, `nice-cxone-api-access`; optional `nice-cxone-routing` |
@@ -255,8 +303,12 @@ Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/ringcentral` |
 | Manifest ID | `contactCenter.ringcentral` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/ringcentral` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://developers.ringcentral.com/engage-voice-api](https://developers.ringcentral.com/engage-voice-api) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff` |
 | Provider setup | required `ringcentral-ringcx-api-base`, `ringcentral-ringcx-api-access`; optional `ringcentral-ringcx-routing` |
@@ -273,8 +325,12 @@ Evidence: [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-ap
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/talkdesk` |
 | Manifest ID | `contactCenter.talkdesk` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/talkdesk` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://api-docs.talkdeskapp.com/public-api](https://api-docs.talkdeskapp.com/public-api) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `handoff`, `send`, `create-provider-object` |
 | Provider setup | required `talkdesk-api-root`, `talkdesk-api-access`; optional `talkdesk-routing` |
@@ -291,8 +347,12 @@ Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/publ
 |-------|-------|
 | Import | `@cognidesk/integrations/contact-center/zoom` |
 | Manifest ID | `contactCenter.zoom` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/contact-center/zoom` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developers.zoom.us/docs/api/contact-center/](https://developers.zoom.us/docs/api/contact-center/) |
 | Directions | `inbound-only` |
 | Capabilities | `handoff` |
 | Provider setup | required `zoom-contact-center-account`, `zoom-contact-center-api-access`; optional `zoom-contact-center-routing` |
@@ -311,8 +371,12 @@ Evidence: [Zoom Contact Center APIs](https://developers.zoom.us/docs/api/contact
 |-------|-------|
 | Import | `@cognidesk/integrations/ecommerce/shopify` |
 | Manifest ID | `ecommerce.shopify` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ecommerce/shopify` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://shopify.dev/docs/api/admin-graphql/latest](https://shopify.dev/docs/api/admin-graphql/latest) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `ecommerce.graphql` |
 | Provider setup | required `shopify-shop-domain`, `shopify-admin-access`; optional `shopify-webhook-secret` |
@@ -329,8 +393,12 @@ Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/adm
 |-------|-------|
 | Import | `@cognidesk/integrations/ecommerce/stripe` |
 | Manifest ID | `ecommerce.stripe` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ecommerce/stripe` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `full` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://docs.stripe.com/api](https://docs.stripe.com/api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `update-provider-object`, `ecommerce.payments` |
 | Provider setup | required `stripe-secret-key`, `stripe-webhook-signing-secret`; optional `stripe-publishable-key`, `stripe-connect-mode`, `stripe-restricted-key-scopes` |
@@ -349,8 +417,12 @@ Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe PaymentIn
 |-------|-------|
 | Import | `@cognidesk/integrations/email/ses` |
 | Manifest ID | `email.ses` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/email/ses` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html](https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
 | Provider setup | required `aws-access-key-id`, `aws-secret-access-key`, `aws-region`; optional `ses-sender-identity`, `ses-event-ingestion` |
@@ -367,8 +439,12 @@ Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/b
 |-------|-------|
 | Import | `@cognidesk/integrations/email/gmail` |
 | Manifest ID | `email.gmail` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/email/gmail` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://gmail.googleapis.com/$discovery/rest?version=v1](https://gmail.googleapis.com/$discovery/rest?version=v1) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object` |
 | Provider setup | required `google-oauth-access-token` |
@@ -385,8 +461,12 @@ Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery
 |-------|-------|
 | Import | `@cognidesk/integrations/email/imap` |
 | Manifest ID | `email.imap` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/email/imap` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `app-supplied-connector` |
+| Documentation | [https://datatracker.ietf.org/doc/html/rfc9051](https://datatracker.ietf.org/doc/html/rfc9051) |
 | Directions | `inbound-only` |
 | Capabilities | `read-provider-object` |
 | Provider setup | required `imap-server`, `imap-mailbox-credentials`, `imap-connector` |
@@ -403,8 +483,12 @@ Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051).
 |-------|-------|
 | Import | `@cognidesk/integrations/email/mailgun` |
 | Manifest ID | `email.mailgun` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/email/mailgun` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://documentation.mailgun.com/docs/mailgun](https://documentation.mailgun.com/docs/mailgun) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object` |
 | Provider setup | required `mailgun-api-key`, `mailgun-domain`; optional `mailgun-webhook-signing-key`, `mailgun-region` |
@@ -421,8 +505,12 @@ Evidence: [Mailgun OpenAPI specification](https://documentation.mailgun.com/_spe
 |-------|-------|
 | Import | `@cognidesk/integrations/email/outlook` |
 | Manifest ID | `email.outlook` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/email/outlook` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object`, `outlook.webhook-client-state` |
 | Provider setup | required `microsoft-graph-oauth-access-token`; optional `microsoft-graph-mailbox-user`, `microsoft-graph-webhook-client-state` |
@@ -439,8 +527,12 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 |-------|-------|
 | Import | `@cognidesk/integrations/email/postmark` |
 | Manifest ID | `email.postmark` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/email/postmark` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://postmarkapp.com/developer](https://postmarkapp.com/developer) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
 | Provider setup | required `postmark-server-token`, `postmark-account-token`; optional `postmark-message-stream`, `postmark-webhook-auth` |
@@ -459,8 +551,12 @@ Evidence: [Postmark Server API Swagger](https://postmarkapp.com/swagger/server.y
 |-------|-------|
 | Import | `@cognidesk/integrations/form/cognidesk` |
 | Manifest ID | `form.cognidesk` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/form/cognidesk` |
 | Scope | `local-protocol` |
+| Adapter coverage | `partial` |
+| Implementation | `local-protocol` |
+| Documentation | website/guides/provider-integrations-catalog.md#form-cognidesk |
 | Directions | `receive-only`, `inbound-only` |
 | Capabilities | `receive`, `read-provider-object`, `form.webhook-signature` |
 | Provider setup | required `form-registry`; optional `form-webhook-secret` |
@@ -479,8 +575,12 @@ Evidence: No provider evidence listed in the manifest.
 |-------|-------|
 | Import | `@cognidesk/integrations/help-center/cognidesk` |
 | Manifest ID | `helpcenter.cognidesk` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/help-center/cognidesk` |
 | Scope | `local-protocol` |
+| Adapter coverage | `partial` |
+| Implementation | `local-protocol` |
+| Documentation | website/guides/provider-integrations-catalog.md#helpcenter-cognidesk |
 | Directions | `receive-only`, `inbound-only` |
 | Capabilities | `read-provider-object`, `search-provider-object`, `receive`, `helpCenter.webhook-signature` |
 | Provider setup | required `helpcenter-source`; optional `helpcenter-webhook-secret` |
@@ -499,8 +599,12 @@ Evidence: No provider evidence listed in the manifest.
 |-------|-------|
 | Import | `@cognidesk/integrations/marketplace/amazon` |
 | Manifest ID | `marketplace.amazon` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/marketplace/amazon` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `full` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developer-docs.amazon.com/sp-api](https://developer-docs.amazon.com/sp-api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |
 | Provider setup | required `amazon-lwa-client`, `amazon-lwa-token`, `amazon-marketplace-id`, `amazon-notification-destination`, `amazon-notification-signature`; optional `amazon-aws-role-region` |
@@ -517,8 +621,12 @@ Evidence: [Amazon official SP-API model repository](https://github.com/amzn/sell
 |-------|-------|
 | Import | `@cognidesk/integrations/marketplace/ebay` |
 | Manifest ID | `marketplace.ebay` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/marketplace/ebay` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developer.ebay.com/api-docs](https://developer.ebay.com/api-docs) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.digital-signature`, `marketplace.notification-challenge` |
 | Provider setup | required `ebay-oauth-access-token`, `ebay-application-access-token`, `ebay-client-id`, `ebay-client-secret`, `ebay-marketplace-id`, `ebay-notification-verification-token`; optional `ebay-digital-signature-key` |
@@ -537,8 +645,12 @@ Evidence: [eBay Sell Fulfillment API](https://developer.ebay.com/develop/api/sel
 |-------|-------|
 | Import | `@cognidesk/integrations/messaging/rcs` |
 | Manifest ID | `messaging.rcs` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/messaging/rcs` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create](https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `media`, `read-provider-object`, `rcs.agent-events`, `rcs.webhook-signature` |
 | Provider setup | required `rcs-agent`, `rcs-access-token`, `rcs-webhook-client-token` |
@@ -555,8 +667,12 @@ Evidence: [RCS agentMessages create](https://developers.google.com/business-comm
 |-------|-------|
 | Import | `@cognidesk/integrations/messaging/whatsapp` |
 | Manifest ID | `messaging.whatsapp` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/messaging/whatsapp` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developers.facebook.com/documentation/business-messaging/whatsapp/get-started](https://developers.facebook.com/documentation/business-messaging/whatsapp/get-started) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `media`, `attach`, `read-provider-object`, `update-provider-object`, `whatsapp.webhook-signature` |
 | Provider setup | required `whatsapp-access-token`, `whatsapp-phone-number-id`, `whatsapp-app-secret`; optional `whatsapp-webhook-verify-token`, `whatsapp-waba-webhook-subscription` |
@@ -575,8 +691,12 @@ Evidence: [WhatsApp Cloud API get started](https://developers.facebook.com/docum
 |-------|-------|
 | Import | `@cognidesk/integrations/review/appstore` |
 | Manifest ID | `review.appstore` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/review/appstore` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `full` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews](https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `draft`, `send`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
 | Provider setup | required `appstore-api-key`, `appstore-app-id`; optional `appstore-review-response-policy` |
@@ -593,8 +713,12 @@ Evidence: [App Store Connect OpenAPI specification](https://developer.apple.com/
 |-------|-------|
 | Import | `@cognidesk/integrations/review/googleplay` |
 | Manifest ID | `review.googleplay` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/review/googleplay` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `full` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developers.google.com/android-publisher/api-ref/rest/v3/reviews](https://developers.google.com/android-publisher/api-ref/rest/v3/reviews) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `read-provider-object`, `search-provider-object`, `send`, `draft` |
 | Provider setup | required `googleplay-access-token`, `googleplay-package-name`; optional `googleplay-service-account` |
@@ -613,8 +737,12 @@ Evidence: [Google Play Android Publisher Discovery document](https://androidpubl
 |-------|-------|
 | Import | `@cognidesk/integrations/sms/twilio` |
 | Manifest ID | `sms.twilio` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/sms/twilio` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://www.twilio.com/docs/messaging/api](https://www.twilio.com/docs/messaging/api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `schedule`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `twilio.webhook-signature` |
 | Provider setup | required `twilio-account`, `twilio-sms-sender` |
@@ -633,8 +761,12 @@ Evidence: [Twilio Messaging API overview](https://www.twilio.com/docs/messaging/
 |-------|-------|
 | Import | `@cognidesk/integrations/social/messenger` |
 | Manifest ID | `social.messenger` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/social/messenger` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developers.facebook.com/docs/messenger-platform](https://developers.facebook.com/docs/messenger-platform) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `thread`, `read-provider-object`, `search-provider-object`, `media`, `social.webhook-signature` |
 | Provider setup | required `messenger-page-access-token`, `messenger-page-id`, `messenger-app-secret`; optional `messenger-webhook-verify-token`, `messenger-page-webhook-subscription` |
@@ -651,8 +783,12 @@ Evidence: [Messenger webhooks](https://developers.facebook.com/documentation/bus
 |-------|-------|
 | Import | `@cognidesk/integrations/social/instagram` |
 | Manifest ID | `social.instagram` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/social/instagram` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developers.facebook.com/documentation/business-messaging/instagram-messaging/features/send-message](https://developers.facebook.com/documentation/business-messaging/instagram-messaging/features/send-message) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `thread`, `read-provider-object`, `search-provider-object`, `social.webhook-signature` |
 | Provider setup | required `instagram-page-access-token`, `instagram-page-id`, `instagram-business-account-id`, `instagram-app-secret`, `instagram-permissions`; optional `instagram-webhook-verify-token`, `instagram-page-webhook-subscription` |
@@ -669,8 +805,12 @@ Evidence: [Instagram Messaging overview](https://developers.facebook.com/documen
 |-------|-------|
 | Import | `@cognidesk/integrations/social/tiktok` |
 | Manifest ID | `social.tiktok` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/social/tiktok` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info](https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `draft`, `thread`, `read-provider-object`, `search-provider-object`, `social.comment-reply`, `social.webhook-signature` |
 | Provider setup | required `tiktok-client-key`, `tiktok-client-secret`, `tiktok-access-token`, `tiktok-account-id`, `tiktok-webhook-signature`, `tiktok-webhook-callback`, `tiktok-scopes` |
@@ -689,8 +829,12 @@ Evidence: [TikTok Display API get started](https://developers.tiktok.com/doc/dis
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/freshdesk` |
 | Manifest ID | `ticketing.freshdesk` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/freshdesk` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://developers.freshdesk.com/api/](https://developers.freshdesk.com/api/) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `freshdesk.webhook-shared-secret` |
 | Provider setup | required `freshdesk-domain`, `freshdesk-api-key`; optional `freshdesk-webhook-secret` |
@@ -707,8 +851,12 @@ Evidence: [Freshdesk API v2 reference](https://developers.freshdesk.com/api/); [
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/front` |
 | Manifest ID | `ticketing.front` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/front` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://github.com/frontapp/front-api-specs](https://github.com/frontapp/front-api-specs) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `front-api-access` |
@@ -725,8 +873,12 @@ Evidence: [Front official OpenAPI specs](https://github.com/frontapp/front-api-s
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/gorgias` |
 | Manifest ID | `ticketing.gorgias` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/gorgias` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developers.gorgias.com/llms.txt](https://developers.gorgias.com/llms.txt) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `gorgias-api-base`, `gorgias-api-access` |
@@ -743,8 +895,12 @@ Evidence: [Gorgias developer llms.txt](https://developers.gorgias.com/llms.txt);
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/help-scout` |
 | Manifest ID | `ticketing.help-scout` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/help-scout` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developer.helpscout.com/llms.txt](https://developer.helpscout.com/llms.txt) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `help-scout-api-access` |
@@ -761,8 +917,12 @@ Evidence: [Help Scout developer llms.txt](https://developer.helpscout.com/llms.t
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/hubspot` |
 | Manifest ID | `ticketing.hubspot` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/hubspot` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://api.hubapi.com/public/api/spec/v1/specs](https://api.hubapi.com/public/api/spec/v1/specs) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `hubspot.request-signature-v3` |
 | Provider setup | required `hubspot-private-app-token`, `hubspot-portal`; optional `hubspot-app`, `hubspot-webhook-secret` |
@@ -779,8 +939,12 @@ Evidence: [HubSpot public OpenAPI spec index](https://api.hubapi.com/public/api/
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/intercom` |
 | Manifest ID | `ticketing.intercom` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/intercom` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://github.com/intercom/Intercom-OpenAPI](https://github.com/intercom/Intercom-OpenAPI) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `intercom.request-signature` |
 | Provider setup | required `intercom-access-token`; optional `intercom-webhook-secret` |
@@ -797,8 +961,12 @@ Evidence: [Intercom official OpenAPI specs](https://github.com/intercom/Intercom
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/kustomer` |
 | Manifest ID | `ticketing.kustomer` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/kustomer` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developer.kustomer.com/kustomer-api-docs/reference](https://developer.kustomer.com/kustomer-api-docs/reference) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `kustomer-api-access` |
@@ -815,8 +983,12 @@ Evidence: [Kustomer REST APIs portal](https://developer.kustomer.com/kustomer-ap
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/dynamics365` |
 | Manifest ID | `ticketing.dynamics365` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/dynamics365` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `dynamics365-instance`, `dynamics365-api-access` |
@@ -833,8 +1005,12 @@ Evidence: [Microsoft Dataverse Web API overview](https://learn.microsoft.com/en-
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/oracle-service` |
 | Manifest ID | `ticketing.oracle-service` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/oracle-service` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html](https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `oracle-service-instance`, `oracle-service-api-access` |
@@ -851,8 +1027,12 @@ Evidence: [Oracle Fusion Service serviceRequests overview](https://docs.oracle.c
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/pega-customer-service` |
 | Manifest ID | `ticketing.pega-customer-service` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/pega-customer-service` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html](https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `pega-customer-service-instance`, `pega-customer-service-api-access` |
@@ -869,8 +1049,12 @@ Evidence: [Pega DX API overview](https://docs.pega.com/bundle/dx-api/page/platfo
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/salesforce` |
 | Manifest ID | `ticketing.salesforce` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/salesforce` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `salesforce.webhook-verifier` |
 | Provider setup | required `salesforce-instance`, `salesforce-oauth-access`; optional `salesforce-webhook-secret` |
@@ -887,8 +1071,12 @@ Evidence: [Salesforce REST API resources](https://developer.salesforce.com/docs/
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/sap-service-cloud` |
 | Manifest ID | `ticketing.sap-service-cloud` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/sap-service-cloud` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api](https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api) |
 | Directions | `bidirectional` |
 | Capabilities | `handoff`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object` |
 | Provider setup | required `sap-service-cloud-tenant`, `sap-service-cloud-api-access` |
@@ -905,8 +1093,12 @@ Evidence: [SAP Cloud for Customer OData API](https://help.sap.com/docs/sap-cloud
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/servicenow` |
 | Manifest ID | `ticketing.servicenow` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/servicenow` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.servicenow.com/docs/r/washingtondc/api-reference/rest-apis/c_TableAPI.html](https://www.servicenow.com/docs/r/washingtondc/api-reference/rest-apis/c_TableAPI.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `servicenow-instance`, `servicenow-api-access` |
@@ -923,8 +1115,12 @@ Evidence: [ServiceNow Table API](https://www.servicenow.com/docs/r/washingtondc/
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/zendesk` |
 | Manifest ID | `ticketing.zendesk` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/zendesk` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developer.zendesk.com/zendesk/oas.yaml](https://developer.zendesk.com/zendesk/oas.yaml) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `zendesk-instance`, `zendesk-api-access` |
@@ -941,8 +1137,12 @@ Evidence: [Zendesk Support API OpenAPI](https://developer.zendesk.com/zendesk/oa
 |-------|-------|
 | Import | `@cognidesk/integrations/ticketing/zoho-desk` |
 | Manifest ID | `ticketing.zoho-desk` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/ticketing/zoho-desk` |
 | Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://desk.zoho.com/DeskAPIDocument](https://desk.zoho.com/DeskAPIDocument) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `zoho-desk-org`, `zoho-desk-api-access` |
@@ -961,8 +1161,12 @@ Evidence: [Zoho Desk API documentation](https://desk.zoho.com/DeskAPIDocument); 
 |-------|-------|
 | Import | `@cognidesk/integrations/video/whereby` |
 | Manifest ID | `video.whereby` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/video/whereby` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `full` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://docs.whereby.com/reference/whereby-rest-api-reference/meetings](https://docs.whereby.com/reference/whereby-rest-api-reference/meetings) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `schedule`, `create-provider-object`, `read-provider-object`, `delete-provider-object`, `update-provider-object`, `receive`, `whereby.request-signature` |
 | Provider setup | required `whereby-api-key`; optional `whereby-organization`, `whereby-room-template`, `whereby-webhook-signing-secret` |
@@ -979,8 +1183,12 @@ Evidence: [Whereby REST OpenAPI spec](https://raw.githubusercontent.com/whereby/
 |-------|-------|
 | Import | `@cognidesk/integrations/video/zoom` |
 | Manifest ID | `video.zoom` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/video/zoom` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `standard` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://developers.zoom.us/api-hub/meetings/methods/endpoints.json](https://developers.zoom.us/api-hub/meetings/methods/endpoints.json) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `schedule`, `create-provider-object`, `read-provider-object`, `delete-provider-object`, `update-provider-object`, `receive`, `zoom.request-signature` |
 | Provider setup | required `zoom-oauth-access-token`; optional `zoom-webhook-secret-token` |
@@ -999,8 +1207,12 @@ Evidence: [Zoom Meetings API Hub OpenAPI](https://developers.zoom.us/api-hub/mee
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/aws-speech` |
 | Manifest ID | `voice.aws-speech` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/aws-speech` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html](https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media` |
 | Provider setup | required `aws-access-key-id`, `aws-secret-access-key`, `aws-region`; optional `aws-session-token` |
@@ -1017,8 +1229,12 @@ Evidence: [Amazon Transcribe StartStreamTranscription API](https://docs.aws.amaz
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/azure-speech` |
 | Manifest ID | `voice.azure-speech` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/azure-speech` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short](https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media` |
 | Provider setup | required `azure-speech-key`, `azure-speech-region` |
@@ -1035,8 +1251,12 @@ Evidence: [Azure AI Speech to text REST API](https://learn.microsoft.com/azure/a
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/deepgram` |
 | Manifest ID | `voice.deepgram` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/deepgram` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://developers.deepgram.com/docs/pre-recorded-audio](https://developers.deepgram.com/docs/pre-recorded-audio) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media` |
 | Provider setup | required `deepgram-api-key` |
@@ -1053,8 +1273,12 @@ Evidence: [Deepgram prerecorded audio STT](https://developers.deepgram.com/docs/
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/elevenlabs` |
 | Manifest ID | `voice.elevenlabs` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/elevenlabs` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://api.elevenlabs.io/openapi.json](https://api.elevenlabs.io/openapi.json) |
 | Directions | `send-only`, `receive-only`, `bidirectional` |
 | Capabilities | `send`, `receive`, `media`, `elevenlabs.conversation-signed-url`, `elevenlabs.speech-to-text` |
 | Provider setup | required `elevenlabs-api-key` |
@@ -1071,8 +1295,12 @@ Evidence: [ElevenLabs REST OpenAPI specification](https://api.elevenlabs.io/open
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/sip` |
 | Manifest ID | `voice.sip` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/sip` |
 | Scope | `local-protocol` |
+| Adapter coverage | `partial` |
+| Implementation | `local-protocol` |
+| Documentation | website/guides/provider-integrations-catalog.md#voice-sip |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `transfer`, `recording`, `transcription`, `sip.webhook-signature` |
 | Provider setup | required `sip-registrar`, `sip-domain`, `sip-auth`, `sip-tls`, `sip-srtp`, `sip-webhook-callback`; optional `sip-proxy` |
@@ -1089,8 +1317,12 @@ Evidence: No provider evidence listed in the manifest.
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/google-speech` |
 | Manifest ID | `voice.google-speech` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/google-speech` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize](https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media` |
 | Provider setup | required `google-cloud-access-token` |
@@ -1107,8 +1339,12 @@ Evidence: [Google Cloud Speech-to-Text speech.recognize REST API](https://docs.c
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/openai` |
 | Manifest ID | `voice.openai` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/openai` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://developers.openai.com/api/docs/guides/realtime](https://developers.openai.com/api/docs/guides/realtime) |
 | Directions | `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `handoff` |
 | Provider setup | required `openai-api-key` |
@@ -1125,8 +1361,12 @@ Evidence: [OpenAI Realtime and audio guide](https://developers.openai.com/api/do
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/twilio` |
 | Manifest ID | `voice.twilio` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/twilio` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://www.twilio.com/docs/voice/api](https://www.twilio.com/docs/voice/api) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `transfer`, `twilio.webhook-signature` |
 | Provider setup | required `twilio-account`, `twilio-rest-api-credentials`; optional `twilio-webhook-auth-token`, `twilio-voice-number` |
@@ -1143,8 +1383,12 @@ Evidence: [Twilio Programmable Voice API overview](https://www.twilio.com/docs/v
 |-------|-------|
 | Import | `@cognidesk/integrations/voice/vonage` |
 | Manifest ID | `voice.vonage` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/voice/vonage` |
 | Scope | `full-provider-api` |
+| Adapter coverage | `partial` |
+| Implementation | `generated-full-provider-api` |
+| Documentation | [https://developer.vonage.com/en/voice/voice-api](https://developer.vonage.com/en/voice/voice-api) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `transfer`, `voice.webhook-signature` |
 | Provider setup | required `vonage-application`, `vonage-voice-application-webhooks`; optional `vonage-api-key-secret`, `vonage-voice-number`, `vonage-webhook-signature-secret`, `vonage-fallback-answer-url`, `vonage-signed-callbacks` |
@@ -1163,8 +1407,12 @@ Evidence: [Vonage Voice API v1 OpenAPI](https://developer.vonage.com/api/v1/deve
 |-------|-------|
 | Import | `@cognidesk/integrations/workplace/teams` |
 | Manifest ID | `workplace.teams` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/workplace/teams` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `standard` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `notify`, `thread`, `read-provider-object`, `create-provider-object`, `update-provider-object`, `teams.change-notification-client-state` |
 | Provider setup | required `microsoft-graph-oauth-access-token`, `microsoft-graph-tenant`, `microsoft-graph-app-registration`; optional `microsoft-graph-change-notification-client-state` |
@@ -1181,8 +1429,12 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 |-------|-------|
 | Import | `@cognidesk/integrations/workplace/slack` |
 | Manifest ID | `workplace.slack` |
-| Package | `@cognidesk/integrations` |
+| SDK package | `@cognidesk/integrations` |
+| Runtime package | `@cognidesk/integrations/workplace/slack` |
 | Scope | `provider-api-subset` |
+| Adapter coverage | `standard` |
+| Implementation | `provider-api-subset` |
+| Documentation | [https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `notify`, `thread`, `media`, `read-provider-object`, `update-provider-object`, `slack.request-signature` |
 | Provider setup | required `slack-bot-token`, `slack-signing-secret` |

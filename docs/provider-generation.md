@@ -45,14 +45,14 @@ That script currently generates:
 
 The generated voice files expose operation inventories and caller interfaces. They do not replace the handwritten Cognidesk speech pipeline adapters, because buffering, audio format conversion, turn boundaries, browser protocol events, and background LLM handoff are Cognidesk behavior rather than provider OpenAPI behavior. Azure short-audio STT/TTS remains handwritten against Microsoft REST docs because those exact adapter endpoints are not represented in the generated Azure swagger bundle.
 
-The public Provider Integration Catalog is generated from built Provider Manifests:
+The public Provider Integration Catalog is generated from the serialized metadata package:
 
 ```bash
-pnpm --filter @cognidesk/integrations build
+pnpm providers:catalog:data
 pnpm providers:catalog
 ```
 
-The generator writes `website/guides/provider-integrations-catalog.md`. Do not edit that catalog by hand; change the provider manifest, rebuild, and regenerate the catalog instead.
+`pnpm providers:catalog:data` refreshes `@cognidesk/integration-catalog` from provider manifest-only exports where available and from current manifest sources while the migration is in progress. `pnpm providers:catalog` builds the metadata-only package and writes `website/guides/provider-integrations-catalog.md`. Do not edit the catalog data or Markdown by hand; change the provider manifest, regenerate the catalog data, rebuild, and regenerate the docs instead.
 
 The API reference is generated from built declaration files:
 
@@ -80,6 +80,7 @@ Before releasing generated provider changes, run:
 
 ```bash
 pnpm --filter @cognidesk/integrations build
+pnpm providers:catalog:data
 pnpm docs:generate
 pnpm --filter @cognidesk/integrations test
 pnpm --filter @cognidesk/integrations typecheck

@@ -24,6 +24,7 @@ const defaultPlatformSmokePackageNames = [
   "@cognidesk/core",
   "@cognidesk/http",
   "@cognidesk/react",
+  "@cognidesk/integration-catalog",
 ];
 const legacyIntegrationPackageNames = [
   "@cognidesk/integrations",
