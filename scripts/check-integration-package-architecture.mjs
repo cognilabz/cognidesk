@@ -27,6 +27,7 @@ const providerCategorySegments = new Set([
   "voice",
   "workplace",
 ]);
+const providerPackagePrefix = "@cognidesk/integration-";
 const providerSdkPackages = new Set([
   "@aws-sdk/client-connect",
   "@aws-sdk/client-ses",
@@ -81,6 +82,7 @@ async function main() {
     if (await isSplitProviderPackage(pkg)) splitProviderPackages.push(pkg);
   }
 
+  checkProviderPackageNaming(splitProviderPackages);
   await checkNoOldImportCompatibilityPackages(workspaces);
   await checkNoRuntimeNodeModulesScanning(workspaces);
   await checkManifestOnlyEntrypoints();
@@ -106,6 +108,7 @@ async function main() {
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
+  console.log("  provider package names use @cognidesk/integration-{category}-{provider}");
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -169,6 +172,7 @@ async function workspacePackageDirs() {
 
 async function isSplitProviderPackage(pkg) {
   if (infrastructurePackageNames.has(pkg.name)) return false;
+  if (expectedProviderPackageNameForPath(pkg.dir)) return true;
   if (pkg.packageJson.cognidesk?.providerPackage === true) return true;
   if (pkg.packageJson.cognidesk?.kind === "provider-package") return true;
   if (!isSplitProviderPackageName(pkg.name)) return false;
@@ -180,16 +184,38 @@ function isSplitProviderPackageName(name) {
 }
 
 function splitProviderPackageCategory(name) {
-  const prefix = "@cognidesk/";
-  if (!name.startsWith(prefix)) return undefined;
+  if (!name.startsWith(providerPackagePrefix)) return undefined;
 
-  const slug = name.slice(prefix.length);
+  const slug = name.slice(providerPackagePrefix.length);
   const categories = [...providerCategorySegments].sort((left, right) => right.length - left.length);
   for (const category of categories) {
     if (slug.startsWith(`${category}-`) && slug.length > category.length + 1) return category;
   }
 
   return undefined;
+}
+
+function checkProviderPackageNaming(packages) {
+  for (const pkg of packages) {
+    if (!pkg.name.startsWith(providerPackagePrefix)) {
+      failures.push(
+        `${pkg.name}: Provider Integration packages must be named @cognidesk/integration-{category}-{provider}`,
+      );
+      continue;
+    }
+
+    const expectedName = expectedProviderPackageNameForPath(pkg.dir);
+    if (expectedName && pkg.name !== expectedName) {
+      failures.push(`${pkg.name}: package name must match workspace path as ${expectedName}`);
+    }
+  }
+}
+
+function expectedProviderPackageNameForPath(dir) {
+  const relative = path.relative(repoRoot, dir).replace(/\\/g, "/");
+  const match = /^integrations\/([^/]+)\/([^/]+)$/.exec(relative);
+  if (!match) return undefined;
+  return `${providerPackagePrefix}${match[1]}-${match[2]}`;
 }
 
 async function packageSourceDeclaresOwnProviderManifest(pkg) {

@@ -48,8 +48,8 @@ describe("manifestOnlyRuntimeImportViolationsForSource", () => {
       'import { createGmailRuntime } from "./runtime.js";',
       'import { createGmailClient } from "./client/index.js";',
       'import { createLegacyRuntime } from "../runtime.js";',
-      'import { gmailRuntime } from "@cognidesk/email-gmail/runtime";',
-      'export { gmailClient } from "@cognidesk/email-gmail/client/testing";',
+      'import { gmailRuntime } from "@cognidesk/integration-email-gmail/runtime";',
+      'export { gmailClient } from "@cognidesk/integration-email-gmail/client/testing";',
     ].join("\n");
 
     assert.deepEqual(
@@ -58,8 +58,8 @@ describe("manifestOnlyRuntimeImportViolationsForSource", () => {
         "./runtime.js",
         "./client/index.js",
         "../runtime.js",
-        "@cognidesk/email-gmail/runtime",
-        "@cognidesk/email-gmail/client/testing",
+        "@cognidesk/integration-email-gmail/runtime",
+        "@cognidesk/integration-email-gmail/client/testing",
       ],
     );
   });
@@ -70,7 +70,7 @@ describe("manifestOnlyRuntimeImportViolationsForSource", () => {
       'import { ProviderManifest } from "@cognidesk/core";',
       'import { GMAIL_OPERATION_COUNT } from "./metadata.js";',
       'import type { GmailRuntime } from "./runtime.js";',
-      'export type { GmailClient } from "@cognidesk/email-gmail/client";',
+      'export type { GmailClient } from "@cognidesk/integration-email-gmail/client";',
     ].join("\n");
 
     assert.deepEqual(manifestOnlyRuntimeImportViolationsForSource(source, manifestFile), []);
