@@ -11,6 +11,7 @@ import {
   ecommerceOperationAliasMap,
   emailOperationAliasMap,
   integrationCategoryProfiles,
+  type IntegrationOperationHandler,
   IntegrationError,
   integrationErrorToJSON,
   normalizeIntegrationError,
@@ -87,6 +88,42 @@ describe("integration kit contracts", () => {
       id: "email",
       matchedOperations: ["email.receive"],
     });
+  });
+
+  it("passes run-scoped credentials to operation handlers", async () => {
+    const receiveWithCredentials: IntegrationOperationHandler<{}, { token: string }, { token?: string }> = async (
+      _input,
+      context,
+    ) => ({
+      token: context.credentials?.token ?? "missing",
+    });
+
+    const integration = defineIntegration({
+      manifest: {
+        id: "email.acme",
+        name: "Acme Mail",
+        packageName: "@cognidesk/integration-acme-mail",
+        provider: "acme",
+        category: "email",
+        directions: ["bidirectional"],
+        capabilities: [
+          { capability: "receive" },
+        ],
+        operations: [
+          {
+            alias: "email.receive",
+            capability: "receive",
+            providerObject: "emailMessage",
+          },
+        ],
+      },
+      operations: {
+        "email.receive": receiveWithCredentials,
+      } as never,
+    });
+
+    await expect((integration.run as any)("email.receive", {}, { credentials: { token: "run-token" } }))
+      .resolves.toEqual({ token: "run-token" });
   });
 
   it("reports missing and extra operation handlers at runtime", () => {

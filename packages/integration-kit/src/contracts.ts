@@ -50,7 +50,11 @@ export type IntegrationOperationHandlers<Credentials = unknown> = Record<
 type AnyIntegrationOperationHandlers = Record<string, IntegrationOperationHandler<any, any, any>>;
 
 export type ManifestOperationAlias<Manifest> =
-  Manifest extends { operations?: readonly (infer Operation)[] }
+  Manifest extends { readonly operations: readonly (infer Operation)[] }
+    ? Operation extends { readonly alias: infer Alias extends string }
+      ? Alias
+      : never
+    : Manifest extends { operations?: readonly (infer Operation)[] }
     ? Operation extends { alias: infer Alias extends string }
       ? Alias
       : never
@@ -179,7 +183,11 @@ export function defineIntegration<
           providerPackageId: manifest.id,
           provider: manifest.provider,
           operationAlias: alias,
-          ...(input.credentials !== undefined ? { credentials: input.credentials } : {}),
+          ...(context.credentials !== undefined
+            ? { credentials: context.credentials }
+            : input.credentials !== undefined
+              ? { credentials: input.credentials }
+              : {}),
           ...(context.abortSignal ? { abortSignal: context.abortSignal } : {}),
           ...(context.metadata ? { metadata: context.metadata } : {}),
         });

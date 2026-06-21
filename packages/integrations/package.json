@@ -134,14 +134,6 @@
       "types": "./dist/messaging/whatsapp/index.d.ts",
       "import": "./dist/messaging/whatsapp/index.js"
     },
-    "./review/appstore": {
-      "types": "./dist/review/appstore/index.d.ts",
-      "import": "./dist/review/appstore/index.js"
-    },
-    "./review/googleplay": {
-      "types": "./dist/review/googleplay/index.d.ts",
-      "import": "./dist/review/googleplay/index.js"
-    },
     "./sms/twilio": {
       "types": "./dist/sms/twilio/index.d.ts",
       "import": "./dist/sms/twilio/index.js"
@@ -273,7 +265,7 @@
   },
   "scripts": {
     "build:deps": "pnpm --filter @cognidesk/core --filter @cognidesk/integration-kit --filter @cognidesk/voice-websocket --filter @cognidesk/test-harness build",
-    "build": "pnpm run build:entries:voice && pnpm run build:entries:contact-center-a && pnpm run build:entries:contact-center-b && pnpm run build:entries:community && pnpm run build:entries:ecommerce-marketplace && pnpm run build:entries:form-help-center && pnpm run build:entries:messaging-sms-social && pnpm run build:entries:review && pnpm run build:entries:video && pnpm run build:entries:email && pnpm run build:entries:ticketing-a && pnpm run build:entries:ticketing-b && pnpm run build:entries:ticketing-c && pnpm run build:entries:workplace",
+    "build": "pnpm run build:entries:voice && pnpm run build:entries:contact-center-a && pnpm run build:entries:contact-center-b && pnpm run build:entries:community && pnpm run build:entries:ecommerce-marketplace && pnpm run build:entries:form-help-center && pnpm run build:entries:messaging-sms-social && pnpm run build:entries:video && pnpm run build:entries:email && pnpm run build:entries:ticketing-a && pnpm run build:entries:ticketing-b && pnpm run build:entries:ticketing-c && pnpm run build:entries:workplace",
     "build:entries:voice": "tsup src/index.ts src/category-profiles.ts src/provider-manifest.ts src/voice/aws-speech/index.ts src/voice/azure-speech/index.ts src/voice/deepgram/index.ts src/voice/elevenlabs/index.ts src/voice/google-speech/index.ts src/voice/openai/index.ts src/voice/sip/index.ts src/voice/twilio/index.ts src/voice/vonage/index.ts --format esm --dts --clean --external openai",
     "build:entries:contact-center-a": "tsup src/contact-center/8x8/index.ts src/contact-center/aircall/index.ts src/contact-center/amazon-connect/index.ts src/contact-center/five9/index.ts src/contact-center/genesys-cloud/index.ts src/contact-center/genesys-engage/index.ts --format esm --dts --outDir dist/contact-center --external openai",
     "build:entries:contact-center-b": "tsup src/contact-center/genesys-pureconnect/index.ts src/contact-center/nextiva/index.ts src/contact-center/nice-cxone/index.ts src/contact-center/ringcentral/index.ts src/contact-center/talkdesk/index.ts src/contact-center/zoom/index.ts --format esm --dts --outDir dist/contact-center --external openai",
@@ -281,7 +273,6 @@
     "build:entries:ecommerce-marketplace": "tsup src/ecommerce/shopify/index.ts src/ecommerce/stripe/index.ts src/marketplace/amazon/index.ts src/marketplace/ebay/index.ts --format esm --dts --external openai",
     "build:entries:form-help-center": "tsup src/form/cognidesk/index.ts src/help-center/cognidesk/index.ts --format esm --dts --external openai",
     "build:entries:messaging-sms-social": "tsup src/messaging/rcs/index.ts src/messaging/whatsapp/index.ts src/sms/twilio/index.ts src/social/instagram/index.ts src/social/messenger/index.ts src/social/tiktok/index.ts --format esm --dts --external openai",
-    "build:entries:review": "tsup src/review/appstore/index.ts src/review/googleplay/index.ts --format esm --dts --outDir dist/review --external openai",
     "build:entries:video": "tsup src/video/whereby/index.ts src/video/zoom/index.ts --format esm --dts --outDir dist/video --external openai",
     "build:entries:email": "tsup src/email/gmail/index.ts src/email/imap/index.ts src/email/mailgun/index.ts src/email/outlook/index.ts src/email/postmark/index.ts src/email/ses/index.ts --format esm --dts --outDir dist/email --external openai",
     "build:entries:ticketing-a": "tsup src/ticketing/dynamics365/index.ts src/ticketing/freshdesk/index.ts src/ticketing/front/index.ts src/ticketing/gorgias/index.ts src/ticketing/help-scout/index.ts --format esm --dts --outDir dist/ticketing --external openai",

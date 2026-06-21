@@ -723,19 +723,19 @@ Evidence: [WhatsApp Cloud API get started](https://developers.facebook.com/docum
 | Runtime import | `@cognidesk/review-appstore/runtime` |
 | Workspace | `integrations/review/appstore` |
 | Manifest ID | `review.appstore` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `full` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews](https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews) |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developer.apple.com/documentation/appstoreconnectapi](https://developer.apple.com/documentation/appstoreconnectapi) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
+| Capabilities | `receive`, `draft`, `send`, `read-provider-object`, `search-provider-object`, `delete-provider-object` |
 | Provider setup | required `appstore-api-key`, `appstore-app-id`; optional `appstore-review-response-policy` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Apple's official App Store Connect OpenAPI specification.
+Coverage: Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.
 
 Boundary: The SDK user decides review triage, sentiment classification, public-response approval, localization, escalation, and retention policy.
 
-Evidence: [App Store Connect OpenAPI specification](https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip); [App Store Connect API overview](https://developer.apple.com/documentation/appstoreconnectapi); [List customer reviews for an app](https://developer.apple.com/documentation/appstoreconnectapi/get-v1-apps-_id_-customerreviews); [Customer review responses](https://developer.apple.com/documentation/appstoreconnectapi/customer-review-responses); plus 2 more.
+Evidence: [App Store Connect API overview](https://developer.apple.com/documentation/appstoreconnectapi); [App Store Connect OpenAPI specification](https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip); [App Store Connect JWT tokens](https://developer.apple.com/documentation/appstoreconnectapi/generating-tokens-for-api-requests); [Apple App Store Server Node.js Library](https://github.com/apple/app-store-server-library-node).
 
 #### Google Play Reviews
 
@@ -746,19 +746,19 @@ Evidence: [App Store Connect OpenAPI specification](https://developer.apple.com/
 | Runtime import | `@cognidesk/review-googleplay/runtime` |
 | Workspace | `integrations/review/googleplay` |
 | Manifest ID | `review.googleplay` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `full` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developers.google.com/android-publisher/api-ref/rest/v3/reviews](https://developers.google.com/android-publisher/api-ref/rest/v3/reviews) |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://developers.google.com/android-publisher/api-ref/rest](https://developers.google.com/android-publisher/api-ref/rest) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `read-provider-object`, `search-provider-object`, `send`, `draft` |
 | Provider setup | required `googleplay-access-token`, `googleplay-package-name`; optional `googleplay-service-account` |
 
-Coverage: Coverage includes generated per-method functions for every method in the official Google Play Android Publisher v3 Discovery document.
+Coverage: Cognidesk adapter coverage is scoped to Google Play review list/read/reply workflows.
 
 Boundary: The Google Play Reply to Reviews API exposes production app reviews with comments; rating-only feedback and non-production feedback are not exposed through this API.
 
-Evidence: [Google Play Android Publisher Discovery document](https://androidpublisher.googleapis.com/$discovery/rest?version=v3); [Google Play Android Publisher reviews resource](https://developers.google.com/android-publisher/api-ref/rest/v3/reviews); [Google Play Reply to Reviews guide](https://developers.google.com/android-publisher/reply-to-reviews); [Google service account OAuth 2.0 guide](https://developers.google.com/identity/protocols/oauth2/service-account); plus 1 more.
+Evidence: [Google Play Android Publisher API](https://developers.google.com/android-publisher/api-ref/rest); [Google Play Android Publisher reviews resource](https://developers.google.com/android-publisher/api-ref/rest/v3/reviews); [Google APIs Node.js client](https://googleapis.dev/nodejs/googleapis/latest/); [@googleapis/androidpublisher package](https://www.npmjs.com/package/@googleapis/androidpublisher).
 
 ### SMS
 
