@@ -22,7 +22,6 @@ export const integrationProviderRuntimeLoaders = [
   { id: "email.gmail", load: () => import("../email/gmail/index.js") },
   { id: "email.imap", load: () => import("../email/imap/index.js") },
   { id: "email.mailgun", load: () => import("../email/mailgun/index.js") },
-  { id: "email.outlook", load: () => import("../email/outlook/index.js") },
   { id: "email.postmark", load: () => import("../email/postmark/index.js") },
   { id: "email.ses", load: () => import("../email/ses/index.js") },
   { id: "form.cognidesk", load: () => import("../form/cognidesk/index.js") },
@@ -64,5 +63,4 @@ export const integrationProviderRuntimeLoaders = [
   { id: "voice.twilio", load: () => import("../voice/twilio/index.js") },
   { id: "voice.vonage", load: () => import("../voice/vonage/index.js") },
   { id: "workplace.slack", load: () => import("../workplace/slack/index.js") },
-  { id: "workplace.teams", load: () => import("../workplace/teams/index.js") },
 ] as const satisfies readonly IntegrationProviderRuntimeLoaderRegistration[];

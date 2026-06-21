@@ -20,6 +20,12 @@ Re-exports [CreateConversationInput](../core/dist.md#createconversationinput)
 
 ***
 
+### ListConversationsOptions
+
+Re-exports [ListConversationsOptions](../core/dist.md#listconversationsoptions)
+
+***
+
 ### ListEventsOptions
 
 Re-exports [ListEventsOptions](../core/dist.md#listeventsoptions)
