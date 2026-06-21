@@ -149,6 +149,16 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the staged PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-31-marketplace-amazon-ebay`, and title `[Integrations] Stage Amazon/eBay marketplace provider packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/31#issuecomment-4761992709.
 
+#32 Meta messaging provider package lane:
+
+- #32 is clean and pushed at `6013074 feat(integrations): migrate meta messaging packages` on branch `codex/integrations-32-meta-messaging`.
+- The branch adds `@cognidesk/messaging-whatsapp`, `@cognidesk/social-instagram`, and `@cognidesk/social-messenger` under `integrations/*/*`.
+- ADR-0086 records the SDK decision: keep constrained direct Meta Graph/Cloud API support slices because `whatsapp` is still alpha/archived and `facebook-nodejs-business-sdk` is broad Business/Marketing/Page infrastructure rather than a narrow primary runtime fit.
+- The old aggregate `packages/integrations/src/messaging/whatsapp`, `packages/integrations/src/social/instagram`, and `packages/integrations/src/social/messenger` implementations/tests were removed, and catalog/runtime loader/docs outputs were regenerated.
+- Verification passed: Meta SDK candidate npm registry checks, `CI=true pnpm install --prefer-offline`, all three Meta package tests, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`.
+- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-32-meta-messaging`, and title `[Integrations] Migrate Meta messaging providers to split packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/32#issuecomment-4762011276.
+
 ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
@@ -161,8 +171,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
