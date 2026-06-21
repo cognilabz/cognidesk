@@ -65,16 +65,28 @@ export const internalAudiences = ["internal-support", "mixed"] as const;
 export const allAudiences = ["customer-facing", "internal-support", "mixed"] as const;
 
 export const categoryProfilesCoreIntegrationNote =
-  "Core owns the shared IntegrationCategoryProfile contract; @cognidesk/integrations owns the concrete category profiles per ADR-0084.";
+  "Core owns the shared IntegrationCategoryProfile contract; @cognidesk/integration-kit owns the concrete provider-neutral category profiles.";
 
-export function operation(input: CategoryOperationInput): CategoryOperationDeclaration {
+type CategoryOperationWithAlias<Alias extends string> =
+  CategoryOperationDeclaration
+  & { alias: Alias };
+
+type OperationAliasOf<Operation> = Operation extends { alias: infer Alias extends string } ? Alias : never;
+
+export type CategoryOperationAliasMap<Alias extends string> = Readonly<{
+  [Key in Alias]: Key;
+}>;
+
+export function operation<const Input extends CategoryOperationInput>(
+  input: Input,
+): CategoryOperationWithAlias<Input["alias"]> {
   const { audiences, inputSchema, outputSchema, ...rest } = input;
   return {
     ...rest,
     ...(audiences ? { audiences: [...audiences] } : {}),
     inputSchema: inputSchema ?? schemaRef(`${schemaName(input.alias)}Input`),
     outputSchema: outputSchema ?? schemaRef(`${schemaName(input.alias)}Result`),
-  };
+  } as CategoryOperationWithAlias<Input["alias"]>;
 }
 
 function schemaRef(ref: string): OperationSchemaDescriptor {
@@ -89,9 +101,9 @@ function schemaName(alias: string) {
     .join("");
 }
 
-export function defineIntegrationCategoryProfile(
-  profile: ConcreteIntegrationCategoryProfileInput,
-): IntegrationCategoryProfile {
+export function defineIntegrationCategoryProfile<const Operations extends readonly CategoryOperationDeclaration[]>(
+  profile: ConcreteIntegrationCategoryProfileInput & { operations: Operations },
+): IntegrationCategoryProfile & { operations: Operations } {
   const parsed = defineCoreIntegrationCategoryProfile({
     ...profile,
     notes: profile.notes ? [...profile.notes] : [],
@@ -99,7 +111,7 @@ export function defineIntegrationCategoryProfile(
   assertUnique(parsed.events.map((candidate) => candidate.kind), `${profile.id} event kind`);
   assertUnique(parsed.outputs.map((candidate) => candidate.intent), `${profile.id} output intent`);
   assertUnique(parsed.dataSources.map((candidate) => candidate.id), `${profile.id} data source`);
-  return parsed as IntegrationCategoryProfile;
+  return parsed as IntegrationCategoryProfile & { operations: Operations };
 }
 
 export function categoryOperationAliases(
@@ -116,6 +128,14 @@ export function findCategoryOperation(
   alias: string,
 ): CategoryOperationDeclaration | undefined {
   return profile.operations.find((candidate) => candidate.alias === alias);
+}
+
+export function categoryOperationAliasMap<const Profile extends { operations: readonly { alias: string }[] }>(
+  profile: Profile,
+): CategoryOperationAliasMap<OperationAliasOf<Profile["operations"][number]>> {
+  return Object.fromEntries(
+    profile.operations.map((candidate) => [candidate.alias, candidate.alias]),
+  ) as CategoryOperationAliasMap<OperationAliasOf<Profile["operations"][number]>>;
 }
 
 export function deriveProviderCapabilityCoverage(

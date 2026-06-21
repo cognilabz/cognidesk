@@ -5,6 +5,7 @@ import {
   defineIntegrationCategoryProfile,
   defineIntegrationProviderPackage,
   deriveProviderCapabilityCoverage,
+  ecommerceCategoryProfile,
   emailCategoryProfile,
   findCategoryOperation,
   getIntegrationCategoryProfile,
@@ -18,6 +19,7 @@ import {
   smsCategoryProfile,
   ticketingCategoryProfile,
   voiceCategoryProfile,
+  workplaceCategoryProfile,
   type IntegrationCategoryProfile,
 } from "../src/index.js";
 
@@ -26,6 +28,8 @@ describe("integration category profiles", () => {
     expect(integrationCategoryProfiles.map((profile) => profile.id)).toEqual([
       "ticketing",
       "email",
+      "workplace",
+      "ecommerce",
       "voice",
       "messaging",
       "sms",
@@ -34,6 +38,8 @@ describe("integration category profiles", () => {
     ]);
 
     expect(getIntegrationCategoryProfile("ticketing")).toBe(ticketingCategoryProfile);
+    expect(getIntegrationCategoryProfile("workplace")).toBe(workplaceCategoryProfile);
+    expect(getIntegrationCategoryProfile("ecommerce")).toBe(ecommerceCategoryProfile);
     expect(getIntegrationCategoryProfile("contactCenter")).toBe(contactCenterCategoryProfile);
     expect(getIntegrationCategoryProfile("sms")).toBe(smsCategoryProfile);
     expect(requireIntegrationCategoryProfile("handoff")).toBe(handoffCategoryProfile);
@@ -60,6 +66,25 @@ describe("integration category profiles", () => {
       "email.archive",
       "email.label.apply",
       "email.attachments.read",
+    ]);
+    expectAliases(workplaceCategoryProfile, [
+      "workplace.message.receive",
+      "workplace.thread.read",
+      "workplace.message.send",
+      "workplace.message.reply",
+      "workplace.channel.search",
+      "workplace.notification.send",
+      "workplace.workflow.trigger",
+    ]);
+    expectAliases(ecommerceCategoryProfile, [
+      "ecommerce.event.receive",
+      "ecommerce.order.read",
+      "ecommerce.customer.read",
+      "ecommerce.order.search",
+      "ecommerce.product.search",
+      "ecommerce.draftOrder.create",
+      "ecommerce.payment.read",
+      "ecommerce.refund.create",
     ]);
     expectAliases(voiceCategoryProfile, [
       "voice.call.start",
@@ -150,7 +175,7 @@ describe("integration category profiles", () => {
   });
 
   it("keeps category profiles provider-neutral and leaves provider-specific extensions to manifests", () => {
-    const forbiddenProviderPrefixes = /^(zendesk|gmail|outlook|twilio|amazon|intercom|gorgias)\./;
+    const forbiddenProviderPrefixes = /^(zendesk|gmail|outlook|twilio|amazon|intercom|gorgias|slack|shopify|stripe)\./;
 
     for (const profile of integrationCategoryProfiles) {
       expect(profile.operations.map((operation) => operation.alias).filter((alias) =>
@@ -197,14 +222,15 @@ describe("integration category profiles", () => {
   it("rejects duplicate category surface declarations", () => {
     const firstOperation = ticketingCategoryProfile.operations[0];
     if (!firstOperation) throw new Error("Ticketing profile must declare operations.");
+    const duplicateOperations: IntegrationCategoryProfile["operations"] = [
+      ...ticketingCategoryProfile.operations,
+      firstOperation,
+    ];
 
     expect(() => defineIntegrationCategoryProfile({
       ...ticketingCategoryProfile,
       id: "bad-ticketing",
-      operations: [
-        ...ticketingCategoryProfile.operations,
-        firstOperation,
-      ],
+      operations: duplicateOperations,
     })).toThrow("Integration category profile 'bad-ticketing' declares operation alias");
   });
 
