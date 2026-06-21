@@ -47,6 +47,18 @@ const providerSdkPackages = new Set([
 const infrastructurePackageNames = new Set([
   "@cognidesk/voice-websocket",
 ]);
+const providerNeutralManifestOnlyPackageNames = new Set([
+  "@cognidesk/core",
+  "@cognidesk/integration-catalog",
+  "@cognidesk/integration-kit",
+]);
+const manifestOnlyRuntimeRelativeModuleNames = new Set([
+  "client",
+  "clients",
+  "index",
+  "runtime",
+  "runtimes",
+]);
 const oldImportBridgeMetadataKeys = [
   "compatibilityBridge",
   "legacyImportBridge",
@@ -203,8 +215,8 @@ async function packageSourceDeclaresOwnProviderManifest(pkg) {
 async function checkManifestOnlyEntrypoints() {
   const roots = [
     path.join(repoRoot, "packages", "integration-catalog", "src"),
-    path.join(repoRoot, "packages", "integrations", "src", "provider-catalog"),
   ];
+  const providerCatalogRoot = path.join(repoRoot, "packages", "integrations", "src", "provider-catalog");
   const files = [
     path.join(repoRoot, "packages", "integrations", "src", "provider-manifest.ts"),
     path.join(repoRoot, "packages", "integrations", "src", "category-profiles.ts"),
@@ -212,6 +224,9 @@ async function checkManifestOnlyEntrypoints() {
 
   for (const root of roots) {
     if (existsSync(root)) files.push(...await walk(root));
+  }
+  if (existsSync(providerCatalogRoot)) {
+    files.push(...(await walk(providerCatalogRoot)).filter(isProviderCatalogMetadataSourceFile));
   }
 
   for (const pkg of splitProviderPackages) {
@@ -312,6 +327,14 @@ function isManifestOnlySourceFile(file) {
     || segments.includes("metadata");
 }
 
+function isProviderCatalogMetadataSourceFile(file) {
+  const relative = path.relative(path.join(repoRoot, "packages", "integrations", "src", "provider-catalog"), file);
+  if (relative.startsWith("categories")) return true;
+
+  const basename = path.basename(file);
+  return basename === "references.ts" || basename === "types.ts";
+}
+
 function isGeneratedSourceFile(file) {
   return file.endsWith(".generated.ts") || file.includes(`${path.sep}.generated${path.sep}`);
 }
@@ -321,12 +344,27 @@ async function assertNoProviderSdkRuntimeImports(file) {
 
   const source = await readFile(file, "utf8");
   const relative = path.relative(repoRoot, file);
-  const imports = runtimeImportSpecifiers(source);
 
-  for (const specifier of imports) {
-    if (isAllowedManifestOnlyImport(specifier)) continue;
+  for (const { specifier } of manifestOnlyRuntimeImportViolationsForSource(source, file)) {
     failures.push(`${relative}: manifest/catalog entry point imports runtime module '${specifier}'`);
   }
+}
+
+export function manifestOnlyRuntimeImportViolationsForSource(source, file) {
+  const violations = [];
+
+  for (const specifier of runtimeImportSpecifiers(source)) {
+    if (isProviderRuntimeSubpathImport(specifier) || isRelativeProviderRuntimeImport(file, specifier)) {
+      violations.push({ specifier });
+      continue;
+    }
+
+    if (isAllowedManifestOnlyImport(specifier)) continue;
+
+    violations.push({ specifier });
+  }
+
+  return violations;
 }
 
 function runtimeImportSpecifiers(source) {
@@ -364,9 +402,63 @@ function moduleSpecifiers(source) {
 }
 
 function isAllowedManifestOnlyImport(specifier) {
-  return specifier.startsWith(".")
-    || specifier.startsWith("node:")
-    || specifier.startsWith("@cognidesk/");
+  if (specifier.startsWith("node:")) return true;
+
+  if (specifier.startsWith(".")) return true;
+
+  const packageName = scopedPackageName(specifier);
+  if (packageName && providerNeutralManifestOnlyPackageNames.has(packageName)) return true;
+
+  return false;
+}
+
+function isProviderRuntimeSubpathImport(specifier) {
+  const packageName = scopedPackageName(specifier);
+  if (!packageName || !isSplitProviderPackageSpecifier(specifier)) return false;
+
+  const subpath = specifier.slice(packageName.length).replace(/^\/+/, "");
+  const [firstSegment] = subpath.split("/");
+  return manifestOnlyRuntimeRelativeModuleNames.has(stripModuleExtension(firstSegment));
+}
+
+function isRelativeProviderRuntimeImport(file, specifier) {
+  if (!specifier.startsWith(".")) return false;
+
+  const providerRoot = providerPackageRootForFile(file);
+  if (!providerRoot) return false;
+
+  const resolved = path.resolve(path.dirname(file), specifier);
+  if (!isPathInsideOrEqual(providerRoot, resolved)) return false;
+
+  const relativeToProvider = path.relative(providerRoot, resolved);
+  const segments = relativeToProvider.split(path.sep).filter(Boolean).map(stripModuleExtension);
+  if (segments.length === 0) return false;
+
+  return segments.some((segment) => manifestOnlyRuntimeRelativeModuleNames.has(segment));
+}
+
+function providerPackageRootForFile(file) {
+  const segments = path.resolve(file).split(path.sep);
+  const integrationsIndex = segments.lastIndexOf("integrations");
+  if (integrationsIndex < 0) return undefined;
+
+  const srcIndex = integrationsIndex + 3;
+  const category = segments[integrationsIndex + 1];
+  const provider = segments[integrationsIndex + 2];
+  if (!category || !provider || !providerCategorySegments.has(category) || segments[srcIndex] !== "src") {
+    return undefined;
+  }
+
+  return segments.slice(0, srcIndex).join(path.sep) || path.sep;
+}
+
+function isPathInsideOrEqual(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+function stripModuleExtension(segment) {
+  return segment.replace(/\.(?:c|m)?(?:j|t)sx?$/, "");
 }
 
 async function checkSdkBackedGeneratedClones(packages) {
