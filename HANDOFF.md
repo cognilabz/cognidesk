@@ -138,6 +138,17 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-30-ecommerce-sdk`, and title `[Integrations] Migrate Stripe and Shopify to SDK packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/30#issuecomment-4761968360.
 
+#31 marketplace provider package lane:
+
+- #31 is clean and pushed at `7d80906 feat(integrations): stage marketplace provider packages` on branch `codex/integrations-31-marketplace-amazon-ebay`.
+- The branch adds staged `@cognidesk/marketplace-amazon` and `@cognidesk/marketplace-ebay` packages under `integrations/marketplace/*`.
+- Amazon is recorded as `official-sdk-plus-support-slice`: it uses official `@amazon-sp-api-release/amazon-sp-api-sdk-js` as a lazy raw-client escape hatch and keeps local helpers for restricted-data-token and normalized support operations.
+- eBay is recorded as a constrained direct support slice because no broad official Node/TypeScript REST SDK covers the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Identity operations.
+- Verification passed after relinking workspace modules with `CI=true pnpm install --prefer-offline`: both marketplace package tests/builds, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`.
+- Unlike #29/#30, #31 intentionally keeps old aggregate marketplace subpaths in place. Final deletion is blocked on porting the legacy Amazon/eBay adapter tests listed in `docs/provider-migration-decisions/marketplace-amazon-ebay-sdk-first.md`, then removing `packages/integrations/src/marketplace/{amazon,ebay}` and the old aggregate marketplace exports/build entries without compatibility re-exports.
+- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the staged PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-31-marketplace-amazon-ebay`, and title `[Integrations] Stage Amazon/eBay marketplace provider packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/31#issuecomment-4761992709.
+
 ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
@@ -150,8 +161,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30 as reference package patterns for the remaining #31-#43 provider-family migrations.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
