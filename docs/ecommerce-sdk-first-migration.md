@@ -2,7 +2,7 @@
 
 Status date: 2026-06-21
 
-Implementation status: `@cognidesk/ecommerce-stripe` and `@cognidesk/ecommerce-shopify` now live under `integrations/ecommerce/*` as SDK-backed provider packages. The old `@cognidesk/integrations/ecommerce/*` monolith subpaths and generated ecommerce provider clones were removed after replacement tests passed.
+Implementation status: `@cognidesk/integration-ecommerce-stripe` and `@cognidesk/integration-ecommerce-shopify` now live under `integrations/ecommerce/*` as SDK-backed provider packages. The old `@cognidesk/integrations/ecommerce/*` monolith subpaths and generated ecommerce provider clones were removed after replacement tests passed.
 
 This workstream depended on the foundation work from:
 
@@ -14,15 +14,15 @@ This workstream depended on the foundation work from:
 
 | Provider | Current import | Current implementation | Removed monolith surface | Current tests |
 | --- | --- | --- | --- | --- |
-| Stripe | `@cognidesk/ecommerce-stripe` | Official `stripe` SDK client plus Cognidesk support operations, readiness, raw client access, and webhook parsing | `packages/integrations/src/ecommerce/stripe` including `full-api-*` generated files | `integrations/ecommerce/stripe/test/*` |
-| Shopify | `@cognidesk/ecommerce-shopify` | Official `@shopify/admin-api-client` Admin GraphQL client plus selected support operations, readiness, raw client access, and webhook HMAC parsing | `packages/integrations/src/ecommerce/shopify` including `admin-graphql-inventory.generated.ts` | `integrations/ecommerce/shopify/test/*` |
+| Stripe | `@cognidesk/integration-ecommerce-stripe` | Official `stripe` SDK client plus Cognidesk support operations, readiness, raw client access, and webhook parsing | `packages/integrations/src/ecommerce/stripe` including `full-api-*` generated files | `integrations/ecommerce/stripe/test/*` |
+| Shopify | `@cognidesk/integration-ecommerce-shopify` | Official `@shopify/admin-api-client` Admin GraphQL client plus selected support operations, readiness, raw client access, and webhook HMAC parsing | `packages/integrations/src/ecommerce/shopify` including `admin-graphql-inventory.generated.ts` | `integrations/ecommerce/shopify/test/*` |
 
 ## SDK verification spikes
 
 | Provider | Candidate package | Verified package state | Fit for support workflow | Raw-client escape hatch | Recommendation |
 | --- | --- | --- | --- | --- | --- |
 | Stripe | `stripe` | `22.2.2`, MIT, ESM/CJS exports, types included, no runtime dependencies, peer `@types/node >=18` | Covers current helpers: customers, PaymentIntents, Checkout Sessions, subscriptions, invoices, refunds, disputes, webhook endpoints, Connect request options, webhook construction/signature validation | Expose configured `Stripe` instance and keep `stripe.rawRequest` for advanced operations | Use official SDK. Delete generated Stripe full API clone in the migrated package. Do not preserve `fullApi` or `requestOperation` compatibility exports. |
-| Shopify | `@shopify/admin-api-client` | `1.1.2`, MIT, ESM/CJS exports, types included, depends on `@shopify/graphql-client` | Directly matches current Admin GraphQL support helpers and raw GraphQL execution; supports custom fetch injection and constructs the same Admin GraphQL endpoint shape | Expose configured Admin API client with `request`/`fetch` | Prefer this lightweight client for `@cognidesk/ecommerce-shopify`. Keep webhook HMAC validation locally or via integration-kit because this package is only the API client. |
+| Shopify | `@shopify/admin-api-client` | `1.1.2`, MIT, ESM/CJS exports, types included, depends on `@shopify/graphql-client` | Directly matches current Admin GraphQL support helpers and raw GraphQL execution; supports custom fetch injection and constructs the same Admin GraphQL endpoint shape | Expose configured Admin API client with `request`/`fetch` | Prefer this lightweight client for `@cognidesk/integration-ecommerce-shopify`. Keep webhook HMAC validation locally or via integration-kit because this package is only the API client. |
 | Shopify | `@shopify/shopify-api` | `13.0.0`, MIT, ESM/CJS exports, types included, depends on `@shopify/admin-api-client`, Storefront client, OAuth/webhook/app utilities | Broader app SDK with OAuth, REST/Admin clients, webhook helpers, and runtime adapters | Expose only if app lifecycle/OAuth/webhook registration is in scope | Keep as optional/future escalation. It is heavier than needed for the current private Admin token support surface. |
 
 Temp install proof:
@@ -34,8 +34,8 @@ Temp install proof:
 
 | Provider | Target package | Status | Final package contents | Old generated code removal | Manifest-only import rule | Tests |
 | --- | --- | --- | --- | --- | --- | --- |
-| Stripe | `@cognidesk/ecommerce-stripe` | Implemented | `manifest`, normalized commerce operation handlers, credential/readiness helpers, webhook parsing result shape, `createStripeEcommerceClient` wrapping official `Stripe`, raw `Stripe` client access | Removed `full-api-*` generated files and old monolith public exports | `@cognidesk/ecommerce-stripe/manifest` does not import `stripe` or instantiate `new Stripe(...)` | Contract binding tests, manifest-only import guard, webhook tests, readiness tests, SDK routing tests |
-| Shopify | `@cognidesk/ecommerce-shopify` | Implemented | `manifest`, normalized Admin GraphQL support operations, credential/readiness helpers, webhook HMAC parsing, raw Admin GraphQL escape hatch via official admin client | Removed `admin-graphql-inventory.generated.ts` and old monolith public exports | `@cognidesk/ecommerce-shopify/manifest` does not import `@shopify/admin-api-client` or initialize a client | Contract binding tests, manifest-only import guard, webhook HMAC tests, readiness tests, Admin GraphQL mock tests |
+| Stripe | `@cognidesk/integration-ecommerce-stripe` | Implemented | `manifest`, normalized commerce operation handlers, credential/readiness helpers, webhook parsing result shape, `createStripeEcommerceClient` wrapping official `Stripe`, raw `Stripe` client access | Removed `full-api-*` generated files and old monolith public exports | `@cognidesk/integration-ecommerce-stripe/manifest` does not import `stripe` or instantiate `new Stripe(...)` | Contract binding tests, manifest-only import guard, webhook tests, readiness tests, SDK routing tests |
+| Shopify | `@cognidesk/integration-ecommerce-shopify` | Implemented | `manifest`, normalized Admin GraphQL support operations, credential/readiness helpers, webhook HMAC parsing, raw Admin GraphQL escape hatch via official admin client | Removed `admin-graphql-inventory.generated.ts` and old monolith public exports | `@cognidesk/integration-ecommerce-shopify/manifest` does not import `@shopify/admin-api-client` or initialize a client | Contract binding tests, manifest-only import guard, webhook HMAC tests, readiness tests, Admin GraphQL mock tests |
 
 ## Final implementation notes
 
@@ -51,10 +51,10 @@ There is intentionally no compatibility bridge for the removed ecommerce subpath
 
 | Old import | New import |
 | --- | --- |
-| `@cognidesk/integrations/ecommerce/stripe` manifest-only usage | `@cognidesk/ecommerce-stripe/manifest` |
-| `@cognidesk/integrations/ecommerce/stripe` runtime usage | `@cognidesk/ecommerce-stripe/runtime` |
-| `@cognidesk/integrations/ecommerce/shopify` manifest-only usage | `@cognidesk/ecommerce-shopify/manifest` |
-| `@cognidesk/integrations/ecommerce/shopify` runtime usage | `@cognidesk/ecommerce-shopify/runtime` |
+| `@cognidesk/integrations/ecommerce/stripe` manifest-only usage | `@cognidesk/integration-ecommerce-stripe/manifest` |
+| `@cognidesk/integrations/ecommerce/stripe` runtime usage | `@cognidesk/integration-ecommerce-stripe/runtime` |
+| `@cognidesk/integrations/ecommerce/shopify` manifest-only usage | `@cognidesk/integration-ecommerce-shopify/manifest` |
+| `@cognidesk/integrations/ecommerce/shopify` runtime usage | `@cognidesk/integration-ecommerce-shopify/runtime` |
 
 Use the parser-backed codemod instead of raw text replacement:
 
@@ -80,8 +80,8 @@ Body:
 
 Move the ecommerce integrations out of `@cognidesk/integrations` into independent SDK-backed provider packages:
 
-- `integrations/ecommerce/stripe` published as `@cognidesk/ecommerce-stripe`
-- `integrations/ecommerce/shopify` published as `@cognidesk/ecommerce-shopify`
+- `integrations/ecommerce/stripe` published as `@cognidesk/integration-ecommerce-stripe`
+- `integrations/ecommerce/shopify` published as `@cognidesk/integration-ecommerce-shopify`
 
 Use official provider clients where they cover the support workflow surface, preserve Cognidesk-normalized operations and webhook handling, and remove generated full-provider API clones after replacements and tests exist.
 
@@ -106,8 +106,8 @@ Blocked until:
 
 ## Acceptance Criteria
 
-- `@cognidesk/ecommerce-stripe` installs `stripe` and no unrelated provider SDKs.
-- `@cognidesk/ecommerce-shopify` installs Shopify admin client dependencies and no unrelated provider SDKs.
+- `@cognidesk/integration-ecommerce-stripe` installs `stripe` and no unrelated provider SDKs.
+- `@cognidesk/integration-ecommerce-shopify` installs Shopify admin client dependencies and no unrelated provider SDKs.
 - Manifest declarations bind exactly to executable integration-kit handlers.
 - Manifest-only imports are SDK-runtime-free and covered by smoke tests.
 - Raw Stripe/Admin GraphQL clients remain available as explicit escape hatches without claiming full Cognidesk adapter coverage.

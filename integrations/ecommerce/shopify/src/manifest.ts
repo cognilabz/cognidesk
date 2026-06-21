@@ -6,7 +6,7 @@ export const defaultShopifyGraphqlAdminApiVersion = "2026-04";
 export const shopifyEcommerceProviderManifestInput = {
   id: "ecommerce.shopify",
   name: "Shopify",
-  packageName: "@cognidesk/ecommerce-shopify",
+  packageName: "@cognidesk/integration-ecommerce-shopify",
   provider: "shopify",
   category: "ecommerce",
   trustLevel: "official",

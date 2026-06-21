@@ -6,7 +6,7 @@ export const defaultStripeApiVersion = "2026-05-28.basil";
 export const stripeEcommerceProviderManifestInput = {
   id: "ecommerce.stripe",
   name: "Stripe",
-  packageName: "@cognidesk/ecommerce-stripe",
+  packageName: "@cognidesk/integration-ecommerce-stripe",
   provider: "stripe",
   category: "ecommerce",
   trustLevel: "official",

@@ -10,7 +10,7 @@ import {
   validateShopifyWebhookSignature,
 } from "../src/index.js";
 
-describe("@cognidesk/ecommerce-shopify", () => {
+describe("@cognidesk/integration-ecommerce-shopify", () => {
   it("binds every manifest operation to exactly one handler", () => {
     const integration = createShopifyEcommerceIntegrationFromClient(createShopifyEcommerceClient({
       shopDomain: "example.myshopify.com",
@@ -30,7 +30,7 @@ describe("@cognidesk/ecommerce-shopify", () => {
     const source = await readFile(new URL("../src/manifest.ts", import.meta.url), "utf8");
     expect(source).not.toMatch(/from ["']@shopify\/admin-api-client["']/);
     expect(source).not.toContain("createAdminApiClient");
-    expect(shopifyEcommerceProviderManifest.packageName).toBe("@cognidesk/ecommerce-shopify");
+    expect(shopifyEcommerceProviderManifest.packageName).toBe("@cognidesk/integration-ecommerce-shopify");
     expect(shopifyEcommerceProviderManifest.coverage.scope).toBe("support-workflow-subset");
   });
 

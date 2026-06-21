@@ -9,7 +9,7 @@ import {
   stripeEcommerceProviderManifest,
 } from "../src/index.js";
 
-describe("@cognidesk/ecommerce-stripe", () => {
+describe("@cognidesk/integration-ecommerce-stripe", () => {
   it("binds every manifest operation to exactly one handler", () => {
     const client = fakeStripeClient();
     const integration = createStripeEcommerceIntegrationFromClient(createStripeEcommerceClient({
@@ -29,7 +29,7 @@ describe("@cognidesk/ecommerce-stripe", () => {
     const source = await readFile(new URL("../src/manifest.ts", import.meta.url), "utf8");
     expect(source).not.toContain("from \"stripe\"");
     expect(source).not.toContain("new Stripe");
-    expect(stripeEcommerceProviderManifest.packageName).toBe("@cognidesk/ecommerce-stripe");
+    expect(stripeEcommerceProviderManifest.packageName).toBe("@cognidesk/integration-ecommerce-stripe");
     expect(stripeEcommerceProviderManifest.coverage.scope).toBe("support-workflow-subset");
   });
 

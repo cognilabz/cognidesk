@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/ecommerce-shopify",
+  "name": "@cognidesk/integration-ecommerce-shopify",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

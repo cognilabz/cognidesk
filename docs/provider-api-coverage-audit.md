@@ -35,14 +35,14 @@ Only packages with generated operation and function catalogs from official provi
 
 Ecommerce was migrated out of the monolith after this audit's original generated-provider pass:
 
-- `@cognidesk/ecommerce-stripe` is now an official `stripe` SDK-backed `support-workflow-subset` package. It exposes normalized support operations, Stripe webhook validation through the SDK, readiness helpers, and an explicit raw `Stripe` client escape hatch. It no longer ships the generated `full-api-*` clone and no longer claims Cognidesk full-provider API coverage.
-- `@cognidesk/ecommerce-shopify` is now an official `@shopify/admin-api-client` backed `support-workflow-subset` package. It exposes selected Admin GraphQL support operations, Shopify webhook HMAC validation, readiness helpers, and an explicit raw Admin GraphQL client escape hatch. It no longer ships the generated Admin GraphQL inventory or generated per-root-field wrappers. Storefront, Functions, Payments, REST Admin, app/platform APIs, full webhook subscription catalogs, Checkout, Fulfillment, Inventory, Markets, Billing, and Online Store surfaces remain explicit gaps.
+- `@cognidesk/integration-ecommerce-stripe` is now an official `stripe` SDK-backed `support-workflow-subset` package. It exposes normalized support operations, Stripe webhook validation through the SDK, readiness helpers, and an explicit raw `Stripe` client escape hatch. It no longer ships the generated `full-api-*` clone and no longer claims Cognidesk full-provider API coverage.
+- `@cognidesk/integration-ecommerce-shopify` is now an official `@shopify/admin-api-client` backed `support-workflow-subset` package. It exposes selected Admin GraphQL support operations, Shopify webhook HMAC validation, readiness helpers, and an explicit raw Admin GraphQL client escape hatch. It no longer ships the generated Admin GraphQL inventory or generated per-root-field wrappers. Storefront, Functions, Payments, REST Admin, app/platform APIs, full webhook subscription catalogs, Checkout, Fulfillment, Inventory, Markets, Billing, and Online Store surfaces remain explicit gaps.
 
 ## Commerce, Marketplace, and Reviews Recheck
 
 Date: 2026-06-18
 
-This historical bounded recheck covered only the then-current monolith ecommerce packages, `@cognidesk/integrations/marketplace/amazon`, `@cognidesk/integrations/review/appstore`, `@cognidesk/integrations/review/googleplay`, and `@cognidesk/integrations/marketplace/ebay`. The ecommerce rows below are retained as historical evidence and no longer describe the current package shape after the SDK-first migration to `@cognidesk/ecommerce-stripe` and `@cognidesk/ecommerce-shopify`.
+This historical bounded recheck covered only the then-current monolith ecommerce packages, `@cognidesk/integrations/marketplace/amazon`, `@cognidesk/integrations/review/appstore`, `@cognidesk/integrations/review/googleplay`, and `@cognidesk/integrations/marketplace/ebay`. The ecommerce rows below are retained as historical evidence and no longer describe the current package shape after the SDK-first migration to `@cognidesk/integration-ecommerce-stripe` and `@cognidesk/integration-ecommerce-shopify`.
 
 Official machine-readable sources and results:
 

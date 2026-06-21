@@ -10,9 +10,9 @@ There are two different layers:
 
 | Layer | Import | Role |
 |-------|--------|------|
-| Voice provider | `@cognidesk/voice-openai` | OpenAI Realtime voice session adapter used by the provider catalog. |
-| Speech providers | `@cognidesk/voice-elevenlabs`, `@cognidesk/voice-azure-speech`, `@cognidesk/voice-aws-speech`, `@cognidesk/voice-google-speech`, `@cognidesk/voice-deepgram` | STT/TTS-backed `VoiceProvider`s where Cognidesk runs the background Agent Model Set. |
-| Voice provider APIs | `@cognidesk/voice-elevenlabs`, `@cognidesk/voice-twilio`, `@cognidesk/voice-vonage`, `@cognidesk/voice-sip` | Provider voice APIs, telephony objects, SIP/provider operations, and outbound-capable surfaces where supported. |
+| Voice provider | `@cognidesk/integration-voice-openai` | OpenAI Realtime voice session adapter used by the provider catalog. |
+| Speech providers | `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-azure-speech`, `@cognidesk/integration-voice-aws-speech`, `@cognidesk/integration-voice-google-speech`, `@cognidesk/integration-voice-deepgram` | STT/TTS-backed `VoiceProvider`s where Cognidesk runs the background Agent Model Set. |
+| Voice provider APIs | `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-twilio`, `@cognidesk/integration-voice-vonage`, `@cognidesk/integration-voice-sip` | Provider voice APIs, telephony objects, SIP/provider operations, and outbound-capable surfaces where supported. |
 | Browser transport | `@cognidesk/voice-websocket` | Cognidesk-owned WebSocket protocol between browser and server. |
 
 The OpenAI adapter supports `gpt-realtime-2` for realtime voice. Speech Provider-backed adapters use the provider for speech-to-text and text-to-speech only; the background LLM is the normal Cognidesk Agent Model Set configured through `@cognidesk/model`. None of these adapters provide full provider API coverage, browser credential issuance, telephony, recording storage, consent, or retention policy.
@@ -32,7 +32,7 @@ graph LR
 ## Setup
 
 ```bash
-pnpm add @cognidesk/voice-openai @cognidesk/voice-deepgram @cognidesk/voice-azure-speech @cognidesk/voice-websocket
+pnpm add @cognidesk/integration-voice-openai @cognidesk/integration-voice-deepgram @cognidesk/integration-voice-azure-speech @cognidesk/voice-websocket
 ```
 
 ## Voice profiles
@@ -63,9 +63,9 @@ The HTTP handler creates voice socket metadata. The WebSocket adapter owns the b
 
 ```typescript
 import { createCognideskHttpHandler } from "@cognidesk/http";
-import { createOpenAIVoiceProvider } from "@cognidesk/voice-openai/runtime";
-import { createDeepgramSpeechVoiceProvider } from "@cognidesk/voice-deepgram/runtime";
-import { createAzureSpeechVoiceProvider } from "@cognidesk/voice-azure-speech/runtime";
+import { createOpenAIVoiceProvider } from "@cognidesk/integration-voice-openai/runtime";
+import { createDeepgramSpeechVoiceProvider } from "@cognidesk/integration-voice-deepgram/runtime";
+import { createAzureSpeechVoiceProvider } from "@cognidesk/integration-voice-azure-speech/runtime";
 import {
   attachNodeVoiceWebSocketAdapter,
   createInMemoryVoiceSessionStore,
@@ -144,9 +144,9 @@ In both modes, the runtime remains the source of truth for conversations, channe
 
 | Provider | Import | Notes |
 |----------|--------|-------|
-| Amazon Transcribe + Amazon Polly | `@cognidesk/voice-aws-speech` | Uses injected AWS SDK v3 clients so the application owns IAM, region, temporary credentials, and private-network policy. |
-| Google Cloud Speech-to-Text + Text-to-Speech | `@cognidesk/voice-google-speech` | Uses Google Cloud REST with a server-side OAuth access token or token provider. |
-| Deepgram | `@cognidesk/voice-deepgram` | Uses Deepgram REST STT/TTS and does not invoke Deepgram Voice Agent. |
+| Amazon Transcribe + Amazon Polly | `@cognidesk/integration-voice-aws-speech` | Uses injected AWS SDK v3 clients so the application owns IAM, region, temporary credentials, and private-network policy. |
+| Google Cloud Speech-to-Text + Text-to-Speech | `@cognidesk/integration-voice-google-speech` | Uses Google Cloud REST with a server-side OAuth access token or token provider. |
+| Deepgram | `@cognidesk/integration-voice-deepgram` | Uses Deepgram REST STT/TTS and does not invoke Deepgram Voice Agent. |
 
 ## Key concepts
 
