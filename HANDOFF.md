@@ -9,7 +9,8 @@ Finish the provider integration refactor so every existing integration is covere
 ## Current Baseline
 
 - Main orchestration branch: `codex/integrations-foundation-stack`
-- Last broadcast baseline commit: `22fdbde ci(integrations): verify provider catalog guardrails`
+- Last code guardrail baseline commit: `22fdbde ci(integrations): verify provider catalog guardrails`
+- Latest orchestration handoff is the current head of `codex/integrations-foundation-stack`.
 - The branch includes #44 old-import codemod work and the #28 CI/catalog guardrail follow-up.
 - ADR-0085 is the source of truth for package boundaries.
 - Old `@cognidesk/integrations/*` imports are removed by migration docs/codemods, not by a bridge package or shim.
@@ -169,6 +170,18 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-33-rcs-tiktok`, and title `[Integrations] Migrate RCS and TikTok provider packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/33#issuecomment-4762026640.
 
+#34 review provider package lane:
+
+- #34 is clean and pushed at `68a7af0 feat(integrations): migrate review provider packages` on branch `codex/integrations-34-review-sdk`.
+- The branch adds `@cognidesk/review-googleplay` and `@cognidesk/review-appstore` under `integrations/review/*`.
+- Google Play uses the official `@googleapis/androidpublisher` SDK package as the runtime/provider escape hatch.
+- App Store remains a constrained App Store Connect REST/JWT support slice because Apple has no official App Store Connect customer-review JavaScript/TypeScript SDK; `@apple/app-store-server-library` targets App Store Server APIs, not App Store Connect customer reviews.
+- The old aggregate `packages/integrations/src/review/{appstore,googleplay}` implementations/tests, generated full-provider clones, aggregate exports, catalog references, runtime loaders, and review build entry were removed.
+- `@cognidesk/integration-kit` now passes run-scoped credentials from `integration.run(..., context)` into operation handlers; #34 includes the contract test that protects this behavior.
+- Verification passed: both split review package tests/builds, integration-kit contract test, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`/`git diff --cached --check`.
+- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-34-review-sdk`, and title `[Integrations] Migrate review providers to split packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/34#issuecomment-4762048394.
+
 ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
@@ -181,8 +194,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
