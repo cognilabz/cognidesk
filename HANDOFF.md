@@ -194,6 +194,18 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-35-helpdesk-ticketing-stack`, and title `[Integrations] Migrate helpdesk ticketing providers to split packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/35#issuecomment-4762083916.
 
+#36 CRM/platform ticketing provider package lane:
+
+- #36 is clean and pushed at `87e45b8 feat(integrations): migrate platform ticketing packages` on branch `codex/integrations-36-ticketing-platform-stack`.
+- The branch adds `@cognidesk/ticketing-hubspot`, `@cognidesk/ticketing-intercom`, `@cognidesk/ticketing-salesforce`, `@cognidesk/ticketing-dynamics365`, `@cognidesk/ticketing-servicenow`, and `@cognidesk/ticketing-zoho-desk` under `integrations/ticketing/*`.
+- HubSpot uses official `@hubspot/api-client`; Intercom uses pinned `intercom-client@7.0.3`; Salesforce uses maintained `jsforce`.
+- Dynamics 365, ServiceNow, and Zoho Desk remain constrained direct support slices because no suitable official/maintained server-side runtime SDK was found for those adapter surfaces.
+- The old aggregate ticketing subpaths for these six providers were removed from `@cognidesk/integrations` exports/build entries. HubSpot/Intercom generated full-provider API clones and the old Salesforce direct aggregate slice were deleted from the monolith.
+- `scripts/generate-integration-catalog.ts` now discovers split packages before loading legacy aggregate references, so deleted aggregate source files are no longer required once a split provider owns the manifest.
+- Verification passed: workspace relink, catalog data/docs generation, shared test-harness build, all six split package tests/builds, architecture/conformance checks, scoped old-import codemod check, legacy aggregate build, targeted aggregate provider tests, UI/HTTP/React builds, package smoke/size budget checks, and `git diff --check`/`git diff --cached --check`.
+- Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-36-ticketing-platform-stack`, and title `[Integrations] Migrate CRM ticketing providers to split packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/36#issuecomment-4762197844.
+
 #40 cloud speech/OpenAI voice provider package lane:
 
 - #40 is clean and pushed at `456686d feat(integrations): migrate cloud voice providers` on branch `codex/integrations-40-voice-speech-sdk`.
@@ -216,8 +228,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#40 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#40 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#40 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#40 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
