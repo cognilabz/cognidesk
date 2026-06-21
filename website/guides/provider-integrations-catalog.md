@@ -10,7 +10,7 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 |----------|----------------|---------|
 | Cobrowsing | 1 | `@cognidesk/integration-cobrowsing-cognidesk` |
 | Community | 1 | `@cognidesk/integration-community-forum` |
-| Contact Center | 12 | `@cognidesk/integration-contact-center-8x8`<br>`@cognidesk/integration-contact-center-aircall`<br>`@cognidesk/integration-contact-center-amazon-connect`<br>`@cognidesk/integration-contact-center-five9`<br>`@cognidesk/integration-contact-center-genesys-cloud`<br>`@cognidesk/integration-contact-center-genesys-engage`<br>`@cognidesk/integration-contact-center-genesys-pureconnect`<br>`@cognidesk/integration-contact-center-nextiva`<br>`@cognidesk/integration-contact-center-nice-cxone`<br>`@cognidesk/integration-contact-center-ringcentral`<br>`@cognidesk/integration-contact-center-talkdesk`<br>`@cognidesk/integration-contact-center-zoom` |
+| Contact Center | 9 | `@cognidesk/integration-contact-center-8x8`<br>`@cognidesk/integration-contact-center-aircall`<br>`@cognidesk/integration-contact-center-five9`<br>`@cognidesk/integration-contact-center-genesys-engage`<br>`@cognidesk/integration-contact-center-genesys-pureconnect`<br>`@cognidesk/integration-contact-center-nextiva`<br>`@cognidesk/integration-contact-center-nice-cxone`<br>`@cognidesk/integration-contact-center-talkdesk`<br>`@cognidesk/integration-contact-center-zoom` |
 | Ecommerce | 2 | `@cognidesk/integration-ecommerce-shopify`<br>`@cognidesk/integration-ecommerce-stripe` |
 | Email | 6 | `@cognidesk/integration-email-ses`<br>`@cognidesk/integration-email-gmail`<br>`@cognidesk/integration-email-imap`<br>`@cognidesk/integration-email-mailgun`<br>`@cognidesk/integration-email-outlook`<br>`@cognidesk/integration-email-postmark` |
 | Forms | 1 | `@cognidesk/integration-form-cognidesk` |
@@ -24,6 +24,7 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 | Video | 2 | `@cognidesk/integration-video-whereby`<br>`@cognidesk/integration-video-zoom` |
 | Voice Provider APIs | 9 | `@cognidesk/integration-voice-aws-speech`<br>`@cognidesk/integration-voice-azure-speech`<br>`@cognidesk/integration-voice-deepgram`<br>`@cognidesk/integration-voice-elevenlabs`<br>`@cognidesk/integration-voice-sip`<br>`@cognidesk/integration-voice-google-speech`<br>`@cognidesk/integration-voice-openai`<br>`@cognidesk/integration-voice-twilio`<br>`@cognidesk/integration-voice-vonage` |
 | Workplace | 2 | `@cognidesk/integration-workplace-teams`<br>`@cognidesk/integration-workplace-slack` |
+| Contact Center | 3 | `@cognidesk/integration-contact-center-amazon-connect`<br>`@cognidesk/integration-contact-center-genesys-cloud`<br>`@cognidesk/integration-contact-center-ringcentral` |
 
 ## Provider Modules
 
@@ -125,29 +126,6 @@ Boundary: Aircall number ownership, callback workflows, routing, recording, tran
 
 Evidence: [Aircall API References](https://developer.aircall.io/api-references/); [Aircall Webhooks Guide](https://developer.aircall.io/tutorials/webhooks-guide/); [Aircall SMS webhook tutorial](https://developer.aircall.io/tutorials/logging-sms-events-with-aircall-webhooks).
 
-#### Amazon Connect
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-amazon-connect` |
-| Manifest import | `@cognidesk/integration-contact-center-amazon-connect/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-amazon-connect/runtime` |
-| Workspace | `integrations/contact-center/amazon-connect` |
-| Manifest ID | `contactCenter.amazon-connect` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://github.com/aws/api-models-aws/tree/main/models](https://github.com/aws/api-models-aws/tree/main/models) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `transfer`, `read-provider-object` |
-| Provider setup | required `amazon-connect-instance`, `amazon-connect-api-access` |
-
-Coverage: Coverage includes generated per-operation functions for every operation in the selected official AWS Connect-family API models bundled in aws/api-models-aws.
-
-Boundary: Exactly one of contactFlowId, quickConnectId, or taskTemplateId should be supplied unless the task template has its own flow.
-
-Evidence: [AWS official API models for Amazon Connect family](https://github.com/aws/api-models-aws/tree/main/models); [AWS API models announcement](https://aws.amazon.com/blogs/aws/introducing-aws-api-models-and-publicly-available-resources-for-aws-api-definitions/); [Amazon Connect StartTaskContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartTaskContact.html); [Amazon Connect StartChatContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartChatContact.html); plus 14 more.
-
 #### Five9
 
 | Field | Value |
@@ -170,29 +148,6 @@ Coverage: Coverage is limited to SDK-configured handoff and readiness request pa
 Boundary: Five9 domain, API product, skills, campaigns, CRM object mapping, and outbound eligibility are SDK-user configuration.
 
 Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/capabilities/call-center-apis-and-sdks); [Five9 development program](https://www.five9.com/development); [Five9 campaigns documentation](https://documentation.five9.com/bundle/studio-combo/page/studio-build/campaigns/_ch-studio-campaigns.htm).
-
-#### Genesys Cloud CX
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-genesys-cloud` |
-| Manifest import | `@cognidesk/integration-contact-center-genesys-cloud/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-genesys-cloud/runtime` |
-| Workspace | `integrations/contact-center/genesys-cloud` |
-| Manifest ID | `contactCenter.genesys-cloud` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://api.mypurecloud.com/api/v2/docs/swagger](https://api.mypurecloud.com/api/v2/docs/swagger) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `contact-center.open-messaging-ingress`, `send` |
-| Provider setup | required `genesys-cloud-region`, `genesys-cloud-api-access`; optional `genesys-cloud-routing`, `genesys-cloud-open-messaging` |
-
-Coverage: Coverage includes generated per-operation functions for every operation in the current official Genesys Cloud Platform API Swagger exposed at /api/v2/docs/swagger.
-
-Boundary: Genesys regions, OAuth scopes/permissions, queues, callback eligibility, Architect flows, digital integrations, and outbound policy are SDK-user configuration.
-
-Evidence: [Genesys Cloud Platform API Swagger](https://api.mypurecloud.com/api/v2/docs/swagger); [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIbyService); [Genesys Cloud Developer Center](https://developer.genesys.cloud/); [Genesys Cloud API Explorer Create Callback](https://developer.genesys.cloud/devapps/api-explorer#post-api-v2-conversations-callbacks); plus 6 more.
 
 #### Genesys Engage / GMS
 
@@ -285,29 +240,6 @@ Coverage: Coverage includes generated per-operation functions for every operatio
 Boundary: CXone API domains, business units, skills, points of contact, WFM/QM access, and outbound eligibility are SDK-user configuration.
 
 Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE CXone Patron API](https://developer.niceincontact.com/API/PatronAPI); [NICE CXone Agent API](https://developer.niceincontact.com/API/AgentAPI); [NICE CXone Digital Engagement API](https://developer.niceincontact.com/API/DigitalEngagementAPI); plus 4 more.
-
-#### RingCentral RingCX
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-ringcentral` |
-| Manifest import | `@cognidesk/integration-contact-center-ringcentral/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-ringcentral/runtime` |
-| Workspace | `integrations/contact-center/ringcentral` |
-| Manifest ID | `contactCenter.ringcentral` |
-| Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://developers.ringcentral.com/engage-voice-api](https://developers.ringcentral.com/engage-voice-api) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff` |
-| Provider setup | required `ringcentral-ringcx-api-base`, `ringcentral-ringcx-api-access`; optional `ringcentral-ringcx-routing` |
-
-Coverage: Coverage includes generated per-operation functions for the current official RingCentral RingCX Voice OpenAPI spec and the official RingCentral Engage Digital OpenAPI spec.
-
-Boundary: RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.
-
-Evidence: [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-api); [RingCX Voice OpenAPI](https://raw.githubusercontent.com/ringcentral/engage-voice-api-docs/main/specs/engage-voice_openapi3.json); [RingCX Voice API docs repository](https://github.com/ringcentral/engage-voice-api-docs); [RingCX Digital APIs](https://developers.ringcentral.com/engage-digital-api); plus 5 more.
 
 #### Talkdesk
 
@@ -1507,3 +1439,74 @@ Coverage: Coverage includes generated per-operation functions for every operatio
 Boundary: Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.
 
 Evidence: [Slack archived official Web API Swagger](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json); [Slack official API specs repository](https://github.com/slackapi/slack-api-specs); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); plus 9 more.
+
+### Contact Center
+
+#### Amazon Connect
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-amazon-connect` |
+| Manifest import | `@cognidesk/integration-contact-center-amazon-connect/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-amazon-connect/runtime` |
+| Workspace | `integrations/contact-center/amazon-connect` |
+| Manifest ID | `contactCenter.amazon-connect` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/aws/aws-sdk-js-v3](https://github.com/aws/aws-sdk-js-v3) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `send`, `transfer`, `read-provider-object` |
+| Provider setup | required `amazon-connect-instance`, `amazon-connect-api-access` |
+
+Coverage: Runtime uses AWS SDK v3 clients for normalized Amazon Connect support workflows.
+
+Boundary: Contact flows, queue/quick-connect routing, outbound consent, IAM policy, participant token custody, and WebSocket subscription behavior remain application/AWS configuration.
+
+Evidence: [AWS SDK for JavaScript v3](https://github.com/aws/aws-sdk-js-v3); [Amazon Connect API Reference](https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html); [Amazon Connect Participant Service](https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Participant_Service.html).
+
+#### Genesys Cloud CX
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-genesys-cloud` |
+| Manifest import | `@cognidesk/integration-contact-center-genesys-cloud/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-genesys-cloud/runtime` |
+| Workspace | `integrations/contact-center/genesys-cloud` |
+| Manifest ID | `contactCenter.genesys-cloud` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/MyPureCloud/platform-client-sdk-javascript](https://github.com/MyPureCloud/platform-client-sdk-javascript) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `contact-center.open-messaging-ingress`, `schedule`, `read-provider-object` |
+| Provider setup | required `genesys-cloud-region`, `genesys-cloud-api-access`; optional `genesys-cloud-open-messaging`, `genesys-cloud-routing` |
+
+Coverage: Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.
+
+Boundary: Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.
+
+Evidence: [Genesys Cloud JavaScript SDK](https://github.com/MyPureCloud/platform-client-sdk-javascript); [Genesys Cloud Developer Center](https://developer.genesys.cloud/); [Genesys Cloud Open Messaging](https://help.genesys.cloud/articles/configure-an-open-messaging-integration/).
+
+#### RingCentral RingCX
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-ringcentral` |
+| Manifest import | `@cognidesk/integration-contact-center-ringcentral/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-ringcentral/runtime` |
+| Workspace | `integrations/contact-center/ringcentral` |
+| Manifest ID | `contactCenter.ringcentral` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/ringcentral/ringcentral-js](https://github.com/ringcentral/ringcentral-js) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `read-provider-object` |
+| Provider setup | required `ringcentral-api-base`, `ringcentral-api-access`; optional `ringcentral-ringcx-routing` |
+
+Coverage: Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.
+
+Boundary: RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.
+
+Evidence: [RingCentral JavaScript SDK](https://github.com/ringcentral/ringcentral-js); [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-api); [RingCX Digital APIs](https://developers.ringcentral.com/engage-digital-api).

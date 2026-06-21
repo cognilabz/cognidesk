@@ -37,11 +37,13 @@ const providerSdkPackages = new Set([
   "@googleapis/gmail",
   "@hubspot/api-client",
   "@microsoft/microsoft-graph-client",
+  "@ringcentral/sdk",
   "@slack/web-api",
   "@vonage/server-sdk",
   "googleapis",
   "mailgun.js",
   "openai",
+  "purecloud-platform-client-v2",
   "stripe",
   "twilio",
 ]);
