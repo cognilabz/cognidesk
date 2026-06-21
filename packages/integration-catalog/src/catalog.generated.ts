@@ -8103,11 +8103,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "marketplace.amazon",
     "category": "marketplace",
     "provider": "amazon",
-    "importPath": "@cognidesk/integrations/marketplace/amazon",
-    "modulePath": "./marketplace/amazon/index.js",
+    "importPath": "@cognidesk/marketplace-amazon/manifest",
+    "modulePath": "integrations/marketplace/amazon/src/manifest.js",
     "manifestExport": "amazonMarketplaceProviderManifest",
     "name": "Amazon Marketplace",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/marketplace-amazon",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -8121,12 +8121,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Amazon Marketplace",
-      "summary": "Coverage includes generated per-operation functions for every operation in Amazon's official Selling Partner API model repository.",
+      "summary": "Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership.",
       "tags": [
         "marketplace",
         "amazon",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -8297,19 +8297,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Amazon's official Selling Partner API model repository.",
-        "Typed helpers remain available for selected Amazon SP-API marketplace support primitives: LWA token refresh, optional SigV4 signing, Orders v0 order/item/buyer-info reads with RDT handling, Solicitations requests, Sellers marketplace participation, Notifications destination reads, subscription creation/read/deletion, and verified notification ingress.",
-        "Orders API v2026-01-01 migration coverage includes typed searchOrders/getOrder helpers with includedData; v0 buyer-info methods still use Restricted Data Tokens because that is the legacy authorization model.",
-        "Amazon deprecated Orders API v0 operations on January 28, 2026 and lists March 27, 2027 as the removal date for getOrders, getOrder, getOrderBuyerInfo, getOrderAddress, getOrderItems, and getOrderItemsBuyerInfo.",
-        "Generated functions cover catalog, listings, feeds, reports, finances, FBA inventory/inbound/outbound, merchant fulfillment, pricing, product fees, services, vendor, data kiosk, transfers, application-management, and other SP-API model surfaces; SDK users still own provider roles, grantless tokens, RDT use, and regional endpoint selection.",
-        "The SDK user owns SP-API roles, marketplace selection, RDT policy, notification transport, destination provisioning, grantless authorization, seller eligibility, consent, redaction, and retention decisions."
+        "Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership.",
+        "The official Amazon JavaScript SDK is the preferred raw-client escape hatch, but this package keeps local helpers for RDT and normalized support operations because the SDK README notes RDT requires an extra step.",
+        "Manifest/runtime exports do not expose Cognidesk-generated full-provider SP-API clones.",
+        "Orders v0 remains available for existing SDK callers while Amazon's removal window remains relevant; v2026 order helpers are exposed for migration flows."
       ],
       "evidence": [
         {
-          "label": "Amazon official SP-API model repository",
-          "url": "https://github.com/amzn/selling-partner-api-models/tree/main/models"
+          "label": "Amazon official SP-API JavaScript SDK",
+          "url": "https://github.com/amzn/selling-partner-api-sdk"
+        },
+        {
+          "label": "Amazon prebuilt JavaScript SDK tutorial",
+          "url": "https://developer-docs.amazon.com/sp-api/docs/automate-your-sp-api-calls-using-a-prebuilt-javascript-sdk"
         },
         {
           "label": "Amazon SP-API Orders v0 reference",
@@ -8320,28 +8322,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer-docs.amazon.com/sp-api/reference/orders-v2026-01-01"
         },
         {
-          "label": "Amazon SP-API Orders migration guide",
-          "url": "https://developer-docs.amazon.com/sp-api/docs/orders-api-migration-guide"
-        },
-        {
-          "label": "Amazon Orders API v2026 announcement",
-          "url": "https://developer-docs.amazon.com/sp-api/changelog/new-introducing-the-orders-api-v2026-01-01"
-        },
-        {
-          "label": "Amazon SP-API deprecation schedule",
-          "url": "https://developer-docs.amazon.com/sp-api/docs/sp-api-deprecations"
-        },
-        {
           "label": "Amazon SP-API Restricted Data Token",
           "url": "https://developer-docs.amazon.com/sp-api/reference/createrestricteddatatoken"
-        },
-        {
-          "label": "Amazon SP-API RDT authorization guide",
-          "url": "https://developer-docs.amazon.com/sp-api/docs/authorization-with-the-restricted-data-token"
-        },
-        {
-          "label": "Amazon SP-API Solicitations API",
-          "url": "https://developer-docs.amazon.com/sp-api/docs/solicitations-api"
         },
         {
           "label": "Amazon SP-API Notifications API",
@@ -8350,19 +8332,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "full",
+      "scope": "support-workflow-subset",
+      "level": "partial",
       "conformant": null
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/marketplace/amazon",
-      "providerModule": "./marketplace/amazon/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@amazon-sp-api-release/amazon-sp-api-sdk-js",
+      "runtimePackage": "@cognidesk/marketplace-amazon",
+      "providerModule": "integrations/marketplace/amazon/src/manifest.js",
       "manifestExport": "amazonMarketplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/marketplace/amazon/manifest.ts",
+      "manifestSource": "integrations/marketplace/amazon/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer-docs.amazon.com/sp-api"
+      "documentationPath": "https://github.com/amzn/selling-partner-api-sdk"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -8428,8 +8410,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "limitations": [
       "The SDK user chooses marketplaces, roles, restricted-data-token policy, notification topics, outbound solicitation rules, operator visibility, retention, consent, and redaction.",
-      "Some SP-API operations require role approval, restricted data tokens, marketplace availability, or grantless authorization; this package exposes typed REST foundations and does not decide seller eligibility.",
-      "Orders v0 remains available for existing SDK callers but Amazon lists March 27, 2027 as the removal date; SDK users should migrate order sync/read flows to the v2026-01-01 helpers and includedData where their roles support it.",
+      "Some SP-API operations require role approval, restricted data tokens, marketplace availability, or grantless authorization; this package exposes typed support foundations and does not decide seller eligibility.",
       "Amazon notification transports vary by destination; this package fails closed unless the SDK user configures a verifier, gateway signature, or shared-secret check appropriate to their ingress path."
     ],
     "maintainers": [
@@ -8439,10 +8420,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://developer-docs.amazon.com/sp-api",
-      "ordersDocs": "https://developer-docs.amazon.com/sp-api/reference/orders-v0",
-      "notificationsDocs": "https://developer-docs.amazon.com/sp-api/docs/notifications-api",
-      "solicitationsDocs": "https://developer-docs.amazon.com/sp-api/docs/solicitations-api",
+      "implementation": {
+        "strategy": "official-sdk-plus-support-slice",
+        "sdkPackage": "@amazon-sp-api-release/amazon-sp-api-sdk-js",
+        "sdkVersionChecked": "1.9.0",
+        "sdkModifiedAt": "2026-05-29T13:03:51.597Z",
+        "sdkRepository": "https://github.com/amzn/selling-partner-api-sdk",
+        "caveats": [
+          "The npm package has no root types metadata; this package uses a local typed facade for raw SDK loading.",
+          "RDT support remains local because the SDK README says some APIs need an extra RDT step."
+        ]
+      },
+      "supportSlice": {
+        "source": "local-reviewed-support-operations",
+        "verifiedAt": "2026-06-21",
+        "allowlist": [
+          "amazon.refreshAccessToken",
+          "amazon.createRestrictedDataToken",
+          "amazon.getOrders",
+          "amazon.getOrder",
+          "amazon.getOrderBuyerInfo",
+          "amazon.getOrderItems",
+          "amazon.getOrderItemsBuyerInfo",
+          "amazon.searchOrdersV2026",
+          "amazon.getOrderV2026",
+          "amazon.getSolicitationActionsForOrder",
+          "amazon.createProductReviewAndSellerFeedbackSolicitation",
+          "amazon.getMarketplaceParticipations",
+          "amazon.getDestinations",
+          "amazon.getDestination",
+          "amazon.createSubscription",
+          "amazon.getSubscription",
+          "amazon.deleteSubscription",
+          "amazon.parseNotificationWebhook"
+        ]
+      },
       "channelCoverage": {
         "lwaTokenRefresh": "typed-token-refresh",
         "restrictedDataTokens": "typed-create",
@@ -8456,21 +8468,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "notificationSubscriptions": "typed-create-read-delete",
         "notificationIngress": "typed-verify-parse",
         "sigv4Signing": "typed-sign",
-        "catalogListingsFeedsReportsFinancesFba": "generated-full-surface",
-        "fullSellingPartnerApiOperations": "generated-per-operation-functions"
-      },
-      "fullProviderApiVerification": {
-        "provider": "amazon-spapi",
-        "apiVersion": "main",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/amazon-spapi-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/amazon-spapi-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/amazon-spapi-full-api-2026-06-18.functions.json",
-        "officialModelCount": 63,
-        "documentedOperationCount": 353,
-        "implementedOperationCount": 353,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 353
+        "rawSellingPartnerApi": "official-sdk-escape-hatch"
       }
     }
   },
@@ -8478,11 +8476,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "marketplace.ebay",
     "category": "marketplace",
     "provider": "ebay",
-    "importPath": "@cognidesk/integrations/marketplace/ebay",
-    "modulePath": "./marketplace/ebay/index.js",
+    "importPath": "@cognidesk/marketplace-ebay/manifest",
+    "modulePath": "integrations/marketplace/ebay/src/manifest.js",
     "manifestExport": "ebayMarketplaceProviderManifest",
     "name": "eBay Marketplace",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/marketplace-ebay",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -8819,13 +8817,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/marketplace/ebay",
-      "providerModule": "./marketplace/ebay/index.js",
+      "strategy": "direct-support-slice",
+      "sdkPackage": "@cognidesk/marketplace-ebay",
+      "runtimePackage": "@cognidesk/marketplace-ebay",
+      "providerModule": "integrations/marketplace/ebay/src/manifest.js",
       "manifestExport": "ebayMarketplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/marketplace/ebay/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/marketplace/ebay/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developer.ebay.com/api-docs"
     },
     "readiness": {
@@ -8926,6 +8924,391 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "docs": "https://developer.ebay.com/api-docs",
+      "implementation": {
+        "strategy": "direct-support-slice",
+        "selectedApiCount": 5,
+        "checkedAt": "2026-06-18",
+        "officialUtilityPackagesChecked": [
+          {
+            "package": "digital-signature-nodejs-sdk",
+            "version": "3.0.1",
+            "repository": "https://github.com/eBay/digital-signature-nodejs-sdk",
+            "decision": "not-adopted-current-local-signer-is-smaller"
+          },
+          {
+            "package": "event-notification-nodejs-sdk",
+            "version": "1.0.3",
+            "repository": "https://github.com/eBay/event-notification-nodejs-sdk",
+            "decision": "not-adopted-current-local-verifier-is-smaller"
+          }
+        ],
+        "communityPackagesChecked": [
+          {
+            "package": "ebay-api",
+            "version": "9.5.2",
+            "repository": "https://github.com/hendt/ebay-api",
+            "decision": "not-adopted-community-client-not-official-default"
+          }
+        ]
+      },
+      "supportSlice": {
+        "source": "official-ebay-openapi-selected-rest-contracts",
+        "verifiedAt": "2026-06-18",
+        "specs": [
+          {
+            "api": "sell.fulfillment",
+            "version": "v1.20.7",
+            "specUrl": "https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json",
+            "operationCount": 15,
+            "pathCount": 14
+          },
+          {
+            "api": "commerce.message",
+            "version": "1.0.0",
+            "specUrl": "https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json",
+            "operationCount": 5,
+            "pathCount": 5
+          },
+          {
+            "api": "commerce.notification",
+            "version": "v1.6.7",
+            "specUrl": "https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json",
+            "operationCount": 21,
+            "pathCount": 12
+          },
+          {
+            "api": "developer.key-management",
+            "version": "v1.0.0",
+            "specUrl": "https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json",
+            "operationCount": 3,
+            "pathCount": 2
+          },
+          {
+            "api": "commerce.identity",
+            "version": "v2.0.0",
+            "specUrl": "https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json",
+            "operationCount": 1,
+            "pathCount": 1
+          }
+        ],
+        "allowlist": [
+          {
+            "alias": "ebay.getOrder",
+            "api": "sell.fulfillment",
+            "operationId": "getOrder",
+            "method": "GET",
+            "path": "/order/{orderId}"
+          },
+          {
+            "alias": "ebay.searchOrders",
+            "api": "sell.fulfillment",
+            "operationId": "getOrders",
+            "method": "GET",
+            "path": "/order"
+          },
+          {
+            "alias": "ebay.issueRefund",
+            "api": "sell.fulfillment",
+            "operationId": "issueRefund",
+            "method": "POST",
+            "path": "/order/{order_id}/issue_refund"
+          },
+          {
+            "alias": "ebay.createShippingFulfillment",
+            "api": "sell.fulfillment",
+            "operationId": "createShippingFulfillment",
+            "method": "POST",
+            "path": "/order/{orderId}/shipping_fulfillment"
+          },
+          {
+            "alias": "ebay.getShippingFulfillment",
+            "api": "sell.fulfillment",
+            "operationId": "getShippingFulfillment",
+            "method": "GET",
+            "path": "/order/{orderId}/shipping_fulfillment/{fulfillmentId}"
+          },
+          {
+            "alias": "ebay.getShippingFulfillments",
+            "api": "sell.fulfillment",
+            "operationId": "getShippingFulfillments",
+            "method": "GET",
+            "path": "/order/{orderId}/shipping_fulfillment"
+          },
+          {
+            "alias": "ebay.getPaymentDispute",
+            "api": "sell.fulfillment",
+            "operationId": "getPaymentDispute",
+            "method": "GET",
+            "path": "/payment_dispute/{payment_dispute_id}"
+          },
+          {
+            "alias": "ebay.fetchPaymentDisputeEvidenceContent",
+            "api": "sell.fulfillment",
+            "operationId": "fetchEvidenceContent",
+            "method": "GET",
+            "path": "/payment_dispute/{payment_dispute_id}/fetch_evidence_content"
+          },
+          {
+            "alias": "ebay.getPaymentDisputeActivities",
+            "api": "sell.fulfillment",
+            "operationId": "getActivities",
+            "method": "GET",
+            "path": "/payment_dispute/{payment_dispute_id}/activity"
+          },
+          {
+            "alias": "ebay.searchPaymentDisputes",
+            "api": "sell.fulfillment",
+            "operationId": "getPaymentDisputeSummaries",
+            "method": "GET",
+            "path": "/payment_dispute_summary"
+          },
+          {
+            "alias": "ebay.contestPaymentDispute",
+            "api": "sell.fulfillment",
+            "operationId": "contestPaymentDispute",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/contest"
+          },
+          {
+            "alias": "ebay.acceptPaymentDispute",
+            "api": "sell.fulfillment",
+            "operationId": "acceptPaymentDispute",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/accept"
+          },
+          {
+            "alias": "ebay.uploadPaymentDisputeEvidenceFile",
+            "api": "sell.fulfillment",
+            "operationId": "uploadEvidenceFile",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/upload_evidence_file"
+          },
+          {
+            "alias": "ebay.addPaymentDisputeEvidence",
+            "api": "sell.fulfillment",
+            "operationId": "addEvidence",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/add_evidence"
+          },
+          {
+            "alias": "ebay.updatePaymentDisputeEvidence",
+            "api": "sell.fulfillment",
+            "operationId": "updateEvidence",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/update_evidence"
+          },
+          {
+            "alias": "ebay.bulkUpdateConversations",
+            "api": "commerce.message",
+            "operationId": "bulkUpdateConversation",
+            "method": "POST",
+            "path": "/bulk_update_conversation"
+          },
+          {
+            "alias": "ebay.getConversation",
+            "api": "commerce.message",
+            "operationId": "getConversation",
+            "method": "GET",
+            "path": "/conversation/{conversation_id}"
+          },
+          {
+            "alias": "ebay.getConversations",
+            "api": "commerce.message",
+            "operationId": "getConversations",
+            "method": "GET",
+            "path": "/conversation"
+          },
+          {
+            "alias": "ebay.sendMessage",
+            "api": "commerce.message",
+            "operationId": "sendMessage",
+            "method": "POST",
+            "path": "/send_message"
+          },
+          {
+            "alias": "ebay.updateConversation",
+            "api": "commerce.message",
+            "operationId": "updateConversation",
+            "method": "POST",
+            "path": "/update_conversation"
+          },
+          {
+            "alias": "ebay.getNotificationConfig",
+            "api": "commerce.notification",
+            "operationId": "getConfig",
+            "method": "GET",
+            "path": "/config"
+          },
+          {
+            "alias": "ebay.updateNotificationConfig",
+            "api": "commerce.notification",
+            "operationId": "updateConfig",
+            "method": "PUT",
+            "path": "/config"
+          },
+          {
+            "alias": "ebay.createNotificationDestination",
+            "api": "commerce.notification",
+            "operationId": "createDestination",
+            "method": "POST",
+            "path": "/destination"
+          },
+          {
+            "alias": "ebay.deleteNotificationDestination",
+            "api": "commerce.notification",
+            "operationId": "deleteDestination",
+            "method": "DELETE",
+            "path": "/destination/{destination_id}"
+          },
+          {
+            "alias": "ebay.getNotificationDestination",
+            "api": "commerce.notification",
+            "operationId": "getDestination",
+            "method": "GET",
+            "path": "/destination/{destination_id}"
+          },
+          {
+            "alias": "ebay.getNotificationDestinations",
+            "api": "commerce.notification",
+            "operationId": "getDestinations",
+            "method": "GET",
+            "path": "/destination"
+          },
+          {
+            "alias": "ebay.updateNotificationDestination",
+            "api": "commerce.notification",
+            "operationId": "updateDestination",
+            "method": "PUT",
+            "path": "/destination/{destination_id}"
+          },
+          {
+            "alias": "ebay.getNotificationPublicKey",
+            "api": "commerce.notification",
+            "operationId": "getPublicKey",
+            "method": "GET",
+            "path": "/public_key/{public_key_id}"
+          },
+          {
+            "alias": "ebay.createNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "createSubscription",
+            "method": "POST",
+            "path": "/subscription"
+          },
+          {
+            "alias": "ebay.createNotificationSubscriptionFilter",
+            "api": "commerce.notification",
+            "operationId": "createSubscriptionFilter",
+            "method": "POST",
+            "path": "/subscription/{subscription_id}/filter"
+          },
+          {
+            "alias": "ebay.deleteNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "deleteSubscription",
+            "method": "DELETE",
+            "path": "/subscription/{subscription_id}"
+          },
+          {
+            "alias": "ebay.deleteNotificationSubscriptionFilter",
+            "api": "commerce.notification",
+            "operationId": "deleteSubscriptionFilter",
+            "method": "DELETE",
+            "path": "/subscription/{subscription_id}/filter/{filter_id}"
+          },
+          {
+            "alias": "ebay.disableNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "disableSubscription",
+            "method": "POST",
+            "path": "/subscription/{subscription_id}/disable"
+          },
+          {
+            "alias": "ebay.enableNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "enableSubscription",
+            "method": "POST",
+            "path": "/subscription/{subscription_id}/enable"
+          },
+          {
+            "alias": "ebay.getNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "getSubscription",
+            "method": "GET",
+            "path": "/subscription/{subscription_id}"
+          },
+          {
+            "alias": "ebay.getNotificationSubscriptionFilter",
+            "api": "commerce.notification",
+            "operationId": "getSubscriptionFilter",
+            "method": "GET",
+            "path": "/subscription/{subscription_id}/filter/{filter_id}"
+          },
+          {
+            "alias": "ebay.getNotificationSubscriptions",
+            "api": "commerce.notification",
+            "operationId": "getSubscriptions",
+            "method": "GET",
+            "path": "/subscription"
+          },
+          {
+            "alias": "ebay.testNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "testSubscription",
+            "method": "POST",
+            "path": "/subscription/{subscription_id}/test"
+          },
+          {
+            "alias": "ebay.updateNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "updateSubscription",
+            "method": "PUT",
+            "path": "/subscription/{subscription_id}"
+          },
+          {
+            "alias": "ebay.getNotificationTopic",
+            "api": "commerce.notification",
+            "operationId": "getTopic",
+            "method": "GET",
+            "path": "/topic/{topic_id}"
+          },
+          {
+            "alias": "ebay.getNotificationTopics",
+            "api": "commerce.notification",
+            "operationId": "getTopics",
+            "method": "GET",
+            "path": "/topic"
+          },
+          {
+            "alias": "ebay.createSigningKey",
+            "api": "developer.key-management",
+            "operationId": "createSigningKey",
+            "method": "POST",
+            "path": "/signing_key"
+          },
+          {
+            "alias": "ebay.getSigningKey",
+            "api": "developer.key-management",
+            "operationId": "getSigningKey",
+            "method": "GET",
+            "path": "/signing_key/{signing_key_id}"
+          },
+          {
+            "alias": "ebay.getSigningKeys",
+            "api": "developer.key-management",
+            "operationId": "getSigningKeys",
+            "method": "GET",
+            "path": "/signing_key"
+          },
+          {
+            "alias": "ebay.getUser",
+            "api": "commerce.identity",
+            "operationId": "getUser",
+            "method": "GET",
+            "path": "/user/"
+          }
+        ]
+      },
       "fulfillmentDocs": "https://developer.ebay.com/api-docs/sell/fulfillment/overview.html",
       "notificationDocs": "https://developer.ebay.com/api-docs/commerce/notification/overview.html",
       "channelCoverage": {
