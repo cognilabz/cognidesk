@@ -9,6 +9,7 @@ Finish the provider integration refactor so every existing integration is covere
 ## Current Baseline
 
 - Main orchestration branch: `codex/integrations-foundation-stack`
+- Foundation draft PR: https://github.com/cognilabz/cognidesk/pull/46 (base `main`)
 - Last code guardrail baseline commit: `22fdbde ci(integrations): verify provider catalog guardrails`
 - Latest orchestration handoff is the current head of `codex/integrations-foundation-stack`.
 - The branch includes #44 old-import codemod work and the #28 CI/catalog guardrail follow-up.
@@ -118,7 +119,7 @@ First-wave PR handoff after branch owners committed:
 - #23 is clean and pushed at `dd73d3e feat(integrations): migrate gmail provider package`.
 - #24 is clean and pushed at `329d2d4 feat(integrations): split microsoft graph providers`.
 - #25 is clean and pushed at `96a40ac feat(integrations): fold discord gateway into provider package` after the original `11a4164 feat(integrations): split slack and discord providers`.
-- Draft PR creation from this thread failed with GitHub `createPullRequest` permission `must be a collaborator`. Open the PRs manually with base `codex/integrations-foundation-stack` and heads `codex/integrations-23-gmail-sdk-package`, `codex/integrations-24-microsoft-graph-packages`, and `codex/integrations-25-chat-provider-packages`.
+- Draft PRs are open: #47 for Gmail, #48 for Microsoft Graph Outlook/Teams, and #49 for Slack/Discord.
 - PR handoff comments were posted on #23, #24, and #25 with exact base/head/title instructions.
 
 #27 legacy monolith cleanup guardrail lane:
@@ -126,6 +127,7 @@ First-wave PR handoff after branch owners committed:
 - #27 is clean and pushed at `b85c116 docs(integrations): track monolith cleanup readiness` on branch `codex/integrations-27-delete-monolith`.
 - The branch records deletion readiness and cleanup guardrails instead of removing runtime code ahead of provider PR merges.
 - Verification passed: `node --check scripts/check-integrations-cleanup-map.mjs`, `node --check scripts/check-integration-package-architecture.mjs`, `node --test scripts/check-integration-package-architecture.test.mjs`, `pnpm providers:cleanup-map`, `pnpm providers:architecture`, `pnpm --filter @cognidesk/integrations exec vitest run test/provider-migration-matrix.test.ts`, and `git diff --check`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/50.
 - Issue comment: https://github.com/cognilabz/cognidesk/issues/27#issuecomment-4762370708.
 
 #29 email provider package lane:
@@ -135,7 +137,7 @@ First-wave PR handoff after branch owners committed:
 - The replacement packages use `mailgun.js`, `postmark`, `@aws-sdk/client-ses`, `@aws-sdk/client-sesv2`, and `imapflow` where viable.
 - The old aggregate `packages/integrations/src/email/{imap,mailgun,postmark,ses}` implementations and tests were removed, and catalog/runtime loader/docs outputs were regenerated.
 - Verification passed: all four email package tests, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate builds after prerequisite packages, package smoke/size checks, targeted aggregate provider tests, and `git diff --check`.
-- Draft PR creation failed through both the GitHub connector and `gh pr create` with permission errors (`Resource not accessible by integration` and `GraphQL: must be a collaborator`). Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-29-email-sdk-packages`, and title `[Integrations] Split remaining email providers into SDK packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/51.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/29#issuecomment-4761949585.
 
 #30 ecommerce provider package lane:
@@ -145,7 +147,7 @@ First-wave PR handoff after branch owners committed:
 - Registry checks on 2026-06-21 showed `stripe@22.2.2` and `@shopify/admin-api-client@1.1.2` as current `latest` packages, with upstream repositories under Stripe and Shopify.
 - The old aggregate Stripe generated full-API clone, Shopify Admin GraphQL inventory, ecommerce aggregate exports/tests, and obsolete generator scripts were removed.
 - Verification passed: SDK registry checks, both ecommerce package tests, `pnpm providers:architecture`, split package builds, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, package smoke/size checks, targeted aggregate provider tests, and `git diff --check`.
-- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-30-ecommerce-sdk`, and title `[Integrations] Migrate Stripe and Shopify to SDK packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/52.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/30#issuecomment-4761968360.
 
 #31 marketplace provider package lane:
@@ -156,7 +158,7 @@ First-wave PR handoff after branch owners committed:
 - eBay is recorded as a constrained direct support slice because no broad official Node/TypeScript REST SDK covers the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Identity operations.
 - Verification passed after relinking workspace modules with `CI=true pnpm install --prefer-offline`: both marketplace package tests/builds, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`.
 - Unlike #29/#30, #31 intentionally keeps old aggregate marketplace subpaths in place. Final deletion is blocked on porting the legacy Amazon/eBay adapter tests listed in `docs/provider-migration-decisions/marketplace-amazon-ebay-sdk-first.md`, then removing `packages/integrations/src/marketplace/{amazon,ebay}` and the old aggregate marketplace exports/build entries without compatibility re-exports.
-- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the staged PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-31-marketplace-amazon-ebay`, and title `[Integrations] Stage Amazon/eBay marketplace provider packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/53.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/31#issuecomment-4761992709.
 
 #32 Meta messaging provider package lane:
@@ -166,7 +168,7 @@ First-wave PR handoff after branch owners committed:
 - ADR-0086 records the SDK decision: keep constrained direct Meta Graph/Cloud API support slices because `whatsapp` is still alpha/archived and `facebook-nodejs-business-sdk` is broad Business/Marketing/Page infrastructure rather than a narrow primary runtime fit.
 - The old aggregate `packages/integrations/src/messaging/whatsapp`, `packages/integrations/src/social/instagram`, and `packages/integrations/src/social/messenger` implementations/tests were removed, and catalog/runtime loader/docs outputs were regenerated.
 - Verification passed: Meta SDK candidate npm registry checks, `CI=true pnpm install --prefer-offline`, all three Meta package tests, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`.
-- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-32-meta-messaging`, and title `[Integrations] Migrate Meta messaging providers to split packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/54.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/32#issuecomment-4762011276.
 
 #33 RCS/TikTok provider package lane:
@@ -176,7 +178,7 @@ First-wave PR handoff after branch owners committed:
 - The SDK decision record keeps both providers as constrained direct support slices: RCS SDK candidates were partial or singleton-shaped for the integration-kit contract, and no official/maintained TikTok Node SDK covered the mixed Display/Research/Business/webhook surface.
 - The old aggregate `packages/integrations/src/messaging/rcs` and `packages/integrations/src/social/tiktok` implementations/tests were removed, along with aggregate exports, catalog references, and aggregate build inputs.
 - Verification passed: lockfile reconciliation, both split package tests, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`.
-- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-33-rcs-tiktok`, and title `[Integrations] Migrate RCS and TikTok provider packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/55.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/33#issuecomment-4762026640.
 
 #34 review provider package lane:
@@ -188,7 +190,7 @@ First-wave PR handoff after branch owners committed:
 - The old aggregate `packages/integrations/src/review/{appstore,googleplay}` implementations/tests, generated full-provider clones, aggregate exports, catalog references, runtime loaders, and review build entry were removed.
 - `@cognidesk/integration-kit` now passes run-scoped credentials from `integration.run(..., context)` into operation handlers; #34 includes the contract test that protects this behavior.
 - Verification passed: both split review package tests/builds, integration-kit contract test, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`/`git diff --cached --check`.
-- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-34-review-sdk`, and title `[Integrations] Migrate review providers to split packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/56.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/34#issuecomment-4762048394.
 
 #35 helpdesk ticketing provider package lane:
@@ -199,7 +201,7 @@ First-wave PR handoff after branch owners committed:
 - The old aggregate `packages/integrations/src/ticketing/{zendesk,freshdesk,front,gorgias,help-scout,kustomer}` implementations/tests, generated full-provider clones, aggregate exports, catalog references, and aggregate build inputs were removed.
 - `docs/ticketing-sdk-first-workstream.md` records the SDK/library decisions and keeps #36/#37 as the next ticketing cohorts.
 - Verification passed: package tests/builds for all six split ticketing packages, `pnpm providers:catalog:data`, `pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`/`git diff --cached --check`.
-- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-35-helpdesk-ticketing-stack`, and title `[Integrations] Migrate helpdesk ticketing providers to split packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/57.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/35#issuecomment-4762083916.
 
 #36 CRM/platform ticketing provider package lane:
@@ -211,7 +213,7 @@ First-wave PR handoff after branch owners committed:
 - The old aggregate ticketing subpaths for these six providers were removed from `@cognidesk/integrations` exports/build entries. HubSpot/Intercom generated full-provider API clones and the old Salesforce direct aggregate slice were deleted from the monolith.
 - `scripts/generate-integration-catalog.ts` now discovers split packages before loading legacy aggregate references, so deleted aggregate source files are no longer required once a split provider owns the manifest.
 - Verification passed: workspace relink, catalog data/docs generation, shared test-harness build, all six split package tests/builds, architecture/conformance checks, scoped old-import codemod check, legacy aggregate build, targeted aggregate provider tests, UI/HTTP/React builds, package smoke/size budget checks, and `git diff --check`/`git diff --cached --check`.
-- Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-36-ticketing-platform-stack`, and title `[Integrations] Migrate CRM ticketing providers to split packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/58.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/36#issuecomment-4762197844.
 
 #37 enterprise service-cloud ticketing provider package lane:
@@ -226,7 +228,7 @@ First-wave PR handoff after branch owners committed:
 - `@cognidesk/integration-kit` now preserves manifest literal operation aliases from `defineIntegrationProviderPackage`, so split integrations keep typed `integration.run(...)` operation inputs.
 - `scripts/generate-integration-catalog.ts` now discovers split provider packages before importing legacy monolith sources, so deleted legacy source files do not block catalog generation.
 - Verification passed: workspace relink, catalog data/docs generation, shared test-harness build, all three split package tests/typechecks/builds, integration-kit and integration-catalog tests, architecture/conformance checks, scoped old-import codemod check, legacy aggregate build, targeted aggregate provider tests, UI/HTTP/React builds, release workspace tests, package smoke/size budget checks, npm registry SDK checks, and `git diff --check`/`git diff --cached --check`.
-- Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-37-oracle-pega-sap`, and title `[Integrations] Migrate enterprise ticketing providers to split packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/59.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/37#issuecomment-4762255607.
 
 #38 contact-center core provider package lane:
@@ -239,7 +241,7 @@ First-wave PR handoff after branch owners committed:
 - The old aggregate contact-center subpaths for Amazon Connect, Genesys Cloud, and RingCentral were removed from `@cognidesk/integrations` exports/build entries, provider catalog refs, runtime loaders, monolith tests, generator scripts, and generated full-API clone files.
 - Package naming fixtures were tightened away from stale `@cognidesk/integration-*` examples. Provider packages must use `@cognidesk/{category}-{provider}`; `@cognidesk/integration-kit` and `@cognidesk/integration-catalog` remain legitimate provider-neutral infrastructure packages.
 - Verification passed: `corepack pnpm` workspace relink, catalog data/docs generation, shared test-harness build, all three split package tests/typechecks/builds, integration-kit and integration-catalog tests, architecture/conformance checks, scoped old-import codemod check, full legacy aggregate build to an uncapped temp logfile, targeted aggregate provider tests, release workspace tests, package smoke/size budget checks, HTTP/React/UI builds, voice-openai and voice-websocket build/tests for the naming check, and `git diff --check`/`git diff --cached --check`.
-- Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-38-contact-center-sdk`, and title `[Integrations] Migrate contact-center core providers to SDK packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/60.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/38#issuecomment-4762294902.
 
 #39 contact-center long-tail provider package lane:
@@ -249,7 +251,7 @@ First-wave PR handoff after branch owners committed:
 - The branch removes the old long-tail monolith exports, runtime/catalog references, source directories, tests, obsolete generated-provider scripts, and generated full-provider clone surfaces for those nine providers. It intentionally leaves #38-owned Amazon Connect, Genesys Cloud, and RingCentral untouched except for the legacy RingCentral build-output fix required by aggregate tests while #38 remains separate.
 - Package names follow the ChatGPT/ADR rule `@cognidesk/{category}-{provider}` and no old-import bridge/shim/runtime resolver was added.
 - Verification passed: catalog data/docs generation, architecture, codemod, split package typecheck/test/build, provider package conformance, aggregate integrations build/tests, full repo build, release package smoke/size, version train, stable release, stale import guard, naming guard, and `git diff --check`.
-- Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-39-contact-center-sdk`, and title `[Integrations] Migrate long-tail contact-center providers to split packages`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/61.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/39#issuecomment-4762339756.
 
 #40 cloud speech/OpenAI voice provider package lane:
@@ -261,6 +263,7 @@ First-wave PR handoff after branch owners committed:
 - `@cognidesk/voice-websocket` remains in `packages/voice-websocket` intentionally because it is Cognidesk browser voice transport/session infrastructure, not an external Provider Integration. Do not move it to `integrations/voice/websocket` or count it as a provider package/catalog provider.
 - The old `packages/integrations/src/voice/openai` monolith path still exists intentionally until #40 import/codemod/application checks and #27 cleanup converge. Do not add a bridge/shim; delete the legacy subpath when the replacement is fully wired.
 - Verification passed: workspace relink, shared package builds, all four split voice package tests/builds, voice SDK-first migration guard, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, legacy aggregate `@cognidesk/integrations` build, focused voice package build, codemod import check, release package smoke/size checks, and `git diff --check`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/62.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762165439.
 - Follow-up package-naming/browser recheck comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762373256. The catalog docs now visibly show `Integration | OpenAI Realtime Voice Integration` next to `Package | @cognidesk/voice-openai`.
 
@@ -272,6 +275,7 @@ First-wave PR handoff after branch owners committed:
 - SDKs adopted where viable: `@deepgram/sdk`, `@elevenlabs/elevenlabs-js`, `twilio`, and `@vonage/server-sdk`.
 - `@cognidesk/voice-websocket` stayed infrastructure-only in `packages/voice-websocket`; it is not a provider package.
 - Verification passed: catalog/docs generation, architecture/conformance/codemod checks, split package typecheck/build/test, manifest/runtime import smokes, `pnpm build`, `pnpm test`, `pnpm providers:check`, release smoke/size, strict package naming scans, stale-reference scans, and diff checks.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/63.
 - PR/issue handoff comment: https://github.com/cognilabz/cognidesk/issues/41#issuecomment-4762376419.
 
 #42 video provider package lane:
@@ -282,6 +286,7 @@ First-wave PR handoff after branch owners committed:
 - The old aggregate video exports, source/tests, runtime loaders, provider refs, build entries, and generator scripts were removed. The only remaining old video import is the deliberate codemod fixture in `scripts/migrate-provider-imports.test.mjs`.
 - `@cognidesk/integration-kit` gets a narrow type-only return refinement for `defineIntegrationProviderPackage` so split package manifests preserve exact operation aliases through declaration generation.
 - Verification passed: video package tests/typechecks/builds, conformance, architecture, codemod, aggregate integrations build/tests, catalog/docs generation, release smoke/size, package naming scan, stale video path scan, and manifest/runtime import boundaries.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/64.
 - PR/issue handoff comment: https://github.com/cognilabz/cognidesk/issues/42#issuecomment-4762377897.
 
 #43 local/protocol provider package lane:
@@ -292,6 +297,7 @@ First-wave PR handoff after branch owners committed:
 - The old aggregate local/protocol subpaths and tests were removed from `@cognidesk/integrations` after replacement package tests/builds passed; no old-import bridges or compatibility shims were added.
 - Package-naming fixtures were tightened again so provider examples use `@cognidesk/{category}-{provider}` (`@cognidesk/email-gmail`, `@cognidesk/email-acme`, `@cognidesk/sms-acme`) instead of stale `@cognidesk/integration-*` names. `@cognidesk/integration-kit` and `@cognidesk/integration-catalog` remain legitimate provider-neutral infrastructure packages.
 - Verification passed: frozen install with linked workspace packages disabled, catalog data/docs generation, all five split package tests/typechecks/builds, architecture/conformance checks, scoped old-import codemod check, local/protocol migration doc guard, full `pnpm providers:check`, package version/release train checks, release workspace test, package smoke/size checks, direct dist import smoke for `.`/`./manifest`/`./runtime`, integration-kit tests, stale old-import and stale provider naming scans, and `git diff --check`/`git diff --cached --check`.
+- Draft PR: https://github.com/cognilabz/cognidesk/pull/65.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/43#issuecomment-4762332846.
 
 ChatGPT plan recheck:
@@ -303,9 +309,9 @@ ChatGPT plan recheck:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#27/#29/#30/#31/#32/#33/#34/#35/#36/#37/#38/#39/#40/#41/#42/#43 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#39/#40/#41/#42/#43 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
-3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
+1. Review draft PR #46 first; it establishes the foundation branch that all provider PRs use as base.
+2. Review provider/cleanup drafts #47-#65 against `codex/integrations-foundation-stack`. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#39/#40/#41/#42/#43 as final replacement patterns, and #31 as the staged-package example where legacy test parity still blocks deletion.
+3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before taking each provider PR out of draft.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Review #27's cleanup map after provider PRs are queued; do not delete the remaining legacy monolith surfaces until their replacement package branches are merged and the cleanup guardrails are green on the combined tree.
 6. After each provider package lands, verify package conformance, catalog replacement, explicit registration docs, and old monolith deletion for that provider.
