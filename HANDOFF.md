@@ -39,7 +39,7 @@ Finish the provider integration refactor so every existing integration is covere
 
 ## Thread Coordination State
 
-Provider-family threads #23-#43, #27, #28, and #44 were sent the `22fdbde` foundation update. They should rebase or merge `codex/integrations-foundation-stack` before continuing.
+Provider-family threads #23-#43, #27, #28, and #44 were sent the `22fdbde` foundation update. They should rebase or merge `codex/integrations-foundation-stack` before continuing. Threads #23, #24, #25, and #26 were also sent the `82d5e10` coordination handoff after the first-wave provider audit.
 
 #27 and #44 worktree thread creation has been flaky in Codex app state. Multiple create attempts returned pending worktrees and then appeared as `notLoaded`/system-error threads. Until a clean thread is available, preserve their work in GitHub issues and this handoff:
 
@@ -101,6 +101,14 @@ First-wave provider branch audit after `22fdbde`:
 - #25 `codex/integrations-25-chat-provider-packages`: `@cognidesk/workplace-slack` uses `@slack/web-api`; `@cognidesk/community-discord` uses `discord.js`; Slack/Discord tests, architecture, conformance, catalog data/docs, codemod check, legacy aggregate build, and package smoke/size budgets passed after fixing `packages/integrations` workplace build output to `dist/workplace/teams`.
 - #25 follow-up: `packages/integrations/package.json` is staged in that worktree with the build-output fix; the provider branch owner still needs to review, stage generated/docs changes, commit, push, and open review.
 
+Provider inventory ownership audit after `82d5e10`:
+
+- Exact `packages/integrations/src/{category}/{provider}/index.ts` inventory count is 63 provider directories.
+- `docs/provider-migration-matrix.md` has 63 provider rows: 23 `official-sdk`, 14 `generated-support-slice`, 20 `direct-http-support-slice`, 5 `local-protocol`, and 1 `delete-not-migrated`.
+- Matrix rows and current provider directories match exactly; no provider is missing from the migration matrix.
+- Issue-owned paths in #23-#25 plus #29-#43 cover all 63 providers once #25 is treated as owning both `workplace/slack` and `community/discord`.
+- #25's title/scope covers Slack and Discord, but its body lacks an explicit owned-path line for `packages/integrations/src/workplace/slack`. A body edit failed with GitHub `UpdateIssue` permission denial, so the correction is recorded in a #25 comment: https://github.com/cognilabz/cognidesk/issues/25#issuecomment-4761881426. No duplicate Slack issue is needed unless Slack and Discord are intentionally split into separate PR lanes later.
+
 Known caveat:
 
 - Full `pnpm providers:check` has previously reached architecture/typecheck/ESM build and then terminated with SIGTERM during the legacy monolith DTS build. A targeted `pnpm --filter @cognidesk/integrations build` passed during #28 guardrail verification, but the full aggregate command still needs a fresh end-to-end run before treating that caveat as resolved.
@@ -110,5 +118,6 @@ Known caveat:
 1. Have #23/#24/#25 owners review their dirty worktrees, stage generated/docs/package changes, commit, push, and open PRs or hand them back for finalization.
 2. Use #23/#24/#25 as the reference package patterns for #29-#43 provider-family migrations.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
-4. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
-5. After each provider package lands, verify package conformance, catalog replacement, explicit registration docs, and old monolith deletion for that provider.
+4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
+5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
+6. After each provider package lands, verify package conformance, catalog replacement, explicit registration docs, and old monolith deletion for that provider.
