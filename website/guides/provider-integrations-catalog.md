@@ -88,19 +88,17 @@ Evidence: [Discourse API docs](https://docs.discourse.org/); [Discourse webhook 
 | Runtime import | `@cognidesk/integration-contact-center-8x8/runtime` |
 | Workspace | `integrations/contact-center/8x8` |
 | Manifest ID | `contactCenter.8x8` |
-| Scope | `provider-api-subset` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json) |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `contact-center.call-control`, `update-provider-object` |
+| Capabilities | `handoff`, `send`, `update-provider-object`, `update-provider-object` |
 | Provider setup | required `8x8-contact-center-api-base`, `8x8-contact-center-api-access`; optional `8x8-contact-center-routing` |
 
-Coverage: Coverage includes generated per-operation functions for 11 official machine-readable 8x8 OpenAPI specs covering Contact Center Actions/Events, Chat Gateway, public Chat API variants, campaigns, Contact Center analytics, and QMSA.
+Coverage: No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.
 
-Boundary: 8x8 regional endpoints, queue/campaign IDs, contact flows, and outbound eligibility are SDK-user configuration.
-
-Evidence: [8x8 Contact Center Chat API V2 OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json); [8x8 Contact Center Dynamic Campaigns OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_dynamic_campaigns.json); [8x8 Contact Center Campaigns API OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_new_campaigns.json); [8x8 Chapi Chat API OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/chapi_-_chat_api.json); plus 25 more.
+Evidence: [8x8 Contact Center Call API OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json); [8x8 Contact Center Agent Status OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json).
 
 #### Aircall
 
@@ -119,11 +117,9 @@ Evidence: [8x8 Contact Center Chat API V2 OpenAPI](https://raw.githubusercontent
 | Capabilities | `handoff` |
 | Provider setup | required `aircall-api-base`, `aircall-api-access`; optional `aircall-routing` |
 
-Coverage: Coverage is limited to a constructor-configured SDK-owned Aircall workflow path and the documented Aircall `/v1/ping` readiness check; this is not typed outbound callback/call, message, webhook, or transfer coverage.
+Coverage: aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.
 
-Boundary: Aircall number ownership, callback workflows, routing, recording, transfer, messaging, webhook, and outbound consent remain SDK-user configuration.
-
-Evidence: [Aircall API References](https://developer.aircall.io/api-references/); [Aircall Webhooks Guide](https://developer.aircall.io/tutorials/webhooks-guide/); [Aircall SMS webhook tutorial](https://developer.aircall.io/tutorials/logging-sms-events-with-aircall-webhooks).
+Evidence: [Aircall API References](https://developer.aircall.io/api-references/); [Aircall Everywhere SDK](https://github.com/aircall/aircall-everywhere).
 
 #### Amazon Connect
 
@@ -165,11 +161,9 @@ Evidence: [AWS official API models for Amazon Connect family](https://github.com
 | Capabilities | `handoff` |
 | Provider setup | required `five9-api-base`, `five9-api-access`; optional `five9-routing` |
 
-Coverage: Coverage is limited to SDK-configured handoff and readiness request paths; this is not typed outbound dialing or transfer coverage.
+Coverage: No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.
 
-Boundary: Five9 domain, API product, skills, campaigns, CRM object mapping, and outbound eligibility are SDK-user configuration.
-
-Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/capabilities/call-center-apis-and-sdks); [Five9 development program](https://www.five9.com/development); [Five9 campaigns documentation](https://documentation.five9.com/bundle/studio-combo/page/studio-build/campaigns/_ch-studio-campaigns.htm).
+Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/capabilities/call-center-apis-and-sdks); [Five9 development program](https://www.five9.com/development).
 
 #### Genesys Cloud CX
 
@@ -206,16 +200,14 @@ Evidence: [Genesys Cloud Platform API Swagger](https://api.mypurecloud.com/api/v
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
-| Documentation | [https://all.docs.genesys.com/Developer/APIbyService](https://all.docs.genesys.com/Developer/APIbyService) |
+| Documentation | [https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI](https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `contact-center.on-prem-configured-handoff`, `send` |
+| Capabilities | `handoff`, `schedule`, `send`, `send` |
 | Provider setup | required `genesys-engage-gms-base-url`; optional `genesys-engage-auth`, `genesys-engage-routing` |
 
-Coverage: Coverage includes typed Genesys Mobile Services callback creation only, typed GMS Chat API v2 customer chat lifecycle/file operations, and SDK-configured REST handoff paths for deployment-specific Genesys Engage on-premises services.
+Coverage: No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.
 
-Boundary: Genesys Engage deployment topology, service names, chat version, routing targets, and authentication are SDK-user configuration.
-
-Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIbyService); [Genesys GMS Callback Services API](https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI); [Genesys GMS Chat API v2](https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2); [Genesys WebChatService](https://all.docs.genesys.com/WID/Current/GCAPI/WebChatService).
+Evidence: [Genesys GMS Callback Services API](https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI); [Genesys GMS Chat API v2](https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2).
 
 #### Genesys PureConnect / ICWS
 
@@ -229,16 +221,14 @@ Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIby
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
-| Documentation | [https://all.docs.genesys.com/Developer/APIbyService](https://all.docs.genesys.com/Developer/APIbyService) |
+| Documentation | [https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm](https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `contact-center.pureconnect-session` |
+| Capabilities | `handoff`, `create-provider-object`, `read-provider-object` |
 | Provider setup | required `genesys-pureconnect-icws-base-url`; optional `genesys-pureconnect-session`, `genesys-pureconnect-routing` |
 
-Coverage: Coverage introduces Genesys PureConnect as a separate deployment/provider mode from Genesys Cloud and Genesys Engage/GMS.
+Coverage: No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations.
 
-Boundary: PureConnect CIC topology, ICWS version, reverse proxy/base path, authentication, Interaction Web Tools handlers, chat forms, callback forms, and routing targets are SDK-user configuration.
-
-Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIbyService); [PureConnect ICWS connection](https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm); [PureConnect ICWS interactions](https://help.genesys.com/staging/developer/root/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm); [PureConnect ICWS messages](https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/%28sessionId%29/messaging/messages/index.htm); plus 3 more.
+Evidence: [PureConnect ICWS connection](https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm); [PureConnect ICWS interactions](https://help.genesys.com/staging/developer/root/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm).
 
 #### Nextiva Contact Center
 
@@ -254,14 +244,12 @@ Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIby
 | Implementation | `support-workflow-adapter` |
 | Documentation | [https://www.nextiva.com/resources/learn/rest-apis](https://www.nextiva.com/resources/learn/rest-apis) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `nextiva.request` |
-| Provider setup | required `nextiva-contact-center-api-base`, `nextiva-contact-center-api-access`; optional `nextiva-contact-center-authorities`, `nextiva-contact-center-routing` |
+| Capabilities | `handoff`, `read-provider-object` |
+| Provider setup | required `nextiva-contact-center-api-base`, `nextiva-contact-center-api-access`; optional `nextiva-contact-center-routing` |
 
-Coverage: Coverage is limited to SDK-configured handoff/readiness requests plus a generic authenticated request helper for SDK-user-owned Nextiva endpoints; this is not typed outbound or transfer coverage.
+Coverage: ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request.
 
-Boundary: Nextiva tenant endpoint, queue/campaign IDs, custom API object paths, and outbound eligibility are SDK-user configuration.
-
-Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/learn/rest-apis); [Nextiva User Service](https://developer.nextiva.com/nextiva/docs/user-service); [Nextiva ACD Service](https://developer.nextiva.com/nextiva/docs/acd-service); [Nextiva WorkItem Service](https://developer.nextiva.com/nextiva/docs/workitem-service); plus 2 more.
+Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/learn/rest-apis); [Nextiva WorkItem Service](https://developer.nextiva.com/nextiva/docs/workitem-service); [Nextiva ncx-sdk](https://github.com/Nextiva/ncx-sdk).
 
 #### NICE CXone
 
@@ -272,19 +260,17 @@ Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/l
 | Runtime import | `@cognidesk/integration-contact-center-nice-cxone/runtime` |
 | Workspace | `integrations/contact-center/nice-cxone` |
 | Manifest ID | `contactCenter.nice-cxone` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
+| Implementation | `support-workflow-adapter` |
 | Documentation | [https://developer.niceincontact.com/API](https://developer.niceincontact.com/API) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff` |
+| Capabilities | `handoff`, `schedule`, `send`, `update-provider-object`, `read-provider-object` |
 | Provider setup | required `nice-cxone-api-base`, `nice-cxone-api-access`; optional `nice-cxone-routing` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in NICE CXone's public OpenAPI catalog reachable from the official API documentation pages.
+Coverage: Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.
 
-Boundary: CXone API domains, business units, skills, points of contact, WFM/QM access, and outbound eligibility are SDK-user configuration.
-
-Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE CXone Patron API](https://developer.niceincontact.com/API/PatronAPI); [NICE CXone Agent API](https://developer.niceincontact.com/API/AgentAPI); [NICE CXone Digital Engagement API](https://developer.niceincontact.com/API/DigitalEngagementAPI); plus 4 more.
+Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE CXone Agent SDK](https://github.com/nice-devone/nice-cxone-agent-sdk).
 
 #### RingCentral RingCX
 
@@ -318,19 +304,17 @@ Evidence: [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-ap
 | Runtime import | `@cognidesk/integration-contact-center-talkdesk/runtime` |
 | Workspace | `integrations/contact-center/talkdesk` |
 | Manifest ID | `contactCenter.talkdesk` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
+| Implementation | `support-workflow-adapter` |
 | Documentation | [https://api-docs.talkdeskapp.com/public-api](https://api-docs.talkdeskapp.com/public-api) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `create-provider-object` |
+| Capabilities | `handoff`, `schedule`, `create-provider-object` |
 | Provider setup | required `talkdesk-api-root`, `talkdesk-api-access`; optional `talkdesk-routing` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Talkdesk's official public OpenAPI bundle.
+Coverage: No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation.
 
-Boundary: Talkdesk API access, scopes, localized API root, callback availability, and destination mapping are SDK-user configuration.
-
-Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/public-api); [Talkdesk API Endpoints](https://docs.talkdesk.com/reference/api-reference); [Talkdesk Contact Center API Overview](https://docs.talkdesk.com/docs/contact-center-overview); [Talkdesk Callback API](https://docs.talkdesk.com/docs/callback-api); plus 3 more.
+Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/public-api); [Talkdesk Callback API](https://docs.talkdesk.com/docs/callback-api).
 
 #### Zoom Contact Center
 
@@ -341,19 +325,17 @@ Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/publ
 | Runtime import | `@cognidesk/integration-contact-center-zoom/runtime` |
 | Workspace | `integrations/contact-center/zoom` |
 | Manifest ID | `contactCenter.zoom` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developers.zoom.us/docs/api/contact-center/](https://developers.zoom.us/docs/api/contact-center/) |
-| Directions | `inbound-only` |
-| Capabilities | `handoff` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json](https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `send`, `read-provider-object`, `read-provider-object` |
 | Provider setup | required `zoom-contact-center-account`, `zoom-contact-center-api-access`; optional `zoom-contact-center-routing` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Zoom's official Contact Center REST OpenAPI spec: all 312 operations across 176 paths.
+Coverage: @zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.
 
-Boundary: Zoom queues, channels, campaign setup, contact eligibility, and outbound policy are SDK-user configuration.
-
-Evidence: [Zoom Contact Center APIs](https://developers.zoom.us/docs/api/contact-center/); [Zoom Contact Center REST OpenAPI](https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json); [Zoom Contact Center Webhooks](https://developers.zoom.us/docs/api/contact-center/events/); [Zoom Contact Center Webhooks OpenAPI](https://developers.zoom.us/api-hub/contact-center/events/webhooks.json); plus 1 more.
+Evidence: [Zoom Contact Center REST OpenAPI](https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json); [Zoom Contact Center Webhooks OpenAPI](https://developers.zoom.us/api-hub/contact-center/events/webhooks.json); [Zoom Apps SDK](https://github.com/zoom/appssdk).
 
 ### Ecommerce
 

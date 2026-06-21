@@ -108,6 +108,16 @@ export type {
   IntegrationInstrumentationHooks,
 } from "./instrumentation.js";
 
+export {
+  providerJsonRequest,
+  providerRequestUrl,
+} from "./http.js";
+export type {
+  ProviderHttpMethod,
+  ProviderJsonRequestInput,
+  ProviderQueryValue,
+} from "./http.js";
+
 export type {
   CategoryDataSourceDeclaration,
   CategoryEventDeclaration,

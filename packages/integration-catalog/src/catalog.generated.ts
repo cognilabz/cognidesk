@@ -585,11 +585,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.8x8",
     "category": "contactCenter",
     "provider": "8x8",
-    "importPath": "@cognidesk/integrations/contact-center/8x8",
-    "modulePath": "./contact-center/8x8/index.js",
-    "manifestExport": "eightByEightContactCenterProviderManifest",
+    "importPath": "@cognidesk/contact-center-8x8/manifest",
+    "modulePath": "integrations/contact-center/8x8/src/manifest.js",
+    "manifestExport": "eightByEightProviderManifest",
     "name": "8x8 Contact Center",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-8x8",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -603,250 +603,114 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "8x8 Contact Center",
-      "summary": "Coverage includes generated per-operation functions for 11 official machine-readable 8x8 OpenAPI specs covering Contact Center Actions/Events, Chat Gateway, public Chat API variants, campaigns, Contact Center analytics, and QMSA.",
+      "summary": "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.",
       "tags": [
         "contactCenter",
         "8x8",
         "official",
-        "provider-api-subset"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create 8x8 handoff",
-        "description": "Creates SDK-configured 8x8 Contact Center support-workflow requests without implying typed case, queue, chat, or transfer coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "eightByEightConfiguredHandoff",
-            "label": "8x8 configured handoff request"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "send",
-        "label": "Create 8x8 outbound phone interaction",
-        "description": "Creates an agent-assigned outbound phone interaction with the documented 8x8 Call API.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "eightByEightCall",
-            "label": "8x8 Call Interaction"
+            "kind": "contact",
+            "label": "contact"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "contact-center.call-control",
-        "label": "Control 8x8 call interaction",
-        "description": "Ends or hangs up documented 8x8 call interactions and releases agent lines; this does not claim native transfer coverage.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "capability": "update-provider-object",
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "eightByEightCall",
-            "label": "8x8 Call Interaction"
+            "kind": "contact",
+            "label": "contact"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": true
+        "changesWorkflow": false,
+        "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Update 8x8 call metadata and agent status",
-        "description": "Updates documented transaction codes and selected agent status through 8x8 Contact Center APIs.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "eightByEightCall",
-            "label": "8x8 Call Interaction"
-          },
-          {
-            "kind": "eightByEightAgentStatus",
-            "label": "8x8 Agent Status"
+            "kind": "agent",
+            "label": "agent"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for 11 official machine-readable 8x8 OpenAPI specs covering Contact Center Actions/Events, Chat Gateway, public Chat API variants, campaigns, Contact Center analytics, and QMSA.",
-        "The generated slice covers 135 operations across 106 documented paths from the verified official specs; duplicate public Chat API variants are represented with spec-qualified operation UIDs.",
-        "This is not full 8x8 product coverage and does not claim CRM, legacy recordings/transcripts, event streaming, PDF-only, gated, support-portal-only, or prose-only surfaces without public machine-readable OpenAPI specs.",
-        "The generic handoff capability describes Cognidesk escalation intent only; native outbound/call-control behavior is exposed through separate typed provider-specific methods."
+        "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone."
       ],
       "evidence": [
-        {
-          "label": "8x8 Contact Center Chat API V2 OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json"
-        },
-        {
-          "label": "8x8 Contact Center Dynamic Campaigns OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_dynamic_campaigns.json"
-        },
-        {
-          "label": "8x8 Contact Center Campaigns API OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_new_campaigns.json"
-        },
-        {
-          "label": "8x8 Chapi Chat API OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/chapi_-_chat_api.json"
-        },
-        {
-          "label": "8x8 Contact Center Chat Gateway OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact-center-chat-gateway-v1.oas.yml"
-        },
         {
           "label": "8x8 Contact Center Call API OpenAPI",
           "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json"
         },
         {
-          "label": "8x8 Contact Center Agent Status API OpenAPI",
+          "label": "8x8 Contact Center Agent Status OpenAPI",
           "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json"
-        },
-        {
-          "label": "8x8 Analytics for Contact Center Historical Metrics OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/analytics/8x8_analytics_for_contact_center_historical_metrics_api.json"
-        },
-        {
-          "label": "8x8 Analytics for Contact Center Real-time Metrics OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/analytics/8x8_analytics_for_contact_center_real-time_metrics_api.json"
-        },
-        {
-          "label": "8x8 Quality Management and Speech Analytics OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/analytics/quality_management_and_speech_analytics_api.json"
-        },
-        {
-          "label": "8x8 Contact Center Chat API OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/contactcenter/8x8_contact_center_chat_api.json"
-        },
-        {
-          "label": "8x8 Contact Center Chat API V2 Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/8-x-8-contact-center-chat-api-v-2/"
-        },
-        {
-          "label": "8x8 Contact Center Dynamic Campaigns Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/8-x-8-contact-center-dynamic-campaigns/"
-        },
-        {
-          "label": "8x8 Contact Center Campaigns API Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/contact-center-campaigns-api/"
-        },
-        {
-          "label": "8x8 Contact Center Chat Gateway Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/contact-center-chat-gateway/"
-        },
-        {
-          "label": "8x8 Contact Center Call API Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/8-x-8-contact-center-call-api-reference/"
-        },
-        {
-          "label": "8x8 place phone call",
-          "url": "https://developer.8x8.com/actions-events/reference/place-phone-call/"
-        },
-        {
-          "label": "8x8 add transaction codes",
-          "url": "https://developer.8x8.com/actions-events/reference/add-transaction-codes/"
-        },
-        {
-          "label": "8x8 delete phone interaction",
-          "url": "https://developer.8x8.com/actions-events/reference/delete-phone-interaction/"
-        },
-        {
-          "label": "8x8 hang up agent handling interaction",
-          "url": "https://developer.8x8.com/actions-events/reference/hangup-agent-handling-interaction/"
-        },
-        {
-          "label": "8x8 hang up agent line",
-          "url": "https://developer.8x8.com/actions-events/reference/hangup-agent-line/"
-        },
-        {
-          "label": "8x8 hang up agent lines",
-          "url": "https://developer.8x8.com/actions-events/reference/hangup-agent-lines/"
-        },
-        {
-          "label": "8x8 set agent status",
-          "url": "https://developer.8x8.com/actions-events/reference/setagentstatus/"
-        },
-        {
-          "label": "8x8 Analytics for Contact Center Real-time Metrics API",
-          "url": "https://developer.8x8.com/analytics/reference/8-x-8-analytics-for-contact-center-real-time-metrics-api/"
-        },
-        {
-          "label": "8x8 Analytics for Contact Center Historical Metrics API",
-          "url": "https://developer.8x8.com/analytics/reference/8-x-8-analytics-for-contact-center-historical-metrics-api/"
-        },
-        {
-          "label": "8x8 Quality Management and Speech Analytics API",
-          "url": "https://developer.8x8.com/analytics/reference/quality-management-and-speech-analytics-api/"
-        },
-        {
-          "label": "8x8 Contact Center Chat API",
-          "url": "https://developer.8x8.com/contactcenter/docs/contact-center-chat/"
-        },
-        {
-          "label": "8x8 Contact Center Chat Gateway",
-          "url": "https://developer.8x8.com/actions-events/docs/chat-gateway/"
-        },
-        {
-          "label": "8x8 Contact Center API overview",
-          "url": "https://support-portal.8x8.com/helpcenter/viewArticle.html?c=1_40_53_58_7561_&d=7237bf9a-1600-4eb5-8dc4-f3a5fa5533f3&hl=en"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.agent.status.update"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
           "contactCenter.callback.schedule",
@@ -865,14 +729,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/8x8",
-      "providerModule": "./contact-center/8x8/index.js",
-      "manifestExport": "eightByEightContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/8x8/manifest.ts",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/contact-center-8x8",
+      "runtimePackage": "@cognidesk/contact-center-8x8",
+      "providerModule": "integrations/contact-center/8x8/src/manifest.js",
+      "manifestExport": "eightByEightProviderManifest",
+      "manifestSource": "integrations/contact-center/8x8/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json"
+      "documentationPath": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -894,13 +758,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "8x8-contact-center-api-access",
           "label": "8x8 Contact Center API access",
-          "description": "Endpoint-specific 8x8 API access configured by the SDK app; this package does not assume an OAuth scope for generic configured paths.",
           "scopes": [],
-          "required": true,
-          "metadata": {
-            "scopeKind": "mixed-auth-mode",
-            "privilegeGuidance": "8x8 APIs include OAuth-based Contact Center Chat/analytics access and bearer/API-key style access for other configured Contact Center endpoints."
-          }
+          "required": true
         },
         {
           "id": "8x8-contact-center-routing",
@@ -910,13 +769,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "8x8 handoffs can include customer identifiers, queue context, call/message metadata, and summaries.",
-      "8x8 API credentials stay server-side and Studio only receives readiness."
-    ],
-    "limitations": [
-      "8x8 regional endpoints, queue/campaign IDs, contact flows, and outbound eligibility are SDK-user configuration."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -924,63 +778,58 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "generatedVerifiedOpenApiOperations": "generated-per-operation-functions",
-        "generatedCallAndAgentStatusApiOperations": "generated-per-operation-functions",
-        "configuredHttpHandoff": "supported",
-        "outboundPhoneInteraction": "generated-slice-and-typed-helper",
-        "callControl": "generated-slice-and-typed-helpers",
-        "agentStatus": "generated-slice-and-typed-helpers",
-        "chat": "generated-per-operation-functions",
-        "chatGateway": "generated-per-operation-functions",
-        "chatHandoff": "generated-per-operation-functions",
-        "callback": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed",
-        "email": "not-covered",
-        "smsSocialDigital": "provider-supported-not-typed",
-        "campaigns": "generated-per-operation-functions",
-        "crm": "not-covered",
-        "recordings": "not-covered",
-        "webhooks": "generated-per-operation-functions",
-        "eventStreaming": "not-covered",
-        "realtimeMetrics": "generated-per-operation-functions",
-        "historicalMetrics": "generated-per-operation-functions",
-        "qualityManagementSpeechAnalytics": "generated-per-operation-functions",
-        "reporting": "generated-per-operation-functions"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "placePhoneCall",
+            "alias": "contactCenter.contact.start",
+            "method": "POST",
+            "path": "/tenants/{tenantId}/calls",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
+            "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
+          },
+          {
+            "id": "deletePhoneInteraction",
+            "alias": "contactCenter.contact.end",
+            "method": "DELETE",
+            "path": "/tenants/{tenantId}/calls/{interactionId}",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
+            "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
+          },
+          {
+            "id": "setagentstatus",
+            "alias": "contactCenter.agent.status.update",
+            "method": "PUT",
+            "path": "/tenants/{tenantId}/agentstatus/agents/{agentId}",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json",
+            "checksum": "sha256:89ba77f48f7a471fb21c34dfb0c7170c1a90b7ea08da8de65981049ade09c2ae"
+          }
+        ]
       },
-      "generatedProviderApiSlices": {
-        "verifiedOfficialOpenApi": {
-          "provider": "8x8-contact-center-actions-events-analytics-qmsa",
-          "verifiedAt": "2026-06-18",
-          "coverageArtifact": "docs/provider-coverage/8x8-contact-center-api-2026-06-18.operations.json",
-          "operationCatalogArtifact": "docs/provider-coverage/8x8-contact-center-api-2026-06-18.operations.json",
-          "functionCatalogArtifact": "docs/provider-coverage/8x8-contact-center-api-2026-06-18.functions.json",
-          "documentedSpecCount": 11,
-          "documentedPathCount": 106,
-          "documentedOperationCount": 135,
-          "implementedOperationCount": 135,
-          "generatedFunctionCount": 135
-        }
-      },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.agent.status.update"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
           "contactCenter.callback.schedule",
@@ -1003,11 +852,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.aircall",
     "category": "contactCenter",
     "provider": "aircall",
-    "importPath": "@cognidesk/integrations/contact-center/aircall",
-    "modulePath": "./contact-center/aircall/index.js",
-    "manifestExport": "aircallContactCenterProviderManifest",
+    "importPath": "@cognidesk/contact-center-aircall/manifest",
+    "modulePath": "integrations/contact-center/aircall/src/manifest.js",
+    "manifestExport": "aircallProviderManifest",
     "name": "Aircall",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-aircall",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -1021,7 +870,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Aircall",
-      "summary": "Coverage is limited to a constructor-configured SDK-owned Aircall workflow path and the documented Aircall `/v1/ping` readiness check; this is not typed outbound callback/call, message, webhook, or transfer coverage.",
+      "summary": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
       "tags": [
         "contactCenter",
         "aircall",
@@ -1032,32 +881,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Aircall handoff context",
-        "description": "POSTs SDK-configured human-handoff context to the SDK-owned Aircall workflow path chosen by the SDK app without claiming a native Aircall handoff endpoint or typed Aircall object coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "aircallConfiguredRequest",
-            "label": "Aircall Configured Request"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is limited to a constructor-configured SDK-owned Aircall workflow path and the documented Aircall `/v1/ping` readiness check; this is not typed outbound callback/call, message, webhook, or transfer coverage.",
-        "No official public OpenAPI/Swagger specification was found during the 2026-06-18 Aircall audit; the checked inventory is `docs/provider-coverage/aircall-public-api-2026-06-18.checked-inventory.json`, and the public HTML API reference is treated as official evidence but not as a generated full-provider proof.",
-        "The package does not implement the broader Aircall Public API for OAuth token exchange, users v1/v2, teams, calls, transfers, comments, tags, archive/unarchive, recording pause/resume/delete, dialer campaigns, numbers, SMS/MMS, WhatsApp, group messaging, contacts, company/integration resources, webhooks and webhook events, analytics exports, conversation intelligence, realtime transcription, call evaluations, or AI Voice Agent outbound calls."
+        "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls."
       ],
       "evidence": [
         {
@@ -1065,12 +906,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer.aircall.io/api-references/"
         },
         {
-          "label": "Aircall Webhooks Guide",
-          "url": "https://developer.aircall.io/tutorials/webhooks-guide/"
-        },
-        {
-          "label": "Aircall SMS webhook tutorial",
-          "url": "https://developer.aircall.io/tutorials/logging-sms-events-with-aircall-webhooks"
+          "label": "Aircall Everywhere SDK",
+          "url": "https://github.com/aircall/aircall-everywhere"
         }
       ]
     },
@@ -1082,14 +919,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -1114,12 +952,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/aircall",
-      "providerModule": "./contact-center/aircall/index.js",
-      "manifestExport": "aircallContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/aircall/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "sdkPackage": "@cognidesk/contact-center-aircall",
+      "runtimePackage": "@cognidesk/contact-center-aircall",
+      "providerModule": "integrations/contact-center/aircall/src/manifest.js",
+      "manifestExport": "aircallProviderManifest",
+      "manifestSource": "integrations/contact-center/aircall/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developer.aircall.io/api-references/"
     },
     "readiness": {
@@ -1142,14 +980,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "aircall-api-access",
           "label": "Aircall API access",
-          "scopes": [
-            "public_api"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "mixed-auth-mode",
-            "privilegeGuidance": "OAuth apps use the Aircall public_api scope; API ID/token credentials are governed by the Aircall account/API key permissions rather than OAuth scopes."
-          }
+          "scopes": [],
+          "required": true
         },
         {
           "id": "aircall-routing",
@@ -1159,14 +991,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Aircall records can include phone numbers, contacts, call metadata, tags, comments, and routing context.",
-      "Aircall API credentials stay server-side and Studio only sees readiness."
-    ],
-    "limitations": [
-      "Aircall number ownership, callback workflows, routing, recording, transfer, messaging, webhook, and outbound consent remain SDK-user configuration.",
-      "Per-conversation handoff calls cannot override the configured Aircall path; implement typed methods before enabling consequential Aircall actions such as transfer, outbound call, recording deletion, or message send."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -1174,58 +1000,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedInventoryArtifact": "docs/provider-coverage/aircall-public-api-2026-06-18.checked-inventory.json",
-      "checkedProviderSupportedNotTypedFamilies": 25,
-      "officialPublicOpenApiSpec": "not-found",
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "publicOpenApiSpec": "not-covered",
-        "publicHtmlApiReference": "provider-supported-not-typed",
-        "oauthTokenExchange": "provider-supported-not-typed",
-        "nativeInboundVoice": "provider-supported-not-typed",
-        "outboundCall": "provider-supported-not-typed",
-        "aiVoiceAgentOutboundCall": "provider-supported-not-typed",
-        "callback": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed",
-        "callComments": "provider-supported-not-typed",
-        "callTags": "provider-supported-not-typed",
-        "callArchive": "provider-supported-not-typed",
-        "callRecordingControls": "provider-supported-not-typed",
-        "messaging": "provider-supported-not-typed",
-        "smsAgentConversation": "provider-supported-not-typed",
-        "groupMessaging": "provider-supported-not-typed",
-        "whatsappAgentConversation": "provider-supported-not-typed",
-        "messageWebhooks": "provider-supported-not-typed",
-        "contacts": "provider-supported-not-typed",
-        "usersV1": "provider-supported-not-typed",
-        "usersV2": "provider-supported-not-typed",
-        "teams": "provider-supported-not-typed",
-        "numbers": "provider-supported-not-typed",
-        "dialerCampaigns": "provider-supported-not-typed",
-        "tags": "provider-supported-not-typed",
-        "companyAndIntegration": "provider-supported-not-typed",
-        "recordings": "provider-supported-not-typed",
-        "webhooks": "provider-supported-not-typed",
-        "webhookEvents": "provider-supported-not-typed",
-        "analyticsExports": "provider-supported-not-typed",
-        "conversationIntelligence": "provider-supported-not-typed",
-        "realtimeTranscription": "provider-supported-not-typed",
-        "callEvaluations": "provider-supported-not-typed"
+      "implementation": {
+        "implementationStrategy": "direct-http-support-slice",
+        "sdkDecision": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contactCenter.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -1637,11 +1442,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.five9",
     "category": "contactCenter",
     "provider": "five9",
-    "importPath": "@cognidesk/integrations/contact-center/five9",
-    "modulePath": "./contact-center/five9/index.js",
-    "manifestExport": "five9ContactCenterProviderManifest",
+    "importPath": "@cognidesk/contact-center-five9/manifest",
+    "modulePath": "integrations/contact-center/five9/src/manifest.js",
+    "manifestExport": "five9ProviderManifest",
     "name": "Five9",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-five9",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -1655,7 +1460,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Five9",
-      "summary": "Coverage is limited to SDK-configured handoff and readiness request paths; this is not typed outbound dialing or transfer coverage.",
+      "summary": "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
       "tags": [
         "contactCenter",
         "five9",
@@ -1666,32 +1471,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Five9 handoff",
-        "description": "POSTs to an SDK-configured Five9 support-workflow path without claiming typed contact, callback, CRM, campaign, outbound, or transfer coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "five9ConfiguredRequest",
-            "label": "Five9 Configured Request"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is limited to SDK-configured handoff and readiness request paths; this is not typed outbound dialing or transfer coverage.",
-        "No official public OpenAPI/Swagger inventory was found during the 2026-06-18 Five9 audit; the checked inventory is `docs/provider-coverage/five9-contact-center-api-2026-06-18.checked-inventory.json`, and detailed endpoint documentation appears to require Five9 developer-program or customer-doc access.",
-        "The package does not implement Five9's broader APIs for CTI Web Services, Configuration Web Services, Reporting Web Services, Statistics Web Services, Web2Campaign, CRM SDK, Web Connectors, agent, supervisor, administrator, campaigns, lists, recordings, skills, digital engagement, chat, email, SMS, social, video, or CRM objects."
+        "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented."
       ],
       "evidence": [
         {
@@ -1701,10 +1498,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Five9 development program",
           "url": "https://www.five9.com/development"
-        },
-        {
-          "label": "Five9 campaigns documentation",
-          "url": "https://documentation.five9.com/bundle/studio-combo/page/studio-build/campaigns/_ch-studio-campaigns.htm"
         }
       ]
     },
@@ -1716,14 +1509,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -1748,12 +1542,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/five9",
-      "providerModule": "./contact-center/five9/index.js",
-      "manifestExport": "five9ContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/five9/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "sdkPackage": "@cognidesk/contact-center-five9",
+      "runtimePackage": "@cognidesk/contact-center-five9",
+      "providerModule": "integrations/contact-center/five9/src/manifest.js",
+      "manifestExport": "five9ProviderManifest",
+      "manifestSource": "integrations/contact-center/five9/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://www.five9.com/products/capabilities/call-center-apis-and-sdks"
     },
     "readiness": {
@@ -1776,7 +1570,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "five9-api-access",
           "label": "Five9 API access",
-          "description": "Endpoint-specific Five9 API access configured by the SDK app; this package does not assume OAuth-style scope names for generic configured paths.",
           "scopes": [],
           "required": true
         },
@@ -1788,14 +1581,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Five9 handoffs can include phone numbers, CRM context, campaign membership, queue/skill metadata, and summaries.",
-      "Five9 credentials stay server-side and Studio receives only readiness."
-    ],
-    "limitations": [
-      "Five9 domain, API product, skills, campaigns, CRM object mapping, and outbound eligibility are SDK-user configuration.",
-      "Per-conversation handoff calls cannot override the configured Five9 path; implement typed methods before enabling consequential Five9 campaign, outbound, transfer, recording, or CRM actions."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -1803,49 +1590,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedInventoryArtifact": "docs/provider-coverage/five9-contact-center-api-2026-06-18.checked-inventory.json",
-      "checkedProviderSupportedNotTypedFamilies": 17,
-      "officialPublicOpenApiSpec": "not-found",
-      "officialPublicWebhookCatalog": "not-found",
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "publicOpenApiSpec": "not-covered",
-        "developerProgramDocs": "provider-supported-not-typed",
-        "ctiWebServices": "provider-supported-not-typed",
-        "configurationWebServices": "provider-supported-not-typed",
-        "reportingWebServices": "provider-supported-not-typed",
-        "statisticsWebServices": "provider-supported-not-typed",
-        "web2Campaign": "provider-supported-not-typed",
-        "crmSdk": "provider-supported-not-typed",
-        "webConnectors": "provider-supported-not-typed",
-        "nativeInboundVoice": "provider-supported-not-typed",
-        "outboundDialing": "provider-supported-not-typed",
-        "callback": "provider-supported-not-typed",
-        "chat": "provider-supported-not-typed",
-        "digitalEngagement": "provider-supported-not-typed",
-        "email": "provider-supported-not-typed",
-        "sms": "provider-supported-not-typed",
-        "socialMessaging": "provider-supported-not-typed",
-        "video": "provider-supported-not-typed",
-        "campaignActions": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed",
-        "crmObjects": "provider-supported-not-typed",
-        "recordings": "provider-supported-not-typed"
+      "implementation": {
+        "implementationStrategy": "direct-http-support-slice",
+        "sdkDecision": "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contactCenter.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -2210,11 +1985,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.genesys-engage",
     "category": "contactCenter",
     "provider": "genesys-engage",
-    "importPath": "@cognidesk/integrations/contact-center/genesys-engage",
-    "modulePath": "./contact-center/genesys-engage/index.js",
-    "manifestExport": "genesysEngageContactCenterProviderManifest",
+    "importPath": "@cognidesk/contact-center-genesys-engage/manifest",
+    "modulePath": "integrations/contact-center/genesys-engage/src/manifest.js",
+    "manifestExport": "genesysEngageProviderManifest",
     "name": "Genesys Engage / GMS",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-genesys-engage",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -2228,7 +2003,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Genesys Engage / GMS",
-      "summary": "Coverage includes typed Genesys Mobile Services callback creation only, typed GMS Chat API v2 customer chat lifecycle/file operations, and SDK-configured REST handoff paths for deployment-specific Genesys Engage on-premises services.",
+      "summary": "No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.",
       "tags": [
         "contactCenter",
         "genesys-engage",
@@ -2239,81 +2014,56 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Genesys Engage handoff",
-        "description": "Creates SDK-configured Genesys Engage/GMS callback, chat, or on-premises handoff requests.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "genesysEngageCallback",
-            "label": "Genesys Engage/GMS Callback"
-          },
-          {
-            "kind": "genesysEngageGmsChatV2",
-            "label": "Genesys Engage GMS Chat API v2 session"
-          },
-          {
-            "kind": "genesysEngageConfiguredChatHandoff",
-            "label": "Genesys Engage configured chat handoff"
-          },
-          {
-            "kind": "genesysEngageConfiguredCallbackHandoff",
-            "label": "Genesys Engage configured callback handoff"
-          },
-          {
-            "kind": "genesysEngageConfiguredHandoff",
-            "label": "Genesys Engage configured HTTP handoff"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "contact-center.on-prem-configured-handoff",
-        "label": "Create Genesys Engage configured on-prem handoff",
-        "description": "Creates SDK-configured Genesys Engage/GMS chat-adjacent, WebChatService-adjacent, or deployment-specific handoff requests without claiming typed chat session lifecycle coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "capability": "schedule",
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "genesysEngageConfiguredChatHandoff",
-            "label": "Genesys Engage configured chat handoff"
-          },
-          {
-            "kind": "genesysEngageConfiguredCallbackHandoff",
-            "label": "Genesys Engage configured callback handoff"
-          },
-          {
-            "kind": "genesysEngageConfiguredHandoff",
-            "label": "Genesys Engage configured HTTP handoff"
+            "kind": "callback",
+            "label": "callback"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": true
+        "changesWorkflow": false,
+        "extension": false
       },
       {
         "capability": "send",
-        "label": "Create on-prem callback request",
-        "description": "Submits a callback creation request to a configured Genesys Mobile Services callback service; broader callback lifecycle operations are not typed in this package.",
-        "audiences": [
-          "customer-facing"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "genesysEngageCallback",
-            "label": "Genesys Engage/GMS Callback"
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
           }
         ],
         "requiresCredential": true,
@@ -2326,17 +2076,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes typed Genesys Mobile Services callback creation only, typed GMS Chat API v2 customer chat lifecycle/file operations, and SDK-configured REST handoff paths for deployment-specific Genesys Engage on-premises services.",
-        "The package does not type the broader GMS Callback Services cancel, delete, reschedule, availability, query, queue-position, watermark, export, or callback-record operations.",
-        "GMS Chat API v2 methods cover the documented customer-facing request/send/typing/refresh/disconnect/push URL/nickname/custom notice/update data/read receipt/file endpoints. WebChatService, CometD, agent desktop participation, widget behavior, and broader on-premises APIs remain outside this typed surface.",
-        "The checked endpoint inventory is `docs/provider-coverage/genesys-engage-gms-api-2026-06-18.checked-inventory.json`; transfer and event delivery are provider-supported but not typed, while no GMS/WebChatService webhook subscription endpoint catalog was found in the checked official docs.",
-        "Genesys Engage on-premises exposes separate GMS Callback, Chat API, WebChatService, WebRTC, Interaction SDK, and Web Services surfaces; this package does not claim full on-prem API coverage."
+        "No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations."
       ],
       "evidence": [
-        {
-          "label": "Genesys APIs by Service",
-          "url": "https://all.docs.genesys.com/Developer/APIbyService"
-        },
         {
           "label": "Genesys GMS Callback Services API",
           "url": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI"
@@ -2344,10 +2086,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Genesys GMS Chat API v2",
           "url": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2"
-        },
-        {
-          "label": "Genesys WebChatService",
-          "url": "https://all.docs.genesys.com/WID/Current/GCAPI/WebChatService"
         }
       ]
     },
@@ -2359,22 +2097,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -2386,18 +2125,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "genesys-engage.chat.send"
+        ]
       }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/genesys-engage",
-      "providerModule": "./contact-center/genesys-engage/index.js",
-      "manifestExport": "genesysEngageContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/genesys-engage/manifest.ts",
+      "sdkPackage": "@cognidesk/contact-center-genesys-engage",
+      "runtimePackage": "@cognidesk/contact-center-genesys-engage",
+      "providerModule": "integrations/contact-center/genesys-engage/src/manifest.js",
+      "manifestExport": "genesysEngageProviderManifest",
+      "manifestSource": "integrations/contact-center/genesys-engage/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://all.docs.genesys.com/Developer/APIbyService"
+      "documentationPath": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -2430,15 +2171,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Genesys Engage handoffs can include phone numbers, chat-adjacent context or transcripts, routing targets, callback times, and user data configured by the SDK app.",
-      "On-premises credentials and network details stay server-side; Studio receives only configuration/readiness state."
-    ],
-    "limitations": [
-      "Genesys Engage deployment topology, service names, chat version, routing targets, and authentication are SDK-user configuration.",
-      "The generic handoff helper requires an explicit configured path because on-premises deployments commonly expose different GMS, Web Services, and widget integration endpoints.",
-      "WebChatService start/end/transcript/polling, GMS CometD, agent desktop participation, and widget behavior require deployment-specific typed support beyond the GMS Chat API v2 customer HTTP lifecycle exposed here."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -2446,50 +2180,61 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "deploymentMode": "genesys-engage-on-premises",
-      "checkedInventoryArtifact": "docs/provider-coverage/genesys-engage-gms-api-2026-06-18.checked-inventory.json",
-      "checkedEndpointEntries": 27,
-      "officialMachineReadableSpec": "not-found",
-      "checkedWebhookCatalog": "not-found-in-checked-gms-webchatservice-docs",
-      "channelCoverage": {
-        "callback": "typed-create-only",
-        "callbackLifecycle": "provider-supported-not-typed",
-        "configuredHttpHandoff": "supported",
-        "gmsChatV2": "typed-customer-lifecycle",
-        "gmsChatV2CometD": "provider-supported-not-typed",
-        "gmsChatV2Lifecycle": "typed-request-send-refresh-disconnect-read-receipt",
-        "gmsChatV2FileManagement": "typed-limits-upload-download-delete",
-        "webChatService": "provider-supported-configured-http-only",
-        "webChatServiceLifecycle": "provider-supported-not-typed",
-        "webChatServiceEvents": "provider-supported-not-typed",
-        "events": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed",
-        "webhooks": "not-covered",
-        "webRtc": "not-covered",
-        "interactionSdk": "not-covered"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "createCallback",
+            "alias": "contactCenter.callback.schedule",
+            "method": "POST",
+            "path": "/genesys/1/service/callback/{serviceName}",
+            "source": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI",
+            "checksum": "not-available-html-doc"
+          },
+          {
+            "id": "requestChat",
+            "alias": "contactCenter.contact.start",
+            "method": "POST",
+            "path": "/genesys/2/chat/{serviceName}",
+            "source": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
+            "checksum": "not-available-html-doc"
+          },
+          {
+            "id": "sendChatMessage",
+            "alias": "genesys-engage.chat.send",
+            "method": "POST",
+            "path": "/genesys/2/chat/{serviceName}/{chatId}/send",
+            "source": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
+            "checksum": "not-available-html-doc"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -2501,7 +2246,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "genesys-engage.chat.send"
+        ]
       }
     }
   },
@@ -2509,11 +2256,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.genesys-pureconnect",
     "category": "contactCenter",
     "provider": "genesys-pureconnect",
-    "importPath": "@cognidesk/integrations/contact-center/genesys-pureconnect",
-    "modulePath": "./contact-center/genesys-pureconnect/index.js",
-    "manifestExport": "genesysPureConnectContactCenterProviderManifest",
+    "importPath": "@cognidesk/contact-center-genesys-pureconnect/manifest",
+    "modulePath": "integrations/contact-center/genesys-pureconnect/src/manifest.js",
+    "manifestExport": "genesysPureConnectProviderManifest",
     "name": "Genesys PureConnect / ICWS",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-genesys-pureconnect",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -2527,7 +2274,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Genesys PureConnect / ICWS",
-      "summary": "Coverage introduces Genesys PureConnect as a separate deployment/provider mode from Genesys Cloud and Genesys Engage/GMS.",
+      "summary": "No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations.",
       "tags": [
         "contactCenter",
         "genesys-pureconnect",
@@ -2538,80 +2285,56 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create PureConnect configured handoff",
-        "description": "Creates SDK-configured PureConnect/ICWS or Interaction Web Tools handoff requests without claiming typed web chat, callback, or interaction-control lifecycle coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "genesysPureConnectConfiguredWebChatHandoff",
-            "label": "PureConnect configured web chat handoff"
-          },
-          {
-            "kind": "genesysPureConnectConfiguredCallbackHandoff",
-            "label": "PureConnect configured callback handoff"
-          },
-          {
-            "kind": "genesysPureConnectConfiguredHandoff",
-            "label": "PureConnect configured handoff"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "contact-center.pureconnect-session",
-        "label": "Create PureConnect ICWS session",
-        "description": "Creates a documented ICWS connection/session representation against `/icws/connection` and exposes session-scoped ICWS request helpers.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "genesysPureConnectIcwsConnection",
-            "label": "PureConnect ICWS connection"
-          },
-          {
-            "kind": "genesysPureConnectIcwsInteraction",
-            "label": "PureConnect ICWS interaction"
-          },
-          {
-            "kind": "genesysPureConnectIcwsMessagingSubscription",
-            "label": "PureConnect ICWS messaging subscription"
-          },
-          {
-            "kind": "genesysPureConnectIcwsRecording",
-            "label": "PureConnect ICWS recording"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
         "changesWorkflow": false,
-        "extension": true
+        "extension": false
+      },
+      {
+        "capability": "create-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage introduces Genesys PureConnect as a separate deployment/provider mode from Genesys Cloud and Genesys Engage/GMS.",
-        "Coverage includes a typed ICWS connection creation helper, session-aware ICWS request helpers, typed wrappers for selected documented interaction create/read/update/conference/consult endpoints, messaging message polling and interaction subscriptions, recording export URI, and configuration-user read endpoints, plus SDK-configured PureConnect handoff/readiness paths for deployment-specific Interaction Web Tools, web chat, or callback plumbing.",
-        "Readiness requires an SDK-configured GET path such as a deployment health endpoint or documented ICWS metadata endpoint; the package does not assume `GET /icws/connection` because the documented connection endpoint creates sessions with POST.",
-        "The checked endpoint inventory is `docs/provider-coverage/genesys-pureconnect-icws-api-2026-06-18.checked-inventory.json`; ICWS events are represented by message polling/EventSource and selected subscriptions, while no official webhook subscription endpoint catalog was found in the checked ICWS/Interaction Web Tools docs.",
-        "The package does not claim the full PureConnect ICWS API or Interaction Web Tools chat/callback lifecycle. Broader queue control, recordings beyond export URI, statistics beyond subscription transport, directory, status, and administration APIs remain outside this scoped surface unless called through the generic request helper."
+        "No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations."
       ],
       "evidence": [
-        {
-          "label": "Genesys APIs by Service",
-          "url": "https://all.docs.genesys.com/Developer/APIbyService"
-        },
         {
           "label": "PureConnect ICWS connection",
           "url": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm"
@@ -2619,22 +2342,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "PureConnect ICWS interactions",
           "url": "https://help.genesys.com/staging/developer/root/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm"
-        },
-        {
-          "label": "PureConnect ICWS messages",
-          "url": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/%28sessionId%29/messaging/messages/index.htm"
-        },
-        {
-          "label": "PureConnect ICWS recording export URI",
-          "url": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/%28sessionId%29/recordings/%28recordingId%29/export-uri/index.htm"
-        },
-        {
-          "label": "PureConnect Interaction Web Tools",
-          "url": "https://help.genesys.com/pureconnect/mergedprojects/wh_tr/mergedprojects/wh_tr_installation_and_configuration/desktop/interaction_web_tools.htm"
-        },
-        {
-          "label": "PureConnect chat features",
-          "url": "https://help.genesys.com/pureconnect/desktop/chat_features_landing.htm"
         }
       ]
     },
@@ -2646,14 +2353,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -2673,18 +2381,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "genesys-pureconnect.icws.connect",
+          "genesys-pureconnect.icws.request"
+        ]
       }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/genesys-pureconnect",
-      "providerModule": "./contact-center/genesys-pureconnect/index.js",
-      "manifestExport": "genesysPureConnectContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/genesys-pureconnect/manifest.ts",
+      "sdkPackage": "@cognidesk/contact-center-genesys-pureconnect",
+      "runtimePackage": "@cognidesk/contact-center-genesys-pureconnect",
+      "providerModule": "integrations/contact-center/genesys-pureconnect/src/manifest.js",
+      "manifestExport": "genesysPureConnectProviderManifest",
+      "manifestSource": "integrations/contact-center/genesys-pureconnect/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://all.docs.genesys.com/Developer/APIbyService"
+      "documentationPath": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -2717,15 +2428,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "PureConnect handoffs can include caller identifiers, callback/chat context, queue targets, transcript references, and deployment-specific user data.",
-      "PureConnect ICWS credentials, session IDs, and on-premises network details stay server-side; Studio receives only configuration/readiness state."
-    ],
-    "limitations": [
-      "PureConnect CIC topology, ICWS version, reverse proxy/base path, authentication, Interaction Web Tools handlers, chat forms, callback forms, and routing targets are SDK-user configuration.",
-      "Interaction Web Tools web chat and callback require deployment-specific web-server plumbing and routing configuration before they can be exposed to Cognidesk.",
-      "Interaction Web Tools web chat/callback widget lifecycle and high-level transfer policy remain deployment-specific; low-level ICWS paths can be called through the typed request helpers when the SDK user supplies the session, CSRF token, cookie, permissions, and payload."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -2733,48 +2437,45 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "deploymentMode": "genesys-pureconnect-icws",
-      "checkedInventoryArtifact": "docs/provider-coverage/genesys-pureconnect-icws-api-2026-06-18.checked-inventory.json",
-      "checkedEndpointEntries": 22,
-      "officialMachineReadableSpec": "not-found",
-      "checkedWebhookCatalog": "not-found-in-checked-icws-interaction-web-tools-docs",
-      "channelCoverage": {
-        "icwsConnection": "typed-create",
-        "icwsSessionRequest": "typed-generic-request",
-        "icwsInteractionSelectedActions": "typed-create-get-update-conference-consult",
-        "icwsInteractionSubscriptions": "typed-subscribe-unsubscribe",
-        "icwsMessagingMessages": "typed-poll-messages",
-        "icwsRecordingExportUri": "typed-read",
-        "icwsConfigurationUserRead": "typed-read",
-        "icwsDirectory": "provider-supported-not-typed",
-        "icwsStatistics": "provider-supported-not-typed",
-        "icwsStatus": "provider-supported-not-typed",
-        "icwsAdministration": "provider-supported-not-typed",
-        "configuredHttpHandoff": "supported",
-        "interactionWebToolsWebChat": "provider-supported-configured-http-only",
-        "interactionWebToolsCallback": "provider-supported-configured-http-only",
-        "interactionWebToolsChatLifecycle": "provider-supported-not-typed",
-        "interactionWebToolsCallbackLifecycle": "provider-supported-not-typed",
-        "pureConnectChatTransfer": "provider-supported-not-typed",
-        "interactionControl": "provider-supported-low-level-icws-request",
-        "typedTransfer": "not-covered",
-        "events": "provider-supported-not-typed",
-        "webhooks": "not-covered"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "createConnection",
+            "alias": "genesys-pureconnect.icws.connect",
+            "method": "POST",
+            "path": "/icws/connection",
+            "source": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm",
+            "checksum": "not-available-html-doc"
+          },
+          {
+            "id": "sessionRequest",
+            "alias": "genesys-pureconnect.icws.request",
+            "method": "GET",
+            "path": "host-configured-icws-session-path",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -2794,7 +2495,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "genesys-pureconnect.icws.connect",
+          "genesys-pureconnect.icws.request"
+        ]
       }
     }
   },
@@ -2802,11 +2506,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.nextiva",
     "category": "contactCenter",
     "provider": "nextiva",
-    "importPath": "@cognidesk/integrations/contact-center/nextiva",
-    "modulePath": "./contact-center/nextiva/index.js",
-    "manifestExport": "nextivaContactCenterProviderManifest",
+    "importPath": "@cognidesk/contact-center-nextiva/manifest",
+    "modulePath": "integrations/contact-center/nextiva/src/manifest.js",
+    "manifestExport": "nextivaProviderManifest",
     "name": "Nextiva Contact Center",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-nextiva",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -2820,7 +2524,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Nextiva Contact Center",
-      "summary": "Coverage is limited to SDK-configured handoff/readiness requests plus a generic authenticated request helper for SDK-user-owned Nextiva endpoints; this is not typed outbound or transfer coverage.",
+      "summary": "ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request.",
       "tags": [
         "contactCenter",
         "nextiva",
@@ -2831,53 +2535,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Nextiva handoff",
-        "description": "Creates SDK-configured Nextiva contact-center handoff requests.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "nextivaHandoff",
-            "label": "Nextiva Handoff"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "nextiva.request",
-        "label": "Call SDK-configured Nextiva endpoint",
-        "description": "Executes an SDK-user-configured authenticated Nextiva request helper without implying typed endpoint coverage; the host app must classify and gate mutating Nextiva actions.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "capability": "read-provider-object",
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "nextivaConfiguredRequest",
-            "label": "Nextiva Configured Request"
+            "kind": "contact",
+            "label": "contact"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": true,
+        "sideEffect": false,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": true
+        "changesWorkflow": false,
+        "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is limited to SDK-configured handoff/readiness requests plus a generic authenticated request helper for SDK-user-owned Nextiva endpoints; this is not typed outbound or transfer coverage.",
-        "No official public OpenAPI/Swagger inventory was found during the 2026-06-18 Nextiva audit; the checked inventory is `docs/provider-coverage/nextiva-contact-center-api-2026-06-18.checked-inventory.json`, and public docs describe service families and SDK methods rather than a complete generated operation catalog.",
-        "The generic request helper is not evidence of full Nextiva Contact Center API coverage; typed user/session/ACD services, queues, campaigns, users, workitems, call control, transfers to agent/inbox/external destinations, callbacks/callback administration, reports, recordings, conversations, email response, conference, DTMF, surveys, tenant authority/entity permissions, and channel APIs are not implemented here.",
-        "Configured Nextiva paths may perform arbitrary Nextiva-side mutations and must be classified, permission-gated, and policy-gated by the host SDK app before operators can trigger them."
+        "ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request."
       ],
       "evidence": [
         {
@@ -2885,24 +2575,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://www.nextiva.com/resources/learn/rest-apis"
         },
         {
-          "label": "Nextiva User Service",
-          "url": "https://developer.nextiva.com/nextiva/docs/user-service"
-        },
-        {
-          "label": "Nextiva ACD Service",
-          "url": "https://developer.nextiva.com/nextiva/docs/acd-service"
-        },
-        {
           "label": "Nextiva WorkItem Service",
           "url": "https://developer.nextiva.com/nextiva/docs/workitem-service"
         },
         {
-          "label": "Nextiva Conversation Service",
-          "url": "https://developer.nextiva.com/nextiva/docs/conversation-service"
-        },
-        {
-          "label": "Nextiva Contact Center Admin Guide",
-          "url": "https://www.nextiva.com/support/wp-content/uploads/sites/3/2024/06/NCC-Admin-Guide_v1.2.pdf"
+          "label": "Nextiva ncx-sdk",
+          "url": "https://github.com/Nextiva/ncx-sdk"
         }
       ]
     },
@@ -2914,14 +2592,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -2941,17 +2620,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "nextiva.request"
+        ]
       }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/nextiva",
-      "providerModule": "./contact-center/nextiva/index.js",
-      "manifestExport": "nextivaContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/nextiva/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "sdkPackage": "@cognidesk/contact-center-nextiva",
+      "runtimePackage": "@cognidesk/contact-center-nextiva",
+      "providerModule": "integrations/contact-center/nextiva/src/manifest.js",
+      "manifestExport": "nextivaProviderManifest",
+      "manifestSource": "integrations/contact-center/nextiva/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://www.nextiva.com/resources/learn/rest-apis"
     },
     "readiness": {
@@ -2962,7 +2643,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "nextiva-contact-center-api-access"
       ],
       "optionalCredentialIds": [
-        "nextiva-contact-center-authorities",
         "nextiva-contact-center-routing"
       ],
       "credentialRequirements": [
@@ -2975,20 +2655,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "nextiva-contact-center-api-access",
           "label": "Nextiva Contact Center API access",
-          "description": "Endpoint-specific Nextiva API access configured by the SDK app; this package does not assume an OAuth scope for generic configured paths.",
           "scopes": [],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-role-or-privilege-guidance",
-            "privilegeGuidance": "Nextiva Contact Center access is governed by tenant/API/SDK authority and configured entity/action permissions rather than a universal OAuth scope list."
-          }
-        },
-        {
-          "id": "nextiva-contact-center-authorities",
-          "label": "Nextiva action/entity permissions for configured paths",
-          "description": "Host-owned Nextiva permissions for configured workitem, callback, campaign, outbound, and transfer actions.",
-          "scopes": [],
-          "required": false
+          "required": true
         },
         {
           "id": "nextiva-contact-center-routing",
@@ -2998,16 +2666,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Nextiva handoffs can include customer identifiers, phone numbers, active workitems, queue metadata, and conversation summaries.",
-      "Nextiva API credentials stay server-side and Studio receives only readiness."
-    ],
-    "limitations": [
-      "Nextiva tenant endpoint, queue/campaign IDs, custom API object paths, and outbound eligibility are SDK-user configuration.",
-      "The generic request helper is an escape hatch for SDK-user-owned endpoints and does not satisfy typed handoff, send, or transfer coverage.",
-      "Per-conversation handoff calls cannot override the configured Nextiva handoff path; use the explicit `request()` helper for SDK-owned custom endpoints.",
-      "Nextiva callbacks/callback administration, workitem mutations, outbound dialing/messaging, campaign operations, call-control transfer, and authority/entity permissions are host-owned configuration and are not typed by this package."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -3015,45 +2675,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedInventoryArtifact": "docs/provider-coverage/nextiva-contact-center-api-2026-06-18.checked-inventory.json",
-      "checkedProviderSupportedNotTypedFamilies": 12,
-      "officialPublicOpenApiSpec": "not-found",
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "genericRequest": "sdk-owned-classified-endpoint",
-        "publicOpenApiSpec": "not-covered",
-        "publicServiceDocs": "provider-supported-not-typed",
-        "userSessionAcdService": "provider-supported-not-typed",
-        "acdOfferLifecycle": "provider-supported-not-typed",
-        "workItems": "provider-supported-not-typed",
-        "voiceWorkitems": "provider-supported-not-typed",
-        "chatWorkitems": "provider-supported-not-typed",
-        "emailWorkitems": "provider-supported-not-typed",
-        "workitemCallControl": "provider-supported-not-typed",
-        "workitemTransferAgentInboxExternal": "provider-supported-not-typed",
-        "workitemEmailResponse": "provider-supported-not-typed",
-        "conferenceRecordingDtmf": "provider-supported-not-typed",
-        "conversationFetchCreateSend": "provider-supported-not-typed",
-        "surveys": "provider-supported-not-typed",
-        "callbacks": "provider-supported-not-typed",
-        "outboundDialingMessaging": "provider-supported-not-typed",
-        "campaigns": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed"
+      "implementation": {
+        "implementationStrategy": "direct-http-support-slice",
+        "sdkDecision": "ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contactCenter.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -3073,7 +2725,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "nextiva.request"
+        ]
       }
     }
   },
@@ -3081,11 +2735,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.nice-cxone",
     "category": "contactCenter",
     "provider": "nice-cxone",
-    "importPath": "@cognidesk/integrations/contact-center/nice-cxone",
-    "modulePath": "./contact-center/nice-cxone/index.js",
-    "manifestExport": "niceCxoneContactCenterProviderManifest",
+    "importPath": "@cognidesk/contact-center-nice-cxone/manifest",
+    "modulePath": "integrations/contact-center/nice-cxone/src/manifest.js",
+    "manifestExport": "niceCxoneProviderManifest",
     "name": "NICE CXone",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-nice-cxone",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -3099,43 +2753,95 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "NICE CXone",
-      "summary": "Coverage includes generated per-operation functions for every operation in NICE CXone's public OpenAPI catalog reachable from the official API documentation pages.",
+      "summary": "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.",
       "tags": [
         "contactCenter",
         "nice-cxone",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create NICE CXone handoff",
-        "description": "Creates SDK-configured NICE CXone support-workflow requests; generated public OpenAPI functions are available separately for provider-native Patron, Agent, Digital Engagement, and administrative actions.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "niceCxoneConfiguredRequest",
-            "label": "NICE CXone configured request"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "schedule",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "callback",
+            "label": "callback"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "update-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in NICE CXone's public OpenAPI catalog reachable from the official API documentation pages.",
-        "Generated functions cover Admin, Agent, Patron, Real-Time Data, Reporting, Data Extraction, Media Playback, Digital Engagement, Business Data, WFM, Recording, Interaction Analytics, Privacy, Data Policy, Authentication, and UserHub/CXone APIs.",
-        "Typed convenience helpers remain available for SDK-configured handoff and readiness paths; SDK users still own business unit routing, OAuth/token permissions, product entitlements, regional API roots, and payload policy."
+        "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice."
       ],
       "evidence": [
         {
@@ -3143,59 +2849,36 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer.niceincontact.com/API"
         },
         {
-          "label": "NICE CXone Patron API",
-          "url": "https://developer.niceincontact.com/API/PatronAPI"
-        },
-        {
-          "label": "NICE CXone Agent API",
-          "url": "https://developer.niceincontact.com/API/AgentAPI"
-        },
-        {
-          "label": "NICE CXone Digital Engagement API",
-          "url": "https://developer.niceincontact.com/API/DigitalEngagementAPI"
-        },
-        {
-          "label": "NICE CXone Admin API",
-          "url": "https://developer.niceincontact.com/API/AdminAPI"
-        },
-        {
-          "label": "NICE CXone Reporting API",
-          "url": "https://developer.niceincontact.com/API/ReportingAPI"
-        },
-        {
-          "label": "NICE CXone Media Playback API",
-          "url": "https://developer.niceincontact.com/API/MediaPlaybackAPI"
-        },
-        {
-          "label": "NICE CXone Recording API",
-          "url": "https://developer.niceincontact.com/API/RecordingAPI"
+          "label": "NICE CXone Agent SDK",
+          "url": "https://github.com/nice-devone/nice-cxone-agent-sdk"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -3207,17 +2890,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "nice-cxone.request"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/nice-cxone",
-      "providerModule": "./contact-center/nice-cxone/index.js",
-      "manifestExport": "niceCxoneContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/nice-cxone/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/contact-center-nice-cxone",
+      "runtimePackage": "@cognidesk/contact-center-nice-cxone",
+      "providerModule": "integrations/contact-center/nice-cxone/src/manifest.js",
+      "manifestExport": "niceCxoneProviderManifest",
+      "manifestSource": "integrations/contact-center/nice-cxone/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developer.niceincontact.com/API"
     },
     "readiness": {
@@ -3240,7 +2925,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "nice-cxone-api-access",
           "label": "NICE CXone API access",
-          "description": "Endpoint-specific NICE CXone API token/permissions configured by the SDK app; generated functions expose the public OpenAPI catalog, while entitlements remain tenant/configuration-specific.",
           "scopes": [],
           "required": true
         },
@@ -3252,15 +2936,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "NICE CXone handoffs can include customer identifiers, phone numbers, skill routing, summaries, and analytics metadata.",
-      "CXone credentials stay server-side and Studio receives only readiness."
-    ],
-    "limitations": [
-      "CXone API domains, business units, skills, points of contact, WFM/QM access, and outbound eligibility are SDK-user configuration.",
-      "Generated functions expose NICE CXone's public OpenAPI catalog, but API availability still depends on the SDK user's region, tenant, products, business unit, skills, security profile, scopes, and feature entitlements.",
-      "Per-conversation handoff calls cannot override the configured NICE CXone path; use the generated public OpenAPI functions for consequential Patron, Agent, Digital Engagement, outbound, transfer, recording, or analytics actions."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -3268,64 +2945,61 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "fullPublicApiOperations": "generated-per-operation-functions",
-        "patronCallback": "generated-full-surface",
-        "patronLiveChat": "generated-full-surface",
-        "patronWorkItem": "generated-full-surface",
-        "digitalEngagement": "generated-full-surface",
-        "agentPhoneChatEmailSmsWorkItems": "generated-full-surface",
-        "agentStatus": "generated-full-surface",
-        "email": "generated-full-surface",
-        "sms": "generated-full-surface",
-        "outboundDialing": "generated-full-surface",
-        "transfer": "generated-full-surface-where-present-in-public-openapi",
-        "recordingMediaPlayback": "generated-full-surface",
-        "recordings": "generated-full-surface",
-        "realtimeReportingDataExtraction": "generated-full-surface",
-        "realtimeMetrics": "generated-full-surface",
-        "reporting": "generated-full-surface",
-        "dataExtraction": "generated-full-surface",
-        "adminSkillAgentObjects": "generated-full-surface",
-        "events": "generated-full-surface-where-present-in-public-openapi"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "scheduleACallback",
+            "alias": "contactCenter.callback.schedule",
+            "method": "POST",
+            "path": "/promise",
+            "source": "https://developer.niceincontact.com/content/apis/patron/patron-callback-api-docs",
+            "checksum": "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+          },
+          {
+            "id": "startChatSession",
+            "alias": "contactCenter.contact.start",
+            "method": "POST",
+            "path": "/contacts/chats",
+            "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
+            "checksum": "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+          },
+          {
+            "id": "endChat",
+            "alias": "contactCenter.contact.end",
+            "method": "DELETE",
+            "path": "/contacts/chats/{chatSession}",
+            "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
+            "checksum": "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+          }
+        ]
       },
-      "fullProviderApiVerification": {
-        "provider": "nice-cxone-public-openapi",
-        "apiVersion": "nice-cxone-public-openapi-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/nice-cxone-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/nice-cxone-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/nice-cxone-full-api-2026-06-18.functions.json",
-        "documentedSpecCount": 68,
-        "documentedPathCount": 484,
-        "documentedOperationCount": 618,
-        "implementedOperationCount": 618,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 618
-      },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -3337,7 +3011,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "nice-cxone.request"
+        ]
       }
     }
   },
@@ -3631,11 +3307,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.talkdesk",
     "category": "contactCenter",
     "provider": "talkdesk",
-    "importPath": "@cognidesk/integrations/contact-center/talkdesk",
-    "modulePath": "./contact-center/talkdesk/index.js",
-    "manifestExport": "talkdeskContactCenterProviderManifest",
+    "importPath": "@cognidesk/contact-center-talkdesk/manifest",
+    "modulePath": "integrations/contact-center/talkdesk/src/manifest.js",
+    "manifestExport": "talkdeskProviderManifest",
     "name": "Talkdesk",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-talkdesk",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -3649,47 +3325,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Talkdesk",
-      "summary": "Coverage includes generated per-operation functions for every operation in Talkdesk's official public OpenAPI bundle.",
+      "summary": "No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation.",
       "tags": [
         "contactCenter",
         "talkdesk",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Talkdesk handoff",
-        "description": "Creates SDK-configured Talkdesk support-workflow requests, typed direct-callback requests, or caller-supplied case creation requests without implying Digital Connect conversation or transfer support.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "talkdeskHandoff",
-            "label": "Talkdesk Handoff"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "send",
-        "label": "Request outbound callback",
-        "description": "Creates documented Talkdesk direct callback requests only when the configured Talkdesk account and SDK policy allow it.",
-        "audiences": [
-          "customer-facing"
-        ],
+        "capability": "schedule",
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "talkdeskCallback",
-            "label": "Talkdesk Callback"
+            "kind": "callback",
+            "label": "callback"
           }
         ],
         "requiresCredential": true,
@@ -3700,32 +3366,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "create-provider-object",
-        "label": "Create Talkdesk cases",
-        "description": "Creates Talkdesk Case API cases through the documented `/cm/core/va/cases` endpoint with SDK-user-supplied payloads.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "talkdeskCase",
-            "label": "Talkdesk Case"
+            "kind": "contactCenterTask",
+            "label": "contactCenterTask"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Talkdesk's official public OpenAPI bundle.",
-        "Typed convenience helpers remain available for the documented Talkdesk direct callback endpoint, a case creation request helper with caller-supplied payload, SDK-configured handoff/readiness paths, and OAuth bearer authentication.",
-        "Generated functions cover Talkdesk's broader APIs for Digital Connect conversations/messages, users, contacts, calls, recordings, reports, attributes, campaigns, queues, flows, record lists, prompts, WFM, advanced dialer objects, and FSI surfaces; SDK users still own OAuth scopes, regional API roots, feature entitlements, and payload policy."
+        "No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation."
       ],
       "evidence": [
         {
@@ -3733,55 +3391,36 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://api-docs.talkdeskapp.com/public-api"
         },
         {
-          "label": "Talkdesk API Endpoints",
-          "url": "https://docs.talkdesk.com/reference/api-reference"
-        },
-        {
-          "label": "Talkdesk Contact Center API Overview",
-          "url": "https://docs.talkdesk.com/docs/contact-center-overview"
-        },
-        {
           "label": "Talkdesk Callback API",
           "url": "https://docs.talkdesk.com/docs/callback-api"
-        },
-        {
-          "label": "Talkdesk New Direct Callback",
-          "url": "https://docs.talkdesk.com/reference/callscallback"
-        },
-        {
-          "label": "Talkdesk Create a New Case",
-          "url": "https://docs.talkdesk.com/reference/create-a-new-case"
-        },
-        {
-          "label": "Talkdesk Digital Connect API",
-          "url": "https://docs.talkdesk.com/docs/digital-connect-api"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.task.create",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
-          "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -3797,13 +3436,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/talkdesk",
-      "providerModule": "./contact-center/talkdesk/index.js",
-      "manifestExport": "talkdeskContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/talkdesk/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/contact-center-talkdesk",
+      "runtimePackage": "@cognidesk/contact-center-talkdesk",
+      "providerModule": "integrations/contact-center/talkdesk/src/manifest.js",
+      "manifestExport": "talkdeskProviderManifest",
+      "manifestSource": "integrations/contact-center/talkdesk/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://api-docs.talkdeskapp.com/public-api"
     },
     "readiness": {
@@ -3826,14 +3465,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "talkdesk-api-access",
           "label": "Talkdesk OAuth access",
-          "scopes": [
-            "callback:write",
-            "cases-public:write"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-oauth-scopes"
-          }
+          "scopes": [],
+          "required": true
         },
         {
           "id": "talkdesk-routing",
@@ -3843,16 +3476,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Talkdesk handoffs can include caller identity, phone numbers, notes, cases, and queue assignment metadata.",
-      "Talkdesk OAuth credentials stay server-side and Studio receives readiness only."
-    ],
-    "limitations": [
-      "Talkdesk API access, scopes, localized API root, callback availability, and destination mapping are SDK-user configuration.",
-      "The package accepts SDK-supplied paths so customers can target the Talkdesk API surface enabled for their account.",
-      "Generated functions expose Talkdesk Digital Connect, Contacts, FSI, and transfer operations where present in the public OpenAPI bundle; SDK users still own scopes, entitlement, and payload policy.",
-      "Typed convenience helpers are intentionally limited to direct callback, case creation, configured handoff, and readiness."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -3860,51 +3485,53 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "directCallback": "typed-create",
-        "caseCreation": "typed-helper",
-        "fullPublicApiOperations": "generated-per-operation-functions",
-        "digitalConnectConversations": "generated-full-surface",
-        "digitalConnectMessages": "generated-full-surface",
-        "transfer": "generated-full-surface-where-present-in-public-openapi",
-        "smsSocialDigital": "generated-full-surface-where-present-in-public-openapi"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "calls-callback-post",
+            "alias": "contactCenter.callback.schedule",
+            "method": "POST",
+            "path": "/calls/callback",
+            "source": "https://api-docs.talkdeskapp.com/public-api",
+            "checksum": "sha256:aa27c72eff1b281fdebab70da85cb4cd30f98c37dd0465207f7bab00438be491"
+          },
+          {
+            "id": "CreatingACase",
+            "alias": "contactCenter.task.create",
+            "method": "POST",
+            "path": "/cm/core/va/cases",
+            "source": "https://api-docs.talkdeskapp.com/public-api",
+            "checksum": "sha256:aa27c72eff1b281fdebab70da85cb4cd30f98c37dd0465207f7bab00438be491"
+          }
+        ]
       },
-      "fullProviderApiVerification": {
-        "provider": "talkdesk",
-        "apiVersion": "1.0.0",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/talkdesk-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/talkdesk-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/talkdesk-full-api-2026-06-17.functions.json",
-        "documentedPathCount": 416,
-        "documentedOperationCount": 515,
-        "implementedOperationCount": 515,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 515
-      },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.task.create",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
-          "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -3924,14 +3551,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.zoom",
     "category": "contactCenter",
     "provider": "zoom",
-    "importPath": "@cognidesk/integrations/contact-center/zoom",
-    "modulePath": "./contact-center/zoom/index.js",
+    "importPath": "@cognidesk/contact-center-zoom/manifest",
+    "modulePath": "integrations/contact-center/zoom/src/manifest.js",
     "manifestExport": "zoomContactCenterProviderManifest",
     "name": "Zoom Contact Center",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/contact-center-zoom",
     "trustLevel": "official",
     "directions": [
-      "inbound-only"
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
     ],
     "channelAudiences": [
       "customer-facing",
@@ -3940,85 +3569,114 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Zoom Contact Center",
-      "summary": "Coverage includes generated per-operation functions for every operation in Zoom's official Contact Center REST OpenAPI spec: all 312 operations across 176 paths.",
+      "summary": "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.",
       "tags": [
         "contactCenter",
         "zoom",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Zoom Contact Center handoff",
-        "description": "Creates SDK-configured Zoom Contact Center support-workflow requests without implying typed engagement transfer, scheduled callback, or outbound campaign support.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "zoomContactCenterHandoff",
-            "label": "Zoom Contact Center Handoff"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Zoom's official Contact Center REST OpenAPI spec: all 312 operations across 176 paths.",
-        "Coverage also includes a generated catalog for all 124 Zoom Contact Center webhook event entries in the official Contact Center webhook OpenAPI spec.",
-        "Typed configured-handoff and readiness helpers remain available, but native Zoom scheduled callback, engagement transfer, campaigns, messaging/SMS, queues, users, recordings, reports, settings, and other Contact Center families are now callable through generated fullApi functions.",
-        "Zoom Contact Center documents granular OAuth scopes per endpoint; SDK users still own app scope selection, tenant entitlement, routing policy, outbound policy, event subscription setup, and webhook verification/ingestion infrastructure."
+        "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations."
       ],
       "evidence": [
         {
-          "label": "Zoom Contact Center APIs",
-          "url": "https://developers.zoom.us/docs/api/contact-center/"
-        },
-        {
           "label": "Zoom Contact Center REST OpenAPI",
           "url": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json"
-        },
-        {
-          "label": "Zoom Contact Center Webhooks",
-          "url": "https://developers.zoom.us/docs/api/contact-center/events/"
         },
         {
           "label": "Zoom Contact Center Webhooks OpenAPI",
           "url": "https://developers.zoom.us/api-hub/contact-center/events/webhooks.json"
         },
         {
-          "label": "Zoom API Reference",
-          "url": "https://developers.zoom.us/docs/api/"
+          "label": "Zoom Apps SDK",
+          "url": "https://github.com/zoom/appssdk"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "contactCenter.contact.read",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start"
+        ],
+        "missingRequiredOperations": [
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
@@ -4037,18 +3695,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "zoom.request"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/zoom",
-      "providerModule": "./contact-center/zoom/index.js",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/contact-center-zoom",
+      "runtimePackage": "@cognidesk/contact-center-zoom",
+      "providerModule": "integrations/contact-center/zoom/src/manifest.js",
       "manifestExport": "zoomContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/zoom/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developers.zoom.us/docs/api/contact-center/"
+      "manifestSource": "integrations/contact-center/zoom/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -4070,14 +3730,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "zoom-contact-center-api-access",
           "label": "Zoom OAuth access",
-          "description": "OAuth access for the configured Zoom Contact Center endpoints; default readiness uses the queue-read scope.",
-          "scopes": [
-            "contact_center_queue:read:admin"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-oauth-scopes"
-          }
+          "scopes": [],
+          "required": true
         },
         {
           "id": "zoom-contact-center-routing",
@@ -4087,15 +3741,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Zoom Contact Center handoffs can include customer identity, phone/email/message metadata, summaries, and queue routing context.",
-      "Zoom OAuth credentials stay server-side and Studio only receives readiness."
-    ],
-    "limitations": [
-      "Zoom queues, channels, campaign setup, contact eligibility, and outbound policy are SDK-user configuration.",
-      "Generated functions expose the documented REST endpoints but do not decide which mutating operations are safe for a given tenant, channel, queue, or operator role.",
-      "The generated webhook catalog names documented event entries; event subscription lifecycle, endpoint verification, replay handling, and signature policy remain SDK-user infrastructure."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -4103,53 +3750,46 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullRestApiOperations": "generated-per-operation-functions",
-        "webhookEventCatalog": "generated-per-operation-functions",
-        "configuredHttpHandoff": "supported",
-        "scheduledCallback": "generated-per-operation-functions",
-        "engagementTransfer": "generated-per-operation-functions",
-        "outboundCampaigns": "generated-per-operation-functions",
-        "taskCoverage": "generated-per-operation-functions",
-        "nativeVoice": "generated-per-operation-functions",
-        "nativeVideo": "generated-per-operation-functions",
-        "nativeMessaging": "generated-per-operation-functions",
-        "nativeChat": "generated-per-operation-functions",
-        "nativeSms": "generated-per-operation-functions",
-        "nativeInAppChat": "generated-per-operation-functions",
-        "nativeEmail": "generated-per-operation-functions",
-        "nativeWorkItem": "generated-per-operation-functions",
-        "webhooksEvents": "generated-per-operation-functions"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "Startworkitemengagement",
+            "alias": "contactCenter.contact.start",
+            "method": "POST",
+            "path": "/contact_center/engagement",
+            "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
+            "checksum": "sha256:56456cf010ca13ab7edefa0212372d191e10192dfd4cd8f0c5ffb50fa5d2c1c7"
+          },
+          {
+            "id": "getEngagement",
+            "alias": "contactCenter.contact.read",
+            "method": "GET",
+            "path": "/contact_center/engagements/{engagementId}",
+            "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
+            "checksum": "sha256:56456cf010ca13ab7edefa0212372d191e10192dfd4cd8f0c5ffb50fa5d2c1c7"
+          }
+        ]
       },
-      "fullProviderApiVerification": {
-        "provider": "zoom-contact-center-rest",
-        "apiVersion": "2",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/zoom-contact-center-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/zoom-contact-center-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/zoom-contact-center-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 176,
-        "documentedOperationCount": 312,
-        "implementedOperationCount": 312,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 312,
-        "webhookEventCount": 124
-      },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "contactCenter.contact.read",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start"
+        ],
+        "missingRequiredOperations": [
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
@@ -4168,7 +3808,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "zoom.request"
+        ]
       }
     }
   },

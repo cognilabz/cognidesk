@@ -64,9 +64,11 @@ const knownImplementationStrategies = new Set<IntegrationImplementationStrategy>
   "local-protocol",
 ]);
 
+const splitEntries = await discoverSplitProviderEntries();
+const splitIds = new Set(splitEntries.map((entry) => entry.id));
 const legacyEntries: IntegrationCatalogEntry[] = [];
 
-for (const reference of integrationProviderReferences) {
+for (const reference of integrationProviderReferences.filter((reference) => !splitIds.has(reference.id))) {
   const source = resolveManifestSource(reference);
   const manifest = await loadManifestExport(reference, source);
   if (!manifest) {
@@ -75,12 +77,7 @@ for (const reference of integrationProviderReferences) {
   legacyEntries.push(toCatalogEntry(reference, manifest, source));
 }
 
-const splitEntries = await discoverSplitProviderEntries();
-const splitIds = new Set(splitEntries.map((entry) => entry.id));
-const entries = [
-  ...legacyEntries.filter((entry) => !splitIds.has(entry.id)),
-  ...splitEntries,
-];
+const entries = [...legacyEntries, ...splitEntries];
 assertUniqueCatalogEntryIds(entries);
 entries.sort(compareEntries);
 

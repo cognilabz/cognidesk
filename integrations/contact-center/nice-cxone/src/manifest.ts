@@ -1,0 +1,78 @@
+import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
+
+export const niceCxoneSupportSlice = {
+  implementationStrategy: "generated-support-slice",
+  sdkDecision: "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.",
+  verifiedAt: "2026-06-21",
+  allowedOperations: [
+  {
+    id: "scheduleACallback",
+    alias: "contactCenter.callback.schedule",
+    method: "POST",
+    path: "/promise",
+    source: "https://developer.niceincontact.com/content/apis/patron/patron-callback-api-docs",
+    checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+  },
+  {
+    id: "startChatSession",
+    alias: "contactCenter.contact.start",
+    method: "POST",
+    path: "/contacts/chats",
+    source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
+    checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+  },
+  {
+    id: "endChat",
+    alias: "contactCenter.contact.end",
+    method: "DELETE",
+    path: "/contacts/chats/{chatSession}",
+    source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
+    checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+  }
+],
+} as const;
+
+export const niceCxoneProviderManifestInput = {
+  id: "contactCenter.nice-cxone",
+  name: "NICE CXone",
+  packageName: "@cognidesk/contact-center-nice-cxone",
+  provider: "nice-cxone",
+  category: "contactCenter",
+  trustLevel: "official",
+  directions: ["inbound-only", "outbound-only", "bidirectional"],
+  channelAudiences: ["customer-facing", "internal-support", "mixed"],
+  credentialRequirements: [
+    { id: "nice-cxone-api-base", label: "NICE CXone API base URL", required: true },
+    { id: "nice-cxone-api-access", label: "NICE CXone API access", required: true },
+    { id: "nice-cxone-routing", label: "NICE CXone skill/queue routing configuration", required: false },
+  ],
+  coverage: {
+    scope: "support-workflow-subset",
+    notes: ["Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice."],
+    evidence: [
+      { label: "NICE CXone REST APIs", url: "https://developer.niceincontact.com/API" },
+      { label: "NICE CXone Agent SDK", url: "https://github.com/nice-devone/nice-cxone-agent-sdk" },
+    ],
+  },
+  capabilities: [
+    { capability: "handoff", providerObjects: [{ kind: "contactTransfer", label: "contactTransfer" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
+    { capability: "schedule", providerObjects: [{ kind: "callback", label: "callback" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
+    { capability: "send", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
+    { capability: "update-provider-object", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
+    { capability: "read-provider-object", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: false, exposesSensitiveData: true },
+  ],
+  operations: [
+    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contactCenter.callback.schedule", capability: "schedule", providerObject: "callback" },
+    { alias: "contactCenter.contact.start", capability: "send", providerObject: "contact" },
+    { alias: "contactCenter.contact.end", capability: "update-provider-object", providerObject: "contact" },
+    { alias: "nice-cxone.request", capability: "read-provider-object", providerObject: "contact", extension: true },
+  ],
+  metadata: {
+    implementation: niceCxoneSupportSlice,
+    manifestOnlySafe: true,
+  },
+  maintainers: [{ name: "Cognidesk", type: "official" }],
+} as const;
+
+export const niceCxoneProviderManifest = defineIntegrationProviderPackage(niceCxoneProviderManifestInput);

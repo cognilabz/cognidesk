@@ -1,0 +1,15 @@
+import { describe, expect, it } from "vitest";
+
+describe("@cognidesk/contact-center-zoom", () => {
+  it("keeps manifest imports metadata-only", async () => {
+    const manifestModule = await import("../src/manifest.js");
+    expect(manifestModule.zoomContactCenterProviderManifest.packageName).toBe("@cognidesk/contact-center-zoom");
+    expect(manifestModule.zoomContactCenterSupportSlice.allowedOperations.length).toBeGreaterThan(0);
+  });
+
+  it("binds declared operations to handlers", async () => {
+    const mod = await import("../src/index.js");
+    const integration = mod.createZoomContactCenterIntegration({ apiBaseUrl: "https://example.invalid", defaultHandoffPath: "/handoff", readinessPath: "/ready", fetch: async () => new Response("{}") });
+    expect(integration.bindingReport).toMatchObject({ missingHandlerAliases: [], extraHandlerAliases: [], invalidExtensionOperationAliases: [] });
+  });
+});
