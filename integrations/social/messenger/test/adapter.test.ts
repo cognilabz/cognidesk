@@ -84,4 +84,23 @@ describe("@cognidesk/social-messenger", () => {
       raw: delivery,
     }]);
   });
+
+  it.each([
+    ["missing message", {}],
+    ["null message", { message: null }],
+    ["array message", { message: [{ mid: "m_1", text: "Hi" }] }],
+    ["string message", { message: "Hi" }],
+  ])("skips inbound message webhook events with %s", (_name, malformedFields) => {
+    const delivery = {
+      sender: { id: "psid_1" },
+      recipient: { id: "page_1" },
+      timestamp: 1_718_000_000_000,
+      ...malformedFields,
+    };
+
+    expect(normalizeMessengerWebhookEvents({
+      object: "page",
+      entry: [{ id: "page_1", time: 1_718_000_000_001, messaging: [delivery] }],
+    })).toEqual([]);
+  });
 });
