@@ -437,19 +437,19 @@ Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe PaymentIn
 | Runtime import | `@cognidesk/email-ses/runtime` |
 | Workspace | `integrations/email/ses` |
 | Manifest ID | `email.ses` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html](https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
-| Provider setup | required `aws-access-key-id`, `aws-secret-access-key`, `aws-region`; optional `ses-sender-identity`, `ses-event-ingestion` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `update-provider-object` |
+| Provider setup | required `aws-credentials`, `aws-region`; optional `ses-sns-verification` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in the official AWS SESv2 and classic SES API models.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by AWS SDK v3 SES clients.
 
-Boundary: The SDK user chooses regions, IAM policy, sender identities, suppression policy, configuration sets, templates, event routing, webhook verification, retention, and outbound approval policy.
+Boundary: SES is not a mailbox product and does not expose mailbox-style message history.
 
-Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/blob/main/models/sesv2/service/2019-09-27/sesv2-2019-09-27.json); [AWS official classic SES API model](https://github.com/aws/api-models-aws/blob/main/models/ses/service/2010-12-01/ses-2010-12-01.json); [AWS SDK SESv2 client API reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/sesv2/); [AWS SDK classic SES client API reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/ses/); plus 11 more.
+Evidence: [AWS SDK for JavaScript v3 SESv2 client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2); [AWS SDK for JavaScript v3 SES classic client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-ses); [Amazon SES API v2](https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html); [Amazon SES event publishing](https://docs.aws.amazon.com/ses/latest/dg/monitor-sending-activity.html); plus 1 more.
 
 #### Gmail
 
@@ -483,19 +483,19 @@ Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery
 | Runtime import | `@cognidesk/email-imap/runtime` |
 | Workspace | `integrations/email/imap` |
 | Manifest ID | `email.imap` |
-| Scope | `support-workflow-subset` |
+| Scope | `local-protocol` |
 | Adapter coverage | `partial` |
-| Implementation | `app-supplied-connector` |
+| Implementation | `local-protocol` |
 | Documentation | [https://datatracker.ietf.org/doc/html/rfc9051](https://datatracker.ietf.org/doc/html/rfc9051) |
 | Directions | `inbound-only` |
-| Capabilities | `read-provider-object` |
-| Provider setup | required `imap-server`, `imap-mailbox-credentials`, `imap-connector` |
+| Capabilities | `read-provider-object`, `search-provider-object` |
+| Provider setup | required `imap-server`, `imap-mailbox-credentials` |
 
-Coverage: Coverage is limited to credential status and SDK-user-injected mailbox readiness checks.
+Coverage: Coverage is a focused Cognidesk IMAP protocol adapter backed by ImapFlow.
 
-Boundary: This package does not bundle an IMAP client dependency; SDK users inject a connector that matches their runtime, TLS, auth, and proxy requirements.
+Boundary: This package does not implement full mailbox synchronization, storage, retention, MIME parsing policy, attachment handling policy, deletion policy, or outbound SMTP.
 
-Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051).
+Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051); [ImapFlow](https://imapflow.com/).
 
 #### Mailgun
 
@@ -506,19 +506,19 @@ Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051).
 | Runtime import | `@cognidesk/email-mailgun/runtime` |
 | Workspace | `integrations/email/mailgun` |
 | Manifest ID | `email.mailgun` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://documentation.mailgun.com/docs/mailgun](https://documentation.mailgun.com/docs/mailgun) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/mailgun/mailgun.js](https://github.com/mailgun/mailgun.js) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object` |
-| Provider setup | required `mailgun-api-key`, `mailgun-domain`; optional `mailgun-webhook-signing-key`, `mailgun-region` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `search-provider-object` |
+| Provider setup | required `mailgun-api-key`, `mailgun-domain`; optional `mailgun-webhook-signing-key` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Mailgun's official public OpenAPI 3.1 API reference.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by the official Mailgun SDK.
 
-Boundary: The SDK user chooses domains, routes, templates, tracking, webhook endpoints, retention, redaction, and outbound approval policy.
+Boundary: The SDK user owns domain selection, route policy, retention, redaction, replay-cache storage, outbound approval, and rate limiting.
 
-Evidence: [Mailgun OpenAPI specification](https://documentation.mailgun.com/_spec/docs/mailgun/api-reference/send/mailgun.json?download); [Mailgun Messages API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/messages); [Mailgun Events API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/events); [Mailgun Logs API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/logs); plus 7 more.
+Evidence: [mailgun.js package](https://github.com/mailgun/mailgun.js); [Mailgun Messages API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/messages); [Mailgun Events API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/events); [Mailgun Webhooks](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/domain-webhooks).
 
 #### Microsoft Outlook
 
@@ -552,19 +552,19 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 | Runtime import | `@cognidesk/email-postmark/runtime` |
 | Workspace | `integrations/email/postmark` |
 | Manifest ID | `email.postmark` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://postmarkapp.com/developer](https://postmarkapp.com/developer) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/ActiveCampaign/postmark.js](https://github.com/ActiveCampaign/postmark.js) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
-| Provider setup | required `postmark-server-token`, `postmark-account-token`; optional `postmark-message-stream`, `postmark-webhook-auth` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `update-provider-object` |
+| Provider setup | required `postmark-server-token`; optional `postmark-account-token` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Postmark's official server and account Swagger files.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by the official Postmark Node client.
 
-Boundary: The SDK user chooses streams, sender signatures, templates, inbound domains, webhook protection, retention, redaction, and outbound approval policy.
+Boundary: The SDK user owns message stream selection, webhook auth policy, retention, redaction, outbound approval, and rate limiting.
 
-Evidence: [Postmark Server API Swagger](https://postmarkapp.com/swagger/server.yml); [Postmark Account API Swagger](https://postmarkapp.com/swagger/account.yml); [Postmark API Explorer](https://postmarkapp.com/api-explorer); [Postmark Email API](https://postmarkapp.com/developer/user-guide/send-email-with-api); plus 5 more.
+Evidence: [Postmark Node.js library](https://github.com/ActiveCampaign/postmark.js); [Postmark Email API](https://postmarkapp.com/developer/api/email-api); [Postmark Messages API](https://postmarkapp.com/developer/api/messages-api); [Postmark inbound webhooks](https://postmarkapp.com/developer/webhooks/inbound-webhook).
 
 ### Forms
 

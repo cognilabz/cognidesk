@@ -5758,11 +5758,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.imap",
     "category": "email",
     "provider": "imap",
-    "importPath": "@cognidesk/integrations/email/imap",
-    "modulePath": "./email/imap/index.js",
+    "importPath": "@cognidesk/email-imap/manifest",
+    "modulePath": "integrations/email/imap/src/manifest.js",
     "manifestExport": "imapEmailProviderManifest",
     "name": "IMAP Mailbox",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/email-imap",
     "trustLevel": "official",
     "directions": [
       "inbound-only"
@@ -5773,27 +5773,51 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "IMAP Mailbox",
-      "summary": "Coverage is limited to credential status and SDK-user-injected mailbox readiness checks.",
+      "summary": "Coverage is a focused Cognidesk IMAP protocol adapter backed by ImapFlow.",
       "tags": [
         "email",
         "imap",
         "official",
-        "support-workflow-subset"
+        "local-protocol"
       ]
     },
     "capabilities": [
       {
         "capability": "read-provider-object",
-        "label": "Check IMAP mailbox readiness",
-        "description": "Runs an SDK-user-injected readiness check for an IMAP mailbox without implementing IMAP message operations.",
+        "label": "Read IMAP mailbox data",
+        "description": "Checks mailbox readiness and fetches explicitly requested message data through ImapFlow.",
         "audiences": [
-          "internal-support",
+          "customer-facing",
           "mixed"
         ],
         "providerObjects": [
           {
             "kind": "imapMailbox",
             "label": "IMAP Mailbox"
+          },
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "search-provider-object",
+        "label": "Search IMAP mailbox",
+        "description": "Runs SDK-user supplied IMAP searches through ImapFlow.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
           }
         ],
         "requiresCredential": true,
@@ -5804,20 +5828,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "support-workflow-subset",
+      "scope": "local-protocol",
       "notes": [
-        "Coverage is limited to credential status and SDK-user-injected mailbox readiness checks.",
-        "This package does not implement IMAP SEARCH, FETCH, STORE/flag mutation, mailbox management, attachment retrieval, IDLE, UID sync, or MIME parsing; those remain the responsibility of an SDK-user-provided IMAP client."
+        "Coverage is a focused Cognidesk IMAP protocol adapter backed by ImapFlow.",
+        "This package does not claim full mailbox synchronization, MIME parsing, retention policy, attachment policy, or outbound SMTP support."
       ],
       "evidence": [
         {
           "label": "RFC 9051 IMAP4rev2",
           "url": "https://datatracker.ietf.org/doc/html/rfc9051"
+        },
+        {
+          "label": "ImapFlow",
+          "url": "https://imapflow.com/"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "support-workflow-subset",
+      "scope": "local-protocol",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -5849,47 +5877,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "imap.mailbox.check"
+        ]
       }
     },
     "implementation": {
-      "strategy": "app-supplied-connector",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/imap",
-      "providerModule": "./email/imap/index.js",
+      "strategy": "local-protocol",
+      "sdkPackage": "@cognidesk/email-imap",
+      "runtimePackage": "@cognidesk/email-imap",
+      "providerModule": "integrations/email/imap/src/manifest.js",
       "manifestExport": "imapEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/imap/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/email/imap/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://datatracker.ietf.org/doc/html/rfc9051"
     },
     "readiness": {
-      "mode": "app-supplied-connector",
+      "mode": "credential-and-live-check",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "imap-server",
-        "imap-mailbox-credentials",
-        "imap-connector"
+        "imap-mailbox-credentials"
       ],
       "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "imap-server",
           "label": "IMAP server settings",
-          "description": "Server-side mailbox host, port, TLS mode, and mailbox folder configuration.",
+          "description": "Mailbox host, port, TLS mode, and mailbox folder configuration.",
           "scopes": [],
           "required": true
         },
         {
           "id": "imap-mailbox-credentials",
           "label": "IMAP mailbox credentials",
-          "description": "Server-side mailbox authentication material such as app password, OAuth bearer token, or external auth.",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "imap-connector",
-          "label": "Injected IMAP connector",
-          "description": "An SDK-user-provided connector implementation that performs IMAP network operations.",
+          "description": "Mailbox username with password, OAuth2 access token, or externally supplied auth.",
           "scopes": [],
           "required": true
         }
@@ -5897,11 +5919,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "privacyNotes": [
       "IMAP messages can contain customer content, addresses, headers, attachments, and mailbox folder metadata.",
-      "Mailbox credentials stay server-side; this package reports readiness only and requires an injected connector for network access."
+      "Mailbox credentials stay server-side and are represented only as readiness state."
     ],
     "limitations": [
-      "This package does not bundle an IMAP client dependency; SDK users inject a connector that matches their runtime, TLS, auth, and proxy requirements.",
-      "Mailbox search, fetch, retention, folder selection, message deletion, flag mutation, attachment retrieval, and outbound email policy remain SDK-user implementation/configuration."
+      "This package does not implement full mailbox synchronization, storage, retention, MIME parsing policy, attachment handling policy, deletion policy, or outbound SMTP.",
+      "SDK users own mailbox selection, search scope, flag mutation policy, retention, redaction, and concurrency limits."
     ],
     "maintainers": [
       {
@@ -5910,11 +5932,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "mailboxReadiness": "typed-readiness-via-injected-connector",
-        "imapSearchFetchStoreIdle": "not-covered",
-        "mimeParsingAttachments": "not-covered"
+      "implementation": {
+        "strategy": "protocol-library",
+        "libraryPackage": "imapflow",
+        "libraryVersionRange": "^1.4.2",
+        "verifiedPackageVersion": "1.4.2",
+        "verifiedAt": "2026-06-21",
+        "protocolSource": "RFC 9051",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
       },
+      "channelCoverage": {
+        "mailboxReadiness": "provider-supported-via-protocol-library",
+        "messageSearch": "provider-supported-via-protocol-library",
+        "messageFetch": "provider-supported-via-protocol-library",
+        "mimeParsingAttachments": "not-covered",
+        "outboundSmtp": "not-covered",
+        "fullMailboxSync": "not-covered"
+      },
+      "directSliceMetadata": {
+        "source": "RFC 9051 plus ImapFlow 1.4.2 declarations",
+        "allowlist": [
+          "connect",
+          "logout",
+          "mailboxOpen",
+          "status",
+          "search",
+          "fetch"
+        ],
+        "checksum": "npm:imapflow@1.4.2"
+      },
+      "rawClientEscapeHatch": "ImapFlow client exposed from createImapEmailClient().rawClient",
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
@@ -5946,7 +5994,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "imap.mailbox.check"
+        ]
       }
     }
   },
@@ -5954,11 +6004,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.mailgun",
     "category": "email",
     "provider": "mailgun",
-    "importPath": "@cognidesk/integrations/email/mailgun",
-    "modulePath": "./email/mailgun/index.js",
+    "importPath": "@cognidesk/email-mailgun/manifest",
+    "modulePath": "integrations/email/mailgun/src/manifest.js",
     "manifestExport": "mailgunEmailProviderManifest",
     "name": "Mailgun",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/email-mailgun",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -5971,19 +6021,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Mailgun",
-      "summary": "Coverage includes generated per-operation functions for every operation in Mailgun's official public OpenAPI 3.1 API reference.",
+      "summary": "Coverage is the Cognidesk normalized support-email adapter surface backed by the official Mailgun SDK.",
       "tags": [
         "email",
         "mailgun",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Receive Mailgun webhooks",
-        "description": "Parses and verifies Mailgun inbound, delivery, engagement, and failure event callbacks.",
+        "label": "Receive Mailgun events",
+        "description": "Parses and verifies Mailgun inbound, delivery, engagement, and failure callbacks.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -5992,10 +6042,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "mailgunEvent",
             "label": "Mailgun Event"
-          },
-          {
-            "kind": "mailgunInboundMessage",
-            "label": "Mailgun Inbound Message"
           }
         ],
         "requiresCredential": true,
@@ -6007,7 +6053,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Mailgun email",
-        "description": "Sends email through Mailgun's HTTP Sending API when SDK-user policy permits outbound contact.",
+        "description": "Sends support email through the official Mailgun SDK.",
         "audiences": [
           "customer-facing"
         ],
@@ -6024,69 +6070,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "draft",
-        "label": "Build Mailgun outbound payloads",
-        "description": "Builds Mailgun form, MIME, template, and variable payloads for SDK-user approval workflows.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "mailgunEmailDraft",
-            "label": "Mailgun Email Draft"
-          }
-        ],
-        "requiresCredential": false,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use Mailgun message metadata",
-        "description": "Associates support replies using Mailgun message IDs, headers, tags, variables, and event metadata.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "mailgunThreadReference",
-            "label": "Mailgun Thread Reference"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Send Mailgun attachments",
-        "description": "Supports attachment metadata and MIME sending surfaces governed by the SDK user's channel policy.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "mailgunAttachment",
-            "label": "Mailgun Attachment"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
         "capability": "read-provider-object",
-        "label": "Read Mailgun messages and domains",
-        "description": "Reads stored messages, domain metadata, and webhook configuration through Mailgun APIs.",
+        "label": "Read Mailgun message and domain resources",
+        "description": "Reads support-scoped stored messages, domain state, webhooks, and event delivery status.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -6101,20 +6087,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Mailgun Domain"
           },
           {
-            "kind": "mailgunRoute",
-            "label": "Mailgun Route"
-          },
-          {
-            "kind": "mailgunDomainTemplate",
-            "label": "Mailgun Domain Template"
-          },
-          {
             "kind": "mailgunWebhook",
-            "label": "Mailgun Domain Webhook"
+            "label": "Mailgun Webhook"
           },
           {
-            "kind": "mailgunSuppressionRecord",
-            "label": "Mailgun Suppression Record"
+            "kind": "deliveryStatus",
+            "label": "Delivery Status"
           }
         ],
         "requiresCredential": true,
@@ -6126,7 +6104,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "search-provider-object",
         "label": "Search Mailgun events",
-        "description": "Searches Mailgun Events API with SDK-user-supplied retention-aware filters.",
+        "description": "Searches Mailgun event history through mailgun.js for retention-aware support workflows.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -6135,22 +6113,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "mailgunEvent",
             "label": "Mailgun Event"
-          },
-          {
-            "kind": "mailgunRoute",
-            "label": "Mailgun Route"
-          },
-          {
-            "kind": "mailgunDomainTemplate",
-            "label": "Mailgun Domain Template"
-          },
-          {
-            "kind": "mailgunWebhook",
-            "label": "Mailgun Domain Webhook"
-          },
-          {
-            "kind": "mailgunSuppressionRecord",
-            "label": "Mailgun Suppression Record"
           }
         ],
         "requiresCredential": true,
@@ -6161,17 +6123,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Mailgun's official public OpenAPI 3.1 API reference.",
-        "Typed convenience helpers remain available for support email workflows: sending, MIME sending, inbound route parsing, stored-message reads, legacy Events API searches, domain readiness, domain webhooks, account routes, domain templates, and suppression lookups.",
-        "The generated full API surface covers Mailgun Logs, Metrics, account and domain webhooks, broad domain management, IPs/IP pools/warmup, mailing lists, tags, subaccounts, users, keys, alerts, allowlist, and suppression mutation/import endpoints from the official OpenAPI artifact.",
-        "The SDK user still owns domain selection, region selection, route/webhook policy, retention, redaction, outbound approval, rate limiting, pagination, retry/backoff, and which generated operations are exposed to operators."
+        "Coverage is the Cognidesk normalized support-email adapter surface backed by the official Mailgun SDK.",
+        "The raw mailgun.js client is exposed for SDK-user controlled advanced provider operations; Cognidesk does not re-export a generated full Mailgun API clone."
       ],
       "evidence": [
         {
-          "label": "Mailgun OpenAPI specification",
-          "url": "https://documentation.mailgun.com/_spec/docs/mailgun/api-reference/send/mailgun.json?download"
+          "label": "mailgun.js package",
+          "url": "https://github.com/mailgun/mailgun.js"
         },
         {
           "label": "Mailgun Messages API",
@@ -6182,48 +6142,22 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/events"
         },
         {
-          "label": "Mailgun Logs API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/logs"
-        },
-        {
-          "label": "Mailgun Metrics API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/metrics"
-        },
-        {
-          "label": "Mailgun Routes API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/routes"
-        },
-        {
-          "label": "Mailgun Domain Webhooks API",
+          "label": "Mailgun Webhooks",
           "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/domain-webhooks"
-        },
-        {
-          "label": "Mailgun Account Webhooks API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/account-webhooks"
-        },
-        {
-          "label": "Mailgun Domains API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/domains"
-        },
-        {
-          "label": "Mailgun Bounces API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/bounces"
-        },
-        {
-          "label": "Mailgun Receiving Messages via HTTP",
-          "url": "https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/receive-http"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "email.deliveryStatus.read"
+        ],
         "missingRequiredOperations": [
           "email.receive",
           "email.thread.read",
@@ -6242,24 +6176,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "mailgun.storedMessage.read",
+          "mailgun.domain.read",
+          "mailgun.webhooks.list"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/mailgun",
-      "providerModule": "./email/mailgun/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "mailgun.js",
+      "runtimePackage": "@cognidesk/email-mailgun",
+      "providerModule": "integrations/email/mailgun/src/manifest.js",
       "manifestExport": "mailgunEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/mailgun/manifest.ts",
+      "manifestSource": "integrations/email/mailgun/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://documentation.mailgun.com/docs/mailgun"
+      "documentationPath": "https://github.com/mailgun/mailgun.js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -6269,49 +6206,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "mailgun-domain"
       ],
       "optionalCredentialIds": [
-        "mailgun-webhook-signing-key",
-        "mailgun-region"
+        "mailgun-webhook-signing-key"
       ],
       "credentialRequirements": [
         {
           "id": "mailgun-api-key",
           "label": "Mailgun API key",
-          "description": "Server-side Mailgun API key used for Sending, Events, Domains, and Webhooks API calls.",
+          "description": "Server-side Mailgun API key used by the official mailgun.js client.",
           "scopes": [],
           "required": true
         },
         {
           "id": "mailgun-domain",
           "label": "Mailgun sending domain",
-          "description": "SDK-user-selected Mailgun domain used for outbound email, inbound routes, and event searches.",
+          "description": "Mailgun domain selected by the SDK user for outbound, event, and stored-message operations.",
           "scopes": [],
           "required": true
         },
         {
           "id": "mailgun-webhook-signing-key",
           "label": "Mailgun webhook signing key",
-          "description": "Webhook signing key used to verify Mailgun event callbacks with HMAC-SHA256.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "mailgun-region",
-          "label": "Mailgun region",
-          "description": "Mailgun API region selected by the SDK user, usually US or EU.",
+          "description": "Signing key used to verify Mailgun event callbacks.",
           "scopes": [],
           "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Mailgun email bodies, recipients, sender addresses, headers, tags, variables, event payloads, routes, and attachments can contain customer data.",
-      "Mailgun API keys and webhook signing keys stay server-side and are represented in Studio only as readiness state."
+      "Mailgun message bodies, recipients, sender addresses, headers, tags, variables, event payloads, routes, and attachments can contain customer data.",
+      "Mailgun API keys and webhook signing keys stay server-side and are represented only as readiness state."
     ],
     "limitations": [
-      "The SDK user chooses domains, routes, templates, tracking, webhook endpoints, retention, redaction, and outbound approval policy.",
-      "Mailgun stored message and event availability depends on the SDK user's plan, region, and retention settings.",
-      "This package does not provide replay-cache storage for webhook deduplication; SDK users must configure storage and retention policy.",
-      "This package does not decide when to send, auto-reply, attach files, track engagement, or expose inbound content to operators."
+      "The SDK user owns domain selection, route policy, retention, redaction, replay-cache storage, outbound approval, and rate limiting.",
+      "Advanced provider operations remain available through the raw mailgun.js client, not as Cognidesk-owned generated operations."
     ],
     "maintainers": [
       {
@@ -6320,47 +6247,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://documentation.mailgun.com/docs/mailgun",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "mailgun.js",
+        "sdkVersionRange": "^13.2.0",
+        "verifiedPackageVersion": "13.2.0",
+        "verifiedAt": "2026-06-21",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
+      },
       "channelCoverage": {
-        "sendEmail": "typed-send",
-        "sendMime": "typed-send",
-        "inboundRouteParsing": "typed-parse",
-        "storedMessages": "typed-read",
-        "eventsApi": "typed-search-legacy",
-        "domains": "typed-read",
-        "domainWebhooks": "typed-list",
-        "routes": "typed-list",
-        "suppressions": "typed-read",
-        "domainTemplates": "typed-list",
-        "logsApi": "generated-per-operation-functions",
-        "metricsApi": "generated-per-operation-functions",
-        "webhooksMutation": "generated-per-operation-functions",
-        "mailingLists": "generated-per-operation-functions",
-        "ipPoolsAndWarmup": "generated-per-operation-functions",
-        "subaccountsUsersKeysAlerts": "generated-per-operation-functions",
-        "suppressionsMutationImport": "generated-per-operation-functions",
-        "fullApiOperations": "generated-per-operation-functions"
+        "sendEmail": "provider-supported-via-official-sdk",
+        "sendReply": "provider-supported-via-official-sdk",
+        "eventSearch": "provider-supported-via-official-sdk",
+        "storedMessageRead": "provider-supported-via-official-sdk",
+        "webhooks": "provider-supported-via-official-sdk",
+        "fullProviderApiClone": "not-covered"
       },
-      "fullProviderApiVerification": {
-        "provider": "mailgun",
-        "apiVersion": "3.0.0",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/mailgun-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/mailgun-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/mailgun-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 169,
-        "documentedOperationCount": 265,
-        "implementedOperationCount": 265,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 265
-      },
+      "rawClientEscapeHatch": "mailgun.js IMailgunClient exposed from createMailgunEmailClient().rawClient",
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "email.deliveryStatus.read"
+        ],
         "missingRequiredOperations": [
           "email.receive",
           "email.thread.read",
@@ -6379,13 +6292,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "mailgun.storedMessage.read",
+          "mailgun.domain.read",
+          "mailgun.webhooks.list"
+        ]
       }
     }
   },
@@ -6817,11 +6733,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.postmark",
     "category": "email",
     "provider": "postmark",
-    "importPath": "@cognidesk/integrations/email/postmark",
-    "modulePath": "./email/postmark/index.js",
+    "importPath": "@cognidesk/email-postmark/manifest",
+    "modulePath": "integrations/email/postmark/src/manifest.js",
     "manifestExport": "postmarkEmailProviderManifest",
     "name": "Postmark",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/email-postmark",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -6834,19 +6750,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Postmark",
-      "summary": "Coverage includes generated per-operation functions for every operation in Postmark's official server and account Swagger files.",
+      "summary": "Coverage is the Cognidesk normalized support-email adapter surface backed by the official Postmark Node client.",
       "tags": [
         "email",
         "postmark",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
         "label": "Receive Postmark inbound webhooks",
-        "description": "Parses Postmark inbound email JSON webhooks for SDK-user-owned email flows; delivery, bounce, open, click, spam, and subscription event parsers are outside this adapter.",
+        "description": "Parses inbound email webhooks into support email events.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -6855,10 +6771,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "postmarkInboundMessage",
             "label": "Postmark Inbound Message"
-          },
-          {
-            "kind": "postmarkWebhook",
-            "label": "Postmark Webhook"
           }
         ],
         "requiresCredential": true,
@@ -6870,74 +6782,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Postmark email",
-        "description": "Sends transactional email through Postmark Email API when SDK-user policy permits outbound contact.",
+        "description": "Sends support email through the official Postmark ServerClient.",
         "audiences": [
           "customer-facing"
         ],
         "providerObjects": [
           {
-            "kind": "postmarkOutboundMessage",
-            "label": "Postmark Outbound Message"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "draft",
-        "label": "Build Postmark outbound payloads",
-        "description": "Builds Postmark email or template payloads for SDK-user-configured approval workflows.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "postmarkEmailDraft",
-            "label": "Postmark Email Draft"
-          }
-        ],
-        "requiresCredential": false,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use Postmark message metadata",
-        "description": "Associates inbound replies and outbound messages using Postmark message IDs, tags, headers, and metadata.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
             "kind": "postmarkMessage",
             "label": "Postmark Message"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Use Postmark attachments",
-        "description": "Accepts outbound attachments and exposes inbound attachment metadata for SDK-user-governed handling.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "postmarkAttachment",
-            "label": "Postmark Attachment"
           }
         ],
         "requiresCredential": true,
@@ -6948,8 +6800,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read Postmark messages, streams, and suppressions",
-        "description": "Reads Postmark outbound or inbound message details, message streams, and suppression records through Postmark APIs.",
+        "label": "Read Postmark messages and streams",
+        "description": "Reads message details, delivery status, message streams, webhooks, and suppression state.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -6966,34 +6818,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "postmarkSuppression",
             "label": "Postmark Suppression"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "search-provider-object",
-        "label": "Search Postmark messages",
-        "description": "Searches Postmark message history with SDK-user-supplied filters and retention-aware limits.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "postmarkMessage",
-            "label": "Postmark Message"
           },
           {
-            "kind": "postmarkMessageStream",
-            "label": "Postmark Message Stream"
-          },
-          {
-            "kind": "postmarkSuppression",
-            "label": "Postmark Suppression"
+            "kind": "deliveryStatus",
+            "label": "Delivery Status"
           }
         ],
         "requiresCredential": true,
@@ -7005,7 +6833,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "update-provider-object",
         "label": "Manage Postmark suppressions",
-        "description": "Creates or deletes Postmark suppression records for SDK-user-governed suppression lifecycle workflows.",
+        "description": "Adds or deletes suppressions when SDK-user policy permits.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -7018,67 +6846,47 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": true,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Postmark's official server and account Swagger files.",
-        "Typed convenience helpers remain available for support email workflows: single email send, template send, inbound/outbound message detail and search, webhook listing, message-stream listing, inbound webhook parsing, and suppression dump/create/delete.",
-        "The generated full API surface covers Postmark send/batch/template, bounces, stats, opens/clicks, inbound rules, server configuration, account servers, domains, sender signatures, and template push operations from the official Swagger artifacts.",
-        "The SDK user still owns stream/sender/template selection, inbound domain and webhook hosting, webhook authentication, retention, redaction, outbound approval, rate limiting, pagination, and which generated operations are exposed to operators."
+        "Coverage is the Cognidesk normalized support-email adapter surface backed by the official Postmark Node client.",
+        "The raw Postmark clients are exposed for SDK-user controlled advanced provider operations; Cognidesk does not re-export a generated full Postmark API clone."
       ],
       "evidence": [
         {
-          "label": "Postmark Server API Swagger",
-          "url": "https://postmarkapp.com/swagger/server.yml"
-        },
-        {
-          "label": "Postmark Account API Swagger",
-          "url": "https://postmarkapp.com/swagger/account.yml"
-        },
-        {
-          "label": "Postmark API Explorer",
-          "url": "https://postmarkapp.com/api-explorer"
+          "label": "Postmark Node.js library",
+          "url": "https://github.com/ActiveCampaign/postmark.js"
         },
         {
           "label": "Postmark Email API",
-          "url": "https://postmarkapp.com/developer/user-guide/send-email-with-api"
+          "url": "https://postmarkapp.com/developer/api/email-api"
         },
         {
           "label": "Postmark Messages API",
           "url": "https://postmarkapp.com/developer/api/messages-api"
         },
         {
-          "label": "Postmark inbound webhook",
+          "label": "Postmark inbound webhooks",
           "url": "https://postmarkapp.com/developer/webhooks/inbound-webhook"
-        },
-        {
-          "label": "Postmark Webhooks API",
-          "url": "https://postmarkapp.com/developer/api/webhooks-api"
-        },
-        {
-          "label": "Postmark Message Streams API",
-          "url": "https://postmarkapp.com/developer/api/message-streams-api"
-        },
-        {
-          "label": "Postmark Suppressions API",
-          "url": "https://postmarkapp.com/developer/api/suppressions-api"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "email.deliveryStatus.read"
+        ],
         "missingRequiredOperations": [
           "email.receive",
           "email.thread.read",
@@ -7097,87 +6905,61 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "postmark.messageStreams.list",
+          "postmark.suppressions.create",
+          "postmark.suppressions.delete"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/postmark",
-      "providerModule": "./email/postmark/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "postmark",
+      "runtimePackage": "@cognidesk/email-postmark",
+      "providerModule": "integrations/email/postmark/src/manifest.js",
       "manifestExport": "postmarkEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/postmark/manifest.ts",
+      "manifestSource": "integrations/email/postmark/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://postmarkapp.com/developer"
+      "documentationPath": "https://github.com/ActiveCampaign/postmark.js"
     },
     "readiness": {
       "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "postmark-server-token",
-        "postmark-account-token"
+        "postmark-server-token"
       ],
       "optionalCredentialIds": [
-        "postmark-message-stream",
-        "postmark-webhook-auth"
+        "postmark-account-token"
       ],
       "credentialRequirements": [
         {
           "id": "postmark-server-token",
           "label": "Postmark server token",
-          "description": "Server-side Postmark Server API token used for server-level generated operations and typed Email, Messages, Webhooks, Streams, and Suppressions API calls.",
-          "scopes": [
-            "Postmark Server API"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "Postmark uses token classes rather than OAuth scopes; this label identifies the Server API token authority."
-          }
+          "description": "Server token used by the official Postmark ServerClient.",
+          "scopes": [],
+          "required": true
         },
         {
           "id": "postmark-account-token",
           "label": "Postmark account token",
-          "description": "Server-side Postmark Account API token used for generated account-level server, domain, sender-signature, and template-push operations.",
-          "scopes": [
-            "Postmark Account API"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "Postmark uses token classes rather than OAuth scopes; this label identifies the Account API token authority."
-          }
-        },
-        {
-          "id": "postmark-message-stream",
-          "label": "Postmark message stream",
-          "description": "SDK-user-selected Postmark message stream for outbound or inbound processing.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "postmark-webhook-auth",
-          "label": "Postmark webhook authentication",
-          "description": "SDK-user-configured webhook protection such as Basic Auth, private URL routing, or gateway verification.",
+          "description": "Optional account token for explicitly retained account-scoped support operations.",
           "scopes": [],
           "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Postmark email bodies, recipients, sender addresses, headers, tags, metadata, delivery events, and attachments can contain customer data.",
-      "Postmark server tokens and webhook authentication material stay server-side and are represented in Studio only as readiness state."
+      "Postmark email bodies, recipients, sender addresses, headers, attachments, metadata, and webhook payloads can contain customer data.",
+      "Postmark tokens stay server-side and are represented only as readiness state."
     ],
     "limitations": [
-      "The SDK user chooses streams, sender signatures, templates, inbound domains, webhook protection, retention, redaction, and outbound approval policy.",
-      "Postmark message history is retention-bound; API reads may not prove historical completeness beyond the SDK user's Postmark retention settings.",
-      "This package does not decide when to send, auto-reply, attach files, track opens/clicks, or expose inbound content to operators."
+      "The SDK user owns message stream selection, webhook auth policy, retention, redaction, outbound approval, and rate limiting.",
+      "Advanced provider operations remain available through raw Postmark clients, not as Cognidesk-owned generated operations."
     ],
     "maintainers": [
       {
@@ -7186,43 +6968,34 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://postmarkapp.com/developer",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "postmark",
+        "sdkVersionRange": "^4.0.7",
+        "verifiedPackageVersion": "4.0.7",
+        "verifiedAt": "2026-06-21",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
+      },
       "channelCoverage": {
-        "fullPostmarkSwaggerApi": "generated-per-operation-functions",
-        "singleEmailSend": "typed-send-and-generated-full-surface",
-        "templateEmailSend": "typed-send-and-generated-full-surface",
-        "batchEmailSend": "generated-per-operation-functions",
-        "inboundWebhookParsing": "typed-parse",
-        "outboundMessages": "typed-read-search",
-        "inboundMessages": "typed-read-search",
-        "webhooks": "typed-list",
-        "messageStreams": "typed-list",
-        "suppressions": "typed-list-create-delete",
-        "bouncesStatsOpensClicks": "generated-per-operation-functions",
-        "inboundRulesServerConfiguration": "generated-per-operation-functions",
-        "accountServersDomainsSenderSignatures": "generated-per-operation-functions",
-        "accountTemplatePush": "generated-per-operation-functions"
+        "inboundWebhook": "typed-parse",
+        "sendEmail": "provider-supported-via-official-sdk",
+        "templateSend": "provider-supported-via-official-sdk",
+        "messageDetails": "provider-supported-via-official-sdk",
+        "messageStreams": "provider-supported-via-official-sdk",
+        "suppressions": "provider-supported-via-official-sdk",
+        "fullProviderApiClone": "not-covered"
       },
-      "fullProviderApiVerification": {
-        "provider": "postmark",
-        "apiVersion": "postmark-swagger-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/postmark-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/postmark-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/postmark-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 52,
-        "documentedOperationCount": 66,
-        "implementedOperationCount": 66,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 66
-      },
+      "rawClientEscapeHatch": "Postmark ServerClient and optional AccountClient exposed from createPostmarkEmailClient().rawClients",
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "email.deliveryStatus.read"
+        ],
         "missingRequiredOperations": [
           "email.receive",
           "email.thread.read",
@@ -7241,13 +7014,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "postmark.messageStreams.list",
+          "postmark.suppressions.create",
+          "postmark.suppressions.delete"
+        ]
       }
     }
   },
@@ -7255,11 +7031,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.ses",
     "category": "email",
     "provider": "ses",
-    "importPath": "@cognidesk/integrations/email/ses",
-    "modulePath": "./email/ses/index.js",
+    "importPath": "@cognidesk/email-ses/manifest",
+    "modulePath": "integrations/email/ses/src/manifest.js",
     "manifestExport": "sesEmailProviderManifest",
     "name": "Amazon SES",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/email-ses",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -7272,19 +7048,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Amazon SES",
-      "summary": "Coverage includes generated per-operation functions for every operation in the official AWS SESv2 and classic SES API models.",
+      "summary": "Coverage is the Cognidesk normalized support-email adapter surface backed by AWS SDK v3 SES clients.",
       "tags": [
         "email",
         "ses",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Parse SES/SNS email notifications",
-        "description": "Parses SES sending and receiving notifications delivered to an SDK-user-operated SNS/SQS/HTTP ingestion path; does not fetch mailbox contents or S3-stored raw messages.",
+        "label": "Parse SES/SNS events",
+        "description": "Parses SES delivery, bounce, complaint, and receiving notifications from SNS/SQS payloads.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -7293,10 +7069,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "sesEvent",
             "label": "SES Event"
-          },
-          {
-            "kind": "snsNotification",
-            "label": "SNS Notification"
           }
         ],
         "requiresCredential": true,
@@ -7307,75 +7079,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "send",
-        "label": "Send Amazon SES email",
-        "description": "Sends simple, templated, or raw email through the Amazon SES v2 SendEmail API when SDK-user policy allows outbound contact.",
+        "label": "Send SES email",
+        "description": "Sends support email through AWS SDK v3 SESv2.",
         "audiences": [
           "customer-facing"
         ],
         "providerObjects": [
           {
-            "kind": "sesOutboundEmail",
-            "label": "SES Outbound Email"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "draft",
-        "label": "Build Amazon SES outbound payloads",
-        "description": "Builds simple, templated, or raw SES email payloads for SDK-user-owned approval and channel workflows.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "sesEmailDraft",
-            "label": "SES Email Draft"
-          }
-        ],
-        "requiresCredential": false,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use SES message metadata",
-        "description": "Associates outbound messages and SES events using message IDs, headers, tags, configuration sets, and SDK-user metadata.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
             "kind": "sesMessage",
             "label": "SES Message"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Use raw MIME attachments",
-        "description": "Supports raw MIME sending for SDK-user-governed attachments and advanced email composition.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "sesRawMessage",
-            "label": "SES Raw Message"
           }
         ],
         "requiresCredential": true,
@@ -7386,8 +7098,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read SES account and identities",
-        "description": "Reads Amazon SES account readiness, verified identities, configuration sets, and templates for Studio-visible provider readiness.",
+        "label": "Read SES account resources",
+        "description": "Reads SES account readiness, identities, templates, configuration sets, and suppression state.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -7402,48 +7114,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "SES Identity"
           },
           {
-            "kind": "sesConfigurationSet",
-            "label": "SES Configuration Set"
-          },
-          {
-            "kind": "sesTemplate",
-            "label": "SES Template"
-          },
-          {
             "kind": "sesSuppressedDestination",
             "label": "SES Suppressed Destination"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "search-provider-object",
-        "label": "List SES provider resources",
-        "description": "Lists SES identities, configuration sets, and templates with SDK-user-supplied pagination.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "sesIdentity",
-            "label": "SES Identity"
           },
           {
-            "kind": "sesConfigurationSet",
-            "label": "SES Configuration Set"
-          },
-          {
-            "kind": "sesTemplate",
-            "label": "SES Template"
-          },
-          {
-            "kind": "sesSuppressedDestination",
-            "label": "SES Suppressed Destination"
+            "kind": "deliveryStatus",
+            "label": "Delivery Status"
           }
         ],
         "requiresCredential": true,
@@ -7454,8 +7130,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "update-provider-object",
-        "label": "Delete SES suppressed destinations",
-        "description": "Deletes Amazon SES suppression-list entries when SDK-user policy permits suppression lifecycle changes.",
+        "label": "Manage SES suppressions",
+        "description": "Deletes suppression-list entries when SDK-user policy permits.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -7468,75 +7144,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": true,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in the official AWS SESv2 and classic SES API models.",
-        "Typed convenience helpers remain available for support email workflows: SESv2 SendEmail/raw MIME send, account readiness, identities, templates, configuration sets, event destinations, suppression list reads, suppression removal, and SES/SNS notification parsing.",
-        "The generated full API surface covers SESv2 identities/DKIM, contact lists, import/export jobs, reputation entities, tenants, dedicated IP pools, configuration-set mutation, plus classic SES receiving/control-plane actions such as receipt rules/rule sets/filters and custom verification templates.",
-        "SNS/SQS topics, queues, subscriptions, S3 buckets, Lambda actions, HTTP webhook hosting, certificate fetching, retry/backoff, and event replay storage are separate AWS infrastructure surfaces owned by the SDK user."
+        "Coverage is the Cognidesk normalized support-email adapter surface backed by AWS SDK v3 SES clients.",
+        "The raw AWS SDK clients are exposed for SDK-user controlled advanced provider operations; Cognidesk does not re-export a generated full SES API clone."
       ],
       "evidence": [
         {
-          "label": "AWS official SESv2 API model",
-          "url": "https://github.com/aws/api-models-aws/blob/main/models/sesv2/service/2019-09-27/sesv2-2019-09-27.json"
+          "label": "AWS SDK for JavaScript v3 SESv2 client",
+          "url": "https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2"
         },
         {
-          "label": "AWS official classic SES API model",
-          "url": "https://github.com/aws/api-models-aws/blob/main/models/ses/service/2010-12-01/ses-2010-12-01.json"
+          "label": "AWS SDK for JavaScript v3 SES classic client",
+          "url": "https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-ses"
         },
         {
-          "label": "AWS SDK SESv2 client API reference",
-          "url": "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/sesv2/"
+          "label": "Amazon SES API v2",
+          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html"
         },
         {
-          "label": "AWS SDK classic SES client API reference",
-          "url": "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/ses/"
-        },
-        {
-          "label": "Amazon SES v2 SendEmail",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html"
-        },
-        {
-          "label": "Amazon SES v2 GetAccount",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetAccount.html"
-        },
-        {
-          "label": "Amazon SES v2 ListEmailIdentities",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListEmailIdentities.html"
-        },
-        {
-          "label": "Amazon SES v2 ListEmailTemplates",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListEmailTemplates.html"
-        },
-        {
-          "label": "Amazon SES v2 ListConfigurationSets",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListConfigurationSets.html"
-        },
-        {
-          "label": "Amazon SES v2 ListSuppressedDestinations",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListSuppressedDestinations.html"
-        },
-        {
-          "label": "Amazon SES v2 DeleteSuppressedDestination",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_DeleteSuppressedDestination.html"
-        },
-        {
-          "label": "Amazon SES v2 GetConfigurationSetEventDestinations",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetConfigurationSetEventDestinations.html"
-        },
-        {
-          "label": "Amazon SES email receiving",
-          "url": "https://docs.aws.amazon.com/ses/latest/dg/receiving-email.html"
-        },
-        {
-          "label": "Amazon SES receiving notification contents",
-          "url": "https://docs.aws.amazon.com/ses/latest/dg/receiving-email-notifications-contents.html"
+          "label": "Amazon SES event publishing",
+          "url": "https://docs.aws.amazon.com/ses/latest/dg/monitor-sending-activity.html"
         },
         {
           "label": "Amazon SNS signature verification",
@@ -7545,14 +7179,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "email.deliveryStatus.read"
+        ],
         "missingRequiredOperations": [
           "email.receive",
           "email.thread.read",
@@ -7571,87 +7207,65 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "ses.account.read",
+          "ses.identities.list",
+          "ses.suppressedDestination.delete"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/ses",
-      "providerModule": "./email/ses/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/email-ses",
+      "runtimePackage": "@cognidesk/email-ses",
+      "providerModule": "integrations/email/ses/src/manifest.js",
       "manifestExport": "sesEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/ses/manifest.ts",
+      "manifestSource": "integrations/email/ses/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html"
+      "documentationPath": "https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2"
     },
     "readiness": {
       "mode": "credential-and-live-check",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "aws-access-key-id",
-        "aws-secret-access-key",
+        "aws-credentials",
         "aws-region"
       ],
       "optionalCredentialIds": [
-        "ses-sender-identity",
-        "ses-event-ingestion"
+        "ses-sns-verification"
       ],
       "credentialRequirements": [
         {
-          "id": "aws-access-key-id",
-          "label": "AWS access key ID",
-          "description": "Server-side AWS access key ID scoped by the SDK user for Amazon SES v2 API calls.",
+          "id": "aws-credentials",
+          "label": "AWS credentials",
+          "description": "AWS credentials resolved by the AWS SDK default chain or explicitly supplied by the SDK user.",
           "scopes": [
             "ses:SendEmail",
             "ses:GetAccount",
             "ses:ListEmailIdentities",
-            "ses:ListEmailTemplates",
-            "ses:ListConfigurationSets",
-            "ses:GetConfigurationSetEventDestinations",
-            "ses:ListSuppressedDestinations",
-            "ses:GetSuppressedDestination",
-            "ses:DeleteSuppressedDestination",
-            "ses:CreateReceiptRule",
-            "ses:DescribeReceiptRuleSet",
-            "ses:SetActiveReceiptRuleSet"
+            "ses:DeleteSuppressedDestination"
           ],
           "required": true,
           "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "These strings are AWS IAM action names for SES v2, not OAuth scopes."
+            "scopeKind": "provider-permission-labels"
           }
         },
         {
-          "id": "aws-secret-access-key",
-          "label": "AWS secret access key",
-          "description": "Server-side AWS secret access key used only for AWS Signature Version 4 request signing.",
-          "scopes": [],
-          "required": true
-        },
-        {
           "id": "aws-region",
-          "label": "AWS Region",
-          "description": "SDK-user-selected AWS Region where Amazon SES identities, templates, and configuration sets live.",
+          "label": "AWS region",
+          "description": "AWS Region for SES operations.",
           "scopes": [],
           "required": true
         },
         {
-          "id": "ses-sender-identity",
-          "label": "SES sender identity",
-          "description": "Verified SES sender email address or domain selected by the SDK user for outbound email.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "ses-event-ingestion",
-          "label": "SES event ingestion",
-          "description": "SDK-user-configured SNS/SQS/HTTP path and signature verification policy for SES delivery events.",
+          "id": "ses-sns-verification",
+          "label": "SNS signature verification",
+          "description": "Verifier used when fail-closed SNS notification verification is required.",
           "scopes": [],
           "required": false
         }
@@ -7659,12 +7273,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "privacyNotes": [
       "SES email bodies, recipients, sender identities, headers, tags, templates, configuration sets, delivery events, and raw MIME content can contain customer data.",
-      "AWS access keys, secret keys, session tokens, webhook secrets, SNS certificates, and SQS credentials stay server-side and are represented in Studio only as readiness state."
+      "AWS credentials, SNS certificates, and SQS credentials stay server-side and are represented only as readiness state."
     ],
     "limitations": [
-      "The SDK user chooses regions, IAM policy, sender identities, suppression policy, configuration sets, templates, event routing, webhook verification, retention, and outbound approval policy.",
-      "Amazon SES does not expose a mailbox-style read/search API for sent message bodies; this package reads provider resources and parses delivery events rather than reconstructing complete message history.",
-      "SNS X.509 signature validation requires a verifier hook or AWS SDK/user infrastructure; requiring verification without a verifier fails closed."
+      "SES is not a mailbox product and does not expose mailbox-style message history.",
+      "The SDK user owns regions, IAM policy, sender identities, suppression policy, configuration sets, event routing, SNS verification, retention, and outbound approval."
     ],
     "maintainers": [
       {
@@ -7673,59 +7286,38 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html",
-      "snsSignatureDocs": "https://docs.aws.amazon.com/sns/latest/dg/sns-verify-signature-of-message.html",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "@aws-sdk/client-sesv2",
+          "@aws-sdk/client-ses"
+        ],
+        "sdkVersionRange": "^3.1073.0",
+        "verifiedPackageVersion": "3.1073.0",
+        "verifiedAt": "2026-06-21",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
+      },
       "channelCoverage": {
-        "fullSesV2AndClassicApiModels": "generated-per-operation-functions",
-        "sendEmail": "typed-send-and-generated-full-surface",
-        "rawMimeSend": "typed-send-and-generated-full-surface",
-        "sesSnsNotifications": "typed-parse",
-        "accountReadiness": "typed-read",
-        "identities": "typed-list",
-        "templates": "typed-list",
-        "configurationSets": "typed-list-read",
-        "suppressions": "typed-list-read-delete",
-        "identityLifecycleDkimPolicies": "generated-per-operation-functions",
-        "contactListsImportExportJobs": "generated-per-operation-functions",
-        "reputationTenantsDedicatedIpPools": "generated-per-operation-functions",
-        "classicReceivingReceiptRules": "generated-per-operation-functions",
-        "classicCustomVerificationAndNotificationAttributes": "generated-per-operation-functions",
-        "mailboxStyleMessageRead": "not-covered"
+        "sendEmail": "provider-supported-via-official-sdk",
+        "rawMimeSend": "provider-supported-via-official-sdk",
+        "accountReadiness": "provider-supported-via-official-sdk",
+        "identities": "provider-supported-via-official-sdk",
+        "suppressions": "provider-supported-via-official-sdk",
+        "snsEvents": "typed-parse",
+        "mailboxStyleRead": "not-covered",
+        "fullProviderApiClone": "not-covered"
       },
-      "iamActions": [
-        "ses:SendEmail",
-        "ses:GetAccount",
-        "ses:ListEmailIdentities",
-        "ses:ListEmailTemplates",
-        "ses:ListConfigurationSets",
-        "ses:GetConfigurationSetEventDestinations",
-        "ses:ListSuppressedDestinations",
-        "ses:GetSuppressedDestination",
-        "ses:DeleteSuppressedDestination",
-        "ses:CreateReceiptRule",
-        "ses:DescribeReceiptRuleSet",
-        "ses:SetActiveReceiptRuleSet"
-      ],
-      "fullProviderApiVerification": {
-        "provider": "ses",
-        "apiVersion": "aws-api-models-main-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/ses-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/ses-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/ses-full-api-2026-06-18.functions.json",
-        "documentedModelCount": 2,
-        "documentedOperationCount": 182,
-        "implementedOperationCount": 182,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 182
-      },
+      "rawClientEscapeHatch": "AWS SDK SESv2Client and optional SESClient exposed from createSesEmailClient().rawClients",
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "email.deliveryStatus.read"
+        ],
         "missingRequiredOperations": [
           "email.receive",
           "email.thread.read",
@@ -7744,13 +7336,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "ses.account.read",
+          "ses.identities.list",
+          "ses.suppressedDestination.delete"
+        ]
       }
     }
   },
