@@ -38,6 +38,7 @@ Finish the provider integration refactor so every existing integration is covere
 - #28: Docs, CI, smoke checks, package conformance, release docs. The workflow/catalog guardrail slice is implemented on the orchestration branch.
 - #29-#43: Provider-family migration threads covering every remaining current integration.
 - #44: Old-import codemod. Implemented on the orchestration branch with parser-backed import/export rewrites, fail-closed diagnostics, docs wiring, and fixtures.
+- #45: SAP Service Cloud SDK follow-up. Tracks adopting SAP Cloud SDK once a redistributable/pinned Service Cloud EDMX or equivalent deterministic source exists.
 
 ## Thread Coordination State
 
@@ -206,6 +207,21 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-36-ticketing-platform-stack`, and title `[Integrations] Migrate CRM ticketing providers to split packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/36#issuecomment-4762197844.
 
+#37 enterprise service-cloud ticketing provider package lane:
+
+- #37 is clean and pushed at `f2c6de7 feat(integrations): migrate enterprise ticketing packages` on branch `codex/integrations-37-oracle-pega-sap`.
+- The branch adds `@cognidesk/ticketing-oracle-service`, `@cognidesk/ticketing-pega-customer-service`, and `@cognidesk/ticketing-sap-service-cloud` under `integrations/ticketing/*`.
+- Oracle remains a constrained direct Fusion Service REST support slice after registry verification rejected `oci-fusionapps@2.135.0` for this adapter surface; that package manages OCI Fusion Apps Service resources, not Fusion Service `serviceRequests`.
+- Pega remains a constrained direct DX API support slice after registry verification rejected `@pega/constellationjs@25.1.3` for this adapter surface; it is Constellation UI/client orchestration, not a maintained server-side Customer Service case SDK.
+- SAP records `@sap-cloud-sdk/odata-v2@4.7.0`, `@sap-cloud-sdk/generator@4.7.0`, and `@sap-cloud-sdk/http-client@4.7.0` as viable, but keeps the reviewed direct OData `ServiceRequestCollection` slice until a redistributable/pinned Service Cloud EDMX or equivalent deterministic source is available.
+- Follow-up #45 was created for SAP Cloud SDK adoption after the source artifact/provenance blocker is resolved.
+- The old aggregate ticketing subpaths for Oracle, Pega, and SAP were removed from `@cognidesk/integrations` exports/build entries and legacy runtime loaders; tests were moved into the split packages.
+- `@cognidesk/integration-kit` now preserves manifest literal operation aliases from `defineIntegrationProviderPackage`, so split integrations keep typed `integration.run(...)` operation inputs.
+- `scripts/generate-integration-catalog.ts` now discovers split provider packages before importing legacy monolith sources, so deleted legacy source files do not block catalog generation.
+- Verification passed: workspace relink, catalog data/docs generation, shared test-harness build, all three split package tests/typechecks/builds, integration-kit and integration-catalog tests, architecture/conformance checks, scoped old-import codemod check, legacy aggregate build, targeted aggregate provider tests, UI/HTTP/React builds, release workspace tests, package smoke/size budget checks, npm registry SDK checks, and `git diff --check`/`git diff --cached --check`.
+- Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-37-oracle-pega-sap`, and title `[Integrations] Migrate enterprise ticketing providers to split packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/37#issuecomment-4762255607.
+
 #40 cloud speech/OpenAI voice provider package lane:
 
 - #40 is clean and pushed at `456686d feat(integrations): migrate cloud voice providers` on branch `codex/integrations-40-voice-speech-sdk`.
@@ -228,9 +244,10 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#40 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#40 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#37/#40 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#40 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
 6. After each provider package lands, verify package conformance, catalog replacement, explicit registration docs, and old monolith deletion for that provider.
+7. Track #45 separately from #37: SAP Service Cloud remains honest as a reviewed support slice until the SAP Cloud SDK source artifact/provenance blocker is removed.
