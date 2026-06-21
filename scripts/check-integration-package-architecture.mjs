@@ -56,37 +56,52 @@ const oldImportBridgeMetadataKeys = [
 
 const failures = [];
 const warnings = [];
-const workspaces = await readWorkspacePackages();
 const splitProviderPackages = [];
 
-for (const pkg of workspaces) {
-  if (await isSplitProviderPackage(pkg)) splitProviderPackages.push(pkg);
+async function main() {
+  failures.length = 0;
+  warnings.length = 0;
+  splitProviderPackages.length = 0;
+
+  const workspaces = await readWorkspacePackages();
+
+  for (const pkg of workspaces) {
+    if (await isSplitProviderPackage(pkg)) splitProviderPackages.push(pkg);
+  }
+
+  await checkNoOldImportCompatibilityPackages(workspaces);
+  await checkNoRuntimeNodeModulesScanning(workspaces);
+  await checkManifestOnlyEntrypoints();
+  await checkSdkBackedGeneratedClones(splitProviderPackages);
+  await checkFullProviderApiClaimsUseAdapterVerification(splitProviderPackages);
+
+  if (warnings.length > 0) {
+    console.log("Integration package architecture warnings:");
+    for (const warning of warnings) console.log(`  ${warning}`);
+  }
+
+  if (failures.length > 0) {
+    console.error("Integration package architecture check failed:");
+    for (const failure of failures) console.error(`  ${failure}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log("Integration package architecture check passed:");
+  console.log(`  split provider packages discovered: ${splitProviderPackages.length}`);
+  console.log("  no old-import compatibility packages or provider bridges were discovered");
+  console.log("  package source does not scan node_modules at runtime");
+  console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
+  console.log("  SDK-backed provider packages did not add generated full-provider API clones");
+  console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
 }
 
-await checkNoOldImportCompatibilityPackages(workspaces);
-await checkNoRuntimeNodeModulesScanning(workspaces);
-await checkManifestOnlyEntrypoints();
-await checkSdkBackedGeneratedClones(splitProviderPackages);
-await checkFullProviderApiClaimsUseAdapterVerification(splitProviderPackages);
-
-if (warnings.length > 0) {
-  console.log("Integration package architecture warnings:");
-  for (const warning of warnings) console.log(`  ${warning}`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  });
 }
-
-if (failures.length > 0) {
-  console.error("Integration package architecture check failed:");
-  for (const failure of failures) console.error(`  ${failure}`);
-  process.exit(1);
-}
-
-console.log("Integration package architecture check passed:");
-console.log(`  split provider packages discovered: ${splitProviderPackages.length}`);
-console.log("  no old-import compatibility packages or provider bridges were discovered");
-console.log("  package source does not scan node_modules at runtime");
-console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
-console.log("  SDK-backed provider packages did not add generated full-provider API clones");
-console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
 
 async function readWorkspacePackages() {
   const packages = [];
@@ -363,7 +378,7 @@ async function checkSdkBackedGeneratedClones(packages) {
 
     const generatedFullApiFiles = (await walk(srcDir))
       .filter((file) => file.endsWith(".ts"))
-      .filter((file) => /(^|[/\\])full-api[-/\\].*\.generated\.ts$|full-api.*\.generated\.ts$/.test(file));
+      .filter(isGeneratedFullProviderApiClone);
 
     for (const file of generatedFullApiFiles) {
       failures.push(
@@ -371,6 +386,29 @@ async function checkSdkBackedGeneratedClones(packages) {
       );
     }
   }
+}
+
+export function isGeneratedFullProviderApiClone(file) {
+  const normalized = file.replaceAll(path.sep, "/");
+  const basename = path.posix.basename(normalized);
+  if (!basename.endsWith(".generated.ts")) return false;
+
+  const pathTokens = new Set(
+    normalized
+      .split("/")
+      .flatMap((segment) => segment.replace(/\.generated\.ts$/, "").split(/[^a-z0-9]+/i))
+      .filter(Boolean)
+      .map((segment) => segment.toLowerCase()),
+  );
+
+  if (pathTokens.has("full") && pathTokens.has("api")) return true;
+  if (pathTokens.has("web") && pathTokens.has("api")) return true;
+  if (pathTokens.has("graph") && pathTokens.has("api")) return true;
+  if (pathTokens.has("http") && pathTokens.has("api")) return true;
+  if (pathTokens.has("admin") && pathTokens.has("graphql")) return true;
+
+  return /(^|\/)[a-z0-9-]+-api(?:\.generated\.ts|\/)/i.test(normalized)
+    || /(^|\/)[a-z0-9-]+-graphql(?:\.generated\.ts|\/)/i.test(normalized);
 }
 
 async function checkFullProviderApiClaimsUseAdapterVerification(packages) {

@@ -6,9 +6,12 @@ on:
       - ".github/workflows/integration-packages.yml"
       - "package.json"
       - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "integrations/**"
       - "packages/**"
       - "scripts/**"
       - "docs/adr/**"
+      - "docs/provider-migration-matrix.md"
       - "docs/provider-generation.md"
       - "docs/releasing.md"
       - "website/api-reference/integrations.md"
@@ -24,9 +27,12 @@ on:
       - ".github/workflows/integration-packages.yml"
       - "package.json"
       - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "integrations/**"
       - "packages/**"
       - "scripts/**"
       - "docs/adr/**"
+      - "docs/provider-migration-matrix.md"
       - "docs/provider-generation.md"
       - "docs/releasing.md"
       - "website/api-reference/integrations.md"
@@ -54,6 +60,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate provider catalog data
+        run: pnpm providers:catalog:data
+
       - name: Build packages
         run: pnpm build
 
@@ -69,5 +78,9 @@ jobs:
       - name: Generate provider docs
         run: pnpm providers:catalog
 
-      - name: Verify generated provider docs are committed
-        run: git diff --exit-code -- website/guides/provider-integrations-catalog.md
+      - name: Verify generated provider catalog is committed
+        run: >-
+          git diff --exit-code --
+          packages/integration-catalog/src/catalog.generated.ts
+          packages/integrations/src/provider-catalog/runtime-loaders.generated.ts
+          website/guides/provider-integrations-catalog.md

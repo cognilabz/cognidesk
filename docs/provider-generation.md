@@ -54,6 +54,8 @@ pnpm providers:catalog
 
 `pnpm providers:catalog:data` refreshes `@cognidesk/integration-catalog` from provider manifest-only exports where available and from current manifest sources while the migration is in progress. `pnpm providers:catalog` builds the metadata-only package and writes `website/guides/provider-integrations-catalog.md`, rendering the target split package names, manifest imports, runtime imports, and `integrations/{category}/{provider}` workspace paths for #23-#25 and #29-#43. Do not edit the catalog data or Markdown by hand; change the provider manifest, regenerate the catalog data, rebuild, and regenerate the docs instead.
 
+The Integration Packages workflow runs on `integrations/**`, package metadata, docs, and guardrail changes. It regenerates catalog data before building, then fails if the generated catalog data, legacy runtime-loader data, or provider catalog Markdown is stale.
+
 The API reference is generated from built declaration files:
 
 ```bash
