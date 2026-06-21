@@ -19,8 +19,12 @@ import type {
   VoiceProviderSession,
   VoiceSocketSession,
 } from "@cognidesk/voice-websocket";
-
-export const OPENAI_REALTIME_V1_MODEL = "gpt-realtime-2";
+export {
+  OPENAI_REALTIME_V1_MODEL,
+  openAIVoiceIntegration,
+  openAIVoiceProviderManifest,
+} from "./manifest.js";
+import { OPENAI_REALTIME_V1_MODEL } from "./manifest.js";
 
 export interface OpenAIVoiceProviderOptions {
   apiKey?: string;

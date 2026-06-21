@@ -1263,8 +1263,8 @@ Evidence: [Zoom Meetings API Hub OpenAPI](https://developers.zoom.us/api-hub/mee
 | Workspace | `integrations/voice/aws-speech` |
 | Manifest ID | `voice.aws-speech` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
 | Documentation | [https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html](https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media` |
@@ -1286,18 +1286,18 @@ Evidence: [Amazon Transcribe StartStreamTranscription API](https://docs.aws.amaz
 | Workspace | `integrations/voice/azure-speech` |
 | Manifest ID | `voice.azure-speech` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short](https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short) |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/microsoft/cognitive-services-speech-sdk-js](https://github.com/microsoft/cognitive-services-speech-sdk-js) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media` |
 | Provider setup | required `azure-speech-key`, `azure-speech-region` |
 
 Coverage: Implements Azure AI Speech speech-to-text and text-to-speech for Cognidesk STT/TTS voice pipelines.
 
-Boundary: This package implements short-audio REST STT and REST TTS for Cognidesk speech pipelines, not full streaming Azure Speech SDK sessions.
+Boundary: This package adapts buffered Cognidesk voice turns through the Speech SDK; it does not expose continuous recognizer sessions as Cognidesk operations.
 
-Evidence: [Azure AI Speech to text REST API](https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short); [Azure AI Text to speech REST API](https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech); [Azure Speech audio output formats](https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech#audio-outputs).
+Evidence: [Azure Speech SDK for JavaScript](https://github.com/microsoft/cognitive-services-speech-sdk-js); [Azure AI Speech SDK documentation](https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk).
 
 #### Deepgram Speech
 
@@ -1378,8 +1378,8 @@ Evidence: No provider evidence listed in the manifest.
 | Workspace | `integrations/voice/google-speech` |
 | Manifest ID | `voice.google-speech` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
 | Documentation | [https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize](https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media` |
@@ -1401,8 +1401,8 @@ Evidence: [Google Cloud Speech-to-Text speech.recognize REST API](https://docs.c
 | Workspace | `integrations/voice/openai` |
 | Manifest ID | `voice.openai` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
 | Documentation | [https://developers.openai.com/api/docs/guides/realtime](https://developers.openai.com/api/docs/guides/realtime) |
 | Directions | `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `handoff` |
@@ -1412,7 +1412,7 @@ Coverage: Implements a server-side OpenAI Realtime voice adapter for Cognidesk b
 
 Boundary: This package currently supports only gpt-realtime-2.
 
-Evidence: [OpenAI Realtime and audio guide](https://developers.openai.com/api/docs/guides/realtime); [OpenAI Realtime conversations guide](https://developers.openai.com/api/docs/guides/realtime-conversations); [OpenAI Realtime client events reference](https://developers.openai.com/api/reference/resources/realtime/client-events/); [OpenAI realtime models prompting guide](https://developers.openai.com/api/docs/guides/realtime-models-prompting).
+Evidence: [OpenAI Realtime and audio guide](https://developers.openai.com/api/docs/guides/realtime); [OpenAI Realtime conversations guide](https://developers.openai.com/api/docs/guides/realtime-conversations); [OpenAI Realtime client events reference](https://developers.openai.com/api/reference/resources/realtime/client-events/).
 
 #### Twilio Programmable Voice
 

@@ -1,13 +1,40 @@
 import { describe, expect, it } from "vitest";
 import type { RealtimeClientEvent, RealtimeServerEvent } from "openai/resources/realtime/realtime";
+import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   OPENAI_REALTIME_V1_MODEL,
   createOpenAIVoiceProvider,
+  openAIVoiceIntegration,
+  openAIVoiceProviderManifest,
 } from "../src/index.js";
 import type { VoiceControlNotification, VoiceProviderEvent, VoiceSocketSession } from "@cognidesk/voice-websocket";
 import type { RuntimeEvent } from "@cognidesk/core";
 
 describe("@cognidesk/integration-voice-openai", () => {
+  it("declares metadata-only OpenAI Realtime voice integration metadata", () => {
+    expect(openAIVoiceProviderManifest).toMatchObject({
+      id: "voice.openai",
+      packageName: "@cognidesk/integration-voice-openai",
+      metadata: {
+        integrationName: "OpenAI Realtime Voice Integration",
+        integrationPackageName: "@cognidesk/integration-voice-openai",
+        integrationEntryPoints: {
+          manifest: "@cognidesk/integration-voice-openai/manifest",
+          runtime: "@cognidesk/integration-voice-openai/runtime",
+        },
+        implementation: {
+          strategy: "official-sdk",
+          sdkPackages: ["openai"],
+          rawClientEscapeHatch: true,
+        },
+      },
+    });
+    expect(assertIntegrationConformance(openAIVoiceIntegration)).toMatchObject({
+      missingHandlerAliases: [],
+      extraHandlerAliases: [],
+    });
+  });
+
   it("configures a gpt-realtime-2 websocket session and translates browser events", async () => {
     const realtime = new FakeRealtimeSocket();
     const provider = createOpenAIVoiceProvider({

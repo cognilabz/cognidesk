@@ -17951,11 +17951,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.aws-speech",
     "category": "voice",
     "provider": "aws-speech",
-    "importPath": "@cognidesk/integrations/voice/aws-speech",
-    "modulePath": "./voice/aws-speech/index.js",
-    "manifestExport": "awsSpeechProviderManifest",
+    "importPath": "@cognidesk/voice-aws-speech/manifest",
+    "modulePath": "integrations/voice/aws-speech/src/manifest.js",
+    "manifestExport": "awsSpeechManifestInput",
     "name": "AWS Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/voice-aws-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18044,9 +18044,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Amazon Transcribe Streaming speech-to-text and Amazon Polly SynthesizeSpeech text-to-speech for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover the official AWS Transcribe Streaming, Transcribe, and Polly Smithy API models for SDK-user-owned execution.",
+        "Uses official AWS SDK for JavaScript v3 clients for Amazon Transcribe Streaming and Amazon Polly.",
         "AWS supplies transcripts and synthesized audio only; Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, response generation, and durable transcript boundary.",
-        "The built-in Cognidesk speech adapter executes only Transcribe Streaming and Polly SynthesizeSpeech through injected AWS SDK clients; broader generated operations require an SDK-user-owned caller and AWS account policy."
+        "The Cognidesk adapter executes only Transcribe Streaming and Polly SynthesizeSpeech. Broader AWS SDK operations remain available through SDK-user-owned raw clients and AWS account policy."
       ],
       "evidence": [
         {
@@ -18077,48 +18077,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/aws-speech",
-      "providerModule": "./voice/aws-speech/index.js",
-      "manifestExport": "awsSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/aws-speech/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/voice-aws-speech",
+      "runtimePackage": "@cognidesk/voice-aws-speech",
+      "providerModule": "integrations/voice/aws-speech/src/manifest.js",
+      "manifestExport": "awsSpeechManifestInput",
+      "manifestSource": "integrations/voice/aws-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html"
     },
@@ -18188,6 +18156,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "AWS Speech Integration",
+      "integrationPackageName": "@cognidesk/voice-aws-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/voice-aws-speech/manifest",
+        "runtime": "@cognidesk/voice-aws-speech/runtime"
+      },
       "channelCoverage": {
         "speechToText": "typed-transcribe-streaming-sdk-adapter",
         "textToSpeech": "typed-polly-synthesize-speech-sdk-adapter",
@@ -18197,44 +18171,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "fullAmazonPollyApi": "not-covered",
         "telephony": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 58,
-        "functionCount": 58,
-        "apiVersion": "aws-api-models-main-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "@aws-sdk/client-transcribe-streaming",
+          "@aws-sdk/client-polly"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "StartStreamTranscription",
+          "SynthesizeSpeech"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -18242,11 +18189,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.azure-speech",
     "category": "voice",
     "provider": "azure-speech",
-    "importPath": "@cognidesk/integrations/voice/azure-speech",
-    "modulePath": "./voice/azure-speech/index.js",
-    "manifestExport": "azureSpeechProviderManifest",
+    "importPath": "@cognidesk/voice-azure-speech/manifest",
+    "modulePath": "integrations/voice/azure-speech/src/manifest.js",
+    "manifestExport": "azureSpeechManifestInput",
     "name": "Azure AI Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/voice-azure-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18271,7 +18218,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "receive",
         "label": "Transcribe speech",
-        "description": "Transcribes customer PCM voice input with Azure AI Speech to text.",
+        "description": "Transcribes customer PCM voice input with Azure AI Speech.",
         "audiences": [
           "customer-facing"
         ],
@@ -18290,7 +18237,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Synthesize speech",
-        "description": "Synthesizes Cognidesk assistant text with Azure AI Text to speech.",
+        "description": "Synthesizes Cognidesk assistant text with Azure AI Speech.",
         "audiences": [
           "customer-facing"
         ],
@@ -18335,72 +18282,35 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Azure AI Speech speech-to-text and text-to-speech for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover Microsoft azure-rest-api-specs Speech data-plane files for Speech-to-Text management, custom voice, batch synthesis, and transcription surfaces.",
-        "Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
-        "The short-audio STT and realtime TTS endpoints used by the built-in adapter are documented in Microsoft REST docs but are not represented in the generated azure-rest-api-specs files, so that adapter code remains handwritten.",
+        "Uses the official Microsoft Cognitive Services Speech SDK for JavaScript.",
+        "Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
         "Does not implement the full Azure AI Speech SDK, avatar/video APIs, telephony carrier setup, or Azure account policy."
       ],
       "evidence": [
         {
-          "label": "Azure AI Speech to text REST API",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short"
+          "label": "Azure Speech SDK for JavaScript",
+          "url": "https://github.com/microsoft/cognitive-services-speech-sdk-js"
         },
         {
-          "label": "Azure AI Text to speech REST API",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech"
-        },
-        {
-          "label": "Azure Speech audio output formats",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech#audio-outputs"
+          "label": "Azure AI Speech SDK documentation",
+          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/azure-speech",
-      "providerModule": "./voice/azure-speech/index.js",
-      "manifestExport": "azureSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/azure-speech/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short"
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/voice-azure-speech",
+      "runtimePackage": "@cognidesk/voice-azure-speech",
+      "providerModule": "integrations/voice/azure-speech/src/manifest.js",
+      "manifestExport": "azureSpeechManifestInput",
+      "manifestSource": "integrations/voice/azure-speech/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/microsoft/cognitive-services-speech-sdk-js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -18414,7 +18324,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "azure-speech-key",
           "label": "Azure Speech resource key",
-          "description": "Server-side Azure AI Speech resource key used for speech-to-text and text-to-speech REST calls.",
+          "description": "Server-side Azure AI Speech resource key used for speech-to-text and text-to-speech SDK calls.",
           "scopes": [],
           "required": true
         },
@@ -18432,7 +18342,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Azure Speech credentials remain server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "This package implements short-audio REST STT and REST TTS for Cognidesk speech pipelines, not full streaming Azure Speech SDK sessions.",
+      "This package adapts buffered Cognidesk voice turns through the Speech SDK; it does not expose continuous recognizer sessions as Cognidesk operations.",
       "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Azure Speech.",
       "Consent, recording, retention, region selection, private networking, and Azure account policy remain SDK-user configuration."
     ],
@@ -18443,52 +18353,30 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "Azure AI Speech Integration",
+      "integrationPackageName": "@cognidesk/voice-azure-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/voice-azure-speech/manifest",
+        "runtime": "@cognidesk/voice-azure-speech/runtime"
+      },
       "channelCoverage": {
-        "speechToText": "typed-short-audio-rest",
-        "textToSpeech": "typed-rest",
+        "speechToText": "typed-speech-sdk-recognize-once",
+        "textToSpeech": "typed-speech-sdk-speak-text",
         "browserVoiceProtocol": "sdk-owned-cognidesk-voice-websocket",
         "backgroundModelProvider": "sdk-owned-agent-model-set",
-        "fullAzureSpeechSdk": "not-covered",
+        "fullAzureSpeechSdk": "raw-client-only",
         "telephony": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 105,
-        "functionCount": 105,
-        "apiVersion": "azure-speech-rest-api-specs-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "microsoft-cognitiveservices-speech-sdk"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "SpeechRecognizer.recognizeOnceAsync",
+          "SpeechSynthesizer.speakTextAsync"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -19129,11 +19017,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.google-speech",
     "category": "voice",
     "provider": "google-speech",
-    "importPath": "@cognidesk/integrations/voice/google-speech",
-    "modulePath": "./voice/google-speech/index.js",
-    "manifestExport": "googleSpeechProviderManifest",
+    "importPath": "@cognidesk/voice-google-speech/manifest",
+    "modulePath": "integrations/voice/google-speech/src/manifest.js",
+    "manifestExport": "googleSpeechManifestInput",
     "name": "Google Cloud Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/voice-google-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -19222,7 +19110,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Google Cloud Speech-to-Text synchronous recognize and Cloud Text-to-Speech synchronous synthesize for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover the official Google Cloud Speech-to-Text and Text-to-Speech v1 Discovery documents.",
+        "Uses official Google Cloud Node.js clients for Speech-to-Text and Text-to-Speech.",
         "Google Cloud supplies transcripts and synthesized audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
         "Does not implement the full Google Cloud Speech SDKs, streaming recognizer sessions, long-running transcription, long audio synthesis, voice catalog administration, or Google Cloud IAM/project policy."
       ],
@@ -19251,48 +19139,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/google-speech",
-      "providerModule": "./voice/google-speech/index.js",
-      "manifestExport": "googleSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/google-speech/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/voice-google-speech",
+      "runtimePackage": "@cognidesk/voice-google-speech",
+      "providerModule": "integrations/voice/google-speech/src/manifest.js",
+      "manifestExport": "googleSpeechManifestInput",
+      "manifestSource": "integrations/voice/google-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize"
     },
@@ -19329,54 +19185,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "Google Cloud Speech Integration",
+      "integrationPackageName": "@cognidesk/voice-google-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/voice-google-speech/manifest",
+        "runtime": "@cognidesk/voice-google-speech/runtime"
+      },
       "channelCoverage": {
         "speechToText": "typed-synchronous-recognize-rest",
         "textToSpeech": "typed-synchronous-synthesize-rest",
         "browserVoiceProtocol": "sdk-owned-cognidesk-voice-websocket",
         "backgroundModelProvider": "sdk-owned-agent-model-set",
-        "fullGoogleCloudSpeechSdk": "not-covered",
+        "fullGoogleCloudSpeechSdk": "raw-client-only",
         "streamingRecognize": "not-covered",
         "longRunningRecognize": "not-covered",
         "longAudioSynthesis": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 21,
-        "functionCount": 21,
-        "apiVersion": "google-speech-discovery-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "@google-cloud/speech",
+          "@google-cloud/text-to-speech"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "speech.recognize",
+          "text.synthesize"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -19384,11 +19219,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.openai",
     "category": "voice",
     "provider": "openai",
-    "importPath": "@cognidesk/integrations/voice/openai",
-    "modulePath": "./voice/openai/index.js",
-    "manifestExport": "openAIVoiceProviderManifest",
+    "importPath": "@cognidesk/voice-openai/manifest",
+    "modulePath": "integrations/voice/openai/src/manifest.js",
+    "manifestExport": "openAIVoiceManifestInput",
     "name": "OpenAI Realtime Voice",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/voice-openai",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -19495,8 +19330,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "notes": [
         "Implements a server-side OpenAI Realtime voice adapter for Cognidesk browser voice sessions, including session updates, audio events, speech responses, and function-tool outputs.",
         "The generic send and handoff capabilities mean OpenAI Realtime audio response events and Cognidesk-approved Realtime function tools only; they do not mean outbound telephony, carrier handoff, or full OpenAI API coverage.",
-        "Does not implement the full OpenAI API surface, client-side ephemeral session issuance, transcription-only sessions, model administration, file/vector-store APIs, Responses API breadth, or telephony provider operations.",
-        "Telephony numbers, outbound calling, consent, recording, retention, and OpenAI credential distribution remain SDK-user/provider configuration outside this package."
+        "Does not implement the full OpenAI API surface, client-side ephemeral session issuance, transcription-only sessions, model administration, file/vector-store APIs, Responses API breadth, or telephony provider operations."
       ],
       "evidence": [
         {
@@ -19510,57 +19344,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "OpenAI Realtime client events reference",
           "url": "https://developers.openai.com/api/reference/resources/realtime/client-events/"
-        },
-        {
-          "label": "OpenAI realtime models prompting guide",
-          "url": "https://developers.openai.com/api/docs/guides/realtime-models-prompting"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/openai",
-      "providerModule": "./voice/openai/index.js",
-      "manifestExport": "openAIVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/openai/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/voice-openai",
+      "runtimePackage": "@cognidesk/voice-openai",
+      "providerModule": "integrations/voice/openai/src/manifest.js",
+      "manifestExport": "openAIVoiceManifestInput",
+      "manifestSource": "integrations/voice/openai/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.openai.com/api/docs/guides/realtime"
     },
@@ -19604,6 +19402,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "OpenAI Realtime Voice Integration",
+      "integrationPackageName": "@cognidesk/voice-openai",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/voice-openai/manifest",
+        "runtime": "@cognidesk/voice-openai/runtime"
+      },
       "channelCoverage": {
         "realtimeAudio": "typed-session-events",
         "realtimeTranscript": "typed-selected",
@@ -19613,39 +19417,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "ephemeralSessionIssuance": "not-covered",
         "transcriptionOnlySessions": "not-covered"
       },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "openai"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "OpenAIRealtimeWS.create",
+          "session.update",
+          "response.create"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
