@@ -7,11 +7,13 @@ import { runProviderConformance } from "@cognidesk/test-harness";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   createDiscordCommunityClient,
+  createDiscordIntegration,
   createDiscordCommunityIntegration,
   createDiscordCommunityLiveChecks,
   discordCommunityCredentialStatuses,
   discordCommunityOperationAliases,
   discordCommunityProviderManifest,
+  discordIntegrationManifest,
   discordInteractionPongResponse,
   normalizeDiscordInteractionChannelEvent,
   parseDiscordInteractionRequest,
@@ -47,7 +49,22 @@ describe("@cognidesk/community-discord", () => {
       publicKey: "a".repeat(64),
       communityClient: fakeDiscordCommunityClient(),
     });
+    const integrationAlias = createDiscordIntegration({
+      botToken: "discord-bot-token",
+      publicKey: "a".repeat(64),
+      communityClient: fakeDiscordCommunityClient(),
+    });
     expect(integration.operationAliases).toEqual([...discordCommunityOperationAliases]);
+    expect(integrationAlias.manifest.id).toBe("community.discord");
+    expect(discordIntegrationManifest.packageName).toBe("@cognidesk/community-discord");
+    expect(discordCommunityProviderManifest.metadata).toMatchObject({
+      integrationName: "Discord Integration",
+      integrationPackageName: "@cognidesk/community-discord",
+      integrationEntryPoints: {
+        manifest: "@cognidesk/community-discord/manifest",
+        runtime: "@cognidesk/community-discord/runtime",
+      },
+    });
     expect(assertIntegrationConformance({
       manifest: integration.manifest,
       operations: integration.operations,

@@ -179,17 +179,17 @@ function renderCatalog(groupedProviders) {
       const coverage = firstNonEmpty(coverageNotes) ?? "Coverage details are declared in the provider manifest.";
       const boundary = firstNonEmpty([...(provider.limitations ?? []), ...coverageNotes.slice(1), ...(provider.privacyNotes ?? [])]);
       const evidence = provider.coverage?.evidence ?? [];
+      const integrationName = typeof provider.metadata?.integrationName === "string"
+        ? provider.metadata.integrationName.trim()
+        : "";
       const documentationPath = provider.implementation?.documentationPath;
       const documentation = documentationPath?.startsWith("http")
         ? `[${escapeLinkText(documentationPath)}](${documentationPath})`
         : documentationPath;
 
-      lines.push(
-        "",
-        `#### ${provider.name}`,
-        "",
-        "| Field | Value |",
-        "|-------|-------|",
+      const fieldRows = [];
+      if (integrationName) fieldRows.push(`| Integration | ${escapeTableCell(integrationName)} |`);
+      fieldRows.push(
         `| Package | ${escapeTableCell(inlineCode(providerPackageName(provider)))} |`,
         `| Manifest import | ${escapeTableCell(inlineCode(providerManifestImport(provider)))} |`,
         `| Runtime import | ${escapeTableCell(inlineCode(providerRuntimeImport(provider)))} |`,
@@ -202,6 +202,15 @@ function renderCatalog(groupedProviders) {
         `| Directions | ${escapeTableCell(codeList(provider.directions))} |`,
         `| Capabilities | ${escapeTableCell(codeList(capabilities))} |`,
         `| Provider setup | ${escapeTableCell(credentialSummary(provider.readiness?.credentialRequirements ?? []))} |`,
+      );
+
+      lines.push(
+        "",
+        `#### ${provider.name}`,
+        "",
+        "| Field | Value |",
+        "|-------|-------|",
+        ...fieldRows,
         "",
         `Coverage: ${coverage}`,
       );

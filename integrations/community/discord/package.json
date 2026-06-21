@@ -29,6 +29,7 @@
   "dependencies": {
     "@cognidesk/core": "workspace:*",
     "@cognidesk/integration-kit": "workspace:*",
+    "@libsql/client": "^0.17.3",
     "discord.js": "^14.26.4"
   },
   "devDependencies": {

@@ -68,3 +68,6 @@ export function createDiscordCommunityIntegration(options: DiscordCommunityInteg
     operations: createDiscordCommunityOperationHandlers(options),
   });
 }
+
+export const createDiscordIntegration = createDiscordCommunityIntegration;
+export const createDiscordIntegrationOperationHandlers = createDiscordCommunityOperationHandlers;

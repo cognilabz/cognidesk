@@ -291,7 +291,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Discord Community Support",
-      "summary": "Coverage is a Cognidesk support workflow adapter backed by discord.js and selected discord.js REST helpers.",
+      "summary": "Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.",
       "tags": [
         "community",
         "discord",
@@ -451,10 +451,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is a Cognidesk support workflow adapter backed by discord.js and selected discord.js REST helpers.",
+        "Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.",
         "Typed operations cover channel messages, text/forum/media-channel threads, webhook execution, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.",
+        "The runtime export includes a Discord Gateway service that creates or reuses Discord threads, ingests customer messages through messageCreate events, mirrors Cognidesk runtime messages into threads, and records idempotency state through the bundled SQLite store.",
         "This package intentionally removes the generated Discord HTTP API clone and does not claim full Discord platform coverage.",
-        "Discord Gateway ingestion, Gateway event/intents policy, Voice Gateway/media transport, command registration lifecycle, broad moderation/admin APIs, and Discord Webhook Events subscriptions are separate extension surfaces or future packages."
+        "Discord bot installation, Gateway intents policy, channel permissions, moderation policy, retention, deletion, command registration lifecycle, voice/media transport, broad moderation/admin APIs, and Discord Webhook Events subscriptions remain SDK-user-owned configuration or future package surfaces."
       ],
       "evidence": [
         {
@@ -579,12 +580,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "privacyNotes": [
-      "Discord messages, user IDs, guild IDs, channel IDs, thread IDs, usernames, attachments, embeds, and interaction payloads can contain customer and moderator data.",
+      "Discord messages, user IDs, guild IDs, channel IDs, thread IDs, usernames, attachments, embeds, interaction payloads, and mirrored runtime transcripts can contain customer and moderator data.",
       "Discord bot tokens, public keys, application IDs, guild/channel routing, webhook URLs, consent, moderation, retention, and transcript policy stay SDK-user-owned configuration."
     ],
     "limitations": [
       "Available Discord operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.",
-      "Gateway intents are required only for SDK-user-owned Gateway integrations outside this package; this package does not auto-connect Gateway sessions or ingest Discord Webhook Events subscriptions.",
+      "The optional Gateway service requires Discord Gateway access with Message Content Intent enabled when message text is mirrored into Cognidesk.",
+      "Discord Webhook Events subscriptions, slash command registration, broader REST administration, voice, and local RPC/IPC remain outside this package.",
       "Discord interaction endpoint requests must fail closed when signature verification is required but the public key or signature headers are missing or invalid."
     ],
     "maintainers": [
@@ -594,6 +596,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "Discord Integration",
+      "integrationPackageName": "@cognidesk/community-discord",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/community-discord/manifest",
+        "runtime": "@cognidesk/community-discord/runtime"
+      },
       "apiBaseUrl": "https://discord.com/api",
       "defaultApiVersion": "10",
       "interactionSignatureHeaders": [
@@ -607,9 +615,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "webhookExecution": "typed-fetch-send",
         "interactionsEndpoint": "typed-verify-parse",
         "botApplicationGuildChannelReads": "sdk-owned-rest-read",
-        "gatewayEvents": "not-covered",
+        "gatewayEvents": "sdk-owned-discord-js-gateway-service",
         "webhookEventsSubscriptions": "not-covered",
         "voiceGatewayAndRpc": "not-covered"
+      },
+      "gatewayService": {
+        "sourceId": "discord-gateway",
+        "store": "bundled-libsql-sqlite-binding-store",
+        "messageIngress": "discord-js-messageCreate",
+        "runtimeMirror": "cognidesk-runtime-event-list"
       },
       "providerClient": {
         "package": "discord.js",

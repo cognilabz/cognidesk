@@ -58,6 +58,7 @@ Evidence: [Cognidesk cobrowsing local protocol module](https://github.com/cognil
 
 | Field | Value |
 |-------|-------|
+| Integration | Discord Integration |
 | Package | `@cognidesk/community-discord` |
 | Manifest import | `@cognidesk/community-discord/manifest` |
 | Runtime import | `@cognidesk/community-discord/runtime` |
@@ -71,7 +72,7 @@ Evidence: [Cognidesk cobrowsing local protocol module](https://github.com/cognil
 | Capabilities | `receive`, `send`, `thread`, `read-provider-object`, `notify`, `discord.interaction-signature` |
 | Provider setup | required `discord-bot-token`, `discord-application-id`, `discord-public-key`; optional `discord-guild-id`, `discord-channel-id`, `discord-webhook-url` |
 
-Coverage: Coverage is a Cognidesk support workflow adapter backed by discord.js and selected discord.js REST helpers.
+Coverage: Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.
 
 Boundary: Available Discord operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.
 
