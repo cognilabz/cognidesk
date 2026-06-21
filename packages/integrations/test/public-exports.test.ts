@@ -79,11 +79,38 @@ const publicProviderCatalogs = [
 ] as const;
 
 describe.each(publicProviderCatalogs)("$categoryName public exports", ({ references }) => {
-  it("imports every catalogued provider subpath", async () => {
+  it("imports every legacy catalogued provider subpath", async () => {
     for (const reference of references) {
+      if (!reference.importPath.startsWith("@cognidesk/integrations/")) continue;
+
       const providerModule = await import(reference.importPath);
 
       expect(providerModule).toHaveProperty(reference.manifestExport);
     }
+  });
+});
+
+describe("marketplace public references", () => {
+  it("publishes migrated split-package manifest imports", () => {
+    expect(marketplaceProviderReferences).toEqual([
+      expect.objectContaining({
+        id: "marketplace.amazon",
+        importPath: "@cognidesk/marketplace-amazon/manifest",
+        modulePath: "integrations/marketplace/amazon/src/manifest.js",
+        manifestExport: "amazonMarketplaceProviderManifest",
+      }),
+      expect.objectContaining({
+        id: "marketplace.ebay",
+        importPath: "@cognidesk/marketplace-ebay/manifest",
+        modulePath: "integrations/marketplace/ebay/src/manifest.js",
+        manifestExport: "ebayMarketplaceProviderManifest",
+      }),
+    ]);
+    expect(marketplaceProviderReferences.map((reference) => reference.importPath)).not.toContain(
+      "@cognidesk/integrations/marketplace/amazon",
+    );
+    expect(marketplaceProviderReferences.map((reference) => reference.importPath)).not.toContain(
+      "@cognidesk/integrations/marketplace/ebay",
+    );
   });
 });
