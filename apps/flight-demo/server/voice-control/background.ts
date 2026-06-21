@@ -124,6 +124,7 @@ export function createVoiceBackgroundWorkStore(input: Pick<FlightDemoVoiceContro
           message: record.status === "running"
             ? "Cognidesk accepted the workflow proposal and is processing it in the background."
             : undefined,
+          ...(record.status === "running" ? { voiceGuidance: runningWorkVoiceGuidance } : {}),
         }),
       };
     },
@@ -344,3 +345,10 @@ function serializeWork(record: VoiceBackgroundWorkRecord, extra: Record<string, 
     updatedAt: record.updatedAt,
   };
 }
+
+const runningWorkVoiceGuidance = [
+  "The Cognidesk workflow is still running in the background.",
+  "Do not state that the workflow has updated, do not summarize a result, and do not ask the next workflow question yet.",
+  "Say only a brief acknowledgement such as \"I'm checking that now.\"",
+  "The validated result will arrive as a background update; answer with the result only after that update.",
+].join(" ");
