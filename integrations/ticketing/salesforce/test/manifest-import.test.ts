@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-describe("@cognidesk/ticketing-salesforce/manifest", () => {
+describe("@cognidesk/integration-ticketing-salesforce/manifest", () => {
   it("imports without loading jsforce", async () => {
     vi.resetModules();
     vi.doMock("jsforce", () => {
@@ -10,7 +10,7 @@ describe("@cognidesk/ticketing-salesforce/manifest", () => {
     try {
       const { salesforceTicketingProviderManifest } = await import("../src/manifest.js");
 
-      expect(salesforceTicketingProviderManifest.packageName).toBe("@cognidesk/ticketing-salesforce");
+      expect(salesforceTicketingProviderManifest.packageName).toBe("@cognidesk/integration-ticketing-salesforce");
       expect(salesforceTicketingProviderManifest.metadata?.implementation).toMatchObject({
         strategy: "maintained-library",
         manifestImport: "no-sdk-client-initialization",

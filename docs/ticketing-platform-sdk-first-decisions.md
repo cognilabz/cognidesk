@@ -11,7 +11,7 @@ This branch reconciles the #20 and #21 foundations before provider runtime migra
 
 - `pnpm-workspace.yaml` includes `integrations/*/*` for nested provider/category packages.
 - `packages/integration-kit` provides `@cognidesk/integration-kit` contracts, category profiles, readiness/error/webhook helpers, and test utilities.
-- ADR-0085 is the active architecture source: provider runtime packages use `@cognidesk/{category}-{provider}` names and old `@cognidesk/integrations/*` imports are removed rather than bridged.
+- ADR-0085 is the active architecture source: provider runtime packages use `@cognidesk/integration-{category}-{provider}` names and old `@cognidesk/integrations/*` imports are removed rather than bridged.
 - GitHub issue #36 is the dedicated CRM/platform ticketing workstream tracker.
 
 Provider packages can now be implemented against the local foundations. HubSpot, Intercom, and Salesforce have SDK-backed packages in this branch; ServiceNow, Dynamics 365, and Zoho Desk have reviewed direct support-slice packages because no suitable server-side runtime SDK was found for those adapter surfaces. The legacy aggregate ticketing subpaths are removed for these six providers once package, catalog, import-smoke, and deletion checks pass.
@@ -20,9 +20,9 @@ Provider packages can now be implemented against the local foundations. HubSpot,
 
 | Provider | Current local shape | Candidate transport | Decision | Notes |
 | --- | --- | --- | --- | --- |
-| HubSpot | Generated full API clone plus typed Service Hub helpers | `@hubspot/api-client` | Implemented as `@cognidesk/ticketing-hubspot` SDK-backed package | npm shows `@hubspot/api-client` 13.5.0, modified 2026-04-27, repository `HubSpot/hubspot-api-nodejs`. Replacement package wraps normalized ticket operations and exposes rawClient; generated monolith clone is removed from the aggregate package in this branch. |
-| Intercom | Generated REST 2.15 clone plus typed conversation/ticket helpers | `intercom-client` | Implemented as `@cognidesk/ticketing-intercom` SDK-backed package | npm shows `intercom-client` 7.0.3, modified 2026-04-30, repository `intercom/intercom-node`. Package pins 7.0.3 and records a supply-chain guard against compromised 7.0.4. |
-| Salesforce | Direct REST helper for Case, comments, feed, SOQL, readiness, event relay parsing | `jsforce` | Implemented as `@cognidesk/ticketing-salesforce` maintained-library package | npm shows `jsforce` 3.10.16, modified 2026-06-12. Package keeps Cognidesk operations bounded to Service Cloud Case support slices; generic SOQL remains SDK-user-owned escape hatch, not a full Salesforce coverage claim. |
+| HubSpot | Generated full API clone plus typed Service Hub helpers | `@hubspot/api-client` | Implemented as `@cognidesk/integration-ticketing-hubspot` SDK-backed package | npm shows `@hubspot/api-client` 13.5.0, modified 2026-04-27, repository `HubSpot/hubspot-api-nodejs`. Replacement package wraps normalized ticket operations and exposes rawClient; generated monolith clone is removed from the aggregate package in this branch. |
+| Intercom | Generated REST 2.15 clone plus typed conversation/ticket helpers | `intercom-client` | Implemented as `@cognidesk/integration-ticketing-intercom` SDK-backed package | npm shows `intercom-client` 7.0.3, modified 2026-04-30, repository `intercom/intercom-node`. Package pins 7.0.3 and records a supply-chain guard against compromised 7.0.4. |
+| Salesforce | Direct REST helper for Case, comments, feed, SOQL, readiness, event relay parsing | `jsforce` | Implemented as `@cognidesk/integration-ticketing-salesforce` maintained-library package | npm shows `jsforce` 3.10.16, modified 2026-06-12. Package keeps Cognidesk operations bounded to Service Cloud Case support slices; generic SOQL remains SDK-user-owned escape hatch, not a full Salesforce coverage claim. |
 | ServiceNow | Single-file direct Table API, Attachment API, Import Set support slice | Direct reviewed support slice | No viable REST runtime SDK found for this adapter | The unscoped `servicenow` npm package is stale, GPLv3, modified 2022-06-26, and not sufficient. `@servicenow/sdk` is maintained but is app/source-code authoring tooling, not a Table API runtime client for external support adapters. Keep direct REST slice with source/version/checksum/allowlist metadata. |
 | Dynamics 365 Customer Service | Single-file direct Dataverse incident, annotation, queue/activity support slice | Direct reviewed support slice, official auth support optional | No official maintained Dataverse Node runtime SDK found | Microsoft Graph client is current but Graph is not the Dataverse Customer Service incident API. `dynamics-web-api` is maintained but community-owned. Use Dataverse Web API directly for the reviewed support slice; optionally document `@azure/identity` or `@azure/msal-node` for app-owned token acquisition, not as the provider runtime. |
 | Zoho Desk | Single-file direct Desk tickets, comments, threads, replies, org readiness support slice | Direct reviewed support slice | No official maintained Zoho Desk Node runtime SDK found | `zoho-desk-sdk` is community beta, stale, and explicitly not official. Zoho has CRM SDKs and Desk REST/Web SDK docs, but not a suitable server-side Desk SDK package. Keep direct REST slice with source/version/checksum/allowlist metadata. |
@@ -31,12 +31,12 @@ Provider packages can now be implemented against the local foundations. HubSpot,
 
 Create or continue these packages against the reconciled nested-workspace and `@cognidesk/integration-kit` foundations:
 
-- `integrations/ticketing/hubspot` published as `@cognidesk/ticketing-hubspot`
-- `integrations/ticketing/intercom` published as `@cognidesk/ticketing-intercom`
-- `integrations/ticketing/salesforce` published as `@cognidesk/ticketing-salesforce`
-- `integrations/ticketing/servicenow` published as `@cognidesk/ticketing-servicenow`
-- `integrations/ticketing/dynamics365` published as `@cognidesk/ticketing-dynamics365`
-- `integrations/ticketing/zoho-desk` published as `@cognidesk/ticketing-zoho-desk`
+- `integrations/ticketing/hubspot` published as `@cognidesk/integration-ticketing-hubspot`
+- `integrations/ticketing/intercom` published as `@cognidesk/integration-ticketing-intercom`
+- `integrations/ticketing/salesforce` published as `@cognidesk/integration-ticketing-salesforce`
+- `integrations/ticketing/servicenow` published as `@cognidesk/integration-ticketing-servicenow`
+- `integrations/ticketing/dynamics365` published as `@cognidesk/integration-ticketing-dynamics365`
+- `integrations/ticketing/zoho-desk` published as `@cognidesk/integration-ticketing-zoho-desk`
 
 For SDK-backed providers:
 

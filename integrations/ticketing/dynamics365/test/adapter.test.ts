@@ -7,11 +7,11 @@ import {
   dynamics365TicketingProviderManifest,
 } from "../src/index.js";
 
-describe("@cognidesk/ticketing-dynamics365", () => {
+describe("@cognidesk/integration-ticketing-dynamics365", () => {
   it("exports an official provider manifest", () => {
     expect(dynamics365TicketingProviderManifest).toMatchObject({
       id: "ticketing.dynamics365",
-      packageName: "@cognidesk/ticketing-dynamics365",
+      packageName: "@cognidesk/integration-ticketing-dynamics365",
       category: "ticketing",
       provider: "dynamics365",
       trustLevel: "official",

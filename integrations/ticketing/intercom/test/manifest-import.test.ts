@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-describe("@cognidesk/ticketing-intercom/manifest", () => {
+describe("@cognidesk/integration-ticketing-intercom/manifest", () => {
   it("imports without loading the Intercom SDK client module", async () => {
     vi.resetModules();
     vi.doMock("intercom-client", () => {
@@ -10,7 +10,7 @@ describe("@cognidesk/ticketing-intercom/manifest", () => {
     try {
       const { intercomTicketingProviderManifest } = await import("../src/manifest.js");
 
-      expect(intercomTicketingProviderManifest.packageName).toBe("@cognidesk/ticketing-intercom");
+      expect(intercomTicketingProviderManifest.packageName).toBe("@cognidesk/integration-ticketing-intercom");
       expect(intercomTicketingProviderManifest.metadata?.implementation).toMatchObject({
         strategy: "official-sdk",
         manifestImport: "no-sdk-client-initialization",

@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage as defineProviderPackage } from "@cogn
 export const zohoDeskTicketingProviderManifest = defineProviderPackage({
   id: "ticketing.zoho-desk",
   name: "Zoho Desk",
-  packageName: "@cognidesk/ticketing-zoho-desk",
+  packageName: "@cognidesk/integration-ticketing-zoho-desk",
   provider: "zoho-desk",
   category: "ticketing",
   trustLevel: "official",
@@ -58,7 +58,7 @@ export const zohoDeskTicketingProviderManifest = defineProviderPackage({
   metadata: {
     implementation: {
       strategy: "direct-http-support-slice",
-      runtimePackage: "@cognidesk/ticketing-zoho-desk",
+      runtimePackage: "@cognidesk/integration-ticketing-zoho-desk",
       manifestImport: "no-sdk-client-initialization",
     },
     checkedProviderApiCoverage: {

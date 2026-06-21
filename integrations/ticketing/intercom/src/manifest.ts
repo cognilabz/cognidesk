@@ -4,7 +4,7 @@ import { intercomTicketingProviderOperations } from "./operations.js";
 export const intercomTicketingProviderManifest = defineIntegrationProviderPackage({
   id: "ticketing.intercom",
   name: "Intercom",
-  packageName: "@cognidesk/ticketing-intercom",
+  packageName: "@cognidesk/integration-ticketing-intercom",
   provider: "intercom",
   category: "ticketing",
   trustLevel: "official",

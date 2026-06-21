@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage as defineProviderPackage } from "@cogn
 export const serviceNowTicketingProviderManifest = defineProviderPackage({
   id: "ticketing.servicenow",
   name: "ServiceNow Ticketing",
-  packageName: "@cognidesk/ticketing-servicenow",
+  packageName: "@cognidesk/integration-ticketing-servicenow",
   provider: "servicenow",
   category: "ticketing",
   trustLevel: "official",
@@ -111,7 +111,7 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
   metadata: {
     implementation: {
       strategy: "direct-http-support-slice",
-      runtimePackage: "@cognidesk/ticketing-servicenow",
+      runtimePackage: "@cognidesk/integration-ticketing-servicenow",
       manifestImport: "no-sdk-client-initialization",
     },
     checkedProviderApiCoverage: {

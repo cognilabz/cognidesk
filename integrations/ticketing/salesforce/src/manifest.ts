@@ -4,7 +4,7 @@ import { salesforceTicketingProviderOperations } from "./operations.js";
 export const salesforceTicketingProviderManifest = defineIntegrationProviderPackage({
   id: "ticketing.salesforce",
   name: "Salesforce Service Cloud",
-  packageName: "@cognidesk/ticketing-salesforce",
+  packageName: "@cognidesk/integration-ticketing-salesforce",
   provider: "salesforce",
   category: "ticketing",
   trustLevel: "official",

@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage as defineProviderPackage } from "@cogn
 export const dynamics365TicketingProviderManifest = defineProviderPackage({
   id: "ticketing.dynamics365",
   name: "Microsoft Dynamics 365 Customer Service",
-  packageName: "@cognidesk/ticketing-dynamics365",
+  packageName: "@cognidesk/integration-ticketing-dynamics365",
   provider: "dynamics365",
   category: "ticketing",
   trustLevel: "official",
@@ -107,7 +107,7 @@ export const dynamics365TicketingProviderManifest = defineProviderPackage({
   metadata: {
     implementation: {
       strategy: "direct-http-support-slice",
-      runtimePackage: "@cognidesk/ticketing-dynamics365",
+      runtimePackage: "@cognidesk/integration-ticketing-dynamics365",
       manifestImport: "no-sdk-client-initialization",
     },
     checkedProviderApiCoverage: {

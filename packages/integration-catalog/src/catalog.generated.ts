@@ -11712,11 +11712,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.dynamics365",
     "category": "ticketing",
     "provider": "dynamics365",
-    "importPath": "@cognidesk/ticketing-dynamics365/manifest",
+    "importPath": "@cognidesk/integration-ticketing-dynamics365/manifest",
     "modulePath": "integrations/ticketing/dynamics365/src/manifest.js",
     "manifestExport": "dynamics365TicketingProviderManifest",
     "name": "Microsoft Dynamics 365 Customer Service",
-    "packageName": "@cognidesk/ticketing-dynamics365",
+    "packageName": "@cognidesk/integration-ticketing-dynamics365",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -11985,8 +11985,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "direct-http-support-slice",
-      "sdkPackage": "@cognidesk/ticketing-dynamics365",
-      "runtimePackage": "@cognidesk/ticketing-dynamics365",
+      "sdkPackage": "@cognidesk/integration-ticketing-dynamics365",
+      "runtimePackage": "@cognidesk/integration-ticketing-dynamics365",
       "providerModule": "integrations/ticketing/dynamics365/src/manifest.js",
       "manifestExport": "dynamics365TicketingProviderManifest",
       "manifestSource": "integrations/ticketing/dynamics365/src/manifest.ts",
@@ -12039,7 +12039,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "implementation": {
         "strategy": "direct-http-support-slice",
-        "runtimePackage": "@cognidesk/ticketing-dynamics365",
+        "runtimePackage": "@cognidesk/integration-ticketing-dynamics365",
         "manifestImport": "no-sdk-client-initialization"
       },
       "checkedProviderApiCoverage": {
@@ -13550,11 +13550,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.hubspot",
     "category": "ticketing",
     "provider": "hubspot",
-    "importPath": "@cognidesk/ticketing-hubspot/manifest",
+    "importPath": "@cognidesk/integration-ticketing-hubspot/manifest",
     "modulePath": "integrations/ticketing/hubspot/src/manifest.js",
     "manifestExport": "hubSpotTicketingProviderManifest",
     "name": "HubSpot Service Hub",
-    "packageName": "@cognidesk/ticketing-hubspot",
+    "packageName": "@cognidesk/integration-ticketing-hubspot",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -13784,7 +13784,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "official-sdk",
       "sdkPackage": "@hubspot/api-client",
-      "runtimePackage": "@cognidesk/ticketing-hubspot",
+      "runtimePackage": "@cognidesk/integration-ticketing-hubspot",
       "providerModule": "integrations/ticketing/hubspot/src/manifest.js",
       "manifestExport": "hubSpotTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/hubspot/src/manifest.ts",
@@ -13888,11 +13888,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.intercom",
     "category": "ticketing",
     "provider": "intercom",
-    "importPath": "@cognidesk/ticketing-intercom/manifest",
+    "importPath": "@cognidesk/integration-ticketing-intercom/manifest",
     "modulePath": "integrations/ticketing/intercom/src/manifest.js",
     "manifestExport": "intercomTicketingProviderManifest",
     "name": "Intercom",
-    "packageName": "@cognidesk/ticketing-intercom",
+    "packageName": "@cognidesk/integration-ticketing-intercom",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -14103,7 +14103,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "official-sdk",
       "sdkPackage": "intercom-client",
-      "runtimePackage": "@cognidesk/ticketing-intercom",
+      "runtimePackage": "@cognidesk/integration-ticketing-intercom",
       "providerModule": "integrations/ticketing/intercom/src/manifest.js",
       "manifestExport": "intercomTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/intercom/src/manifest.ts",
@@ -15225,11 +15225,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.salesforce",
     "category": "ticketing",
     "provider": "salesforce",
-    "importPath": "@cognidesk/ticketing-salesforce/manifest",
+    "importPath": "@cognidesk/integration-ticketing-salesforce/manifest",
     "modulePath": "integrations/ticketing/salesforce/src/manifest.js",
     "manifestExport": "salesforceTicketingProviderManifest",
     "name": "Salesforce Service Cloud",
-    "packageName": "@cognidesk/ticketing-salesforce",
+    "packageName": "@cognidesk/integration-ticketing-salesforce",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -15450,7 +15450,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "maintained-library",
       "sdkPackage": "jsforce",
-      "runtimePackage": "@cognidesk/ticketing-salesforce",
+      "runtimePackage": "@cognidesk/integration-ticketing-salesforce",
       "providerModule": "integrations/ticketing/salesforce/src/manifest.js",
       "manifestExport": "salesforceTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/salesforce/src/manifest.ts",
@@ -15874,11 +15874,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.servicenow",
     "category": "ticketing",
     "provider": "servicenow",
-    "importPath": "@cognidesk/ticketing-servicenow/manifest",
+    "importPath": "@cognidesk/integration-ticketing-servicenow/manifest",
     "modulePath": "integrations/ticketing/servicenow/src/manifest.js",
     "manifestExport": "serviceNowTicketingProviderManifest",
     "name": "ServiceNow Ticketing",
-    "packageName": "@cognidesk/ticketing-servicenow",
+    "packageName": "@cognidesk/integration-ticketing-servicenow",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -16109,8 +16109,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "direct-http-support-slice",
-      "sdkPackage": "@cognidesk/ticketing-servicenow",
-      "runtimePackage": "@cognidesk/ticketing-servicenow",
+      "sdkPackage": "@cognidesk/integration-ticketing-servicenow",
+      "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
       "providerModule": "integrations/ticketing/servicenow/src/manifest.js",
       "manifestExport": "serviceNowTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/servicenow/src/manifest.ts",
@@ -16165,7 +16165,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "implementation": {
         "strategy": "direct-http-support-slice",
-        "runtimePackage": "@cognidesk/ticketing-servicenow",
+        "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
         "manifestImport": "no-sdk-client-initialization"
       },
       "checkedProviderApiCoverage": {
@@ -16612,11 +16612,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.zoho-desk",
     "category": "ticketing",
     "provider": "zoho-desk",
-    "importPath": "@cognidesk/ticketing-zoho-desk/manifest",
+    "importPath": "@cognidesk/integration-ticketing-zoho-desk/manifest",
     "modulePath": "integrations/ticketing/zoho-desk/src/manifest.js",
     "manifestExport": "zohoDeskTicketingProviderManifest",
     "name": "Zoho Desk",
-    "packageName": "@cognidesk/ticketing-zoho-desk",
+    "packageName": "@cognidesk/integration-ticketing-zoho-desk",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -16840,8 +16840,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "direct-http-support-slice",
-      "sdkPackage": "@cognidesk/ticketing-zoho-desk",
-      "runtimePackage": "@cognidesk/ticketing-zoho-desk",
+      "sdkPackage": "@cognidesk/integration-ticketing-zoho-desk",
+      "runtimePackage": "@cognidesk/integration-ticketing-zoho-desk",
       "providerModule": "integrations/ticketing/zoho-desk/src/manifest.js",
       "manifestExport": "zohoDeskTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/zoho-desk/src/manifest.ts",
@@ -16894,7 +16894,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "implementation": {
         "strategy": "direct-http-support-slice",
-        "runtimePackage": "@cognidesk/ticketing-zoho-desk",
+        "runtimePackage": "@cognidesk/integration-ticketing-zoho-desk",
         "manifestImport": "no-sdk-client-initialization"
       },
       "checkedProviderApiCoverage": {

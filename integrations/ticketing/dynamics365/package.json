@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/ticketing-dynamics365",
+  "name": "@cognidesk/integration-ticketing-dynamics365",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createSalesforceTicketingClient } from "../src/index.js";
 
-describe("@cognidesk/ticketing-salesforce", () => {
+describe("@cognidesk/integration-ticketing-salesforce", () => {
   it("binds declared operations to injectable jsforce-shaped handlers", async () => {
     const created: unknown[] = [];
     const client = createSalesforceTicketingClient({

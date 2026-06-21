@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   aggregateExportSubpathForImportPath,
   isGeneratedFullProviderApiClone,
+  manifestOnlyRuntimeImportViolationsForSource,
   packageExportSubpaths,
   providerReferenceImportPaths,
 } from "./check-integration-package-architecture.mjs";
@@ -49,7 +50,7 @@ describe("aggregate provider catalog export guards", () => {
     );
     assert.equal(aggregateExportSubpathForImportPath("@cognidesk/integrations"), ".");
     assert.equal(
-      aggregateExportSubpathForImportPath("@cognidesk/ticketing-zendesk/manifest"),
+      aggregateExportSubpathForImportPath("@cognidesk/integration-ticketing-zendesk/manifest"),
       undefined,
     );
   });
@@ -72,7 +73,7 @@ describe("aggregate provider catalog export guards", () => {
     const source = `
       export const references = [
         { "importPath": "@cognidesk/integrations/ticketing/zendesk" },
-        { importPath: "@cognidesk/ticketing-salesforce/manifest" },
+        { importPath: "@cognidesk/integration-ticketing-salesforce/manifest" },
       ];
     `;
 
@@ -82,9 +83,47 @@ describe("aggregate provider catalog export guards", () => {
         line: 3,
       },
       {
-        importPath: "@cognidesk/ticketing-salesforce/manifest",
+        importPath: "@cognidesk/integration-ticketing-salesforce/manifest",
         line: 4,
       },
     ]);
+  });
+});
+
+describe("manifestOnlyRuntimeImportViolationsForSource", () => {
+  const manifestFile = "/repo/integrations/email/gmail/src/manifest.ts";
+
+  it("rejects manifest imports that reach provider runtime modules", () => {
+    const source = [
+      'import { defineProviderPackage } from "@cognidesk/integration-kit";',
+      'import { createGmailRuntime } from "./runtime.js";',
+      'import { createGmailClient } from "./client/index.js";',
+      'import { createLegacyRuntime } from "../runtime.js";',
+      'import { gmailRuntime } from "@cognidesk/integration-email-gmail/runtime";',
+      'export { gmailClient } from "@cognidesk/integration-email-gmail/client/testing";',
+    ].join("\n");
+
+    assert.deepEqual(
+      manifestOnlyRuntimeImportViolationsForSource(source, manifestFile).map((violation) => violation.specifier),
+      [
+        "./runtime.js",
+        "./client/index.js",
+        "../runtime.js",
+        "@cognidesk/integration-email-gmail/runtime",
+        "@cognidesk/integration-email-gmail/client/testing",
+      ],
+    );
+  });
+
+  it("allows provider-neutral kit/core, metadata, and type-only imports", () => {
+    const source = [
+      'import { defineProviderPackage } from "@cognidesk/integration-kit";',
+      'import { ProviderManifest } from "@cognidesk/core";',
+      'import { GMAIL_OPERATION_COUNT } from "./metadata.js";',
+      'import type { GmailRuntime } from "./runtime.js";',
+      'export type { GmailClient } from "@cognidesk/integration-email-gmail/client";',
+    ].join("\n");
+
+    assert.deepEqual(manifestOnlyRuntimeImportViolationsForSource(source, manifestFile), []);
   });
 });

@@ -4,7 +4,7 @@ import { hubSpotTicketingProviderOperations } from "./operations.js";
 export const hubSpotTicketingProviderManifest = defineIntegrationProviderPackage({
   id: "ticketing.hubspot",
   name: "HubSpot Service Hub",
-  packageName: "@cognidesk/ticketing-hubspot",
+  packageName: "@cognidesk/integration-ticketing-hubspot",
   provider: "hubspot",
   category: "ticketing",
   trustLevel: "official",

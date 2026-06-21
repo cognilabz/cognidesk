@@ -7,11 +7,11 @@ import {
   serviceNowTicketingProviderManifest,
 } from "../src/index.js";
 
-describe("@cognidesk/ticketing-servicenow", () => {
+describe("@cognidesk/integration-ticketing-servicenow", () => {
   it("exports an official provider manifest for ServiceNow ticketing", () => {
     expect(serviceNowTicketingProviderManifest).toMatchObject({
       id: "ticketing.servicenow",
-      packageName: "@cognidesk/ticketing-servicenow",
+      packageName: "@cognidesk/integration-ticketing-servicenow",
       category: "ticketing",
       provider: "servicenow",
       trustLevel: "official",

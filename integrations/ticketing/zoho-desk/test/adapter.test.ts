@@ -7,11 +7,11 @@ import {
   zohoDeskTicketingProviderManifest,
 } from "../src/index.js";
 
-describe("@cognidesk/ticketing-zoho-desk", () => {
+describe("@cognidesk/integration-ticketing-zoho-desk", () => {
   it("exports an official provider manifest", () => {
     expect(zohoDeskTicketingProviderManifest).toMatchObject({
       id: "ticketing.zoho-desk",
-      packageName: "@cognidesk/ticketing-zoho-desk",
+      packageName: "@cognidesk/integration-ticketing-zoho-desk",
       category: "ticketing",
       provider: "zoho-desk",
     });

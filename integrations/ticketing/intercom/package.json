@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/ticketing-intercom",
+  "name": "@cognidesk/integration-ticketing-intercom",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

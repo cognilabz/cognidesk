@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createHubSpotTicketingClient } from "../src/index.js";
 
-describe("@cognidesk/ticketing-hubspot", () => {
+describe("@cognidesk/integration-ticketing-hubspot", () => {
   it("binds declared operations to injectable official-client shaped handlers", async () => {
     const calls: unknown[] = [];
     const client = createHubSpotTicketingClient({

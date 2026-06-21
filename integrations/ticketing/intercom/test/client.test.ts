@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createIntercomTicketingClient } from "../src/index.js";
 
-describe("@cognidesk/ticketing-intercom", () => {
+describe("@cognidesk/integration-ticketing-intercom", () => {
   it("binds declared operations to injectable official-client shaped handlers", async () => {
     const client = createIntercomTicketingClient({
       rawClient: {
