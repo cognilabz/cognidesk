@@ -23,6 +23,7 @@ Finish the provider integration refactor so every existing integration is covere
 - `scripts/generate-integration-catalog.ts` now discovers split provider packages and prefers split manifests over legacy monolith entries when ids match.
 - Generated provider catalog docs now render target package names, `/manifest`, `/runtime`, and `integrations/{category}/{provider}` workspace paths.
 - `website/guides/provider-package-migration.md` records the no-bridge migration policy and initial codemod mapping.
+- `docs/provider-integration-plan-alignment.md` maps the ChatGPT "Project Integration Plan" requirements to repo evidence, owners, intentional deviations, and active blockers.
 - `pnpm providers:codemod:imports` runs the syntax-aware old-import codemod from `scripts/migrate-provider-imports.mjs`.
 - The Integration Packages workflow regenerates provider catalog data before build and fails on stale catalog data, runtime-loader data, or catalog docs.
 
@@ -116,6 +117,12 @@ First-wave PR handoff after branch owners committed:
 - #25 is clean and pushed at `11a4164 feat(integrations): split slack and discord providers`.
 - Draft PR creation from this thread failed with GitHub `createPullRequest` permission `must be a collaborator`. Open the PRs manually with base `codex/integrations-foundation-stack` and heads `codex/integrations-23-gmail-sdk-package`, `codex/integrations-24-microsoft-graph-packages`, and `codex/integrations-25-chat-provider-packages`.
 - PR handoff comments were posted on #23, #24, and #25 with exact base/head/title instructions.
+
+ChatGPT plan recheck:
+
+- Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
+- The plan's major requirements are tracked in `docs/provider-integration-plan-alignment.md`: per-provider packages, SDK-first policy, integration kit, metadata-only catalog, explicit runtime registration, adapter-vs-SDK coverage, independent publishing, first-wave Gmail/Graph/Slack validation, provider cohorts, and eventual monolith deletion.
+- The plan's legacy-bridge phase is intentionally rejected by ADR-0085 and replaced with migration docs plus `pnpm providers:codemod:imports`.
 
 Known caveat:
 
