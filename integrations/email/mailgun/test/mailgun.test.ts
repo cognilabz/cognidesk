@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
-import { assertIntegrationConformance, createOperationHandlerStubs } from "@cognidesk/integration-kit/testing";
+import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   createMailgunEmailIntegration,
   mailgunEmailCredentialStatuses,
@@ -37,10 +37,15 @@ describe("@cognidesk/email-mailgun", () => {
     vi.doUnmock("mailgun.js");
   });
 
-  it("passes provider conformance for the split package manifest", async () => {
+  it("passes provider conformance for the split package integration operations", async () => {
+    const integration = createMailgunEmailIntegration({
+      apiKey: "key",
+      domain: "mg.example.test",
+      rawClient: createMailgunRawClientStub(),
+    });
     const report = assertIntegrationConformance({
       manifest: mailgunEmailProviderManifest,
-      operations: createOperationHandlerStubs(mailgunEmailProviderManifest),
+      operations: integration.operations,
     });
 
     expect(report).toMatchObject({
@@ -56,15 +61,7 @@ describe("@cognidesk/email-mailgun", () => {
   });
 
   it("binds declared operations to the official SDK raw client", async () => {
-    const rawClient = {
-      messages: {
-        create: vi.fn(async () => ({ id: "<message@example.test>" })),
-        retrieveStoredEmail: vi.fn(async () => ({ subject: "Stored" })),
-      },
-      events: { get: vi.fn(async () => ({ items: [{ event: "delivered" }] })) },
-      domains: { get: vi.fn(async () => ({ name: "mg.example.test" })) },
-      webhooks: { list: vi.fn(async () => ({ webhooks: [] })) },
-    } as unknown as MailgunRawClient;
+    const rawClient = createMailgunRawClientStub();
     const integration = createMailgunEmailIntegration({
       apiKey: "key",
       domain: "mg.example.test",
@@ -87,6 +84,33 @@ describe("@cognidesk/email-mailgun", () => {
       .toHaveBeenCalledWith("mg.example.test", "storage-key");
   });
 
+  it("binds email.receive to the Mailgun webhook parser", async () => {
+    const signingKey = "signing-key";
+    const timestamp = "1710000000";
+    const token = "token";
+    const signature = createHmac("sha256", signingKey).update(`${timestamp}${token}`).digest("hex");
+    const integration = createMailgunEmailIntegration({
+      apiKey: "key",
+      domain: "mg.example.test",
+      rawClient: createMailgunRawClientStub(),
+      webhookSigningKey: signingKey,
+      requireWebhookSignature: true,
+    });
+
+    await expect(integration.operations["email.receive"]?.(new Request("https://example.test", {
+      method: "POST",
+      body: JSON.stringify({
+        signature: { timestamp, token, signature },
+        "event-data": { event: "delivered", recipient: "customer@example.test" },
+      }),
+    }))).resolves.toMatchObject({
+      verified: true,
+      payload: {
+        "event-data": { event: "delivered", recipient: "customer@example.test" },
+      },
+    });
+  });
+
   it("verifies Mailgun webhook signatures", async () => {
     const signingKey = "signing-key";
     const timestamp = "1710000000";
@@ -100,3 +124,15 @@ describe("@cognidesk/email-mailgun", () => {
     }), { signingKey, requireSignature: true })).resolves.toMatchObject({ verified: true });
   });
 });
+
+function createMailgunRawClientStub(): MailgunRawClient {
+  return {
+    messages: {
+      create: vi.fn(async () => ({ id: "<message@example.test>" })),
+      retrieveStoredEmail: vi.fn(async () => ({ subject: "Stored" })),
+    },
+    events: { get: vi.fn(async () => ({ items: [{ event: "delivered" }] })) },
+    domains: { get: vi.fn(async () => ({ name: "mg.example.test" })) },
+    webhooks: { list: vi.fn(async () => ({ webhooks: [] })) },
+  } as unknown as MailgunRawClient;
+}

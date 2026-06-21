@@ -6156,15 +6156,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
+          "email.receive",
+          "email.reply.send",
+          "email.send",
           "email.deliveryStatus.read"
         ],
         "missingRequiredOperations": [
-          "email.receive",
-          "email.thread.read",
-          "email.reply.send"
+          "email.thread.read"
         ],
         "missingRecommendedOperations": [
-          "email.send",
           "email.draft.create",
           "email.draft.update",
           "email.draft.send",
@@ -6272,15 +6272,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
+          "email.receive",
+          "email.reply.send",
+          "email.send",
           "email.deliveryStatus.read"
         ],
         "missingRequiredOperations": [
-          "email.receive",
-          "email.thread.read",
-          "email.reply.send"
+          "email.thread.read"
         ],
         "missingRecommendedOperations": [
-          "email.send",
           "email.draft.create",
           "email.draft.update",
           "email.draft.send",

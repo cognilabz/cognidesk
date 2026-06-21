@@ -87,8 +87,9 @@ export const mailgunEmailProviderManifest = defineIntegrationProviderPackage({
     },
   ],
   operations: [
-    { alias: "email.send", capability: "send", providerObject: "mailgunMessage", sideEffect: true, exposesSensitiveData: true },
-    { alias: "email.reply.send", capability: "send", providerObject: "mailgunMessage", sideEffect: true, exposesSensitiveData: true },
+    { alias: "email.receive", capability: "receive", providerObject: "emailMessage", exposesSensitiveData: true },
+    { alias: "email.send", capability: "send", providerObject: "emailMessage", sideEffect: true, exposesSensitiveData: true },
+    { alias: "email.reply.send", capability: "send", providerObject: "emailMessage", sideEffect: true, exposesSensitiveData: true },
     { alias: "email.deliveryStatus.read", capability: "read-provider-object", providerObject: "deliveryStatus", exposesSensitiveData: true },
     { alias: "mailgun.storedMessage.read", capability: "read-provider-object", providerObject: "mailgunStoredMessage", extension: true, exposesSensitiveData: true },
     { alias: "mailgun.domain.read", capability: "read-provider-object", providerObject: "mailgunDomain", extension: true, exposesSensitiveData: true },

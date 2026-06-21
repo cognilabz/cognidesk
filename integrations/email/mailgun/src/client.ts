@@ -1,6 +1,7 @@
 import Mailgun from "mailgun.js";
 import { defineIntegration, normalizeIntegrationError } from "@cognidesk/integration-kit";
 import { mailgunEmailProviderManifest } from "./manifest.js";
+import { parseMailgunWebhook } from "./webhooks.js";
 
 export interface MailgunRawClient {
   messages: {
@@ -50,6 +51,8 @@ export interface MailgunEmailClientOptions {
   apiBaseUrl?: string;
   rawClient?: MailgunRawClient;
   formData?: unknown;
+  webhookSigningKey?: string;
+  requireWebhookSignature?: boolean;
 }
 
 export interface MailgunEmailClient {
@@ -104,6 +107,7 @@ export function createMailgunEmailIntegration(options: MailgunEmailClientOptions
     ...defineIntegration({
       manifest: mailgunEmailProviderManifest,
       operations: {
+        "email.receive": (input: unknown) => parseMailgunWebhook(input as Request, mailgunWebhookParserOptions(options)),
         "email.send": (input: unknown) => client.sendEmail(input as MailgunEmailAddressedInput),
         "email.reply.send": (input: unknown) => client.sendReply(input as MailgunReplyInput),
         "email.deliveryStatus.read": (input: unknown) => client.searchEvents(input as MailgunEventSearchInput),
@@ -128,6 +132,13 @@ export function createMailgunEmailLiveChecks(options: MailgunEmailClientOptions)
       return { details: { domain: options.domain, providerResponse: domain } };
     },
   }];
+}
+
+function mailgunWebhookParserOptions(options: MailgunEmailClientOptions) {
+  return {
+    ...(options.webhookSigningKey ? { signingKey: options.webhookSigningKey } : {}),
+    ...(options.requireWebhookSignature !== undefined ? { requireSignature: options.requireWebhookSignature } : {}),
+  };
 }
 
 function createRawMailgunClient(options: MailgunEmailClientOptions): MailgunRawClient {
