@@ -49,10 +49,10 @@ describe("provider migration matrix", () => {
     const rows = parseMatrixRows(await readFile(matrixPath, "utf8"));
     const byProvider = new Map(rows.map((row) => [row.provider, row]));
 
-    expect(byProvider.get("sms/twilio")?.targetPackage).toBe("@cognidesk/sms-twilio");
-    expect(byProvider.get("voice/twilio")?.targetPackage).toBe("@cognidesk/voice-twilio");
-    expect(byProvider.get("contact-center/zoom")?.targetPackage).toBe("@cognidesk/contact-center-zoom");
-    expect(byProvider.get("video/zoom")?.targetPackage).toBe("@cognidesk/video-zoom");
+    expect(byProvider.get("sms/twilio")?.targetPackage).toBe("@cognidesk/integration-sms-twilio");
+    expect(byProvider.get("voice/twilio")?.targetPackage).toBe("@cognidesk/integration-voice-twilio");
+    expect(byProvider.get("contact-center/zoom")?.targetPackage).toBe("@cognidesk/integration-contact-center-zoom");
+    expect(byProvider.get("video/zoom")?.targetPackage).toBe("@cognidesk/integration-video-zoom");
     expect(byProvider.get("sms/twilio")?.targetPackage).not.toBe(byProvider.get("voice/twilio")?.targetPackage);
     expect(byProvider.get("contact-center/zoom")?.targetPackage).not.toBe(byProvider.get("video/zoom")?.targetPackage);
   });

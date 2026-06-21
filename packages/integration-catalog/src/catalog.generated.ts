@@ -5381,11 +5381,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.gmail",
     "category": "email",
     "provider": "gmail",
-    "importPath": "@cognidesk/email-gmail/manifest",
+    "importPath": "@cognidesk/integration-email-gmail/manifest",
     "modulePath": "integrations/email/gmail/src/manifest.js",
     "manifestExport": "gmailEmailProviderManifest",
     "name": "Gmail",
-    "packageName": "@cognidesk/email-gmail",
+    "packageName": "@cognidesk/integration-email-gmail",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -5618,7 +5618,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "official-sdk",
       "sdkPackage": "@googleapis/gmail",
-      "runtimePackage": "@cognidesk/email-gmail",
+      "runtimePackage": "@cognidesk/integration-email-gmail",
       "providerModule": "integrations/email/gmail/src/manifest.js",
       "manifestExport": "gmailEmailProviderManifest",
       "manifestSource": "integrations/email/gmail/src/manifest.ts",

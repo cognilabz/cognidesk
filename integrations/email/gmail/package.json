@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/email-gmail",
+  "name": "@cognidesk/integration-email-gmail",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

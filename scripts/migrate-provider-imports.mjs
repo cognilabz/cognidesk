@@ -279,7 +279,7 @@ function providerImportTarget(specifier) {
     };
   }
 
-  const packageName = `@cognidesk/${category}-${provider}`;
+  const packageName = `@cognidesk/integration-${category}-${provider}`;
   return {
     category,
     packageName,
@@ -434,7 +434,7 @@ function printUsage() {
     "Usage: node scripts/migrate-provider-imports.mjs [--write|--check] <file-or-directory>...",
     "",
     "Rewrites legacy @cognidesk/integrations/{category}/{provider} imports to",
-    "@cognidesk/{category}-{provider}/manifest or /runtime. Ambiguous imports fail closed.",
+    "@cognidesk/integration-{category}-{provider}/manifest or /runtime. Ambiguous imports fail closed.",
   ].join("\n"));
 }
 

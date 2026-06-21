@@ -15,12 +15,12 @@ import {
   type GmailEmailOperationOutputMap,
 } from "../src/index.js";
 
-describe("@cognidesk/email-gmail", () => {
+describe("@cognidesk/integration-email-gmail", () => {
   it("declares a scoped official-sdk manifest whose operations match executable handlers", () => {
     const client = createGmailEmailClient({ rawClient: gmailClientMock() });
     expect(gmailEmailProviderManifest).toMatchObject({
       id: "email.gmail",
-      packageName: "@cognidesk/email-gmail",
+      packageName: "@cognidesk/integration-email-gmail",
       category: "email",
       provider: "gmail",
       trustLevel: "official",
@@ -259,7 +259,7 @@ describe("@cognidesk/email-gmail", () => {
   it("reports readiness as credential-blocked until Gmail credentials are configured", async () => {
     const result = await runProviderConformance({
       manifest: gmailEmailProviderManifest,
-      expectedPackageName: "@cognidesk/email-gmail",
+      expectedPackageName: "@cognidesk/integration-email-gmail",
       channels: [{
         id: "email",
         channel: "email",
@@ -289,7 +289,7 @@ describe("@cognidesk/email-gmail", () => {
   it("passes readiness conformance when Gmail live checks and credentials are configured", async () => {
     const result = await runProviderConformance({
       manifest: gmailEmailProviderManifest,
-      expectedPackageName: "@cognidesk/email-gmail",
+      expectedPackageName: "@cognidesk/integration-email-gmail",
       channels: [{
         id: "email",
         channel: "email",

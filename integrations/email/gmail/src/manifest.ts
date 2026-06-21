@@ -4,7 +4,7 @@ import { gmailEmailProviderOperations } from "./operations.js";
 export const gmailEmailProviderManifest = defineIntegrationProviderPackage({
   id: "email.gmail",
   name: "Gmail",
-  packageName: "@cognidesk/email-gmail",
+  packageName: "@cognidesk/integration-email-gmail",
   provider: "gmail",
   category: "email",
   trustLevel: "official",

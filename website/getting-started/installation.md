@@ -35,7 +35,7 @@ Install only the adapters and surfaces your application uses:
 | `@cognidesk/ui` | Prebuilt UI components |
 | `@cognidesk/storage` | SQLite/libSQL and Postgres runtime storage adapters |
 | `@cognidesk/otel` | OpenTelemetry instrumentation |
-| `@cognidesk/{category}-{provider}` | External Provider Integrations installed one provider at a time, such as `@cognidesk/email-gmail`, `@cognidesk/workplace-slack`, `@cognidesk/email-outlook`, `@cognidesk/workplace-teams`, and `@cognidesk/voice-openai` |
+| `@cognidesk/integration-{category}-{provider}` | External Provider Integrations installed one provider at a time, such as `@cognidesk/integration-email-gmail`, `@cognidesk/integration-workplace-slack`, `@cognidesk/integration-email-outlook`, `@cognidesk/integration-workplace-teams`, and `@cognidesk/integration-voice-openai` |
 | `@cognidesk/integration-catalog` | Provider discovery metadata used by docs, Studio, and application-owned lazy loaders once split provider packages from #23-#25 and #29-#43 publish from `integrations/{category}/{provider}` |
 | `@cognidesk/voice-websocket` | Browser-facing Cognidesk Voice WebSocket transport |
 | `@cognidesk/journey-index-json` | JSON-based journey index |
@@ -51,13 +51,13 @@ Install only the provider packages your application enables. The split package w
 === "pnpm"
 
     ```bash
-    pnpm add @cognidesk/email-gmail @cognidesk/workplace-slack @cognidesk/email-outlook @cognidesk/workplace-teams @cognidesk/voice-openai
+    pnpm add @cognidesk/integration-email-gmail @cognidesk/integration-workplace-slack @cognidesk/integration-email-outlook @cognidesk/integration-workplace-teams @cognidesk/integration-voice-openai
     ```
 
 === "npm"
 
     ```bash
-    npm install @cognidesk/email-gmail @cognidesk/workplace-slack @cognidesk/email-outlook @cognidesk/workplace-teams @cognidesk/voice-openai
+    npm install @cognidesk/integration-email-gmail @cognidesk/integration-workplace-slack @cognidesk/integration-email-outlook @cognidesk/integration-workplace-teams @cognidesk/integration-voice-openai
     ```
 
 ### Full installation example

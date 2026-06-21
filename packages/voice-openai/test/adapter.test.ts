@@ -7,7 +7,7 @@ import {
 import type { VoiceControlNotification, VoiceProviderEvent, VoiceSocketSession } from "@cognidesk/voice-websocket";
 import type { RuntimeEvent } from "@cognidesk/core";
 
-describe("@cognidesk/voice-openai", () => {
+describe("@cognidesk/integration-voice-openai", () => {
   it("configures a gpt-realtime-2 websocket session and translates browser events", async () => {
     const realtime = new FakeRealtimeSocket();
     const provider = createOpenAIVoiceProvider({
