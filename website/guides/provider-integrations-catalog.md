@@ -1257,6 +1257,7 @@ Evidence: [Zoom Meetings API Hub OpenAPI](https://developers.zoom.us/api-hub/mee
 
 | Field | Value |
 |-------|-------|
+| Integration | AWS Speech Integration |
 | Package | `@cognidesk/integration-voice-aws-speech` |
 | Manifest import | `@cognidesk/integration-voice-aws-speech/manifest` |
 | Runtime import | `@cognidesk/integration-voice-aws-speech/runtime` |
@@ -1280,6 +1281,7 @@ Evidence: [Amazon Transcribe StartStreamTranscription API](https://docs.aws.amaz
 
 | Field | Value |
 |-------|-------|
+| Integration | Azure AI Speech Integration |
 | Package | `@cognidesk/integration-voice-azure-speech` |
 | Manifest import | `@cognidesk/integration-voice-azure-speech/manifest` |
 | Runtime import | `@cognidesk/integration-voice-azure-speech/runtime` |
@@ -1372,6 +1374,7 @@ Evidence: No provider evidence listed in the manifest.
 
 | Field | Value |
 |-------|-------|
+| Integration | Google Cloud Speech Integration |
 | Package | `@cognidesk/integration-voice-google-speech` |
 | Manifest import | `@cognidesk/integration-voice-google-speech/manifest` |
 | Runtime import | `@cognidesk/integration-voice-google-speech/runtime` |
@@ -1395,6 +1398,7 @@ Evidence: [Google Cloud Speech-to-Text speech.recognize REST API](https://docs.c
 
 | Field | Value |
 |-------|-------|
+| Integration | OpenAI Realtime Voice Integration |
 | Package | `@cognidesk/integration-voice-openai` |
 | Manifest import | `@cognidesk/integration-voice-openai/manifest` |
 | Runtime import | `@cognidesk/integration-voice-openai/runtime` |
