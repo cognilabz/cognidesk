@@ -35,6 +35,8 @@ const providerSdkPackages = new Set([
   "@azure/identity",
   "@googleapis/gmail",
   "@hubspot/api-client",
+  "intercom-client",
+  "jsforce",
   "@microsoft/microsoft-graph-client",
   "@slack/web-api",
   "@vonage/server-sdk",

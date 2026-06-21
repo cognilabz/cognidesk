@@ -1,0 +1,85 @@
+import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
+
+export const zohoDeskTicketingProviderManifest = defineProviderPackage({
+  id: "ticketing.zoho-desk",
+  name: "Zoho Desk",
+  packageName: "@cognidesk/ticketing-zoho-desk",
+  provider: "zoho-desk",
+  category: "ticketing",
+  trustLevel: "official",
+  directions: ["bidirectional"],
+  channelAudiences: ["customer-facing", "internal-support", "mixed"],
+  coverage: {
+    scope: "support-workflow-subset",
+    notes: [
+      "Coverage is typed for Zoho Desk ticket create, read, patch, ticket listing/search query passthrough, ticket comments, ticket threads, send-reply, organization readiness, and credential status used by Cognidesk support workflows.",
+      "This is not full Zoho Desk API coverage; contacts, accounts, departments, agents, teams, attachments, layouts, blueprints, assignment/skills actions, spam/trash lifecycle, webhooks, help center, analytics, and broader settings APIs remain outside this adapter.",
+    ],
+    evidence: [
+      { label: "Zoho Desk API documentation", url: "https://desk.zoho.com/DeskAPIDocument" },
+      { label: "Zoho Desk create ticket", url: "https://desk.zoho.com/DeskAPIDocument#Tickets#Tickets_Createaticket" },
+      { label: "Zoho Desk list all tickets", url: "https://desk.zoho.com/DeskAPIDocument#Tickets#Tickets_Listalltickets" },
+      { label: "Zoho Desk update ticket", url: "https://desk.zoho.com/DeskAPIDocument#Tickets#Tickets_Updateaticket" },
+      { label: "Zoho Desk list ticket comments", url: "https://desk.zoho.com/DeskAPIDocument#TicketsComments#TicketsComments_Listallticketcomments" },
+      { label: "Zoho Desk create ticket comment", url: "https://desk.zoho.com/DeskAPIDocument#TicketsComments#TicketsComments_Createticketcomment" },
+      { label: "Zoho Desk list ticket threads", url: "https://desk.zoho.com/DeskAPIDocument#Threads#Threads_Listallthreads" },
+      { label: "Zoho Desk send email reply", url: "https://desk.zoho.com/DeskAPIDocument#Threads#Threads_SendEmailReply" },
+      { label: "Zoho Desk organizations", url: "https://desk.zoho.com/DeskAPIDocument#Organizations" },
+    ],
+  },
+  credentialRequirements: [
+    { id: "zoho-desk-org", label: "Zoho Desk organization ID", required: true },
+    {
+      id: "zoho-desk-api-access",
+      label: "Zoho Desk OAuth access",
+      scopes: ["Desk.tickets.CREATE", "Desk.tickets.READ", "Desk.tickets.UPDATE", "Desk.basic.READ"],
+      required: true,
+      metadata: { scopeKind: "provider-oauth-scopes" },
+    },
+  ],
+  capabilities: [
+    { capability: "create-provider-object", label: "Create Zoho tickets", providerObjects: [{ kind: "zohoDeskTicket", label: "Zoho Desk Ticket" }], audiences: ["customer-facing", "mixed"], requiresCredential: true, sideEffect: true, exposesSensitiveData: true, changesWorkflow: true },
+    { capability: "read-provider-object", label: "Read Zoho tickets", providerObjects: [
+      { kind: "zohoDeskTicket", label: "Zoho Desk Ticket" },
+      { kind: "zohoDeskTicketComment", label: "Zoho Desk Ticket Comment" },
+      { kind: "zohoDeskThread", label: "Zoho Desk Thread" },
+    ], audiences: ["internal-support", "mixed"], requiresCredential: true, exposesSensitiveData: true },
+    { capability: "update-provider-object", label: "Update Zoho tickets", providerObjects: [{ kind: "zohoDeskTicket", label: "Zoho Desk Ticket" }], audiences: ["internal-support", "mixed"], requiresCredential: true, sideEffect: true, exposesSensitiveData: true, changesWorkflow: true },
+    { capability: "search-provider-object", label: "Search Zoho tickets", providerObjects: [{ kind: "zohoDeskTicket", label: "Zoho Desk Ticket" }], audiences: ["internal-support", "mixed"], requiresCredential: true, exposesSensitiveData: true },
+    { capability: "handoff", label: "Attach handoff to Zoho Desk", providerObjects: [
+      { kind: "zohoDeskTicket", label: "Zoho Desk Ticket" },
+      { kind: "zohoDeskTicketComment", label: "Zoho Desk Ticket Comment" },
+      { kind: "zohoDeskThread", label: "Zoho Desk Thread" },
+      { kind: "zohoDeskReply", label: "Zoho Desk Reply" },
+    ], audiences: ["customer-facing", "internal-support", "mixed"], requiresCredential: true, sideEffect: true, exposesSensitiveData: true, changesWorkflow: true },
+  ],
+  privacyNotes: ["Zoho Desk tickets can contain customer messages, contact details, SLA state, assignments, and internal comments."],
+  limitations: ["Departments, layouts, mandatory fields, assignment rules, blueprints, and visibility are SDK-user configuration."],
+  metadata: {
+    implementation: {
+      strategy: "direct-http-support-slice",
+      runtimePackage: "@cognidesk/ticketing-zoho-desk",
+      manifestImport: "no-sdk-client-initialization",
+    },
+    checkedProviderApiCoverage: {
+      verifiedAt: "2026-06-18",
+      sourceKind: "checked-endpoint-family-inventory",
+      coverageArtifact: "docs/provider-coverage/zoho-desk-checked-rest-api-2026-06-18.inventory.json",
+      checkedFamilyCount: 5,
+      implementedFamilyCount: 4,
+      gapFamilyCount: 1,
+      implementedOperationCount: 9,
+    },
+    channelCoverage: {
+      tickets: "typed-create-read-update-list",
+      comments: "typed-create-list",
+      threads: "typed-list",
+      replies: "typed-send",
+      organizationsReadiness: "typed-read",
+      contactsAccountsAgentsDepartments: "provider-supported-not-typed",
+      attachmentsBlueprintsWebhooks: "provider-supported-not-typed",
+      slasAssignmentsSkills: "not-covered",
+    },
+  },
+  maintainers: [{ name: "Cognidesk", type: "official" }],
+});

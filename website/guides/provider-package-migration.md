@@ -18,7 +18,7 @@ The package names below are target names for staged trackers; they may not exist
 | #33 | RCS/TikTok | `@cognidesk/messaging-rcs`, `@cognidesk/social-tiktok` |
 | #34 | Review | `@cognidesk/review-appstore`, `@cognidesk/review-googleplay` |
 | #35 | Helpdesk ticketing | `@cognidesk/ticketing-front`, `@cognidesk/ticketing-gorgias`, `@cognidesk/ticketing-zendesk` |
-| #36 | CRM ticketing | `@cognidesk/ticketing-hubspot`, `@cognidesk/ticketing-salesforce`, `@cognidesk/ticketing-dynamics365` |
+| #36 | CRM/platform ticketing | `@cognidesk/ticketing-hubspot`, `@cognidesk/ticketing-intercom`, `@cognidesk/ticketing-salesforce`, `@cognidesk/ticketing-dynamics365`, `@cognidesk/ticketing-servicenow`, `@cognidesk/ticketing-zoho-desk` |
 | #37 | Enterprise service clouds | `@cognidesk/ticketing-oracle-service`, `@cognidesk/ticketing-pega-customer-service`, `@cognidesk/ticketing-sap-service-cloud` |
 | #38 | Contact-center core | `@cognidesk/contact-center-amazon-connect`, `@cognidesk/contact-center-genesys-cloud`, `@cognidesk/contact-center-ringcentral` |
 | #39 | Contact-center long tail | `@cognidesk/contact-center-8x8`, `@cognidesk/contact-center-aircall`, `@cognidesk/contact-center-nextiva` |
@@ -59,6 +59,12 @@ The codemod parses TypeScript/JavaScript import and named export declarations. I
 | #25 | `@cognidesk/integrations/workplace/slack` | `@cognidesk/workplace-slack/manifest` | `@cognidesk/workplace-slack/runtime` |
 | #24 | `@cognidesk/integrations/workplace/teams` | `@cognidesk/workplace-teams/manifest` | `@cognidesk/workplace-teams/runtime` |
 | #30 | `@cognidesk/integrations/ecommerce/stripe` | `@cognidesk/ecommerce-stripe/manifest` | `@cognidesk/ecommerce-stripe/runtime` |
+| #36 | `@cognidesk/integrations/ticketing/dynamics365` | `@cognidesk/ticketing-dynamics365/manifest` | `@cognidesk/ticketing-dynamics365/runtime` |
+| #36 | `@cognidesk/integrations/ticketing/hubspot` | `@cognidesk/ticketing-hubspot/manifest` | `@cognidesk/ticketing-hubspot/runtime` |
+| #36 | `@cognidesk/integrations/ticketing/intercom` | `@cognidesk/ticketing-intercom/manifest` | `@cognidesk/ticketing-intercom/runtime` |
+| #36 | `@cognidesk/integrations/ticketing/salesforce` | `@cognidesk/ticketing-salesforce/manifest` | `@cognidesk/ticketing-salesforce/runtime` |
+| #36 | `@cognidesk/integrations/ticketing/servicenow` | `@cognidesk/ticketing-servicenow/manifest` | `@cognidesk/ticketing-servicenow/runtime` |
+| #36 | `@cognidesk/integrations/ticketing/zoho-desk` | `@cognidesk/ticketing-zoho-desk/manifest` | `@cognidesk/ticketing-zoho-desk/runtime` |
 | #40 | `@cognidesk/integrations/voice/openai` | `@cognidesk/voice-openai/manifest` | `@cognidesk/voice-openai/runtime` |
 
 Use syntax-aware transforms over raw text replacement. The transform should:
