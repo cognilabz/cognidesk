@@ -1122,9 +1122,9 @@ const integrationProviderReferences: readonly [{
 }, {
   category: "messaging";
   id: "messaging.rcs";
-  importPath: "@cognidesk/integrations/messaging/rcs";
+  importPath: "@cognidesk/messaging-rcs/manifest";
   manifestExport: "rcsMessagingProviderManifest";
-  modulePath: "./messaging/rcs/index.js";
+  modulePath: "integrations/messaging/rcs/src/manifest.js";
   provider: "rcs";
 }, {
   category: "messaging";
@@ -1171,9 +1171,9 @@ const integrationProviderReferences: readonly [{
 }, {
   category: "social";
   id: "social.tiktok";
-  importPath: "@cognidesk/integrations/social/tiktok";
+  importPath: "@cognidesk/social-tiktok/manifest";
   manifestExport: "tiktokSocialProviderManifest";
-  modulePath: "./social/tiktok/index.js";
+  modulePath: "integrations/social/tiktok/src/manifest.js";
   provider: "tiktok";
 }, {
   category: "ticketing";
