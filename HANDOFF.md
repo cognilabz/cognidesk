@@ -44,9 +44,9 @@ Finish the provider integration refactor so every existing integration is covere
 
 Provider-family threads #23-#43, #27, #28, and #44 were sent the `22fdbde` foundation update. They should rebase or merge `codex/integrations-foundation-stack` before continuing. Threads #23, #24, #25, and #26 were also sent the `82d5e10` coordination handoff after the first-wave provider audit.
 
-#27 and #44 worktree thread creation has been flaky in Codex app state. Multiple create attempts returned pending worktrees and then appeared as `notLoaded`/system-error threads. Until a clean thread is available, preserve their work in GitHub issues and this handoff:
+#27 now has a clean cleanup-map/guardrail branch. #44 remains implemented directly on the orchestration branch:
 
-- #27 must prepare cleanup maps/guardrails, not delete provider runtime prematurely.
+- #27 prepared cleanup maps/guardrails and intentionally did not delete provider runtime prematurely.
 - #44 is implemented directly on the orchestration branch. If a clean separate thread appears later, use this implementation as the baseline and extend fixtures instead of adding a bridge/shim/runtime resolver.
 
 ## Required Provider Package Behavior
@@ -120,6 +120,13 @@ First-wave PR handoff after branch owners committed:
 - #25 is clean and pushed at `96a40ac feat(integrations): fold discord gateway into provider package` after the original `11a4164 feat(integrations): split slack and discord providers`.
 - Draft PR creation from this thread failed with GitHub `createPullRequest` permission `must be a collaborator`. Open the PRs manually with base `codex/integrations-foundation-stack` and heads `codex/integrations-23-gmail-sdk-package`, `codex/integrations-24-microsoft-graph-packages`, and `codex/integrations-25-chat-provider-packages`.
 - PR handoff comments were posted on #23, #24, and #25 with exact base/head/title instructions.
+
+#27 legacy monolith cleanup guardrail lane:
+
+- #27 is clean and pushed at `b85c116 docs(integrations): track monolith cleanup readiness` on branch `codex/integrations-27-delete-monolith`.
+- The branch records deletion readiness and cleanup guardrails instead of removing runtime code ahead of provider PR merges.
+- Verification passed: `node --check scripts/check-integrations-cleanup-map.mjs`, `node --check scripts/check-integration-package-architecture.mjs`, `node --test scripts/check-integration-package-architecture.test.mjs`, `pnpm providers:cleanup-map`, `pnpm providers:architecture`, `pnpm --filter @cognidesk/integrations exec vitest run test/provider-migration-matrix.test.ts`, and `git diff --check`.
+- Issue comment: https://github.com/cognilabz/cognidesk/issues/27#issuecomment-4762370708.
 
 #29 email provider package lane:
 
@@ -247,14 +254,35 @@ First-wave PR handoff after branch owners committed:
 
 #40 cloud speech/OpenAI voice provider package lane:
 
-- #40 is clean and pushed at `456686d feat(integrations): migrate cloud voice providers` on branch `codex/integrations-40-voice-speech-sdk`.
+- #40 is clean and pushed at `9313251 docs(integrations): show provider integration names` on branch `codex/integrations-40-voice-speech-sdk`, after the original implementation commit `456686d feat(integrations): migrate cloud voice providers`.
 - The branch adds `@cognidesk/voice-aws-speech`, `@cognidesk/voice-azure-speech`, `@cognidesk/voice-google-speech`, and the rehomed canonical `@cognidesk/voice-openai` under `integrations/voice/*`.
 - The ChatGPT package naming rule is applied explicitly: source paths are `integrations/{category}/{provider}` and public packages are `@cognidesk/{category}-{provider}`. OpenAI Realtime voice is therefore `integrations/voice/openai` published as `@cognidesk/voice-openai`, with visible manifest metadata such as `OpenAI Realtime Voice Integration`, `integrationPackageName`, and `/manifest` + `/runtime` entry points.
-- `@cognidesk/voice-websocket` remains in `packages/voice-websocket` intentionally because it is Cognidesk browser voice transport/session infrastructure, not an external Provider Integration. Do not move it to `integrations/voice/websocket` or count it as a provider package.
+- `@cognidesk/voice-openai` depends on `@cognidesk/voice-websocket` because OpenAI Realtime voice uses the shared Cognidesk browser voice transport. That dependency is package-to-package reuse, not a reason to make WebSocket a provider integration.
+- `@cognidesk/voice-websocket` remains in `packages/voice-websocket` intentionally because it is Cognidesk browser voice transport/session infrastructure, not an external Provider Integration. Do not move it to `integrations/voice/websocket` or count it as a provider package/catalog provider.
 - The old `packages/integrations/src/voice/openai` monolith path still exists intentionally until #40 import/codemod/application checks and #27 cleanup converge. Do not add a bridge/shim; delete the legacy subpath when the replacement is fully wired.
-- Verification passed: workspace relink, shared package builds, all four split voice package tests/builds, voice SDK-first migration guard, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, legacy aggregate `@cognidesk/integrations` build, and `git diff --check`.
+- Verification passed: workspace relink, shared package builds, all four split voice package tests/builds, voice SDK-first migration guard, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, legacy aggregate `@cognidesk/integrations` build, focused voice package build, codemod import check, release package smoke/size checks, and `git diff --check`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762165439.
-- Follow-up package-naming/browser recheck comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762342470. #40 has `metadata.integrationName = "OpenAI Realtime Voice Integration"` and `metadata.integrationPackageName = "@cognidesk/voice-openai"` in catalog metadata, but the generated Markdown row `| Integration | ... |` currently comes from #25's renderer change at `96a40ac`. Before #40 PR review/merge, rebase/merge #25's renderer change or carry the same patch so the catalog visibly shows `Integration | OpenAI Realtime Voice Integration` next to the package row.
+- Follow-up package-naming/browser recheck comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762373256. The catalog docs now visibly show `Integration | OpenAI Realtime Voice Integration` next to `Package | @cognidesk/voice-openai`.
+
+#41 voice telephony/SMS provider package lane:
+
+- #41 is clean and pushed at `e6cd623 feat(integrations): migrate voice and sms SDK packages` on branch `codex/integrations-41-voice-sms-sdk`.
+- The branch adds final replacement packages `@cognidesk/voice-deepgram`, `@cognidesk/voice-elevenlabs`, `@cognidesk/voice-twilio`, `@cognidesk/sms-twilio`, and `@cognidesk/voice-vonage` under `integrations/{category}/{provider}`.
+- The old monolith exports/build entries/runtime-loader refs/provider refs/source/tests/generators for `voice/deepgram`, `voice/elevenlabs`, `voice/twilio`, `sms/twilio`, and `voice/vonage` were removed after split package verification. No old-import bridge was added.
+- SDKs adopted where viable: `@deepgram/sdk`, `@elevenlabs/elevenlabs-js`, `twilio`, and `@vonage/server-sdk`.
+- `@cognidesk/voice-websocket` stayed infrastructure-only in `packages/voice-websocket`; it is not a provider package.
+- Verification passed: catalog/docs generation, architecture/conformance/codemod checks, split package typecheck/build/test, manifest/runtime import smokes, `pnpm build`, `pnpm test`, `pnpm providers:check`, release smoke/size, strict package naming scans, stale-reference scans, and diff checks.
+- PR/issue handoff comment: https://github.com/cognilabz/cognidesk/issues/41#issuecomment-4762376419.
+
+#42 video provider package lane:
+
+- #42 is clean and pushed at `ddd1a0c feat(integrations): migrate video provider packages` on branch `codex/integrations-42-video-sdk`.
+- The branch adds final replacement packages `@cognidesk/video-zoom` and `@cognidesk/video-whereby` under `integrations/video/*`.
+- Both remain constrained generated REST support slices after SDK viability review; browser meeting/video SDKs were not treated as suitable server-side adapter runtimes.
+- The old aggregate video exports, source/tests, runtime loaders, provider refs, build entries, and generator scripts were removed. The only remaining old video import is the deliberate codemod fixture in `scripts/migrate-provider-imports.test.mjs`.
+- `@cognidesk/integration-kit` gets a narrow type-only return refinement for `defineIntegrationProviderPackage` so split package manifests preserve exact operation aliases through declaration generation.
+- Verification passed: video package tests/typechecks/builds, conformance, architecture, codemod, aggregate integrations build/tests, catalog/docs generation, release smoke/size, package naming scan, stale video path scan, and manifest/runtime import boundaries.
+- PR/issue handoff comment: https://github.com/cognilabz/cognidesk/issues/42#issuecomment-4762377897.
 
 #43 local/protocol provider package lane:
 
@@ -270,14 +298,15 @@ ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
 - The plan's major requirements are tracked in `docs/provider-integration-plan-alignment.md`: per-provider packages, SDK-first policy, integration kit, metadata-only catalog, explicit runtime registration, adapter-vs-SDK coverage, independent publishing, first-wave Gmail/Graph/Slack validation, provider cohorts, and eventual monolith deletion.
+- Package naming follows the plan examples: provider packages are `@cognidesk/{category}-{provider}` such as `@cognidesk/email-gmail`, `@cognidesk/workplace-slack`, `@cognidesk/ecommerce-stripe`, `@cognidesk/sms-twilio`, and `@cognidesk/voice-twilio`. The word `Integration` is made visible through manifest/catalog metadata rows, not by prefixing provider npm packages with `@cognidesk/integration-*`.
 - The plan's legacy-bridge phase is intentionally rejected by ADR-0085 and replaced with migration docs plus `pnpm providers:codemod:imports`.
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#37/#38/#39/#40/#43 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#39/#40/#43 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#27/#29/#30/#31/#32/#33/#34/#35/#36/#37/#38/#39/#40/#41/#42/#43 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#39/#40/#41/#42/#43 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
-5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
+5. Review #27's cleanup map after provider PRs are queued; do not delete the remaining legacy monolith surfaces until their replacement package branches are merged and the cleanup guardrails are green on the combined tree.
 6. After each provider package lands, verify package conformance, catalog replacement, explicit registration docs, and old monolith deletion for that provider.
 7. Track #45 separately from #37: SAP Service Cloud remains honest as a reviewed support slice until the SAP Cloud SDK source artifact/provenance blocker is removed.
