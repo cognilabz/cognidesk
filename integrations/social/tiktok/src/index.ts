@@ -12,3 +12,9 @@ export {
   parseTikTokWebhook,
   validateTikTokWebhookSignature,
 } from "./webhooks.js";
+export {
+  TIKTOK_DIRECT_SLICE_METADATA,
+  TIKTOK_SELECTED_OPERATION_COUNT,
+  TIKTOK_SELECTED_OPERATIONS,
+  type TikTokSelectedOperation,
+} from "./selected-operations.js";

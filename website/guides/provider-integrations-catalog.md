@@ -677,7 +677,7 @@ Evidence: [eBay Sell Fulfillment API](https://developer.ebay.com/develop/api/sel
 | Manifest ID | `messaging.rcs` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create](https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `media`, `read-provider-object`, `rcs.agent-events`, `rcs.webhook-signature` |
@@ -844,7 +844,7 @@ Evidence: [Instagram Messaging overview](https://developers.facebook.com/documen
 | Manifest ID | `social.tiktok` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info](https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `draft`, `thread`, `read-provider-object`, `search-provider-object`, `social.comment-reply`, `social.webhook-signature` |

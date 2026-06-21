@@ -1,9 +1,13 @@
-import { defineIntegrationProviderPackage as defineProviderPackage } from "../../provider-manifest.js";
+import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
+import {
+  RCS_DIRECT_SLICE_METADATA,
+  RCS_SELECTED_OPERATION_COUNT,
+} from "./selected-operations.js";
 
-export const rcsMessagingProviderManifest = defineProviderPackage({
+export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
   id: "messaging.rcs",
   name: "Google RCS for Business",
-  packageName: "@cognidesk/integrations",
+  packageName: "@cognidesk/messaging-rcs",
   provider: "rcs",
   category: "messaging",
   trustLevel: "official",
@@ -152,15 +156,15 @@ export const rcsMessagingProviderManifest = defineProviderPackage({
       brandAgentLifecycle: "provider-supported-not-typed",
     },
     apiCoverage: {
-      checkedAt: "2026-06-18",
-      operationCatalog: "docs/provider-coverage/rcs-selected-api-2026-06-18.operations.json",
+      ...RCS_DIRECT_SLICE_METADATA.apiCoverage,
       generatedFromOfficialSpec: false,
       machineReadableSpecStatus: "Google documents Discovery URLs for rcsbusinessmessaging.v1 and businesscommunications.v1, but anonymous fetches returned 403 during this audit.",
       documentedOperationCount: 38,
-      selectedOperationCount: 8,
-      implementedOperationCount: 8,
+      selectedOperationCount: RCS_SELECTED_OPERATION_COUNT,
+      implementedOperationCount: RCS_SELECTED_OPERATION_COUNT,
       fullProviderApi: false,
     },
+    implementation: RCS_DIRECT_SLICE_METADATA,
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],
 });

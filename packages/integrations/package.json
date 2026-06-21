@@ -126,10 +126,6 @@
       "types": "./dist/marketplace/ebay/index.d.ts",
       "import": "./dist/marketplace/ebay/index.js"
     },
-    "./messaging/rcs": {
-      "types": "./dist/messaging/rcs/index.d.ts",
-      "import": "./dist/messaging/rcs/index.js"
-    },
     "./messaging/whatsapp": {
       "types": "./dist/messaging/whatsapp/index.d.ts",
       "import": "./dist/messaging/whatsapp/index.js"
@@ -153,10 +149,6 @@
     "./social/messenger": {
       "types": "./dist/social/messenger/index.d.ts",
       "import": "./dist/social/messenger/index.js"
-    },
-    "./social/tiktok": {
-      "types": "./dist/social/tiktok/index.d.ts",
-      "import": "./dist/social/tiktok/index.js"
     },
     "./ticketing/dynamics365": {
       "types": "./dist/ticketing/dynamics365/index.d.ts",
@@ -280,7 +272,7 @@
     "build:entries:community": "tsup src/cobrowsing/cognidesk/index.ts src/community/discord/index.ts src/community/forum/index.ts --format esm --dts --external openai",
     "build:entries:ecommerce-marketplace": "tsup src/ecommerce/shopify/index.ts src/ecommerce/stripe/index.ts src/marketplace/amazon/index.ts src/marketplace/ebay/index.ts --format esm --dts --external openai",
     "build:entries:form-help-center": "tsup src/form/cognidesk/index.ts src/help-center/cognidesk/index.ts --format esm --dts --external openai",
-    "build:entries:messaging-sms-social": "tsup src/messaging/rcs/index.ts src/messaging/whatsapp/index.ts src/sms/twilio/index.ts src/social/instagram/index.ts src/social/messenger/index.ts src/social/tiktok/index.ts --format esm --dts --external openai",
+    "build:entries:messaging-sms-social": "tsup src/messaging/whatsapp/index.ts src/sms/twilio/index.ts src/social/instagram/index.ts src/social/messenger/index.ts --format esm --dts --external openai",
     "build:entries:review": "tsup src/review/appstore/index.ts src/review/googleplay/index.ts --format esm --dts --outDir dist/review --external openai",
     "build:entries:video": "tsup src/video/whereby/index.ts src/video/zoom/index.ts --format esm --dts --outDir dist/video --external openai",
     "build:entries:email": "tsup src/email/gmail/index.ts src/email/imap/index.ts src/email/mailgun/index.ts src/email/outlook/index.ts src/email/postmark/index.ts src/email/ses/index.ts --format esm --dts --outDir dist/email --external openai",

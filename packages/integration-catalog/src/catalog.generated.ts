@@ -8968,11 +8968,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "messaging.rcs",
     "category": "messaging",
     "provider": "rcs",
-    "importPath": "@cognidesk/integrations/messaging/rcs",
-    "modulePath": "./messaging/rcs/index.js",
+    "importPath": "@cognidesk/messaging-rcs/manifest",
+    "modulePath": "integrations/messaging/rcs/src/manifest.js",
     "manifestExport": "rcsMessagingProviderManifest",
     "name": "Google RCS for Business",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/messaging-rcs",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -9222,12 +9222,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/messaging/rcs",
-      "providerModule": "./messaging/rcs/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/messaging-rcs",
+      "runtimePackage": "@cognidesk/messaging-rcs",
+      "providerModule": "integrations/messaging/rcs/src/manifest.js",
       "manifestExport": "rcsMessagingProviderManifest",
-      "manifestSource": "packages/integrations/src/messaging/rcs/manifest.ts",
+      "manifestSource": "integrations/messaging/rcs/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create"
     },
@@ -9299,14 +9299,100 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "brandAgentLifecycle": "provider-supported-not-typed"
       },
       "apiCoverage": {
-        "checkedAt": "2026-06-18",
-        "operationCatalog": "docs/provider-coverage/rcs-selected-api-2026-06-18.operations.json",
+        "checkedAt": "2026-06-21",
+        "operationCatalog": "package:src/selected-operations.ts",
         "generatedFromOfficialSpec": false,
         "machineReadableSpecStatus": "Google documents Discovery URLs for rcsbusinessmessaging.v1 and businesscommunications.v1, but anonymous fetches returned 403 during this audit.",
         "documentedOperationCount": 38,
         "selectedOperationCount": 8,
         "implementedOperationCount": 8,
         "fullProviderApi": false
+      },
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "checkedAt": "2026-06-21",
+        "source": "official Google RCS for Business REST reference plus documented Discovery URLs",
+        "sourceVersion": "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-21",
+        "allowlistChecksumAlgorithm": "sha256",
+        "allowlistChecksum": "36c458c94ac8c4d639872098863ab9b9287970aa3af245a17f2f4f9ff3b4bda9",
+        "selectedOperations": [
+          {
+            "uid": "rcsbusinessmessaging:files.create.metadata",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "POST",
+            "path": "/v1/files",
+            "functionName": "createFile",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/files/create"
+          },
+          {
+            "uid": "rcsbusinessmessaging:files.create.upload",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "POST",
+            "path": "/upload/v1/files",
+            "functionName": "uploadFile",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/files/create",
+            "notes": "Google documents upload as an alternate HTTP binding for files.create; the package exposes it as a separate helper."
+          },
+          {
+            "uid": "rcsbusinessmessaging:phones.getCapabilities",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "GET",
+            "path": "/v1/{name=phones/*}/capabilities",
+            "functionName": "getCapabilities",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones/getCapabilities"
+          },
+          {
+            "uid": "rcsbusinessmessaging:phones.agentEvents.create",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "POST",
+            "path": "/v1/{parent=phones/*}/agentEvents",
+            "functionName": "sendAgentEvent",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentEvents/create"
+          },
+          {
+            "uid": "rcsbusinessmessaging:phones.agentMessages.create",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "POST",
+            "path": "/v1/{parent=phones/*}/agentMessages",
+            "functionName": "sendMessage",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create"
+          },
+          {
+            "uid": "businesscommunications:brands.agents.get",
+            "api": "businesscommunications.v1",
+            "method": "GET",
+            "path": "/v1/{name=brands/*/agents/*}",
+            "functionName": "getAgent",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/business-communications/rest/v1/brands.agents/get"
+          },
+          {
+            "uid": "businesscommunications:brands.agents.getLaunch",
+            "api": "businesscommunications.v1",
+            "method": "GET",
+            "path": "/v1/{name=brands/*/agents/*/launch}",
+            "functionName": "getAgentLaunch",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/business-communications/rest/v1/brands.agents/getLaunch"
+          },
+          {
+            "uid": "businesscommunications:brands.agents.getVerification",
+            "api": "businesscommunications.v1",
+            "method": "GET",
+            "path": "/v1/{name=brands/*/agents/*/verification}",
+            "functionName": "getAgentVerification",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/business-communications/rest/v1/brands.agents/getVerification"
+          }
+        ],
+        "apiCoverage": {
+          "checkedAt": "2026-06-21",
+          "operationCatalog": "package:src/selected-operations.ts"
+        },
+        "sdkDecision": {
+          "viableOfficialSdk": false,
+          "notes": [
+            "googleapis@173.0.0 does not expose rcsbusinessmessaging or businesscommunications at runtime.",
+            "@google/rcsbusinessmessaging@1.0.10 covers RBM messaging resources but not Business Communications readiness resources and its helper API uses module-level singleton initialization."
+          ]
+        }
       },
       "categoryProfileId": "messaging",
       "integrationCategoryProfileId": "messaging",
@@ -11334,11 +11420,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "social.tiktok",
     "category": "social",
     "provider": "tiktok",
-    "importPath": "@cognidesk/integrations/social/tiktok",
-    "modulePath": "./social/tiktok/index.js",
+    "importPath": "@cognidesk/social-tiktok/manifest",
+    "modulePath": "integrations/social/tiktok/src/manifest.js",
     "manifestExport": "tiktokSocialProviderManifest",
     "name": "TikTok Social",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/social-tiktok",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -11562,12 +11648,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/social/tiktok",
-      "providerModule": "./social/tiktok/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/social-tiktok",
+      "runtimePackage": "@cognidesk/social-tiktok",
+      "providerModule": "integrations/social/tiktok/src/manifest.js",
       "manifestExport": "tiktokSocialProviderManifest",
-      "manifestSource": "packages/integrations/src/social/tiktok/manifest.ts",
+      "manifestSource": "integrations/social/tiktok/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info"
     },
@@ -11697,14 +11783,99 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "https://business-api.tiktok.com/portal/docs/reply-to-a-comment/v1.3"
       ],
       "apiCoverage": {
-        "checkedAt": "2026-06-18",
-        "operationCatalog": "docs/provider-coverage/tiktok-selected-api-2026-06-18.operations.json",
+        "checkedAt": "2026-06-21",
+        "operationCatalog": "package:src/selected-operations.ts",
         "generatedFromOfficialSpec": false,
         "machineReadableSpecStatus": "No official public complete TikTok Developers/Business OpenAPI spec was found for this mixed selected surface during this audit.",
         "selectedOperationCount": 8,
         "implementedOperationCount": 8,
         "fullProviderApi": false,
         "fullTikTokPlatformCoverage": false
+      },
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "checkedAt": "2026-06-21",
+        "source": "official TikTok Developers and TikTok Business API docs",
+        "sourceVersion": "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-21",
+        "allowlistChecksumAlgorithm": "sha256",
+        "allowlistChecksum": "ec250ef62299d5cee6f9ea5c5db5060409aba55c7ebdb6dca2572c7286a4f3fb",
+        "selectedOperations": [
+          {
+            "uid": "tiktok-open:user.info.get",
+            "api": "tiktok-open.v2.display",
+            "method": "GET",
+            "path": "/v2/user/info/",
+            "functionName": "getUserInfo",
+            "sourceUrl": "https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info"
+          },
+          {
+            "uid": "tiktok-open:video.list",
+            "api": "tiktok-open.v2.display",
+            "method": "POST",
+            "path": "/v2/video/list/",
+            "functionName": "listVideos",
+            "sourceUrl": "https://developers.tiktok.com/doc/tiktok-api-v2-video-list"
+          },
+          {
+            "uid": "tiktok-open:post.publish.status.fetch",
+            "api": "tiktok-open.v2.content-posting",
+            "method": "POST",
+            "path": "/v2/post/publish/status/fetch/",
+            "functionName": "fetchPostStatus",
+            "sourceUrl": "https://developers.tiktok.com/doc/content-posting-api-reference-get-video-status"
+          },
+          {
+            "uid": "tiktok-open:research.video.comment.list",
+            "api": "tiktok-open.v2.research",
+            "method": "POST",
+            "path": "/v2/research/video/comment/list/",
+            "functionName": "queryResearchVideoComments",
+            "sourceUrl": "https://developers.tiktok.com/doc/research-api-specs-query-video-comments"
+          },
+          {
+            "uid": "tiktok-business:business.video.list",
+            "api": "tiktok-business.v1.3",
+            "method": "GET",
+            "path": "/open_api/v1.3/business/video/list/",
+            "functionName": "listBusinessVideos",
+            "sourceUrl": "https://business-api.tiktok.com/portal/docs"
+          },
+          {
+            "uid": "tiktok-business:business.comment.list",
+            "api": "tiktok-business.v1.3",
+            "method": "GET",
+            "path": "/open_api/v1.3/business/comment/list/",
+            "functionName": "listBusinessComments",
+            "sourceUrl": "https://business-api.tiktok.com/portal/docs"
+          },
+          {
+            "uid": "tiktok-business:business.comment.reply.create",
+            "api": "tiktok-business.v1.3",
+            "method": "POST",
+            "path": "/open_api/v1.3/business/comment/reply/create/",
+            "functionName": "replyToBusinessComment",
+            "sourceUrl": "https://business-api.tiktok.com/portal/docs/reply-to-a-comment/v1.3"
+          },
+          {
+            "uid": "tiktok-business:business.comment.create",
+            "api": "tiktok-business.v1.3",
+            "method": "POST",
+            "path": "/open_api/v1.3/business/comment/create/",
+            "functionName": "createBusinessComment",
+            "sourceUrl": "https://business-api.tiktok.com/portal/docs"
+          }
+        ],
+        "apiCoverage": {
+          "checkedAt": "2026-06-21",
+          "operationCatalog": "package:src/selected-operations.ts"
+        },
+        "sdkDecision": {
+          "viableOfficialSdk": false,
+          "notes": [
+            "No official maintained JavaScript/TypeScript SDK was found for the mixed Display API, Research API, Content Posting status, webhook, and Business comment surface.",
+            "tiktok-business-api-sdk-official@1.1.3 is a broad Swagger Codegen Business API bundle; it does not cover TikTok Developers Open API, Research API, Content Posting status, or webhooks, and its comment endpoints do not match this adapter's selected /business/comment/* paths."
+          ]
+        }
       }
     }
   },

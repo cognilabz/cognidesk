@@ -1,9 +1,13 @@
-import { defineIntegrationProviderPackage as defineProviderPackage } from "../../provider-manifest.js";
+import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
+import {
+  TIKTOK_DIRECT_SLICE_METADATA,
+  TIKTOK_SELECTED_OPERATION_COUNT,
+} from "./selected-operations.js";
 
-export const tiktokSocialProviderManifest = defineProviderPackage({
+export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
   id: "social.tiktok",
   name: "TikTok Social",
-  packageName: "@cognidesk/integrations",
+  packageName: "@cognidesk/social-tiktok",
   provider: "tiktok",
   category: "social",
   trustLevel: "official",
@@ -195,14 +199,14 @@ export const tiktokSocialProviderManifest = defineProviderPackage({
       "https://business-api.tiktok.com/portal/docs/reply-to-a-comment/v1.3",
     ],
     apiCoverage: {
-      checkedAt: "2026-06-18",
-      operationCatalog: "docs/provider-coverage/tiktok-selected-api-2026-06-18.operations.json",
+      ...TIKTOK_DIRECT_SLICE_METADATA.apiCoverage,
       generatedFromOfficialSpec: false,
       machineReadableSpecStatus: "No official public complete TikTok Developers/Business OpenAPI spec was found for this mixed selected surface during this audit.",
-      selectedOperationCount: 8,
-      implementedOperationCount: 8,
+      selectedOperationCount: TIKTOK_SELECTED_OPERATION_COUNT,
+      implementedOperationCount: TIKTOK_SELECTED_OPERATION_COUNT,
       fullProviderApi: false,
       fullTikTokPlatformCoverage: false,
     },
+    implementation: TIKTOK_DIRECT_SLICE_METADATA,
   },
 });

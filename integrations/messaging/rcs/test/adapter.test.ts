@@ -12,13 +12,13 @@ import {
   rcsMessagingProviderManifest,
   validateRcsWebhookSignature,
   verifyRcsWebhookChallenge,
-} from "../../../src/messaging/rcs/index.js";
+} from "../src/index.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/messaging-rcs", () => {
   it("exports an official provider manifest for RCS messaging", () => {
     expect(rcsMessagingProviderManifest).toMatchObject({
       id: "messaging.rcs",
-      packageName: "@cognidesk/integrations",
+      packageName: "@cognidesk/messaging-rcs",
       category: "messaging",
       provider: "rcs",
       trustLevel: "official",
@@ -43,7 +43,7 @@ describe("@cognidesk/integrations", () => {
     expect(rcsMessagingProviderManifest.coverage.notes.join(" "))
       .toContain("Launch and verification coverage is read-only readiness");
     expect(rcsMessagingProviderManifest.metadata?.apiCoverage).toMatchObject({
-      operationCatalog: "docs/provider-coverage/rcs-selected-api-2026-06-18.operations.json",
+      operationCatalog: "package:src/selected-operations.ts",
       generatedFromOfficialSpec: false,
       documentedOperationCount: 38,
       selectedOperationCount: 8,
