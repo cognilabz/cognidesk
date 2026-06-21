@@ -235,6 +235,16 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-38-contact-center-sdk`, and title `[Integrations] Migrate contact-center core providers to SDK packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/38#issuecomment-4762294902.
 
+#39 contact-center long-tail provider package lane:
+
+- #39 is clean and pushed at `a1571b7 feat(integrations): migrate long-tail contact-center packages` on branch `codex/integrations-39-contact-center-sdk`.
+- The branch adds nine split packages under `integrations/contact-center/*`: `@cognidesk/contact-center-8x8`, `@cognidesk/contact-center-aircall`, `@cognidesk/contact-center-five9`, `@cognidesk/contact-center-genesys-engage`, `@cognidesk/contact-center-genesys-pureconnect`, `@cognidesk/contact-center-nextiva`, `@cognidesk/contact-center-nice-cxone`, `@cognidesk/contact-center-talkdesk`, and `@cognidesk/contact-center-zoom`.
+- The branch removes the old long-tail monolith exports, runtime/catalog references, source directories, tests, obsolete generated-provider scripts, and generated full-provider clone surfaces for those nine providers. It intentionally leaves #38-owned Amazon Connect, Genesys Cloud, and RingCentral untouched except for the legacy RingCentral build-output fix required by aggregate tests while #38 remains separate.
+- Package names follow the ChatGPT/ADR rule `@cognidesk/{category}-{provider}` and no old-import bridge/shim/runtime resolver was added.
+- Verification passed: catalog data/docs generation, architecture, codemod, split package typecheck/test/build, provider package conformance, aggregate integrations build/tests, full repo build, release package smoke/size, version train, stable release, stale import guard, naming guard, and `git diff --check`.
+- Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-39-contact-center-sdk`, and title `[Integrations] Migrate long-tail contact-center providers to split packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/39#issuecomment-4762339756.
+
 #40 cloud speech/OpenAI voice provider package lane:
 
 - #40 is clean and pushed at `456686d feat(integrations): migrate cloud voice providers` on branch `codex/integrations-40-voice-speech-sdk`.
@@ -264,8 +274,8 @@ ChatGPT plan recheck:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#37/#38/#40/#43 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#40/#43 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#37/#38/#39/#40/#43 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#39/#40/#43 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
