@@ -43,7 +43,14 @@ Package-size budgets must fail CI. Raw provider SDK breadth does not count as Co
 
 ## Import codemod rules
 
-Codemods should rewrite static import specifiers, then leave application behavior explicit.
+Run the import codemod in check mode before opening a migration PR, then write mode when you are ready to update application imports:
+
+```bash
+pnpm providers:codemod:imports --check apps/flight-demo packages
+pnpm providers:codemod:imports --write apps/flight-demo packages
+```
+
+The codemod parses TypeScript/JavaScript import and named export declarations. It rewrites safe cases and fails closed for side-effect imports, namespace/default imports, star re-exports, malformed legacy subpaths, or symbols that cannot be classified as manifest or runtime.
 
 | Tracker | Legacy import | Manifest import | Runtime import |
 |---------|---------------|-----------------|----------------|
