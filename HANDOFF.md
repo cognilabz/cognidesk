@@ -9,8 +9,8 @@ Finish the provider integration refactor so every existing integration is covere
 ## Current Baseline
 
 - Main orchestration branch: `codex/integrations-foundation-stack`
-- Last broadcast baseline commit: `7d44ea3 feat(integrations): add old-import codemod`
-- The branch now includes #44 old-import codemod work and the #28 CI/catalog guardrail follow-up after the current commit lands.
+- Last broadcast baseline commit: `22fdbde ci(integrations): verify provider catalog guardrails`
+- The branch includes #44 old-import codemod work and the #28 CI/catalog guardrail follow-up.
 - ADR-0085 is the source of truth for package boundaries.
 - Old `@cognidesk/integrations/*` imports are removed by migration docs/codemods, not by a bridge package or shim.
 - Runtime provider auto-discovery by scanning `node_modules` is forbidden.
@@ -39,7 +39,7 @@ Finish the provider integration refactor so every existing integration is covere
 
 ## Thread Coordination State
 
-Provider-family threads #23-#43, #27, #28, and #44 were sent the `7d44ea3` foundation update. They should rebase or merge `codex/integrations-foundation-stack` before continuing; rebroadcast the #28 follow-up commit after it is pushed.
+Provider-family threads #23-#43, #27, #28, and #44 were sent the `22fdbde` foundation update. They should rebase or merge `codex/integrations-foundation-stack` before continuing.
 
 #27 and #44 worktree thread creation has been flaky in Codex app state. Multiple create attempts returned pending worktrees and then appeared as `notLoaded`/system-error threads. Until a clean thread is available, preserve their work in GitHub issues and this handoff:
 
@@ -94,14 +94,21 @@ Additional #28 workflow/catalog guardrail verification:
 - `pnpm release:verify-packages -- --fail-size-budget`
 - `git diff --check`
 
+First-wave provider branch audit after `22fdbde`:
+
+- #23 `codex/integrations-23-gmail-sdk-package`: `@cognidesk/email-gmail` exists under `integrations/email/gmail` using `@googleapis/gmail`; package tests, architecture, conformance, catalog data/docs, codemod check, legacy aggregate build, and package smoke/size budgets passed.
+- #24 `codex/integrations-24-microsoft-graph-packages`: `@cognidesk/email-outlook` and `@cognidesk/workplace-teams` exist using `@microsoft/microsoft-graph-client`; Outlook/Teams tests, architecture, conformance, catalog data/docs, codemod check, legacy aggregate build, and package smoke/size budgets passed.
+- #25 `codex/integrations-25-chat-provider-packages`: `@cognidesk/workplace-slack` uses `@slack/web-api`; `@cognidesk/community-discord` uses `discord.js`; Slack/Discord tests, architecture, conformance, catalog data/docs, codemod check, legacy aggregate build, and package smoke/size budgets passed after fixing `packages/integrations` workplace build output to `dist/workplace/teams`.
+- #25 follow-up: `packages/integrations/package.json` is staged in that worktree with the build-output fix; the provider branch owner still needs to review, stage generated/docs changes, commit, push, and open review.
+
 Known caveat:
 
 - Full `pnpm providers:check` has previously reached architecture/typecheck/ESM build and then terminated with SIGTERM during the legacy monolith DTS build. A targeted `pnpm --filter @cognidesk/integrations build` passed during #28 guardrail verification, but the full aggregate command still needs a fresh end-to-end run before treating that caveat as resolved.
 
 ## Next Best Actions
 
-1. Confirm #23/#24/#25 have rebased or merged `7d44ea3` plus the #28 guardrail follow-up commit and stop hand-patching the catalog generator.
-2. Inspect first-wave provider branches for split package manifests, manifest-only imports, and stale generated catalog references.
-3. Run `pnpm providers:codemod:imports --check <changed-app-or-package-paths>` on provider migration branches before review.
+1. Have #23/#24/#25 owners review their dirty worktrees, stage generated/docs/package changes, commit, push, and open PRs or hand them back for finalization.
+2. Use #23/#24/#25 as the reference package patterns for #29-#43 provider-family migrations.
+3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
 5. After each provider package lands, verify package conformance, catalog replacement, explicit registration docs, and old monolith deletion for that provider.
