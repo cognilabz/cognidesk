@@ -194,6 +194,16 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-35-helpdesk-ticketing-stack`, and title `[Integrations] Migrate helpdesk ticketing providers to split packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/35#issuecomment-4762083916.
 
+#40 cloud speech/OpenAI voice provider package lane:
+
+- #40 is clean and pushed at `456686d feat(integrations): migrate cloud voice providers` on branch `codex/integrations-40-voice-speech-sdk`.
+- The branch adds `@cognidesk/voice-aws-speech`, `@cognidesk/voice-azure-speech`, `@cognidesk/voice-google-speech`, and the rehomed canonical `@cognidesk/voice-openai` under `integrations/voice/*`.
+- The ChatGPT package naming rule is applied explicitly: source paths are `integrations/{category}/{provider}` and public packages are `@cognidesk/{category}-{provider}`. OpenAI Realtime voice is therefore `integrations/voice/openai` published as `@cognidesk/voice-openai`, with visible manifest metadata such as `OpenAI Realtime Voice Integration`, `integrationPackageName`, and `/manifest` + `/runtime` entry points.
+- `@cognidesk/voice-websocket` remains in `packages/voice-websocket` intentionally because it is Cognidesk browser voice transport/session infrastructure, not an external Provider Integration. Do not move it to `integrations/voice/websocket` or count it as a provider package.
+- The old `packages/integrations/src/voice/openai` monolith path still exists intentionally until #40 import/codemod/application checks and #27 cleanup converge. Do not add a bridge/shim; delete the legacy subpath when the replacement is fully wired.
+- Verification passed: workspace relink, shared package builds, all four split voice package tests/builds, voice SDK-first migration guard, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, legacy aggregate `@cognidesk/integrations` build, and `git diff --check`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762165439.
+
 ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
@@ -206,8 +216,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#40 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#40 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
