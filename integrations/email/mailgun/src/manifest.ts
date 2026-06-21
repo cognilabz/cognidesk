@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 export const mailgunEmailProviderManifest = defineIntegrationProviderPackage({
   id: "email.mailgun",
   name: "Mailgun",
-  packageName: "@cognidesk/email-mailgun",
+  packageName: "@cognidesk/integration-email-mailgun",
   provider: "mailgun",
   category: "email",
   trustLevel: "official",

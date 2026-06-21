@@ -12,11 +12,11 @@ import {
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-describe("@cognidesk/email-imap", () => {
+describe("@cognidesk/integration-email-imap", () => {
   it("keeps manifest imports metadata-only", async () => {
     const source = await readFile(path.join(packageRoot, "src", "manifest.ts"), "utf8");
     expect(source).not.toContain("from \"imapflow\"");
-    expect(imapEmailProviderManifest.packageName).toBe("@cognidesk/email-imap");
+    expect(imapEmailProviderManifest.packageName).toBe("@cognidesk/integration-email-imap");
     expect(imapEmailProviderManifest.metadata?.implementation).toMatchObject({
       manifestImport: "no-sdk-client-initialization",
     });
@@ -30,7 +30,7 @@ describe("@cognidesk/email-imap", () => {
 
     const { imapEmailProviderManifest: manifest } = await import("../src/manifest.js");
 
-    expect(manifest.packageName).toBe("@cognidesk/email-imap");
+    expect(manifest.packageName).toBe("@cognidesk/integration-email-imap");
     vi.doUnmock("imapflow");
   });
 

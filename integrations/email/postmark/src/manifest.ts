@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 export const postmarkEmailProviderManifest = defineIntegrationProviderPackage({
   id: "email.postmark",
   name: "Postmark",
-  packageName: "@cognidesk/email-postmark",
+  packageName: "@cognidesk/integration-email-postmark",
   provider: "postmark",
   category: "email",
   trustLevel: "official",

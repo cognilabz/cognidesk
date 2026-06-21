@@ -13,11 +13,11 @@ import {
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-describe("@cognidesk/email-postmark", () => {
+describe("@cognidesk/integration-email-postmark", () => {
   it("keeps manifest imports metadata-only", async () => {
     const source = await readFile(path.join(packageRoot, "src", "manifest.ts"), "utf8");
     expect(source).not.toMatch(/from ["']postmark["']/);
-    expect(postmarkEmailProviderManifest.packageName).toBe("@cognidesk/email-postmark");
+    expect(postmarkEmailProviderManifest.packageName).toBe("@cognidesk/integration-email-postmark");
     expect(postmarkEmailProviderManifest.metadata?.implementation).toMatchObject({
       manifestImport: "no-sdk-client-initialization",
     });
@@ -31,7 +31,7 @@ describe("@cognidesk/email-postmark", () => {
 
     const { postmarkEmailProviderManifest: manifest } = await import("../src/manifest.js");
 
-    expect(manifest.packageName).toBe("@cognidesk/email-postmark");
+    expect(manifest.packageName).toBe("@cognidesk/integration-email-postmark");
     vi.doUnmock("postmark");
   });
 

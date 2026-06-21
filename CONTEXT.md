@@ -213,7 +213,7 @@ The lightweight package and generated metadata path that lists official Provider
 _Avoid_: Runtime provider loader, provider SDK barrel, permission grant, generated monolith
 
 **Provider Package**:
-An individually installed, registry-visible package for one Cognidesk external Provider Integration, named `@cognidesk/{category}-{provider}`. A Provider Package owns its manifest, runtime exports, conformance evidence, provider-specific helpers, and optional provider SDK dependency boundary.
+An individually installed, registry-visible package for one Cognidesk external Provider Integration, named `@cognidesk/integration-{category}-{provider}`. A Provider Package owns its manifest, runtime exports, conformance evidence, provider-specific helpers, and optional provider SDK dependency boundary.
 _Avoid_: Generated full-provider clone by default, hidden shared monolith, implicit runtime enablement
 
 **Provider Integration**:

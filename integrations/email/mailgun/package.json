@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/email-mailgun",
+  "name": "@cognidesk/integration-email-mailgun",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

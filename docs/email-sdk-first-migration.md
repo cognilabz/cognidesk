@@ -20,10 +20,10 @@ issue #44.
 
 | Legacy monolith import | Split package import |
 | --- | --- |
-| `@cognidesk/integrations/email/mailgun` | `@cognidesk/email-mailgun` |
-| `@cognidesk/integrations/email/postmark` | `@cognidesk/email-postmark` |
-| `@cognidesk/integrations/email/ses` | `@cognidesk/email-ses` |
-| `@cognidesk/integrations/email/imap` | `@cognidesk/email-imap` |
+| `@cognidesk/integrations/email/mailgun` | `@cognidesk/integration-email-mailgun` |
+| `@cognidesk/integrations/email/postmark` | `@cognidesk/integration-email-postmark` |
+| `@cognidesk/integrations/email/ses` | `@cognidesk/integration-email-ses` |
+| `@cognidesk/integrations/email/imap` | `@cognidesk/integration-email-imap` |
 
 ## Foundation usage
 
@@ -41,16 +41,16 @@ The package checks below were done with `npm view` and `npm pack` on
 
 | Provider | Target package | Library decision | Verified package | Evidence from published types |
 | --- | --- | --- | --- | --- |
-| Mailgun | `@cognidesk/email-mailgun` | SDK-backed provider package | `mailgun.js@13.2.0` | Default `Mailgun` class exposes `client(options)`. `IMailgunClient` exposes `messages`, `domains`, `webhooks`, `events`, `suppressions`, `routes`, `metrics`, `logs`, and other SDK clients. `MessagesClient` exposes `create()` and `retrieveStoredEmail()`. |
-| Postmark | `@cognidesk/email-postmark` | SDK-backed provider package | `postmark@4.0.7` | Exports `ServerClient`, `AccountClient`, models, and errors. `ServerClient` exposes `sendEmail()`, `sendEmailWithTemplate()`, `getOutboundMessages()`, `getOutboundMessageDetails()`, `getInboundMessageDetails()`, `getWebhooks()`, `getMessageStreams()`, `getSuppressions()`, `createSuppressions()`, and `deleteSuppressions()`. |
-| Amazon SES | `@cognidesk/email-ses` | SDK-backed provider package using AWS SDK v3 | `@aws-sdk/client-sesv2@3.1073.0` plus `@aws-sdk/client-ses@3.1073.0` only for classic SES operations still in the support slice | `@aws-sdk/client-sesv2` exports `SESv2Client`, commands, paginators, models, and service exceptions. The typed surface includes `SendEmailCommand`, `GetAccountCommand`, `ListEmailIdentitiesCommand`, and `DeleteSuppressedDestinationCommand`. `@aws-sdk/client-ses` includes classic `SendRawEmailCommand`, identity, template, and receipt-rule operations. |
-| IMAP | `@cognidesk/email-imap` | Focused protocol adapter backed by a maintained IMAP library | `imapflow@1.4.2` | Exports `ImapFlow` and typed options. The client exposes `connect()`, `logout()`, `mailboxOpen()`, `status()`, `idle()`, `search()`, `fetch()`, and message flag mutation methods. |
+| Mailgun | `@cognidesk/integration-email-mailgun` | SDK-backed provider package | `mailgun.js@13.2.0` | Default `Mailgun` class exposes `client(options)`. `IMailgunClient` exposes `messages`, `domains`, `webhooks`, `events`, `suppressions`, `routes`, `metrics`, `logs`, and other SDK clients. `MessagesClient` exposes `create()` and `retrieveStoredEmail()`. |
+| Postmark | `@cognidesk/integration-email-postmark` | SDK-backed provider package | `postmark@4.0.7` | Exports `ServerClient`, `AccountClient`, models, and errors. `ServerClient` exposes `sendEmail()`, `sendEmailWithTemplate()`, `getOutboundMessages()`, `getOutboundMessageDetails()`, `getInboundMessageDetails()`, `getWebhooks()`, `getMessageStreams()`, `getSuppressions()`, `createSuppressions()`, and `deleteSuppressions()`. |
+| Amazon SES | `@cognidesk/integration-email-ses` | SDK-backed provider package using AWS SDK v3 | `@aws-sdk/client-sesv2@3.1073.0` plus `@aws-sdk/client-ses@3.1073.0` only for classic SES operations still in the support slice | `@aws-sdk/client-sesv2` exports `SESv2Client`, commands, paginators, models, and service exceptions. The typed surface includes `SendEmailCommand`, `GetAccountCommand`, `ListEmailIdentitiesCommand`, and `DeleteSuppressedDestinationCommand`. `@aws-sdk/client-ses` includes classic `SendRawEmailCommand`, identity, template, and receipt-rule operations. |
+| IMAP | `@cognidesk/integration-email-imap` | Focused protocol adapter backed by a maintained IMAP library | `imapflow@1.4.2` | Exports `ImapFlow` and typed options. The client exposes `connect()`, `logout()`, `mailboxOpen()`, `status()`, `idle()`, `search()`, `fetch()`, and message flag mutation methods. |
 
 ## Provider decisions
 
 ### Mailgun
 
-Decision: migrate to an SDK-backed `@cognidesk/email-mailgun` package.
+Decision: migrate to an SDK-backed `@cognidesk/integration-email-mailgun` package.
 
 Current state:
 
@@ -78,7 +78,7 @@ Implemented shape:
 
 ### Postmark
 
-Decision: migrate to an SDK-backed `@cognidesk/email-postmark` package.
+Decision: migrate to an SDK-backed `@cognidesk/integration-email-postmark` package.
 
 Current state:
 
@@ -104,7 +104,7 @@ Implemented shape:
 
 ### Amazon SES
 
-Decision: migrate to an SDK-backed `@cognidesk/email-ses` package using AWS SDK
+Decision: migrate to an SDK-backed `@cognidesk/integration-email-ses` package using AWS SDK
 v3 service clients.
 
 Current state:
@@ -147,7 +147,7 @@ Current state:
 
 Implemented shape:
 
-- Create `@cognidesk/email-imap` as a protocol-library provider package.
+- Create `@cognidesk/integration-email-imap` as a protocol-library provider package.
 - Use `imapflow` as the default maintained IMAP client library for Node runtime
   support.
 - Keep the first package focused: credential/readiness checks, mailbox status,

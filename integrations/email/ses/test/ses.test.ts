@@ -14,11 +14,11 @@ import {
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-describe("@cognidesk/email-ses", () => {
+describe("@cognidesk/integration-email-ses", () => {
   it("keeps manifest imports metadata-only", async () => {
     const source = await readFile(path.join(packageRoot, "src", "manifest.ts"), "utf8");
     expect(source).not.toMatch(/from ["']@aws-sdk\/client-ses/);
-    expect(sesEmailProviderManifest.packageName).toBe("@cognidesk/email-ses");
+    expect(sesEmailProviderManifest.packageName).toBe("@cognidesk/integration-email-ses");
     expect(sesEmailProviderManifest.metadata?.implementation).toMatchObject({
       manifestImport: "no-sdk-client-initialization",
     });
@@ -35,7 +35,7 @@ describe("@cognidesk/email-ses", () => {
 
     const { sesEmailProviderManifest: manifest } = await import("../src/manifest.js");
 
-    expect(manifest.packageName).toBe("@cognidesk/email-ses");
+    expect(manifest.packageName).toBe("@cognidesk/integration-email-ses");
     vi.doUnmock("@aws-sdk/client-ses");
     vi.doUnmock("@aws-sdk/client-sesv2");
   });

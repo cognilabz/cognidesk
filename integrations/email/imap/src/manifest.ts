@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 export const imapEmailProviderManifest = defineIntegrationProviderPackage({
   id: "email.imap",
   name: "IMAP Mailbox",
-  packageName: "@cognidesk/email-imap",
+  packageName: "@cognidesk/integration-email-imap",
   provider: "imap",
   category: "email",
   trustLevel: "official",

@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/email-imap",
+  "name": "@cognidesk/integration-email-imap",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",
@@ -40,7 +40,10 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "files": ["dist", "!dist/**/*.map"],
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
   "cognidesk": {
     "kind": "provider-package",
     "providerPackage": true,

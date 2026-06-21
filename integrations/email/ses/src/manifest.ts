@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 export const sesEmailProviderManifest = defineIntegrationProviderPackage({
   id: "email.ses",
   name: "Amazon SES",
-  packageName: "@cognidesk/email-ses",
+  packageName: "@cognidesk/integration-email-ses",
   provider: "ses",
   category: "email",
   trustLevel: "official",
