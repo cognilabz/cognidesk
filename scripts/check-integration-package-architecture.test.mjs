@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isGeneratedFullProviderApiClone } from "./check-integration-package-architecture.mjs";
+import {
+  aggregateExportSubpathForImportPath,
+  isGeneratedFullProviderApiClone,
+  packageExportSubpaths,
+  providerReferenceImportPaths,
+} from "./check-integration-package-architecture.mjs";
 
 describe("isGeneratedFullProviderApiClone", () => {
   it("detects generated full API clone filenames and directories", () => {
@@ -33,5 +38,53 @@ describe("isGeneratedFullProviderApiClone", () => {
     for (const file of allowedFiles) {
       assert.equal(isGeneratedFullProviderApiClone(file), false, file);
     }
+  });
+});
+
+describe("aggregate provider catalog export guards", () => {
+  it("maps aggregate import paths to package export subpaths", () => {
+    assert.equal(
+      aggregateExportSubpathForImportPath("@cognidesk/integrations/ticketing/zendesk"),
+      "./ticketing/zendesk",
+    );
+    assert.equal(aggregateExportSubpathForImportPath("@cognidesk/integrations"), ".");
+    assert.equal(
+      aggregateExportSubpathForImportPath("@cognidesk/ticketing-zendesk/manifest"),
+      undefined,
+    );
+  });
+
+  it("reads subpath exports from package exports maps", () => {
+    assert.deepEqual(
+      packageExportSubpaths({
+        ".": {
+          import: "./dist/index.js",
+        },
+        "./ticketing/zendesk": {
+          import: "./dist/ticketing/zendesk/index.js",
+        },
+      }),
+      new Set([".", "./ticketing/zendesk"]),
+    );
+  });
+
+  it("extracts provider reference import paths from catalog source", () => {
+    const source = `
+      export const references = [
+        { "importPath": "@cognidesk/integrations/ticketing/zendesk" },
+        { importPath: "@cognidesk/ticketing-salesforce/manifest" },
+      ];
+    `;
+
+    assert.deepEqual(providerReferenceImportPaths(source), [
+      {
+        importPath: "@cognidesk/integrations/ticketing/zendesk",
+        line: 3,
+      },
+      {
+        importPath: "@cognidesk/ticketing-salesforce/manifest",
+        line: 4,
+      },
+    ]);
   });
 });
