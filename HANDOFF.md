@@ -109,13 +109,21 @@ Provider inventory ownership audit after `82d5e10`:
 - Issue-owned paths in #23-#25 plus #29-#43 cover all 63 providers once #25 is treated as owning both `workplace/slack` and `community/discord`.
 - #25's title/scope covers Slack and Discord, but its body lacks an explicit owned-path line for `packages/integrations/src/workplace/slack`. A body edit failed with GitHub `UpdateIssue` permission denial, so the correction is recorded in a #25 comment: https://github.com/cognilabz/cognidesk/issues/25#issuecomment-4761881426. No duplicate Slack issue is needed unless Slack and Discord are intentionally split into separate PR lanes later.
 
+First-wave PR handoff after branch owners committed:
+
+- #23 is clean and pushed at `dd73d3e feat(integrations): migrate gmail provider package`.
+- #24 is clean and pushed at `329d2d4 feat(integrations): split microsoft graph providers`.
+- #25 is clean and pushed at `11a4164 feat(integrations): split slack and discord providers`.
+- Draft PR creation from this thread failed with GitHub `createPullRequest` permission `must be a collaborator`. Open the PRs manually with base `codex/integrations-foundation-stack` and heads `codex/integrations-23-gmail-sdk-package`, `codex/integrations-24-microsoft-graph-packages`, and `codex/integrations-25-chat-provider-packages`.
+- PR handoff comments were posted on #23, #24, and #25 with exact base/head/title instructions.
+
 Known caveat:
 
 - Full `pnpm providers:check` has previously reached architecture/typecheck/ESM build and then terminated with SIGTERM during the legacy monolith DTS build. A targeted `pnpm --filter @cognidesk/integrations build` passed during #28 guardrail verification, but the full aggregate command still needs a fresh end-to-end run before treating that caveat as resolved.
 
 ## Next Best Actions
 
-1. Have #23/#24/#25 owners review their dirty worktrees, stage generated/docs/package changes, commit, push, and open PRs or hand them back for finalization.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25 against `codex/integrations-foundation-stack`.
 2. Use #23/#24/#25 as the reference package patterns for #29-#43 provider-family migrations.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
