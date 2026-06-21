@@ -9764,11 +9764,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "review.appstore",
     "category": "review",
     "provider": "appstore",
-    "importPath": "@cognidesk/review-appstore/manifest",
+    "importPath": "@cognidesk/integration-review-appstore/manifest",
     "modulePath": "integrations/review/appstore/src/manifest.js",
     "manifestExport": "appStoreReviewsProviderManifest",
     "name": "App Store Reviews",
-    "packageName": "@cognidesk/review-appstore",
+    "packageName": "@cognidesk/integration-review-appstore",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -9943,8 +9943,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "direct-http-support-slice",
-      "sdkPackage": "@cognidesk/review-appstore",
-      "runtimePackage": "@cognidesk/review-appstore/runtime",
+      "sdkPackage": "@cognidesk/integration-review-appstore",
+      "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
       "providerModule": "integrations/review/appstore/src/manifest.js",
       "manifestExport": "appStoreReviewsProviderManifest",
       "manifestSource": "integrations/review/appstore/src/manifest.ts",
@@ -10006,7 +10006,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "direct-http-support-slice",
         "officialJsSdkAvailable": false,
         "verifiedAt": "2026-06-21",
-        "runtimePackage": "@cognidesk/review-appstore/runtime",
+        "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
         "rawClientExport": "AppStoreReviewsClient.rawClient.request"
       },
       "reviewedSource": {
@@ -10103,11 +10103,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "review.googleplay",
     "category": "review",
     "provider": "googleplay",
-    "importPath": "@cognidesk/review-googleplay/manifest",
+    "importPath": "@cognidesk/integration-review-googleplay/manifest",
     "modulePath": "integrations/review/googleplay/src/manifest.js",
     "manifestExport": "googlePlayReviewsProviderManifest",
     "name": "Google Play Reviews",
-    "packageName": "@cognidesk/review-googleplay",
+    "packageName": "@cognidesk/integration-review-googleplay",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -10255,7 +10255,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "official-sdk",
       "sdkPackage": "@googleapis/androidpublisher",
-      "runtimePackage": "@cognidesk/review-googleplay/runtime",
+      "runtimePackage": "@cognidesk/integration-review-googleplay/runtime",
       "providerModule": "integrations/review/googleplay/src/manifest.js",
       "manifestExport": "googlePlayReviewsProviderManifest",
       "manifestSource": "integrations/review/googleplay/src/manifest.ts",
@@ -10326,7 +10326,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "official-sdk",
         "sdkPackage": "@googleapis/androidpublisher",
         "sdkVersionRange": "^36.0.0",
-        "runtimePackage": "@cognidesk/review-googleplay/runtime",
+        "runtimePackage": "@cognidesk/integration-review-googleplay/runtime",
         "rawClientExport": "GooglePlayReviewsClient.rawClient"
       },
       "adapterCoverage": {

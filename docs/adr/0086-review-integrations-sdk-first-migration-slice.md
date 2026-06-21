@@ -29,8 +29,8 @@ workspaces are discoverable, and the review packages bind manifests to executabl
 
 Prepare the review migration as split provider packages:
 
-- `integrations/review/googleplay` publishes `@cognidesk/review-googleplay`.
-- `integrations/review/appstore` publishes `@cognidesk/review-appstore`.
+- `integrations/review/googleplay` publishes `@cognidesk/integration-review-googleplay`.
+- `integrations/review/appstore` publishes `@cognidesk/integration-review-appstore`.
 - Depend on `@cognidesk/integration-kit` for manifest, operation binding, credential readiness,
   errors, pagination, and conformance.
 - Expose normalized review operations as the Cognidesk adapter surface.
@@ -71,7 +71,7 @@ API-key authentication. Apple does publish an official Node package named
 Notifications, Retention Messaging API, and Advanced Commerce API. It is not an App Store Connect
 customer-review client and should not be used for this review integration.
 
-Therefore `@cognidesk/review-appstore` should use a constrained direct REST support slice unless an
+Therefore `@cognidesk/integration-review-appstore` should use a constrained direct REST support slice unless an
 official App Store Connect JavaScript/TypeScript SDK appears before implementation.
 
 Target adapter operations:

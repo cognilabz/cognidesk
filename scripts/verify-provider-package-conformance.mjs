@@ -39,22 +39,23 @@ const providerCategorySegments = new Set([
   "voice",
   "workplace",
 ]);
+const providerPackagePrefix = "@cognidesk/integration-";
 const defaultPackedSizeBudgetBytes = 12 * oneMiB;
 const defaultUnpackedSizeBudgetBytes = 40 * oneMiB;
 const defaultDeclarationFileBudgetBytes = 4 * oneMiB;
 const stagedProviderPackages = [
-  "@cognidesk/email-gmail",
-  "@cognidesk/email-outlook",
-  "@cognidesk/workplace-slack",
-  "@cognidesk/workplace-teams",
-  "@cognidesk/ecommerce-stripe",
+  "@cognidesk/integration-email-gmail",
+  "@cognidesk/integration-email-outlook",
+  "@cognidesk/integration-workplace-slack",
+  "@cognidesk/integration-workplace-teams",
+  "@cognidesk/integration-ecommerce-stripe",
 ];
 const stagedProviderPackageIssues = new Map([
-  ["@cognidesk/email-gmail", "#23"],
-  ["@cognidesk/email-outlook", "#24"],
-  ["@cognidesk/workplace-slack", "#25"],
-  ["@cognidesk/workplace-teams", "#24"],
-  ["@cognidesk/ecommerce-stripe", "#30"],
+  ["@cognidesk/integration-email-gmail", "#23"],
+  ["@cognidesk/integration-email-outlook", "#24"],
+  ["@cognidesk/integration-workplace-slack", "#25"],
+  ["@cognidesk/integration-workplace-teams", "#24"],
+  ["@cognidesk/integration-ecommerce-stripe", "#30"],
 ]);
 const providerFamilyIssueSummary = "#23 Gmail, #24 Microsoft Graph, #25 Slack/Discord, #29 email, #30 ecommerce, #31 marketplace, #32 Meta, #33 RCS/TikTok, #34 review, #35 helpdesk ticketing, #36 CRM ticketing, #37 enterprise service clouds, #38 contact-center core, #39 contact-center long tail, #40 cloud speech, #41 voice/SMS, #42 video, #43 local/protocol";
 const infrastructurePackageNames = new Set([
@@ -160,6 +161,7 @@ async function workspacePackageDirs() {
 async function isProviderPackage(pkg) {
   if (pkg.name === "@cognidesk/integrations") return false;
   if (infrastructurePackageNames.has(pkg.name)) return false;
+  if (expectedProviderPackageNameForPath(pkg.dir)) return true;
   if (pkg.packageJson.cognidesk?.providerPackage === true) return true;
   if (pkg.packageJson.cognidesk?.kind === "provider-package") return true;
   if (!isSplitProviderPackageName(pkg.name)) return false;
@@ -184,16 +186,22 @@ function isSplitProviderPackageName(name) {
 }
 
 function splitProviderPackageCategory(name) {
-  const prefix = "@cognidesk/";
-  if (!name.startsWith(prefix)) return undefined;
+  if (!name.startsWith(providerPackagePrefix)) return undefined;
 
-  const slug = name.slice(prefix.length);
+  const slug = name.slice(providerPackagePrefix.length);
   const categories = [...providerCategorySegments].sort((left, right) => right.length - left.length);
   for (const category of categories) {
     if (slug.startsWith(`${category}-`) && slug.length > category.length + 1) return category;
   }
 
   return undefined;
+}
+
+function expectedProviderPackageNameForPath(dir) {
+  const relative = path.relative(repoRoot, dir).replace(/\\/g, "/");
+  const match = /^integrations\/([^/]+)\/([^/]+)$/.exec(relative);
+  if (!match) return undefined;
+  return `${providerPackagePrefix}${match[1]}-${match[2]}`;
 }
 
 function formatStagedPackages(packageNames) {
@@ -210,6 +218,8 @@ async function sourceFilesForPackage(pkg) {
 }
 
 async function checkProviderPackage(pkg) {
+  checkProviderPackageName(pkg);
+
   const packReport = packDryRun(pkg);
   if (packReport) checkPackReport(pkg, packReport);
 
@@ -222,6 +232,18 @@ async function checkProviderPackage(pkg) {
   } else {
     await runTempProjectImportSmoke(pkg, manifestEntries.map((entry) => entry.specifier));
     await runTempProjectTypeSmoke(pkg, manifestEntries.map((entry) => entry.specifier));
+  }
+}
+
+function checkProviderPackageName(pkg) {
+  if (!pkg.name.startsWith(providerPackagePrefix)) {
+    failures.push(`${pkg.name}: Provider Integration packages must be named @cognidesk/integration-{category}-{provider}`);
+    return;
+  }
+
+  const expectedName = expectedProviderPackageNameForPath(pkg.dir);
+  if (expectedName && pkg.name !== expectedName) {
+    failures.push(`${pkg.name}: package name must match workspace path as ${expectedName}`);
   }
 }
 

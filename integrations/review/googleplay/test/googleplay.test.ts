@@ -21,11 +21,11 @@ function firstCallParams(mock: { mock: { calls: readonly unknown[] } }) {
   return ((mock.mock.calls as unknown[][])[0]?.[0] ?? {}) as Record<string, unknown>;
 }
 
-describe("@cognidesk/review-googleplay", () => {
+describe("@cognidesk/integration-review-googleplay", () => {
   it("declares SDK-backed adapter coverage without full-provider clone claims", () => {
     expect(googlePlayReviewsProviderManifest).toMatchObject({
       id: "review.googleplay",
-      packageName: "@cognidesk/review-googleplay",
+      packageName: "@cognidesk/integration-review-googleplay",
       category: "review",
       provider: "googleplay",
       coverage: { scope: "support-workflow-subset" },

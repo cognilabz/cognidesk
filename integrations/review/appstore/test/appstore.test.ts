@@ -15,11 +15,11 @@ import {
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-describe("@cognidesk/review-appstore", () => {
+describe("@cognidesk/integration-review-appstore", () => {
   it("declares a constrained direct REST support slice when no official Connect JS SDK exists", () => {
     expect(appStoreReviewsProviderManifest).toMatchObject({
       id: "review.appstore",
-      packageName: "@cognidesk/review-appstore",
+      packageName: "@cognidesk/integration-review-appstore",
       category: "review",
       provider: "appstore",
       coverage: { scope: "support-workflow-subset" },

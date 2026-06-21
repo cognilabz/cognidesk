@@ -44,7 +44,7 @@ export const appStoreConnectReviewedOperationAllowlist = [
 export const appStoreReviewsProviderManifestInput = {
   id: "review.appstore",
   name: "App Store Reviews",
-  packageName: "@cognidesk/review-appstore",
+  packageName: "@cognidesk/integration-review-appstore",
   provider: "appstore",
   category: "review",
   trustLevel: "official",
@@ -214,7 +214,7 @@ export const appStoreReviewsProviderManifestInput = {
       strategy: "direct-http-support-slice",
       officialJsSdkAvailable: false,
       verifiedAt: "2026-06-21",
-      runtimePackage: "@cognidesk/review-appstore/runtime",
+      runtimePackage: "@cognidesk/integration-review-appstore/runtime",
       rawClientExport: "AppStoreReviewsClient.rawClient.request",
     },
     reviewedSource: {

@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage, type ProviderManifestInput } from "@c
 export const googlePlayReviewsProviderManifestInput = {
   id: "review.googleplay",
   name: "Google Play Reviews",
-  packageName: "@cognidesk/review-googleplay",
+  packageName: "@cognidesk/integration-review-googleplay",
   provider: "googleplay",
   category: "review",
   trustLevel: "official",
@@ -136,7 +136,7 @@ export const googlePlayReviewsProviderManifestInput = {
       strategy: "official-sdk",
       sdkPackage: "@googleapis/androidpublisher",
       sdkVersionRange: "^36.0.0",
-      runtimePackage: "@cognidesk/review-googleplay/runtime",
+      runtimePackage: "@cognidesk/integration-review-googleplay/runtime",
       rawClientExport: "GooglePlayReviewsClient.rawClient",
     },
     adapterCoverage: {
