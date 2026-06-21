@@ -245,20 +245,26 @@ First-wave PR handoff after branch owners committed:
 - Verification passed: workspace relink, shared package builds, all four split voice package tests/builds, voice SDK-first migration guard, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, legacy aggregate `@cognidesk/integrations` build, and `git diff --check`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762165439.
 
+#43 local/protocol provider package lane:
+
+- #43 is clean and pushed at `19baf7c feat(integrations): migrate local protocol packages` on branch `codex/integrations-43-local-protocol-adapters`.
+- The branch adds `@cognidesk/cobrowsing-cognidesk`, `@cognidesk/community-forum`, `@cognidesk/form-cognidesk`, `@cognidesk/help-center-cognidesk`, and `@cognidesk/voice-sip` under `integrations/{category}/{provider}`.
+- These are local/protocol or Cognidesk-owned bridge adapters, so they depend on shared Cognidesk packages and `@cognidesk/integration-kit`, not external provider SDKs. SIP remains a reviewed protocol adapter rather than a full SIP stack.
+- The old aggregate local/protocol subpaths and tests were removed from `@cognidesk/integrations` after replacement package tests/builds passed; no old-import bridges or compatibility shims were added.
+- Package-naming fixtures were tightened again so provider examples use `@cognidesk/{category}-{provider}` (`@cognidesk/email-gmail`, `@cognidesk/email-acme`, `@cognidesk/sms-acme`) instead of stale `@cognidesk/integration-*` names. `@cognidesk/integration-kit` and `@cognidesk/integration-catalog` remain legitimate provider-neutral infrastructure packages.
+- Verification passed: frozen install with linked workspace packages disabled, catalog data/docs generation, all five split package tests/typechecks/builds, architecture/conformance checks, scoped old-import codemod check, local/protocol migration doc guard, full `pnpm providers:check`, package version/release train checks, release workspace test, package smoke/size checks, direct dist import smoke for `.`/`./manifest`/`./runtime`, integration-kit tests, stale old-import and stale provider naming scans, and `git diff --check`/`git diff --cached --check`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/43#issuecomment-4762332846.
+
 ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
 - The plan's major requirements are tracked in `docs/provider-integration-plan-alignment.md`: per-provider packages, SDK-first policy, integration kit, metadata-only catalog, explicit runtime registration, adapter-vs-SDK coverage, independent publishing, first-wave Gmail/Graph/Slack validation, provider cohorts, and eventual monolith deletion.
 - The plan's legacy-bridge phase is intentionally rejected by ADR-0085 and replaced with migration docs plus `pnpm providers:codemod:imports`.
 
-Known caveat:
-
-- Full `pnpm providers:check` has previously reached architecture/typecheck/ESM build and then terminated with SIGTERM during the legacy monolith DTS build. A targeted `pnpm --filter @cognidesk/integrations build` passed during #28 guardrail verification, but the full aggregate command still needs a fresh end-to-end run before treating that caveat as resolved.
-
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#37/#38/#40 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#40 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#37/#38/#40/#43 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#40/#43 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
