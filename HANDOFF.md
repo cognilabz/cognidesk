@@ -222,6 +222,19 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-37-oracle-pega-sap`, and title `[Integrations] Migrate enterprise ticketing providers to split packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/37#issuecomment-4762255607.
 
+#38 contact-center core provider package lane:
+
+- #38 is clean and pushed at `abcce55 feat(integrations): migrate contact-center SDK packages` on branch `codex/integrations-38-contact-center-sdk`.
+- The branch adds `@cognidesk/contact-center-amazon-connect`, `@cognidesk/contact-center-genesys-cloud`, and `@cognidesk/contact-center-ringcentral` under `integrations/contact-center/*`.
+- Amazon Connect uses official AWS SDK v3 clients `@aws-sdk/client-connect` and `@aws-sdk/client-connectparticipant` for normalized task/chat/participant/transfer workflows. The previous generated Connect-family full-provider clone is intentionally not carried forward as Cognidesk adapter coverage.
+- Genesys Cloud uses `purecloud-platform-client-v2` and keeps local Open Messaging signature verification at the webhook boundary.
+- RingCentral uses `@ringcentral/sdk` for auth/request dispatch and raw platform access, while RingCX Voice/Engage Digital gaps stay explicitly scoped as not fully typed by that SDK.
+- The old aggregate contact-center subpaths for Amazon Connect, Genesys Cloud, and RingCentral were removed from `@cognidesk/integrations` exports/build entries, provider catalog refs, runtime loaders, monolith tests, generator scripts, and generated full-API clone files.
+- Package naming fixtures were tightened away from stale `@cognidesk/integration-*` examples. Provider packages must use `@cognidesk/{category}-{provider}`; `@cognidesk/integration-kit` and `@cognidesk/integration-catalog` remain legitimate provider-neutral infrastructure packages.
+- Verification passed: `corepack pnpm` workspace relink, catalog data/docs generation, shared test-harness build, all three split package tests/typechecks/builds, integration-kit and integration-catalog tests, architecture/conformance checks, scoped old-import codemod check, full legacy aggregate build to an uncapped temp logfile, targeted aggregate provider tests, release workspace tests, package smoke/size budget checks, HTTP/React/UI builds, voice-openai and voice-websocket build/tests for the naming check, and `git diff --check`/`git diff --cached --check`.
+- Draft PR creation is expected to need collaborator rights as with other lanes. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-38-contact-center-sdk`, and title `[Integrations] Migrate contact-center core providers to SDK packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/38#issuecomment-4762294902.
+
 #40 cloud speech/OpenAI voice provider package lane:
 
 - #40 is clean and pushed at `456686d feat(integrations): migrate cloud voice providers` on branch `codex/integrations-40-voice-speech-sdk`.
@@ -244,8 +257,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#37/#40 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#40 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35/#36/#37/#38/#40 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35/#36/#37/#38/#40 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
