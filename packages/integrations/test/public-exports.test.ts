@@ -81,9 +81,17 @@ const publicProviderCatalogs = [
 describe.each(publicProviderCatalogs)("$categoryName public exports", ({ references }) => {
   it("imports every catalogued provider subpath", async () => {
     for (const reference of references) {
-      const providerModule = await import(reference.importPath);
+      const providerModule = await importProviderModule(reference);
 
       expect(providerModule).toHaveProperty(reference.manifestExport);
     }
   });
 });
+
+function importProviderModule(reference: { importPath: string; modulePath: string }) {
+  if (reference.importPath.startsWith("@cognidesk/integrations/")) {
+    const distPath = reference.modulePath.replace(/^\.\//, "");
+    return import(new URL(`../dist/${distPath}`, import.meta.url).href);
+  }
+  return import(reference.importPath);
+}

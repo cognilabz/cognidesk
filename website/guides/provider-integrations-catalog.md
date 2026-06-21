@@ -460,19 +460,19 @@ Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/b
 | Runtime import | `@cognidesk/email-gmail/runtime` |
 | Workspace | `integrations/email/gmail` |
 | Manifest ID | `email.gmail` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://gmail.googleapis.com/$discovery/rest?version=v1](https://gmail.googleapis.com/$discovery/rest?version=v1) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@googleapis/gmail](https://www.npmjs.com/package/@googleapis/gmail) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object` |
+| Capabilities | `receive`, `read-provider-object`, `draft`, `send`, `update-provider-object` |
 | Provider setup | required `google-oauth-access-token` |
 
-Coverage: Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.
+Coverage: Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.
 
-Boundary: Available operations depend on the OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.
+Boundary: Available operations depend on OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.
 
-Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery/rest?version=v1); [Gmail messages list](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list); [Gmail users getProfile](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile); [Gmail drafts create](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create); plus 7 more.
+Evidence: [@googleapis/gmail package](https://www.npmjs.com/package/@googleapis/gmail); [Gmail API Node.js quickstart](https://developers.google.com/workspace/gmail/api/quickstart/nodejs); [Gmail users.threads.get](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get); [Gmail users.messages.send](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send); plus 4 more.
 
 #### IMAP Mailbox
 

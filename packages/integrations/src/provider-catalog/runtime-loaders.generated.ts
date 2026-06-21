@@ -19,7 +19,6 @@ export const integrationProviderRuntimeLoaders = [
   { id: "contactCenter.zoom", load: () => import("../contact-center/zoom/index.js") },
   { id: "ecommerce.shopify", load: () => import("../ecommerce/shopify/index.js") },
   { id: "ecommerce.stripe", load: () => import("../ecommerce/stripe/index.js") },
-  { id: "email.gmail", load: () => import("../email/gmail/index.js") },
   { id: "email.imap", load: () => import("../email/imap/index.js") },
   { id: "email.mailgun", load: () => import("../email/mailgun/index.js") },
   { id: "email.outlook", load: () => import("../email/outlook/index.js") },

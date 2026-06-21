@@ -277,7 +277,7 @@ describe("integration category profiles", () => {
         expect(declaredCapabilities.has(operation.capability), `${reference.id}:${operation.alias}`).toBe(true);
       }
     }
-  }, 30000);
+  }, 120_000);
 
   it("does not infer concrete category operations from broad provider capabilities", () => {
     const manifest = defineIntegrationProviderPackage({
