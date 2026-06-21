@@ -11,14 +11,18 @@ export function normalizeMessengerWebhookEvents(payload: MessengerWebhookPayload
   const events: MessengerNormalizedEvent[] = [];
   for (const entry of payload.entry ?? []) {
     for (const messaging of entry.messaging ?? []) {
-      if (!messaging.message) continue;
+      if (!isMessengerSocialJsonObject(messaging.message)) continue;
       events.push({
         type: "social.message.received",
         provider: "messenger",
-        message: messaging,
+        message: messaging.message,
         raw: messaging,
       });
     }
   }
   return events;
+}
+
+function isMessengerSocialJsonObject(value: unknown): value is MessengerSocialJsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

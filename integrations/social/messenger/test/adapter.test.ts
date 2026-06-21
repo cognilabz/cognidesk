@@ -67,10 +67,21 @@ describe("@cognidesk/social-messenger", () => {
   });
 
   it("normalizes inbound message webhook events", () => {
+    const delivery = {
+      sender: { id: "psid_1" },
+      recipient: { id: "page_1" },
+      timestamp: 1_718_000_000_000,
+      message: { mid: "m_1", text: "Hi" },
+    };
+
     expect(normalizeMessengerWebhookEvents({
-      entry: [{ messaging: [{ sender: { id: "psid_1" }, message: { text: "Hi" } }] }],
-    })).toEqual([
-      expect.objectContaining({ type: "social.message.received", provider: "messenger" }),
-    ]);
+      object: "page",
+      entry: [{ id: "page_1", time: 1_718_000_000_001, messaging: [delivery] }],
+    })).toEqual([{
+      type: "social.message.received",
+      provider: "messenger",
+      message: { mid: "m_1", text: "Hi" },
+      raw: delivery,
+    }]);
   });
 });
