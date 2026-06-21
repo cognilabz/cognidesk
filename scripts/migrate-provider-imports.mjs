@@ -97,7 +97,7 @@ function rewriteImportDeclaration(node, sourceFile, sourceText) {
     return diagnosticForNode(sourceFile, importClause, `Namespace import from '${specifier}' cannot be migrated safely.`);
   }
 
-  const grouped = groupSpecifiers(importClause.namedBindings.elements, importClause.isTypeOnly);
+  const grouped = groupSpecifiers(importClause.namedBindings.elements, importClause.isTypeOnly, target);
   if (grouped.diagnostic) return diagnosticForNode(sourceFile, grouped.diagnostic.node, grouped.diagnostic.message);
 
   if (grouped.manifest.length > 0 && grouped.runtime.length > 0) {
@@ -123,7 +123,7 @@ function rewriteExportDeclaration(node, sourceFile, sourceText) {
     return diagnosticForNode(sourceFile, node, `Star re-export from '${specifier}' cannot be migrated safely.`);
   }
 
-  const grouped = groupSpecifiers(node.exportClause.elements, node.isTypeOnly);
+  const grouped = groupSpecifiers(node.exportClause.elements, node.isTypeOnly, target);
   if (grouped.diagnostic) return diagnosticForNode(sourceFile, grouped.diagnostic.node, grouped.diagnostic.message);
 
   if (grouped.manifest.length > 0 && grouped.runtime.length > 0) {
@@ -138,7 +138,7 @@ function rewriteExportDeclaration(node, sourceFile, sourceText) {
   return replaceModuleSpecifier(node.moduleSpecifier, sourceText, nextSpecifier);
 }
 
-function groupSpecifiers(elements, declarationIsTypeOnly) {
+function groupSpecifiers(elements, declarationIsTypeOnly, importTarget) {
   const grouped = {
     manifest: [],
     runtime: [],
@@ -147,6 +147,15 @@ function groupSpecifiers(elements, declarationIsTypeOnly) {
 
   for (const element of elements) {
     const importedName = (element.propertyName ?? element.name).text;
+    const removedSymbolDiagnostic = removedGmailGeneratedSymbolDiagnostic(importedName, importTarget);
+    if (removedSymbolDiagnostic) {
+      grouped.diagnostic = {
+        node: element,
+        message: removedSymbolDiagnostic,
+      };
+      return grouped;
+    }
+
     const target = classifyProviderSymbol(importedName);
     if (!target) {
       grouped.diagnostic = {
@@ -160,6 +169,23 @@ function groupSpecifiers(elements, declarationIsTypeOnly) {
   }
 
   return grouped;
+}
+
+function removedGmailGeneratedSymbolDiagnostic(name, importTarget) {
+  if (importTarget.category !== "email" || importTarget.provider !== "gmail") return undefined;
+  if (!isGmailGeneratedFullApiSymbol(name)) return undefined;
+
+  return `Legacy Gmail generated/full-API symbol '${name}' was removed and is not exported by '${importTarget.runtimeImport}'. Migrate this import manually to the GmailEmailClient.rawClient surface.`;
+}
+
+function isGmailGeneratedFullApiSymbol(name) {
+  const normalized = name.toLowerCase();
+  const compact = normalized.replace(/[_-]/g, "");
+  return (
+    normalized.startsWith("gmail_full_api_")
+    || compact.includes("gmailfullapi")
+    || (compact.includes("gmailgenerated") && compact.includes("operation"))
+  );
 }
 
 export function classifyProviderSymbol(name) {
@@ -255,7 +281,9 @@ function providerImportTarget(specifier) {
 
   const packageName = `@cognidesk/${category}-${provider}`;
   return {
+    category,
     packageName,
+    provider,
     manifestImport: `${packageName}/manifest`,
     runtimeImport: `${packageName}/runtime`,
   };

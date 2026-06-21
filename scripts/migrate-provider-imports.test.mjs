@@ -52,6 +52,27 @@ describe("transformProviderImports", () => {
     );
   });
 
+  it("fails closed for removed Gmail generated full-API imports", () => {
+    const sourceText = 'import { GMAIL_FULL_API_GENERATED_FUNCTION_COUNT } from "@cognidesk/integrations/email/gmail";\n';
+    const result = transformProviderImports(sourceText, { fileName: "removed-gmail-generated.ts" });
+
+    assert.equal(result.changed, false);
+    assert.equal(result.sourceText, sourceText);
+    assert.equal(result.diagnostics.length, 1);
+    assert.match(result.diagnostics[0].message, /Legacy Gmail generated\/full-API symbol 'GMAIL_FULL_API_GENERATED_FUNCTION_COUNT'/);
+    assert.match(result.diagnostics[0].message, /not exported by '@cognidesk\/email-gmail\/runtime'/);
+  });
+
+  it("does not partially rewrite mixed imports when Gmail generated full-API symbols are present", () => {
+    const sourceText = 'import { gmailEmailProviderManifest, createGmailEmailClient, type GmailFullApiSchemaJsonValue } from "@cognidesk/integrations/email/gmail";\n';
+    const result = transformProviderImports(sourceText, { fileName: "mixed-removed-gmail-generated.ts" });
+
+    assert.equal(result.changed, false);
+    assert.equal(result.sourceText, sourceText);
+    assert.equal(result.diagnostics.length, 1);
+    assert.match(result.diagnostics[0].message, /Legacy Gmail generated\/full-API symbol 'GmailFullApiSchemaJsonValue'/);
+  });
+
   it("splits mixed manifest and runtime imports", () => {
     const result = transform(
       'import { gmailEmailProviderManifest, createGmailEmailClient, type GmailEmailClientOptions } from "@cognidesk/integrations/email/gmail";\n',
