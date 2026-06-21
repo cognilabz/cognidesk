@@ -12,8 +12,8 @@ Owned legacy paths:
 
 Split package names:
 
-- `integrations/marketplace/amazon` published as `@cognidesk/marketplace-amazon`
-- `integrations/marketplace/ebay` published as `@cognidesk/marketplace-ebay`
+- `integrations/marketplace/amazon` published as `@cognidesk/integration-marketplace-amazon`
+- `integrations/marketplace/ebay` published as `@cognidesk/integration-marketplace-ebay`
 
 This branch reconciles the #20 nested workspace foundation and #21 `@cognidesk/integration-kit` foundation before adding the marketplace packages.
 
@@ -32,8 +32,8 @@ This branch reconciles the #20 nested workspace foundation and #21 `@cognidesk/i
 
 - `pnpm-workspace.yaml` includes `integrations/*/*`.
 - `packages/integration-kit` exists and provides `defineIntegration()`, provider manifest helpers, readiness/webhook utilities, and testing conformance helpers.
-- `@cognidesk/marketplace-amazon` exists as a split package with `/manifest`, `/runtime`, and root exports.
-- `@cognidesk/marketplace-ebay` exists as a split package with `/manifest`, `/runtime`, and root exports.
+- `@cognidesk/integration-marketplace-amazon` exists as a split package with `/manifest`, `/runtime`, and root exports.
+- `@cognidesk/integration-marketplace-ebay` exists as a split package with `/manifest`, `/runtime`, and root exports.
 - The old `@cognidesk/integrations` marketplace subpaths remain in place until replacement package adoption and cleanup work removes the monolith; no compatibility re-exports were added.
 
 ## SDK Viability Evidence
@@ -49,7 +49,7 @@ Evidence checked on 2026-06-21:
 - The official SDK repository describes itself as the official SDK for Amazon Selling Partner API and its README states JavaScript has basic API support and rate limiting, but not RDT support.
 - `npm pack --dry-run --json @amazon-sp-api-release/amazon-sp-api-sdk-js@1.9.0` reports shasum `783d6bf23750405b0dceb7f859fa40fade74b182`, integrity `sha512-t9VwXEtsgTH05SvmFbEWjYxOZyqdGE1YjTDyUImUv9XdSmr+oenG2cCw2zgfjugWNO2QGSz98rSynKBip5aJMA==`, unpacked size about 13.7 MB, and generated `.d.ts` files under API subdirectories.
 - The real package test loads `@amazon-sp-api-release/amazon-sp-api-sdk-js` through `loadAmazonSpApiOfficialSdk()` and proves `SellersSpApi`, `OrdersSpApi`, and `NotificationsSpApi` are present. Import is slow enough to require an explicit 20s test timeout, reinforcing the manifest-only import boundary.
-- The npm package has no root `types` or `typings` metadata, so `@cognidesk/marketplace-amazon` includes a package-local typed facade for the raw SDK loader while keeping normalized support operations typed locally.
+- The npm package has no root `types` or `typings` metadata, so `@cognidesk/integration-marketplace-amazon` includes a package-local typed facade for the raw SDK loader while keeping normalized support operations typed locally.
 
 Required Amazon preservation:
 
@@ -69,7 +69,7 @@ Amazon migration shape:
 
 ### eBay Marketplace
 
-Decision: keep a constrained direct/support-slice package for `@cognidesk/marketplace-ebay`; optionally use eBay-owned utility SDKs only for OAuth, digital signatures, or event-notification verification if they pass package/runtime review.
+Decision: keep a constrained direct/support-slice package for `@cognidesk/integration-marketplace-ebay`; optionally use eBay-owned utility SDKs only for OAuth, digital signatures, or event-notification verification if they pass package/runtime review.
 
 Evidence checked on 2026-06-21:
 
@@ -110,4 +110,4 @@ Follow-up test ports remain useful before deleting the monolith:
 
 ## Final Decision For This Thread
 
-Create `@cognidesk/marketplace-amazon` and `@cognidesk/marketplace-ebay` as split provider packages now that #20 and #21 foundations are reconciled in this branch. Amazon uses an official-SDK-plus-support-slice strategy; eBay uses a direct support-slice strategy with selected official OpenAPI source metadata. Keep the old monolith code until replacement package tests, docs/catalog wiring, and cleanup work are ready to remove it without compatibility re-exports.
+Create `@cognidesk/integration-marketplace-amazon` and `@cognidesk/integration-marketplace-ebay` as split provider packages now that #20 and #21 foundations are reconciled in this branch. Amazon uses an official-SDK-plus-support-slice strategy; eBay uses a direct support-slice strategy with selected official OpenAPI source metadata. Keep the old monolith code until replacement package tests, docs/catalog wiring, and cleanup work are ready to remove it without compatibility re-exports.

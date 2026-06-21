@@ -4,13 +4,13 @@ import { amazonMarketplaceIntegration } from "../src/integration.js";
 import { amazonMarketplaceOperationAliases, amazonMarketplaceProviderManifest } from "../src/manifest.js";
 import { loadAmazonSpApiOfficialSdk } from "../src/official-sdk.js";
 
-describe("@cognidesk/marketplace-amazon", () => {
+describe("@cognidesk/integration-marketplace-amazon", () => {
   it("binds every manifest operation to a handler", () => {
     const report = assertIntegrationConformance(amazonMarketplaceIntegration);
 
     expect(report.missingHandlerAliases).toEqual([]);
     expect(report.extraHandlerAliases).toEqual([]);
-    expect(amazonMarketplaceProviderManifest.packageName).toBe("@cognidesk/marketplace-amazon");
+    expect(amazonMarketplaceProviderManifest.packageName).toBe("@cognidesk/integration-marketplace-amazon");
     expect(amazonMarketplaceProviderManifest.coverage.scope).toBe("support-workflow-subset");
     expect(amazonMarketplaceProviderManifest.operations.map((operation) => operation.alias)).toContain(
       amazonMarketplaceOperationAliases.getOrders,

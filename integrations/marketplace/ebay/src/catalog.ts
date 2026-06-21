@@ -111,7 +111,7 @@ export function ebayMarketplaceOperationAlias(functionName: string): `ebay.${str
 export const ebayMarketplaceProviderManifest = defineProviderPackage({
   id: "marketplace.ebay",
   name: "eBay Marketplace",
-  packageName: "@cognidesk/marketplace-ebay",
+  packageName: "@cognidesk/integration-marketplace-ebay",
   provider: "ebay",
   category: "marketplace",
   trustLevel: "official",

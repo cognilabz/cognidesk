@@ -24,7 +24,7 @@ export const amazonMarketplaceOperationAliases = {
 export const amazonMarketplaceProviderManifest = defineProviderPackage({
   id: "marketplace.amazon",
   name: "Amazon Marketplace",
-  packageName: "@cognidesk/marketplace-amazon",
+  packageName: "@cognidesk/integration-marketplace-amazon",
   provider: "amazon",
   category: "marketplace",
   trustLevel: "official",

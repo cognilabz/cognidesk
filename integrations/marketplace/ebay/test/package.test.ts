@@ -8,13 +8,13 @@ import {
   ebaySelectedApiOperationCatalog,
 } from "../src/index.js";
 
-describe("@cognidesk/marketplace-ebay", () => {
+describe("@cognidesk/integration-marketplace-ebay", () => {
   it("binds every selected support-slice operation to a handler", () => {
     const report = assertIntegrationConformance(ebayMarketplaceIntegration);
 
     expect(report.missingHandlerAliases).toEqual([]);
     expect(report.extraHandlerAliases).toEqual([]);
-    expect(ebayMarketplaceProviderManifest.packageName).toBe("@cognidesk/marketplace-ebay");
+    expect(ebayMarketplaceProviderManifest.packageName).toBe("@cognidesk/integration-marketplace-ebay");
     expect(ebayMarketplaceProviderManifest.coverage.scope).toBe("support-workflow-subset");
     expect(ebayMarketplaceProviderManifest.operations).toHaveLength(EBAY_SELECTED_API_OPERATION_COUNT);
     expect(ebayMarketplaceProviderManifest.operations.map((operation) => operation.alias)).toContain(

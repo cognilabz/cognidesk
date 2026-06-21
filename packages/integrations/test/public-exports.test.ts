@@ -95,13 +95,13 @@ describe("marketplace public references", () => {
     expect(marketplaceProviderReferences).toEqual([
       expect.objectContaining({
         id: "marketplace.amazon",
-        importPath: "@cognidesk/marketplace-amazon/manifest",
+        importPath: "@cognidesk/integration-marketplace-amazon/manifest",
         modulePath: "integrations/marketplace/amazon/src/manifest.js",
         manifestExport: "amazonMarketplaceProviderManifest",
       }),
       expect.objectContaining({
         id: "marketplace.ebay",
-        importPath: "@cognidesk/marketplace-ebay/manifest",
+        importPath: "@cognidesk/integration-marketplace-ebay/manifest",
         modulePath: "integrations/marketplace/ebay/src/manifest.js",
         manifestExport: "ebayMarketplaceProviderManifest",
       }),

@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/marketplace-ebay",
+  "name": "@cognidesk/integration-marketplace-ebay",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

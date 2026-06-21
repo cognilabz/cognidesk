@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/marketplace-amazon",
+  "name": "@cognidesk/integration-marketplace-amazon",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

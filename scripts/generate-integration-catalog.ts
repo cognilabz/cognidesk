@@ -50,6 +50,7 @@ const integrationsSrcDir = path.join(repoRoot, "packages/integrations/src");
 const splitIntegrationsDir = path.join(repoRoot, "integrations");
 const catalogDataPath = path.join(repoRoot, "packages/integration-catalog/src/catalog.generated.ts");
 const runtimeLoaderPath = path.join(repoRoot, "packages/integrations/src/provider-catalog/runtime-loaders.generated.ts");
+const providerPackagePrefix = "@cognidesk/integration-";
 const knownImplementationStrategies = new Set<IntegrationImplementationStrategy>([
   "official-sdk",
   "maintained-library",
@@ -132,7 +133,14 @@ async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]
       if (!existsSync(packageJsonPath) || !existsSync(manifestPath)) continue;
 
       const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as { name?: unknown; cognidesk?: unknown };
-      if (!isSplitProviderPackage(packageJson)) continue;
+      const expectedPackageName = splitProviderPackageName(category, provider);
+      if (!isSplitProviderPackage(packageJson)) {
+        throw new Error(`Split provider package ${path.relative(repoRoot, packageDir)} must use the ${expectedPackageName} package name and provider-package metadata.`);
+      }
+
+      if (packageJson.name !== expectedPackageName) {
+        throw new Error(`Split provider package ${path.relative(repoRoot, packageDir)} must be named '${expectedPackageName}', not '${packageJson.name}'.`);
+      }
 
       const source: ManifestSource = {
         absolutePath: manifestPath,
@@ -146,6 +154,9 @@ async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]
       }
 
       const [manifestExport, manifest] = manifestEntry as [string, ProviderManifest];
+      if (manifest.packageName !== expectedPackageName) {
+        throw new Error(`Split provider manifest '${source.relativePath}' must declare packageName '${expectedPackageName}', not '${manifest.packageName}'.`);
+      }
       const reference: IntegrationProviderReference = {
         id: manifest.id,
         category: manifest.category,
@@ -182,13 +193,17 @@ function isNotFoundError(error: unknown): boolean {
 
 function isSplitProviderPackage(packageJson: { name?: unknown; cognidesk?: unknown }) {
   const name = stringFrom(packageJson.name);
-  if (!name?.startsWith("@cognidesk/")) return false;
+  if (!name?.startsWith(providerPackagePrefix)) return false;
 
   const metadata = recordFrom(packageJson.cognidesk);
   return metadata?.providerPackage === true
     || metadata?.kind === "provider-package"
     || metadata?.release === "independent-provider"
-    || /^@cognidesk\/[a-z0-9]+(?:-[a-z0-9]+)+$/.test(name);
+    || /^@cognidesk\/integration-[a-z0-9]+(?:-[a-z0-9]+)+$/.test(name);
+}
+
+function splitProviderPackageName(category: string, provider: string): string {
+  return `${providerPackagePrefix}${category}-${provider}`;
 }
 
 async function loadManifestExport(
