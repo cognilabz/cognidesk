@@ -118,6 +118,16 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation from this thread failed with GitHub `createPullRequest` permission `must be a collaborator`. Open the PRs manually with base `codex/integrations-foundation-stack` and heads `codex/integrations-23-gmail-sdk-package`, `codex/integrations-24-microsoft-graph-packages`, and `codex/integrations-25-chat-provider-packages`.
 - PR handoff comments were posted on #23, #24, and #25 with exact base/head/title instructions.
 
+#29 email provider package lane:
+
+- #29 is clean and pushed at `da467da feat(integrations): migrate email provider packages` on branch `codex/integrations-29-email-sdk-packages`.
+- The branch adds `@cognidesk/email-mailgun`, `@cognidesk/email-postmark`, `@cognidesk/email-ses`, and `@cognidesk/email-imap` under `integrations/email/*`.
+- The replacement packages use `mailgun.js`, `postmark`, `@aws-sdk/client-ses`, `@aws-sdk/client-sesv2`, and `imapflow` where viable.
+- The old aggregate `packages/integrations/src/email/{imap,mailgun,postmark,ses}` implementations and tests were removed, and catalog/runtime loader/docs outputs were regenerated.
+- Verification passed: all four email package tests, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate builds after prerequisite packages, package smoke/size checks, targeted aggregate provider tests, and `git diff --check`.
+- Draft PR creation failed through both the GitHub connector and `gh pr create` with permission errors (`Resource not accessible by integration` and `GraphQL: must be a collaborator`). Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-29-email-sdk-packages`, and title `[Integrations] Split remaining email providers into SDK packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/29#issuecomment-4761949585.
+
 ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
@@ -130,8 +140,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25 as the reference package patterns for #29-#43 provider-family migrations.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29 as reference package patterns for the remaining #30-#43 provider-family migrations.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
