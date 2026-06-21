@@ -869,17 +869,17 @@ Evidence: [TikTok Display API get started](https://developers.tiktok.com/doc/dis
 | Manifest ID | `ticketing.freshdesk` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://developers.freshdesk.com/api/](https://developers.freshdesk.com/api/) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `freshdesk.webhook-shared-secret` |
+| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `freshdesk-domain`, `freshdesk-api-key`; optional `freshdesk-webhook-secret` |
 
-Coverage: Coverage is limited to Freshdesk v2 support primitives for tickets, contacts, ticket conversations, replies, notes, selected handoff updates, agent/group reads, current-agent readiness, and SDK-user shared-secret webhook validation.
+Coverage: SDK decision: Freshworks has beta or very early JavaScript packages, but no verified official maintained Freshdesk ticketing backend client suitable for this adapter.
 
-Boundary: Ticket forms, required fields, statuses, priorities, products, groups, SLAs, automations, and agent permissions are owned by the SDK user's Freshdesk account.
+Boundary: Ticket forms, required fields, statuses, products, groups, SLAs, automations, and agent permissions are SDK-user configuration.
 
-Evidence: [Freshdesk API v2 reference](https://developers.freshdesk.com/api/); [Freshdesk v2 checked endpoint inventory](https://github.com/cognilabz/cognidesk/blob/main/docs/provider-coverage/freshdesk-v2-api-2026-06-18.operations.json).
+Evidence: [Freshdesk API v2 reference](https://developers.freshdesk.com/api/); [Freshworks API SDK announcement](https://community.freshworks.dev/t/freshworks-api-sdk-for-node-js/5232).
 
 #### Front
 
@@ -890,19 +890,19 @@ Evidence: [Freshdesk API v2 reference](https://developers.freshdesk.com/api/); [
 | Runtime import | `@cognidesk/ticketing-front/runtime` |
 | Workspace | `integrations/ticketing/front` |
 | Manifest ID | `ticketing.front` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://github.com/frontapp/front-api-specs](https://github.com/frontapp/front-api-specs) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://dev.frontapp.com/docs/core-api-overview](https://dev.frontapp.com/docs/core-api-overview) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `front-api-access` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Front's official Core and Channel API OpenAPI files.
+Coverage: SDK decision: no viable official maintained backend JavaScript client was verified. The deprecated front-sdk package is not adopted.
 
-Boundary: Inbox IDs, channel IDs, teammate assignment, tags, and message visibility are SDK-user configuration.
+Boundary: Inbox IDs, channel IDs, teammate assignment, tags, and message visibility are SDK-user configuration. Multipart attachments are rejected by JSON helpers and require SDK-user direct multipart handling.
 
-Evidence: [Front official OpenAPI specs](https://github.com/frontapp/front-api-specs); [Front Core API OpenAPI JSON](https://raw.githubusercontent.com/frontapp/front-api-specs/main/core-api/core-api.json); [Front Channel API OpenAPI JSON](https://raw.githubusercontent.com/frontapp/front-api-specs/main/channel-api/channel-api.json); [Front Create message](https://dev.frontapp.com/reference/create-message); plus 9 more.
+Evidence: [Front Core API overview](https://dev.frontapp.com/docs/core-api-overview); [Front API overview](https://help.front.com/en/articles/2482); [Front Create message](https://dev.frontapp.com/reference/create-message); [Front Create conversation reply](https://dev.frontapp.com/reference/create-message-reply).
 
 #### Gorgias
 
@@ -913,19 +913,19 @@ Evidence: [Front official OpenAPI specs](https://github.com/frontapp/front-api-s
 | Runtime import | `@cognidesk/ticketing-gorgias/runtime` |
 | Workspace | `integrations/ticketing/gorgias` |
 | Manifest ID | `ticketing.gorgias` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developers.gorgias.com/llms.txt](https://developers.gorgias.com/llms.txt) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developers.gorgias.com/](https://developers.gorgias.com/) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `gorgias-api-base`, `gorgias-api-access` |
 
-Coverage: Coverage includes generated per-operation functions for every operation found in Gorgias' official endpoint markdown pages with embedded OpenAPI blocks.
+Coverage: SDK decision: no official maintained backend JavaScript REST client was verified for Gorgias.
 
 Boundary: Domain URL, ticket channels, message channels, macros, Shopify context, automations, and visibility are SDK-user configuration.
 
-Evidence: [Gorgias developer llms.txt](https://developers.gorgias.com/llms.txt); [Gorgias Create ticket](https://developers.gorgias.com/reference/create-ticket); [Gorgias Retrieve ticket](https://developers.gorgias.com/reference/get-ticket); [Gorgias Update ticket](https://developers.gorgias.com/reference/update-ticket); plus 5 more.
+Evidence: [Gorgias developer docs](https://developers.gorgias.com/); [Gorgias Create ticket](https://developers.gorgias.com/reference/create-ticket); [Gorgias Create ticket message](https://developers.gorgias.com/reference/create-ticket-message); [Gorgias OAuth2 Scopes](https://developers.gorgias.com/docs/oauth2-scopes).
 
 #### Help Scout
 
@@ -938,17 +938,17 @@ Evidence: [Gorgias developer llms.txt](https://developers.gorgias.com/llms.txt);
 | Manifest ID | `ticketing.help-scout` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
-| Documentation | [https://developer.helpscout.com/llms.txt](https://developer.helpscout.com/llms.txt) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developer.helpscout.com/apps/javascript-sdk/](https://developer.helpscout.com/apps/javascript-sdk/) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `help-scout-api-access` |
 
-Coverage: Coverage is limited to Help Scout conversation create/read/list, raw conversation JSONPatch update, thread list, reply/note thread creation, and mailbox-list readiness for Cognidesk support workflows.
+Coverage: SDK decision: Help Scout's official JavaScript SDK is for Apps UI context, not a backend Inbox API client.
 
 Boundary: Mailbox IDs, thread types, assignment, workflow rules, and customer visibility are SDK-user configuration.
 
-Evidence: [Help Scout developer llms.txt](https://developer.helpscout.com/llms.txt); [Help Scout OAuth authentication](https://developer.helpscout.com/mailbox-api/overview/authentication); [Help Scout Create Conversation](https://developer.helpscout.com/mailbox-api/endpoints/conversations/create/); [Help Scout Get Conversation](https://developer.helpscout.com/mailbox-api/endpoints/conversations/get/); plus 7 more.
+Evidence: [Help Scout JavaScript SDK](https://developer.helpscout.com/apps/javascript-sdk/); [Help Scout open-source clients](https://developer.helpscout.com/open-source/); [Help Scout Inbox API](https://developer.helpscout.com/mailbox-api/).
 
 #### HubSpot Service Hub
 
@@ -1005,19 +1005,19 @@ Evidence: [Intercom official OpenAPI specs](https://github.com/intercom/Intercom
 | Runtime import | `@cognidesk/ticketing-kustomer/runtime` |
 | Workspace | `integrations/ticketing/kustomer` |
 | Manifest ID | `ticketing.kustomer` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer.kustomer.com/kustomer-api-docs/reference](https://developer.kustomer.com/kustomer-api-docs/reference) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developer.kustomer.com/](https://developer.kustomer.com/) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `kustomer-api-access` |
 
-Coverage: Coverage includes generated per-operation functions for every operation found in Kustomer's official ReadMe API registry OpenAPI documents.
+Coverage: SDK decision: Kustomer app/chat SDKs target Apps or Chat runtimes, not backend REST ticketing operations.
 
 Boundary: Conversation model, queues, teams, custom objects, and message visibility are SDK-user configuration.
 
-Evidence: [Kustomer REST APIs portal](https://developer.kustomer.com/kustomer-api-docs/reference); [Kustomer ReadMe API registry - Core Resources](https://dash.readme.com/api/v1/api-registry/a9esg22kmox9ylt0); [Kustomer API introduction](https://help.kustomer.com/api-introduction-BkwVN42zM); [Kustomer API keys](https://help.kustomer.com/api-keys-SJs5YTIWX); plus 6 more.
+Evidence: [Kustomer developer portal](https://developer.kustomer.com/); [Kustomer REST APIs portal](https://developer.kustomer.com/kustomer-api-docs/reference); [Kustomer API keys](https://help.kustomer.com/api-keys-SJs5YTIWX); [Kustomer create message](https://developer.kustomer.com/kustomer-api-docs/reference/createmessage).
 
 #### Microsoft Dynamics 365 Customer Service
 
@@ -1166,19 +1166,19 @@ Evidence: [ServiceNow Table API](https://www.servicenow.com/docs/r/washingtondc/
 | Runtime import | `@cognidesk/ticketing-zendesk/runtime` |
 | Workspace | `integrations/ticketing/zendesk` |
 | Manifest ID | `ticketing.zendesk` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer.zendesk.com/zendesk/oas.yaml](https://developer.zendesk.com/zendesk/oas.yaml) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/](https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `zendesk-instance`, `zendesk-api-access` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Zendesk's official Support API OpenAPI file.
+Coverage: SDK decision: Zendesk documents node-zendesk but marks it not officially supported, so this package keeps a constrained Zendesk Support API slice instead of adopting it as an official SDK.
 
-Boundary: Available fields, brands, forms, triggers, automations, macros, and permissions are owned by the SDK user's Zendesk account.
+Boundary: Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration.
 
-Evidence: [Zendesk Support API OpenAPI](https://developer.zendesk.com/zendesk/oas.yaml); [Zendesk Support Tickets API](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/); [Zendesk Ticket Comments API](https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/); [Zendesk Ticket Attachments API](https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-attachments/); plus 3 more.
+Evidence: [Zendesk Node.js API client docs](https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/); [Zendesk Support API OpenAPI](https://developer.zendesk.com/zendesk/oas.yaml); [Zendesk Support Tickets API](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/); [Zendesk Ticket Comments API](https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/); plus 1 more.
 
 #### Zoho Desk
 
