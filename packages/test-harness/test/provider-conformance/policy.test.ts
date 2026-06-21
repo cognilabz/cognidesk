@@ -82,7 +82,7 @@ describe("provider conformance policy and package checks", () => {
       expect(result.checks.find((check) => check.id === "provider.package_name")).toMatchObject({
         status: "failed",
         details: {
-          expected: ["@cognidesk/voice-twilio", "@cognidesk/integrations"],
+          expected: ["@cognidesk/integration-voice-twilio", "@cognidesk/integrations"],
         },
       });
     });
@@ -92,7 +92,7 @@ describe("provider conformance policy and package checks", () => {
         manifest: {
           id: "workplace.slack",
           name: "Slack",
-          packageName: "@cognidesk/workplace-slack",
+          packageName: "@cognidesk/integration-workplace-slack",
           provider: "slack",
           category: "workplace",
           trustLevel: "official",

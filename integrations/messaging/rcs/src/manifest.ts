@@ -7,7 +7,7 @@ import {
 export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
   id: "messaging.rcs",
   name: "Google RCS for Business",
-  packageName: "@cognidesk/messaging-rcs",
+  packageName: "@cognidesk/integration-messaging-rcs",
   provider: "rcs",
   category: "messaging",
   trustLevel: "official",

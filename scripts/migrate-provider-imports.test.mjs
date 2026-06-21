@@ -37,7 +37,7 @@ describe("transformProviderImports", () => {
     assert.equal(result.changed, true);
     assert.equal(
       result.sourceText,
-      'import { gmailEmailProviderManifest } from "@cognidesk/email-gmail/manifest";\n',
+      'import { gmailEmailProviderManifest } from "@cognidesk/integration-email-gmail/manifest";\n',
     );
   });
 
@@ -48,7 +48,7 @@ describe("transformProviderImports", () => {
 
     assert.equal(
       result.sourceText,
-      'import { createGmailEmailClient } from "@cognidesk/email-gmail/runtime";\n',
+      'import { createGmailEmailClient } from "@cognidesk/integration-email-gmail/runtime";\n',
     );
   });
 
@@ -60,8 +60,8 @@ describe("transformProviderImports", () => {
     assert.equal(
       result.sourceText,
       [
-        'import { gmailEmailProviderManifest } from "@cognidesk/email-gmail/manifest";',
-        'import { createGmailEmailClient, type GmailEmailClientOptions } from "@cognidesk/email-gmail/runtime";',
+        'import { gmailEmailProviderManifest } from "@cognidesk/integration-email-gmail/manifest";',
+        'import { createGmailEmailClient, type GmailEmailClientOptions } from "@cognidesk/integration-email-gmail/runtime";',
         "",
       ].join("\n"),
     );
@@ -77,11 +77,11 @@ describe("transformProviderImports", () => {
 
     assert.equal(
       manifest.sourceText,
-      'import type { GmailEmailProviderManifest } from "@cognidesk/email-gmail/manifest";\n',
+      'import type { GmailEmailProviderManifest } from "@cognidesk/integration-email-gmail/manifest";\n',
     );
     assert.equal(
       runtime.sourceText,
-      'import type { GmailEmailClientOptions } from "@cognidesk/email-gmail/runtime";\n',
+      'import type { GmailEmailClientOptions } from "@cognidesk/integration-email-gmail/runtime";\n',
     );
   });
 
@@ -92,7 +92,7 @@ describe("transformProviderImports", () => {
 
     assert.equal(
       result.sourceText,
-      'export { slackWorkplaceProviderManifest } from "@cognidesk/workplace-slack/manifest";\n',
+      'export { slackWorkplaceProviderManifest } from "@cognidesk/integration-workplace-slack/manifest";\n',
     );
   });
 
@@ -104,8 +104,8 @@ describe("transformProviderImports", () => {
     assert.equal(
       result.sourceText,
       [
-        'export { twilioSmsProviderManifest } from "@cognidesk/sms-twilio/manifest";',
-        'export { createTwilioSmsClient } from "@cognidesk/sms-twilio/runtime";',
+        'export { twilioSmsProviderManifest } from "@cognidesk/integration-sms-twilio/manifest";',
+        'export { createTwilioSmsClient } from "@cognidesk/integration-sms-twilio/runtime";',
         "",
       ].join("\n"),
     );
@@ -125,10 +125,10 @@ describe("transformProviderImports", () => {
     assert.equal(
       result.sourceText,
       [
-        'import { createTwilioSmsClient } from "@cognidesk/sms-twilio/runtime";',
-        'import { createTwilioVoiceClient } from "@cognidesk/voice-twilio/runtime";',
-        'import { createZoomVideoClient } from "@cognidesk/video-zoom/runtime";',
-        'import { createZoomContactCenterClient } from "@cognidesk/contact-center-zoom/runtime";',
+        'import { createTwilioSmsClient } from "@cognidesk/integration-sms-twilio/runtime";',
+        'import { createTwilioVoiceClient } from "@cognidesk/integration-voice-twilio/runtime";',
+        'import { createZoomVideoClient } from "@cognidesk/integration-video-zoom/runtime";',
+        'import { createZoomContactCenterClient } from "@cognidesk/integration-contact-center-zoom/runtime";',
         "",
       ].join("\n"),
     );
@@ -136,13 +136,13 @@ describe("transformProviderImports", () => {
 
   it("leaves already migrated imports unchanged", () => {
     const result = transform(
-      'import { gmailEmailProviderManifest } from "@cognidesk/email-gmail/manifest";\n',
+      'import { gmailEmailProviderManifest } from "@cognidesk/integration-email-gmail/manifest";\n',
     );
 
     assert.equal(result.changed, false);
     assert.equal(
       result.sourceText,
-      'import { gmailEmailProviderManifest } from "@cognidesk/email-gmail/manifest";\n',
+      'import { gmailEmailProviderManifest } from "@cognidesk/integration-email-gmail/manifest";\n',
     );
   });
 

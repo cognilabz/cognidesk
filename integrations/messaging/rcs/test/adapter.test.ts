@@ -14,11 +14,11 @@ import {
   verifyRcsWebhookChallenge,
 } from "../src/index.js";
 
-describe("@cognidesk/messaging-rcs", () => {
+describe("@cognidesk/integration-messaging-rcs", () => {
   it("exports an official provider manifest for RCS messaging", () => {
     expect(rcsMessagingProviderManifest).toMatchObject({
       id: "messaging.rcs",
-      packageName: "@cognidesk/messaging-rcs",
+      packageName: "@cognidesk/integration-messaging-rcs",
       category: "messaging",
       provider: "rcs",
       trustLevel: "official",

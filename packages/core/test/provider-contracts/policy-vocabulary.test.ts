@@ -317,7 +317,7 @@ describe("provider policy and vocabulary contracts", () => {
         defineProviderPackage({
           id: "voice.inbound-only",
           name: "Inbound Voice",
-          packageName: "@cognidesk/voice-inbound-only",
+          packageName: "@cognidesk/integration-voice-inbound-only",
           provider: "voiceco",
           category: "voice",
           directions: ["inbound-only"],

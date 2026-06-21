@@ -7,7 +7,7 @@ import {
 export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
   id: "social.tiktok",
   name: "TikTok Social",
-  packageName: "@cognidesk/social-tiktok",
+  packageName: "@cognidesk/integration-social-tiktok",
   provider: "tiktok",
   category: "social",
   trustLevel: "official",

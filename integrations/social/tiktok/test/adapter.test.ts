@@ -13,11 +13,11 @@ import {
   validateTikTokWebhookSignature,
 } from "../src/index.js";
 
-describe("@cognidesk/social-tiktok", () => {
+describe("@cognidesk/integration-social-tiktok", () => {
   it("exports an official provider manifest for TikTok social support", () => {
     expect(tiktokSocialProviderManifest).toMatchObject({
       id: "social.tiktok",
-      packageName: "@cognidesk/social-tiktok",
+      packageName: "@cognidesk/integration-social-tiktok",
       category: "social",
       provider: "tiktok",
       trustLevel: "official",

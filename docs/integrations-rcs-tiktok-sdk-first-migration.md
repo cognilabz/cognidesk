@@ -74,7 +74,7 @@ Candidate findings:
 
 Decision implemented:
 
-- Created `@cognidesk/messaging-rcs`.
+- Created `@cognidesk/integration-messaging-rcs`.
 - Did not add `@google/rcsbusinessmessaging` as a runtime dependency in this pass because the package is only a partial fit and does not cover Business Communications readiness reads.
 - Kept a constrained direct HTTP support slice for RBM messaging and Business Communications readiness reads.
 - Preserved host-owned auth/config and client injection.
@@ -93,7 +93,7 @@ Candidate findings:
 
 Decision implemented:
 
-- Created `@cognidesk/social-tiktok`.
+- Created `@cognidesk/integration-social-tiktok`.
 - Keep TikTok as a constrained direct HTTP support slice for the current mixed surface.
 - Do not add `tiktok-business-api-sdk-official` as a final dependency now. It can be evaluated later for a separate Business API comment/ads slice only if the operation paths and package quality meet the integration-kit contract.
 - Do not claim `full-provider-api`; keep `support-workflow-subset`.
@@ -137,4 +137,4 @@ Inspection and verification performed:
 - Issue #33 and issues #19-#28, especially #20, #21, #22, #26, #27, and #28.
 - Npm metadata and tarball smoke checks for `googleapis`, `@google/rcsbusinessmessaging`, `rcsbusinessmessaging`, and `tiktok-business-api-sdk-official`.
 - Temp runtime check for `googleapis@173.0.0` confirmed `google.rcsbusinessmessaging` and `google.businesscommunications` are not exposed.
-- Focused typecheck/test/build/import smoke for `@cognidesk/integration-kit`, `@cognidesk/messaging-rcs`, and `@cognidesk/social-tiktok`.
+- Focused typecheck/test/build/import smoke for `@cognidesk/integration-kit`, `@cognidesk/integration-messaging-rcs`, and `@cognidesk/integration-social-tiktok`.
