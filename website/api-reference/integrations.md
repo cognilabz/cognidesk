@@ -1,70 +1,49 @@
-# @cognidesk/integrations
+# Provider Integration Packages
 
-`@cognidesk/integrations` is the official external Provider Integration package.
+Official Provider Integrations are moving to individual packages named `@cognidesk/{category}-{provider}`. Install and register only the providers your application enables.
 
-Install it once and import provider modules through category/provider subpaths:
+Examples:
 
 ```bash
-pnpm add @cognidesk/integrations
+pnpm add @cognidesk/email-gmail @cognidesk/workplace-slack @cognidesk/email-outlook @cognidesk/workplace-teams @cognidesk/voice-openai
 ```
 
 ```typescript
-import { gmailEmailProviderManifest } from "@cognidesk/integrations/email/gmail";
-import { zendeskTicketingProviderManifest } from "@cognidesk/integrations/ticketing/zendesk";
-import { genesysCloudContactCenterProviderManifest } from "@cognidesk/integrations/contact-center/genesys-cloud";
-import { createOpenAIVoiceProvider } from "@cognidesk/integrations/voice/openai";
-import { createAwsSpeechVoiceProvider } from "@cognidesk/integrations/voice/aws-speech";
-import { createAzureSpeechVoiceProvider } from "@cognidesk/integrations/voice/azure-speech";
-import { createDeepgramSpeechVoiceProvider } from "@cognidesk/integrations/voice/deepgram";
-import { createGoogleSpeechVoiceProvider } from "@cognidesk/integrations/voice/google-speech";
+import { gmailEmailProviderManifest } from "@cognidesk/email-gmail/manifest";
+import { slackWorkplaceProviderManifest } from "@cognidesk/workplace-slack/manifest";
+import { outlookEmailProviderManifest } from "@cognidesk/email-outlook/manifest";
+import { teamsWorkplaceProviderManifest } from "@cognidesk/workplace-teams/manifest";
+import { openAIVoiceProviderManifest } from "@cognidesk/voice-openai/manifest";
 ```
 
-## Root exports
+The split package work is staged behind #20-#26/#28. Until those packages and generated type references land, this page keeps legacy generated reference links available for maintainers who need to inspect the current workspace state.
 
-The root export is intentionally lightweight. It is for discovery, registry metadata, and manifest loading:
+## Catalog and manifest exports
 
-| Export | Purpose |
-|--------|---------|
-| `integrationProviderReferences` | Static registry of official Provider Integration references. |
-| `IntegrationProviderReference` | Type for provider registry entries, including `id`, `category`, `provider`, `importPath`, `modulePath`, and `manifestExport`. |
-| `IntegrationProviderId` | Union of official provider reference IDs. |
-| `integrationProviderCategories` | Sorted list of categories available in the package. |
-| `getIntegrationProviderReference(id)` | Optional lookup for a provider reference. |
-| `requireIntegrationProviderReference(id)` | Lookup that throws for unknown provider IDs. |
-| `loadProviderIntegration(idOrReference)` | Dynamically imports a typed provider module. |
-| `loadProviderIntegrationManifest(idOrReference)` | Dynamically imports a provider module and returns its Provider Manifest. |
+`@cognidesk/integration-catalog` will own provider discovery metadata once the split packages are present. Provider package manifest imports must stay lightweight and must not import provider SDK runtime code.
 
-Provider clients, generated API functions, parsers, signature helpers, and credential-readiness helpers live on provider subpaths, not on the root export.
+Application code should register manifests explicitly, then supply lazy loaders for provider runtime modules.
 
-## Provider subpaths
-
-See the [Provider Integration Catalog](../guides/provider-integrations-catalog.md) for the complete list of provider subpaths.
+See the [Provider Integration Catalog](../guides/provider-integrations-catalog.md) for the staged package list.
 
 Common examples:
 
-| Provider | Import |
-|----------|--------|
-| Gmail | `@cognidesk/integrations/email/gmail` |
-| Outlook | `@cognidesk/integrations/email/outlook` |
-| WhatsApp | `@cognidesk/integrations/messaging/whatsapp` |
-| Twilio SMS | `@cognidesk/integrations/sms/twilio` |
-| Zendesk | `@cognidesk/integrations/ticketing/zendesk` |
-| ServiceNow | `@cognidesk/integrations/ticketing/servicenow` |
-| Genesys Cloud | `@cognidesk/integrations/contact-center/genesys-cloud` |
-| Amazon Connect | `@cognidesk/integrations/contact-center/amazon-connect` |
-| Slack | `@cognidesk/integrations/workplace/slack` |
-| OpenAI Realtime Voice | `@cognidesk/integrations/voice/openai` |
-| ElevenLabs | `@cognidesk/integrations/voice/elevenlabs` |
-| Azure AI Speech | `@cognidesk/integrations/voice/azure-speech` |
-| AWS Speech | `@cognidesk/integrations/voice/aws-speech` |
-| Google Cloud Speech | `@cognidesk/integrations/voice/google-speech` |
-| Deepgram | `@cognidesk/integrations/voice/deepgram` |
+| Provider | Manifest import |
+|----------|-----------------|
+| Gmail | `@cognidesk/email-gmail/manifest` |
+| Outlook | `@cognidesk/email-outlook/manifest` |
+| Slack | `@cognidesk/workplace-slack/manifest` |
+| Teams | `@cognidesk/workplace-teams/manifest` |
+| OpenAI Realtime Voice | `@cognidesk/voice-openai/manifest` |
+| Stripe | `@cognidesk/ecommerce-stripe/manifest` |
+| Zendesk | `@cognidesk/ticketing-zendesk/manifest` |
+| Genesys Cloud | `@cognidesk/contact-center-genesys-cloud/manifest` |
 
 ## Voice adapter boundary
 
-`@cognidesk/integrations/voice/openai` is a Provider Integration because OpenAI Realtime can be the voice entry channel and the LLM-backed realtime session.
+`@cognidesk/voice-openai` is a Provider Integration because OpenAI Realtime can be the voice entry channel and the LLM-backed realtime session.
 
-`@cognidesk/integrations/voice/elevenlabs`, `@cognidesk/integrations/voice/azure-speech`, `@cognidesk/integrations/voice/aws-speech`, `@cognidesk/integrations/voice/google-speech`, and `@cognidesk/integrations/voice/deepgram` can also create Speech Provider-backed `VoiceProvider`s. In those sessions, the speech provider performs STT/TTS while the Cognidesk Agent Model Set remains the background LLM.
+`@cognidesk/voice-elevenlabs`, `@cognidesk/voice-azure-speech`, `@cognidesk/voice-aws-speech`, `@cognidesk/voice-google-speech`, and `@cognidesk/voice-deepgram` can also create Speech Provider-backed `VoiceProvider`s. In those sessions, the speech provider performs STT/TTS while the Cognidesk Agent Model Set remains the background LLM.
 
 `@cognidesk/voice-websocket` remains separate browser transport infrastructure that provider adapters can use.
 
@@ -72,11 +51,11 @@ Common examples:
 
 ## Full type reference
 
-Open the generated [`@cognidesk/integrations` root type reference](generated/integrations/dist.md).
+Legacy generated type reference: [`@cognidesk/integrations` root](generated/integrations/dist.md).
 
 ## OpenAI Realtime Voice type reference
 
-See the generated [`@cognidesk/integrations/voice/openai` type reference](generated/integrations/dist/voice/openai.md).
+Legacy generated type reference: [`@cognidesk/integrations/voice/openai`](generated/integrations/dist/voice/openai.md).
 
 ## Enterprise Speech Provider type references
 

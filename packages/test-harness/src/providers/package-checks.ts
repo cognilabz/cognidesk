@@ -14,12 +14,13 @@ export function checkPackageName(
       message: "No official Cognidesk package-name expectation applies.",
     };
   }
-  if (manifest.packageName !== expected) {
+  const expectedNames = Array.isArray(expected) ? expected : [expected];
+  if (!expectedNames.includes(manifest.packageName)) {
     return {
       id: "provider.package_name",
       status: "failed",
-      message: `Provider integration package '${manifest.packageName}' must be named '${expected}'.`,
-      details: { expected, actual: manifest.packageName },
+      message: `Provider integration package '${manifest.packageName}' must be named '${expectedNames.join("' or '")}'.`,
+      details: { expected: expectedNames, actual: manifest.packageName },
     };
   }
   return {
@@ -33,7 +34,10 @@ function defaultPackageNameExpectation(manifest: ProviderManifest) {
   if (!manifest.packageName.startsWith("@cognidesk/")) return undefined;
   const infrastructurePackage = infrastructurePackageNameExpectation(manifest);
   if (infrastructurePackage) return infrastructurePackage;
-  if (integrationPackageCategories.has(manifest.category)) return "@cognidesk/integrations";
+  if (integrationPackageCategories.has(manifest.category)) {
+    const splitPackageName = `@cognidesk/${packageSegment(manifest.category)}-${packageSegment(manifest.provider)}`;
+    return [splitPackageName, "@cognidesk/integrations"];
+  }
   const categoryPackageName = `@cognidesk/${packageSegment(manifest.category)}`;
   if (manifest.packageName === categoryPackageName) return categoryPackageName;
   return `@cognidesk/${packageSegment(manifest.category)}-${manifest.provider}`;

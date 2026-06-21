@@ -56,7 +56,7 @@ and deterministic assertions only.
 ```typescript
 const result = await runProviderConformance({
   manifest,
-  expectedPackageName: "@cognidesk/integrations",
+  expectedPackageName: "@cognidesk/email-gmail",
   credentialStatuses,
   channels,
   availability,

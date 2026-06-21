@@ -396,7 +396,7 @@ Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/adm
 | SDK package | `@cognidesk/integrations` |
 | Runtime package | `@cognidesk/integrations/ecommerce/stripe` |
 | Scope | `full-provider-api` |
-| Adapter coverage | `full` |
+| Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
 | Documentation | [https://docs.stripe.com/api](https://docs.stripe.com/api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
@@ -1410,7 +1410,7 @@ Evidence: [Vonage Voice API v1 OpenAPI](https://developer.vonage.com/api/v1/deve
 | SDK package | `@cognidesk/integrations` |
 | Runtime package | `@cognidesk/integrations/workplace/teams` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `standard` |
+| Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
 | Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
@@ -1432,7 +1432,7 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 | SDK package | `@cognidesk/integrations` |
 | Runtime package | `@cognidesk/integrations/workplace/slack` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `standard` |
+| Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
 | Documentation | [https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |

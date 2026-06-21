@@ -50,6 +50,14 @@ export function providerPackageWorkspaces(root = process.cwd()) {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+export function fixedVersionTrainPackages(root = process.cwd()) {
+  return platformPackageWorkspaces(root);
+}
+
+export function independentProviderPackageWorkspaces(root = process.cwd()) {
+  return providerPackageWorkspaces(root);
+}
+
 export function discoverWorkspacePackages(root = process.cwd(), patterns = workspacePatterns) {
   const dirs = new Set(patterns.flatMap((pattern) => expandWorkspacePattern(root, pattern)));
   return [...dirs]
@@ -120,6 +128,12 @@ export function isPlatformPackage(pkg) {
 export function isProviderPackage(pkg) {
   return pkg.dir.startsWith("integrations/")
     && pkg.dir.split("/").length === 3;
+}
+
+export function isIndependentProviderPackage(packageJson) {
+  return packageJson.cognidesk?.providerPackage === true
+    || packageJson.cognidesk?.kind === "provider-package"
+    || packageJson.cognidesk?.release === "independent-provider";
 }
 
 export function assertPublishablePackages(packages, description = "publishable packages") {

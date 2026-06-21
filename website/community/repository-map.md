@@ -24,7 +24,9 @@ update when behavior changes.
 | `packages/ui/` | `@cognidesk/ui` | Prebuilt UI components shared by Cognidesk frontends. |
 | `packages/storage/` | `@cognidesk/storage` | Runtime storage adapters such as SQLite/libSQL and Postgres. |
 | `packages/otel/` | `@cognidesk/otel` | OpenTelemetry spans, metrics, and runtime instrumentation helpers. |
-| `packages/integrations/` | `@cognidesk/integrations` | Provider integrations exposed through category/provider subpaths. |
+| `packages/{category}-{provider}/` | `@cognidesk/{category}-{provider}` | Split Provider Integration packages, staged behind #20-#26/#28. |
+| `packages/integration-catalog/` | `@cognidesk/integration-catalog` | Provider catalog metadata for docs, Studio, and manifest-only discovery. |
+| `packages/integrations/` | `@cognidesk/integrations` | Legacy provider integration workspace kept until split provider packages land. |
 | `packages/voice-websocket/` | `@cognidesk/voice-websocket` | Browser-facing voice WebSocket protocol and Node adapter surfaces. |
 | `packages/journey-index-json/` | `@cognidesk/journey-index-json` | JSON-backed journey index support. |
 | `packages/connections/` | `@cognidesk/connections` | Reviewed OpenAPI/MCP connection helpers for provider operation aliases. |

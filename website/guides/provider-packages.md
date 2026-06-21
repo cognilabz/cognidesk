@@ -2,11 +2,64 @@
 
 Provider Integrations connect Cognidesk conversations to external systems without turning the SDK into a full clone of every partner API.
 
-Official external providers ship in one Integration Package, `@cognidesk/integrations`. Individual providers are imported through category/provider subpaths such as `@cognidesk/integrations/email/gmail` or `@cognidesk/integrations/contact-center/genesys-cloud`.
+Official external providers ship as individual packages named `@cognidesk/{category}-{provider}`. Install only the providers your application enables, such as `@cognidesk/email-gmail`, `@cognidesk/workplace-slack`, `@cognidesk/email-outlook`, `@cognidesk/workplace-teams`, or `@cognidesk/voice-openai`.
+
+The split package work is staged behind #20-#26/#28. Until the new provider workspaces land, generated docs may still be derived from legacy manifests, but public installation guidance should point at the individual packages rather than `@cognidesk/integrations`.
 
 Use this guide when you decide which Provider Integration belongs in a channel, which capabilities to enable, and which provider setup must still be supplied by your application.
 
 For the full provider-by-provider list, see the [Provider Integration Catalog](provider-integrations-catalog.md). For the broader NG architecture changes, see [Omnichannel NG Changes](omnichannel-changes.md).
+
+## Install provider packages
+
+=== "pnpm"
+
+    ```bash
+    pnpm add @cognidesk/email-gmail @cognidesk/workplace-slack @cognidesk/email-outlook @cognidesk/workplace-teams @cognidesk/voice-openai
+    ```
+
+=== "npm"
+
+    ```bash
+    npm install @cognidesk/email-gmail @cognidesk/workplace-slack @cognidesk/email-outlook @cognidesk/workplace-teams @cognidesk/voice-openai
+    ```
+
+Each package owns its manifest, runtime adapter exports, provider-specific helpers, conformance evidence, package-size budget, and optional provider SDK peer dependencies. The application decides which packages are registered and when runtime code is loaded.
+
+## Register providers explicitly
+
+Provider packages are metadata-visible but do not enable live provider behavior by being installed. Register manifests in application code, then wire runtime loaders where your channel intake, webhook worker, voice server, or operator workflow needs them.
+
+```typescript
+import { createProviderRegistry } from "@cognidesk/core";
+import { gmailEmailProviderManifest } from "@cognidesk/email-gmail/manifest";
+import { outlookEmailProviderManifest } from "@cognidesk/email-outlook/manifest";
+import { slackWorkplaceProviderManifest } from "@cognidesk/workplace-slack/manifest";
+import { teamsWorkplaceProviderManifest } from "@cognidesk/workplace-teams/manifest";
+import { openAIVoiceProviderManifest } from "@cognidesk/voice-openai/manifest";
+
+export const providerRegistry = createProviderRegistry([
+  gmailEmailProviderManifest,
+  outlookEmailProviderManifest,
+  slackWorkplaceProviderManifest,
+  teamsWorkplaceProviderManifest,
+  openAIVoiceProviderManifest,
+]);
+```
+
+## Supply lazy loaders
+
+Keep provider SDK runtime code behind application-owned lazy loaders. This lets manifest and catalog imports stay cheap, keeps optional provider SDK dependencies isolated to the provider that needs them, and avoids re-creating a generated monolith through a central barrel import.
+
+```typescript
+export const providerRuntimeLoaders = {
+  "email.gmail": () => import("@cognidesk/email-gmail/runtime"),
+  "email.outlook": () => import("@cognidesk/email-outlook/runtime"),
+  "workplace.slack": () => import("@cognidesk/workplace-slack/runtime"),
+  "workplace.teams": () => import("@cognidesk/workplace-teams/runtime"),
+  "voice.openai": () => import("@cognidesk/voice-openai/runtime"),
+} satisfies Record<string, () => Promise<unknown>>;
+```
 
 ## Provider categories
 
@@ -14,23 +67,23 @@ Cognidesk groups Provider Integrations by business category rather than a flat i
 
 | Category | Example imports | Typical use |
 |----------|-----------------|-------------|
-| Email | `@cognidesk/integrations/email/gmail`, `@cognidesk/integrations/email/outlook`, `@cognidesk/integrations/email/ses` | Send, receive, draft, sync, and mailbox readiness workflows |
-| Messaging | `@cognidesk/integrations/messaging/whatsapp`, `@cognidesk/integrations/messaging/rcs` | Mobile messaging channels with provider-specific consent and webhook setup |
-| SMS | `@cognidesk/integrations/sms/twilio` | SMS support workflows |
-| Workplace | `@cognidesk/integrations/workplace/slack`, `@cognidesk/integrations/workplace/teams` | Internal support workspaces and operator collaboration |
-| Social | `@cognidesk/integrations/social/messenger`, `@cognidesk/integrations/social/instagram`, `@cognidesk/integrations/social/tiktok` | Social inbox, comment, and webhook workflows |
-| Ticketing | `@cognidesk/integrations/ticketing/zendesk`, `@cognidesk/integrations/ticketing/servicenow`, `@cognidesk/integrations/ticketing/salesforce` | Case, ticket, note, attachment, queue, and handoff workflows |
-| Contact center | `@cognidesk/integrations/contact-center/genesys-cloud`, `@cognidesk/integrations/contact-center/genesys-engage`, `@cognidesk/integrations/contact-center/amazon-connect`, `@cognidesk/integrations/contact-center/nice-cxone` | Human handoff, callbacks, contact-center tasks, and selected digital routing surfaces |
-| Reviews | `@cognidesk/integrations/review/appstore`, `@cognidesk/integrations/review/googleplay` | App review ingestion, response, and readiness workflows |
-| Marketplace | `@cognidesk/integrations/marketplace/amazon`, `@cognidesk/integrations/marketplace/ebay` | Order, buyer-message, fulfillment, review, and notification workflows |
-| Ecommerce | `@cognidesk/integrations/ecommerce/shopify`, `@cognidesk/integrations/ecommerce/stripe` | Commerce, payment, customer, and order support workflows |
-| Video | `@cognidesk/integrations/video/whereby`, `@cognidesk/integrations/video/zoom` | Meeting, recording, and video support workflows |
-| Voice provider APIs | `@cognidesk/integrations/voice/openai`, `@cognidesk/integrations/voice/elevenlabs`, `@cognidesk/integrations/voice/azure-speech`, `@cognidesk/integrations/voice/aws-speech`, `@cognidesk/integrations/voice/google-speech`, `@cognidesk/integrations/voice/deepgram`, `@cognidesk/integrations/voice/twilio`, `@cognidesk/integrations/voice/vonage` | Realtime voice entry channels, Speech Provider STT/TTS, provider voice APIs, telephony objects, and outbound-capable provider surfaces |
-| Local support surfaces | `@cognidesk/integrations/form/cognidesk`, `@cognidesk/integrations/help-center/cognidesk`, `@cognidesk/integrations/cobrowsing/cognidesk` | Cognidesk-owned local protocol and support-workflow surfaces |
+| Email | `@cognidesk/email-gmail`, `@cognidesk/email-outlook`, `@cognidesk/email-ses` | Send, receive, draft, sync, and mailbox readiness workflows |
+| Messaging | `@cognidesk/messaging-whatsapp`, `@cognidesk/messaging-rcs` | Mobile messaging channels with provider-specific consent and webhook setup |
+| SMS | `@cognidesk/sms-twilio` | SMS support workflows |
+| Workplace | `@cognidesk/workplace-slack`, `@cognidesk/workplace-teams` | Internal support workspaces and operator collaboration |
+| Social | `@cognidesk/social-messenger`, `@cognidesk/social-instagram`, `@cognidesk/social-tiktok` | Social inbox, comment, and webhook workflows |
+| Ticketing | `@cognidesk/ticketing-zendesk`, `@cognidesk/ticketing-servicenow`, `@cognidesk/ticketing-salesforce` | Case, ticket, note, attachment, queue, and handoff workflows |
+| Contact center | `@cognidesk/contact-center-genesys-cloud`, `@cognidesk/contact-center-genesys-engage`, `@cognidesk/contact-center-amazon-connect`, `@cognidesk/contact-center-nice-cxone` | Human handoff, callbacks, contact-center tasks, and selected digital routing surfaces |
+| Reviews | `@cognidesk/review-appstore`, `@cognidesk/review-googleplay` | App review ingestion, response, and readiness workflows |
+| Marketplace | `@cognidesk/marketplace-amazon`, `@cognidesk/marketplace-ebay` | Order, buyer-message, fulfillment, review, and notification workflows |
+| Ecommerce | `@cognidesk/ecommerce-shopify`, `@cognidesk/ecommerce-stripe` | Commerce, payment, customer, and order support workflows |
+| Video | `@cognidesk/video-whereby`, `@cognidesk/video-zoom` | Meeting, recording, and video support workflows |
+| Voice provider APIs | `@cognidesk/voice-openai`, `@cognidesk/voice-elevenlabs`, `@cognidesk/voice-azure-speech`, `@cognidesk/voice-aws-speech`, `@cognidesk/voice-google-speech`, `@cognidesk/voice-deepgram`, `@cognidesk/voice-twilio`, `@cognidesk/voice-vonage` | Realtime voice entry channels, Speech Provider STT/TTS, provider voice APIs, telephony objects, and outbound-capable provider surfaces |
+| Local support surfaces | `@cognidesk/cobrowsing-cognidesk`, `@cognidesk/form-cognidesk`, `@cognidesk/help-center-cognidesk` | Cognidesk-owned local protocol and support-workflow surfaces |
 
 Infrastructure packages stay separate: `@cognidesk/model`, `@cognidesk/storage`, `@cognidesk/http`, `@cognidesk/voice-websocket`, `@cognidesk/react`, `@cognidesk/ui`, and Studio packages are not Provider Integrations.
 
-`@cognidesk/integrations/voice/openai` is the OpenAI Realtime voice entry-channel adapter. `@cognidesk/integrations/voice/elevenlabs`, `@cognidesk/integrations/voice/azure-speech`, `@cognidesk/integrations/voice/aws-speech`, `@cognidesk/integrations/voice/google-speech`, and `@cognidesk/integrations/voice/deepgram` can also create Speech Provider-backed voice adapters where STT/TTS are provider-owned but the background LLM is the Cognidesk Agent Model Set. `@cognidesk/voice-websocket` remains voice runtime infrastructure. Other voice provider APIs such as Twilio Voice, Vonage, and SIP also live under `@cognidesk/integrations/voice/*`.
+`@cognidesk/voice-openai` is the OpenAI Realtime voice entry-channel adapter. `@cognidesk/voice-elevenlabs`, `@cognidesk/voice-azure-speech`, `@cognidesk/voice-aws-speech`, `@cognidesk/voice-google-speech`, and `@cognidesk/voice-deepgram` can also create Speech Provider-backed voice adapters where STT/TTS are provider-owned but the background LLM is the Cognidesk Agent Model Set. `@cognidesk/voice-websocket` remains voice runtime infrastructure. Other voice provider APIs such as Twilio Voice, Vonage, and SIP also live in individual `@cognidesk/voice-*` provider packages.
 
 Provider modules may add provider-specific sub-capabilities when a core capability word would be too broad. For example, Genesys Cloud exposes an Open Messaging handoff capability separately from outbound callback creation, and Genesys Engage exposes on-prem chat handoff separately from GMS callback creation.
 
@@ -104,10 +157,10 @@ Important examples:
 
 | Provider Integration import | Implemented support surface | Boundary |
 |-----------------------------|-----------------------------|----------|
-| `@cognidesk/integrations/contact-center/genesys-cloud` | Callback creation, Open Messaging inbound message/event/receipt delivery, conversation read, queue list, readiness, and Open Messaging webhook signature verification | Web Messaging/Messenger deployments, native chat widgets, transfer, full routing mutation, analytics, recordings, campaigns, and Open Messaging integration administration remain outside the adapter |
-| `@cognidesk/integrations/contact-center/genesys-engage` | GMS callback creation and SDK-configured on-prem chat or handoff paths | Full Engage, Workspace, WebChatService, WebRTC, GMS Chat lifecycle, Consumer Messaging, and Third-Party Messaging remain outside the adapter |
-| `@cognidesk/integrations/contact-center/amazon-connect` | Selected task/contact handoff and instance readiness helpers | Broader contacts, queues, users, campaigns, participant/chat APIs, analytics, and instance administration remain outside the adapter |
-| `@cognidesk/integrations/contact-center/aircall` | Direct callback, case creation, and configured support-workflow paths | Broader users, calls, recordings, reports, queues, flows, campaigns, transfer, and management APIs remain outside the adapter |
+| `@cognidesk/contact-center-genesys-cloud` | Callback creation, Open Messaging inbound message/event/receipt delivery, conversation read, queue list, readiness, and Open Messaging webhook signature verification | Web Messaging/Messenger deployments, native chat widgets, transfer, full routing mutation, analytics, recordings, campaigns, and Open Messaging integration administration remain outside the adapter |
+| `@cognidesk/contact-center-genesys-engage` | GMS callback creation and SDK-configured on-prem chat or handoff paths | Full Engage, Workspace, WebChatService, WebRTC, GMS Chat lifecycle, Consumer Messaging, and Third-Party Messaging remain outside the adapter |
+| `@cognidesk/contact-center-amazon-connect` | Selected task/contact handoff and instance readiness helpers | Broader contacts, queues, users, campaigns, participant/chat APIs, analytics, and instance administration remain outside the adapter |
+| `@cognidesk/contact-center-aircall` | Direct callback, case creation, and configured support-workflow paths | Broader users, calls, recordings, reports, queues, flows, campaigns, transfer, and management APIs remain outside the adapter |
 
 If you want Genesys chat handoff, configure the matching surface explicitly:
 
@@ -123,12 +176,12 @@ Social and messaging providers have strict policy and subscription requirements.
 
 | Provider Integration import | Important boundary |
 |-----------------------------|--------------------|
-| `@cognidesk/integrations/messaging/whatsapp` | Free-form service messages are only safe inside the customer-service window. Template messages require SDK-user-selected, approved templates. |
-| `@cognidesk/integrations/social/messenger` | Send behavior depends on Meta's 24-hour standard messaging window or SDK-user-approved `MESSAGE_TAG` policy. Page webhook subscription is separate from webhook parsing. |
-| `@cognidesk/integrations/social/instagram` | Instagram messaging uses Instagram-specific response and HUMAN_AGENT policy. Do not assume general Messenger tags are safe defaults. |
-| `@cognidesk/integrations/social/tiktok` | The module supports selected Display API, Research API, Business comment, posting-status, and webhook surfaces. TikTok public APIs used here do not expose a generic customer-service DM inbox. |
-| `@cognidesk/integrations/community/discord` | HTTP interactions and REST helpers are separate from Gateway ingestion and Discord Webhook Events subscriptions. |
-| `@cognidesk/integrations/community/forum` | The module is Discourse-compatible and does not imply arbitrary forum-platform coverage. |
+| `@cognidesk/messaging-whatsapp` | Free-form service messages are only safe inside the customer-service window. Template messages require SDK-user-selected, approved templates. |
+| `@cognidesk/social-messenger` | Send behavior depends on Meta's 24-hour standard messaging window or SDK-user-approved `MESSAGE_TAG` policy. Page webhook subscription is separate from webhook parsing. |
+| `@cognidesk/social-instagram` | Instagram messaging uses Instagram-specific response and HUMAN_AGENT policy. Do not assume general Messenger tags are safe defaults. |
+| `@cognidesk/social-tiktok` | The module supports selected Display API, Research API, Business comment, posting-status, and webhook surfaces. TikTok public APIs used here do not expose a generic customer-service DM inbox. |
+| `@cognidesk/community-discord` | HTTP interactions and REST helpers are separate from Gateway ingestion and Discord Webhook Events subscriptions. |
+| `@cognidesk/community-forum` | The module is Discourse-compatible and does not imply arbitrary forum-platform coverage. |
 
 ## Studio visibility
 
@@ -158,7 +211,8 @@ The maintainer workflow is:
 ```bash
 pnpm providers:generate
 pnpm providers:check
-pnpm --filter @cognidesk/integrations build
+pnpm providers:architecture
+pnpm provider-packages:check
 ```
 
 ## Verification

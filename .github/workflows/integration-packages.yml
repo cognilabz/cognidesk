@@ -1,0 +1,73 @@
+name: Integration Packages
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/integration-packages.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "packages/**"
+      - "scripts/**"
+      - "docs/adr/**"
+      - "docs/provider-generation.md"
+      - "docs/releasing.md"
+      - "website/api-reference/integrations.md"
+      - "website/guides/provider-packages.md"
+      - "website/guides/provider-package-migration.md"
+      - "website/guides/provider-integrations-catalog.md"
+      - "website/guides/omnichannel-changes.md"
+      - "website/getting-started/installation.md"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/integration-packages.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "packages/**"
+      - "scripts/**"
+      - "docs/adr/**"
+      - "docs/provider-generation.md"
+      - "docs/releasing.md"
+      - "website/api-reference/integrations.md"
+      - "website/guides/provider-packages.md"
+      - "website/guides/provider-package-migration.md"
+      - "website/guides/provider-integrations-catalog.md"
+      - "website/guides/omnichannel-changes.md"
+      - "website/getting-started/installation.md"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Check integration architecture
+        run: pnpm providers:architecture
+
+      - name: Check provider package conformance
+        run: pnpm provider-packages:check
+
+      - name: Check package smoke and size budgets
+        run: pnpm release:verify-packages -- --fail-size-budget
+
+      - name: Generate provider docs
+        run: pnpm providers:catalog
+
+      - name: Verify generated provider docs are committed
+        run: git diff --exit-code -- website/guides/provider-integrations-catalog.md

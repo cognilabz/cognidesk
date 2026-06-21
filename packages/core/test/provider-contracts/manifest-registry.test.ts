@@ -311,7 +311,7 @@ describe("provider manifest and registry contracts", () => {
           providerObjects: ["ticket"],
           exposesSensitiveData: true,
         }],
-        notes: ["Concrete profiles live in @cognidesk/integrations."],
+        notes: ["Concrete profiles live in @cognidesk/integration-catalog and split provider packages."],
       });
 
       expect(profile.id).toBe("ticketing.default");
@@ -331,6 +331,6 @@ describe("provider manifest and registry contracts", () => {
       expect(profile.events[0]).toMatchObject({ kind: "ticket.created", direction: "inbound" });
       expect(profile.outputs[0]).toMatchObject({ intent: "message.reply", requiresApproval: true });
       expect(profile.dataSources[0]).toMatchObject({ id: "ticket.history", providerObjects: ["ticket"] });
-      expect(profile.notes).toEqual(["Concrete profiles live in @cognidesk/integrations."]);
+      expect(profile.notes).toEqual(["Concrete profiles live in @cognidesk/integration-catalog and split provider packages."]);
     });
 });

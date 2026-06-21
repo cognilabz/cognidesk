@@ -4729,7 +4729,36 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "adapterCoverage": {
       "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": null
+      "conformant": false,
+      "categoryProfile": {
+        "id": "ecommerce",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [],
+        "missingRequiredOperations": [
+          "ecommerce.event.receive",
+          "ecommerce.order.read",
+          "ecommerce.customer.read"
+        ],
+        "missingRecommendedOperations": [
+          "ecommerce.order.search",
+          "ecommerce.customer.search",
+          "ecommerce.product.read",
+          "ecommerce.product.search",
+          "ecommerce.draftOrder.create",
+          "ecommerce.payment.read",
+          "ecommerce.refund.create",
+          "ecommerce.subscription.read",
+          "ecommerce.invoice.read"
+        ],
+        "missingOptionalOperations": [
+          "ecommerce.order.update",
+          "ecommerce.refund.read",
+          "ecommerce.subscription.update",
+          "ecommerce.webhookEndpoint.manage"
+        ],
+        "extensionOperations": []
+      }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
@@ -4875,6 +4904,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "capability": "ecommerce.graphql",
         "acknowledgementRequired": true,
         "coverage": "escape-hatch-not-full-provider-api"
+      },
+      "categoryProfileId": "ecommerce",
+      "integrationCategoryProfileId": "ecommerce",
+      "categoryProfile": {
+        "id": "ecommerce",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [],
+        "missingRequiredOperations": [
+          "ecommerce.event.receive",
+          "ecommerce.order.read",
+          "ecommerce.customer.read"
+        ],
+        "missingRecommendedOperations": [
+          "ecommerce.order.search",
+          "ecommerce.customer.search",
+          "ecommerce.product.read",
+          "ecommerce.product.search",
+          "ecommerce.draftOrder.create",
+          "ecommerce.payment.read",
+          "ecommerce.refund.create",
+          "ecommerce.subscription.read",
+          "ecommerce.invoice.read"
+        ],
+        "missingOptionalOperations": [
+          "ecommerce.order.update",
+          "ecommerce.refund.read",
+          "ecommerce.subscription.update",
+          "ecommerce.webhookEndpoint.manage"
+        ],
+        "extensionOperations": []
       }
     }
   },
@@ -5131,8 +5191,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "full-provider-api",
-      "level": "full",
-      "conformant": null
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "ecommerce",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [],
+        "missingRequiredOperations": [
+          "ecommerce.event.receive",
+          "ecommerce.order.read",
+          "ecommerce.customer.read"
+        ],
+        "missingRecommendedOperations": [
+          "ecommerce.order.search",
+          "ecommerce.customer.search",
+          "ecommerce.product.read",
+          "ecommerce.product.search",
+          "ecommerce.draftOrder.create",
+          "ecommerce.payment.read",
+          "ecommerce.refund.create",
+          "ecommerce.subscription.read",
+          "ecommerce.invoice.read"
+        ],
+        "missingOptionalOperations": [
+          "ecommerce.order.update",
+          "ecommerce.refund.read",
+          "ecommerce.subscription.update",
+          "ecommerce.webhookEndpoint.manage"
+        ],
+        "extensionOperations": []
+      }
     },
     "implementation": {
       "strategy": "generated-full-provider-api",
@@ -5254,6 +5343,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "webhooks": "typed-validate-parse",
         "connectAccountHeader": "typed-request-context",
         "taxTerminalTreasuryIssuingIdentityFilesReporting": "provider-supported-not-typed"
+      },
+      "categoryProfileId": "ecommerce",
+      "integrationCategoryProfileId": "ecommerce",
+      "categoryProfile": {
+        "id": "ecommerce",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [],
+        "missingRequiredOperations": [
+          "ecommerce.event.receive",
+          "ecommerce.order.read",
+          "ecommerce.customer.read"
+        ],
+        "missingRecommendedOperations": [
+          "ecommerce.order.search",
+          "ecommerce.customer.search",
+          "ecommerce.product.read",
+          "ecommerce.product.search",
+          "ecommerce.draftOrder.create",
+          "ecommerce.payment.read",
+          "ecommerce.refund.create",
+          "ecommerce.subscription.read",
+          "ecommerce.invoice.read"
+        ],
+        "missingOptionalOperations": [
+          "ecommerce.order.update",
+          "ecommerce.refund.read",
+          "ecommerce.subscription.update",
+          "ecommerce.webhookEndpoint.manage"
+        ],
+        "extensionOperations": []
       }
     }
   },
@@ -20890,8 +21010,34 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "standard",
-      "conformant": null
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "workplace",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [],
+        "missingRequiredOperations": [
+          "workplace.message.receive",
+          "workplace.thread.read",
+          "workplace.message.send"
+        ],
+        "missingRecommendedOperations": [
+          "workplace.message.reply",
+          "workplace.message.update",
+          "workplace.channel.search",
+          "workplace.user.read",
+          "workplace.file.upload",
+          "workplace.notification.send"
+        ],
+        "missingOptionalOperations": [
+          "workplace.message.delete",
+          "workplace.reaction.add",
+          "workplace.channel.join",
+          "workplace.workflow.trigger"
+        ],
+        "extensionOperations": []
+      }
     },
     "implementation": {
       "strategy": "provider-api-subset",
@@ -20978,6 +21124,34 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "implementedOperationCount": 174,
         "unimplementedOperationCount": 0,
         "generatedFunctionCount": 174
+      },
+      "categoryProfileId": "workplace",
+      "integrationCategoryProfileId": "workplace",
+      "categoryProfile": {
+        "id": "workplace",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [],
+        "missingRequiredOperations": [
+          "workplace.message.receive",
+          "workplace.thread.read",
+          "workplace.message.send"
+        ],
+        "missingRecommendedOperations": [
+          "workplace.message.reply",
+          "workplace.message.update",
+          "workplace.channel.search",
+          "workplace.user.read",
+          "workplace.file.upload",
+          "workplace.notification.send"
+        ],
+        "missingOptionalOperations": [
+          "workplace.message.delete",
+          "workplace.reaction.add",
+          "workplace.channel.join",
+          "workplace.workflow.trigger"
+        ],
+        "extensionOperations": []
       }
     }
   },
@@ -21242,8 +21416,34 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "standard",
-      "conformant": null
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "workplace",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [],
+        "missingRequiredOperations": [
+          "workplace.message.receive",
+          "workplace.thread.read",
+          "workplace.message.send"
+        ],
+        "missingRecommendedOperations": [
+          "workplace.message.reply",
+          "workplace.message.update",
+          "workplace.channel.search",
+          "workplace.user.read",
+          "workplace.file.upload",
+          "workplace.notification.send"
+        ],
+        "missingOptionalOperations": [
+          "workplace.message.delete",
+          "workplace.reaction.add",
+          "workplace.channel.join",
+          "workplace.workflow.trigger"
+        ],
+        "extensionOperations": []
+      }
     },
     "implementation": {
       "strategy": "provider-api-subset",
@@ -21356,6 +21556,34 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "unimplementedOperationCount": 0,
         "generatedFunctionCount": 2293,
         "slice": "Microsoft Graph v1.0 Teams/workplace collaboration paths only; not full Microsoft Graph."
+      },
+      "categoryProfileId": "workplace",
+      "integrationCategoryProfileId": "workplace",
+      "categoryProfile": {
+        "id": "workplace",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [],
+        "missingRequiredOperations": [
+          "workplace.message.receive",
+          "workplace.thread.read",
+          "workplace.message.send"
+        ],
+        "missingRecommendedOperations": [
+          "workplace.message.reply",
+          "workplace.message.update",
+          "workplace.channel.search",
+          "workplace.user.read",
+          "workplace.file.upload",
+          "workplace.notification.send"
+        ],
+        "missingOptionalOperations": [
+          "workplace.message.delete",
+          "workplace.reaction.add",
+          "workplace.channel.join",
+          "workplace.workflow.trigger"
+        ],
+        "extensionOperations": []
       }
     }
   }

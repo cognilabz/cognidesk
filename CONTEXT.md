@@ -208,13 +208,17 @@ _Avoid_: Framework-bound runtime
 An SDK-provided adapter for common needs such as HTTP, SSE, storage, model providers, or local development. Built-In Adapters are optional conveniences and do not define the Runtime SDK boundary.
 _Avoid_: Required platform dependency
 
-**Integration Package**:
-The single installable, registry-visible package that contains Cognidesk's external provider integrations. The Integration Package is a distribution and discovery boundary; it does not grant runtime permission or own business policy.
-_Avoid_: Many public provider packages, adapter bundle, runtime permission grant
+**Integration Catalog**:
+The lightweight package and generated metadata path that lists official Provider Packages, their categories, manifest imports, capability metadata, and documentation evidence. The Integration Catalog is a discovery boundary; it does not import provider SDK runtime code, grant runtime permission, or own business policy.
+_Avoid_: Runtime provider loader, provider SDK barrel, permission grant, generated monolith
+
+**Provider Package**:
+An individually installed, registry-visible package for one Cognidesk external Provider Integration, named `@cognidesk/{category}-{provider}`. A Provider Package owns its manifest, runtime exports, conformance evidence, provider-specific helpers, and optional provider SDK dependency boundary.
+_Avoid_: Generated full-provider clone by default, hidden shared monolith, implicit runtime enablement
 
 **Provider Integration**:
-A provider-specific module inside the Integration Package that connects Cognidesk to an external support system or channel provider. A Provider Integration may expose provider capabilities through Adapters, Tools, manifests, auth setup, and channel capabilities, but it does not own business policy such as when to hand off, auto-send, approve, escalate, or treat something as risky.
-_Avoid_: Provider Package, Adapter, provider SDK wrapper, provider-owned business policy
+A provider-specific module inside a Provider Package that connects Cognidesk to an external support system or channel provider. A Provider Integration may expose provider capabilities through Adapters, Tools, manifests, auth setup, and channel capabilities, but it does not own business policy such as when to hand off, auto-send, approve, escalate, or treat something as risky.
+_Avoid_: Adapter, provider SDK wrapper, provider-owned business policy
 
 **Connection Definition**:
 An SDK-user or package-author declaration that describes an external MCP server or OpenAPI-described API so Cognidesk can discover and broker provider operations behind Provider Integration surfaces such as Provider Manifests, Tools, credential metadata, and conformance evidence. When a provider offers an equivalent machine-readable API contract, Connection Definitions are the preferred way to back that Provider Integration surface; they are not a separate runtime provider model or permission grant.
@@ -305,7 +309,7 @@ A product-facing discovery grouping for Provider Integrations that share an adap
 _Avoid_: Domain, adapter type, capability list, package scope
 
 **Integration Category Profile**:
-A provider-neutral default profile for a Provider Category, containing the category's expected Provider Objects, Channel Events, Channel Outputs, Operation Aliases, Data Sources, capability metadata, and conformance expectations. Integration Category Profiles make categories like ticketing, email, voice, messaging, contact center, or handoff useful out of the box without making Core provider-specific or deciding SDK-user business policy; Core owns the shared profile types, while the Integration Package owns the concrete category profiles.
+A provider-neutral default profile for a Provider Category, containing the category's expected Provider Objects, Channel Events, Channel Outputs, Operation Aliases, Data Sources, capability metadata, and conformance expectations. Integration Category Profiles make categories like ticketing, email, voice, messaging, contact center, or handoff useful out of the box without making Core provider-specific or deciding SDK-user business policy; Core owns the shared profile types, while the Integration Catalog and Provider Packages own concrete category/profile metadata.
 _Avoid_: Empty category shell, provider-specific runtime, automatic enablement, business policy default
 
 **Category Operation Catalog**:
@@ -537,7 +541,7 @@ A runtime-enforced model result shape for Model Roles that produce machine-read 
 _Avoid_: Prompt-only JSON instruction, unvalidated matcher result
 
 **Provider Model Configuration**:
-Application-owned setup that chooses a Vercel AI SDK provider and creates AI SDK Model Handles for an Agent Model Set. Provider Model Configuration belongs in applications and demos, not Provider Integrations or the Integration Package.
+Application-owned setup that chooses a Vercel AI SDK provider and creates AI SDK Model Handles for an Agent Model Set. Provider Model Configuration belongs in applications and demos, not Provider Integrations, Provider Packages, or the Integration Catalog.
 _Avoid_: SDK-owned OpenAI package, SDK-owned OpenRouter package, provider-specific prompt identity
 
 **Storage Adapter**:

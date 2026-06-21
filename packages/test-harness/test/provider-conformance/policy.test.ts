@@ -82,8 +82,27 @@ describe("provider conformance policy and package checks", () => {
       expect(result.checks.find((check) => check.id === "provider.package_name")).toMatchObject({
         status: "failed",
         details: {
-          expected: "@cognidesk/integrations",
+          expected: ["@cognidesk/voice-twilio", "@cognidesk/integrations"],
         },
+      });
+    });
+
+    it("passes split provider package names", async () => {
+      const result = await runProviderConformance({
+        manifest: {
+          id: "workplace.slack",
+          name: "Slack",
+          packageName: "@cognidesk/workplace-slack",
+          provider: "slack",
+          category: "workplace",
+          trustLevel: "official",
+          directions: ["send-only"],
+          capabilities: [{ capability: "send" }],
+        },
+      });
+
+      expect(result.checks.find((check) => check.id === "provider.package_name")).toMatchObject({
+        status: "passed",
       });
     });
 
