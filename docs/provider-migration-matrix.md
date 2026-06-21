@@ -17,7 +17,7 @@ Runtime provider migrations are blocked until the reference provider packages ex
 | #22 metadata catalog | `packages/integration-catalog` exists and catalog docs are generated from metadata. | Landed | Catalog generation stays metadata-only and must not import runtime provider modules. |
 | #23 Gmail reference | Gmail still lives under `packages/integrations/src/email/gmail` with generated full API files. | Open | Treat Gmail as the first SDK-backed reference, not as a pattern already landed. |
 | #24 Microsoft Graph reference | Outlook and Teams still use local `graph-api.generated` surfaces. | Open | Treat Graph auth, pagination, and subscription handling as unresolved. |
-| #25 Slack and Discord reference | Slack still uses `web-api.generated`; Discord still has generated HTTP API code inside the monolith. | Open | Treat workplace/community event and package split patterns as unresolved. |
+| #25 Slack and Discord reference | `integrations/workplace/slack` uses `@slack/web-api`; `integrations/community/discord` uses `discord.js`; old generated monolith runtime code is removed for both providers. | Landed | Treat workplace/community event, signed request, readiness, and manifest-only package split patterns as the chat-provider reference. |
 
 Additional local evidence:
 
@@ -53,7 +53,6 @@ The SDK checks do not unblock migration. They only establish first-pass package 
 | Provider | Current evidence | Decision | Target package | Notes |
 | --- | --- | --- | --- | --- |
 | `cobrowsing/cognidesk` | Local protocol helpers with client, request, readiness, and webhooks; no generated surface. | local-protocol | `@cognidesk/cobrowsing-cognidesk` | Move only after #21 exposes local-protocol conformance. Keep SDK-user-owned store, consent, origin, signing, and relay responsibilities explicit. |
-| `community/discord` | Generated Discord HTTP API surface plus interactions, request, readiness, and tests. | official-sdk | `@cognidesk/community-discord` | Reference issue #25 says reconcile with `packages/integration-discord` and keep `discord.js` usage. Retain only small direct/generated support slices for interactions or signed events if `discord.js` does not cover them. |
 | `community/forum` | Discourse-compatible direct implementation in `index.ts`; checked selected API evidence in tests/docs. | direct-http-support-slice | `@cognidesk/community-forum` | Keep as a Discourse-compatible support slice, not arbitrary forum-platform coverage. Add source/version/checksum/allowlist metadata before packaging. |
 | `contact-center/8x8` | Generated official 8x8 contact-center API slice plus direct support helpers. | generated-support-slice | `@cognidesk/contact-center-8x8` | Keep generated slice scoped to reviewed contact-center support operations. Do not claim full 8x8 platform coverage. |
 | `contact-center/aircall` | Direct support implementation in `index.ts`; checked inventory tests. | direct-http-support-slice | `@cognidesk/contact-center-aircall` | No broad SDK-first migration until an official runtime SDK is verified. Keep callback/case support operations allowlisted. |
@@ -113,10 +112,9 @@ The SDK checks do not unblock migration. They only establish first-pass package 
 | `voice/sip` | Cognidesk SIP gateway contract, readiness, request, and webhook helpers. | local-protocol | `@cognidesk/voice-sip` | Keep as BYOC/local protocol package. Do not implement a SIP stack in the provider migration. |
 | `voice/twilio` | Generated Twilio Voice-domain API surface plus direct request/readiness/webhook helpers. | official-sdk | `@cognidesk/voice-twilio` | Cohort A. Use `twilio`; split from `sms/twilio`. Retain voice webhook validation and Cognidesk telephony semantics as support code. |
 | `voice/vonage` | Generated Vonage Voice/Application/Conversation/Numbers slices plus direct credentials/webhooks. | official-sdk | `@cognidesk/voice-vonage` | Use `@vonage/server-sdk`; keep generated/direct support slices only for SDK gaps with allowlist metadata. |
-| `workplace/slack` | Generated Slack Web API surface plus client, readiness, request, events, and signed-request tests. | official-sdk | `@cognidesk/workplace-slack` | Reference issue #25. Use `@slack/web-api`; treat Socket Mode, OAuth, and incoming webhooks as separate extensions or future packages. |
 | `workplace/teams` | Generated Microsoft Graph Teams slice plus request/notification helpers. | official-sdk | `@cognidesk/workplace-teams` | Reference issue #24. Use `@microsoft/microsoft-graph-client`; share Graph helper internals only after Outlook/Teams contract shape is agreed. |
 <!-- provider-migration-matrix:end -->
 
 ## Stop Point
 
-Because the reference package gate remains open, stop here for issue #26. Broad provider-family migrations should start only after at least one of #23, #24, or #25 provides a reference package pattern with contract tests.
+Because the Gmail and Microsoft Graph reference package gates remain open, stop here for issue #26. Broad provider-family migrations should start only after enough reference package patterns have landed with contract tests.

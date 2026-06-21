@@ -63,19 +63,19 @@ Evidence: [Cognidesk cobrowsing local protocol module](https://github.com/cognil
 | Runtime import | `@cognidesk/community-discord/runtime` |
 | Workspace | `integrations/community/discord` |
 | Manifest ID | `community.discord` |
-| Scope | `provider-api-subset` |
-| Adapter coverage | `standard` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json](https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json) |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.npmjs.com/package/discord.js](https://www.npmjs.com/package/discord.js) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `thread`, `read-provider-object`, `notify`, `discord.interaction-signature` |
 | Provider setup | required `discord-bot-token`, `discord-application-id`, `discord-public-key`; optional `discord-guild-id`, `discord-channel-id`, `discord-webhook-url` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Discord's official HTTP API v10 OpenAPI preview spec.
+Coverage: Coverage is a Cognidesk support workflow adapter backed by discord.js and selected discord.js REST helpers.
 
-Boundary: Available REST operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.
+Boundary: Available Discord operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.
 
-Evidence: [Discord official OpenAPI v10 spec](https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json); [Discord official OpenAPI repository](https://github.com/discord/discord-api-spec); [Discord API reference](https://docs.discord.com/developers/reference); [Discord message resource](https://docs.discord.com/developers/resources/message); plus 8 more.
+Evidence: [discord.js package](https://www.npmjs.com/package/discord.js); [Discord API reference](https://docs.discord.com/developers/reference); [Discord message resource](https://docs.discord.com/developers/resources/message); [Discord channel/thread endpoints](https://docs.discord.com/developers/resources/channel); plus 6 more.
 
 #### Discourse Forum
 
@@ -1494,16 +1494,16 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 | Runtime import | `@cognidesk/workplace-slack/runtime` |
 | Workspace | `integrations/workplace/slack` |
 | Manifest ID | `workplace.slack` |
-| Scope | `provider-api-subset` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json) |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.npmjs.com/package/@slack/web-api](https://www.npmjs.com/package/@slack/web-api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `notify`, `thread`, `media`, `read-provider-object`, `update-provider-object`, `slack.request-signature` |
 | Provider setup | required `slack-bot-token`, `slack-signing-secret` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.
+Coverage: Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.
 
 Boundary: Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.
 
-Evidence: [Slack archived official Web API Swagger](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json); [Slack official API specs repository](https://github.com/slackapi/slack-api-specs); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); plus 9 more.
+Evidence: [Slack Web API package](https://www.npmjs.com/package/@slack/web-api); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); [Slack chat.update](https://docs.slack.dev/reference/methods/chat.update/); plus 6 more.

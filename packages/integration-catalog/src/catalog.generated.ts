@@ -274,11 +274,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "community.discord",
     "category": "community",
     "provider": "discord",
-    "importPath": "@cognidesk/integrations/community/discord",
-    "modulePath": "./community/discord/index.js",
-    "manifestExport": "discordCommunityProviderManifest",
+    "importPath": "@cognidesk/community-discord/manifest",
+    "modulePath": "integrations/community/discord/src/manifest.js",
+    "manifestExport": "discordCommunityManifestInput",
     "name": "Discord Community Support",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/community-discord",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -291,19 +291,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Discord Community Support",
-      "summary": "Coverage includes generated per-operation functions for every operation in Discord's official HTTP API v10 OpenAPI preview spec.",
+      "summary": "Coverage is a Cognidesk support workflow adapter backed by discord.js and selected discord.js REST helpers.",
       "tags": [
         "community",
         "discord",
         "official",
-        "provider-api-subset"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
         "label": "Receive Discord interactions",
-        "description": "Validates Ed25519-signed Discord outgoing-webhook interaction requests; does not subscribe to Gateway message events.",
+        "description": "Validates Ed25519-signed Discord outgoing-webhook interaction requests.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -323,7 +323,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Discord channel messages",
-        "description": "Sends bot-token-authenticated Discord channel messages when SDK-user policy permits public or private community replies.",
+        "description": "Sends bot-token-authenticated Discord channel messages through discord.js REST helpers.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -371,12 +371,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Discord channels and messages",
-        "description": "Reads Discord channel metadata and recent channel messages where bot permissions allow access.",
+        "description": "Reads Discord bot, application, guild, channel, and recent channel message records where bot permissions allow access.",
         "audiences": [
           "customer-facing",
           "mixed"
         ],
         "providerObjects": [
+          {
+            "kind": "discordBot",
+            "label": "Discord Bot"
+          },
+          {
+            "kind": "discordApplication",
+            "label": "Discord Application"
+          },
+          {
+            "kind": "discordGuild",
+            "label": "Discord Guild"
+          },
           {
             "kind": "discordChannel",
             "label": "Discord Channel"
@@ -437,22 +449,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Discord's official HTTP API v10 OpenAPI preview spec.",
-        "Typed convenience helpers remain available for selected Discord community support workflows: channel messages, text/forum/media-channel threads, webhook execution, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.",
-        "Discord marks the OpenAPI spec as a public preview and says the docs take precedence over spec discrepancies; the generated HTTP API surface is a cataloged transport slice, not a claim that Discord's full platform is covered.",
-        "Receive coverage is the Discord Interactions Endpoint URL/outgoing-webhook path only; Discord Gateway ingestion and Discord Webhook Events subscriptions are outside this package.",
-        "Non-HTTP Discord surfaces remain unsupported here: Gateway WebSocket sessions/events/intents, Voice Gateway/media transport, local RPC/IPC, Social SDK client features, CDN asset transformation semantics beyond HTTP calls, and Webhook Events subscription delivery."
+        "Coverage is a Cognidesk support workflow adapter backed by discord.js and selected discord.js REST helpers.",
+        "Typed operations cover channel messages, text/forum/media-channel threads, webhook execution, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.",
+        "This package intentionally removes the generated Discord HTTP API clone and does not claim full Discord platform coverage.",
+        "Discord Gateway ingestion, Gateway event/intents policy, Voice Gateway/media transport, command registration lifecycle, broad moderation/admin APIs, and Discord Webhook Events subscriptions are separate extension surfaces or future packages."
       ],
       "evidence": [
         {
-          "label": "Discord official OpenAPI v10 spec",
-          "url": "https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json"
-        },
-        {
-          "label": "Discord official OpenAPI repository",
-          "url": "https://github.com/discord/discord-api-spec"
+          "label": "discord.js package",
+          "url": "https://www.npmjs.com/package/discord.js"
         },
         {
           "label": "Discord API reference",
@@ -483,10 +490,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://docs.discord.com/developers/topics/voice-connections"
         },
         {
-          "label": "Discord RPC",
-          "url": "https://docs.discord.com/developers/topics/rpc"
-        },
-        {
           "label": "Discord Webhook Events",
           "url": "https://docs.discord.com/developers/events/webhook-events"
         },
@@ -497,19 +500,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "provider-api-subset",
-      "level": "standard",
+      "scope": "support-workflow-subset",
+      "level": "partial",
       "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/community/discord",
-      "providerModule": "./community/discord/index.js",
-      "manifestExport": "discordCommunityProviderManifest",
-      "manifestSource": "packages/integrations/src/community/discord/manifest.ts",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/community-discord",
+      "runtimePackage": "@cognidesk/community-discord",
+      "providerModule": "integrations/community/discord/src/manifest.js",
+      "manifestExport": "discordCommunityManifestInput",
+      "manifestSource": "integrations/community/discord/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json"
+      "documentationPath": "https://www.npmjs.com/package/discord.js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -528,7 +531,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "discord-bot-token",
           "label": "Discord bot token",
-          "description": "Server-side Discord bot token used for REST channel, guild, and bot/application readiness calls.",
+          "description": "Server-side Discord bot token used by discord.js REST helpers for channel, guild, bot, and application calls.",
           "scopes": [
             "bot",
             "applications.commands"
@@ -580,10 +583,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Discord bot tokens, public keys, application IDs, guild/channel routing, webhook URLs, consent, moderation, retention, and transcript policy stay SDK-user-owned configuration."
     ],
     "limitations": [
-      "Available REST operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.",
-      "Gateway intents are required only for SDK-user-owned Gateway integrations outside this package; this package does not ingest Gateway events or Discord Webhook Events subscriptions.",
-      "Discord rate limits use per-route and global buckets with Retry-After/retry_after details; SDK users own retry and backoff policy.",
-      "This package provides transport, readiness, and parsing helpers only; moderation policy, consent, public/private reply policy, escalation, retention, deletion, and human handoff are SDK-user configuration.",
+      "Available Discord operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.",
+      "Gateway intents are required only for SDK-user-owned Gateway integrations outside this package; this package does not auto-connect Gateway sessions or ingest Discord Webhook Events subscriptions.",
       "Discord interaction endpoint requests must fail closed when signature verification is required but the public key or signature headers are missing or invalid."
     ],
     "maintainers": [
@@ -594,37 +595,26 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "apiBaseUrl": "https://discord.com/api",
-      "defaultApiVersion": "v10",
+      "defaultApiVersion": "10",
       "interactionSignatureHeaders": [
         "x-signature-ed25519",
         "x-signature-timestamp"
       ],
       "channelCoverage": {
-        "httpApiV10": "generated-per-operation-functions",
-        "channelMessages": "typed-send-list",
-        "threads": "typed-create",
-        "forumPosts": "typed-create",
-        "mediaPosts": "typed-create",
-        "webhookExecution": "typed-send",
+        "channelMessages": "sdk-owned-rest-send-list",
+        "threads": "sdk-owned-rest-create",
+        "forumPosts": "sdk-owned-rest-create",
+        "webhookExecution": "typed-fetch-send",
         "interactionsEndpoint": "typed-verify-parse",
-        "botApplicationGuildChannelReads": "typed-read",
-        "gatewayEvents": "provider-supported-not-typed",
-        "webhookEventsSubscriptions": "provider-supported-not-typed",
-        "voiceGatewayAndRpc": "provider-supported-not-typed",
-        "moderationScheduledEventsCommandsLifecycle": "generated-http-functions"
+        "botApplicationGuildChannelReads": "sdk-owned-rest-read",
+        "gatewayEvents": "not-covered",
+        "webhookEventsSubscriptions": "not-covered",
+        "voiceGatewayAndRpc": "not-covered"
       },
-      "generatedProviderSliceVerification": {
-        "provider": "discord-http-api-v10-preview-openapi",
-        "apiVersion": "10",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/discord-http-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/discord-http-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/discord-http-api-2026-06-18.functions.json",
-        "documentedPathCount": 150,
-        "documentedOperationCount": 242,
-        "implementedOperationCount": 242,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 242
+      "providerClient": {
+        "package": "discord.js",
+        "versionRange": "^14.26.4",
+        "importPolicy": "runtime-entrypoint-only"
       }
     }
   },
@@ -20752,11 +20742,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "workplace.slack",
     "category": "workplace",
     "provider": "slack",
-    "importPath": "@cognidesk/integrations/workplace/slack",
-    "modulePath": "./workplace/slack/index.js",
-    "manifestExport": "slackWorkplaceProviderManifest",
+    "importPath": "@cognidesk/workplace-slack/manifest",
+    "modulePath": "integrations/workplace/slack/src/manifest.js",
+    "manifestExport": "slackWorkplaceManifestInput",
     "name": "Slack",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/workplace-slack",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -20769,12 +20759,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Slack",
-      "summary": "Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.",
+      "summary": "Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.",
       "tags": [
         "workplace",
         "slack",
         "official",
-        "provider-api-subset"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -20792,8 +20782,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Slack Event"
           },
           {
-            "kind": "slackInteraction",
-            "label": "Slack Interaction"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20805,15 +20795,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Post Slack messages",
-        "description": "Posts customer-visible or channel-visible support messages through Slack chat.postMessage.",
+        "description": "Posts channel-visible support messages through @slack/web-api chat.postMessage.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20824,15 +20814,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "notify",
-        "label": "Post agent-assist messages",
+        "label": "Post Slack agent-assist notifications",
         "description": "Posts Slack ephemeral messages for internal agent-assist workflows when Slack provides a target user.",
         "audiences": [
           "internal-support"
         ],
         "providerObjects": [
           {
-            "kind": "slackEphemeralMessage",
-            "label": "Slack Ephemeral Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20844,19 +20834,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "thread",
         "label": "Use Slack threads",
-        "description": "Associates messages with Slack thread timestamps and reads channel history for thread-aware support.",
+        "description": "Associates messages with Slack thread timestamps and reads thread replies.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           },
           {
-            "kind": "slackThread",
-            "label": "Slack Thread"
+            "kind": "workplaceThread",
+            "label": "Workplace Thread"
           }
         ],
         "requiresCredential": true,
@@ -20875,8 +20865,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "slackFile",
-            "label": "Slack File"
+            "kind": "workplaceFile",
+            "label": "Workplace File"
           }
         ],
         "requiresCredential": true,
@@ -20888,15 +20878,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Slack conversation history",
-        "description": "Reads Slack conversations.history for SDK-user-selected channels and history windows.",
+        "description": "Reads Slack conversation history or thread replies for SDK-user-selected channels and windows.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackConversationHistory",
-            "label": "Slack Conversation History"
+            "kind": "workplaceThread",
+            "label": "Workplace Thread"
           }
         ],
         "requiresCredential": true,
@@ -20915,8 +20905,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20928,7 +20918,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "slack.request-signature",
         "label": "Validate Slack request signatures",
-        "description": "Validates Slack X-Slack-Signature and X-Slack-Request-Timestamp values for Events API and interactivity.",
+        "description": "Validates Slack X-Slack-Signature and X-Slack-Request-Timestamp values.",
         "audiences": [
           "internal-support"
         ],
@@ -20946,21 +20936,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.",
-        "Typed convenience helpers remain available for selected Slack workplace support workflows: chat.postMessage, chat.postEphemeral, chat.update, conversations.history, conversations.replies, the current external file upload sequence, auth.test readiness, Events API/interactivity parsing, and signed request validation.",
-        "Receive coverage is HTTP Events API/interactivity parsing only; this package does not configure Slack app subscriptions, apps.connections.open, xapp tokens, WebSocket reconnects, Socket Mode ingestion, or Socket Mode payload acknowledgements.",
-        "This is not full current Slack platform coverage; Slack's official specs repository was archived on 2024-03-27, and Events subscriptions, Socket Mode protocol, SCIM, Audit Logs, Legal Holds, Status API, workflow runtime behavior, and current docs-only methods remain separate surfaces."
+        "Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.",
+        "Typed operations cover Slack Events API/interactivity request parsing, signed request validation, chat.postMessage, chat.postEphemeral, chat.update, conversations.replies, the external file upload sequence, and auth.test readiness.",
+        "This package intentionally does not clone Slack's archived generated Web API spec and does not claim full Slack platform coverage.",
+        "Slack Socket Mode, OAuth installation flows, incoming webhook delivery, SCIM, Audit Logs, Legal Holds, workflow runtime behavior, and broad admin APIs are separate extension surfaces or future packages."
       ],
       "evidence": [
         {
-          "label": "Slack archived official Web API Swagger",
-          "url": "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json"
-        },
-        {
-          "label": "Slack official API specs repository",
-          "url": "https://github.com/slackapi/slack-api-specs"
+          "label": "Slack Web API package",
+          "url": "https://www.npmjs.com/package/@slack/web-api"
         },
         {
           "label": "Slack Web API methods",
@@ -20973,10 +20959,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Slack chat.update",
           "url": "https://docs.slack.dev/reference/methods/chat.update/"
-        },
-        {
-          "label": "Slack conversations.history",
-          "url": "https://docs.slack.dev/reference/methods/conversations.history/"
         },
         {
           "label": "Slack conversations.replies",
@@ -21001,53 +20983,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Slack Web API rate limits",
           "url": "https://docs.slack.dev/apis/web-api/rate-limits"
-        },
-        {
-          "label": "Slack conversations.history/replies rate-limit changes",
-          "url": "https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
-      }
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/workplace/slack",
-      "providerModule": "./workplace/slack/index.js",
-      "manifestExport": "slackWorkplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/workplace/slack/manifest.ts",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/workplace-slack",
+      "runtimePackage": "@cognidesk/workplace-slack",
+      "providerModule": "integrations/workplace/slack/src/manifest.js",
+      "manifestExport": "slackWorkplaceManifestInput",
+      "manifestSource": "integrations/workplace/slack/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json"
+      "documentationPath": "https://www.npmjs.com/package/@slack/web-api"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -21061,7 +21013,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "slack-bot-token",
           "label": "Slack bot token",
-          "description": "Server-side bot token used for Slack Web API calls such as chat.postMessage and auth.test.",
+          "description": "Server-side bot token used by @slack/web-api for Web API calls.",
           "scopes": [
             "chat:write",
             "chat:write.public",
@@ -21086,12 +21038,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "privacyNotes": [
-      "Slack messages, channel identifiers, user identifiers, event payloads, interaction payloads, and workspace metadata can contain internal support context and customer data.",
+      "Slack messages, channel identifiers, user identifiers, event payloads, interaction payloads, files, and workspace metadata can contain internal support context and customer data.",
       "Slack bot tokens and signing secrets stay server-side and are represented in Studio only as credential readiness."
     ],
     "limitations": [
       "Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.",
-      "Slack conversations.history and conversations.replies rate limits vary by Marketplace approval, commercial distribution, and install date; SDK users own pagination, Retry-After handling, retry, and backoff policy. Slack recommends designing message posting around roughly one request per second per channel.",
+      "Slack rate limits vary by method, workspace, Marketplace approval, commercial distribution, and install date; SDK users own pagination, Retry-After handling, retry, and backoff policy.",
       "Customer visibility, agent-assist routing, approval, retention, redaction, and escalation behavior remain SDK-user configuration."
     ],
     "maintainers": [
@@ -21102,56 +21054,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "channelCoverage": {
-        "archivedWebApi": "generated-per-operation-functions",
-        "chatMessages": "typed-post-update",
-        "ephemeralMessages": "typed-post",
-        "conversationsHistoryReplies": "typed-read",
-        "externalFileUpload": "typed-upload",
-        "authReadiness": "typed-read",
+        "chatMessages": "sdk-owned-post-update",
+        "ephemeralMessages": "sdk-owned-post",
+        "threadReplies": "sdk-owned-read",
+        "externalFileUpload": "sdk-owned-upload",
+        "authReadiness": "sdk-owned-read",
         "eventsInteractivity": "typed-parse-verify",
-        "socketMode": "provider-supported-not-typed",
-        "viewsWorkflowsAdminAudit": "provider-supported-not-typed"
+        "socketMode": "not-covered",
+        "oauth": "not-covered",
+        "incomingWebhooks": "not-covered"
       },
-      "generatedProviderSliceVerification": {
-        "provider": "slack-web-api-archived-swagger",
-        "apiVersion": "1.7.0",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.functions.json",
-        "documentedPathCount": 174,
-        "documentedOperationCount": 174,
-        "implementedOperationCount": 174,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 174
-      },
-      "categoryProfileId": "workplace",
-      "integrationCategoryProfileId": "workplace",
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
+      "providerClient": {
+        "package": "@slack/web-api",
+        "versionRange": "^7.17.0",
+        "importPolicy": "runtime-entrypoint-only"
       }
     }
   },
