@@ -11,6 +11,7 @@ on:
       - "packages/**"
       - "scripts/**"
       - "docs/adr/**"
+      - "docs/integrations-monolith-cleanup.md"
       - "docs/provider-migration-matrix.md"
       - "docs/provider-generation.md"
       - "docs/releasing.md"
@@ -32,6 +33,7 @@ on:
       - "packages/**"
       - "scripts/**"
       - "docs/adr/**"
+      - "docs/integrations-monolith-cleanup.md"
       - "docs/provider-migration-matrix.md"
       - "docs/provider-generation.md"
       - "docs/releasing.md"
@@ -68,6 +70,9 @@ jobs:
 
       - name: Check integration architecture
         run: pnpm providers:architecture
+
+      - name: Check monolith cleanup map
+        run: pnpm providers:cleanup-map
 
       - name: Check provider package conformance
         run: pnpm provider-packages:check

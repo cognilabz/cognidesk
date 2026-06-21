@@ -45,6 +45,8 @@ const providerSdkPackages = new Set([
   "twilio",
 ]);
 const infrastructurePackageNames = new Set([
+  "@cognidesk/integration-catalog",
+  "@cognidesk/integration-kit",
   "@cognidesk/voice-websocket",
 ]);
 const oldImportBridgeMetadataKeys = [
@@ -69,6 +71,7 @@ async function main() {
     if (await isSplitProviderPackage(pkg)) splitProviderPackages.push(pkg);
   }
 
+  await checkNoLegacyIntegrationProviderPackageNames(workspaces);
   await checkNoOldImportCompatibilityPackages(workspaces);
   await checkNoRuntimeNodeModulesScanning(workspaces);
   await checkManifestOnlyEntrypoints();
@@ -94,6 +97,16 @@ async function main() {
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
+}
+
+async function checkNoLegacyIntegrationProviderPackageNames(packages) {
+  for (const pkg of packages) {
+    if (!isLegacyIntegrationProviderPackageName(pkg.name)) continue;
+
+    failures.push(
+      `${path.relative(repoRoot, pkg.packageJsonPath)}: provider packages must use @cognidesk/{category}-{provider}, not @cognidesk/integration-*`,
+    );
+  }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -165,6 +178,10 @@ async function isSplitProviderPackage(pkg) {
 
 function isSplitProviderPackageName(name) {
   return splitProviderPackageCategory(name) !== undefined;
+}
+
+export function isLegacyIntegrationProviderPackageName(name) {
+  return name.startsWith("@cognidesk/integration-") && !infrastructurePackageNames.has(name);
 }
 
 function splitProviderPackageCategory(name) {

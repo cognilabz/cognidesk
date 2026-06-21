@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isGeneratedFullProviderApiClone } from "./check-integration-package-architecture.mjs";
+import {
+  isGeneratedFullProviderApiClone,
+  isLegacyIntegrationProviderPackageName,
+} from "./check-integration-package-architecture.mjs";
 
 describe("isGeneratedFullProviderApiClone", () => {
   it("detects generated full API clone filenames and directories", () => {
@@ -32,6 +35,33 @@ describe("isGeneratedFullProviderApiClone", () => {
 
     for (const file of allowedFiles) {
       assert.equal(isGeneratedFullProviderApiClone(file), false, file);
+    }
+  });
+});
+
+describe("isLegacyIntegrationProviderPackageName", () => {
+  it("rejects integration-prefixed provider package names", () => {
+    const rejectedNames = [
+      "@cognidesk/integration-discord",
+      "@cognidesk/integration-amazon-connect",
+      "@cognidesk/integration-contact-center-genesys-cloud",
+    ];
+
+    for (const name of rejectedNames) {
+      assert.equal(isLegacyIntegrationProviderPackageName(name), true, name);
+    }
+  });
+
+  it("allows provider-neutral integration infrastructure package names", () => {
+    const allowedNames = [
+      "@cognidesk/integration-catalog",
+      "@cognidesk/integration-kit",
+      "@cognidesk/contact-center-amazon-connect",
+      "@cognidesk/community-discord",
+    ];
+
+    for (const name of allowedNames) {
+      assert.equal(isLegacyIntegrationProviderPackageName(name), false, name);
     }
   });
 });
