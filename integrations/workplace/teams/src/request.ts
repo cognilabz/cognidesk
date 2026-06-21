@@ -1,9 +1,13 @@
 import {
   Client,
+  CustomAuthenticationProvider,
   GraphError,
+  MiddlewareFactory,
   ResponseType,
   RetryHandlerOptions,
+  type Context,
   type GraphRequest,
+  type Middleware,
 } from "@microsoft/microsoft-graph-client";
 import { IntegrationError, integrationPage, type IntegrationErrorCode } from "@cognidesk/integration-kit";
 import type {
@@ -23,16 +27,24 @@ import type {
 export function createTeamsGraphClient(options: TeamsWorkplaceClientOptions): Client {
   if (options.graphClient) return options.graphClient;
   const baseUrl = (options.graphApiBaseUrl ?? "https://graph.microsoft.com").replace(/\/+$/, "");
-  const initOptions: Parameters<typeof Client.init>[0] = {
-    authProvider(done) {
-      done(null, options.accessToken);
-    },
+  const initOptions: Pick<Parameters<typeof Client.initWithMiddleware>[0], "baseUrl" | "customHosts" | "defaultVersion"> = {
     baseUrl,
     defaultVersion: options.graphApiVersion ?? "v1.0",
   };
   const hosts = customHosts(baseUrl);
   if (hosts) initOptions.customHosts = hosts;
-  return Client.init(initOptions);
+  if (options.fetch) {
+    return Client.initWithMiddleware({
+      ...initOptions,
+      middleware: graphMiddleware(options.accessToken, options.fetch),
+    });
+  }
+  return Client.init({
+    ...initOptions,
+    authProvider(done) {
+      done(null, options.accessToken);
+    },
+  });
 }
 
 export async function teamsGraphRequest<T = TeamsGraphResource>(
@@ -41,9 +53,8 @@ export async function teamsGraphRequest<T = TeamsGraphResource>(
   input: TeamsGraphRequestInput,
 ): Promise<T> {
   const request = buildTeamsGraphRequest(client, input);
-  const run = async () => executeTeamsGraphRequest<T>(request, input);
   try {
-    return await withGraphFetch(options.fetch, run);
+    return await executeTeamsGraphRequest<T>(request, input);
   } catch (error) {
     throw normalizeTeamsGraphError(error);
   }
@@ -222,20 +233,25 @@ function queryString(query: TeamsWorkplaceProviderQuery) {
   return params.toString();
 }
 
-async function withGraphFetch<T>(fetchImpl: typeof fetch | undefined, run: () => Promise<T>): Promise<T> {
-  if (!fetchImpl) return run();
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = fetchImpl;
-  try {
-    return await run();
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-}
-
 function customHosts(baseUrl: string) {
   const host = new URL(baseUrl).host;
   return host === "graph.microsoft.com" ? undefined : new Set([host]);
+}
+
+function graphMiddleware(accessToken: string, fetchImpl: typeof fetch): Middleware[] {
+  const middleware = MiddlewareFactory.getDefaultMiddlewareChain(new CustomAuthenticationProvider((done) => {
+    done(null, accessToken);
+  }));
+  middleware.splice(middleware.length - 1, 1, new GraphFetchHandler(fetchImpl));
+  return middleware;
+}
+
+class GraphFetchHandler implements Middleware {
+  constructor(private readonly fetchImpl: typeof fetch) {}
+
+  async execute(context: Context): Promise<void> {
+    context.response = await this.fetchImpl(context.request, context.options);
+  }
 }
 
 export function normalizeTeamsGraphError(error: unknown): IntegrationError {

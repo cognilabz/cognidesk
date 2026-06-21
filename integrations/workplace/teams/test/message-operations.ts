@@ -72,6 +72,35 @@ export function registerTeamsMessageOperationTests() {
     });
   });
 
+  it("keeps concurrent clients on their scoped Microsoft Graph fetch transports", async () => {
+    const fetchA = vi.fn(async () =>
+      new Response(JSON.stringify({ id: "user_a", displayName: "Agent A" }), { status: 200 })
+    );
+    const fetchB = vi.fn(async () =>
+      new Response(JSON.stringify({ id: "user_b", displayName: "Agent B" }), { status: 200 })
+    );
+    const clientA = createTeamsWorkplaceClient({
+      accessToken: "token-a",
+      fetch: fetchA as unknown as typeof fetch,
+    });
+    const clientB = createTeamsWorkplaceClient({
+      accessToken: "token-b",
+      fetch: fetchB as unknown as typeof fetch,
+    });
+
+    const [userA, userB] = await Promise.all([
+      clientA.getCurrentUser(),
+      clientB.getCurrentUser(),
+    ]);
+
+    expect(userA).toMatchObject({ id: "user_a", displayName: "Agent A" });
+    expect(userB).toMatchObject({ id: "user_b", displayName: "Agent B" });
+    expect(fetchA).toHaveBeenCalledTimes(1);
+    expect(fetchB).toHaveBeenCalledTimes(1);
+    expect(graphFetchCall(fetchA).headers.get("authorization")).toBe("Bearer token-a");
+    expect(graphFetchCall(fetchB).headers.get("authorization")).toBe("Bearer token-b");
+  });
+
   it("rejects normal Teams sends with application permissions", async () => {
     const client = createTeamsWorkplaceClient({
       accessToken: "graph-token",

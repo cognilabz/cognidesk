@@ -96,6 +96,35 @@ describe("@cognidesk/email-outlook client", () => {
     expect(graphFetchCall(fetchMock).signal).toBe(controller.signal);
   });
 
+  it("keeps concurrent clients on their scoped Microsoft Graph fetch transports", async () => {
+    const fetchA = vi.fn(async () =>
+      new Response(JSON.stringify({ id: "mailbox_a", mail: "a@example.test" }), { status: 200 })
+    );
+    const fetchB = vi.fn(async () =>
+      new Response(JSON.stringify({ id: "mailbox_b", mail: "b@example.test" }), { status: 200 })
+    );
+    const clientA = createOutlookEmailClient({
+      accessToken: "token-a",
+      fetch: fetchA as unknown as typeof fetch,
+    });
+    const clientB = createOutlookEmailClient({
+      accessToken: "token-b",
+      fetch: fetchB as unknown as typeof fetch,
+    });
+
+    const [mailboxA, mailboxB] = await Promise.all([
+      clientA.getMailboxUser(),
+      clientB.getMailboxUser(),
+    ]);
+
+    expect(mailboxA).toMatchObject({ id: "mailbox_a", mail: "a@example.test" });
+    expect(mailboxB).toMatchObject({ id: "mailbox_b", mail: "b@example.test" });
+    expect(fetchA).toHaveBeenCalledTimes(1);
+    expect(fetchB).toHaveBeenCalledTimes(1);
+    expect(graphFetchCall(fetchA).headers.get("authorization")).toBe("Bearer token-a");
+    expect(graphFetchCall(fetchB).headers.get("authorization")).toBe("Bearer token-b");
+  });
+
   it("throws structured Microsoft Graph IntegrationError metadata", async () => {
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({
