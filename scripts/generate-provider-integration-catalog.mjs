@@ -48,7 +48,7 @@ function categorySegment(category) {
 }
 
 function providerPackageName(provider) {
-  return `@cognidesk/${categorySegment(provider.category)}-${provider.provider}`;
+  return `@cognidesk/integration-${categorySegment(provider.category)}-${provider.provider}`;
 }
 
 function providerManifestImport(provider) {
@@ -157,7 +157,7 @@ function renderCatalog(groupedProviders) {
     "",
     "This catalog is generated from serialized metadata in `@cognidesk/integration-catalog`. It renders the target split provider packages, manifest imports, runtime imports, and `integrations/{category}/{provider}` workspace paths without importing provider runtime modules during docs generation.",
     "",
-    "`@cognidesk/voice-websocket` is not listed here because it is the browser-facing Cognidesk voice transport, not an external Provider Integration. OpenAI Realtime voice is listed as `@cognidesk/voice-openai` because it can be the entry channel and the LLM-backed realtime session. Speech Providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram can also back Cognidesk voice sessions while the Cognidesk Agent Model Set remains the background LLM.",
+    "`@cognidesk/voice-websocket` is not listed here because it is the browser-facing Cognidesk voice transport, not an external Provider Integration. OpenAI Realtime voice is listed as `@cognidesk/integration-voice-openai` because it can be the entry channel and the LLM-backed realtime session. Speech Providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram can also back Cognidesk voice sessions while the Cognidesk Agent Model Set remains the background LLM.",
     "",
     "| Category | Provider count | Packages |",
     "|----------|----------------|---------|",

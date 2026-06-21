@@ -274,11 +274,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "community.discord",
     "category": "community",
     "provider": "discord",
-    "importPath": "@cognidesk/community-discord/manifest",
+    "importPath": "@cognidesk/integration-community-discord/manifest",
     "modulePath": "integrations/community/discord/src/manifest.js",
     "manifestExport": "discordCommunityManifestInput",
     "name": "Discord Community Support",
-    "packageName": "@cognidesk/community-discord",
+    "packageName": "@cognidesk/integration-community-discord",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -507,8 +507,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/community-discord",
-      "runtimePackage": "@cognidesk/community-discord",
+      "sdkPackage": "@cognidesk/integration-community-discord",
+      "runtimePackage": "@cognidesk/integration-community-discord",
       "providerModule": "integrations/community/discord/src/manifest.js",
       "manifestExport": "discordCommunityManifestInput",
       "manifestSource": "integrations/community/discord/src/manifest.ts",
@@ -597,10 +597,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "integrationName": "Discord Integration",
-      "integrationPackageName": "@cognidesk/community-discord",
+      "integrationPackageName": "@cognidesk/integration-community-discord",
       "integrationEntryPoints": {
-        "manifest": "@cognidesk/community-discord/manifest",
-        "runtime": "@cognidesk/community-discord/runtime"
+        "manifest": "@cognidesk/integration-community-discord/manifest",
+        "runtime": "@cognidesk/integration-community-discord/runtime"
       },
       "apiBaseUrl": "https://discord.com/api",
       "defaultApiVersion": "10",
@@ -20756,11 +20756,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "workplace.slack",
     "category": "workplace",
     "provider": "slack",
-    "importPath": "@cognidesk/workplace-slack/manifest",
+    "importPath": "@cognidesk/integration-workplace-slack/manifest",
     "modulePath": "integrations/workplace/slack/src/manifest.js",
     "manifestExport": "slackWorkplaceManifestInput",
     "name": "Slack",
-    "packageName": "@cognidesk/workplace-slack",
+    "packageName": "@cognidesk/integration-workplace-slack",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -21007,8 +21007,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/workplace-slack",
-      "runtimePackage": "@cognidesk/workplace-slack",
+      "sdkPackage": "@cognidesk/integration-workplace-slack",
+      "runtimePackage": "@cognidesk/integration-workplace-slack",
       "providerModule": "integrations/workplace/slack/src/manifest.js",
       "manifestExport": "slackWorkplaceManifestInput",
       "manifestSource": "integrations/workplace/slack/src/manifest.ts",

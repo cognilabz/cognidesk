@@ -28,7 +28,7 @@
     "@aws-sdk/client-transcribe-streaming": "^3.1071.0",
     "@cognidesk/core": "workspace:*",
     "@cognidesk/http": "workspace:*",
-    "@cognidesk/community-discord": "workspace:*",
+    "@cognidesk/integration-community-discord": "workspace:*",
     "@cognidesk/integrations": "workspace:*",
     "@cognidesk/model": "workspace:*",
     "@cognidesk/otel": "workspace:*",

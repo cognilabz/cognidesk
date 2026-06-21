@@ -23,11 +23,11 @@ import type { DiscordRestLike } from "../src/index.js";
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-describe("@cognidesk/community-discord", () => {
+describe("@cognidesk/integration-community-discord", () => {
   it("exports split package metadata with exact provider-namespaced operation bindings", () => {
     expect(discordCommunityProviderManifest).toMatchObject({
       id: "community.discord",
-      packageName: "@cognidesk/community-discord",
+      packageName: "@cognidesk/integration-community-discord",
       provider: "discord",
       category: "community",
       trustLevel: "official",
@@ -56,13 +56,13 @@ describe("@cognidesk/community-discord", () => {
     });
     expect(integration.operationAliases).toEqual([...discordCommunityOperationAliases]);
     expect(integrationAlias.manifest.id).toBe("community.discord");
-    expect(discordIntegrationManifest.packageName).toBe("@cognidesk/community-discord");
+    expect(discordIntegrationManifest.packageName).toBe("@cognidesk/integration-community-discord");
     expect(discordCommunityProviderManifest.metadata).toMatchObject({
       integrationName: "Discord Integration",
-      integrationPackageName: "@cognidesk/community-discord",
+      integrationPackageName: "@cognidesk/integration-community-discord",
       integrationEntryPoints: {
-        manifest: "@cognidesk/community-discord/manifest",
-        runtime: "@cognidesk/community-discord/runtime",
+        manifest: "@cognidesk/integration-community-discord/manifest",
+        runtime: "@cognidesk/integration-community-discord/runtime",
       },
     });
     expect(assertIntegrationConformance({
@@ -255,7 +255,7 @@ describe("@cognidesk/community-discord", () => {
     });
     const result = await runProviderConformance({
       manifest: discordCommunityProviderManifest,
-      expectedPackageName: "@cognidesk/community-discord",
+      expectedPackageName: "@cognidesk/integration-community-discord",
       credentialStatuses: discordCommunityCredentialStatuses({
         botToken: "configured",
         applicationId: "app_123",

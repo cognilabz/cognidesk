@@ -20,11 +20,11 @@ import type { SlackApiResponse, SlackWorkplaceClient } from "../src/index.js";
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-describe("@cognidesk/workplace-slack", () => {
+describe("@cognidesk/integration-workplace-slack", () => {
   it("exports split package metadata with exact operation bindings", () => {
     expect(slackWorkplaceProviderManifest).toMatchObject({
       id: "workplace.slack",
-      packageName: "@cognidesk/workplace-slack",
+      packageName: "@cognidesk/integration-workplace-slack",
       provider: "slack",
       category: "workplace",
       trustLevel: "official",
@@ -209,7 +209,7 @@ describe("@cognidesk/workplace-slack", () => {
   it("passes readiness and provider conformance without importing provider SDKs from /manifest", async () => {
     const result = await runProviderConformance({
       manifest: slackWorkplaceProviderManifest,
-      expectedPackageName: "@cognidesk/workplace-slack",
+      expectedPackageName: "@cognidesk/integration-workplace-slack",
       credentialStatuses: slackWorkplaceCredentialStatuses({
         botToken: "configured",
         signingSecret: "configured",

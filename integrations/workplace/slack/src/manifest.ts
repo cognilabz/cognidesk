@@ -17,7 +17,7 @@ export const slackWorkplaceOperationAliases = [
 export const slackWorkplaceManifestInput = {
   id: "workplace.slack",
   name: "Slack",
-  packageName: "@cognidesk/workplace-slack",
+  packageName: "@cognidesk/integration-workplace-slack",
   provider: "slack",
   category: "workplace",
   trustLevel: "official",

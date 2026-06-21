@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/community-discord",
+  "name": "@cognidesk/integration-community-discord",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -44,7 +44,9 @@
     "release": "independent-provider",
     "category": "community",
     "provider": "discord",
-    "providerSdkDependencies": ["discord.js"],
+    "providerSdkDependencies": [
+      "discord.js"
+    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,
       "unpackedSizeBytes": 41943040,

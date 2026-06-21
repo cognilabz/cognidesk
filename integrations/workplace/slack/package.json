@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/workplace-slack",
+  "name": "@cognidesk/integration-workplace-slack",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -43,7 +43,9 @@
     "release": "independent-provider",
     "category": "workplace",
     "provider": "slack",
-    "providerSdkDependencies": ["@slack/web-api"],
+    "providerSdkDependencies": [
+      "@slack/web-api"
+    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,
       "unpackedSizeBytes": 41943040,

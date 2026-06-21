@@ -10,11 +10,11 @@ import {
   discordCommunityProviderManifest,
 } from "../src/index.js";
 
-describe("@cognidesk/community-discord Gateway manifest", () => {
+describe("@cognidesk/integration-community-discord Gateway manifest", () => {
   it("represents Discord Gateway support inside the split provider package", () => {
     expect(discordCommunityProviderManifest).toMatchObject({
       id: "community.discord",
-      packageName: "@cognidesk/community-discord",
+      packageName: "@cognidesk/integration-community-discord",
       provider: "discord",
       category: "community",
       trustLevel: "official",
@@ -27,7 +27,7 @@ describe("@cognidesk/community-discord Gateway manifest", () => {
   });
 });
 
-describe("@cognidesk/community-discord Gateway store", () => {
+describe("@cognidesk/integration-community-discord Gateway store", () => {
   it("persists thread bindings and mirrored event idempotency", async () => {
     const tempDir = await mkdtemp(join(tmpdir(), "cognidesk-discord-store-"));
     const store = createDiscordSqliteStore({ filename: join(tempDir, "demo.sqlite") });

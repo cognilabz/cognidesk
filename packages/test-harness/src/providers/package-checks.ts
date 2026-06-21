@@ -35,7 +35,7 @@ function defaultPackageNameExpectation(manifest: ProviderManifest) {
   const infrastructurePackage = infrastructurePackageNameExpectation(manifest);
   if (infrastructurePackage) return infrastructurePackage;
   if (integrationPackageCategories.has(manifest.category)) {
-    const splitPackageName = `@cognidesk/${packageSegment(manifest.category)}-${packageSegment(manifest.provider)}`;
+    const splitPackageName = `@cognidesk/integration-${packageSegment(manifest.category)}-${packageSegment(manifest.provider)}`;
     return [splitPackageName, "@cognidesk/integrations"];
   }
   const categoryPackageName = `@cognidesk/${packageSegment(manifest.category)}`;

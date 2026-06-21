@@ -20,7 +20,7 @@ export const discordCommunityOperationAliases = [
 export const discordCommunityManifestInput = {
   id: "community.discord",
   name: "Discord Community Support",
-  packageName: "@cognidesk/community-discord",
+  packageName: "@cognidesk/integration-community-discord",
   provider: "discord",
   category: "community",
   trustLevel: "official",
@@ -300,10 +300,10 @@ export const discordCommunityManifestInput = {
   ],
   metadata: {
     integrationName: "Discord Integration",
-    integrationPackageName: "@cognidesk/community-discord",
+    integrationPackageName: "@cognidesk/integration-community-discord",
     integrationEntryPoints: {
-      manifest: "@cognidesk/community-discord/manifest",
-      runtime: "@cognidesk/community-discord/runtime",
+      manifest: "@cognidesk/integration-community-discord/manifest",
+      runtime: "@cognidesk/integration-community-discord/runtime",
     },
     apiBaseUrl: "https://discord.com/api",
     defaultApiVersion: "10",

@@ -1,19 +1,19 @@
 # Provider Integration Packages
 
-Official Provider Integrations are moving to individual packages named `@cognidesk/{category}-{provider}`. Install and register only the providers your application enables.
+Official Provider Integrations are moving to individual packages named `@cognidesk/integration-{category}-{provider}`. Install and register only the providers your application enables.
 
 Examples:
 
 ```bash
-pnpm add @cognidesk/email-gmail @cognidesk/workplace-slack @cognidesk/email-outlook @cognidesk/workplace-teams @cognidesk/voice-openai
+pnpm add @cognidesk/integration-email-gmail @cognidesk/integration-workplace-slack @cognidesk/integration-email-outlook @cognidesk/integration-workplace-teams @cognidesk/integration-voice-openai
 ```
 
 ```typescript
-import { gmailEmailProviderManifest } from "@cognidesk/email-gmail/manifest";
-import { slackWorkplaceProviderManifest } from "@cognidesk/workplace-slack/manifest";
-import { outlookEmailProviderManifest } from "@cognidesk/email-outlook/manifest";
-import { teamsWorkplaceProviderManifest } from "@cognidesk/workplace-teams/manifest";
-import { openAIVoiceProviderManifest } from "@cognidesk/voice-openai/manifest";
+import { gmailEmailProviderManifest } from "@cognidesk/integration-email-gmail/manifest";
+import { slackWorkplaceProviderManifest } from "@cognidesk/integration-workplace-slack/manifest";
+import { outlookEmailProviderManifest } from "@cognidesk/integration-email-outlook/manifest";
+import { teamsWorkplaceProviderManifest } from "@cognidesk/integration-workplace-teams/manifest";
+import { openAIVoiceProviderManifest } from "@cognidesk/integration-voice-openai/manifest";
 ```
 
 The split package work is staged behind #28, first-wave package issues #23-#25, and provider-family trackers #29-#43. Until those packages and generated type references land, this page keeps legacy generated reference links available for maintainers who need to inspect the current workspace state.
@@ -30,20 +30,20 @@ Common examples:
 
 | Provider | Manifest import |
 |----------|-----------------|
-| Gmail | `@cognidesk/email-gmail/manifest` |
-| Outlook | `@cognidesk/email-outlook/manifest` |
-| Slack | `@cognidesk/workplace-slack/manifest` |
-| Teams | `@cognidesk/workplace-teams/manifest` |
-| OpenAI Realtime Voice | `@cognidesk/voice-openai/manifest` |
-| Stripe | `@cognidesk/ecommerce-stripe/manifest` |
-| Zendesk | `@cognidesk/ticketing-zendesk/manifest` |
-| Genesys Cloud | `@cognidesk/contact-center-genesys-cloud/manifest` |
+| Gmail | `@cognidesk/integration-email-gmail/manifest` |
+| Outlook | `@cognidesk/integration-email-outlook/manifest` |
+| Slack | `@cognidesk/integration-workplace-slack/manifest` |
+| Teams | `@cognidesk/integration-workplace-teams/manifest` |
+| OpenAI Realtime Voice | `@cognidesk/integration-voice-openai/manifest` |
+| Stripe | `@cognidesk/integration-ecommerce-stripe/manifest` |
+| Zendesk | `@cognidesk/integration-ticketing-zendesk/manifest` |
+| Genesys Cloud | `@cognidesk/integration-contact-center-genesys-cloud/manifest` |
 
 ## Voice adapter boundary
 
-`@cognidesk/voice-openai` is a Provider Integration because OpenAI Realtime can be the voice entry channel and the LLM-backed realtime session.
+`@cognidesk/integration-voice-openai` is a Provider Integration because OpenAI Realtime can be the voice entry channel and the LLM-backed realtime session.
 
-`@cognidesk/voice-elevenlabs`, `@cognidesk/voice-azure-speech`, `@cognidesk/voice-aws-speech`, `@cognidesk/voice-google-speech`, and `@cognidesk/voice-deepgram` can also create Speech Provider-backed `VoiceProvider`s. In those sessions, the speech provider performs STT/TTS while the Cognidesk Agent Model Set remains the background LLM.
+`@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-azure-speech`, `@cognidesk/integration-voice-aws-speech`, `@cognidesk/integration-voice-google-speech`, and `@cognidesk/integration-voice-deepgram` can also create Speech Provider-backed `VoiceProvider`s. In those sessions, the speech provider performs STT/TTS while the Cognidesk Agent Model Set remains the background LLM.
 
 `@cognidesk/voice-websocket` remains separate browser transport infrastructure that provider adapters can use.
 
