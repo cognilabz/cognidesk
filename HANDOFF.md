@@ -128,6 +128,16 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation failed through both the GitHub connector and `gh pr create` with permission errors (`Resource not accessible by integration` and `GraphQL: must be a collaborator`). Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-29-email-sdk-packages`, and title `[Integrations] Split remaining email providers into SDK packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/29#issuecomment-4761949585.
 
+#30 ecommerce provider package lane:
+
+- #30 is clean and pushed at `7aa3780 feat(integrations): migrate ecommerce provider packages` on branch `codex/integrations-30-ecommerce-sdk`.
+- The branch adds `@cognidesk/ecommerce-stripe` and `@cognidesk/ecommerce-shopify` under `integrations/ecommerce/*`.
+- Registry checks on 2026-06-21 showed `stripe@22.2.2` and `@shopify/admin-api-client@1.1.2` as current `latest` packages, with upstream repositories under Stripe and Shopify.
+- The old aggregate Stripe generated full-API clone, Shopify Admin GraphQL inventory, ecommerce aggregate exports/tests, and obsolete generator scripts were removed.
+- Verification passed: SDK registry checks, both ecommerce package tests, `pnpm providers:architecture`, split package builds, `pnpm provider-packages:check`, catalog data/docs generation, old-import codemod check, aggregate build after prerequisites, package smoke/size checks, targeted aggregate provider tests, and `git diff --check`.
+- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-30-ecommerce-sdk`, and title `[Integrations] Migrate Stripe and Shopify to SDK packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/30#issuecomment-4761968360.
+
 ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
@@ -140,8 +150,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29 as reference package patterns for the remaining #30-#43 provider-family migrations.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30 as reference package patterns for the remaining #31-#43 provider-family migrations.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
