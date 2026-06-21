@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { createFrontTicketingIntegration } from "../src/index.js";
 import { frontTicketingProviderManifest as manifestOnly } from "../src/manifest.js";
 
-describe("@cognidesk/ticketing-front", () => {
+describe("@cognidesk/integration-ticketing-front", () => {
   it("exports a manifest-only scoped Front decision", () => {
-    expect(manifestOnly.packageName).toBe("@cognidesk/ticketing-front");
+    expect(manifestOnly.packageName).toBe("@cognidesk/integration-ticketing-front");
     expect(manifestOnly.coverage.scope).toBe("provider-api-subset");
     expect(manifestOnly.metadata?.sdkDecision).toMatchObject({ verdict: "not-adopted" });
   });

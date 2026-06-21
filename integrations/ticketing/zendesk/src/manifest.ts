@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage, type ProviderManifestInput } from "@c
 export const zendeskTicketingProviderManifestInput = {
   id: "ticketing.zendesk",
   name: "Zendesk Support",
-  packageName: "@cognidesk/ticketing-zendesk",
+  packageName: "@cognidesk/integration-ticketing-zendesk",
   provider: "zendesk",
   category: "ticketing",
   trustLevel: "official",

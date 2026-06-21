@@ -11,7 +11,7 @@ This file records how the external plan is represented in the repo and active Gi
 | Plan requirement | Repo evidence | State | Owner |
 | --- | --- | --- | --- |
 | Move from one large `@cognidesk/integrations` runtime package to per-provider/category packages. | `docs/adr/0085-split-provider-integrations-into-sdk-backed-packages.md`, `pnpm-workspace.yaml`, `website/guides/provider-package-migration.md` | In progress | #19, #20, #23-#25, #29-#43 |
-| Use package names that preserve category, such as `@cognidesk/email-gmail` and `@cognidesk/voice-twilio`. | ADR-0085, `docs/provider-migration-matrix.md`, generated catalog docs | In progress | #23-#25, #29-#43 |
+| Use package names that preserve category, such as `@cognidesk/integration-email-gmail` and `@cognidesk/integration-voice-twilio`. | ADR-0085, `docs/provider-migration-matrix.md`, generated catalog docs | In progress | #23-#25, #29-#43 |
 | Keep a small provider-neutral integration kit. | `packages/integration-kit`, `pnpm providers:architecture` | Foundation present | #21 |
 | Keep provider manifests, coverage, category profiles, readiness, and capability metadata. | `packages/integration-kit`, `packages/integration-catalog`, `packages/integrations/src/provider-catalog`, provider conformance tests | Foundation present | #21, #22, #28 |
 | Make catalog metadata safe to load without importing provider SDK runtime code. | `packages/integration-catalog`, generated runtime-loader data, architecture guardrails | Foundation present | #22, #28 |

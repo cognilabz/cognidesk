@@ -774,10 +774,10 @@ importers:
   packages/voice-openai:
     dependencies:
       '@cognidesk/core':
-        specifier: 0.0.2
+        specifier: workspace:*
         version: link:../core
       '@cognidesk/voice-websocket':
-        specifier: 0.0.2
+        specifier: workspace:*
         version: link:../voice-websocket
       openai:
         specifier: ^6.1.0

@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage, type ProviderManifestInput } from "@c
 export const freshdeskTicketingProviderManifestInput = {
   id: "ticketing.freshdesk",
   name: "Freshdesk Ticketing",
-  packageName: "@cognidesk/ticketing-freshdesk",
+  packageName: "@cognidesk/integration-ticketing-freshdesk",
   provider: "freshdesk",
   category: "ticketing",
   trustLevel: "official",

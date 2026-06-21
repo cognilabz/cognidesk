@@ -6,9 +6,9 @@ import {
 } from "../src/index.js";
 import { freshdeskTicketingProviderManifest as manifestOnly } from "../src/manifest.js";
 
-describe("@cognidesk/ticketing-freshdesk", () => {
+describe("@cognidesk/integration-ticketing-freshdesk", () => {
   it("exports a manifest-only direct slice decision", () => {
-    expect(manifestOnly.packageName).toBe("@cognidesk/ticketing-freshdesk");
+    expect(manifestOnly.packageName).toBe("@cognidesk/integration-ticketing-freshdesk");
     expect(manifestOnly.metadata?.sdkDecision).toMatchObject({ verdict: "not-adopted" });
   });
 

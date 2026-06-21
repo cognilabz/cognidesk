@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { createHelpScoutTicketingIntegration } from "../src/index.js";
 import { helpScoutTicketingProviderManifest as manifestOnly } from "../src/manifest.js";
 
-describe("@cognidesk/ticketing-help-scout", () => {
+describe("@cognidesk/integration-ticketing-help-scout", () => {
   it("exports a manifest-only Inbox API decision", () => {
-    expect(manifestOnly.packageName).toBe("@cognidesk/ticketing-help-scout");
+    expect(manifestOnly.packageName).toBe("@cognidesk/integration-ticketing-help-scout");
     expect(manifestOnly.coverage.scope).toBe("support-workflow-subset");
     expect(manifestOnly.metadata?.sdkDecision).toMatchObject({ verdict: "not-adopted" });
   });

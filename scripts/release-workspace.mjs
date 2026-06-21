@@ -19,6 +19,7 @@ export const workspacePatterns = [
   ...publishableWorkspacePatterns,
   ...appWorkspacePatterns,
 ];
+const providerPackagePrefix = "@cognidesk/integration-";
 
 export function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -35,6 +36,7 @@ export function allWorkspacePackages(root = process.cwd()) {
 export function packageWorkspaces(root = process.cwd()) {
   return discoverWorkspacePackages(root, publishableWorkspacePatterns)
     .filter((pkg) => isPublishablePackage(pkg.packageJson))
+    .map(assertWorkspacePackageName)
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -47,6 +49,7 @@ export function platformPackageWorkspaces(root = process.cwd()) {
 export function providerPackageWorkspaces(root = process.cwd()) {
   return discoverWorkspacePackages(root, providerWorkspacePatterns)
     .filter((pkg) => isPublishablePackage(pkg.packageJson))
+    .map(assertProviderPackageName)
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -128,6 +131,25 @@ export function isPlatformPackage(pkg) {
 export function isProviderPackage(pkg) {
   return pkg.dir.startsWith("integrations/")
     && pkg.dir.split("/").length === 3;
+}
+
+export function expectedProviderPackageName(pkg) {
+  if (!isProviderPackage(pkg)) return undefined;
+  const [, category, provider] = pkg.dir.split("/");
+  return `${providerPackagePrefix}${category}-${provider}`;
+}
+
+export function assertWorkspacePackageName(pkg) {
+  if (isProviderPackage(pkg)) return assertProviderPackageName(pkg);
+  return pkg;
+}
+
+export function assertProviderPackageName(pkg) {
+  const expected = expectedProviderPackageName(pkg);
+  if (expected && pkg.name !== expected) {
+    throw new Error(`${pkg.dir} must be named ${expected}, not ${pkg.name}`);
+  }
+  return pkg;
 }
 
 export function isIndependentProviderPackage(packageJson) {

@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/ticketing-front",
+  "name": "@cognidesk/integration-ticketing-front",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",
@@ -53,7 +53,10 @@
       "declarationFileBytes": 1048576
     }
   },
-  "files": ["dist", "!dist/**/*.map"],
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/cognilabz/cognidesk",

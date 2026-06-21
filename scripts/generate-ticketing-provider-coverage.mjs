@@ -40,7 +40,7 @@ async function generateFront() {
   await writeOperationArtifact({
     provider: "front",
     providerPascal: "Front",
-    packageName: "@cognidesk/ticketing-front",
+    packageName: "@cognidesk/integration-ticketing-front",
     artifactStem: "front-core-and-channel-api",
     sourceKind: "openapi-bundle",
     officialSources: [
@@ -113,7 +113,7 @@ async function generateGorgias() {
   await writeOperationArtifact({
     provider: "gorgias",
     providerPascal: "Gorgias",
-    packageName: "@cognidesk/ticketing-gorgias",
+    packageName: "@cognidesk/integration-ticketing-gorgias",
     artifactStem: "gorgias-public-api",
     sourceKind: "readme-openapi-pages",
     officialSources: [
@@ -168,7 +168,7 @@ async function generateKustomer() {
   await writeOperationArtifact({
     provider: "kustomer",
     providerPascal: "Kustomer",
-    packageName: "@cognidesk/ticketing-kustomer",
+    packageName: "@cognidesk/integration-ticketing-kustomer",
     artifactStem: "kustomer-public-api",
     sourceKind: "readme-openapi-registries",
     officialSources: [

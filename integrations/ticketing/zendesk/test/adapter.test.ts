@@ -6,9 +6,9 @@ import {
 } from "../src/index.js";
 import { zendeskTicketingProviderManifest as manifestOnly } from "../src/manifest.js";
 
-describe("@cognidesk/ticketing-zendesk", () => {
+describe("@cognidesk/integration-ticketing-zendesk", () => {
   it("exports a manifest-only support slice decision", () => {
-    expect(manifestOnly.packageName).toBe("@cognidesk/ticketing-zendesk");
+    expect(manifestOnly.packageName).toBe("@cognidesk/integration-ticketing-zendesk");
     expect(manifestOnly.coverage.scope).toBe("provider-api-subset");
     expect(manifestOnly.metadata?.sdkDecision).toMatchObject({ verdict: "not-adopted" });
     expect(manifestOnly.metadata?.implementationStrategy).toBe("direct-http-support-slice");

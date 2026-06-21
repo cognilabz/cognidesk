@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { createKustomerTicketingIntegration } from "../src/index.js";
 import { kustomerTicketingProviderManifest as manifestOnly } from "../src/manifest.js";
 
-describe("@cognidesk/ticketing-kustomer", () => {
+describe("@cognidesk/integration-ticketing-kustomer", () => {
   it("exports a manifest-only scoped Kustomer decision", () => {
-    expect(manifestOnly.packageName).toBe("@cognidesk/ticketing-kustomer");
+    expect(manifestOnly.packageName).toBe("@cognidesk/integration-ticketing-kustomer");
     expect(manifestOnly.metadata?.sdkDecision).toMatchObject({ verdict: "not-adopted" });
   });
 

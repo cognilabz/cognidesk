@@ -54,6 +54,6 @@ Cognidesk ships adapters for common transports as separate packages:
 
 - `@cognidesk/http` — REST POST + SSE streaming
 - `@cognidesk/voice-websocket` — Voice browser protocol
-- `@cognidesk/voice-openai` — OpenAI Realtime voice entry channel
+- `@cognidesk/integration-voice-openai` — OpenAI Realtime voice entry channel
 
 These are optional conveniences — you can always build your own adapter against the core API.

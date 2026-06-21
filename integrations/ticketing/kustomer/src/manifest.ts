@@ -3,7 +3,7 @@ import { defineIntegrationProviderPackage, type ProviderManifestInput } from "@c
 export const kustomerTicketingProviderManifestInput = {
   id: "ticketing.kustomer",
   name: "Kustomer",
-  packageName: "@cognidesk/ticketing-kustomer",
+  packageName: "@cognidesk/integration-ticketing-kustomer",
   provider: "kustomer",
   category: "ticketing",
   trustLevel: "official",

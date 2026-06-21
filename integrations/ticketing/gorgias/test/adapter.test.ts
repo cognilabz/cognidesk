@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { createGorgiasTicketingIntegration } from "../src/index.js";
 import { gorgiasTicketingProviderManifest as manifestOnly } from "../src/manifest.js";
 
-describe("@cognidesk/ticketing-gorgias", () => {
+describe("@cognidesk/integration-ticketing-gorgias", () => {
   it("exports a manifest-only scoped Gorgias decision", () => {
-    expect(manifestOnly.packageName).toBe("@cognidesk/ticketing-gorgias");
+    expect(manifestOnly.packageName).toBe("@cognidesk/integration-ticketing-gorgias");
     expect(manifestOnly.metadata?.sdkDecision).toMatchObject({ verdict: "not-adopted" });
   });
 
