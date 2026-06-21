@@ -18,7 +18,6 @@ export interface NiceCxoneClientOptions {
 
 export interface ConfiguredHandoffInput {
   payload?: unknown;
-  path?: string | undefined;
   query?: Record<string, ProviderQueryValue> | undefined;
   idempotencyKey?: string | undefined;
 }
@@ -72,7 +71,7 @@ export function createNiceCxoneClient(options: NiceCxoneClientOptions): NiceCxon
   };
   const client: NiceCxoneClient = {
     createHandoff(input) {
-      const path = input.path ?? options.defaultHandoffPath;
+      const path = options.defaultHandoffPath;
       if (!path) throw new Error("NICE CXone handoff path must be configured by the host app.");
       return request("POST", path, { body: input.payload ?? {}, query: input.query, idempotencyKey: input.idempotencyKey });
     },

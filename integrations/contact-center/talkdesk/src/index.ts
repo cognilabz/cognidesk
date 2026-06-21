@@ -18,7 +18,6 @@ export interface TalkdeskClientOptions {
 
 export interface ConfiguredHandoffInput {
   payload?: unknown;
-  path?: string | undefined;
   query?: Record<string, ProviderQueryValue> | undefined;
   idempotencyKey?: string | undefined;
 }
@@ -70,7 +69,7 @@ export function createTalkdeskClient(options: TalkdeskClientOptions): TalkdeskCl
   };
   const client: TalkdeskClient = {
     createHandoff(input) {
-      const path = input.path ?? options.defaultHandoffPath;
+      const path = options.defaultHandoffPath;
       if (!path) throw new Error("Talkdesk handoff path must be configured by the host app.");
       return request("POST", path, { body: input.payload ?? {}, query: input.query, idempotencyKey: input.idempotencyKey });
     },

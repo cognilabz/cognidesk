@@ -18,7 +18,6 @@ export interface GenesysEngageClientOptions {
 
 export interface ConfiguredHandoffInput {
   payload?: unknown;
-  path?: string | undefined;
   query?: Record<string, ProviderQueryValue> | undefined;
   idempotencyKey?: string | undefined;
 }
@@ -71,7 +70,7 @@ export function createGenesysEngageClient(options: GenesysEngageClientOptions): 
   };
   const client: GenesysEngageClient = {
     createHandoff(input) {
-      const path = input.path ?? options.defaultHandoffPath;
+      const path = options.defaultHandoffPath;
       if (!path) throw new Error("Genesys Engage / GMS handoff path must be configured by the host app.");
       return request("POST", path, { body: input.payload ?? {}, query: input.query, idempotencyKey: input.idempotencyKey });
     },

@@ -12,4 +12,27 @@ describe("@cognidesk/contact-center-aircall", () => {
     const integration = mod.createAircallIntegration({ apiBaseUrl: "https://example.invalid", defaultHandoffPath: "/handoff", readinessPath: "/ready", fetch: async () => new Response("{}") });
     expect(integration.bindingReport).toMatchObject({ missingHandlerAliases: [], extraHandlerAliases: [], invalidExtensionOperationAliases: [] });
   });
+
+  it("uses only the configured handoff path", async () => {
+    const mod = await import("../src/index.js");
+    const requests: string[] = [];
+    const client = mod.createAircallClient({
+      apiBaseUrl: "https://example.invalid",
+      defaultHandoffPath: "/configured/handoff",
+      fetch: async (url, init) => {
+        requests.push(String(url));
+        expect(init?.method).toBe("POST");
+        return new Response("{}");
+      },
+    });
+
+    await client.createHandoff({
+      payload: { conversationId: "conv_123" },
+      query: { source: "test" },
+      // @ts-expect-error createHandoff intentionally rejects per-call endpoint paths.
+      path: "/provider/native-transfer",
+    });
+
+    expect(requests).toEqual(["https://example.invalid/configured/handoff?source=test"]);
+  });
 });

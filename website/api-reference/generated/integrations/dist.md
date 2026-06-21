@@ -953,32 +953,11 @@ const integrationProviderReferences: readonly [{
   provider: "forum";
 }, {
   category: "contactCenter";
-  id: "contactCenter.8x8";
-  importPath: "@cognidesk/integrations/contact-center/8x8";
-  manifestExport: "eightByEightContactCenterProviderManifest";
-  modulePath: "./contact-center/8x8/index.js";
-  provider: "8x8";
-}, {
-  category: "contactCenter";
-  id: "contactCenter.aircall";
-  importPath: "@cognidesk/integrations/contact-center/aircall";
-  manifestExport: "aircallContactCenterProviderManifest";
-  modulePath: "./contact-center/aircall/index.js";
-  provider: "aircall";
-}, {
-  category: "contactCenter";
   id: "contactCenter.amazon-connect";
   importPath: "@cognidesk/integrations/contact-center/amazon-connect";
   manifestExport: "amazonConnectContactCenterProviderManifest";
   modulePath: "./contact-center/amazon-connect/index.js";
   provider: "amazon-connect";
-}, {
-  category: "contactCenter";
-  id: "contactCenter.five9";
-  importPath: "@cognidesk/integrations/contact-center/five9";
-  manifestExport: "five9ContactCenterProviderManifest";
-  modulePath: "./contact-center/five9/index.js";
-  provider: "five9";
 }, {
   category: "contactCenter";
   id: "contactCenter.genesys-cloud";
@@ -988,53 +967,11 @@ const integrationProviderReferences: readonly [{
   provider: "genesys-cloud";
 }, {
   category: "contactCenter";
-  id: "contactCenter.genesys-engage";
-  importPath: "@cognidesk/integrations/contact-center/genesys-engage";
-  manifestExport: "genesysEngageContactCenterProviderManifest";
-  modulePath: "./contact-center/genesys-engage/index.js";
-  provider: "genesys-engage";
-}, {
-  category: "contactCenter";
-  id: "contactCenter.genesys-pureconnect";
-  importPath: "@cognidesk/integrations/contact-center/genesys-pureconnect";
-  manifestExport: "genesysPureConnectContactCenterProviderManifest";
-  modulePath: "./contact-center/genesys-pureconnect/index.js";
-  provider: "genesys-pureconnect";
-}, {
-  category: "contactCenter";
-  id: "contactCenter.nextiva";
-  importPath: "@cognidesk/integrations/contact-center/nextiva";
-  manifestExport: "nextivaContactCenterProviderManifest";
-  modulePath: "./contact-center/nextiva/index.js";
-  provider: "nextiva";
-}, {
-  category: "contactCenter";
-  id: "contactCenter.nice-cxone";
-  importPath: "@cognidesk/integrations/contact-center/nice-cxone";
-  manifestExport: "niceCxoneContactCenterProviderManifest";
-  modulePath: "./contact-center/nice-cxone/index.js";
-  provider: "nice-cxone";
-}, {
-  category: "contactCenter";
   id: "contactCenter.ringcentral";
   importPath: "@cognidesk/integrations/contact-center/ringcentral";
   manifestExport: "ringCentralContactCenterProviderManifest";
   modulePath: "./contact-center/ringcentral/index.js";
   provider: "ringcentral";
-}, {
-  category: "contactCenter";
-  id: "contactCenter.talkdesk";
-  importPath: "@cognidesk/integrations/contact-center/talkdesk";
-  manifestExport: "talkdeskContactCenterProviderManifest";
-  modulePath: "./contact-center/talkdesk/index.js";
-  provider: "talkdesk";
-}, {
-  category: "contactCenter";
-  id: "contactCenter.zoom";
-  importPath: "@cognidesk/integrations/contact-center/zoom";
-  manifestExport: "zoomContactCenterProviderManifest";
-  modulePath: "./contact-center/zoom/index.js";
-  provider: "zoom";
 }, {
   category: "ecommerce";
   id: "ecommerce.shopify";
