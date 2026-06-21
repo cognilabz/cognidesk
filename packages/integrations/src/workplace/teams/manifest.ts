@@ -25,7 +25,7 @@ export const teamsWorkplaceOperationAliases = {
 export const teamsWorkplaceManifestInput = {
   id: "workplace.teams",
   name: "Microsoft Teams",
-  packageName: "@cognidesk/workplace-teams",
+  packageName: "@cognidesk/integration-workplace-teams",
   provider: "teams",
   category: "workplace",
   trustLevel: "official",
@@ -318,7 +318,7 @@ export const teamsWorkplaceManifestInput = {
       strategy: "official-sdk",
       sdkPackage: "@microsoft/microsoft-graph-client",
       rawClientEscapeHatch: "rawClient",
-      manifestOnlyExport: "@cognidesk/workplace-teams/manifest",
+      manifestOnlyExport: "@cognidesk/integration-workplace-teams/manifest",
     },
     channelCoverage: {
       channelMessages: "sdk-owned-send-list-get-update",

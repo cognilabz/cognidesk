@@ -6393,11 +6393,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.outlook",
     "category": "email",
     "provider": "outlook",
-    "importPath": "@cognidesk/email-outlook/manifest",
+    "importPath": "@cognidesk/integration-email-outlook/manifest",
     "modulePath": "integrations/email/outlook/src/manifest.js",
     "manifestExport": "outlookEmailManifestInput",
     "name": "Microsoft Outlook",
-    "packageName": "@cognidesk/email-outlook",
+    "packageName": "@cognidesk/integration-email-outlook",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -6586,7 +6586,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "official-sdk",
       "sdkPackage": "@microsoft/microsoft-graph-client",
-      "runtimePackage": "@cognidesk/email-outlook",
+      "runtimePackage": "@cognidesk/integration-email-outlook",
       "providerModule": "integrations/email/outlook/src/manifest.js",
       "manifestExport": "outlookEmailManifestInput",
       "manifestSource": "integrations/email/outlook/src/manifest.ts",
@@ -6656,7 +6656,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "official-sdk",
         "sdkPackage": "@microsoft/microsoft-graph-client",
         "rawClientEscapeHatch": "rawClient",
-        "manifestOnlyExport": "@cognidesk/email-outlook/manifest"
+        "manifestOnlyExport": "@cognidesk/integration-email-outlook/manifest"
       },
       "channelCoverage": {
         "messages": "sdk-owned-list-get-delta-update",
@@ -21015,11 +21015,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "workplace.teams",
     "category": "workplace",
     "provider": "teams",
-    "importPath": "@cognidesk/workplace-teams/manifest",
+    "importPath": "@cognidesk/integration-workplace-teams/manifest",
     "modulePath": "integrations/workplace/teams/src/manifest.js",
     "manifestExport": "teamsWorkplaceManifestInput",
     "name": "Microsoft Teams",
-    "packageName": "@cognidesk/workplace-teams",
+    "packageName": "@cognidesk/integration-workplace-teams",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -21250,7 +21250,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "official-sdk",
       "sdkPackage": "@microsoft/microsoft-graph-client",
-      "runtimePackage": "@cognidesk/workplace-teams",
+      "runtimePackage": "@cognidesk/integration-workplace-teams",
       "providerModule": "integrations/workplace/teams/src/manifest.js",
       "manifestExport": "teamsWorkplaceManifestInput",
       "manifestSource": "integrations/workplace/teams/src/manifest.ts",
@@ -21336,7 +21336,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "official-sdk",
         "sdkPackage": "@microsoft/microsoft-graph-client",
         "rawClientEscapeHatch": "rawClient",
-        "manifestOnlyExport": "@cognidesk/workplace-teams/manifest"
+        "manifestOnlyExport": "@cognidesk/integration-workplace-teams/manifest"
       },
       "channelCoverage": {
         "channelMessages": "sdk-owned-send-list-get-update",

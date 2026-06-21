@@ -53,6 +53,42 @@ test("platform version train ignores independent provider versions", async () =>
   });
 });
 
+test("rejects provider workspaces without integration-prefixed category package names", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "cognidesk-release-workspace-"));
+  try {
+    await writePackage(root, "integrations/email/gmail", {
+      name: ["@cognidesk", "email-gmail"].join("/"),
+      version: "0.4.0",
+      publishConfig: { access: "public" },
+    });
+
+    assert.throws(
+      () => providerPackageWorkspaces(root),
+      /integrations\/email\/gmail must be named @cognidesk\/integration-email-gmail/,
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("rejects provider package names that do not match their workspace path", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "cognidesk-release-workspace-"));
+  try {
+    await writePackage(root, "integrations/email/gmail", {
+      name: "@cognidesk/integration-email-outlook",
+      version: "0.4.0",
+      publishConfig: { access: "public" },
+    });
+
+    assert.throws(
+      () => packageWorkspaces(root),
+      /integrations\/email\/gmail must be named @cognidesk\/integration-email-gmail/,
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
 test("platform release train updates only platform package dependency links", async () => {
   await withFixtureWorkspace(async (root) => {
     const platformPackages = platformPackageWorkspaces(root);

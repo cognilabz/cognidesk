@@ -10,7 +10,7 @@ import {
   vi,
 } from "./helpers.js";
 
-describe("@cognidesk/email-outlook client", () => {
+describe("@cognidesk/integration-email-outlook client", () => {
   it("creates draft messages through the official Microsoft Graph client", async () => {
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({

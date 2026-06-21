@@ -15,7 +15,7 @@ export function registerTeamsManifestTests() {
   it("exports an official split-package provider manifest for Microsoft Teams workplace support", () => {
     expect(teamsWorkplaceProviderManifest).toMatchObject({
       id: "workplace.teams",
-      packageName: "@cognidesk/workplace-teams",
+      packageName: "@cognidesk/integration-workplace-teams",
       category: "workplace",
       provider: "teams",
       trustLevel: "official",
@@ -27,7 +27,7 @@ export function registerTeamsManifestTests() {
           strategy: "official-sdk",
           sdkPackage: "@microsoft/microsoft-graph-client",
           rawClientEscapeHatch: "rawClient",
-          manifestOnlyExport: "@cognidesk/workplace-teams/manifest",
+          manifestOnlyExport: "@cognidesk/integration-workplace-teams/manifest",
         },
       },
     });

@@ -22,7 +22,7 @@ export const outlookEmailOperationAliases = {
 export const outlookEmailManifestInput = {
   id: "email.outlook",
   name: "Microsoft Outlook",
-  packageName: "@cognidesk/email-outlook",
+  packageName: "@cognidesk/integration-email-outlook",
   provider: "outlook",
   category: "email",
   trustLevel: "official",
@@ -241,7 +241,7 @@ export const outlookEmailManifestInput = {
       strategy: "official-sdk",
       sdkPackage: "@microsoft/microsoft-graph-client",
       rawClientEscapeHatch: "rawClient",
-      manifestOnlyExport: "@cognidesk/email-outlook/manifest",
+      manifestOnlyExport: "@cognidesk/integration-email-outlook/manifest",
     },
     channelCoverage: {
       messages: "sdk-owned-list-get-delta-update",

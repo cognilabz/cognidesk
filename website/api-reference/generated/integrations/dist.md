@@ -596,7 +596,7 @@ const integrationProviderReferences: readonly [{
 }, {
   category: "email";
   id: "email.outlook";
-  importPath: "@cognidesk/email-outlook/manifest";
+  importPath: "@cognidesk/integration-email-outlook/manifest";
   manifestExport: "outlookEmailProviderManifest";
   modulePath: "./email/outlook/manifest.js";
   provider: "outlook";
@@ -890,7 +890,7 @@ const integrationProviderReferences: readonly [{
 }, {
   category: "workplace";
   id: "workplace.teams";
-  importPath: "@cognidesk/workplace-teams/manifest";
+  importPath: "@cognidesk/integration-workplace-teams/manifest";
   manifestExport: "teamsWorkplaceProviderManifest";
   modulePath: "./workplace/teams/manifest.js";
   provider: "teams";

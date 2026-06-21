@@ -13,7 +13,7 @@ export const workplaceProviderReferences = [
     "id": "workplace.teams",
     "category": "workplace",
     "provider": "teams",
-    "importPath": "@cognidesk/workplace-teams/manifest",
+    "importPath": "@cognidesk/integration-workplace-teams/manifest",
     "modulePath": "./workplace/teams/manifest.js",
     "manifestExport": "teamsWorkplaceProviderManifest"
   }

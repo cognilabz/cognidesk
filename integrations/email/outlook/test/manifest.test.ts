@@ -11,11 +11,11 @@ import {
   outlookEmailProviderManifest,
 } from "./helpers.js";
 
-describe("@cognidesk/email-outlook manifest", () => {
+describe("@cognidesk/integration-email-outlook manifest", () => {
   it("exports an official split-package provider manifest for Outlook email", () => {
     expect(outlookEmailProviderManifest).toMatchObject({
       id: "email.outlook",
-      packageName: "@cognidesk/email-outlook",
+      packageName: "@cognidesk/integration-email-outlook",
       category: "email",
       provider: "outlook",
       trustLevel: "official",
@@ -27,7 +27,7 @@ describe("@cognidesk/email-outlook manifest", () => {
           strategy: "official-sdk",
           sdkPackage: "@microsoft/microsoft-graph-client",
           rawClientEscapeHatch: "rawClient",
-          manifestOnlyExport: "@cognidesk/email-outlook/manifest",
+          manifestOnlyExport: "@cognidesk/integration-email-outlook/manifest",
         },
       },
     });

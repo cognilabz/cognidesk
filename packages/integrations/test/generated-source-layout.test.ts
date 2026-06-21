@@ -83,6 +83,7 @@ describe("generated provider source layout", () => {
 
     expect(Object.keys(manifest.dependencies ?? {}).sort()).toEqual([
       "@cognidesk/core",
+      "@cognidesk/integration-kit",
       "@cognidesk/voice-websocket",
       "openai",
     ]);
