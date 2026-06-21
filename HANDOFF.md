@@ -101,7 +101,8 @@ First-wave provider branch audit after `22fdbde`:
 - #23 `codex/integrations-23-gmail-sdk-package`: `@cognidesk/email-gmail` exists under `integrations/email/gmail` using `@googleapis/gmail`; package tests, architecture, conformance, catalog data/docs, codemod check, legacy aggregate build, and package smoke/size budgets passed.
 - #24 `codex/integrations-24-microsoft-graph-packages`: `@cognidesk/email-outlook` and `@cognidesk/workplace-teams` exist using `@microsoft/microsoft-graph-client`; Outlook/Teams tests, architecture, conformance, catalog data/docs, codemod check, legacy aggregate build, and package smoke/size budgets passed.
 - #25 `codex/integrations-25-chat-provider-packages`: `@cognidesk/workplace-slack` uses `@slack/web-api`; `@cognidesk/community-discord` uses `discord.js`; Slack/Discord tests, architecture, conformance, catalog data/docs, codemod check, legacy aggregate build, and package smoke/size budgets passed after fixing `packages/integrations` workplace build output to `dist/workplace/teams`.
-- #25 follow-up: `packages/integrations/package.json` is staged in that worktree with the build-output fix; the provider branch owner still needs to review, stage generated/docs changes, commit, push, and open review.
+- #25 follow-up after checking the latest `origin/main` merge `940d98b [codex] Fix flight demo Discord and voice handoff (#18)`: the branch is now pushed at `96a40ac feat(integrations): fold discord gateway into provider package`. The new Discord Gateway flight-demo package from main was folded into `integrations/community/discord` instead of preserving a second `@cognidesk/integration-discord` package. Keep the ChatGPT/ADR naming rule: npm package `@cognidesk/community-discord`; visible integration/catalog names such as `Discord Integration`, `createDiscordIntegration`, and `discordIntegrationManifest`.
+- #25 follow-up verification passed: browser recheck of the ChatGPT plan naming examples, `pnpm --filter @cognidesk/community-discord test`, catalog data/docs generation, `node --check scripts/generate-provider-integration-catalog.mjs`, architecture/conformance checks, scoped old-import codemod check, Flight Demo typecheck/test, release package smoke/size budget, and `git diff --check`/`git diff --cached --check`. A full old-import codemod over `apps/flight-demo` still flags voice imports from `@cognidesk/integrations/voice/*`; leave those for #40/#41.
 
 Provider inventory ownership audit after `82d5e10`:
 
@@ -115,7 +116,7 @@ First-wave PR handoff after branch owners committed:
 
 - #23 is clean and pushed at `dd73d3e feat(integrations): migrate gmail provider package`.
 - #24 is clean and pushed at `329d2d4 feat(integrations): split microsoft graph providers`.
-- #25 is clean and pushed at `11a4164 feat(integrations): split slack and discord providers`.
+- #25 is clean and pushed at `96a40ac feat(integrations): fold discord gateway into provider package` after the original `11a4164 feat(integrations): split slack and discord providers`.
 - Draft PR creation from this thread failed with GitHub `createPullRequest` permission `must be a collaborator`. Open the PRs manually with base `codex/integrations-foundation-stack` and heads `codex/integrations-23-gmail-sdk-package`, `codex/integrations-24-microsoft-graph-packages`, and `codex/integrations-25-chat-provider-packages`.
 - PR handoff comments were posted on #23, #24, and #25 with exact base/head/title instructions.
 
