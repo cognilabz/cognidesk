@@ -66,4 +66,25 @@ describe("@cognidesk/integration-contact-center-amazon-connect", () => {
       },
     });
   });
+
+  it("matches supported contact-center category aliases with normalized operation objects", () => {
+    expect(amazonConnectContactCenterManifest.metadata?.categoryProfile).toMatchObject({
+      id: "contact-center",
+      matchedOperations: expect.arrayContaining([
+        "contactCenter.handoff.request",
+        "contactCenter.task.create",
+        "contactCenter.contact.start",
+        "contactCenter.transfer.request",
+        "contactCenter.transcript.read",
+      ]),
+    });
+    expect(amazonConnectContactCenterManifest.capabilities.flatMap((capability) =>
+      capability.providerObjects?.map((providerObject) => providerObject.kind) ?? []
+    )).toEqual(expect.arrayContaining([
+      "amazonConnectTaskContact",
+      "amazonConnectChatContact",
+      "amazonConnectContactTransfer",
+      "amazonConnectChatTranscript",
+    ]));
+  });
 });

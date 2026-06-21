@@ -72,4 +72,24 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
       },
     });
   });
+
+  it("matches supported contact-center category aliases with normalized operation objects", () => {
+    expect(genesysCloudContactCenterManifest.metadata?.categoryProfile).toMatchObject({
+      id: "contact-center",
+      matchedOperations: expect.arrayContaining([
+        "contactCenter.handoff.request",
+        "contactCenter.callback.schedule",
+        "contactCenter.contact.read",
+        "contactCenter.queue.list",
+      ]),
+    });
+    expect(genesysCloudContactCenterManifest.capabilities.flatMap((capability) =>
+      capability.providerObjects?.map((providerObject) => providerObject.kind) ?? []
+    )).toEqual(expect.arrayContaining([
+      "genesysCloudCallback",
+      "genesysCloudOpenMessage",
+      "genesysCloudConversation",
+      "genesysCloudQueue",
+    ]));
+  });
 });

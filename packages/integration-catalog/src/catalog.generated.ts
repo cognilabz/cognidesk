@@ -711,7 +711,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "adapterCoverage": {
       "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": null
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.transfer.request",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.task.create",
+          "contactCenter.transcript.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
     },
     "implementation": {
       "strategy": "official-sdk",
@@ -788,6 +822,42 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "taskEmailTransfer": "sdk-normalized",
         "rawAwsSdkClients": "escape-hatch",
         "connectHealth": "sdk-gap"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.transfer.request",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.task.create",
+          "contactCenter.transcript.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
       }
     }
   },
@@ -921,7 +991,43 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "adapterCoverage": {
       "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": null
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.handoff.request",
+          "contactCenter.callback.schedule"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": [
+          "genesys-cloud.openMessaging.message.create"
+        ]
+      }
     },
     "implementation": {
       "strategy": "official-sdk",
@@ -1014,6 +1120,44 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "queues": "sdk-normalized",
         "rawGenesysCloudSdkClient": "escape-hatch",
         "messengerJavascriptSdk": "provider-supported-customer-site-not-typed"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.handoff.request",
+          "contactCenter.callback.schedule"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": [
+          "genesys-cloud.openMessaging.message.create"
+        ]
       }
     }
   },
@@ -1107,7 +1251,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "adapterCoverage": {
       "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": null
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.handoff.status.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
     },
     "implementation": {
       "strategy": "official-sdk",
@@ -1184,6 +1362,42 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "currentVoiceRestApiOperations": "provider-supported-not-typed",
         "digitalRestApiOperations": "provider-supported-not-typed",
         "channelSdkMessaging": "provider-supported-sdk-runtime-not-typed"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.handoff.status.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
       }
     }
   },
