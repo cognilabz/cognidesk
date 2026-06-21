@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   isGeneratedFullProviderApiClone,
-  isLegacyIntegrationProviderPackageName,
+  manifestOnlyRuntimeImportViolationsForSource,
 } from "./check-integration-package-architecture.mjs";
 
 describe("isGeneratedFullProviderApiClone", () => {
@@ -39,29 +39,40 @@ describe("isGeneratedFullProviderApiClone", () => {
   });
 });
 
-describe("isLegacyIntegrationProviderPackageName", () => {
-  it("rejects integration-prefixed provider package names", () => {
-    const rejectedNames = [
-      "@cognidesk/integration-discord",
-      "@cognidesk/integration-amazon-connect",
-      "@cognidesk/integration-contact-center-genesys-cloud",
-    ];
+describe("manifestOnlyRuntimeImportViolationsForSource", () => {
+  const manifestFile = "/repo/integrations/email/gmail/src/manifest.ts";
 
-    for (const name of rejectedNames) {
-      assert.equal(isLegacyIntegrationProviderPackageName(name), true, name);
-    }
+  it("rejects manifest imports that reach provider runtime modules", () => {
+    const source = [
+      'import { defineProviderPackage } from "@cognidesk/integration-kit";',
+      'import { createGmailRuntime } from "./runtime.js";',
+      'import { createGmailClient } from "./client/index.js";',
+      'import { createLegacyRuntime } from "../runtime.js";',
+      'import { gmailRuntime } from "@cognidesk/integration-email-gmail/runtime";',
+      'export { gmailClient } from "@cognidesk/integration-email-gmail/client/testing";',
+    ].join("\n");
+
+    assert.deepEqual(
+      manifestOnlyRuntimeImportViolationsForSource(source, manifestFile).map((violation) => violation.specifier),
+      [
+        "./runtime.js",
+        "./client/index.js",
+        "../runtime.js",
+        "@cognidesk/integration-email-gmail/runtime",
+        "@cognidesk/integration-email-gmail/client/testing",
+      ],
+    );
   });
 
-  it("allows provider-neutral integration infrastructure package names", () => {
-    const allowedNames = [
-      "@cognidesk/integration-catalog",
-      "@cognidesk/integration-kit",
-      "@cognidesk/contact-center-amazon-connect",
-      "@cognidesk/community-discord",
-    ];
+  it("allows provider-neutral kit/core, metadata, and type-only imports", () => {
+    const source = [
+      'import { defineProviderPackage } from "@cognidesk/integration-kit";',
+      'import { ProviderManifest } from "@cognidesk/core";',
+      'import { GMAIL_OPERATION_COUNT } from "./metadata.js";',
+      'import type { GmailRuntime } from "./runtime.js";',
+      'export type { GmailClient } from "@cognidesk/integration-email-gmail/client";',
+    ].join("\n");
 
-    for (const name of allowedNames) {
-      assert.equal(isLegacyIntegrationProviderPackageName(name), false, name);
-    }
+    assert.deepEqual(manifestOnlyRuntimeImportViolationsForSource(source, manifestFile), []);
   });
 });

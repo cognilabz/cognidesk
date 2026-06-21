@@ -60,7 +60,7 @@ export type OpenAIRealtimeFactory = (
 export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = {}): VoiceProvider {
   const model = options.model ?? OPENAI_REALTIME_V1_MODEL;
   if (model !== OPENAI_REALTIME_V1_MODEL) {
-    throw new Error(`@cognidesk/voice-openai v1 supports only ${OPENAI_REALTIME_V1_MODEL}.`);
+    throw new Error(`@cognidesk/integration-voice-openai v1 supports only ${OPENAI_REALTIME_V1_MODEL}.`);
   }
   const client = options.client ?? new OpenAI({
     apiKey: options.apiKey,
@@ -616,10 +616,10 @@ function translateServerEvent(event: RealtimeServerEvent): VoiceBrowserServerEve
 function assertSupportedModel(modelSet: VoiceModelSet | undefined) {
   if (!modelSet) return;
   if (modelSet.provider !== "openai") {
-    throw new Error(`@cognidesk/voice-openai cannot run voice model provider '${modelSet.provider}'.`);
+    throw new Error(`@cognidesk/integration-voice-openai cannot run voice model provider '${modelSet.provider}'.`);
   }
   if (modelSet.model !== OPENAI_REALTIME_V1_MODEL) {
-    throw new Error(`@cognidesk/voice-openai v1 supports only ${OPENAI_REALTIME_V1_MODEL}.`);
+    throw new Error(`@cognidesk/integration-voice-openai v1 supports only ${OPENAI_REALTIME_V1_MODEL}.`);
   }
 }
 
