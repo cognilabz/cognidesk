@@ -1,15 +1,21 @@
 # Releasing SDK packages
 
-The SDK packages use a fixed-version release train. Every publishable package in
-`packages/*` must share the same version, and internal `@cognidesk/*`
-dependencies are pinned to that exact train version.
+The platform SDK packages use a fixed-version release train. Every publishable
+package in `packages/*` must share the same version, and internal
+`@cognidesk/*` platform dependencies are pinned to that exact train version.
+Provider packages under `integrations/*/*` are publishable workspaces too, but
+they keep independent package versions.
 
 Publishable packages are discovered from package metadata: `private` must not be
-`true`, and `publishConfig` must be present.
+`true`, and `publishConfig` must be present. Release tooling discovers
+publishable packages from `packages/*` and `integrations/*/*`; app workspaces are
+included in pnpm workspace discovery but are not publishable.
 
 ## Dev releases
 
-Every push to `main` publishes all SDK packages to the npm `dev` dist-tag.
+Every push to `main` publishes the platform SDK train to the npm `dev` dist-tag.
+Nested provider packages are included in the publish plan when their current
+version is not already present on npm, including first-time provider packages.
 
 Committed package versions stay stable, for example `0.0.2`. In CI, the publish
 workflow temporarily rewrites package manifests to the next patch prerelease:
@@ -49,8 +55,9 @@ For a non-interactive bump:
 pnpm release:prepare -- --bump minor
 ```
 
-The script updates all publishable package versions, exact internal dependency
-versions, and `pnpm-lock.yaml`. It then prints the commit and tag commands.
+The script updates platform package versions, exact internal platform dependency
+versions, and `pnpm-lock.yaml`. Provider package versions are not changed by the
+platform release train. It then prints the commit and tag commands.
 
 Stable publishing requires a matching `vX.Y.Z` tag. If package manifests say
 `0.0.3`, the release tag must be `v0.0.3`.
@@ -67,9 +74,12 @@ git push origin main v0.0.3
 
 `pnpm release:verify-packages` expects built `dist` output. It verifies the
 public export paths for `@cognidesk/core`, `@cognidesk/http`,
-`@cognidesk/react`, and every `@cognidesk/integrations` export subpath from a
-temporary consumer-style `node_modules`, and prints the integrations `dist` and
-declaration chunk size report.
+`@cognidesk/react`, the legacy `@cognidesk/integrations` package when present,
+and every nested provider package from a temporary consumer-style
+`node_modules`. It also prints a per-package `dist` and declaration chunk size
+report. CI runs the same check with `--fail-size-budget`, using default budgets
+of 100 MiB per package and 7 MiB per declaration chunk unless a package sets
+`cognidesk.sizeBudget` in its manifest.
 
 When the release commit lands on `main`, the dev workflow starts the next dev
 line automatically. For example, after `0.0.3` is committed, `main` publishes

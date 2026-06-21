@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import {
   assertFixedStablePackageVersion,
   nextPatchVersion,
-  packageWorkspaces,
+  platformPackageWorkspaces,
   updatePackageTrain,
   writePackages,
 } from "./release-workspace.mjs";
@@ -65,8 +65,8 @@ function nextPrereleaseVersion(packages, baseVersion) {
   };
 }
 
-const packages = packageWorkspaces(root);
-const stableVersion = assertFixedStablePackageVersion(packages);
+const packages = platformPackageWorkspaces(root);
+const stableVersion = assertFixedStablePackageVersion(packages, "platform SDK packages");
 const nextStableVersion = nextPatchVersion(stableVersion);
 const prerelease = nextPrereleaseVersion(packages, nextStableVersion);
 
@@ -75,7 +75,7 @@ console.log(`  stable source version: ${stableVersion}`);
 console.log(`  dev release line: ${nextStableVersion}-${prereleaseId}.N`);
 console.log(`  previous published dev number: ${prerelease.previousNumber < 0 ? "(none)" : prerelease.previousNumber}`);
 console.log(`  next dev version: ${prerelease.version}`);
-console.log(`  publishable packages: ${packages.length}`);
+console.log(`  platform SDK packages: ${packages.length}`);
 
 if (dryRun) {
   console.log("\nDry run: package manifests were not changed.");

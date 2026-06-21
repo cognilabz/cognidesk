@@ -4,7 +4,6 @@ import { existsSync } from "node:fs";
 import {
   mkdir,
   mkdtemp,
-  readFile,
   readdir,
   rm,
   stat,
@@ -14,30 +13,37 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  isProviderPackage,
+  packageWorkspaces,
+} from "./release-workspace.mjs";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const packageNamesToSmoke = [
+const args = process.argv.slice(2);
+const defaultPlatformSmokePackageNames = [
   "@cognidesk/core",
   "@cognidesk/http",
   "@cognidesk/react",
+];
+const legacyIntegrationPackageNames = [
   "@cognidesk/integrations",
 ];
-const integrationsDist = path.join(repoRoot, "packages", "integrations", "dist");
 const oneMiB = 1024 * 1024;
-const publishedDistBudgetBytes = 100 * oneMiB;
-const declarationChunkBudgetBytes = 7 * oneMiB;
+const defaultPublishedDistBudgetBytes = 100 * oneMiB;
+const defaultDeclarationChunkBudgetBytes = 7 * oneMiB;
 const largestDeclarationCount = 10;
-const failSizeBudget = process.argv.includes("--fail-size-budget");
+const failSizeBudget = args.includes("--fail-size-budget");
+const smokeAllPackages = args.includes("--all");
 
-const workspaces = await readWorkspacePackages();
+const discoveredWorkspaces = packageWorkspaces(repoRoot);
+const providerPackageNames = new Set(discoveredWorkspaces.filter(isProviderPackage).map((pkg) => pkg.name));
+const workspaces = discoveredWorkspaces.map((pkg) => ({
+  ...pkg,
+  dir: path.join(repoRoot, ...pkg.dir.split("/")),
+  relativeDir: pkg.dir,
+}));
 const workspaceByName = new Map(workspaces.map((pkg) => [pkg.name, pkg]));
-const smokePackages = packageNamesToSmoke.map((name) => {
-  const pkg = workspaceByName.get(name);
-  if (!pkg) {
-    throw new Error(`Unable to find workspace package ${name}.`);
-  }
-  return pkg;
-});
+const smokePackages = selectSmokePackages();
 
 const exportEntries = smokePackages.flatMap((pkg) => publicExportEntries(pkg));
 const missingTargets = await missingExportTargets(exportEntries);
@@ -48,7 +54,7 @@ for (const pkg of smokePackages) {
   console.log(`  ${pkg.name}: ${count} public export${count === 1 ? "" : "s"}`);
 }
 
-await reportIntegrationsDist();
+await reportPackageDistSizes(workspaces);
 
 if (missingTargets.length > 0) {
   console.error("\nMissing built export targets:");
@@ -61,30 +67,49 @@ if (missingTargets.length > 0) {
 
 await runImportSmoke(exportEntries.map((entry) => entry.specifier));
 
-async function readWorkspacePackages() {
-  const packagesDir = path.join(repoRoot, "packages");
-  const entries = await readdir(packagesDir, { withFileTypes: true });
-  const packages = [];
-
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-
-    const dir = path.join(packagesDir, entry.name);
-    const packageJsonPath = path.join(dir, "package.json");
-    if (!existsSync(packageJsonPath)) continue;
-
-    const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8"));
-    if (typeof packageJson.name !== "string") continue;
-
-    packages.push({
-      dir,
-      name: packageJson.name,
-      packageJson,
-      packageJsonPath,
+function selectSmokePackages() {
+  const requestedPackageNames = readRepeatedOption("--package");
+  if (requestedPackageNames.length > 0) {
+    return requestedPackageNames.map((name) => {
+      const pkg = workspaceByName.get(name);
+      if (!pkg) {
+        throw new Error(`Unable to find workspace package ${name}.`);
+      }
+      return pkg;
     });
   }
 
-  return packages.sort((a, b) => a.name.localeCompare(b.name));
+  if (smokeAllPackages) {
+    return workspaces;
+  }
+
+  const defaultNames = new Set([
+    ...defaultPlatformSmokePackageNames,
+    ...legacyIntegrationPackageNames.filter((name) => workspaceByName.has(name)),
+  ]);
+  const packages = workspaces.filter((pkg) => {
+    return defaultNames.has(pkg.name) || providerPackageNames.has(pkg.name);
+  });
+
+  if (packages.length === 0) {
+    throw new Error("No packages selected for smoke import verification.");
+  }
+
+  return packages;
+}
+
+function readRepeatedOption(name) {
+  const values = [];
+  for (let index = 0; index < args.length; index += 1) {
+    if (args[index] !== name) continue;
+    const value = args[index + 1];
+    if (!value || value.startsWith("--")) {
+      throw new Error(`Expected a package name after ${name}.`);
+    }
+    values.push(value);
+    index += 1;
+  }
+  return values;
 }
 
 function publicExportEntries(pkg) {
@@ -173,13 +198,28 @@ async function missingExportTargets(entries) {
   return missing;
 }
 
-async function reportIntegrationsDist() {
-  const files = await walk(integrationsDist);
+async function reportPackageDistSizes(packages) {
+  console.log("\nPackage dist size report:");
 
-  console.log("\nIntegrations dist size report:");
+  const warnings = [];
+  for (const pkg of packages) {
+    warnings.push(...await reportPackageDistSize(pkg));
+  }
+
+  if (warnings.length > 0 && failSizeBudget) {
+    throw new Error("Package dist size budget exceeded.");
+  }
+}
+
+async function reportPackageDistSize(pkg) {
+  const files = await walk(path.join(pkg.dir, "dist"));
+  const budget = sizeBudgetForPackage(pkg);
+  const warnings = [];
+
+  console.log(`  ${pkg.name}:`);
   if (files.length === 0) {
-    console.log("  no dist files found");
-    return;
+    console.log("    no dist files found");
+    return warnings;
   }
 
   const fileSizes = await Promise.all(files.map(async (file) => ({
@@ -192,44 +232,77 @@ async function reportIntegrationsDist() {
     .sort((a, b) => b.bytes - a.bytes);
   const declarationBytes = declarations.reduce((sum, file) => sum + file.bytes, 0);
   const oversizedDeclarations = declarations
-    .filter((file) => file.bytes > declarationChunkBudgetBytes)
+    .filter((file) => file.bytes > budget.declarationChunkBytes)
     .slice(0, largestDeclarationCount);
 
   console.log(
-    `  total: ${formatBytes(totalBytes)} across ${fileSizes.length} files `
-      + `(budget reference: ${formatBytes(publishedDistBudgetBytes)})`,
+    `    total: ${formatBytes(totalBytes)} across ${fileSizes.length} files `
+      + `(budget: ${formatBytes(budget.distBytes)})`,
   );
   console.log(
-    `  declarations: ${formatBytes(declarationBytes)} across ${declarations.length} files `
-      + `(chunk budget reference: ${formatBytes(declarationChunkBudgetBytes)})`,
+    `    declarations: ${formatBytes(declarationBytes)} across ${declarations.length} files `
+      + `(chunk budget: ${formatBytes(budget.declarationChunkBytes)})`,
   );
-  console.log("  largest declarations:");
+  console.log("    largest declarations:");
   for (const file of declarations.slice(0, largestDeclarationCount)) {
-    console.log(`    ${formatBytes(file.bytes)} ${path.relative(repoRoot, file.file)}`);
+    console.log(`      ${formatBytes(file.bytes)} ${path.relative(repoRoot, file.file)}`);
   }
 
-  const warnings = [];
-  if (totalBytes > publishedDistBudgetBytes) {
+  if (totalBytes > budget.distBytes) {
     warnings.push(
-      `packages/integrations/dist is ${formatBytes(totalBytes)}, above ${formatBytes(publishedDistBudgetBytes)}`,
+      `${pkg.name} dist is ${formatBytes(totalBytes)}, above ${formatBytes(budget.distBytes)}`,
     );
   }
   for (const file of oversizedDeclarations) {
     warnings.push(
       `${path.relative(repoRoot, file.file)} is ${formatBytes(file.bytes)}, `
-        + `above ${formatBytes(declarationChunkBudgetBytes)}`,
+        + `above ${formatBytes(budget.declarationChunkBytes)}`,
     );
   }
 
   if (warnings.length > 0) {
-    console.log("  size budget warnings:");
+    console.log("    size budget warnings:");
     for (const warning of warnings) {
-      console.log(`    ${warning}`);
-    }
-    if (failSizeBudget) {
-      throw new Error("Integrations dist size budget exceeded.");
+      console.log(`      ${warning}`);
     }
   }
+
+  return warnings;
+}
+
+function sizeBudgetForPackage(pkg) {
+  const packageBudget = pkg.packageJson.cognidesk?.sizeBudget ?? {};
+
+  return {
+    distBytes: parseSizeBudget(packageBudget.dist ?? packageBudget.distBytes, defaultPublishedDistBudgetBytes),
+    declarationChunkBytes: parseSizeBudget(
+      packageBudget.declarationChunk ?? packageBudget.declarationChunkBytes,
+      defaultDeclarationChunkBudgetBytes,
+    ),
+  };
+}
+
+function parseSizeBudget(value, defaultBytes) {
+  if (value === undefined) return defaultBytes;
+
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error(`Invalid package size budget value ${JSON.stringify(value)}.`);
+  }
+
+  const match = /^(\d+(?:\.\d+)?)\s*(b|bytes?|kib|kb|mib|mb)$/i.exec(value.trim());
+  if (!match) {
+    throw new Error(`Invalid package size budget string "${value}". Use bytes, KiB, or MiB.`);
+  }
+
+  const amount = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  if (unit === "b" || unit === "byte" || unit === "bytes") return amount;
+  if (unit === "kib" || unit === "kb") return amount * 1024;
+  return amount * oneMiB;
 }
 
 async function walk(root) {
