@@ -182,6 +182,17 @@ First-wave PR handoff after branch owners committed:
 - Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-34-review-sdk`, and title `[Integrations] Migrate review providers to split packages`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/34#issuecomment-4762048394.
 
+#35 helpdesk ticketing provider package lane:
+
+- #35 is clean and pushed at `be3d18a feat(integrations): migrate helpdesk ticketing packages` on branch `codex/integrations-35-helpdesk-ticketing-stack`.
+- The branch adds `@cognidesk/ticketing-zendesk`, `@cognidesk/ticketing-freshdesk`, `@cognidesk/ticketing-front`, `@cognidesk/ticketing-gorgias`, `@cognidesk/ticketing-help-scout`, and `@cognidesk/ticketing-kustomer` under `integrations/ticketing/*`.
+- All six remain constrained direct REST support slices: no official maintained backend JavaScript/TypeScript SDK was adopted for this cohort after checking the available provider packages and runtime boundaries.
+- The old aggregate `packages/integrations/src/ticketing/{zendesk,freshdesk,front,gorgias,help-scout,kustomer}` implementations/tests, generated full-provider clones, aggregate exports, catalog references, and aggregate build inputs were removed.
+- `docs/ticketing-sdk-first-workstream.md` records the SDK/library decisions and keeps #36/#37 as the next ticketing cohorts.
+- Verification passed: package tests/builds for all six split ticketing packages, `pnpm providers:catalog:data`, `pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, old-import codemod check, aggregate build after prerequisites, targeted aggregate provider tests, package smoke/size checks, and `git diff --check`/`git diff --cached --check`.
+- Draft PR creation failed through `gh pr create` with `GraphQL: must be a collaborator`. Open the PR manually with base `codex/integrations-foundation-stack`, head `codex/integrations-35-helpdesk-ticketing-stack`, and title `[Integrations] Migrate helpdesk ticketing providers to split packages`.
+- PR handoff comment: https://github.com/cognilabz/cognidesk/issues/35#issuecomment-4762083916.
+
 ChatGPT plan recheck:
 
 - Re-read the in-app browser conversation "Project Integration Plan" on 2026-06-21.
@@ -194,8 +205,8 @@ Known caveat:
 
 ## Next Best Actions
 
-1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34 against `codex/integrations-foundation-stack`.
-2. Use #23/#24/#25/#29/#30/#32/#33/#34 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
+1. Have someone with collaborator rights open draft PRs for #23/#24/#25/#29/#30/#31/#32/#33/#34/#35 against `codex/integrations-foundation-stack`.
+2. Use #23/#24/#25/#29/#30/#32/#33/#34/#35 as reference package patterns for final replacement/deletion migrations, and use #31 as a staged-package example where legacy test parity still blocks deletion.
 3. Run `pnpm providers:catalog:data && pnpm providers:catalog`, `pnpm providers:architecture`, `pnpm provider-packages:check`, `pnpm providers:codemod:imports --check <changed-app-or-package-paths>`, and package smoke/size checks before provider migration review.
 4. If GitHub issue-body edit permission becomes available, add `packages/integrations/src/workplace/slack` to #25's explicit owned paths.
 5. Get #27 cleanup checklist work running in a clean branch or implement a checklist/guardrail directly if thread creation remains unavailable.
