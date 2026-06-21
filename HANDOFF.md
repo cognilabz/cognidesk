@@ -244,6 +244,7 @@ First-wave PR handoff after branch owners committed:
 - The old `packages/integrations/src/voice/openai` monolith path still exists intentionally until #40 import/codemod/application checks and #27 cleanup converge. Do not add a bridge/shim; delete the legacy subpath when the replacement is fully wired.
 - Verification passed: workspace relink, shared package builds, all four split voice package tests/builds, voice SDK-first migration guard, `pnpm providers:architecture`, `pnpm provider-packages:check`, catalog data/docs generation, legacy aggregate `@cognidesk/integrations` build, and `git diff --check`.
 - PR handoff comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762165439.
+- Follow-up package-naming/browser recheck comment: https://github.com/cognilabz/cognidesk/issues/40#issuecomment-4762342470. #40 has `metadata.integrationName = "OpenAI Realtime Voice Integration"` and `metadata.integrationPackageName = "@cognidesk/voice-openai"` in catalog metadata, but the generated Markdown row `| Integration | ... |` currently comes from #25's renderer change at `96a40ac`. Before #40 PR review/merge, rebase/merge #25's renderer change or carry the same patch so the catalog visibly shows `Integration | OpenAI Realtime Voice Integration` next to the package row.
 
 #43 local/protocol provider package lane:
 
