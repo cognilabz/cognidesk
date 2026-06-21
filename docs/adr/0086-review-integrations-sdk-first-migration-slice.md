@@ -87,6 +87,20 @@ The support slice should keep ES256 JWT creation or accept an SDK-user JWT facto
 OpenAPI version/source/checksum used for request shape, and avoid generated full-provider clones in
 the final package.
 
+Reviewed package metadata pins Apple's App Store Connect OpenAPI zip downloaded from
+`https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip`
+on 2026-06-21. The reviewed document inside the archive is `openapi.oas.json`, version `4.4`, with
+checksum `sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec`; the archive
+checksum was `sha256:18d2e448db9ebac9f6fb183e786342f67dfaa0c515995d782694a776e26c2dfd`.
+
+The explicit reviewed operation allowlist is:
+
+- `GET /v1/apps/{id}/customerReviews` for `appstore.reviews.list` and Apple-provided `links.next` pagination on the configured app.
+- `GET /v1/customerReviews/{id}` for `appstore.reviews.get`.
+- `POST /v1/customerReviewResponses` for `appstore.reviewResponses.createOrUpdate`.
+- `DELETE /v1/customerReviewResponses/{id}` for `appstore.reviewResponses.delete`.
+- `GET /v1/apps/{id}` for readiness and the reviewed raw-client escape hatch.
+
 ## Manifest-only import rule
 
 The final packages must provide manifest/catalog entry points that do not import:

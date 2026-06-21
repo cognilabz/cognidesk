@@ -21,6 +21,7 @@ export {
 export { appStoreReviewsCredentialStatuses } from "./credentials.js";
 export { createAppStoreConnectJwt } from "./jwt.js";
 export {
+  appStoreConnectReviewedOperationAllowlist,
   appStoreReviewsProviderManifest,
   appStoreReviewsProviderManifestInput,
 } from "./manifest.js";

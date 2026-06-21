@@ -9923,7 +9923,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer.apple.com/documentation/appstoreconnectapi"
         },
         {
-          "label": "App Store Connect OpenAPI specification",
+          "label": "App Store Connect OpenAPI specification (openapi.oas.json sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec)",
           "url": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip"
         },
         {
@@ -10011,7 +10011,75 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       "reviewedSource": {
         "source": "Apple App Store Connect OpenAPI specification",
+        "sourceUrl": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip",
         "version": "4.4",
+        "artifact": "openapi.oas.json",
+        "checksum": "sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec",
+        "archiveChecksum": "sha256:18d2e448db9ebac9f6fb183e786342f67dfaa0c515995d782694a776e26c2dfd",
+        "reviewedAt": "2026-06-21",
+        "operationAllowlist": [
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}/customerReviews",
+            "aliases": [
+              "appstore.reviews.list"
+            ],
+            "clientMethods": [
+              "listReviews"
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}/customerReviews",
+            "aliases": [
+              "appstore.reviews.page"
+            ],
+            "clientMethods": [
+              "listReviewsPage"
+            ],
+            "source": "links.next for the configured app customerReviews collection"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/customerReviews/{id}",
+            "aliases": [
+              "appstore.reviews.get"
+            ],
+            "clientMethods": [
+              "getReview"
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customerReviewResponses",
+            "aliases": [
+              "appstore.reviewResponses.createOrUpdate"
+            ],
+            "clientMethods": [
+              "createOrUpdateReviewResponse"
+            ]
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customerReviewResponses/{id}",
+            "aliases": [
+              "appstore.reviewResponses.delete"
+            ],
+            "clientMethods": [
+              "deleteReviewResponse"
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}",
+            "aliases": [],
+            "clientMethods": [
+              "getApp",
+              "rawClient.request"
+            ],
+            "purpose": "configured app check and reviewed raw-client escape hatch"
+          }
+        ],
         "selectedOperations": [
           "GET /v1/apps/{id}/customerReviews",
           "GET /v1/customerReviews/{id}",

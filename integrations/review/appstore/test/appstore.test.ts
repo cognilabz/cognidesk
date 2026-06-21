@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import {
+  appStoreConnectReviewedOperationAllowlist,
   appStoreReviewsCredentialStatuses,
   appStoreReviewsIntegration,
   appStoreReviewsProviderManifest,
@@ -39,6 +40,26 @@ describe("@cognidesk/review-appstore", () => {
       strategy: "direct-http-support-slice",
       officialJsSdkAvailable: false,
     });
+    expect(appStoreReviewsProviderManifest.metadata?.reviewedSource).toMatchObject({
+      source: "Apple App Store Connect OpenAPI specification",
+      sourceUrl: "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip",
+      version: "4.4",
+      artifact: "openapi.oas.json",
+      checksum: "sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec",
+      archiveChecksum: "sha256:18d2e448db9ebac9f6fb183e786342f67dfaa0c515995d782694a776e26c2dfd",
+      operationAllowlist: appStoreConnectReviewedOperationAllowlist,
+    });
+    expect(appStoreConnectReviewedOperationAllowlist.map((operation) => `${operation.method} ${operation.path}`))
+      .toEqual([
+        "GET /v1/apps/{id}/customerReviews",
+        "GET /v1/apps/{id}/customerReviews",
+        "GET /v1/customerReviews/{id}",
+        "POST /v1/customerReviewResponses",
+        "DELETE /v1/customerReviewResponses/{id}",
+        "GET /v1/apps/{id}",
+      ]);
+    expect(new Set(appStoreConnectReviewedOperationAllowlist.flatMap((operation) => operation.aliases)))
+      .toEqual(new Set(appStoreReviewsProviderManifest.operations.map((operation) => operation.alias)));
     expect(appStoreReviewsProviderManifest.coverage.notes.join(" "))
       .toContain("@apple/app-store-server-library Node package targets App Store Server APIs");
   });

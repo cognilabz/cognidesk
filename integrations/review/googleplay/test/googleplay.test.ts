@@ -12,6 +12,15 @@ import {
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
+function expectOAuthAccessTokenAuth(authParam: unknown, accessToken: string) {
+  expect(authParam).not.toBe(accessToken);
+  expect(authParam).toMatchObject({ credentials: { access_token: accessToken } });
+}
+
+function firstCallParams(mock: { mock: { calls: readonly unknown[] } }) {
+  return ((mock.mock.calls as unknown[][])[0]?.[0] ?? {}) as Record<string, unknown>;
+}
+
 describe("@cognidesk/review-googleplay", () => {
   it("declares SDK-backed adapter coverage without full-provider clone claims", () => {
     expect(googlePlayReviewsProviderManifest).toMatchObject({
@@ -67,23 +76,53 @@ describe("@cognidesk/review-googleplay", () => {
 
     expect(client.rawClient).toBe(rawClient);
     expect(list).toHaveBeenCalledWith(expect.objectContaining({
-      auth: "access-token",
       packageName: "com.example.app",
       maxResults: 10,
       token: "page",
       translationLanguage: "en",
     }));
     expect(get).toHaveBeenCalledWith(expect.objectContaining({
-      auth: "access-token",
       packageName: "com.example.app",
       reviewId: "review-1",
     }));
     expect(reply).toHaveBeenCalledWith(expect.objectContaining({
-      auth: "access-token",
       packageName: "com.example.app",
       reviewId: "review-1",
       requestBody: { replyText: "Thanks!" },
     }));
+    expectOAuthAccessTokenAuth(firstCallParams(list).auth, "access-token");
+    expectOAuthAccessTokenAuth(firstCallParams(get).auth, "access-token");
+    expectOAuthAccessTokenAuth(firstCallParams(reply).auth, "access-token");
+  });
+
+  it("passes supplied access tokens as OAuth bearer auth objects, not API-key auth strings", async () => {
+    const list = vi.fn(async () => ({ data: { reviews: [] } }));
+    const get = vi.fn(async () => ({ data: { reviewId: "review-1" } }));
+    const reply = vi.fn(async () => ({ data: { result: { replyText: "Thanks!" } } }));
+    const rawClient = { reviews: { list, get, reply } };
+
+    await createGooglePlayReviewsClient({
+      packageName: "com.example.app",
+      accessToken: "static-token",
+      rawClient: rawClient as any,
+    }).listReviews();
+    await createGooglePlayReviewsClient({
+      packageName: "com.example.app",
+      getAccessToken: async () => "supplied-token",
+      rawClient: rawClient as any,
+    }).getReview("review-1");
+
+    const listParams = firstCallParams(list);
+    const getParams = firstCallParams(get);
+    expectOAuthAccessTokenAuth(listParams.auth, "static-token");
+    expectOAuthAccessTokenAuth(getParams.auth, "supplied-token");
+    expect(listParams).not.toHaveProperty("key");
+    expect(getParams).not.toHaveProperty("key");
+    expect(() => createGooglePlayReviewsClient({
+      packageName: "com.example.app",
+      auth: "api-key-shaped-token" as any,
+      rawClient: rawClient as any,
+    })).toThrow("auth strings are treated by googleapis-common as API keys");
   });
 
   it("runs bound operations through integration-kit", async () => {

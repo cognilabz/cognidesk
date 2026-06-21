@@ -735,7 +735,7 @@ Coverage: Cognidesk adapter coverage is scoped to App Store Connect customer rev
 
 Boundary: The SDK user decides review triage, sentiment classification, public-response approval, localization, escalation, and retention policy.
 
-Evidence: [App Store Connect API overview](https://developer.apple.com/documentation/appstoreconnectapi); [App Store Connect OpenAPI specification](https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip); [App Store Connect JWT tokens](https://developer.apple.com/documentation/appstoreconnectapi/generating-tokens-for-api-requests); [Apple App Store Server Node.js Library](https://github.com/apple/app-store-server-library-node).
+Evidence: [App Store Connect API overview](https://developer.apple.com/documentation/appstoreconnectapi); [App Store Connect OpenAPI specification (openapi.oas.json sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec)](https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip); [App Store Connect JWT tokens](https://developer.apple.com/documentation/appstoreconnectapi/generating-tokens-for-api-requests); [Apple App Store Server Node.js Library](https://github.com/apple/app-store-server-library-node).
 
 #### Google Play Reviews
 

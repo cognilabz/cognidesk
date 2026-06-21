@@ -14,15 +14,16 @@ import type {
 const androidPublisherScope = "https://www.googleapis.com/auth/androidpublisher";
 
 export function createGooglePlayReviewsClient(options: GooglePlayReviewsClientOptions): GooglePlayReviewsClient {
+  const configuredAuth = normalizeGooglePlaySdkAuth(options.auth);
   const rawClient = options.rawClient ?? androidpublisher({
     version: "v3",
-    ...(options.auth ? { auth: options.auth } : {}),
+    ...(configuredAuth ? { auth: configuredAuth } : {}),
   });
 
   return {
     rawClient,
     async listReviews(input = {}) {
-      const authClient = await resolveGooglePlayAuth(options);
+      const authClient = await resolveGooglePlayAuth(options, configuredAuth);
       const params: androidpublisher_v3.Params$Resource$Reviews$List = {
         packageName: input.packageName ?? options.packageName,
       };
@@ -35,7 +36,7 @@ export function createGooglePlayReviewsClient(options: GooglePlayReviewsClientOp
       return response.data;
     },
     async getReview(reviewId, input = {}) {
-      const authClient = await resolveGooglePlayAuth(options);
+      const authClient = await resolveGooglePlayAuth(options, configuredAuth);
       const params: androidpublisher_v3.Params$Resource$Reviews$Get = {
         packageName: input.packageName ?? options.packageName,
         reviewId,
@@ -53,7 +54,7 @@ export function createGooglePlayReviewsClient(options: GooglePlayReviewsClientOp
           { providerPackageId: "review.googleplay", provider: "googleplay" },
         );
       }
-      const authClient = await resolveGooglePlayAuth(options);
+      const authClient = await resolveGooglePlayAuth(options, configuredAuth);
       try {
         const response = await rawClient.reviews.reply({
           packageName: input.packageName ?? options.packageName,
@@ -73,10 +74,13 @@ export function createGooglePlayReviewsClient(options: GooglePlayReviewsClientOp
   };
 }
 
-async function resolveGooglePlayAuth(options: GooglePlayReviewsClientOptions): Promise<GooglePlaySdkAuth | undefined> {
-  if (options.auth) return options.auth;
-  if (options.getAccessToken) return await options.getAccessToken();
-  if (options.accessToken) return options.accessToken;
+async function resolveGooglePlayAuth(
+  options: GooglePlayReviewsClientOptions,
+  configuredAuth: GooglePlaySdkAuth | undefined,
+): Promise<GooglePlaySdkAuth | undefined> {
+  if (configuredAuth) return configuredAuth;
+  if (options.getAccessToken) return googlePlayOAuthAccessTokenAuth(await options.getAccessToken());
+  if (options.accessToken) return googlePlayOAuthAccessTokenAuth(options.accessToken);
   if (options.serviceAccount) {
     const jwtOptions = {
       email: options.serviceAccount.clientEmail,
@@ -88,6 +92,24 @@ async function resolveGooglePlayAuth(options: GooglePlayReviewsClientOptions): P
     return new auth.JWT(jwtOptions) as GooglePlaySdkAuth;
   }
   return undefined;
+}
+
+function normalizeGooglePlaySdkAuth(authClient: unknown): GooglePlaySdkAuth | undefined {
+  if (authClient === undefined) return undefined;
+  if (typeof authClient === "string") {
+    throw new IntegrationError(
+      "provider-validation",
+      "Google Play auth strings are treated by googleapis-common as API keys; use accessToken, getAccessToken, serviceAccount, or an official Google auth client for OAuth bearer auth.",
+      { providerPackageId: "review.googleplay", provider: "googleplay" },
+    );
+  }
+  return authClient as GooglePlaySdkAuth;
+}
+
+function googlePlayOAuthAccessTokenAuth(accessToken: string): GooglePlaySdkAuth {
+  const oauthClient = new auth.OAuth2();
+  oauthClient.setCredentials({ access_token: accessToken });
+  return oauthClient as GooglePlaySdkAuth;
 }
 
 export type GooglePlayAndroidPublisherV3 = androidpublisher_v3.Androidpublisher;

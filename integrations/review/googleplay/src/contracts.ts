@@ -1,7 +1,7 @@
 import type { androidpublisher_v3 } from "@googleapis/androidpublisher";
 
 export type GooglePlayAndroidPublisherClient = androidpublisher_v3.Androidpublisher;
-export type GooglePlaySdkAuth = NonNullable<androidpublisher_v3.Params$Resource$Reviews$List["auth"]>;
+export type GooglePlaySdkAuth = Exclude<NonNullable<androidpublisher_v3.Params$Resource$Reviews$List["auth"]>, string>;
 
 export interface GooglePlayServiceAccountCredentials {
   clientEmail: string;
