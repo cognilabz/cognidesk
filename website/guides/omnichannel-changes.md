@@ -18,7 +18,7 @@ import { genesysCloudContactCenterProviderManifest } from "@cognidesk/contact-ce
 import { twilioSmsProviderManifest } from "@cognidesk/sms-twilio/manifest";
 ```
 
-`@cognidesk/integration-catalog` owns provider references, categories, and manifest metadata once the split provider packages from #20-#26 are available. Until then, generated docs may be staged from the legacy integration manifests.
+`@cognidesk/integration-catalog` owns provider references, categories, and manifest metadata once the split provider packages from #23-#25 and #29-#43 publish from `integrations/{category}/{provider}`. Until then, generated docs may be staged from the legacy integration manifests.
 
 Infrastructure stays separate:
 

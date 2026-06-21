@@ -2,28 +2,28 @@
 
 # Provider Integration Catalog
 
-This catalog is generated from serialized metadata in `@cognidesk/integration-catalog`. It documents the official provider modules that live behind category/provider subpath imports without importing provider runtime modules during docs generation.
+This catalog is generated from serialized metadata in `@cognidesk/integration-catalog`. It renders the target split provider packages, manifest imports, runtime imports, and `integrations/{category}/{provider}` workspace paths without importing provider runtime modules during docs generation.
 
-`@cognidesk/voice-websocket` is not listed here because it is the browser-facing Cognidesk voice transport, not an external Provider Integration. OpenAI Realtime voice is listed as `@cognidesk/integrations/voice/openai` because it can be the entry channel and the LLM-backed realtime session. Speech Providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram can also back Cognidesk voice sessions while the Cognidesk Agent Model Set remains the background LLM.
+`@cognidesk/voice-websocket` is not listed here because it is the browser-facing Cognidesk voice transport, not an external Provider Integration. OpenAI Realtime voice is listed as `@cognidesk/voice-openai` because it can be the entry channel and the LLM-backed realtime session. Speech Providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram can also back Cognidesk voice sessions while the Cognidesk Agent Model Set remains the background LLM.
 
-| Category | Provider count | Imports |
+| Category | Provider count | Packages |
 |----------|----------------|---------|
-| Cobrowsing | 1 | `@cognidesk/integrations/cobrowsing/cognidesk` |
-| Community | 2 | `@cognidesk/integrations/community/discord`<br>`@cognidesk/integrations/community/forum` |
-| Contact Center | 12 | `@cognidesk/integrations/contact-center/8x8`<br>`@cognidesk/integrations/contact-center/aircall`<br>`@cognidesk/integrations/contact-center/amazon-connect`<br>`@cognidesk/integrations/contact-center/five9`<br>`@cognidesk/integrations/contact-center/genesys-cloud`<br>`@cognidesk/integrations/contact-center/genesys-engage`<br>`@cognidesk/integrations/contact-center/genesys-pureconnect`<br>`@cognidesk/integrations/contact-center/nextiva`<br>`@cognidesk/integrations/contact-center/nice-cxone`<br>`@cognidesk/integrations/contact-center/ringcentral`<br>`@cognidesk/integrations/contact-center/talkdesk`<br>`@cognidesk/integrations/contact-center/zoom` |
-| Ecommerce | 2 | `@cognidesk/integrations/ecommerce/shopify`<br>`@cognidesk/integrations/ecommerce/stripe` |
-| Email | 6 | `@cognidesk/integrations/email/ses`<br>`@cognidesk/integrations/email/gmail`<br>`@cognidesk/integrations/email/imap`<br>`@cognidesk/integrations/email/mailgun`<br>`@cognidesk/integrations/email/outlook`<br>`@cognidesk/integrations/email/postmark` |
-| Forms | 1 | `@cognidesk/integrations/form/cognidesk` |
-| Help Center | 1 | `@cognidesk/integrations/help-center/cognidesk` |
-| Marketplace | 2 | `@cognidesk/integrations/marketplace/amazon`<br>`@cognidesk/integrations/marketplace/ebay` |
-| Messaging | 2 | `@cognidesk/integrations/messaging/rcs`<br>`@cognidesk/integrations/messaging/whatsapp` |
-| Reviews | 2 | `@cognidesk/integrations/review/appstore`<br>`@cognidesk/integrations/review/googleplay` |
-| SMS | 1 | `@cognidesk/integrations/sms/twilio` |
-| Social | 3 | `@cognidesk/integrations/social/messenger`<br>`@cognidesk/integrations/social/instagram`<br>`@cognidesk/integrations/social/tiktok` |
-| Ticketing | 15 | `@cognidesk/integrations/ticketing/freshdesk`<br>`@cognidesk/integrations/ticketing/front`<br>`@cognidesk/integrations/ticketing/gorgias`<br>`@cognidesk/integrations/ticketing/help-scout`<br>`@cognidesk/integrations/ticketing/hubspot`<br>`@cognidesk/integrations/ticketing/intercom`<br>`@cognidesk/integrations/ticketing/kustomer`<br>`@cognidesk/integrations/ticketing/dynamics365`<br>`@cognidesk/integrations/ticketing/oracle-service`<br>`@cognidesk/integrations/ticketing/pega-customer-service`<br>`@cognidesk/integrations/ticketing/salesforce`<br>`@cognidesk/integrations/ticketing/sap-service-cloud`<br>`@cognidesk/integrations/ticketing/servicenow`<br>`@cognidesk/integrations/ticketing/zendesk`<br>`@cognidesk/integrations/ticketing/zoho-desk` |
-| Video | 2 | `@cognidesk/integrations/video/whereby`<br>`@cognidesk/integrations/video/zoom` |
-| Voice Provider APIs | 9 | `@cognidesk/integrations/voice/aws-speech`<br>`@cognidesk/integrations/voice/azure-speech`<br>`@cognidesk/integrations/voice/deepgram`<br>`@cognidesk/integrations/voice/elevenlabs`<br>`@cognidesk/integrations/voice/sip`<br>`@cognidesk/integrations/voice/google-speech`<br>`@cognidesk/integrations/voice/openai`<br>`@cognidesk/integrations/voice/twilio`<br>`@cognidesk/integrations/voice/vonage` |
-| Workplace | 2 | `@cognidesk/integrations/workplace/teams`<br>`@cognidesk/integrations/workplace/slack` |
+| Cobrowsing | 1 | `@cognidesk/cobrowsing-cognidesk` |
+| Community | 2 | `@cognidesk/community-discord`<br>`@cognidesk/community-forum` |
+| Contact Center | 12 | `@cognidesk/contact-center-8x8`<br>`@cognidesk/contact-center-aircall`<br>`@cognidesk/contact-center-amazon-connect`<br>`@cognidesk/contact-center-five9`<br>`@cognidesk/contact-center-genesys-cloud`<br>`@cognidesk/contact-center-genesys-engage`<br>`@cognidesk/contact-center-genesys-pureconnect`<br>`@cognidesk/contact-center-nextiva`<br>`@cognidesk/contact-center-nice-cxone`<br>`@cognidesk/contact-center-ringcentral`<br>`@cognidesk/contact-center-talkdesk`<br>`@cognidesk/contact-center-zoom` |
+| Ecommerce | 2 | `@cognidesk/ecommerce-shopify`<br>`@cognidesk/ecommerce-stripe` |
+| Email | 6 | `@cognidesk/email-ses`<br>`@cognidesk/email-gmail`<br>`@cognidesk/email-imap`<br>`@cognidesk/email-mailgun`<br>`@cognidesk/email-outlook`<br>`@cognidesk/email-postmark` |
+| Forms | 1 | `@cognidesk/form-cognidesk` |
+| Help Center | 1 | `@cognidesk/help-center-cognidesk` |
+| Marketplace | 2 | `@cognidesk/marketplace-amazon`<br>`@cognidesk/marketplace-ebay` |
+| Messaging | 2 | `@cognidesk/messaging-rcs`<br>`@cognidesk/messaging-whatsapp` |
+| Reviews | 2 | `@cognidesk/review-appstore`<br>`@cognidesk/review-googleplay` |
+| SMS | 1 | `@cognidesk/sms-twilio` |
+| Social | 3 | `@cognidesk/social-messenger`<br>`@cognidesk/social-instagram`<br>`@cognidesk/social-tiktok` |
+| Ticketing | 15 | `@cognidesk/ticketing-freshdesk`<br>`@cognidesk/ticketing-front`<br>`@cognidesk/ticketing-gorgias`<br>`@cognidesk/ticketing-help-scout`<br>`@cognidesk/ticketing-hubspot`<br>`@cognidesk/ticketing-intercom`<br>`@cognidesk/ticketing-kustomer`<br>`@cognidesk/ticketing-dynamics365`<br>`@cognidesk/ticketing-oracle-service`<br>`@cognidesk/ticketing-pega-customer-service`<br>`@cognidesk/ticketing-salesforce`<br>`@cognidesk/ticketing-sap-service-cloud`<br>`@cognidesk/ticketing-servicenow`<br>`@cognidesk/ticketing-zendesk`<br>`@cognidesk/ticketing-zoho-desk` |
+| Video | 2 | `@cognidesk/video-whereby`<br>`@cognidesk/video-zoom` |
+| Voice Provider APIs | 9 | `@cognidesk/voice-aws-speech`<br>`@cognidesk/voice-azure-speech`<br>`@cognidesk/voice-deepgram`<br>`@cognidesk/voice-elevenlabs`<br>`@cognidesk/voice-sip`<br>`@cognidesk/voice-google-speech`<br>`@cognidesk/voice-openai`<br>`@cognidesk/voice-twilio`<br>`@cognidesk/voice-vonage` |
+| Workplace | 2 | `@cognidesk/workplace-teams`<br>`@cognidesk/workplace-slack` |
 
 ## Provider Modules
 
@@ -33,10 +33,11 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/cobrowsing/cognidesk` |
+| Package | `@cognidesk/cobrowsing-cognidesk` |
+| Manifest import | `@cognidesk/cobrowsing-cognidesk/manifest` |
+| Runtime import | `@cognidesk/cobrowsing-cognidesk/runtime` |
+| Workspace | `integrations/cobrowsing/cognidesk` |
 | Manifest ID | `cobrowsing.cognidesk` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/cobrowsing/cognidesk` |
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
@@ -57,10 +58,11 @@ Evidence: [Cognidesk cobrowsing local protocol module](https://github.com/cognil
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/community/discord` |
+| Package | `@cognidesk/community-discord` |
+| Manifest import | `@cognidesk/community-discord/manifest` |
+| Runtime import | `@cognidesk/community-discord/runtime` |
+| Workspace | `integrations/community/discord` |
 | Manifest ID | `community.discord` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/community/discord` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `standard` |
 | Implementation | `provider-api-subset` |
@@ -79,10 +81,11 @@ Evidence: [Discord official OpenAPI v10 spec](https://raw.githubusercontent.com/
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/community/forum` |
+| Package | `@cognidesk/community-forum` |
+| Manifest import | `@cognidesk/community-forum/manifest` |
+| Runtime import | `@cognidesk/community-forum/runtime` |
+| Workspace | `integrations/community/forum` |
 | Manifest ID | `community.forum` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/community/forum` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -103,10 +106,11 @@ Evidence: [Discourse API docs](https://docs.discourse.org/); [Discourse webhook 
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/8x8` |
+| Package | `@cognidesk/contact-center-8x8` |
+| Manifest import | `@cognidesk/contact-center-8x8/manifest` |
+| Runtime import | `@cognidesk/contact-center-8x8/runtime` |
+| Workspace | `integrations/contact-center/8x8` |
 | Manifest ID | `contactCenter.8x8` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/8x8` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -125,10 +129,11 @@ Evidence: [8x8 Contact Center Chat API V2 OpenAPI](https://raw.githubusercontent
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/aircall` |
+| Package | `@cognidesk/contact-center-aircall` |
+| Manifest import | `@cognidesk/contact-center-aircall/manifest` |
+| Runtime import | `@cognidesk/contact-center-aircall/runtime` |
+| Workspace | `integrations/contact-center/aircall` |
 | Manifest ID | `contactCenter.aircall` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/aircall` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -147,10 +152,11 @@ Evidence: [Aircall API References](https://developer.aircall.io/api-references/)
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/amazon-connect` |
+| Package | `@cognidesk/contact-center-amazon-connect` |
+| Manifest import | `@cognidesk/contact-center-amazon-connect/manifest` |
+| Runtime import | `@cognidesk/contact-center-amazon-connect/runtime` |
+| Workspace | `integrations/contact-center/amazon-connect` |
 | Manifest ID | `contactCenter.amazon-connect` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/amazon-connect` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -169,10 +175,11 @@ Evidence: [AWS official API models for Amazon Connect family](https://github.com
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/five9` |
+| Package | `@cognidesk/contact-center-five9` |
+| Manifest import | `@cognidesk/contact-center-five9/manifest` |
+| Runtime import | `@cognidesk/contact-center-five9/runtime` |
+| Workspace | `integrations/contact-center/five9` |
 | Manifest ID | `contactCenter.five9` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/five9` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -191,10 +198,11 @@ Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/ca
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/genesys-cloud` |
+| Package | `@cognidesk/contact-center-genesys-cloud` |
+| Manifest import | `@cognidesk/contact-center-genesys-cloud/manifest` |
+| Runtime import | `@cognidesk/contact-center-genesys-cloud/runtime` |
+| Workspace | `integrations/contact-center/genesys-cloud` |
 | Manifest ID | `contactCenter.genesys-cloud` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/genesys-cloud` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -213,10 +221,11 @@ Evidence: [Genesys Cloud Platform API Swagger](https://api.mypurecloud.com/api/v
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/genesys-engage` |
+| Package | `@cognidesk/contact-center-genesys-engage` |
+| Manifest import | `@cognidesk/contact-center-genesys-engage/manifest` |
+| Runtime import | `@cognidesk/contact-center-genesys-engage/runtime` |
+| Workspace | `integrations/contact-center/genesys-engage` |
 | Manifest ID | `contactCenter.genesys-engage` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/genesys-engage` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -235,10 +244,11 @@ Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIby
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/genesys-pureconnect` |
+| Package | `@cognidesk/contact-center-genesys-pureconnect` |
+| Manifest import | `@cognidesk/contact-center-genesys-pureconnect/manifest` |
+| Runtime import | `@cognidesk/contact-center-genesys-pureconnect/runtime` |
+| Workspace | `integrations/contact-center/genesys-pureconnect` |
 | Manifest ID | `contactCenter.genesys-pureconnect` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/genesys-pureconnect` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -257,10 +267,11 @@ Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIby
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/nextiva` |
+| Package | `@cognidesk/contact-center-nextiva` |
+| Manifest import | `@cognidesk/contact-center-nextiva/manifest` |
+| Runtime import | `@cognidesk/contact-center-nextiva/runtime` |
+| Workspace | `integrations/contact-center/nextiva` |
 | Manifest ID | `contactCenter.nextiva` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/nextiva` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -279,10 +290,11 @@ Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/l
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/nice-cxone` |
+| Package | `@cognidesk/contact-center-nice-cxone` |
+| Manifest import | `@cognidesk/contact-center-nice-cxone/manifest` |
+| Runtime import | `@cognidesk/contact-center-nice-cxone/runtime` |
+| Workspace | `integrations/contact-center/nice-cxone` |
 | Manifest ID | `contactCenter.nice-cxone` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/nice-cxone` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -301,10 +313,11 @@ Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/ringcentral` |
+| Package | `@cognidesk/contact-center-ringcentral` |
+| Manifest import | `@cognidesk/contact-center-ringcentral/manifest` |
+| Runtime import | `@cognidesk/contact-center-ringcentral/runtime` |
+| Workspace | `integrations/contact-center/ringcentral` |
 | Manifest ID | `contactCenter.ringcentral` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/ringcentral` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -323,10 +336,11 @@ Evidence: [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-ap
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/talkdesk` |
+| Package | `@cognidesk/contact-center-talkdesk` |
+| Manifest import | `@cognidesk/contact-center-talkdesk/manifest` |
+| Runtime import | `@cognidesk/contact-center-talkdesk/runtime` |
+| Workspace | `integrations/contact-center/talkdesk` |
 | Manifest ID | `contactCenter.talkdesk` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/talkdesk` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -345,10 +359,11 @@ Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/publ
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/contact-center/zoom` |
+| Package | `@cognidesk/contact-center-zoom` |
+| Manifest import | `@cognidesk/contact-center-zoom/manifest` |
+| Runtime import | `@cognidesk/contact-center-zoom/runtime` |
+| Workspace | `integrations/contact-center/zoom` |
 | Manifest ID | `contactCenter.zoom` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/contact-center/zoom` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -369,10 +384,11 @@ Evidence: [Zoom Contact Center APIs](https://developers.zoom.us/docs/api/contact
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ecommerce/shopify` |
+| Package | `@cognidesk/ecommerce-shopify` |
+| Manifest import | `@cognidesk/ecommerce-shopify/manifest` |
+| Runtime import | `@cognidesk/ecommerce-shopify/runtime` |
+| Workspace | `integrations/ecommerce/shopify` |
 | Manifest ID | `ecommerce.shopify` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ecommerce/shopify` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -391,10 +407,11 @@ Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/adm
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ecommerce/stripe` |
+| Package | `@cognidesk/ecommerce-stripe` |
+| Manifest import | `@cognidesk/ecommerce-stripe/manifest` |
+| Runtime import | `@cognidesk/ecommerce-stripe/runtime` |
+| Workspace | `integrations/ecommerce/stripe` |
 | Manifest ID | `ecommerce.stripe` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ecommerce/stripe` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -415,10 +432,11 @@ Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe PaymentIn
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/email/ses` |
+| Package | `@cognidesk/email-ses` |
+| Manifest import | `@cognidesk/email-ses/manifest` |
+| Runtime import | `@cognidesk/email-ses/runtime` |
+| Workspace | `integrations/email/ses` |
 | Manifest ID | `email.ses` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/email/ses` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -437,10 +455,11 @@ Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/b
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/email/gmail` |
+| Package | `@cognidesk/email-gmail` |
+| Manifest import | `@cognidesk/email-gmail/manifest` |
+| Runtime import | `@cognidesk/email-gmail/runtime` |
+| Workspace | `integrations/email/gmail` |
 | Manifest ID | `email.gmail` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/email/gmail` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -459,10 +478,11 @@ Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/email/imap` |
+| Package | `@cognidesk/email-imap` |
+| Manifest import | `@cognidesk/email-imap/manifest` |
+| Runtime import | `@cognidesk/email-imap/runtime` |
+| Workspace | `integrations/email/imap` |
 | Manifest ID | `email.imap` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/email/imap` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `app-supplied-connector` |
@@ -481,10 +501,11 @@ Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051).
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/email/mailgun` |
+| Package | `@cognidesk/email-mailgun` |
+| Manifest import | `@cognidesk/email-mailgun/manifest` |
+| Runtime import | `@cognidesk/email-mailgun/runtime` |
+| Workspace | `integrations/email/mailgun` |
 | Manifest ID | `email.mailgun` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/email/mailgun` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -503,10 +524,11 @@ Evidence: [Mailgun OpenAPI specification](https://documentation.mailgun.com/_spe
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/email/outlook` |
+| Package | `@cognidesk/email-outlook` |
+| Manifest import | `@cognidesk/email-outlook/manifest` |
+| Runtime import | `@cognidesk/email-outlook/runtime` |
+| Workspace | `integrations/email/outlook` |
 | Manifest ID | `email.outlook` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/email/outlook` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -525,10 +547,11 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/email/postmark` |
+| Package | `@cognidesk/email-postmark` |
+| Manifest import | `@cognidesk/email-postmark/manifest` |
+| Runtime import | `@cognidesk/email-postmark/runtime` |
+| Workspace | `integrations/email/postmark` |
 | Manifest ID | `email.postmark` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/email/postmark` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -549,10 +572,11 @@ Evidence: [Postmark Server API Swagger](https://postmarkapp.com/swagger/server.y
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/form/cognidesk` |
+| Package | `@cognidesk/form-cognidesk` |
+| Manifest import | `@cognidesk/form-cognidesk/manifest` |
+| Runtime import | `@cognidesk/form-cognidesk/runtime` |
+| Workspace | `integrations/form/cognidesk` |
 | Manifest ID | `form.cognidesk` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/form/cognidesk` |
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
@@ -573,10 +597,11 @@ Evidence: No provider evidence listed in the manifest.
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/help-center/cognidesk` |
+| Package | `@cognidesk/help-center-cognidesk` |
+| Manifest import | `@cognidesk/help-center-cognidesk/manifest` |
+| Runtime import | `@cognidesk/help-center-cognidesk/runtime` |
+| Workspace | `integrations/help-center/cognidesk` |
 | Manifest ID | `helpcenter.cognidesk` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/help-center/cognidesk` |
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
@@ -597,10 +622,11 @@ Evidence: No provider evidence listed in the manifest.
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/marketplace/amazon` |
+| Package | `@cognidesk/marketplace-amazon` |
+| Manifest import | `@cognidesk/marketplace-amazon/manifest` |
+| Runtime import | `@cognidesk/marketplace-amazon/runtime` |
+| Workspace | `integrations/marketplace/amazon` |
 | Manifest ID | `marketplace.amazon` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/marketplace/amazon` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `full` |
 | Implementation | `generated-full-provider-api` |
@@ -619,10 +645,11 @@ Evidence: [Amazon official SP-API model repository](https://github.com/amzn/sell
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/marketplace/ebay` |
+| Package | `@cognidesk/marketplace-ebay` |
+| Manifest import | `@cognidesk/marketplace-ebay/manifest` |
+| Runtime import | `@cognidesk/marketplace-ebay/runtime` |
+| Workspace | `integrations/marketplace/ebay` |
 | Manifest ID | `marketplace.ebay` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/marketplace/ebay` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -643,10 +670,11 @@ Evidence: [eBay Sell Fulfillment API](https://developer.ebay.com/develop/api/sel
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/messaging/rcs` |
+| Package | `@cognidesk/messaging-rcs` |
+| Manifest import | `@cognidesk/messaging-rcs/manifest` |
+| Runtime import | `@cognidesk/messaging-rcs/runtime` |
+| Workspace | `integrations/messaging/rcs` |
 | Manifest ID | `messaging.rcs` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/messaging/rcs` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -665,10 +693,11 @@ Evidence: [RCS agentMessages create](https://developers.google.com/business-comm
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/messaging/whatsapp` |
+| Package | `@cognidesk/messaging-whatsapp` |
+| Manifest import | `@cognidesk/messaging-whatsapp/manifest` |
+| Runtime import | `@cognidesk/messaging-whatsapp/runtime` |
+| Workspace | `integrations/messaging/whatsapp` |
 | Manifest ID | `messaging.whatsapp` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/messaging/whatsapp` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -689,10 +718,11 @@ Evidence: [WhatsApp Cloud API get started](https://developers.facebook.com/docum
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/review/appstore` |
+| Package | `@cognidesk/review-appstore` |
+| Manifest import | `@cognidesk/review-appstore/manifest` |
+| Runtime import | `@cognidesk/review-appstore/runtime` |
+| Workspace | `integrations/review/appstore` |
 | Manifest ID | `review.appstore` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/review/appstore` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `full` |
 | Implementation | `generated-full-provider-api` |
@@ -711,10 +741,11 @@ Evidence: [App Store Connect OpenAPI specification](https://developer.apple.com/
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/review/googleplay` |
+| Package | `@cognidesk/review-googleplay` |
+| Manifest import | `@cognidesk/review-googleplay/manifest` |
+| Runtime import | `@cognidesk/review-googleplay/runtime` |
+| Workspace | `integrations/review/googleplay` |
 | Manifest ID | `review.googleplay` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/review/googleplay` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `full` |
 | Implementation | `generated-full-provider-api` |
@@ -735,10 +766,11 @@ Evidence: [Google Play Android Publisher Discovery document](https://androidpubl
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/sms/twilio` |
+| Package | `@cognidesk/sms-twilio` |
+| Manifest import | `@cognidesk/sms-twilio/manifest` |
+| Runtime import | `@cognidesk/sms-twilio/runtime` |
+| Workspace | `integrations/sms/twilio` |
 | Manifest ID | `sms.twilio` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/sms/twilio` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -759,10 +791,11 @@ Evidence: [Twilio Messaging API overview](https://www.twilio.com/docs/messaging/
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/social/messenger` |
+| Package | `@cognidesk/social-messenger` |
+| Manifest import | `@cognidesk/social-messenger/manifest` |
+| Runtime import | `@cognidesk/social-messenger/runtime` |
+| Workspace | `integrations/social/messenger` |
 | Manifest ID | `social.messenger` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/social/messenger` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -781,10 +814,11 @@ Evidence: [Messenger webhooks](https://developers.facebook.com/documentation/bus
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/social/instagram` |
+| Package | `@cognidesk/social-instagram` |
+| Manifest import | `@cognidesk/social-instagram/manifest` |
+| Runtime import | `@cognidesk/social-instagram/runtime` |
+| Workspace | `integrations/social/instagram` |
 | Manifest ID | `social.instagram` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/social/instagram` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -803,10 +837,11 @@ Evidence: [Instagram Messaging overview](https://developers.facebook.com/documen
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/social/tiktok` |
+| Package | `@cognidesk/social-tiktok` |
+| Manifest import | `@cognidesk/social-tiktok/manifest` |
+| Runtime import | `@cognidesk/social-tiktok/runtime` |
+| Workspace | `integrations/social/tiktok` |
 | Manifest ID | `social.tiktok` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/social/tiktok` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -827,10 +862,11 @@ Evidence: [TikTok Display API get started](https://developers.tiktok.com/doc/dis
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/freshdesk` |
+| Package | `@cognidesk/ticketing-freshdesk` |
+| Manifest import | `@cognidesk/ticketing-freshdesk/manifest` |
+| Runtime import | `@cognidesk/ticketing-freshdesk/runtime` |
+| Workspace | `integrations/ticketing/freshdesk` |
 | Manifest ID | `ticketing.freshdesk` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/freshdesk` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -849,10 +885,11 @@ Evidence: [Freshdesk API v2 reference](https://developers.freshdesk.com/api/); [
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/front` |
+| Package | `@cognidesk/ticketing-front` |
+| Manifest import | `@cognidesk/ticketing-front/manifest` |
+| Runtime import | `@cognidesk/ticketing-front/runtime` |
+| Workspace | `integrations/ticketing/front` |
 | Manifest ID | `ticketing.front` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/front` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -871,10 +908,11 @@ Evidence: [Front official OpenAPI specs](https://github.com/frontapp/front-api-s
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/gorgias` |
+| Package | `@cognidesk/ticketing-gorgias` |
+| Manifest import | `@cognidesk/ticketing-gorgias/manifest` |
+| Runtime import | `@cognidesk/ticketing-gorgias/runtime` |
+| Workspace | `integrations/ticketing/gorgias` |
 | Manifest ID | `ticketing.gorgias` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/gorgias` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -893,10 +931,11 @@ Evidence: [Gorgias developer llms.txt](https://developers.gorgias.com/llms.txt);
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/help-scout` |
+| Package | `@cognidesk/ticketing-help-scout` |
+| Manifest import | `@cognidesk/ticketing-help-scout/manifest` |
+| Runtime import | `@cognidesk/ticketing-help-scout/runtime` |
+| Workspace | `integrations/ticketing/help-scout` |
 | Manifest ID | `ticketing.help-scout` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/help-scout` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -915,10 +954,11 @@ Evidence: [Help Scout developer llms.txt](https://developer.helpscout.com/llms.t
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/hubspot` |
+| Package | `@cognidesk/ticketing-hubspot` |
+| Manifest import | `@cognidesk/ticketing-hubspot/manifest` |
+| Runtime import | `@cognidesk/ticketing-hubspot/runtime` |
+| Workspace | `integrations/ticketing/hubspot` |
 | Manifest ID | `ticketing.hubspot` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/hubspot` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -937,10 +977,11 @@ Evidence: [HubSpot public OpenAPI spec index](https://api.hubapi.com/public/api/
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/intercom` |
+| Package | `@cognidesk/ticketing-intercom` |
+| Manifest import | `@cognidesk/ticketing-intercom/manifest` |
+| Runtime import | `@cognidesk/ticketing-intercom/runtime` |
+| Workspace | `integrations/ticketing/intercom` |
 | Manifest ID | `ticketing.intercom` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/intercom` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -959,10 +1000,11 @@ Evidence: [Intercom official OpenAPI specs](https://github.com/intercom/Intercom
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/kustomer` |
+| Package | `@cognidesk/ticketing-kustomer` |
+| Manifest import | `@cognidesk/ticketing-kustomer/manifest` |
+| Runtime import | `@cognidesk/ticketing-kustomer/runtime` |
+| Workspace | `integrations/ticketing/kustomer` |
 | Manifest ID | `ticketing.kustomer` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/kustomer` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -981,10 +1023,11 @@ Evidence: [Kustomer REST APIs portal](https://developer.kustomer.com/kustomer-ap
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/dynamics365` |
+| Package | `@cognidesk/ticketing-dynamics365` |
+| Manifest import | `@cognidesk/ticketing-dynamics365/manifest` |
+| Runtime import | `@cognidesk/ticketing-dynamics365/runtime` |
+| Workspace | `integrations/ticketing/dynamics365` |
 | Manifest ID | `ticketing.dynamics365` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/dynamics365` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -1003,10 +1046,11 @@ Evidence: [Microsoft Dataverse Web API overview](https://learn.microsoft.com/en-
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/oracle-service` |
+| Package | `@cognidesk/ticketing-oracle-service` |
+| Manifest import | `@cognidesk/ticketing-oracle-service/manifest` |
+| Runtime import | `@cognidesk/ticketing-oracle-service/runtime` |
+| Workspace | `integrations/ticketing/oracle-service` |
 | Manifest ID | `ticketing.oracle-service` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/oracle-service` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -1025,10 +1069,11 @@ Evidence: [Oracle Fusion Service serviceRequests overview](https://docs.oracle.c
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/pega-customer-service` |
+| Package | `@cognidesk/ticketing-pega-customer-service` |
+| Manifest import | `@cognidesk/ticketing-pega-customer-service/manifest` |
+| Runtime import | `@cognidesk/ticketing-pega-customer-service/runtime` |
+| Workspace | `integrations/ticketing/pega-customer-service` |
 | Manifest ID | `ticketing.pega-customer-service` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/pega-customer-service` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -1047,10 +1092,11 @@ Evidence: [Pega DX API overview](https://docs.pega.com/bundle/dx-api/page/platfo
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/salesforce` |
+| Package | `@cognidesk/ticketing-salesforce` |
+| Manifest import | `@cognidesk/ticketing-salesforce/manifest` |
+| Runtime import | `@cognidesk/ticketing-salesforce/runtime` |
+| Workspace | `integrations/ticketing/salesforce` |
 | Manifest ID | `ticketing.salesforce` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/salesforce` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -1069,10 +1115,11 @@ Evidence: [Salesforce REST API resources](https://developer.salesforce.com/docs/
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/sap-service-cloud` |
+| Package | `@cognidesk/ticketing-sap-service-cloud` |
+| Manifest import | `@cognidesk/ticketing-sap-service-cloud/manifest` |
+| Runtime import | `@cognidesk/ticketing-sap-service-cloud/runtime` |
+| Workspace | `integrations/ticketing/sap-service-cloud` |
 | Manifest ID | `ticketing.sap-service-cloud` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/sap-service-cloud` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -1091,10 +1138,11 @@ Evidence: [SAP Cloud for Customer OData API](https://help.sap.com/docs/sap-cloud
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/servicenow` |
+| Package | `@cognidesk/ticketing-servicenow` |
+| Manifest import | `@cognidesk/ticketing-servicenow/manifest` |
+| Runtime import | `@cognidesk/ticketing-servicenow/runtime` |
+| Workspace | `integrations/ticketing/servicenow` |
 | Manifest ID | `ticketing.servicenow` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/servicenow` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -1113,10 +1161,11 @@ Evidence: [ServiceNow Table API](https://www.servicenow.com/docs/r/washingtondc/
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/zendesk` |
+| Package | `@cognidesk/ticketing-zendesk` |
+| Manifest import | `@cognidesk/ticketing-zendesk/manifest` |
+| Runtime import | `@cognidesk/ticketing-zendesk/runtime` |
+| Workspace | `integrations/ticketing/zendesk` |
 | Manifest ID | `ticketing.zendesk` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/zendesk` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -1135,10 +1184,11 @@ Evidence: [Zendesk Support API OpenAPI](https://developer.zendesk.com/zendesk/oa
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/ticketing/zoho-desk` |
+| Package | `@cognidesk/ticketing-zoho-desk` |
+| Manifest import | `@cognidesk/ticketing-zoho-desk/manifest` |
+| Runtime import | `@cognidesk/ticketing-zoho-desk/runtime` |
+| Workspace | `integrations/ticketing/zoho-desk` |
 | Manifest ID | `ticketing.zoho-desk` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/ticketing/zoho-desk` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -1159,10 +1209,11 @@ Evidence: [Zoho Desk API documentation](https://desk.zoho.com/DeskAPIDocument); 
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/video/whereby` |
+| Package | `@cognidesk/video-whereby` |
+| Manifest import | `@cognidesk/video-whereby/manifest` |
+| Runtime import | `@cognidesk/video-whereby/runtime` |
+| Workspace | `integrations/video/whereby` |
 | Manifest ID | `video.whereby` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/video/whereby` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `full` |
 | Implementation | `generated-full-provider-api` |
@@ -1181,10 +1232,11 @@ Evidence: [Whereby REST OpenAPI spec](https://raw.githubusercontent.com/whereby/
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/video/zoom` |
+| Package | `@cognidesk/video-zoom` |
+| Manifest import | `@cognidesk/video-zoom/manifest` |
+| Runtime import | `@cognidesk/video-zoom/runtime` |
+| Workspace | `integrations/video/zoom` |
 | Manifest ID | `video.zoom` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/video/zoom` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `standard` |
 | Implementation | `provider-api-subset` |
@@ -1205,10 +1257,11 @@ Evidence: [Zoom Meetings API Hub OpenAPI](https://developers.zoom.us/api-hub/mee
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/aws-speech` |
+| Package | `@cognidesk/voice-aws-speech` |
+| Manifest import | `@cognidesk/voice-aws-speech/manifest` |
+| Runtime import | `@cognidesk/voice-aws-speech/runtime` |
+| Workspace | `integrations/voice/aws-speech` |
 | Manifest ID | `voice.aws-speech` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/aws-speech` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -1227,10 +1280,11 @@ Evidence: [Amazon Transcribe StartStreamTranscription API](https://docs.aws.amaz
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/azure-speech` |
+| Package | `@cognidesk/voice-azure-speech` |
+| Manifest import | `@cognidesk/voice-azure-speech/manifest` |
+| Runtime import | `@cognidesk/voice-azure-speech/runtime` |
+| Workspace | `integrations/voice/azure-speech` |
 | Manifest ID | `voice.azure-speech` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/azure-speech` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -1249,10 +1303,11 @@ Evidence: [Azure AI Speech to text REST API](https://learn.microsoft.com/azure/a
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/deepgram` |
+| Package | `@cognidesk/voice-deepgram` |
+| Manifest import | `@cognidesk/voice-deepgram/manifest` |
+| Runtime import | `@cognidesk/voice-deepgram/runtime` |
+| Workspace | `integrations/voice/deepgram` |
 | Manifest ID | `voice.deepgram` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/deepgram` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -1271,10 +1326,11 @@ Evidence: [Deepgram prerecorded audio STT](https://developers.deepgram.com/docs/
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/elevenlabs` |
+| Package | `@cognidesk/voice-elevenlabs` |
+| Manifest import | `@cognidesk/voice-elevenlabs/manifest` |
+| Runtime import | `@cognidesk/voice-elevenlabs/runtime` |
+| Workspace | `integrations/voice/elevenlabs` |
 | Manifest ID | `voice.elevenlabs` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/elevenlabs` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -1293,10 +1349,11 @@ Evidence: [ElevenLabs REST OpenAPI specification](https://api.elevenlabs.io/open
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/sip` |
+| Package | `@cognidesk/voice-sip` |
+| Manifest import | `@cognidesk/voice-sip/manifest` |
+| Runtime import | `@cognidesk/voice-sip/runtime` |
+| Workspace | `integrations/voice/sip` |
 | Manifest ID | `voice.sip` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/sip` |
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
@@ -1315,10 +1372,11 @@ Evidence: No provider evidence listed in the manifest.
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/google-speech` |
+| Package | `@cognidesk/voice-google-speech` |
+| Manifest import | `@cognidesk/voice-google-speech/manifest` |
+| Runtime import | `@cognidesk/voice-google-speech/runtime` |
+| Workspace | `integrations/voice/google-speech` |
 | Manifest ID | `voice.google-speech` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/google-speech` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -1337,10 +1395,11 @@ Evidence: [Google Cloud Speech-to-Text speech.recognize REST API](https://docs.c
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/openai` |
+| Package | `@cognidesk/voice-openai` |
+| Manifest import | `@cognidesk/voice-openai/manifest` |
+| Runtime import | `@cognidesk/voice-openai/runtime` |
+| Workspace | `integrations/voice/openai` |
 | Manifest ID | `voice.openai` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/openai` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -1359,10 +1418,11 @@ Evidence: [OpenAI Realtime and audio guide](https://developers.openai.com/api/do
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/twilio` |
+| Package | `@cognidesk/voice-twilio` |
+| Manifest import | `@cognidesk/voice-twilio/manifest` |
+| Runtime import | `@cognidesk/voice-twilio/runtime` |
+| Workspace | `integrations/voice/twilio` |
 | Manifest ID | `voice.twilio` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/twilio` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -1381,10 +1441,11 @@ Evidence: [Twilio Programmable Voice API overview](https://www.twilio.com/docs/v
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/voice/vonage` |
+| Package | `@cognidesk/voice-vonage` |
+| Manifest import | `@cognidesk/voice-vonage/manifest` |
+| Runtime import | `@cognidesk/voice-vonage/runtime` |
+| Workspace | `integrations/voice/vonage` |
 | Manifest ID | `voice.vonage` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/voice/vonage` |
 | Scope | `full-provider-api` |
 | Adapter coverage | `partial` |
 | Implementation | `generated-full-provider-api` |
@@ -1405,10 +1466,11 @@ Evidence: [Vonage Voice API v1 OpenAPI](https://developer.vonage.com/api/v1/deve
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/workplace/teams` |
+| Package | `@cognidesk/workplace-teams` |
+| Manifest import | `@cognidesk/workplace-teams/manifest` |
+| Runtime import | `@cognidesk/workplace-teams/runtime` |
+| Workspace | `integrations/workplace/teams` |
 | Manifest ID | `workplace.teams` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/workplace/teams` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |
@@ -1427,10 +1489,11 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 
 | Field | Value |
 |-------|-------|
-| Import | `@cognidesk/integrations/workplace/slack` |
+| Package | `@cognidesk/workplace-slack` |
+| Manifest import | `@cognidesk/workplace-slack/manifest` |
+| Runtime import | `@cognidesk/workplace-slack/runtime` |
+| Workspace | `integrations/workplace/slack` |
 | Manifest ID | `workplace.slack` |
-| SDK package | `@cognidesk/integrations` |
-| Runtime package | `@cognidesk/integrations/workplace/slack` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `provider-api-subset` |

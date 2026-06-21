@@ -36,7 +36,7 @@ Install only the adapters and surfaces your application uses:
 | `@cognidesk/storage` | SQLite/libSQL and Postgres runtime storage adapters |
 | `@cognidesk/otel` | OpenTelemetry instrumentation |
 | `@cognidesk/{category}-{provider}` | External Provider Integrations installed one provider at a time, such as `@cognidesk/email-gmail`, `@cognidesk/workplace-slack`, `@cognidesk/email-outlook`, `@cognidesk/workplace-teams`, and `@cognidesk/voice-openai` |
-| `@cognidesk/integration-catalog` | Provider discovery metadata used by docs, Studio, and application-owned lazy loaders once the split provider packages from #20-#26 are available |
+| `@cognidesk/integration-catalog` | Provider discovery metadata used by docs, Studio, and application-owned lazy loaders once split provider packages from #23-#25 and #29-#43 publish from `integrations/{category}/{provider}` |
 | `@cognidesk/voice-websocket` | Browser-facing Cognidesk Voice WebSocket transport |
 | `@cognidesk/journey-index-json` | JSON-based journey index |
 | `@cognidesk/connections` | Reviewed OpenAPI/MCP connection helpers for selected operation aliases |
@@ -46,7 +46,7 @@ Install only the adapters and surfaces your application uses:
 
 ### Provider package examples
 
-Install only the provider packages your application enables. The split package work is staged behind #20-#26/#28; until those packages publish, local examples may still point at legacy workspace modules.
+Install only the provider packages your application enables. The split package work is staged behind #28, first-wave package issues #23-#25, and provider-family trackers #29-#43; until those packages publish, local examples may still point at legacy workspace modules. Legacy `@cognidesk/integrations/*` imports should migrate by codemod, not through a compatibility bridge; see [Provider Package Migration](../guides/provider-package-migration.md).
 
 === "pnpm"
 

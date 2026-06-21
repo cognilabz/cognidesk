@@ -16,7 +16,7 @@ import { teamsWorkplaceProviderManifest } from "@cognidesk/workplace-teams/manif
 import { openAIVoiceProviderManifest } from "@cognidesk/voice-openai/manifest";
 ```
 
-The split package work is staged behind #20-#26/#28. Until those packages and generated type references land, this page keeps legacy generated reference links available for maintainers who need to inspect the current workspace state.
+The split package work is staged behind #28, first-wave package issues #23-#25, and provider-family trackers #29-#43. Until those packages and generated type references land, this page keeps legacy generated reference links available for maintainers who need to inspect the current workspace state.
 
 ## Catalog and manifest exports
 
@@ -24,7 +24,7 @@ The split package work is staged behind #20-#26/#28. Until those packages and ge
 
 Application code should register manifests explicitly, then supply lazy loaders for provider runtime modules.
 
-See the [Provider Integration Catalog](../guides/provider-integrations-catalog.md) for the staged package list.
+See the [Provider Integration Catalog](../guides/provider-integrations-catalog.md) for the staged package list and [Provider Package Migration](../guides/provider-package-migration.md) for old-import codemod rules.
 
 Common examples:
 

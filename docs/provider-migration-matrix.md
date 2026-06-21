@@ -4,25 +4,26 @@ Date: 2026-06-21
 
 Issue: https://github.com/cognilabz/cognidesk/issues/26
 
-This matrix records the migration decision for every current provider directory under `packages/integrations/src`. It is intentionally a planning contract, not a runtime migration, because the required package layout and executable provider contracts are not present yet.
+This matrix records the migration decision for every current provider directory under `packages/integrations/src`. It is intentionally a planning contract, not a runtime migration. The `codex/integrations-foundation-stack` base contains the nested workspace, integration kit, metadata catalog, and guardrail layers; executable provider packages still land through #23-#25 and provider-family trackers #29-#43.
 
 ## Dependency Gate
 
-Runtime provider migrations are blocked until the reference packages and contracts exist.
+Runtime provider migrations are blocked until the reference provider packages exist.
 
 | Gate | Current repo evidence | State | Effect |
 | --- | --- | --- | --- |
-| #20 nested provider workspaces | `pnpm-workspace.yaml` includes only `packages/*` and `apps/*`. | Open | Do not create `integrations/*/*` packages yet. |
-| #21 integration kit | No `packages/integration-kit`; providers still use `packages/integrations/src/provider-manifest.ts`. | Open | Do not move runtime handlers until `defineIntegration()` and conformance utilities are available. |
+| #20 nested provider workspaces | `pnpm-workspace.yaml` includes `integrations/*/*`. | Landed | New provider package workspaces live under `integrations/{category}/{provider}`. |
+| #21 integration kit | `packages/integration-kit` exists with provider-neutral helpers and conformance utilities. | Landed | Runtime handlers can move only into packages that use kit contracts and provider-specific tests. |
+| #22 metadata catalog | `packages/integration-catalog` exists and catalog docs are generated from metadata. | Landed | Catalog generation stays metadata-only and must not import runtime provider modules. |
 | #23 Gmail reference | Gmail still lives under `packages/integrations/src/email/gmail` with generated full API files. | Open | Treat Gmail as the first SDK-backed reference, not as a pattern already landed. |
 | #24 Microsoft Graph reference | Outlook and Teams still use local `graph-api.generated` surfaces. | Open | Treat Graph auth, pagination, and subscription handling as unresolved. |
 | #25 Slack and Discord reference | Slack still uses `web-api.generated`; Discord still has generated HTTP API code inside the monolith. | Open | Treat workplace/community event and package split patterns as unresolved. |
 
 Additional local evidence:
 
-- `packages/integrations/package.json` has runtime dependencies only on `@cognidesk/core`, `@cognidesk/voice-websocket`, and `openai`.
+- `packages/integrations/package.json` remains the legacy staging source.
 - `pnpm providers:generate:list` still lists monolith generators for provider surfaces.
-- `docs/adr/0081-publish-external-providers-as-one-integration-package.md` conflicts with the newer issue #20 and #26 direction. Until a replacement ADR lands, this matrix follows issue #26 while stopping before runtime rewrites.
+- `docs/adr/0085-split-provider-integrations-into-sdk-backed-packages.md` is the package-boundary source of truth. ADR-0081 is superseded.
 
 ## Decision Values
 
@@ -118,4 +119,4 @@ The SDK checks do not unblock migration. They only establish first-pass package 
 
 ## Stop Point
 
-Because the dependency gate is closed, stop here for issue #26. The next runtime migration should start only after #20 and #21 land and at least one of #23, #24, or #25 provides a reference package pattern with contract tests.
+Because the reference package gate remains open, stop here for issue #26. Broad provider-family migrations should start only after at least one of #23, #24, or #25 provides a reference package pattern with contract tests.

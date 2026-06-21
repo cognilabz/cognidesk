@@ -4,11 +4,11 @@ Provider Integrations connect Cognidesk conversations to external systems withou
 
 Official external providers ship as individual packages named `@cognidesk/{category}-{provider}`. Install only the providers your application enables, such as `@cognidesk/email-gmail`, `@cognidesk/workplace-slack`, `@cognidesk/email-outlook`, `@cognidesk/workplace-teams`, or `@cognidesk/voice-openai`.
 
-The split package work is staged behind #20-#26/#28. Until the new provider workspaces land, generated docs may still be derived from legacy manifests, but public installation guidance should point at the individual packages rather than `@cognidesk/integrations`.
+The split package work is staged behind #28, first-wave package issues #23-#25, and provider-family trackers #29-#43. Until the new provider workspaces land under `integrations/{category}/{provider}`, generated docs may still be derived from legacy manifests, but public installation guidance should point at the individual packages rather than `@cognidesk/integrations`.
 
 Use this guide when you decide which Provider Integration belongs in a channel, which capabilities to enable, and which provider setup must still be supplied by your application.
 
-For the full provider-by-provider list, see the [Provider Integration Catalog](provider-integrations-catalog.md). For the broader NG architecture changes, see [Omnichannel NG Changes](omnichannel-changes.md).
+For the full provider-by-provider list, see the [Provider Integration Catalog](provider-integrations-catalog.md). For old-import migration and codemod rules, see [Provider Package Migration](provider-package-migration.md). For the broader NG architecture changes, see [Omnichannel NG Changes](omnichannel-changes.md).
 
 ## Install provider packages
 
@@ -99,6 +99,8 @@ Every Provider Manifest declares a `coverage.scope`.
 | `full-provider-api` | Reserved for provider modules with evidence that the full external API surface is implemented and tested. |
 
 Treat `support-workflow-subset` as the default. A passing provider conformance test proves that the manifest metadata, capability naming, credential readiness, fail-closed behavior, and selected request shapes are valid. It does not prove full partner API coverage.
+
+Importing a provider SDK is not Cognidesk adapter coverage by itself. `full-provider-api` claims require Cognidesk-owned manifests, typed support semantics, generated or reviewed operation inventory evidence, conformance results, and package-size budgets that fail CI when exceeded.
 
 ## Capability model
 

@@ -131,10 +131,14 @@ pnpm providers:check
 ```
 
 The legacy `@cognidesk/integrations` workspace remains a staging source while
-provider-family packages move out under #29-#43. Its guardrails still check that
+first-wave packages from #23-#25 and provider-family packages from #29-#43 move
+out under `integrations/{category}/{provider}`. Its guardrails still check that
 normal runtime dependencies stay limited, provider SDK runtime imports do not
-leak into catalog/manifest-only entry points, package-size budgets fail CI, and
-generated provider surfaces are not produced from install-time hooks.
+leak into catalog/manifest-only entry points, package-size budgets fail CI,
+old-import compatibility bridges are not added, runtime source does not scan
+`node_modules` to discover providers, raw SDK breadth is not counted as adapter
+coverage, and generated provider surfaces are not produced from install-time
+hooks.
 
 ## Independent provider releases
 
@@ -159,6 +163,13 @@ workflow includes publishable provider workspaces when their current version is
 not already on npm. Maintainers can also publish a provider package from its
 package directory after it has passed `pnpm provider-packages:check` and
 `npm pack --dry-run --json` shows only the intended `dist` artifacts.
+
+Use the first-wave or provider-family tracker for the package being published:
+#23 Gmail, #24 Outlook/Teams, #25 Slack/Discord, #29 email, #30 ecommerce, #31
+marketplace, #32 Meta, #33 RCS/TikTok, #34 review, #35 helpdesk ticketing, #36
+CRM ticketing, #37 enterprise service clouds, #38 contact-center core, #39
+contact-center long tail, #40 cloud speech, #41 voice/SMS, #42 video, or #43
+local/protocol.
 
 For a first publish:
 

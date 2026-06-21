@@ -40,6 +40,29 @@ function displayCategory(category) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function categorySegment(category) {
+  return category
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[_\s]+/g, "-")
+    .toLowerCase();
+}
+
+function providerPackageName(provider) {
+  return `@cognidesk/${categorySegment(provider.category)}-${provider.provider}`;
+}
+
+function providerManifestImport(provider) {
+  return `${providerPackageName(provider)}/manifest`;
+}
+
+function providerRuntimeImport(provider) {
+  return `${providerPackageName(provider)}/runtime`;
+}
+
+function providerWorkspacePath(provider) {
+  return `integrations/${categorySegment(provider.category)}/${provider.provider}`;
+}
+
 function categoryRank(category) {
   const index = categoryOrder.indexOf(category);
   return index === -1 ? Number.MAX_SAFE_INTEGER : index;
@@ -132,16 +155,16 @@ function renderCatalog(groupedProviders) {
     "",
     "# Provider Integration Catalog",
     "",
-    "This catalog is generated from serialized metadata in `@cognidesk/integration-catalog`. It documents the official provider modules that live behind category/provider subpath imports without importing provider runtime modules during docs generation.",
+    "This catalog is generated from serialized metadata in `@cognidesk/integration-catalog`. It renders the target split provider packages, manifest imports, runtime imports, and `integrations/{category}/{provider}` workspace paths without importing provider runtime modules during docs generation.",
     "",
-    "`@cognidesk/voice-websocket` is not listed here because it is the browser-facing Cognidesk voice transport, not an external Provider Integration. OpenAI Realtime voice is listed as `@cognidesk/integrations/voice/openai` because it can be the entry channel and the LLM-backed realtime session. Speech Providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram can also back Cognidesk voice sessions while the Cognidesk Agent Model Set remains the background LLM.",
+    "`@cognidesk/voice-websocket` is not listed here because it is the browser-facing Cognidesk voice transport, not an external Provider Integration. OpenAI Realtime voice is listed as `@cognidesk/voice-openai` because it can be the entry channel and the LLM-backed realtime session. Speech Providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram can also back Cognidesk voice sessions while the Cognidesk Agent Model Set remains the background LLM.",
     "",
-    "| Category | Provider count | Imports |",
+    "| Category | Provider count | Packages |",
     "|----------|----------------|---------|",
   ];
 
   for (const [category, providers] of groupedProviders) {
-    const imports = providers.map((provider) => inlineCode(provider.importPath)).join("<br>");
+    const imports = providers.map((provider) => inlineCode(providerPackageName(provider))).join("<br>");
     lines.push(`| ${escapeTableCell(displayCategory(category))} | ${providers.length} | ${escapeTableCell(imports)} |`);
   }
 
@@ -167,10 +190,11 @@ function renderCatalog(groupedProviders) {
         "",
         "| Field | Value |",
         "|-------|-------|",
-        `| Import | ${escapeTableCell(inlineCode(provider.importPath))} |`,
+        `| Package | ${escapeTableCell(inlineCode(providerPackageName(provider)))} |`,
+        `| Manifest import | ${escapeTableCell(inlineCode(providerManifestImport(provider)))} |`,
+        `| Runtime import | ${escapeTableCell(inlineCode(providerRuntimeImport(provider)))} |`,
+        `| Workspace | ${escapeTableCell(inlineCode(providerWorkspacePath(provider)))} |`,
         `| Manifest ID | ${escapeTableCell(inlineCode(provider.id))} |`,
-        `| SDK package | ${escapeTableCell(inlineCode(provider.implementation?.sdkPackage ?? provider.packageName))} |`,
-        `| Runtime package | ${escapeTableCell(inlineCode(provider.implementation?.runtimePackage ?? provider.importPath))} |`,
         `| Scope | ${escapeTableCell(inlineCode(provider.coverage?.scope ?? "support-workflow-subset"))} |`,
         `| Adapter coverage | ${escapeTableCell(inlineCode(provider.adapterCoverage?.level ?? "unprofiled"))} |`,
         `| Implementation | ${escapeTableCell(inlineCode(provider.implementation?.strategy ?? "support-workflow-adapter"))} |`,

@@ -50,13 +50,13 @@ const stagedProviderPackages = [
   "@cognidesk/ecommerce-stripe",
 ];
 const stagedProviderPackageIssues = new Map([
-  ["@cognidesk/email-gmail", "#23/#29"],
-  ["@cognidesk/email-outlook", "#29"],
+  ["@cognidesk/email-gmail", "#23"],
+  ["@cognidesk/email-outlook", "#24"],
   ["@cognidesk/workplace-slack", "#25"],
   ["@cognidesk/workplace-teams", "#24"],
   ["@cognidesk/ecommerce-stripe", "#30"],
 ]);
-const providerFamilyIssueSummary = "#23 Gmail, #24 Microsoft Graph, #25 Slack/Discord, #29 email, #30 ecommerce, #31 marketplace, #32 Meta, #33 RCS/TikTok, #34 review, #35 helpdesk ticketing, #36 CRM ticketing, #37 enterprise service clouds, #38 contact-center core, #39 contact-center long tail, #40 cloud speech, #41 voice telephony, #42 video, #43 local/protocol";
+const providerFamilyIssueSummary = "#23 Gmail, #24 Microsoft Graph, #25 Slack/Discord, #29 email, #30 ecommerce, #31 marketplace, #32 Meta, #33 RCS/TikTok, #34 review, #35 helpdesk ticketing, #36 CRM ticketing, #37 enterprise service clouds, #38 contact-center core, #39 contact-center long tail, #40 cloud speech, #41 voice/SMS, #42 video, #43 local/protocol";
 const infrastructurePackageNames = new Set([
   "@cognidesk/voice-websocket",
 ]);
@@ -84,7 +84,7 @@ const failures = [];
 if (providerPackages.length === 0) {
   console.log("Provider package conformance:");
   console.log("  no split provider workspaces discovered yet");
-  console.log(`  staged package checks pending provider-family issues #23-#25/#29-#43: ${formatStagedPackages(missingStagedPackages)}`);
+  console.log(`  staged package checks pending provider package trackers #23-#25/#29-#43: ${formatStagedPackages(missingStagedPackages)}`);
   console.log(`  provider family trackers: ${providerFamilyIssueSummary}`);
   process.exit(0);
 }
@@ -102,7 +102,7 @@ if (failures.length > 0) {
 console.log("Provider package conformance passed:");
 console.log(`  checked provider packages: ${providerPackages.map((pkg) => pkg.name).join(", ")}`);
 if (missingStagedPackages.length > 0) {
-  console.log(`  staged package checks still pending provider-family issues #23-#25/#29-#43: ${formatStagedPackages(missingStagedPackages)}`);
+  console.log(`  staged package checks still pending provider package trackers #23-#25/#29-#43: ${formatStagedPackages(missingStagedPackages)}`);
 }
 
 async function readWorkspacePackages() {

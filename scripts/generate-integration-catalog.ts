@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -39,37 +39,61 @@ type ProviderManifest = {
   metadata?: Record<string, unknown>;
 };
 
-const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const integrationsSrcDir = path.join(repoRoot, "packages/integrations/src");
-const catalogDataPath = path.join(repoRoot, "packages/integration-catalog/src/catalog.generated.ts");
-const runtimeLoaderPath = path.join(repoRoot, "packages/integrations/src/provider-catalog/runtime-loaders.generated.ts");
-
-const entries: IntegrationCatalogEntry[] = [];
-
-for (const reference of integrationProviderReferences) {
-  const source = resolveManifestSource(reference);
-  const module = await import(pathToFileURL(source.absolutePath).href) as Record<string, unknown>;
-  const manifest = module[reference.manifestExport] as ProviderManifest | undefined;
-  if (!manifest) {
-    throw new Error(`Provider integration '${reference.id}' did not export '${reference.manifestExport}' from ${source.relativePath}.`);
-  }
-  entries.push(toCatalogEntry(reference, manifest, source.relativePath, source.kind));
-}
-
-entries.sort(compareEntries);
-
-await mkdir(path.dirname(catalogDataPath), { recursive: true });
-await writeFile(catalogDataPath, renderCatalogData(entries));
-await writeFile(runtimeLoaderPath, renderRuntimeLoaders([...integrationProviderReferences].sort(compareReferences)));
-
-console.log(`Generated ${path.relative(repoRoot, catalogDataPath)} from ${entries.length} integration manifests.`);
-console.log(`Generated ${path.relative(repoRoot, runtimeLoaderPath)} from ${integrationProviderReferences.length} explicit runtime loaders.`);
-
-function resolveManifestSource(reference: IntegrationProviderReference): {
+type ManifestSource = {
   absolutePath: string;
   relativePath: string;
   kind: IntegrationManifestSourceKind;
-} {
+};
+
+const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
+const integrationsSrcDir = path.join(repoRoot, "packages/integrations/src");
+const splitIntegrationsDir = path.join(repoRoot, "integrations");
+const catalogDataPath = path.join(repoRoot, "packages/integration-catalog/src/catalog.generated.ts");
+const runtimeLoaderPath = path.join(repoRoot, "packages/integrations/src/provider-catalog/runtime-loaders.generated.ts");
+const knownImplementationStrategies = new Set<IntegrationImplementationStrategy>([
+  "official-sdk",
+  "maintained-library",
+  "generated-support-slice",
+  "direct-http-support-slice",
+  "direct-support-slice",
+  "support-workflow-adapter",
+  "provider-api-subset",
+  "generated-full-provider-api",
+  "app-supplied-connector",
+  "local-protocol",
+]);
+
+const legacyEntries: IntegrationCatalogEntry[] = [];
+
+for (const reference of integrationProviderReferences) {
+  const source = resolveManifestSource(reference);
+  const manifest = await loadManifestExport(reference, source);
+  if (!manifest) {
+    throw new Error(`Provider integration '${reference.id}' did not export '${reference.manifestExport}' from ${source.relativePath}.`);
+  }
+  legacyEntries.push(toCatalogEntry(reference, manifest, source));
+}
+
+const splitEntries = await discoverSplitProviderEntries();
+const splitIds = new Set(splitEntries.map((entry) => entry.id));
+const entries = [
+  ...legacyEntries.filter((entry) => !splitIds.has(entry.id)),
+  ...splitEntries,
+];
+entries.sort(compareEntries);
+
+const runtimeReferences = integrationProviderReferences
+  .filter((reference) => !splitIds.has(reference.id))
+  .sort(compareReferences);
+
+await mkdir(path.dirname(catalogDataPath), { recursive: true });
+await writeFile(catalogDataPath, renderCatalogData(entries));
+await writeFile(runtimeLoaderPath, renderRuntimeLoaders(runtimeReferences));
+
+console.log(`Generated ${path.relative(repoRoot, catalogDataPath)} from ${entries.length} integration manifests (${splitEntries.length} split provider packages).`);
+console.log(`Generated ${path.relative(repoRoot, runtimeLoaderPath)} from ${runtimeReferences.length} legacy runtime loaders.`);
+
+function resolveManifestSource(reference: IntegrationProviderReference): ManifestSource {
   const moduleSource = reference.modulePath.replace(/^\.\//, "").replace(/\.js$/, ".ts");
   const manifestSource = moduleSource.replace(/\/index\.ts$/, "/manifest.ts");
   const manifestPath = path.join(integrationsSrcDir, manifestSource);
@@ -87,13 +111,107 @@ function resolveManifestSource(reference: IntegrationProviderReference): {
   };
 }
 
+async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]> {
+  const entries: IntegrationCatalogEntry[] = [];
+  if (!existsSync(splitIntegrationsDir)) return entries;
+
+  for (const category of await readDirectoryNames(splitIntegrationsDir)) {
+    const categoryDir = path.join(splitIntegrationsDir, category);
+    for (const provider of await readDirectoryNames(categoryDir)) {
+      const packageDir = path.join(categoryDir, provider);
+      const packageJsonPath = path.join(packageDir, "package.json");
+      const manifestPath = path.join(packageDir, "src", "manifest.ts");
+      if (!existsSync(packageJsonPath) || !existsSync(manifestPath)) continue;
+
+      const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as { name?: unknown; cognidesk?: unknown };
+      if (!isSplitProviderPackage(packageJson)) continue;
+
+      const source: ManifestSource = {
+        absolutePath: manifestPath,
+        relativePath: path.relative(repoRoot, manifestPath).replace(/\\/g, "/"),
+        kind: "manifest-only",
+      };
+      const module = await import(pathToFileURL(source.absolutePath).href) as Record<string, unknown>;
+      const manifestEntry = Object.entries(module).find(([, value]) => isProviderManifest(value));
+      if (!manifestEntry) {
+        throw new Error(`Split provider package '${packageJson.name}' did not export a provider manifest from ${source.relativePath}.`);
+      }
+
+      const [manifestExport, manifest] = manifestEntry as [string, ProviderManifest];
+      const reference: IntegrationProviderReference = {
+        id: manifest.id,
+        category: manifest.category,
+        provider: manifest.provider,
+        importPath: `${manifest.packageName}/manifest`,
+        modulePath: `${path.relative(repoRoot, manifestPath).replace(/\\/g, "/").replace(/\.ts$/, ".js")}`,
+        manifestExport,
+      };
+
+      entries.push(toCatalogEntry(reference, manifest, source));
+    }
+  }
+
+  return entries.sort(compareEntries);
+}
+
+async function readDirectoryNames(dir: string): Promise<string[]> {
+  const entries = await readdir(dir, { withFileTypes: true }).catch((error: unknown) => {
+    if (isNotFoundError(error)) return [];
+    throw error;
+  });
+  return entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort(compareText);
+}
+
+function isNotFoundError(error: unknown): boolean {
+  return typeof error === "object"
+    && error !== null
+    && "code" in error
+    && (error as { code?: unknown }).code === "ENOENT";
+}
+
+function isSplitProviderPackage(packageJson: { name?: unknown; cognidesk?: unknown }) {
+  const name = stringFrom(packageJson.name);
+  if (!name?.startsWith("@cognidesk/")) return false;
+
+  const metadata = recordFrom(packageJson.cognidesk);
+  return metadata?.providerPackage === true
+    || metadata?.kind === "provider-package"
+    || metadata?.release === "independent-provider"
+    || /^@cognidesk\/[a-z0-9]+(?:-[a-z0-9]+)+$/.test(name);
+}
+
+async function loadManifestExport(
+  reference: IntegrationProviderReference,
+  source: ManifestSource,
+): Promise<ProviderManifest | undefined> {
+  const module = await import(pathToFileURL(source.absolutePath).href) as Record<string, unknown>;
+  return module[reference.manifestExport] as ProviderManifest | undefined;
+}
+
+function isProviderManifest(value: unknown): value is ProviderManifest {
+  const manifest = recordFrom(value);
+  return Boolean(
+    manifest
+      && typeof manifest.id === "string"
+      && typeof manifest.name === "string"
+      && typeof manifest.packageName === "string"
+      && typeof manifest.provider === "string"
+      && typeof manifest.category === "string"
+      && Array.isArray(manifest.capabilities)
+      && Array.isArray(manifest.directions),
+  );
+}
+
 function toCatalogEntry(
   reference: IntegrationProviderReference,
   manifest: ProviderManifest,
-  manifestSource: string,
-  manifestSourceKind: IntegrationManifestSourceKind,
+  source: ManifestSource,
 ): IntegrationCatalogEntry {
   const metadata = cloneJsonObject(manifest.metadata);
+  const implementation = recordFrom(metadata?.implementation);
   const coverage = cloneJson(manifest.coverage);
   const capabilities = (manifest.capabilities ?? []).map(toCatalogCapability);
   const credentialRequirements = (manifest.credentialRequirements ?? []).map(toCredentialRequirement);
@@ -123,13 +241,13 @@ function toCatalogEntry(
     coverage,
     adapterCoverage,
     implementation: {
-      strategy: implementationStrategy(manifest),
-      sdkPackage: stringFrom(metadata?.sdkPackage) ?? manifest.packageName,
-      runtimePackage: reference.importPath,
-      providerModule: reference.modulePath,
+      strategy: implementationStrategy(manifest, implementation),
+      sdkPackage: stringFrom(implementation?.sdkPackage) ?? stringFrom(metadata?.sdkPackage) ?? manifest.packageName,
+      runtimePackage: stringFrom(implementation?.runtimePackage) ?? stringFrom(metadata?.runtimePackage) ?? runtimePackage(reference, manifest),
+      providerModule: stringFrom(implementation?.providerModule) ?? reference.modulePath,
       manifestExport: reference.manifestExport,
-      manifestSource,
-      manifestSourceKind,
+      manifestSource: source.relativePath,
+      manifestSourceKind: source.kind,
       documentationPath: documentationPath(manifest, reference),
     },
     readiness: {
@@ -217,7 +335,21 @@ function coverageLevelFromScope(scope: string) {
   return "partial";
 }
 
-function implementationStrategy(manifest: ProviderManifest): IntegrationImplementationStrategy {
+function runtimePackage(reference: IntegrationProviderReference, manifest: ProviderManifest): string {
+  return reference.importPath.endsWith("/manifest") ? manifest.packageName : reference.importPath;
+}
+
+function implementationStrategy(
+  manifest: ProviderManifest,
+  implementation: Record<string, unknown> | undefined,
+): IntegrationImplementationStrategy {
+  const metadata = recordFrom(manifest.metadata);
+  const declaredStrategy = stringFrom(implementation?.strategy)
+    ?? stringFrom(metadata?.implementationStrategy)
+    ?? stringFrom(metadata?.strategy);
+  if (declaredStrategy && knownImplementationStrategies.has(declaredStrategy as IntegrationImplementationStrategy)) {
+    return declaredStrategy as IntegrationImplementationStrategy;
+  }
   if (manifest.coverage.scope === "full-provider-api") return "generated-full-provider-api";
   if (manifest.coverage.scope === "provider-api-subset") return "provider-api-subset";
   if (manifest.coverage.scope === "connector-required") return "app-supplied-connector";
@@ -225,6 +357,7 @@ function implementationStrategy(manifest: ProviderManifest): IntegrationImplemen
   if (manifest.credentialRequirements.some((credential) => stringFrom(credential.id)?.includes("connector"))) {
     return "app-supplied-connector";
   }
+  if (stringFrom(implementation?.sdkPackage) ?? stringFrom(metadata?.sdkPackage)) return "official-sdk";
   return "support-workflow-adapter";
 }
 
