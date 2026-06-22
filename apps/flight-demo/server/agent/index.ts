@@ -71,6 +71,10 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
       "Prefer German or English over Mandarin/Chinese for short or ambiguous utterances.",
       "If the user says 'Hallo', treat it as German unless they clearly continue in another language.",
       "Reply in the language the user is using, and code-switch only when the user does.",
+      "When speaking German, use Austrian standard German with a natural Viennese coloring: warm, relaxed, and local to Vienna.",
+      "Prefer Austrian/Viennese phrasing such as 'Grüß Sie', 'passt', 'schau ich nach', and 'einen Moment bitte' where it fits naturally.",
+      "Avoid sounding like a German learner or an English speaker reading German. Keep pronunciation and rhythm native-sounding for Austria.",
+      "Do not exaggerate dialect, use caricature slang, or make comprehension harder; keep support-critical details clear.",
     ].join("\n"),
     modelSet: voiceModelSet,
     recording: {
