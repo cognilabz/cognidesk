@@ -36,9 +36,16 @@ export function createShopifyEcommerceLiveChecks(options: { client: Pick<Shopify
     description: "Shopify Admin GraphQL shop query is reachable with the configured Admin API token.",
     requiredCredentialIds: ["shopify-shop-domain", "shopify-admin-access"],
     async run(context: { signal?: AbortSignal } = {}) {
+      if (context.signal?.aborted) throw new Error("Shopify live shop check aborted.");
       const shop = await options.client.getShop();
       if (context.signal?.aborted) throw new Error("Shopify live shop check aborted.");
-      return { details: shop };
+      return {
+        details: {
+          id: shop.id,
+          name: shop.name,
+          myshopifyDomain: shop.myshopifyDomain,
+        },
+      };
     },
   }];
 }

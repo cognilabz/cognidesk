@@ -3,8 +3,10 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
+  createShopifyEcommerceLiveChecks,
   createShopifyEcommerceClient,
   createShopifyEcommerceIntegrationFromClient,
+  normalizeShopifyShopDomain,
   shopifyEcommerceCredentialStatuses,
   shopifyEcommerceProviderManifest,
   validateShopifyWebhookSignature,
@@ -47,6 +49,10 @@ describe("@cognidesk/integration-ecommerce-shopify", () => {
       url: "https://example.myshopify.com/admin/api/2026-04/graphql.json",
     });
     expect(calls[0]?.headers["x-shopify-access-token"]).toBe("shpat_test");
+  });
+
+  it("trims Shopify shop domains before stripping protocol and paths", () => {
+    expect(normalizeShopifyShopDomain(" https://example.myshopify.com/admin ")).toBe("example.myshopify.com");
   });
 
   it("exposes raw Admin GraphQL and raw-client escape hatches", async () => {
@@ -98,6 +104,35 @@ describe("@cognidesk/integration-ecommerce-shopify", () => {
       expect.objectContaining({ requirementId: "shopify-admin-access", state: "configured" }),
       expect.objectContaining({ requirementId: "shopify-webhook-secret", state: "missing" }),
     ]));
+  });
+
+  it("short-circuits aborted live checks and returns bounded shop details", async () => {
+    let calls = 0;
+    const [check] = createShopifyEcommerceLiveChecks({
+      client: {
+        async getShop() {
+          calls += 1;
+          return {
+            id: "gid://shopify/Shop/1",
+            name: "Example",
+            myshopifyDomain: "example.myshopify.com",
+            plan: "plus",
+          };
+        },
+      },
+    });
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(check.run({ signal: controller.signal })).rejects.toThrow("aborted");
+    expect(calls).toBe(0);
+    await expect(check.run()).resolves.toEqual({
+      details: {
+        id: "gid://shopify/Shop/1",
+        name: "Example",
+        myshopifyDomain: "example.myshopify.com",
+      },
+    });
   });
 });
 

@@ -54,7 +54,16 @@ export function createStripeEcommerceLiveChecks(options: { client: Pick<StripeEc
     async run(context: { signal?: AbortSignal } = {}) {
       const account = await options.client.getAccount();
       if (context.signal?.aborted) throw new Error("Stripe live account check aborted.");
-      return { details: account };
+      return {
+        details: {
+          id: account.id,
+          object: account.object,
+          country: account.country,
+          charges_enabled: account.charges_enabled,
+          payouts_enabled: account.payouts_enabled,
+          details_submitted: account.details_submitted,
+        },
+      };
     },
   }];
 }

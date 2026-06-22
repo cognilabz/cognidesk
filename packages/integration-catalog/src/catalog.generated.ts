@@ -4828,7 +4828,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "defaultApiVersion": "2026-05-28.basil",
+      "defaultApiVersion": "2026-05-27.dahlia",
       "docs": "https://docs.stripe.com/api",
       "sdkPackage": "stripe",
       "implementation": {

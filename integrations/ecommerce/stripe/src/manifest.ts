@@ -1,7 +1,7 @@
 import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 import type { ProviderManifestInput } from "@cognidesk/core";
 
-export const defaultStripeApiVersion = "2026-05-28.basil";
+export const defaultStripeApiVersion = "2026-05-27.dahlia";
 
 export const stripeEcommerceProviderManifestInput = {
   id: "ecommerce.stripe",

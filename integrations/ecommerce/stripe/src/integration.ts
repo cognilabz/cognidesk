@@ -39,9 +39,15 @@ function stripeOperationHandlers(client: StripeEcommerceClient) {
 }
 
 function manageWebhookEndpoint(client: StripeEcommerceClient, input: StripeWebhookEndpointManageInput) {
-  if (input.action === "create") return client.createWebhookEndpoint(input);
-  if (input.action === "get") return client.getWebhookEndpoint(input);
-  if (input.action === "list") return client.listWebhookEndpoints(input);
-  if (input.action === "update") return client.updateWebhookEndpoint(input);
-  return client.deleteWebhookEndpoint(input);
+  if (input.action === "create") return client.createWebhookEndpoint(withoutAction(input));
+  if (input.action === "get") return client.getWebhookEndpoint(withoutAction(input));
+  if (input.action === "list") return client.listWebhookEndpoints(withoutAction(input));
+  if (input.action === "update") return client.updateWebhookEndpoint(withoutAction(input));
+  if (input.action === "delete") return client.deleteWebhookEndpoint(withoutAction(input));
+  throw new Error(`Unsupported webhook endpoint action: ${(input as { action?: string }).action ?? "unknown"}`);
+}
+
+function withoutAction<TInput extends { action: string }>(input: TInput): Omit<TInput, "action"> {
+  const { action: _action, ...params } = input;
+  return params;
 }

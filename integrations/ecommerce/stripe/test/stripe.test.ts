@@ -5,6 +5,7 @@ import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing
 import {
   createStripeEcommerceClient,
   createStripeEcommerceIntegrationFromClient,
+  createStripeEcommerceLiveChecks,
   stripeEcommerceCredentialStatuses,
   stripeEcommerceProviderManifest,
 } from "../src/index.js";
@@ -59,6 +60,19 @@ describe("@cognidesk/integration-ecommerce-stripe", () => {
     );
   });
 
+  it("routes webhook endpoint list without forwarding action control fields", async () => {
+    const rawClient = fakeStripeClient();
+    const integration = createStripeEcommerceIntegrationFromClient(createStripeEcommerceClient({
+      secretKey: "sk_test",
+      rawClient: rawClient as never,
+    })) as any;
+
+    await expect(integration.run("ecommerce.webhookEndpoint.manage", { action: "list", limit: 5 }))
+      .resolves.toMatchObject({ object: "list" });
+
+    expect(rawClient.webhookEndpoints.list).toHaveBeenCalledWith({ limit: 5 }, {});
+  });
+
   it("parses signed webhooks through the Stripe SDK verifier", async () => {
     const body = JSON.stringify({ id: "evt_123", object: "event", type: "payment_intent.succeeded" });
     const timestamp = Math.floor(Date.now() / 1000);
@@ -96,6 +110,35 @@ describe("@cognidesk/integration-ecommerce-stripe", () => {
       expect.objectContaining({ requirementId: "stripe-webhook-signing-secret", state: "missing" }),
       expect.objectContaining({ requirementId: "stripe-connect-mode", state: "missing" }),
     ]));
+  });
+
+  it("returns bounded Stripe account readiness details", async () => {
+    const [check] = createStripeEcommerceLiveChecks({
+      client: {
+        async getAccount() {
+          return {
+            id: "acct_123",
+            object: "account",
+            country: "US",
+            charges_enabled: true,
+            payouts_enabled: false,
+            details_submitted: true,
+            business_profile: { name: "Private" },
+          } as never;
+        },
+      },
+    });
+
+    await expect(check.run()).resolves.toEqual({
+      details: {
+        id: "acct_123",
+        object: "account",
+        country: "US",
+        charges_enabled: true,
+        payouts_enabled: false,
+        details_submitted: true,
+      },
+    });
   });
 });
 

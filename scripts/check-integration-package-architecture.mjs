@@ -462,7 +462,14 @@ function isRelativeProviderRuntimeImport(file, specifier) {
   const segments = relativeToProvider.split(path.sep).filter(Boolean).map(stripModuleExtension);
   if (segments.length === 0) return false;
 
-  return segments.some((segment) => manifestOnlyRuntimeRelativeModuleNames.has(segment));
+  const normalized = segments[0] === "src" ? segments.slice(1) : segments;
+  const [firstSegment] = normalized;
+  if (!firstSegment) return false;
+  if (firstSegment === "index") return normalized.length === 1;
+  return firstSegment === "client"
+    || firstSegment === "clients"
+    || firstSegment === "runtime"
+    || firstSegment === "runtimes";
 }
 
 function providerPackageRootForFile(file) {

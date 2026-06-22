@@ -165,7 +165,8 @@ export function validateShopifyWebhookSignature(input: { webhookSecret: string; 
 
 export function normalizeShopifyShopDomain(shopDomain: string) {
   if (!shopDomain) throw new Error("Shopify shopDomain is required.");
-  const withoutProtocol = shopDomain.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+  const trimmed = shopDomain.trim();
+  const withoutProtocol = trimmed.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
   if (!withoutProtocol) throw new Error("Shopify shopDomain is required.");
   return withoutProtocol;
 }
