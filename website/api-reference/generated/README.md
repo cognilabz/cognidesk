@@ -7,8 +7,6 @@
 - [integrations/dist](integrations/dist.md)
 - [integrations/dist/voice/aws-speech](integrations/dist/voice/aws-speech.md)
 - [integrations/dist/voice/azure-speech](integrations/dist/voice/azure-speech.md)
-- [integrations/dist/voice/deepgram](integrations/dist/voice/deepgram.md)
-- [integrations/dist/voice/elevenlabs](integrations/dist/voice/elevenlabs.md)
 - [integrations/dist/voice/google-speech](integrations/dist/voice/google-speech.md)
 - [integrations/dist/voice/openai](integrations/dist/voice/openai.md)
 - [journey-index-json/dist](journey-index-json/dist.md)

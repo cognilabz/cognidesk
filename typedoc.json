@@ -15,8 +15,6 @@
     "packages/integrations/dist/index.d.ts",
     "packages/integrations/dist/voice/aws-speech/index.d.ts",
     "packages/integrations/dist/voice/azure-speech/index.d.ts",
-    "packages/integrations/dist/voice/deepgram/index.d.ts",
-    "packages/integrations/dist/voice/elevenlabs/index.d.ts",
     "packages/integrations/dist/voice/google-speech/index.d.ts",
     "packages/integrations/dist/voice/openai/index.d.ts",
     "packages/voice-websocket/dist/index.d.ts",

@@ -116,6 +116,7 @@ export type {
   CategoryOutputDeclaration,
   ChannelCapabilityDeclaration,
   ProviderCredentialRequirement,
+  ProviderCredentialStatusInput,
   ProviderManifest,
   ProviderManifestInput,
   ProviderOperationDeclaration,

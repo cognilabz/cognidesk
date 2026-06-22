@@ -10293,11 +10293,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "sms.twilio",
     "category": "sms",
     "provider": "twilio",
-    "importPath": "@cognidesk/integrations/sms/twilio",
-    "modulePath": "./sms/twilio/index.js",
+    "importPath": "@cognidesk/integration-sms-twilio/manifest",
+    "modulePath": "integrations/sms/twilio/src/manifest.js",
     "manifestExport": "twilioSmsProviderManifest",
     "name": "Twilio Programmable Messaging",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-sms-twilio",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -10310,12 +10310,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Twilio Programmable Messaging",
-      "summary": "Coverage includes generated per-operation functions for Twilio's official Messaging-domain OpenAPI surfaces: core Message/Media/Feedback/ShortCode resources, Messaging Services v1-v3, Conversations v1-v2, Content v1-v2, Verify v2-v3, and Studio v1-v2.",
+      "summary": "Implements normalized SMS/MMS send, read, list, cancel, readiness, webhook, and raw Twilio helper-client access with the official Twilio Node helper library.",
       "tags": [
         "sms",
         "twilio",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
@@ -10341,7 +10341,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send SMS/MMS messages",
-        "description": "Creates outbound SMS or MMS messages through the Twilio Messages REST resource; mediaUrl creates media messages where the sender, destination, and region support them.",
+        "description": "Creates outbound SMS or MMS messages through the Twilio helper library.",
         "audiences": [
           "customer-facing"
         ],
@@ -10399,7 +10399,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "search-provider-object",
         "label": "List Twilio messages",
-        "description": "Lists Twilio Message resources with SDK-user-supplied filters such as sender, recipient, or sent date.",
+        "description": "Lists Twilio Message resources with SDK-user-supplied filters.",
         "audiences": [
           "customer-facing",
           "internal-support"
@@ -10414,25 +10414,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "sideEffect": false,
         "exposesSensitiveData": true,
         "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "update-provider-object",
-        "label": "Update Twilio message status",
-        "description": "Updates supported Twilio Message status fields, such as cancelling queued messages when Twilio permits it.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "twilioMessage",
-            "label": "Twilio Message"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
         "extension": false
       },
       {
@@ -10456,13 +10437,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for Twilio's official Messaging-domain OpenAPI surfaces: core Message/Media/Feedback/ShortCode resources, Messaging Services v1-v3, Conversations v1-v2, Content v1-v2, Verify v2-v3, and Studio v1-v2.",
-        "The package keeps typed convenience helpers for common SMS/MMS support workflows, webhook signature validation, account readiness, and SMS-capable incoming-number readiness.",
-        "The SDK user owns consent, opt-in/opt-out, quiet hours, campaign registration, template policy, retention, and provider-side permission design."
+        "Implements normalized SMS/MMS send, read, list, cancel, readiness, webhook, and raw Twilio helper-client access with the official Twilio Node helper library.",
+        "Twilio SMS and Twilio Voice are separate Cognidesk category packages even though they use the same upstream helper library.",
+        "Messaging Services administration, Verify, Conversations, Content, Studio, toll-free/A2P compliance, pricing, and carrier policy remain available only through raw Twilio client access or future normalized operations."
       ],
       "evidence": [
+        {
+          "label": "Twilio Node helper library",
+          "url": "https://www.npmjs.com/package/twilio"
+        },
         {
           "label": "Twilio Messaging API overview",
           "url": "https://www.twilio.com/docs/messaging/api"
@@ -10472,25 +10457,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://www.twilio.com/docs/messaging/api/message-resource"
         },
         {
-          "label": "Twilio Message Scheduling",
-          "url": "https://www.twilio.com/docs/messaging/features/message-scheduling"
-        },
-        {
-          "label": "Twilio Link Shortening",
-          "url": "https://www.twilio.com/docs/messaging/features/link-shortening"
-        },
-        {
           "label": "Twilio webhook security",
           "url": "https://www.twilio.com/docs/usage/webhooks/webhooks-security"
-        },
-        {
-          "label": "Twilio IncomingPhoneNumber resource",
-          "url": "https://www.twilio.com/docs/phone-numbers/api/incomingphonenumber-resource"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
       "conformant": true,
       "categoryProfile": {
@@ -10500,19 +10473,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "matchedOperations": [
           "sms.message.receive",
           "sms.message.send",
-          "sms.message.schedule",
           "sms.message.read",
-          "sms.message.search",
-          "sms.message.cancel"
+          "sms.message.search"
         ],
         "missingRequiredOperations": [],
         "missingRecommendedOperations": [
           "sms.message.reply",
+          "sms.message.schedule",
           "sms.deliveryStatus.read"
         ],
         "missingOptionalOperations": [
           "sms.media.send",
           "sms.template.send",
+          "sms.message.cancel",
           "sms.sender.read",
           "sms.sender.search"
         ],
@@ -10520,17 +10493,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/sms/twilio",
-      "providerModule": "./sms/twilio/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "twilio",
+      "runtimePackage": "@cognidesk/integration-sms-twilio",
+      "providerModule": "integrations/sms/twilio/src/manifest.js",
       "manifestExport": "twilioSmsProviderManifest",
-      "manifestSource": "packages/integrations/src/sms/twilio/manifest.ts",
+      "manifestSource": "integrations/sms/twilio/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://www.twilio.com/docs/messaging/api"
+      "documentationPath": "https://www.npmjs.com/package/twilio"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "twilio-account",
@@ -10543,14 +10516,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "label": "Twilio Account SID and Auth Token",
           "description": "Server-side Twilio account credentials used for Messaging REST API calls and webhook signature validation.",
           "scopes": [],
-          "required": true
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         },
         {
           "id": "twilio-sms-sender",
           "label": "Twilio SMS/MMS-capable sender",
           "description": "A Twilio SMS/MMS-capable phone number or Messaging Service configured by the SDK user.",
           "scopes": [],
-          "required": true
+          "required": true,
+          "metadata": {
+            "scopeKind": "internal-capability"
+          }
         }
       ]
     },
@@ -10560,8 +10539,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Outbound SMS consent, opt-in/opt-out handling, quiet hours, campaign registration, content policy, retention, and regional compliance are SDK-user-owned responsibilities."
     ],
     "limitations": [
-      "Live SMS readiness depends on the SDK user's Twilio account, SMS-capable sender, Messaging Service configuration, phone-number capabilities, regions, carrier registration, webhooks, and account permissions.",
-      "This package does not provide product defaults for outbound-contact policy, consent enforcement, message templates, retry behavior, suppression lists, or compliance workflows."
+      "Live SMS readiness depends on the SDK user's Twilio account, SMS-capable sender, Messaging Service configuration, phone-number capabilities, regions, carrier registration, webhooks, and account permissions."
     ],
     "maintainers": [
       {
@@ -10570,30 +10548,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullMessagingDomainApiOperations": "generated-per-operation-functions",
-        "smsMmsMessages": "typed-create-fetch-list-update-status-and-generated-full-core-surface",
-        "messagingWebhooks": "typed-parse-verify",
-        "accountReadiness": "typed-read",
-        "incomingPhoneNumbers": "typed-list",
-        "messagingServices": "generated-full-surface",
-        "mediaLifecycle": "generated-full-surface",
-        "conversations": "generated-full-surface",
-        "contentTemplates": "generated-full-surface",
-        "verify": "generated-full-surface",
-        "studio": "generated-full-surface"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "twilio",
+        "verifiedVersion": "6.0.2",
+        "verifiedAt": "2026-06-21"
       },
-      "fullProviderApiVerification": {
-        "provider": "twilio-messaging-domain",
-        "apiVersion": "twilio-oai-main-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/twilio-sms-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/twilio-sms-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/twilio-sms-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 309,
-        "implementedOperationCount": 309,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 309
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "sms",
       "integrationCategoryProfileId": "sms",
@@ -10604,19 +10567,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "matchedOperations": [
           "sms.message.receive",
           "sms.message.send",
-          "sms.message.schedule",
           "sms.message.read",
-          "sms.message.search",
-          "sms.message.cancel"
+          "sms.message.search"
         ],
         "missingRequiredOperations": [],
         "missingRecommendedOperations": [
           "sms.message.reply",
+          "sms.message.schedule",
           "sms.deliveryStatus.read"
         ],
         "missingOptionalOperations": [
           "sms.media.send",
           "sms.template.send",
+          "sms.message.cancel",
           "sms.sender.read",
           "sms.sender.search"
         ],
@@ -18496,11 +18459,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.deepgram",
     "category": "voice",
     "provider": "deepgram",
-    "importPath": "@cognidesk/integrations/voice/deepgram",
-    "modulePath": "./voice/deepgram/index.js",
-    "manifestExport": "deepgramSpeechProviderManifest",
-    "name": "Deepgram Speech",
-    "packageName": "@cognidesk/integrations",
+    "importPath": "@cognidesk/integration-voice-deepgram/manifest",
+    "modulePath": "integrations/voice/deepgram/src/manifest.js",
+    "manifestExport": "deepgramVoiceProviderManifest",
+    "name": "Deepgram Voice",
+    "packageName": "@cognidesk/integration-voice-deepgram",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18512,8 +18475,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "mixed"
     ],
     "display": {
-      "label": "Deepgram Speech",
-      "summary": "Implements Deepgram prerecorded speech-to-text and Aura text-to-speech REST requests for Cognidesk STT/TTS voice pipelines.",
+      "label": "Deepgram Voice",
+      "summary": "Implements normalized Cognidesk speech-to-text and text-to-speech operations with the official Deepgram SDK.",
       "tags": [
         "voice",
         "deepgram",
@@ -18525,7 +18488,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "receive",
         "label": "Transcribe speech",
-        "description": "Transcribes customer PCM voice input with Deepgram speech-to-text.",
+        "description": "Transcribes customer PCM/WAV voice input with Deepgram speech-to-text.",
         "audiences": [
           "customer-facing"
         ],
@@ -18544,7 +18507,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Synthesize speech",
-        "description": "Synthesizes Cognidesk assistant text with Deepgram Aura text-to-speech.",
+        "description": "Synthesizes Cognidesk assistant text with Deepgram text-to-speech.",
         "audiences": [
           "customer-facing"
         ],
@@ -18563,7 +18526,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "media",
         "label": "Speech audio media",
-        "description": "Exchanges buffered PCM input and synthesized 24 kHz linear16 output for Cognidesk voice sessions.",
+        "description": "Exchanges buffered PCM input and synthesized audio for Cognidesk voice sessions.",
         "audiences": [
           "customer-facing",
           "internal-support"
@@ -18588,12 +18551,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Implements Deepgram prerecorded speech-to-text and Aura text-to-speech REST requests for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover Deepgram's official REST OpenAPI document, including /v1/listen and /v1/speak.",
-        "Deepgram supplies transcripts and synthesized speech audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
-        "Does not implement Deepgram Voice Agent, Flux websocket sessions, live streaming STT, custom model administration, self-hosted deployment management, telephony carrier setup, or Deepgram account policy."
+        "Implements normalized Cognidesk speech-to-text and text-to-speech operations with the official Deepgram SDK.",
+        "Raw Deepgram SDK access is exposed as an escape hatch, but Cognidesk does not claim ownership of the full Deepgram provider API.",
+        "Deepgram Voice Agent, Flux streaming sessions, account administration, telephony setup, self-hosted deployment management, and custom model administration remain outside this normalized adapter."
       ],
       "evidence": [
+        {
+          "label": "Deepgram SDK package",
+          "url": "https://www.npmjs.com/package/@deepgram/sdk"
+        },
         {
           "label": "Deepgram prerecorded audio STT",
           "url": "https://developers.deepgram.com/docs/pre-recorded-audio"
@@ -18601,10 +18567,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Deepgram Text-to-Speech REST",
           "url": "https://developers.deepgram.com/docs/text-to-speech"
-        },
-        {
-          "label": "Deepgram TTS media output settings",
-          "url": "https://developers.deepgram.com/docs/tts-media-output-settings"
         }
       ]
     },
@@ -18646,14 +18608,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/deepgram",
-      "providerModule": "./voice/deepgram/index.js",
-      "manifestExport": "deepgramSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/deepgram/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developers.deepgram.com/docs/pre-recorded-audio"
+      "strategy": "official-sdk",
+      "sdkPackage": "@deepgram/sdk",
+      "runtimePackage": "@cognidesk/integration-voice-deepgram",
+      "providerModule": "integrations/voice/deepgram/src/manifest.js",
+      "manifestExport": "deepgramVoiceProviderManifest",
+      "manifestSource": "integrations/voice/deepgram/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://www.npmjs.com/package/@deepgram/sdk"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -18666,18 +18628,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "deepgram-api-key",
           "label": "Deepgram API key",
-          "description": "Server-side Deepgram API key sent through the Authorization Token header for speech API requests.",
+          "description": "Server-side Deepgram API key used by the official SDK for speech API requests.",
           "scopes": [],
           "required": true,
           "metadata": {
+            "scopeKind": "provider-permission",
             "minimumAccess": [
               "speech-to-text",
               "text-to-speech"
-            ],
-            "enterpriseControls": [
-              "project-retention-policy",
-              "region-routing",
-              "self-hosted-or-private-deployment"
             ]
           }
         }
@@ -18688,9 +18646,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Deepgram API keys remain server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "This package implements REST STT/TTS for Cognidesk speech pipelines, not Deepgram Voice Agent or full streaming websocket sessions.",
-      "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Deepgram.",
-      "Consent, recording, retention, project region, model-improvement settings, self-hosting, and Deepgram enterprise account policy remain SDK-user/provider configuration."
+      "This package implements SDK-backed STT/TTS for Cognidesk speech pipelines, not Deepgram Voice Agent or Flux websocket sessions.",
+      "The background LLM is the Cognidesk Agent Model Set, not Deepgram."
     ],
     "maintainers": [
       {
@@ -18699,19 +18656,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "speechToText": "typed-prerecorded-audio-rest",
-        "textToSpeech": "typed-rest",
-        "browserVoiceProtocol": "sdk-owned-cognidesk-voice-websocket",
-        "backgroundModelProvider": "sdk-owned-agent-model-set",
-        "deepgramVoiceAgent": "not-covered",
-        "fluxStreaming": "not-covered",
-        "telephony": "not-covered"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@deepgram/sdk",
+        "verifiedVersion": "5.4.0",
+        "verifiedAt": "2026-06-21"
       },
-      "generatedSpeechApi": {
-        "operationCount": 49,
-        "functionCount": 49,
-        "apiVersion": "deepgram-1.0.0"
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",
@@ -18753,11 +18706,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.elevenlabs",
     "category": "voice",
     "provider": "elevenlabs",
-    "importPath": "@cognidesk/integrations/voice/elevenlabs",
-    "modulePath": "./voice/elevenlabs/index.js",
+    "importPath": "@cognidesk/integration-voice-elevenlabs/manifest",
+    "modulePath": "integrations/voice/elevenlabs/src/manifest.js",
     "manifestExport": "elevenLabsVoiceProviderManifest",
     "name": "ElevenLabs Voice",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-elevenlabs",
     "trustLevel": "official",
     "directions": [
       "send-only",
@@ -18770,12 +18723,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "ElevenLabs Voice",
-      "summary": "Coverage includes generated per-operation functions for every operation in ElevenLabs' official public REST OpenAPI 3.1 specification.",
+      "summary": "Implements normalized Cognidesk speech, transcription, and conversational session helpers with the official ElevenLabs JavaScript SDK.",
       "tags": [
         "voice",
         "elevenlabs",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
@@ -18844,133 +18797,36 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
-      },
-      {
-        "capability": "elevenlabs.conversation-signed-url",
-        "label": "Create conversation signed URL",
-        "description": "Creates a signed URL for an authorized ElevenLabs Conversational AI agent session.",
-        "audiences": [
-          "customer-facing"
-        ],
-        "providerObjects": [
-          {
-            "kind": "elevenlabsConversation",
-            "label": "ElevenLabs Conversation"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
-      },
-      {
-        "capability": "elevenlabs.speech-to-text",
-        "label": "Transcribe audio",
-        "description": "Creates and retrieves ElevenLabs Speech to Text transcript resources.",
-        "audiences": [
-          "customer-facing",
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "elevenlabsTranscript",
-            "label": "ElevenLabs Transcript"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in ElevenLabs' official public REST OpenAPI 3.1 specification.",
-        "Typed convenience helpers remain available for Cognidesk support workflows: Text to Speech create/stream/timing, Speech to Text create/get, voice/model lookup, Conversational AI signed URLs, conversation list/detail/audio retrieval, history, user/subscription, single-use tokens, selected media transforms, and WebSocket URL builders.",
-        "The generated REST surface covers agents, phone numbers, SIP trunk outbound call, Twilio/Exotel/WhatsApp outbound calls, batch calling, knowledge base, tools, workspace webhooks, service-account API keys, audit logs, voices, models, history, dubbing, studio, music, sound generation, audio isolation, and pronunciation dictionaries from the official OpenAPI artifact.",
-        "The generic send and media capabilities mean ElevenLabs speech/audio generation, transcription, and conversation media objects only; they do not mean telephony carrier ownership, call-center routing, Studio configuration, workspace administration, or provider setup policy.",
-        "Realtime WebSocket protocol behavior is not represented as REST OpenAPI operations; this package keeps WebSocket URL builders and single-use token helpers, while SDK users own browser/session transport behavior."
+        "Implements normalized Cognidesk speech, transcription, and conversational session helpers with the official ElevenLabs JavaScript SDK.",
+        "Raw ElevenLabs SDK access is exposed as an escape hatch; this package does not re-export the whole SDK as Cognidesk-owned API coverage.",
+        "Realtime WebSocket transport behavior, telephony carrier setup, workspace administration, retention, and live agent routing remain SDK-user/provider configuration."
       ],
       "evidence": [
         {
-          "label": "ElevenLabs REST OpenAPI specification",
-          "url": "https://api.elevenlabs.io/openapi.json"
+          "label": "ElevenLabs JavaScript SDK package",
+          "url": "https://www.npmjs.com/package/@elevenlabs/elevenlabs-js"
         },
         {
           "label": "ElevenLabs API reference",
           "url": "https://elevenlabs.io/docs/api-reference"
         },
         {
-          "label": "ElevenLabs API authentication",
-          "url": "https://elevenlabs.io/docs/api-reference/authentication"
-        },
-        {
-          "label": "ElevenLabs Text to Speech create speech",
-          "url": "https://elevenlabs.io/docs/api-reference/text-to-speech/convert"
-        },
-        {
-          "label": "ElevenLabs Text to Speech stream speech",
-          "url": "https://elevenlabs.io/docs/api-reference/text-to-speech/stream"
-        },
-        {
-          "label": "ElevenLabs Text to Speech WebSocket",
-          "url": "https://elevenlabs.io/docs/api-reference/text-to-speech/v-1-text-to-speech-voice-id-stream-input"
-        },
-        {
-          "label": "ElevenLabs Speech to Text create transcript",
+          "label": "ElevenLabs Speech to Text",
           "url": "https://elevenlabs.io/docs/api-reference/speech-to-text/convert"
         },
         {
-          "label": "ElevenLabs Speech to Text get transcript",
-          "url": "https://elevenlabs.io/docs/api-reference/speech-to-text/get"
-        },
-        {
-          "label": "ElevenLabs Speech to Text webhooks",
-          "url": "https://elevenlabs.io/docs/eleven-api/guides/how-to/speech-to-text/batch/webhooks"
-        },
-        {
-          "label": "ElevenLabs Conversations signed URL",
-          "url": "https://elevenlabs.io/docs/api-reference/conversations/get-signed-url"
-        },
-        {
-          "label": "ElevenLabs Conversations list",
-          "url": "https://elevenlabs.io/docs/api-reference/conversations/list"
-        },
-        {
-          "label": "ElevenLabs Conversations get details",
-          "url": "https://elevenlabs.io/docs/api-reference/conversations/get"
-        },
-        {
-          "label": "ElevenLabs Conversations get audio",
-          "url": "https://elevenlabs.io/docs/api-reference/conversations/get-audio"
-        },
-        {
-          "label": "ElevenLabs Voices list",
-          "url": "https://elevenlabs.io/docs/api-reference/voices/search"
-        },
-        {
-          "label": "ElevenLabs Models list",
-          "url": "https://elevenlabs.io/docs/api-reference/models/list"
-        },
-        {
-          "label": "ElevenLabs Phone Numbers API",
-          "url": "https://elevenlabs.io/docs/api-reference/phone-numbers"
-        },
-        {
-          "label": "ElevenLabs Batch Calling API",
-          "url": "https://elevenlabs.io/docs/api-reference/batch-calling"
-        },
-        {
-          "label": "ElevenLabs Workspace Webhooks API",
-          "url": "https://elevenlabs.io/docs/api-reference/workspace/webhooks"
+          "label": "ElevenLabs Text to Speech",
+          "url": "https://elevenlabs.io/docs/api-reference/text-to-speech/convert"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -19003,18 +18859,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "voice.conference.addParticipant",
           "voice.mediaStream.start"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "elevenlabs.conversation.authorize"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/elevenlabs",
-      "providerModule": "./voice/elevenlabs/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@elevenlabs/elevenlabs-js",
+      "runtimePackage": "@cognidesk/integration-voice-elevenlabs",
+      "providerModule": "integrations/voice/elevenlabs/src/manifest.js",
       "manifestExport": "elevenLabsVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/elevenlabs/manifest.ts",
+      "manifestSource": "integrations/voice/elevenlabs/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://api.elevenlabs.io/openapi.json"
+      "documentationPath": "https://www.npmjs.com/package/@elevenlabs/elevenlabs-js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -19027,19 +18885,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "elevenlabs-api-key",
           "label": "ElevenLabs API key",
-          "description": "Server-side ElevenLabs credential sent through the xi-api-key header for voice API requests.",
+          "description": "Server-side ElevenLabs credential used by the official SDK for voice API requests.",
           "scopes": [],
           "required": true,
           "metadata": {
-            "scopeModel": "elevenlabs-api-key-permissions",
+            "scopeKind": "provider-permission",
             "minimumAccess": [
               "text-to-speech",
               "speech-to-text",
-              "conversations",
+              "conversational-ai",
               "voices:read",
               "models:read"
-            ],
-            "supportsEndpointRestrictions": true
+            ]
           }
         }
       ]
@@ -19049,9 +18906,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "ElevenLabs API keys must remain server-side. Use signed URLs or single-use tokens for browser/client conversation startup instead of exposing the API key."
     ],
     "limitations": [
-      "The generated full-provider claim is limited to ElevenLabs REST OpenAPI operations verified on 2026-06-18; realtime WebSocket transport behavior remains a separate protocol surface.",
-      "Telephony numbers, SIP trunking, WhatsApp setup, batch calling, call recording policy, consent, retention, and live agent routing remain SDK-user/provider configuration even when the underlying REST operations are callable.",
-      "Zero-retention and tier-gated output formats depend on the SDK user's ElevenLabs plan and API-key permissions."
+      "Realtime WebSocket transport behavior, telephony setup, batch calling, call recording policy, consent, retention, and live agent routing remain SDK-user/provider configuration."
     ],
     "maintainers": [
       {
@@ -19060,34 +18915,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullRestApiOperations": "generated-per-operation-functions",
-        "textToSpeech": "typed-create-stream",
-        "speechToText": "typed-create-read",
-        "conversationalAiSignedUrl": "typed-create",
-        "conversationReadAudio": "typed-read",
-        "phoneNumbers": "generated-per-operation-functions",
-        "sipTrunk": "generated-per-operation-functions",
-        "twilioIntegration": "generated-per-operation-functions",
-        "exotelIntegration": "generated-per-operation-functions",
-        "whatsapp": "generated-per-operation-functions",
-        "batchCalling": "generated-per-operation-functions",
-        "agentsKnowledgeToolsWorkspace": "generated-per-operation-functions",
-        "realtimeWebSocketProtocol": "typed-url-builder",
-        "liveAgentTransfer": "provider-supported-not-typed"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@elevenlabs/elevenlabs-js",
+        "verifiedVersion": "2.53.1",
+        "verifiedAt": "2026-06-21"
       },
-      "fullProviderApiVerification": {
-        "provider": "elevenlabs-rest-openapi",
-        "apiVersion": "1.0",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/elevenlabs-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 253,
-        "documentedOperationCount": 317,
-        "implementedOperationCount": 317,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 317
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",
@@ -19121,7 +18957,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "voice.conference.addParticipant",
           "voice.mediaStream.start"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "elevenlabs.conversation.authorize"
+        ]
       }
     }
   },
@@ -20019,11 +19857,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.twilio",
     "category": "voice",
     "provider": "twilio",
-    "importPath": "@cognidesk/integrations/voice/twilio",
-    "modulePath": "./voice/twilio/index.js",
+    "importPath": "@cognidesk/integration-voice-twilio/manifest",
+    "modulePath": "integrations/voice/twilio/src/manifest.js",
     "manifestExport": "twilioVoiceProviderManifest",
     "name": "Twilio Programmable Voice",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-twilio",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -20036,19 +19874,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Twilio Programmable Voice",
-      "summary": "Coverage includes generated per-operation functions for Twilio's official Voice-domain OpenAPI surfaces: core Voice call/conference/queue/recording/transcription/stream/SIP resources, Voice v1/v3, Trunking v1, and Insights v1-v3.",
+      "summary": "Implements normalized call-control, TwiML media stream, webhook, readiness, and raw Twilio helper-client access with the official Twilio Node helper library.",
       "tags": [
         "voice",
         "twilio",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Receive inbound calls",
-        "description": "Accepts Twilio Voice webhooks and routes calls to SDK-user-owned Cognidesk voice handling.",
+        "label": "Receive voice webhooks",
+        "description": "Accepts and parses Twilio Voice webhooks for SDK-user-owned Cognidesk voice handling.",
         "audiences": [
           "customer-facing"
         ],
@@ -20066,8 +19904,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "send",
-        "label": "Place outbound calls",
-        "description": "Creates outbound calls through the Twilio Calls REST resource.",
+        "label": "Create outbound calls",
+        "description": "Creates outbound calls through the Twilio helper library.",
         "audiences": [
           "customer-facing"
         ],
@@ -20085,33 +19923,29 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "media",
-        "label": "Twilio Media Streams",
-        "description": "Builds TwiML that connects a Twilio call to a WebSocket Media Stream.",
+        "label": "Media Stream TwiML",
+        "description": "Builds TwiML for Cognidesk-owned voice websocket media streams while preserving Twilio track constraints.",
         "audiences": [
-          "customer-facing"
+          "customer-facing",
+          "internal-support"
         ],
         "providerObjects": [
-          {
-            "kind": "twilioCall",
-            "label": "Twilio Call"
-          },
           {
             "kind": "twilioMediaStream",
             "label": "Twilio Media Stream"
           }
         ],
-        "requiresCredential": true,
+        "requiresCredential": false,
         "sideEffect": false,
-        "exposesSensitiveData": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "transfer",
-        "label": "Call transfer",
-        "description": "Supports SDK-user-configured call control workflows through Twilio Voice call objects.",
+        "label": "Redirect or end calls",
+        "description": "Redirects or ends active Twilio calls through the Call resource.",
         "audiences": [
-          "customer-facing",
           "internal-support"
         ],
         "providerObjects": [
@@ -20147,45 +19981,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for Twilio's official Voice-domain OpenAPI surfaces: core Voice call/conference/queue/recording/transcription/stream/SIP resources, Voice v1/v3, Trunking v1, and Insights v1-v3.",
-        "The package keeps typed convenience helpers for common voice support workflows: outbound call create/fetch/update/redirect/end, account readiness, Media Stream TwiML generation, and form webhook signature validation.",
-        "Phone-number ownership, regions/edges, recording consent, queue/conference design, call routing policy, and live media service operation remain SDK-user/provider configuration."
+        "Implements normalized call-control, TwiML media stream, webhook, readiness, and raw Twilio helper-client access with the official Twilio Node helper library.",
+        "Twilio Voice and Twilio SMS are separate Cognidesk category packages even though they use the same upstream helper library.",
+        "Conferences, queues, recordings, transcription lifecycle, SIP trunks, Voice Insights, and ConversationRelay remain available only through raw Twilio client access or future normalized operations."
       ],
       "evidence": [
         {
-          "label": "Twilio Programmable Voice API overview",
+          "label": "Twilio Node helper library",
+          "url": "https://www.npmjs.com/package/twilio"
+        },
+        {
+          "label": "Twilio Programmable Voice API",
           "url": "https://www.twilio.com/docs/voice/api"
         },
         {
-          "label": "Twilio Call resource",
+          "label": "Twilio Call Resource",
           "url": "https://www.twilio.com/docs/voice/api/call-resource"
         },
         {
-          "label": "Twilio Stream TwiML",
-          "url": "https://www.twilio.com/docs/voice/twiml/stream"
-        },
-        {
-          "label": "Twilio request signature validation",
-          "url": "https://www.twilio.com/docs/usage/security"
-        },
-        {
-          "label": "Twilio Conferences resource",
-          "url": "https://www.twilio.com/docs/voice/api/conference-resource"
-        },
-        {
-          "label": "Twilio Recordings resource",
-          "url": "https://www.twilio.com/docs/voice/api/recording"
-        },
-        {
-          "label": "Twilio real-time Transcriptions subresource",
-          "url": "https://www.twilio.com/docs/voice/api/realtime-transcription-resource"
+          "label": "Twilio webhook security",
+          "url": "https://www.twilio.com/docs/usage/webhooks/webhooks-security"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -20222,14 +20044,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/twilio",
-      "providerModule": "./voice/twilio/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "twilio",
+      "runtimePackage": "@cognidesk/integration-voice-twilio",
+      "providerModule": "integrations/voice/twilio/src/manifest.js",
       "manifestExport": "twilioVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/twilio/manifest.ts",
+      "manifestSource": "integrations/voice/twilio/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://www.twilio.com/docs/voice/api"
+      "documentationPath": "https://www.npmjs.com/package/twilio"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -20239,31 +20061,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "twilio-rest-api-credentials"
       ],
       "optionalCredentialIds": [
-        "twilio-webhook-auth-token",
-        "twilio-voice-number"
+        "twilio-webhook-auth-token"
       ],
       "credentialRequirements": [
         {
           "id": "twilio-account",
           "label": "Twilio Account SID",
-          "description": "Twilio Account SID used to address Voice REST API resources.",
+          "description": "Server-side Twilio Account SID used by the helper library.",
           "scopes": [],
-          "required": true
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         },
         {
           "id": "twilio-rest-api-credentials",
           "label": "Twilio REST API credentials",
-          "description": "Server-side Twilio Auth Token or API Key SID/secret used for Voice REST API calls. API keys are preferred for production REST access.",
+          "description": "Twilio Auth Token or API key credentials used for Voice REST calls.",
           "scopes": [],
           "required": true,
           "metadata": {
-            "scopeModel": "twilio-restricted-api-key-permissions",
-            "minimumPermissionArea": "Voice",
-            "requiredResources": [
-              "Calls read/create/update",
-              "Account read for readiness"
-            ],
-            "unrestrictedAuthTokenFallback": true
+            "scopeKind": "provider-permission"
           }
         },
         {
@@ -20271,14 +20089,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "label": "Twilio webhook Auth Token",
           "description": "Primary Twilio Auth Token used to validate X-Twilio-Signature webhook requests.",
           "scopes": [],
-          "required": false
-        },
-        {
-          "id": "twilio-voice-number",
-          "label": "Twilio voice-capable phone number",
-          "description": "A Twilio phone number or caller ID that supports outbound voice.",
-          "scopes": [],
-          "required": false
+          "required": false,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         }
       ]
     },
@@ -20287,8 +20101,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Twilio credentials stay server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "Live call readiness depends on the SDK user's Twilio account, voice-capable numbers, regions, webhooks, and account permissions.",
-      "Conversation routing, consent, recording, retention, and handoff behavior remain SDK-user configuration."
+      "Live call readiness depends on the SDK user's Twilio account, voice-capable numbers, regions, webhooks, and account permissions."
     ],
     "maintainers": [
       {
@@ -20297,31 +20110,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullVoiceDomainApiOperations": "generated-per-operation-functions",
-        "inboundCallWebhook": "typed-parse",
-        "outboundCall": "typed-create",
-        "callFetchUpdateRedirectEnd": "typed-selected",
-        "mediaStreamsTwiML": "typed-generate",
-        "webhookSignature": "typed-verify",
-        "conferences": "generated-full-surface",
-        "queues": "generated-full-surface",
-        "recordings": "generated-full-surface",
-        "realtimeTranscriptions": "generated-full-surface",
-        "sipDomainsTrunks": "generated-full-surface",
-        "voiceInsights": "generated-full-surface"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "twilio",
+        "verifiedVersion": "6.0.2",
+        "verifiedAt": "2026-06-21"
       },
-      "fullProviderApiVerification": {
-        "provider": "twilio-voice-domain",
-        "apiVersion": "twilio-oai-main-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/twilio-voice-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/twilio-voice-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/twilio-voice-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 178,
-        "implementedOperationCount": 178,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 178
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",
@@ -20363,11 +20160,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.vonage",
     "category": "voice",
     "provider": "vonage",
-    "importPath": "@cognidesk/integrations/voice/vonage",
-    "modulePath": "./voice/vonage/index.js",
+    "importPath": "@cognidesk/integration-voice-vonage/manifest",
+    "modulePath": "integrations/voice/vonage/src/manifest.js",
     "manifestExport": "vonageVoiceProviderManifest",
-    "name": "Vonage Voice API",
-    "packageName": "@cognidesk/integrations",
+    "name": "Vonage Voice",
+    "packageName": "@cognidesk/integration-voice-vonage",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -20379,20 +20176,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "mixed"
     ],
     "display": {
-      "label": "Vonage Voice API",
-      "summary": "Coverage includes generated per-operation functions for every operation in the official Vonage Voice v1, Voice v2, Application v2, Conversation v1, and Numbers OpenAPI specs used by this voice package.",
+      "label": "Vonage Voice",
+      "summary": "Implements normalized Vonage Voice call-control, NCCO, webhook, readiness, and raw SDK access with the official Vonage server SDK.",
       "tags": [
         "voice",
         "vonage",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Receive inbound calls",
-        "description": "Parses Vonage Voice answer, event, and fallback webhooks and returns SDK-user-defined NCCO call flow responses.",
+        "label": "Receive voice webhooks",
+        "description": "Parses Vonage answer, event, and fallback callbacks.",
         "audiences": [
           "customer-facing"
         ],
@@ -20410,8 +20207,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "send",
-        "label": "Place outbound calls",
-        "description": "Creates outbound calls through the Vonage Voice API when SDK-user policy permits outbound contact.",
+        "label": "Create outbound calls",
+        "description": "Creates outbound calls through the Vonage Voice SDK.",
         "audiences": [
           "customer-facing"
         ],
@@ -20429,11 +20226,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "media",
-        "label": "Connect calls to WebSocket media",
-        "description": "Builds NCCO connect actions for SDK-user-owned phone, SIP, or WebSocket voice bridges; generated fullApi functions expose the separate Voice v2 app/IP outbound-call endpoint.",
+        "label": "NCCO voice media",
+        "description": "Builds NCCO websocket/talk actions for Cognidesk voice sessions.",
         "audiences": [
           "customer-facing",
-          "mixed"
+          "internal-support"
         ],
         "providerObjects": [
           {
@@ -20441,18 +20238,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Vonage NCCO"
           }
         ],
-        "requiresCredential": true,
+        "requiresCredential": false,
         "sideEffect": false,
-        "exposesSensitiveData": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "transfer",
-        "label": "Call control and transfer",
-        "description": "Transfers active calls through the documented Vonage Voice API modify-call transfer action.",
+        "label": "Transfer active calls",
+        "description": "Transfers active calls through Vonage's documented modify-call action.",
         "audiences": [
-          "customer-facing",
           "internal-support"
         ],
         "providerObjects": [
@@ -20469,8 +20265,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "voice.webhook-signature",
-        "label": "Validate Vonage signed webhooks",
-        "description": "Validates signed Vonage webhook JWTs from the Authorization header using the SDK user's signature secret.",
+        "label": "Validate Vonage webhooks",
+        "description": "Validates signed Vonage callbacks when configured by the SDK user.",
         "audiences": [
           "internal-support"
         ],
@@ -20488,79 +20284,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in the official Vonage Voice v1, Voice v2, Application v2, Conversation v1, and Numbers OpenAPI specs used by this voice package.",
-        "Typed convenience helpers remain available for Cognidesk support workflows: outbound calls, call fetch, documented transfer call update, NCCO helpers, and signed Voice webhook parsing.",
-        "Generated functions cover Voice v1 call list/create/get/update, stream audio, TTS, DTMF, Voice v2 outbound app/IP calls, Application CRUD, Application users, Conversation CRUD/members/events/talk/stream/record, and Numbers list/search/buy/cancel/update.",
-        "This full-provider claim is limited to this package's Vonage voice REST bundle; broader Vonage platform products outside these official specs remain separate package/surface decisions.",
-        "Application answer, event, fallback, signed-callback, phone-number ownership, regional endpoint selection, recording consent, and conversation lifecycle policy remain SDK-user/provider configuration."
+        "Implements normalized Vonage Voice call-control, NCCO, webhook, readiness, and raw SDK access with the official Vonage server SDK.",
+        "Raw Vonage SDK access is exposed as an escape hatch; this package does not re-export the whole SDK as Cognidesk-owned API coverage.",
+        "Broader Vonage platform products, Client SDK behavior, consent, retention, and telephony policy remain SDK-user/provider configuration."
       ],
       "evidence": [
         {
-          "label": "Vonage Voice API v1 OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/voice?format=json&vendorId=vonage"
-        },
-        {
-          "label": "Vonage Voice API v2 OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/voice.v2?format=json&vendorId=vonage"
-        },
-        {
-          "label": "Vonage Application API v2 OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/application.v2?format=json&vendorId=vonage"
-        },
-        {
-          "label": "Vonage Conversation API v1 OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/conversation?format=json&vendorId=vonage"
-        },
-        {
-          "label": "Vonage Numbers API OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/numbers?format=json&vendorId=vonage"
+          "label": "Vonage Server SDK package",
+          "url": "https://www.npmjs.com/package/@vonage/server-sdk"
         },
         {
           "label": "Vonage Voice API reference",
           "url": "https://developer.vonage.com/en/api/voice"
         },
         {
-          "label": "Vonage Voice API v2 reference",
-          "url": "https://developer.vonage.com/en/api/voice.v2"
+          "label": "Vonage Voice webhooks",
+          "url": "https://developer.vonage.com/en/voice/voice-api/webhook-reference"
         },
         {
           "label": "Vonage NCCO reference",
           "url": "https://developer.vonage.com/en/voice/voice-api/ncco-reference"
-        },
-        {
-          "label": "Vonage Voice webhooks reference",
-          "url": "https://developer.vonage.com/en/voice/voice-api/webhook-reference"
-        },
-        {
-          "label": "Vonage Application technical details",
-          "url": "https://developer.vonage.com/en/application/technical-details"
-        },
-        {
-          "label": "Vonage Voice call flow",
-          "url": "https://developer.vonage.com/en/voice/voice-api/concepts/call-flow"
-        },
-        {
-          "label": "Vonage Voice endpoints",
-          "url": "https://developer.vonage.com/en/voice/voice-api/concepts/endpoints"
-        },
-        {
-          "label": "Vonage Application API reference",
-          "url": "https://developer.vonage.com/en/api/application.v2"
-        },
-        {
-          "label": "Vonage Conversation API reference",
-          "url": "https://developer.vonage.com/en/api/conversation"
-        },
-        {
-          "label": "Vonage Numbers API reference",
-          "url": "https://developer.vonage.com/en/api/numbers"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -20597,88 +20347,53 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/vonage",
-      "providerModule": "./voice/vonage/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@vonage/server-sdk",
+      "runtimePackage": "@cognidesk/integration-voice-vonage",
+      "providerModule": "integrations/voice/vonage/src/manifest.js",
       "manifestExport": "vonageVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/vonage/manifest.ts",
+      "manifestSource": "integrations/voice/vonage/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.vonage.com/en/voice/voice-api"
+      "documentationPath": "https://www.npmjs.com/package/@vonage/server-sdk"
     },
     "readiness": {
       "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "vonage-application",
-        "vonage-voice-application-webhooks"
+        "vonage-application"
       ],
       "optionalCredentialIds": [
-        "vonage-api-key-secret",
-        "vonage-voice-number",
-        "vonage-webhook-signature-secret",
-        "vonage-fallback-answer-url",
-        "vonage-signed-callbacks"
+        "vonage-webhook-signature"
       ],
       "credentialRequirements": [
         {
           "id": "vonage-application",
           "label": "Vonage application credentials",
-          "description": "Vonage Application ID and private key used to mint backend JWTs for Voice API calls.",
+          "description": "Vonage Application ID and private key/JWT credentials used by the official SDK.",
           "scopes": [],
-          "required": true
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         },
         {
-          "id": "vonage-api-key-secret",
-          "label": "Vonage API key and secret",
-          "description": "Vonage API key/secret used for Basic-authenticated Application CRUD and Numbers API operations.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "vonage-voice-number",
-          "label": "Vonage voice-capable number",
-          "description": "SDK-user-selected Vonage number or verified caller identity used for outbound voice.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "vonage-webhook-signature-secret",
+          "id": "vonage-webhook-signature",
           "label": "Vonage webhook signature secret",
-          "description": "Signature secret used to verify signed Voice API answer and event webhooks.",
+          "description": "Optional signature secret or JWT verification setup for signed Vonage callbacks.",
           "scopes": [],
-          "required": false
-        },
-        {
-          "id": "vonage-voice-application-webhooks",
-          "label": "Vonage Voice answer and event webhooks",
-          "description": "Configured Voice application answer_url and event_url endpoints, or outbound-call URL policy, required for receiving NCCO requests and call events.",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "vonage-fallback-answer-url",
-          "label": "Vonage fallback answer URL",
-          "description": "Optional but recommended fallback_answer_url configured for Voice application webhook failures.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "vonage-signed-callbacks",
-          "label": "Vonage signed callbacks",
-          "description": "Voice application signed_callbacks setting aligned with SDK webhook signature verification policy.",
-          "scopes": [],
-          "required": false
+          "required": false,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         }
       ]
     },
     "privacyNotes": [
-      "Phone numbers, call UUIDs, call state, recording metadata, speech callbacks, and webhook payloads can contain customer data.",
-      "Vonage private keys and webhook signature secrets stay server-side and are represented in Studio only as readiness state."
+      "Phone numbers, call metadata, webhook parameters, NCCO URLs, and conversation identifiers can contain customer data and are exchanged with Vonage.",
+      "Vonage credentials stay server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "The SDK user configures application answer/event/fallback webhooks, signed callbacks, phone numbers, regions, recording consent, outbound eligibility, and handoff policy.",
-      "This package provides Voice API call-control and webhook primitives; it does not decide when an outbound call, recording, transfer, or callback should happen."
+      "Live call readiness depends on the SDK user's Vonage application, numbers, webhook URLs, regions, and account permissions."
     ],
     "maintainers": [
       {
@@ -20687,34 +20402,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://developer.vonage.com/en/voice/voice-api",
-      "channelCoverage": {
-        "fullVoiceRestBundleOperations": "generated-per-operation-functions",
-        "inboundAnswerEventFallbackWebhooks": "typed-parse",
-        "outboundCall": "typed-create",
-        "callFetch": "typed-read",
-        "callTransfer": "typed-transfer",
-        "ncco": "typed-generate",
-        "websocketEndpoint": "typed-ncco-connect",
-        "sipEndpoint": "typed-ncco-connect",
-        "appEndpointV2Outbound": "generated-per-operation-functions",
-        "conversationApi": "generated-per-operation-functions",
-        "applicationApi": "generated-per-operation-functions",
-        "numbersApi": "generated-per-operation-functions",
-        "recordings": "generated-per-operation-functions"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@vonage/server-sdk",
+        "verifiedVersion": "3.27.0",
+        "verifiedAt": "2026-06-21",
+        "dependencyCaveat": "The server SDK includes multiple Vonage product modules; reassess service-specific packages before tightening dependency budgets."
       },
-      "fullProviderApiVerification": {
-        "provider": "vonage-voice-rest-bundle",
-        "apiVersion": "vonage-voice-bundle-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/vonage-voice-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/vonage-voice-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/vonage-voice-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 27,
-        "documentedOperationCount": 47,
-        "implementedOperationCount": 47,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 47
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",

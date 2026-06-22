@@ -1,0 +1,125 @@
+import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
+
+export const elevenLabsVoiceProviderManifest = defineIntegrationProviderPackage({
+  id: "voice.elevenlabs",
+  name: "ElevenLabs Voice",
+  packageName: "@cognidesk/integration-voice-elevenlabs",
+  provider: "elevenlabs",
+  category: "voice",
+  trustLevel: "official",
+  directions: ["send-only", "receive-only", "bidirectional"],
+  channelAudiences: ["customer-facing", "mixed"],
+  coverage: {
+    scope: "provider-api-subset",
+    notes: [
+      "Implements normalized Cognidesk speech, transcription, and conversational session helpers with the official ElevenLabs JavaScript SDK.",
+      "Raw ElevenLabs SDK access is exposed as an escape hatch; this package does not re-export the whole SDK as Cognidesk-owned API coverage.",
+      "Realtime WebSocket transport behavior, telephony carrier setup, workspace administration, retention, and live agent routing remain SDK-user/provider configuration.",
+    ],
+    evidence: [
+      { label: "ElevenLabs JavaScript SDK package", url: "https://www.npmjs.com/package/@elevenlabs/elevenlabs-js" },
+      { label: "ElevenLabs API reference", url: "https://elevenlabs.io/docs/api-reference" },
+      { label: "ElevenLabs Speech to Text", url: "https://elevenlabs.io/docs/api-reference/speech-to-text/convert" },
+      { label: "ElevenLabs Text to Speech", url: "https://elevenlabs.io/docs/api-reference/text-to-speech/convert" },
+    ],
+  },
+  credentialRequirements: [{
+    id: "elevenlabs-api-key",
+    label: "ElevenLabs API key",
+    description: "Server-side ElevenLabs credential used by the official SDK for voice API requests.",
+    required: true,
+    metadata: {
+      scopeKind: "provider-permission",
+      minimumAccess: ["text-to-speech", "speech-to-text", "conversational-ai", "voices:read", "models:read"],
+    },
+  }],
+  capabilities: [
+    {
+      capability: "send",
+      label: "Create speech audio",
+      description: "Creates or streams speech audio with ElevenLabs Text to Speech.",
+      audiences: ["customer-facing"],
+      providerObjects: [
+        { kind: "elevenlabsVoice", label: "ElevenLabs Voice" },
+        { kind: "elevenlabsSpeechGeneration", label: "ElevenLabs Speech Generation" },
+      ],
+      requiresCredential: true,
+      sideEffect: true,
+      exposesSensitiveData: true,
+    },
+    {
+      capability: "receive",
+      label: "Receive conversational voice",
+      description: "Creates signed URLs for authorized ElevenLabs Conversational AI sessions and reads conversation transcripts.",
+      audiences: ["customer-facing"],
+      providerObjects: [{ kind: "elevenlabsConversation", label: "ElevenLabs Conversation" }],
+      requiresCredential: true,
+      exposesSensitiveData: true,
+    },
+    {
+      capability: "media",
+      label: "Voice media and transcripts",
+      description: "Reads generated audio streams, conversation audio, speech timing alignments, and speech-to-text transcript resources.",
+      audiences: ["customer-facing", "internal-support"],
+      providerObjects: [
+        { kind: "elevenlabsAudio", label: "ElevenLabs Audio" },
+        { kind: "elevenlabsTranscript", label: "ElevenLabs Transcript" },
+      ],
+      requiresCredential: true,
+      exposesSensitiveData: true,
+    },
+  ],
+  operations: [
+    {
+      alias: "voice.speak",
+      providerOperation: "createSpeech",
+      capability: "send",
+      label: "Create speech",
+      providerObject: "elevenlabsAudio",
+      audiences: ["customer-facing"],
+      sideEffect: true,
+      exposesSensitiveData: true,
+    },
+    {
+      alias: "voice.turn.finalize",
+      providerOperation: "createTranscript",
+      capability: "receive",
+      label: "Create transcript",
+      providerObject: "elevenlabsTranscript",
+      audiences: ["customer-facing", "internal-support"],
+      sideEffect: true,
+      exposesSensitiveData: true,
+    },
+    {
+      alias: "elevenlabs.conversation.authorize",
+      extension: true,
+      providerOperation: "createConversationSignedUrl",
+      capability: "receive",
+      label: "Create conversation signed URL",
+      providerObject: "elevenlabsConversation",
+      audiences: ["customer-facing"],
+      sideEffect: true,
+      exposesSensitiveData: true,
+    },
+  ],
+  privacyNotes: [
+    "Text prompts, generated speech, uploaded audio/video, transcript text, conversation IDs, and conversation audio can contain personal data and are sent to or read from ElevenLabs.",
+    "ElevenLabs API keys must remain server-side. Use signed URLs or single-use tokens for browser/client conversation startup instead of exposing the API key.",
+  ],
+  limitations: [
+    "Realtime WebSocket transport behavior, telephony setup, batch calling, call recording policy, consent, retention, and live agent routing remain SDK-user/provider configuration.",
+  ],
+  metadata: {
+    implementation: {
+      strategy: "official-sdk",
+      sdkPackage: "@elevenlabs/elevenlabs-js",
+      verifiedVersion: "2.53.1",
+      verifiedAt: "2026-06-21",
+    },
+    rawClient: {
+      export: "getRawClient",
+      coverage: "upstream-sdk",
+    },
+  },
+  maintainers: [{ name: "Cognidesk", type: "official" }],
+});
