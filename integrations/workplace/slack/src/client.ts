@@ -15,6 +15,7 @@ import type {
   SlackUpdateMessageResponse,
   SlackUploadExternalFileBytesInput,
   SlackUploadExternalFileInput,
+  SlackProviderRequestOptions,
   SlackWorkplaceClient,
   SlackWorkplaceClientOptions,
   SlackWorkplaceJsonObject,
@@ -56,6 +57,7 @@ export function createSlackWorkplaceClient(options: SlackWorkplaceClientOptions)
         length: input.length,
         alt_txt: input.altTxt,
         snippet_type: input.snippetType,
+        signal: input.signal,
       }))) as SlackGetUploadUrlExternalResponse;
     },
     async uploadExternalFileBytes(input) {
@@ -100,10 +102,11 @@ export function createSlackWorkplaceClient(options: SlackWorkplaceClientOptions)
         channel_id: input.channelId,
         initial_comment: input.initialComment,
         thread_ts: input.threadTs,
+        signal: input.signal,
       }))) as SlackCompleteUploadExternalResponse;
     },
-    async authTest() {
-      return assertSlackOk(await webClient.auth.test()) as SlackAuthTestResponse;
+    async authTest(input = {}) {
+      return assertSlackOk(await webClient.auth.test(slackRequestOptions(input) as never)) as SlackAuthTestResponse;
     },
   };
 }
@@ -130,6 +133,7 @@ function slackPostMessageBody(input: SlackPostMessageInput) {
     unfurl_media: input.unfurlMedia,
     reply_broadcast: input.replyBroadcast,
     metadata: input.metadata,
+    signal: input.signal,
   });
 }
 
@@ -142,6 +146,7 @@ function slackPostEphemeralBody(input: SlackPostEphemeralInput) {
     attachments: input.attachments,
     thread_ts: input.threadTs,
     mrkdwn: input.mrkdwn,
+    signal: input.signal,
   });
 }
 
@@ -153,6 +158,7 @@ function slackUpdateMessageBody(input: SlackUpdateMessageInput) {
     blocks: input.blocks,
     attachments: input.attachments,
     metadata: input.metadata,
+    signal: input.signal,
   });
 }
 
@@ -165,7 +171,12 @@ function slackRepliesBody(input: SlackConversationsRepliesInput) {
     latest: input.latest,
     limit: input.limit,
     oldest: input.oldest,
+    signal: input.signal,
   });
+}
+
+function slackRequestOptions(input: SlackProviderRequestOptions) {
+  return stripUndefined({ signal: input.signal });
 }
 
 function assertSlackOk(response: unknown) {

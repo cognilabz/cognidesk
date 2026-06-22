@@ -19,8 +19,11 @@ export interface SlackWorkplaceIntegrationOptions extends SlackWorkplaceClientOp
 }
 
 export function createSlackWorkplaceOperationHandlers(options: SlackWorkplaceIntegrationOptions) {
-  const client = options.workplaceClient ?? createSlackWorkplaceClient(options);
   const credentials = slackWorkplaceCredentials(options);
+  const client = options.workplaceClient ?? createSlackWorkplaceClient({
+    ...options,
+    ...credentials,
+  });
 
   return {
     "workplace.message.receive": async (input: ParseSlackSignedRequestInput) => {
@@ -64,11 +67,16 @@ export function createSlackWorkplaceOperationHandlers(options: SlackWorkplaceInt
       context: IntegrationOperationContext<SlackWorkplaceCredentials>,
     ) =>
       client.postEphemeralMessage({ ...input, signal: context.abortSignal ?? input.signal }),
-    "slack.request-signature": async (input: Parameters<typeof validateSlackRequestSignature>[0]) =>
-      validateSlackRequestSignature({
+    "slack.request-signature": async (input: Parameters<typeof validateSlackRequestSignature>[0]) => {
+      const signingSecret = input.signingSecret ?? credentials.signingSecret;
+      if (!signingSecret) {
+        throw new Error("Slack signing secret is required to validate request signatures.");
+      }
+      return validateSlackRequestSignature({
         ...input,
-        signingSecret: input.signingSecret ?? credentials.signingSecret ?? "",
-      }),
+        signingSecret,
+      });
+    },
   } as const;
 }
 

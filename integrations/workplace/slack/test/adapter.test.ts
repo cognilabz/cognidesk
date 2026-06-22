@@ -56,6 +56,7 @@ describe("@cognidesk/integration-workplace-slack", () => {
   });
 
   it("uses @slack/web-api client methods for supported Web API operations", async () => {
+    const signal = new AbortController().signal;
     const webClient = {
       chat: {
         postMessage: vi.fn(async () => ({ ok: true, channel: "C123", ts: "1710000000.000100" })),
@@ -90,34 +91,40 @@ describe("@cognidesk/integration-workplace-slack", () => {
       text: "Reset link sent.",
       threadTs: "1710000000.000000",
       metadata: { event_type: "cognidesk_reply" },
+      signal,
     })).resolves.toMatchObject({ ts: "1710000000.000100" });
     expect(webClient.chat.postMessage).toHaveBeenCalledWith(expect.objectContaining({
       channel: "C123",
       thread_ts: "1710000000.000000",
       metadata: { event_type: "cognidesk_reply" },
+      signal,
     }));
 
     await expect(client.postInternalAssistMessage({
       channel: "C123",
       user: "U_AGENT",
       text: "Suggested answer.",
+      signal,
     })).resolves.toMatchObject({ message_ts: "1710000000.000200" });
     expect(webClient.chat.postEphemeral).toHaveBeenCalledWith(expect.objectContaining({
       channel: "C123",
       user: "U_AGENT",
+      signal,
     }));
 
-    await client.updateMessage({ channel: "C123", ts: "1710000000.000100", text: "Updated." });
+    await client.updateMessage({ channel: "C123", ts: "1710000000.000100", text: "Updated.", signal });
     expect(webClient.chat.update).toHaveBeenCalledWith(expect.objectContaining({
       channel: "C123",
       ts: "1710000000.000100",
+      signal,
     }));
 
-    await client.conversationsReplies({ channel: "C123", ts: "1710000000.000000", limit: 5 });
+    await client.conversationsReplies({ channel: "C123", ts: "1710000000.000000", limit: 5, signal });
     expect(webClient.conversations.replies).toHaveBeenCalledWith(expect.objectContaining({
       channel: "C123",
       ts: "1710000000.000000",
       limit: 5,
+      signal,
     }));
 
     await client.uploadExternalFile({
@@ -127,16 +134,45 @@ describe("@cognidesk/integration-workplace-slack", () => {
       contentType: "application/pdf",
       channelId: "C123",
       title: "receipt.pdf",
+      signal,
     });
-    expect(webClient.files.getUploadURLExternal).toHaveBeenCalled();
+    expect(webClient.files.getUploadURLExternal).toHaveBeenCalledWith(expect.objectContaining({ signal }));
     expect(fetchMock).toHaveBeenCalledWith(
       "https://files.slack.com/upload/v1/ABC",
-      expect.objectContaining({ method: "POST", body: "bytes" }),
+      expect.objectContaining({ method: "POST", body: "bytes", signal }),
     );
     expect(webClient.files.completeUploadExternal).toHaveBeenCalledWith(expect.objectContaining({
       files: [{ id: "F123", title: "receipt.pdf" }],
       channel_id: "C123",
+      signal,
     }));
+
+    await client.authTest({ signal });
+    expect(webClient.auth.test).toHaveBeenCalledWith(expect.objectContaining({ signal }));
+  });
+
+  it("uses nested credentials and rejects missing signing secrets", async () => {
+    const integration = createSlackWorkplaceIntegration({
+      credentials: { botToken: "xoxb-token", signingSecret: "signing-secret" },
+      workplaceClient: fakeSlackWorkplaceClient(),
+    });
+
+    await expect(integration.run("slack.request-signature", {
+      rawBody: "{}",
+      timestamp: 1_710_000_000,
+      signature: "v0=deadbeef",
+      nowSeconds: 1_710_000_000,
+    })).resolves.toBe(false);
+
+    const missingSecretIntegration = createSlackWorkplaceIntegration({
+      workplaceClient: fakeSlackWorkplaceClient(),
+    });
+    await expect(missingSecretIntegration.run("slack.request-signature", {
+      rawBody: "{}",
+      timestamp: 1_710_000_000,
+      signature: "v0=deadbeef",
+      nowSeconds: 1_710_000_000,
+    })).rejects.toThrow(/signing secret/i);
   });
 
   it("validates signed requests and normalizes Slack message events", async () => {

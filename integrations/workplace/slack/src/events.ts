@@ -11,6 +11,7 @@ export async function parseSlackSignedRequest(
 ): Promise<SlackSignedRequest> {
   const rawBody = await request.text();
   const requireSignature = options.requireSignature ?? true;
+  const validSignature = requireSignature;
   if (requireSignature) {
     if (!options.signingSecret) throw new Error("Slack signing secret is required to validate request signatures.");
     const signature = request.headers.get("x-slack-signature") ?? "";
@@ -34,6 +35,7 @@ export async function parseSlackSignedRequest(
     return {
       rawBody,
       contentType,
+      validSignature,
       json: rawBody ? JSON.parse(rawBody) as unknown : undefined,
     };
   }
@@ -43,11 +45,12 @@ export async function parseSlackSignedRequest(
     return {
       rawBody,
       contentType,
+      validSignature,
       form,
       ...(payloadText ? { payload: JSON.parse(payloadText) as unknown } : {}),
     };
   }
-  return { rawBody, ...(contentType ? { contentType } : {}) };
+  return { rawBody, validSignature, ...(contentType ? { contentType } : {}) };
 }
 
 export function validateSlackRequestSignature(input: ValidateSlackRequestSignatureInput) {

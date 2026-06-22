@@ -14,6 +14,7 @@ export function normalizeSlackChannelEvent(input: NormalizeSlackChannelEventInpu
   const eventId = stringField(payload, "event_id") ?? stringField(event, "client_msg_id") ?? messageTs ?? input.signedRequest.rawBody;
   const streamId = [channelId, threadTs].filter(Boolean).join(":");
   const actorId = stringField(event, "user");
+  const verified = input.signedRequest.validSignature === true;
 
   return {
     nature: "message",
@@ -49,7 +50,7 @@ export function normalizeSlackChannelEvent(input: NormalizeSlackChannelEventInpu
       providerPackageId: "workplace.slack",
       eventId,
       streamId,
-      verified: true,
+      verified,
       raw: payload,
       ...(input.receivedAt ? { receivedAt: input.receivedAt } : {}),
     },

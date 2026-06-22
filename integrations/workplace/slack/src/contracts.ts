@@ -231,6 +231,7 @@ export interface ParseSlackSignedRequestInput extends ParseSlackSignedRequestOpt
 export interface SlackSignedRequest {
   rawBody: string;
   contentType?: string;
+  validSignature?: boolean;
   json?: unknown;
   form?: Record<string, string>;
   payload?: unknown;
