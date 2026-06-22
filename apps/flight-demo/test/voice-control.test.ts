@@ -82,6 +82,9 @@ describe("flight demo voice control", () => {
       status: "running",
       targetJourneyId: "ticket-status",
     });
+    expect((result.output as { voiceGuidance?: string }).voiceGuidance).toContain(
+      "Do not state that the workflow has updated",
+    );
     await waitFor(() => notifications.length > 0);
     expect(notifications[0]?.message).toContain("Validated result to tell the customer");
     expect(notifications[0]?.events?.some((event) => event.type === "custom.voice.background.completed")).toBe(true);
