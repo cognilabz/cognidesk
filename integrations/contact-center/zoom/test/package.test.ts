@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-describe("@cognidesk/contact-center-zoom", () => {
+describe("@cognidesk/integration-contact-center-zoom", () => {
   it("keeps manifest imports metadata-only", async () => {
     const manifestModule = await import("../src/manifest.js");
-    expect(manifestModule.zoomContactCenterProviderManifest.packageName).toBe("@cognidesk/contact-center-zoom");
+    expect(manifestModule.zoomContactCenterProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-zoom");
     expect(manifestModule.zoomContactCenterSupportSlice.allowedOperations.length).toBeGreaterThan(0);
   });
 

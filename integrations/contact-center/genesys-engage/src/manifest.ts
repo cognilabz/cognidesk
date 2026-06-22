@@ -35,7 +35,7 @@ export const genesysEngageSupportSlice = {
 export const genesysEngageProviderManifestInput = {
   id: "contactCenter.genesys-engage",
   name: "Genesys Engage / GMS",
-  packageName: "@cognidesk/contact-center-genesys-engage",
+  packageName: "@cognidesk/integration-contact-center-genesys-engage",
   provider: "genesys-engage",
   category: "contactCenter",
   trustLevel: "official",

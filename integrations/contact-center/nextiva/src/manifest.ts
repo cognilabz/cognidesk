@@ -19,7 +19,7 @@ export const nextivaSupportSlice = {
 export const nextivaProviderManifestInput = {
   id: "contactCenter.nextiva",
   name: "Nextiva Contact Center",
-  packageName: "@cognidesk/contact-center-nextiva",
+  packageName: "@cognidesk/integration-contact-center-nextiva",
   provider: "nextiva",
   category: "contactCenter",
   trustLevel: "official",

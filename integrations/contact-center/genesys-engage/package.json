@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/contact-center-genesys-engage",
+  "name": "@cognidesk/integration-contact-center-genesys-engage",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-describe("@cognidesk/contact-center-nice-cxone", () => {
+describe("@cognidesk/integration-contact-center-nice-cxone", () => {
   it("keeps manifest imports metadata-only", async () => {
     const manifestModule = await import("../src/manifest.js");
-    expect(manifestModule.niceCxoneProviderManifest.packageName).toBe("@cognidesk/contact-center-nice-cxone");
+    expect(manifestModule.niceCxoneProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-nice-cxone");
     expect(manifestModule.niceCxoneSupportSlice.allowedOperations.length).toBeGreaterThan(0);
   });
 

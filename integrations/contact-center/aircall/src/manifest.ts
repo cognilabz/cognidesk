@@ -19,7 +19,7 @@ export const aircallSupportSlice = {
 export const aircallProviderManifestInput = {
   id: "contactCenter.aircall",
   name: "Aircall",
-  packageName: "@cognidesk/contact-center-aircall",
+  packageName: "@cognidesk/integration-contact-center-aircall",
   provider: "aircall",
   category: "contactCenter",
   trustLevel: "official",

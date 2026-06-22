@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-describe("@cognidesk/contact-center-talkdesk", () => {
+describe("@cognidesk/integration-contact-center-talkdesk", () => {
   it("keeps manifest imports metadata-only", async () => {
     const manifestModule = await import("../src/manifest.js");
-    expect(manifestModule.talkdeskProviderManifest.packageName).toBe("@cognidesk/contact-center-talkdesk");
+    expect(manifestModule.talkdeskProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-talkdesk");
     expect(manifestModule.talkdeskSupportSlice.allowedOperations.length).toBeGreaterThan(0);
   });
 

@@ -19,7 +19,7 @@ export const five9SupportSlice = {
 export const five9ProviderManifestInput = {
   id: "contactCenter.five9",
   name: "Five9",
-  packageName: "@cognidesk/contact-center-five9",
+  packageName: "@cognidesk/integration-contact-center-five9",
   provider: "five9",
   category: "contactCenter",
   trustLevel: "official",

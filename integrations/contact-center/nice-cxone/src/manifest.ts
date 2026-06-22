@@ -35,7 +35,7 @@ export const niceCxoneSupportSlice = {
 export const niceCxoneProviderManifestInput = {
   id: "contactCenter.nice-cxone",
   name: "NICE CXone",
-  packageName: "@cognidesk/contact-center-nice-cxone",
+  packageName: "@cognidesk/integration-contact-center-nice-cxone",
   provider: "nice-cxone",
   category: "contactCenter",
   trustLevel: "official",

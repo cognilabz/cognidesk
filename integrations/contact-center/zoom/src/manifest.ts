@@ -27,7 +27,7 @@ export const zoomContactCenterSupportSlice = {
 export const zoomContactCenterProviderManifestInput = {
   id: "contactCenter.zoom",
   name: "Zoom Contact Center",
-  packageName: "@cognidesk/contact-center-zoom",
+  packageName: "@cognidesk/integration-contact-center-zoom",
   provider: "zoom",
   category: "contactCenter",
   trustLevel: "official",

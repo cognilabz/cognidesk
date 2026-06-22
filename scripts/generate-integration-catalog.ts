@@ -147,11 +147,6 @@ async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]
       if (manifest.packageName !== expectedPackageName) {
         throw new Error(`Split provider manifest '${source.relativePath}' must declare packageName '${expectedPackageName}', not '${manifest.packageName}'.`);
       }
-      if (manifest.category !== category || manifest.provider !== provider) {
-        throw new Error(
-          `Split provider manifest '${source.relativePath}' must declare category '${category}' and provider '${provider}', not '${manifest.category}' and '${manifest.provider}'.`,
-        );
-      }
       const reference: IntegrationProviderReference = {
         id: manifest.id,
         category: manifest.category,

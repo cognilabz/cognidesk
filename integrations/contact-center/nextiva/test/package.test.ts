@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-describe("@cognidesk/contact-center-nextiva", () => {
+describe("@cognidesk/integration-contact-center-nextiva", () => {
   it("keeps manifest imports metadata-only", async () => {
     const manifestModule = await import("../src/manifest.js");
-    expect(manifestModule.nextivaProviderManifest.packageName).toBe("@cognidesk/contact-center-nextiva");
+    expect(manifestModule.nextivaProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-nextiva");
     expect(manifestModule.nextivaSupportSlice.allowedOperations.length).toBeGreaterThan(0);
   });
 

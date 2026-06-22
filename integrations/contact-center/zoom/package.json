@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/contact-center-zoom",
+  "name": "@cognidesk/integration-contact-center-zoom",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

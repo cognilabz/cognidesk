@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-describe("@cognidesk/contact-center-genesys-pureconnect", () => {
+describe("@cognidesk/integration-contact-center-genesys-pureconnect", () => {
   it("keeps manifest imports metadata-only", async () => {
     const manifestModule = await import("../src/manifest.js");
-    expect(manifestModule.genesysPureConnectProviderManifest.packageName).toBe("@cognidesk/contact-center-genesys-pureconnect");
+    expect(manifestModule.genesysPureConnectProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-genesys-pureconnect");
     expect(manifestModule.genesysPureConnectSupportSlice.allowedOperations.length).toBeGreaterThan(0);
   });
 

@@ -27,7 +27,7 @@ export const genesysPureConnectSupportSlice = {
 export const genesysPureConnectProviderManifestInput = {
   id: "contactCenter.genesys-pureconnect",
   name: "Genesys PureConnect / ICWS",
-  packageName: "@cognidesk/contact-center-genesys-pureconnect",
+  packageName: "@cognidesk/integration-contact-center-genesys-pureconnect",
   provider: "genesys-pureconnect",
   category: "contactCenter",
   trustLevel: "official",

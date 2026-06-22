@@ -27,7 +27,7 @@ export const talkdeskSupportSlice = {
 export const talkdeskProviderManifestInput = {
   id: "contactCenter.talkdesk",
   name: "Talkdesk",
-  packageName: "@cognidesk/contact-center-talkdesk",
+  packageName: "@cognidesk/integration-contact-center-talkdesk",
   provider: "talkdesk",
   category: "contactCenter",
   trustLevel: "official",

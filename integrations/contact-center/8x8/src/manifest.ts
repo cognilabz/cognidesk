@@ -35,7 +35,7 @@ export const eightByEightSupportSlice = {
 export const eightByEightProviderManifestInput = {
   id: "contactCenter.8x8",
   name: "8x8 Contact Center",
-  packageName: "@cognidesk/contact-center-8x8",
+  packageName: "@cognidesk/integration-contact-center-8x8",
   provider: "8x8",
   category: "contactCenter",
   trustLevel: "official",

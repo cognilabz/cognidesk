@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-describe("@cognidesk/contact-center-genesys-engage", () => {
+describe("@cognidesk/integration-contact-center-genesys-engage", () => {
   it("keeps manifest imports metadata-only", async () => {
     const manifestModule = await import("../src/manifest.js");
-    expect(manifestModule.genesysEngageProviderManifest.packageName).toBe("@cognidesk/contact-center-genesys-engage");
+    expect(manifestModule.genesysEngageProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-genesys-engage");
     expect(manifestModule.genesysEngageSupportSlice.allowedOperations.length).toBeGreaterThan(0);
   });
 
