@@ -47,6 +47,9 @@ export async function collectIntegrationPages<Item, Cursor extends string = stri
   options: { maxPages?: number } = {},
 ): Promise<Item[]> {
   const maxPages = options.maxPages ?? 100;
+  if (maxPages < 1) {
+    throw new Error("collectIntegrationPages requires maxPages >= 1.");
+  }
   const items: Item[] = [];
   let cursor = firstPage.cursor;
   let pageCount = 0;
@@ -54,10 +57,14 @@ export async function collectIntegrationPages<Item, Cursor extends string = stri
   do {
     const page = await loadPage({ ...firstPage, ...(cursor !== undefined ? { cursor } : {}) });
     items.push(...page.items);
-    cursor = page.pageInfo.nextCursor;
+    const nextCursor = page.pageInfo.nextCursor;
     pageCount += 1;
     if (!page.pageInfo.hasNextPage) break;
-  } while (cursor !== undefined && pageCount < maxPages);
+    if (nextCursor === undefined) {
+      throw new Error("Pagination response is invalid: hasNextPage=true but nextCursor is undefined.");
+    }
+    cursor = nextCursor;
+  } while (pageCount < maxPages);
 
   return items;
 }
