@@ -4,6 +4,8 @@ Official Provider Integrations are moving to individual packages named `@cognide
 
 Examples:
 
+The package set below is a staged rollout example for the first-wave providers after #28, #23, #24, and #25 land. Use packages that exist in the current release when installing today.
+
 ```bash
 pnpm add @cognidesk/integration-email-gmail @cognidesk/integration-workplace-slack @cognidesk/integration-email-outlook @cognidesk/integration-workplace-teams @cognidesk/integration-voice-openai
 ```
