@@ -60,7 +60,7 @@ describe("transformProviderImports", () => {
     assert.equal(result.sourceText, sourceText);
     assert.equal(result.diagnostics.length, 1);
     assert.match(result.diagnostics[0].message, /Legacy Gmail generated\/full-API symbol 'GMAIL_FULL_API_GENERATED_FUNCTION_COUNT'/);
-    assert.match(result.diagnostics[0].message, /not exported by '@cognidesk\/email-gmail\/runtime'/);
+    assert.match(result.diagnostics[0].message, /not exported by '@cognidesk\/integration-email-gmail\/runtime'/);
   });
 
   it("does not partially rewrite mixed imports when Gmail generated full-API symbols are present", () => {
