@@ -1,5 +1,5 @@
 export {
-  createDiscordCommunityClient,
+  createDiscordMessagingClient,
   discordMessageBody,
   discordWebhookUrl,
 } from "./client.js";
@@ -14,19 +14,19 @@ export {
 } from "./interactions.js";
 export {
   createDiscordIntegration,
-  createDiscordCommunityIntegration,
+  createDiscordMessagingIntegration,
   createDiscordIntegrationOperationHandlers,
-  createDiscordCommunityOperationHandlers,
+  createDiscordMessagingOperationHandlers,
 } from "./integration.js";
 export {
-  discordCommunityManifestInput,
-  discordCommunityOperationAliases,
-  discordCommunityProviderManifest,
-  discordCommunityProviderManifest as discordIntegrationManifest,
+  discordMessagingManifestInput,
+  discordMessagingOperationAliases,
+  discordMessagingProviderManifest,
+  discordMessagingProviderManifest as discordIntegrationManifest,
 } from "./manifest.js";
 export {
-  createDiscordCommunityLiveChecks,
-  discordCommunityCredentialStatuses,
+  createDiscordMessagingLiveChecks,
+  discordMessagingCredentialStatuses,
 } from "./readiness.js";
 export {
   collectDiscordMirrorItems,
