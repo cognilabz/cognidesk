@@ -3,25 +3,31 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { RuntimeEvent } from "@cognidesk/core";
 import { describe, expect, it, vi } from "vitest";
-import { DiscordGatewayService, collectDiscordMirrorItems } from "../src/gateway-service.js";
-import { discordGatewayProviderManifest } from "../src/manifest.js";
-import { createDiscordSqliteStore } from "../src/sqlite-store.js";
+import {
+  DiscordGatewayService,
+  collectDiscordMirrorItems,
+  createDiscordSqliteStore,
+  discordCommunityProviderManifest,
+} from "../src/index.js";
 
-describe("@cognidesk/integration-discord manifest", () => {
-  it("declares Discord Gateway as a separately released integration package", () => {
-    expect(discordGatewayProviderManifest).toMatchObject({
-      id: "community.discord.gateway",
-      packageName: "@cognidesk/integration-discord",
+describe("@cognidesk/integration-community-discord Gateway manifest", () => {
+  it("represents Discord Gateway support inside the split provider package", () => {
+    expect(discordCommunityProviderManifest).toMatchObject({
+      id: "community.discord",
+      packageName: "@cognidesk/integration-community-discord",
       provider: "discord",
       category: "community",
       trustLevel: "official",
     });
-    expect(discordGatewayProviderManifest.coverage.notes.join(" "))
-      .toContain("released separately");
+    expect(discordCommunityProviderManifest.coverage.notes.join(" "))
+      .toContain("optional discord.js Gateway service");
+    expect(discordCommunityProviderManifest.metadata?.channelCoverage).toMatchObject({
+      gatewayEvents: "sdk-owned-discord-js-gateway-service",
+    });
   });
 });
 
-describe("@cognidesk/integration-discord store", () => {
+describe("@cognidesk/integration-community-discord Gateway store", () => {
   it("persists thread bindings and mirrored event idempotency", async () => {
     const tempDir = await mkdtemp(join(tmpdir(), "cognidesk-discord-store-"));
     const store = createDiscordSqliteStore({ filename: join(tempDir, "demo.sqlite") });
