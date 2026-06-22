@@ -2,659 +2,6 @@
 
 ## Interfaces
 
-### IntegrationCategoryProfile
-
-#### Extends
-
-- [`IntegrationCategoryProfile`](../core/dist.md#integrationcategoryprofile)
-
-#### Properties
-
-##### capabilities
-
-```ts
-capabilities: {
-  audiences?: ("customer-facing" | "internal-support" | "mixed")[];
-  capability: string;
-  changesWorkflow?: boolean;
-  description?: string;
-  exposesSensitiveData?: boolean;
-  extension?: boolean;
-  label?: string;
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  providerObjects?: {
-     description?: string;
-     kind: string;
-     label?: string;
-     metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-     schemaName?: string;
-  }[];
-  requiresCredential?: boolean;
-  sideEffect?: boolean;
-}[];
-```
-
-###### audiences?
-
-```ts
-optional audiences?: ("customer-facing" | "internal-support" | "mixed")[];
-```
-
-###### capability
-
-```ts
-capability: string;
-```
-
-###### changesWorkflow?
-
-```ts
-optional changesWorkflow?: boolean;
-```
-
-###### description?
-
-```ts
-optional description?: string;
-```
-
-###### exposesSensitiveData?
-
-```ts
-optional exposesSensitiveData?: boolean;
-```
-
-###### extension?
-
-```ts
-optional extension?: boolean;
-```
-
-###### label?
-
-```ts
-optional label?: string;
-```
-
-###### metadata?
-
-```ts
-optional metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-```
-
-###### providerObjects?
-
-```ts
-optional providerObjects?: {
-  description?: string;
-  kind: string;
-  label?: string;
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  schemaName?: string;
-}[];
-```
-
-###### requiresCredential?
-
-```ts
-optional requiresCredential?: boolean;
-```
-
-###### sideEffect?
-
-```ts
-optional sideEffect?: boolean;
-```
-
-###### Inherited from
-
-```ts
-IntegrationCategoryProfile$1.capabilities
-```
-
-##### category
-
-```ts
-category: ProviderCategory;
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.category
-```
-
-##### dataSources
-
-```ts
-dataSources: {
-  capability: string;
-  description?: string;
-  exposesSensitiveData?: boolean;
-  id: string;
-  label?: string;
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  operationAlias?: string;
-  providerObjects: string[];
-}[];
-```
-
-###### capability
-
-```ts
-capability: string;
-```
-
-###### description?
-
-```ts
-optional description?: string;
-```
-
-###### exposesSensitiveData?
-
-```ts
-optional exposesSensitiveData?: boolean;
-```
-
-###### id
-
-```ts
-id: string;
-```
-
-###### label?
-
-```ts
-optional label?: string;
-```
-
-###### metadata?
-
-```ts
-optional metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-```
-
-###### operationAlias?
-
-```ts
-optional operationAlias?: string;
-```
-
-###### providerObjects
-
-```ts
-providerObjects: string[];
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.dataSources
-```
-
-##### description
-
-```ts
-description: string;
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.description
-```
-
-##### events
-
-```ts
-events: {
-  capability?: string;
-  description?: string;
-  direction: "outbound" | "bidirectional" | "inbound" | "internal";
-  kind: string;
-  label?: string;
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  operationAlias?: string;
-  providerObject?: string;
-}[];
-```
-
-###### capability?
-
-```ts
-optional capability?: string;
-```
-
-###### description?
-
-```ts
-optional description?: string;
-```
-
-###### direction
-
-```ts
-direction: "outbound" | "bidirectional" | "inbound" | "internal";
-```
-
-###### kind
-
-```ts
-kind: string;
-```
-
-###### label?
-
-```ts
-optional label?: string;
-```
-
-###### metadata?
-
-```ts
-optional metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-```
-
-###### operationAlias?
-
-```ts
-optional operationAlias?: string;
-```
-
-###### providerObject?
-
-```ts
-optional providerObject?: string;
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.events
-```
-
-##### id
-
-```ts
-id: string;
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.id
-```
-
-##### label
-
-```ts
-label: string;
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.label
-```
-
-##### metadata?
-
-```ts
-optional metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-```
-
-###### Inherited from
-
-```ts
-IntegrationCategoryProfile$1.metadata
-```
-
-##### notes
-
-```ts
-notes: string[];
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.notes
-```
-
-##### operations
-
-```ts
-operations: {
-  alias: string;
-  audience?: "customer-facing" | "internal-support" | "mixed";
-  audiences?: ("customer-facing" | "internal-support" | "mixed")[];
-  capability: string;
-  changesWorkflow?: boolean;
-  description?: string;
-  exposesSensitiveData?: boolean;
-  externallyVisible?: boolean;
-  inputSchema?: unknown;
-  inputSchemaName?: string;
-  inputSchemaRef?: string;
-  label?: string;
-  level: "optional" | "extension" | "required" | "recommended";
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  outputSchema?: unknown;
-  outputSchemaName?: string;
-  outputSchemaRef?: string;
-  providerObject?: string;
-  providerObjects?: {
-     description?: string;
-     kind: string;
-     label?: string;
-     metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-     schemaName?: string;
-  }[];
-  requiredPolicyIds?: string[];
-  requiresApproval?: boolean;
-  requiresCredential?: boolean;
-  sideEffect?: boolean;
-}[];
-```
-
-###### alias
-
-```ts
-alias: string;
-```
-
-###### audience?
-
-```ts
-optional audience?: "customer-facing" | "internal-support" | "mixed";
-```
-
-###### audiences?
-
-```ts
-optional audiences?: ("customer-facing" | "internal-support" | "mixed")[];
-```
-
-###### capability
-
-```ts
-capability: string;
-```
-
-###### changesWorkflow?
-
-```ts
-optional changesWorkflow?: boolean;
-```
-
-###### description?
-
-```ts
-optional description?: string;
-```
-
-###### exposesSensitiveData?
-
-```ts
-optional exposesSensitiveData?: boolean;
-```
-
-###### externallyVisible?
-
-```ts
-optional externallyVisible?: boolean;
-```
-
-###### inputSchema?
-
-```ts
-optional inputSchema?: unknown;
-```
-
-###### inputSchemaName?
-
-```ts
-optional inputSchemaName?: string;
-```
-
-###### inputSchemaRef?
-
-```ts
-optional inputSchemaRef?: string;
-```
-
-###### label?
-
-```ts
-optional label?: string;
-```
-
-###### level
-
-```ts
-level: "optional" | "extension" | "required" | "recommended";
-```
-
-###### metadata?
-
-```ts
-optional metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-```
-
-###### outputSchema?
-
-```ts
-optional outputSchema?: unknown;
-```
-
-###### outputSchemaName?
-
-```ts
-optional outputSchemaName?: string;
-```
-
-###### outputSchemaRef?
-
-```ts
-optional outputSchemaRef?: string;
-```
-
-###### providerObject?
-
-```ts
-optional providerObject?: string;
-```
-
-###### providerObjects?
-
-```ts
-optional providerObjects?: {
-  description?: string;
-  kind: string;
-  label?: string;
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  schemaName?: string;
-}[];
-```
-
-###### requiredPolicyIds?
-
-```ts
-optional requiredPolicyIds?: string[];
-```
-
-###### requiresApproval?
-
-```ts
-optional requiresApproval?: boolean;
-```
-
-###### requiresCredential?
-
-```ts
-optional requiresCredential?: boolean;
-```
-
-###### sideEffect?
-
-```ts
-optional sideEffect?: boolean;
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.operations
-```
-
-##### outputs
-
-```ts
-outputs: {
-  capability: string;
-  changesWorkflow?: boolean;
-  description?: string;
-  exposesSensitiveData?: boolean;
-  externallyVisible?: boolean;
-  intent: string;
-  label?: string;
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  operationAlias?: string;
-  providerObject?: string;
-  requiresApproval?: boolean;
-  sideEffect?: boolean;
-}[];
-```
-
-###### capability
-
-```ts
-capability: string;
-```
-
-###### changesWorkflow?
-
-```ts
-optional changesWorkflow?: boolean;
-```
-
-###### description?
-
-```ts
-optional description?: string;
-```
-
-###### exposesSensitiveData?
-
-```ts
-optional exposesSensitiveData?: boolean;
-```
-
-###### externallyVisible?
-
-```ts
-optional externallyVisible?: boolean;
-```
-
-###### intent
-
-```ts
-intent: string;
-```
-
-###### label?
-
-```ts
-optional label?: string;
-```
-
-###### metadata?
-
-```ts
-optional metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-```
-
-###### operationAlias?
-
-```ts
-optional operationAlias?: string;
-```
-
-###### providerObject?
-
-```ts
-optional providerObject?: string;
-```
-
-###### requiresApproval?
-
-```ts
-optional requiresApproval?: boolean;
-```
-
-###### sideEffect?
-
-```ts
-optional sideEffect?: boolean;
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.outputs
-```
-
-##### providerObjects
-
-```ts
-providerObjects: {
-  description?: string;
-  kind: string;
-  label?: string;
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  schemaName?: string;
-}[];
-```
-
-###### description?
-
-```ts
-optional description?: string;
-```
-
-###### kind
-
-```ts
-kind: string;
-```
-
-###### label?
-
-```ts
-optional label?: string;
-```
-
-###### metadata?
-
-```ts
-optional metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-```
-
-###### schemaName?
-
-```ts
-optional schemaName?: string;
-```
-
-###### Overrides
-
-```ts
-IntegrationCategoryProfile$1.providerObjects
-```
-
-***
-
 ### IntegrationProviderProfileAttachment
 
 #### Properties
@@ -751,93 +98,289 @@ provider: string;
 
 ***
 
-### OperationSchemaDescriptor
+### IntegrationProviderRuntimeLoaderRegistration
 
 #### Properties
 
-##### description?
+##### id
 
 ```ts
-optional description?: string;
+id: string;
 ```
 
-##### kind
+##### load
 
 ```ts
-kind: "schema-ref";
-```
-
-##### ref
-
-```ts
-ref: string;
+load: IntegrationProviderRuntimeLoader;
 ```
 
 ***
 
-### ProviderCapabilityCoverage
+### IntegrationProviderRuntimeRegistry
 
-#### Properties
+#### Methods
 
-##### category
-
-```ts
-category: ProviderCategory;
-```
-
-##### coverageLevel
+##### has()
 
 ```ts
-coverageLevel: CategoryCoverageLevel;
+has(idOrReference): boolean;
 ```
 
-##### missingOptionalOperationAliases
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `idOrReference` | \| `string` \| [`IntegrationProviderReference`](#integrationproviderreference) |
+
+###### Returns
+
+`boolean`
+
+##### loadProviderIntegration()
 
 ```ts
-missingOptionalOperationAliases: readonly string[];
+loadProviderIntegration(idOrReference): Promise<IntegrationProviderModule>;
 ```
 
-##### missingRecommendedOperationAliases
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `idOrReference` | \| `string` \| [`IntegrationProviderReference`](#integrationproviderreference) |
+
+###### Returns
+
+`Promise`\<[`IntegrationProviderModule`](#integrationprovidermodule)\>
+
+##### loadProviderIntegrationManifest()
 
 ```ts
-missingRecommendedOperationAliases: readonly string[];
+loadProviderIntegrationManifest(idOrReference): Promise<{
+  capabilities: {
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension?: boolean;
+     label?: string;
+     metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+        schemaName?: string;
+     }[];
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  category: string;
+  channelAudiences: ("customer-facing" | "internal-support" | "mixed")[];
+  coverage: {
+     evidence: {
+        label: string;
+        url?: string;
+     }[];
+     notes: string[];
+     scope:   | "support-workflow-subset"
+        | "provider-api-subset"
+        | "connector-required"
+        | "local-protocol"
+        | "full-provider-api";
+  };
+  credentialRequirements: {
+     description?: string;
+     id: string;
+     label?: string;
+     metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+     required: boolean;
+     scopes: string[];
+  }[];
+  directions: (
+     | "receive-only"
+     | "send-only"
+     | "inbound-only"
+     | "outbound-only"
+    | "bidirectional")[];
+  id: string;
+  limitations: string[];
+  maintainers: {
+     name: string;
+     type: "community" | "official" | "unknown" | "partner";
+     url?: string;
+  }[];
+  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+  name: string;
+  operations: {
+     alias: string;
+     audience?: "customer-facing" | "internal-support" | "mixed";
+     audiences?: ("customer-facing" | "internal-support" | "mixed")[];
+     capability: string;
+     changesWorkflow?: boolean;
+     description?: string;
+     exposesSensitiveData?: boolean;
+     extension: boolean;
+     externallyVisible?: boolean;
+     inputSchema?: unknown;
+     inputSchemaName?: string;
+     inputSchemaRef?: string;
+     label?: string;
+     metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+     outputSchema?: unknown;
+     outputSchemaName?: string;
+     outputSchemaRef?: string;
+     providerObject?: string;
+     providerObjects?: {
+        description?: string;
+        kind: string;
+        label?: string;
+        metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
+        schemaName?: string;
+     }[];
+     providerOperation?: string;
+     requiredPolicyIds?: string[];
+     requiresApproval?: boolean;
+     requiresCredential?: boolean;
+     sideEffect?: boolean;
+  }[];
+  packageName: string;
+  privacyNotes: string[];
+  provider: string;
+  trustLevel: "community" | "official" | "verified" | "experimental";
+}>;
 ```
 
-##### missingRequiredOperationAliases
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `idOrReference` | \| `string` \| [`IntegrationProviderReference`](#integrationproviderreference) |
+
+###### Returns
+
+`Promise`\<\{
+  `capabilities`: \{
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension?`: `boolean`;
+     `label?`: `string`;
+     `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>;
+        `schemaName?`: `string`;
+     \}[];
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `category`: `string`;
+  `channelAudiences`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+  `coverage`: \{
+     `evidence`: \{
+        `label`: `string`;
+        `url?`: `string`;
+     \}[];
+     `notes`: `string`[];
+     `scope`:   \| `"support-workflow-subset"`
+        \| `"provider-api-subset"`
+        \| `"connector-required"`
+        \| `"local-protocol"`
+        \| `"full-provider-api"`;
+  \};
+  `credentialRequirements`: \{
+     `description?`: `string`;
+     `id`: `string`;
+     `label?`: `string`;
+     `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>;
+     `required`: `boolean`;
+     `scopes`: `string`[];
+  \}[];
+  `directions`: (
+     \| `"receive-only"`
+     \| `"send-only"`
+     \| `"inbound-only"`
+     \| `"outbound-only"`
+    \| `"bidirectional"`)[];
+  `id`: `string`;
+  `limitations`: `string`[];
+  `maintainers`: \{
+     `name`: `string`;
+     `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`;
+     `url?`: `string`;
+  \}[];
+  `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>;
+  `name`: `string`;
+  `operations`: \{
+     `alias`: `string`;
+     `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`;
+     `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[];
+     `capability`: `string`;
+     `changesWorkflow?`: `boolean`;
+     `description?`: `string`;
+     `exposesSensitiveData?`: `boolean`;
+     `extension`: `boolean`;
+     `externallyVisible?`: `boolean`;
+     `inputSchema?`: `unknown`;
+     `inputSchemaName?`: `string`;
+     `inputSchemaRef?`: `string`;
+     `label?`: `string`;
+     `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>;
+     `outputSchema?`: `unknown`;
+     `outputSchemaName?`: `string`;
+     `outputSchemaRef?`: `string`;
+     `providerObject?`: `string`;
+     `providerObjects?`: \{
+        `description?`: `string`;
+        `kind`: `string`;
+        `label?`: `string`;
+        `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>;
+        `schemaName?`: `string`;
+     \}[];
+     `providerOperation?`: `string`;
+     `requiredPolicyIds?`: `string`[];
+     `requiresApproval?`: `boolean`;
+     `requiresCredential?`: `boolean`;
+     `sideEffect?`: `boolean`;
+  \}[];
+  `packageName`: `string`;
+  `privacyNotes`: `string`[];
+  `provider`: `string`;
+  `trustLevel`: `"community"` \| `"official"` \| `"verified"` \| `"experimental"`;
+\}\>
+
+##### register()
 
 ```ts
-missingRequiredOperationAliases: readonly string[];
+register(registration): void;
 ```
 
-##### profileId
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `registration` | [`IntegrationProviderRuntimeLoaderRegistration`](#integrationproviderruntimeloaderregistration) |
+
+###### Returns
+
+`void`
+
+##### registeredIds()
 
 ```ts
-profileId: string;
+registeredIds(): readonly string[];
 ```
 
-##### supportedOperationAliases
+###### Returns
 
-```ts
-supportedOperationAliases: readonly string[];
-```
+readonly `string`[]
 
 ## Type Aliases
-
-### CategoryCoverageLevel
-
-```ts
-type CategoryCoverageLevel = "not-conformant" | "partial" | "standard" | "full";
-```
-
-***
-
-### IntegrationCategoryProfileId
-
-```ts
-type IntegrationCategoryProfileId = typeof integrationCategoryProfiles[number]["id"];
-```
-
-***
 
 ### IntegrationProviderId
 
@@ -850,55 +393,35 @@ type IntegrationProviderId = typeof integrationProviderReferences[number]["id"];
 ### IntegrationProviderModule
 
 ```ts
-type IntegrationProviderModule = Awaited<ReturnType<typeof importProviderModule>>;
+type IntegrationProviderModule = Record<string, unknown>;
 ```
+
+***
+
+### IntegrationProviderRuntimeLoader
+
+```ts
+type IntegrationProviderRuntimeLoader = () => Promise<IntegrationProviderModule>;
+```
+
+#### Returns
+
+`Promise`\<[`IntegrationProviderModule`](#integrationprovidermodule)\>
 
 ## Variables
 
-### categoryProfilesCoreIntegrationNote
+### CategoryCoverageLevel
 
 ```ts
-const categoryProfilesCoreIntegrationNote: "Core owns the shared IntegrationCategoryProfile contract; @cognidesk/integrations owns the concrete category profiles per ADR-0084." = "Core owns the shared IntegrationCategoryProfile contract; @cognidesk/integrations owns the concrete category profiles per ADR-0084.";
+CategoryCoverageLevel: any;
 ```
 
 ***
 
-### contactCenterCategoryProfile
+### defaultIntegrationProviderRuntimeRegistry
 
 ```ts
-const contactCenterCategoryProfile: IntegrationCategoryProfile;
-```
-
-***
-
-### emailCategoryProfile
-
-```ts
-const emailCategoryProfile: IntegrationCategoryProfile;
-```
-
-***
-
-### handoffCategoryProfile
-
-```ts
-const handoffCategoryProfile: IntegrationCategoryProfile;
-```
-
-***
-
-### integrationCategoryProfiles
-
-```ts
-const integrationCategoryProfiles: readonly [IntegrationCategoryProfile, IntegrationCategoryProfile, IntegrationCategoryProfile, IntegrationCategoryProfile, IntegrationCategoryProfile, IntegrationCategoryProfile, IntegrationCategoryProfile];
-```
-
-***
-
-### integrationCategoryProfilesByCategory
-
-```ts
-const integrationCategoryProfilesByCategory: Readonly<Record<string, IntegrationCategoryProfile>>;
+const defaultIntegrationProviderRuntimeRegistry: IntegrationProviderRuntimeRegistry;
 ```
 
 ***
@@ -907,22 +430,19 @@ const integrationCategoryProfilesByCategory: Readonly<Record<string, Integration
 
 ```ts
 const integrationProviderCategories: (
-  | "voice"
-  | "email"
-  | "ticketing"
-  | "contactCenter"
-  | "messaging"
-  | "sms"
-  | "workplace"
-  | "social"
-  | "form"
-  | "helpCenter"
   | "community"
+  | "contactCenter"
   | "ecommerce"
+  | "email"
   | "marketplace"
+  | "messaging"
   | "review"
+  | "sms"
+  | "social"
+  | "ticketing"
   | "video"
-  | "cobrowsing")[];
+  | "voice"
+  | "workplace")[];
 ```
 
 ***
@@ -931,26 +451,12 @@ const integrationProviderCategories: (
 
 ```ts
 const integrationProviderReferences: readonly [{
-  category: "cobrowsing";
-  id: "cobrowsing.cognidesk";
-  importPath: "@cognidesk/integrations/cobrowsing/cognidesk";
-  manifestExport: "cognideskCobrowsingProviderManifest";
-  modulePath: "./cobrowsing/cognidesk/index.js";
-  provider: "cognidesk";
-}, {
   category: "community";
   id: "messaging.discord";
   importPath: "@cognidesk/integrations/messaging/discord";
   manifestExport: "discordMessagingProviderManifest";
   modulePath: "./messaging/discord/index.js";
   provider: "discord";
-}, {
-  category: "community";
-  id: "community.forum";
-  importPath: "@cognidesk/integrations/community/forum";
-  manifestExport: "forumCommunityProviderManifest";
-  modulePath: "./community/forum/index.js";
-  provider: "forum";
 }, {
   category: "contactCenter";
   id: "contactCenter.8x8";
@@ -1091,20 +597,6 @@ const integrationProviderReferences: readonly [{
   manifestExport: "sesEmailProviderManifest";
   modulePath: "./email/ses/index.js";
   provider: "ses";
-}, {
-  category: "form";
-  id: "form.cognidesk";
-  importPath: "@cognidesk/integrations/form/cognidesk";
-  manifestExport: "cognideskFormsProviderManifest";
-  modulePath: "./form/cognidesk/index.js";
-  provider: "cognidesk";
-}, {
-  category: "helpCenter";
-  id: "helpcenter.cognidesk";
-  importPath: "@cognidesk/integrations/help-center/cognidesk";
-  manifestExport: "cognideskHelpCenterProviderManifest";
-  modulePath: "./help-center/cognidesk/index.js";
-  provider: "cognidesk";
 }, {
   category: "marketplace";
   id: "marketplace.amazon";
@@ -1338,13 +830,6 @@ const integrationProviderReferences: readonly [{
   provider: "openai";
 }, {
   category: "voice";
-  id: "voice.sip";
-  importPath: "@cognidesk/integrations/voice/sip";
-  manifestExport: "sipVoiceProviderManifest";
-  modulePath: "./voice/sip/index.js";
-  provider: "sip";
-}, {
-  category: "voice";
   id: "voice.twilio";
   importPath: "@cognidesk/integrations/voice/twilio";
   manifestExport: "twilioVoiceProviderManifest";
@@ -1374,81 +859,30 @@ const integrationProviderReferences: readonly [{
 }];
 ```
 
-***
-
-### messagingCategoryProfile
-
-```ts
-const messagingCategoryProfile: IntegrationCategoryProfile;
-```
-
-***
-
-### smsCategoryProfile
-
-```ts
-const smsCategoryProfile: IntegrationCategoryProfile;
-```
-
-***
-
-### ticketingCategoryProfile
-
-```ts
-const ticketingCategoryProfile: IntegrationCategoryProfile;
-```
-
-***
-
-### voiceCategoryProfile
-
-```ts
-const voiceCategoryProfile: IntegrationCategoryProfile;
-```
-
 ## Functions
 
-### categoryOperationAliases()
+### createIntegrationProviderRuntimeRegistry()
 
 ```ts
-function categoryOperationAliases(profile, level?): readonly string[];
+function createIntegrationProviderRuntimeRegistry(registrations?): IntegrationProviderRuntimeRegistry;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `profile` | [`IntegrationCategoryProfile`](#integrationcategoryprofile) |
-| `level?` | `"optional"` \| `"extension"` \| `"required"` \| `"recommended"` |
+| `registrations?` | readonly [`IntegrationProviderRuntimeLoaderRegistration`](#integrationproviderruntimeloaderregistration)[] |
 
 #### Returns
 
-readonly `string`[]
-
-***
-
-### defineIntegrationCategoryProfile()
-
-```ts
-function defineIntegrationCategoryProfile(profile): IntegrationCategoryProfile;
-```
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `profile` | `ConcreteIntegrationCategoryProfileInput` |
-
-#### Returns
-
-[`IntegrationCategoryProfile`](#integrationcategoryprofile)
+[`IntegrationProviderRuntimeRegistry`](#integrationproviderruntimeregistry)
 
 ***
 
 ### defineIntegrationProviderPackage()
 
 ```ts
-function defineIntegrationProviderPackage(manifest): {
+function defineIntegrationProviderPackage<Manifest>(manifest): {
   capabilities: {
      audiences?: ("customer-facing" | "internal-support" | "mixed")[];
      capability: string;
@@ -1544,30 +978,17 @@ function defineIntegrationProviderPackage(manifest): {
 };
 ```
 
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `Manifest` *extends* \{ `capabilities`: \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `category`: `string`; `channelAudiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `coverage?`: \{ `evidence?`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes?`: `string`[]; `scope?`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \}; `credentialRequirements?`: \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `required?`: `boolean`; `scopes?`: `string`[]; \}[]; `directions`: ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[]; `id`: `string`; `limitations?`: `string`[]; `maintainers?`: \{ `name`: `string`; `type?`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[]; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `name`: `string`; `operations?`: \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `packageName`: `string`; `privacyNotes?`: `string`[]; `provider`: `string`; `trustLevel?`: `"community"` \| `"official"` \| `"verified"` \| `"experimental"`; \} |
+
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `manifest` | \{ `capabilities`: \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `category`: `string`; `channelAudiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `coverage?`: \{ `evidence?`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes?`: `string`[]; `scope?`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \}; `credentialRequirements?`: \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `required?`: `boolean`; `scopes?`: `string`[]; \}[]; `directions`: ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[]; `id`: `string`; `limitations?`: `string`[]; `maintainers?`: \{ `name`: `string`; `type?`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[]; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `name`: `string`; `operations?`: \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[]; `packageName`: `string`; `privacyNotes?`: `string`[]; `provider`: `string`; `trustLevel?`: `"community"` \| `"official"` \| `"verified"` \| `"experimental"`; \} |
-| `manifest.capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| `manifest.category` | `string` |
-| `manifest.channelAudiences?` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
-| `manifest.coverage?` | \{ `evidence?`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes?`: `string`[]; `scope?`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
-| `manifest.coverage.evidence?` | \{ `label`: `string`; `url?`: `string`; \}[] |
-| `manifest.coverage.notes?` | `string`[] |
-| `manifest.coverage.scope?` | \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"` |
-| `manifest.credentialRequirements?` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `required?`: `boolean`; `scopes?`: `string`[]; \}[] |
-| `manifest.directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
-| `manifest.id` | `string` |
-| `manifest.limitations?` | `string`[] |
-| `manifest.maintainers?` | \{ `name`: `string`; `type?`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
-| `manifest.metadata?` | `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\> |
-| `manifest.name` | `string` |
-| `manifest.operations?` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| `manifest.packageName` | `string` |
-| `manifest.privacyNotes?` | `string`[] |
-| `manifest.provider` | `string` |
-| `manifest.trustLevel?` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+| `manifest` | `Manifest` |
 
 #### Returns
 
@@ -1692,147 +1113,21 @@ function defineIntegrationProviderPackage(manifest): {
 
 ***
 
-### deriveProviderCapabilityCoverage()
+### defineIntegrationProviderRuntimeLoader()
 
 ```ts
-function deriveProviderCapabilityCoverage(profile, supportedOperationAliases): ProviderCapabilityCoverage;
+function defineIntegrationProviderRuntimeLoader(registration): IntegrationProviderRuntimeLoaderRegistration;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `profile` | [`IntegrationCategoryProfile`](#integrationcategoryprofile) |
-| `supportedOperationAliases` | readonly `string`[] |
+| `registration` | [`IntegrationProviderRuntimeLoaderRegistration`](#integrationproviderruntimeloaderregistration) |
 
 #### Returns
 
-[`ProviderCapabilityCoverage`](#providercapabilitycoverage)
-
-***
-
-### findCategoryOperation()
-
-```ts
-function findCategoryOperation(profile, alias): {
-  alias: string;
-  audience?: "customer-facing" | "internal-support" | "mixed";
-  audiences?: ("customer-facing" | "internal-support" | "mixed")[];
-  capability: string;
-  changesWorkflow?: boolean;
-  description?: string;
-  exposesSensitiveData?: boolean;
-  externallyVisible?: boolean;
-  inputSchema?: unknown;
-  inputSchemaName?: string;
-  inputSchemaRef?: string;
-  label?: string;
-  level: "optional" | "extension" | "required" | "recommended";
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  outputSchema?: unknown;
-  outputSchemaName?: string;
-  outputSchemaRef?: string;
-  providerObject?: string;
-  providerObjects?: {
-     description?: string;
-     kind: string;
-     label?: string;
-     metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-     schemaName?: string;
-  }[];
-  requiredPolicyIds?: string[];
-  requiresApproval?: boolean;
-  requiresCredential?: boolean;
-  sideEffect?: boolean;
-};
-```
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `profile` | [`IntegrationCategoryProfile`](#integrationcategoryprofile) |
-| `alias` | `string` |
-
-#### Returns
-
-```ts
-{
-  alias: string;
-  audience?: "customer-facing" | "internal-support" | "mixed";
-  audiences?: ("customer-facing" | "internal-support" | "mixed")[];
-  capability: string;
-  changesWorkflow?: boolean;
-  description?: string;
-  exposesSensitiveData?: boolean;
-  externallyVisible?: boolean;
-  inputSchema?: unknown;
-  inputSchemaName?: string;
-  inputSchemaRef?: string;
-  label?: string;
-  level: "optional" | "extension" | "required" | "recommended";
-  metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-  outputSchema?: unknown;
-  outputSchemaName?: string;
-  outputSchemaRef?: string;
-  providerObject?: string;
-  providerObjects?: {
-     description?: string;
-     kind: string;
-     label?: string;
-     metadata?: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
-     schemaName?: string;
-  }[];
-  requiredPolicyIds?: string[];
-  requiresApproval?: boolean;
-  requiresCredential?: boolean;
-  sideEffect?: boolean;
-}
-```
-
-| Name | Type |
-| ------ | ------ |
-| `alias` | `string` |
-| `audience?` | `"customer-facing"` \| `"internal-support"` \| `"mixed"` |
-| `audiences?` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
-| `capability` | `string` |
-| `changesWorkflow?` | `boolean` |
-| `description?` | `string` |
-| `exposesSensitiveData?` | `boolean` |
-| `externallyVisible?` | `boolean` |
-| `inputSchema?` | `unknown` |
-| `inputSchemaName?` | `string` |
-| `inputSchemaRef?` | `string` |
-| `label?` | `string` |
-| `level` | `"optional"` \| `"extension"` \| `"required"` \| `"recommended"` |
-| `metadata?` | `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\> |
-| `outputSchema?` | `unknown` |
-| `outputSchemaName?` | `string` |
-| `outputSchemaRef?` | `string` |
-| `providerObject?` | `string` |
-| `providerObjects?` | \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `z.ZodOptional`\<`z.ZodRecord`\<`z.ZodString`, `z.ZodUnknown`\>\>; `schemaName?`: `string`; \}[] |
-| `requiredPolicyIds?` | `string`[] |
-| `requiresApproval?` | `boolean` |
-| `requiresCredential?` | `boolean` |
-| `sideEffect?` | `boolean` |
-
-***
-
-### getIntegrationCategoryProfile()
-
-```ts
-function getIntegrationCategoryProfile(category): IntegrationCategoryProfile;
-```
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `category` | [`ProviderCategory`](../core/dist.md#providercategory) |
-
-#### Returns
-
-[`IntegrationCategoryProfile`](#integrationcategoryprofile)
+[`IntegrationProviderRuntimeLoaderRegistration`](#integrationproviderruntimeloaderregistration)
 
 ***
 
@@ -1875,7 +1170,7 @@ function isIntegrationProviderReferenceAvailable(idOrReference): boolean;
 ### loadProviderIntegration()
 
 ```ts
-function loadProviderIntegration(idOrReference): Promise<Record<string, unknown>>;
+function loadProviderIntegration(idOrReference): Promise<IntegrationProviderModule>;
 ```
 
 #### Parameters
@@ -1886,7 +1181,7 @@ function loadProviderIntegration(idOrReference): Promise<Record<string, unknown>
 
 #### Returns
 
-`Promise`\<`Record`\<`string`, `unknown`\>\>
+`Promise`\<[`IntegrationProviderModule`](#integrationprovidermodule)\>
 
 ***
 
@@ -2094,21 +1389,21 @@ function loadProviderIntegrationManifest(idOrReference): Promise<{
 
 ***
 
-### requireIntegrationCategoryProfile()
+### registerProviderIntegrationLoader()
 
 ```ts
-function requireIntegrationCategoryProfile(category): IntegrationCategoryProfile;
+function registerProviderIntegrationLoader(registration): void;
 ```
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `category` | [`ProviderCategory`](../core/dist.md#providercategory) |
+| `registration` | [`IntegrationProviderRuntimeLoaderRegistration`](#integrationproviderruntimeloaderregistration) |
 
 #### Returns
 
-[`IntegrationCategoryProfile`](#integrationcategoryprofile)
+`void`
 
 ***
 
@@ -2127,3 +1422,243 @@ function requireIntegrationProviderReference(id): IntegrationProviderReference;
 #### Returns
 
 [`IntegrationProviderReference`](#integrationproviderreference)
+
+## References
+
+### categoryOperationAliases
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### categoryOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### CategoryOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### categoryProfilesCoreIntegrationNote
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### contactCenterCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### ContactCenterOperationAlias
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### contactCenterOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### defineIntegrationCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### deriveProviderCapabilityCoverage
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### ecommerceCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### EcommerceOperationAlias
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### ecommerceOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### emailCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### EmailOperationAlias
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### emailOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### findCategoryOperation
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### getIntegrationCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### handoffCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### integrationCategoryOperationAliasMaps
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### IntegrationCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### IntegrationCategoryProfileId
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### integrationCategoryProfiles
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### integrationCategoryProfilesByCategory
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### messagingCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### operation
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### OperationSchemaDescriptor
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### ProviderCapabilityCoverage
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### requireIntegrationCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### smsCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### SmsOperationAlias
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### smsOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### ticketingCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### TicketingOperationAlias
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### ticketingOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### voiceCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### VoiceOperationAlias
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### voiceOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### workplaceCategoryProfile
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### WorkplaceOperationAlias
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)
+
+***
+
+### workplaceOperationAliasMap
+
+Renames and re-exports [CategoryCoverageLevel](#categorycoveragelevel)

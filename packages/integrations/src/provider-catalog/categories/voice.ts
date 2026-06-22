@@ -50,14 +50,6 @@ export const voiceProviderReferences = [
     "manifestExport": "openAIVoiceProviderManifest"
   },
   {
-    "id": "voice.sip",
-    "category": "voice",
-    "provider": "sip",
-    "importPath": "@cognidesk/integrations/voice/sip",
-    "modulePath": "./voice/sip/index.js",
-    "manifestExport": "sipVoiceProviderManifest"
-  },
-  {
     "id": "voice.twilio",
     "category": "voice",
     "provider": "twilio",

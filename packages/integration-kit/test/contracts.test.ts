@@ -59,7 +59,7 @@ describe("integration kit contracts", () => {
       manifest: {
         id: "email.acme",
         name: "Acme Mail",
-        packageName: "@cognidesk/integration-acme-mail",
+        packageName: "@cognidesk/integration-email-acme",
         provider: "acme",
         category: "email",
         directions: ["bidirectional"],
@@ -171,7 +171,7 @@ describe("integration kit contracts", () => {
     const manifest = defineIntegrationProviderPackage({
       id: "sms.acme",
       name: "Acme SMS",
-      packageName: "@cognidesk/integration-acme-sms",
+      packageName: "@cognidesk/integration-sms-acme",
       provider: "acme",
       category: "sms",
       directions: ["bidirectional"],
@@ -208,7 +208,7 @@ describe("integration kit contracts", () => {
       manifest: {
         id: "email.acme",
         name: "Acme Mail",
-        packageName: "@cognidesk/integration-acme-mail",
+        packageName: "@cognidesk/integration-email-acme",
         provider: "acme",
         category: "email",
         directions: ["bidirectional"],
@@ -232,7 +232,7 @@ describe("integration kit contracts", () => {
       manifest: {
         id: "email.acme",
         name: "Acme Mail",
-        packageName: "@cognidesk/integration-acme-mail",
+        packageName: "@cognidesk/integration-email-acme",
         provider: "acme",
         category: "email",
         directions: ["bidirectional"],
@@ -337,7 +337,7 @@ describe("integration kit contracts", () => {
     const manifest = defineIntegrationProviderPackage({
       id: "sms.acme",
       name: "Acme SMS",
-      packageName: "@cognidesk/integration-acme-sms",
+      packageName: "@cognidesk/integration-sms-acme",
       provider: "acme",
       category: "sms",
       directions: ["bidirectional"],
@@ -402,7 +402,7 @@ function typecheckOnly() {
     manifest: {
       id: "email.types",
       name: "Type Mail",
-      packageName: "@cognidesk/integration-type-mail",
+      packageName: "@cognidesk/integration-email-typemail",
       provider: "typemail",
       category: "email",
       directions: ["bidirectional"],
@@ -425,7 +425,7 @@ function typecheckOnly() {
     manifest: {
       id: "email.types",
       name: "Type Mail",
-      packageName: "@cognidesk/integration-type-mail",
+      packageName: "@cognidesk/integration-email-typemail",
       provider: "typemail",
       category: "email",
       directions: ["bidirectional"],

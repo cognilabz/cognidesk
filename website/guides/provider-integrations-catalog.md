@@ -41,7 +41,7 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
-| Documentation | [https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk](https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk) |
+| Documentation | [https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk](https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `receive`, `cobrowsing.validate-session-token`, `cobrowsing.verify-signed-event` |
 | Provider setup | required `cobrowsing-session-store`, `cobrowsing-session-token-signing`, `cobrowsing-consent-policy`, `cobrowsing-recording-redaction-policy`, `cobrowsing-allowed-origins`; optional `cobrowsing-webhook-shared-secret` |
@@ -50,7 +50,7 @@ Coverage: Coverage is limited to Cognidesk-owned local cobrowsing protocol primi
 
 Boundary: This package provides the SDK adapter contract, readiness helpers, session lifecycle primitives, token validation, event normalization, and signed-event parsing only.
 
-Evidence: [Cognidesk cobrowsing local protocol module](https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk); CONTEXT.md Built-In Adapter definition.
+Evidence: [Cognidesk cobrowsing local protocol module](https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk); CONTEXT.md Built-In Adapter definition.
 
 ### Community
 

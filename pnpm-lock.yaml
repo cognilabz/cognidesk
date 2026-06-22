@@ -304,6 +304,94 @@ importers:
         specifier: ^4.0.14
         version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
 
+  integrations/cobrowsing/cognidesk:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+    devDependencies:
+      '@cognidesk/test-harness':
+        specifier: workspace:*
+        version: link:../../../packages/test-harness
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
+  integrations/community/forum:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+    devDependencies:
+      '@cognidesk/test-harness':
+        specifier: workspace:*
+        version: link:../../../packages/test-harness
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
+  integrations/form/cognidesk:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+    devDependencies:
+      '@cognidesk/test-harness':
+        specifier: workspace:*
+        version: link:../../../packages/test-harness
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
+  integrations/help-center/cognidesk:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+    devDependencies:
+      '@cognidesk/test-harness':
+        specifier: workspace:*
+        version: link:../../../packages/test-harness
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
   integrations/messaging/discord:
     dependencies:
       '@cognidesk/core':
@@ -322,6 +410,25 @@ importers:
       '@cognidesk/test-harness':
         specifier: workspace:*
         version: link:../../../packages/test-harness
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
+  integrations/voice/sip:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+    devDependencies:
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)

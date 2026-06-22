@@ -1,0 +1,108 @@
+import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
+
+export const cognideskFormsProviderManifest = defineProviderPackage({
+  id: "form.cognidesk",
+  name: "Cognidesk Forms",
+  packageName: "@cognidesk/integration-form-cognidesk",
+  provider: "cognidesk",
+  category: "form",
+  trustLevel: "official",
+  directions: ["receive-only", "inbound-only"],
+  channelAudiences: ["customer-facing", "mixed"],
+  credentialRequirements: [
+    {
+      id: "form-registry",
+      label: "Form registry",
+      description: "SDK-user-configured registry of accepted form definitions and submission policies.",
+      required: true,
+    },
+    {
+      id: "form-webhook-secret",
+      label: "Form webhook secret",
+      description: "Shared HMAC secret used to verify form submission webhooks before intake.",
+      required: false,
+    },
+  ],
+  coverage: {
+    scope: "local-protocol",
+    notes: [
+      "Coverage is limited to SDK-user-defined Cognidesk form definitions, structural submission validation, intake normalization, and Cognidesk HMAC webhook parsing.",
+      "The package does not implement a named external forms provider API for form hosting, third-party submission storage, file-upload storage, analytics, routing, or provider-specific webhook management.",
+    ],
+    evidence: [],
+  },
+  capabilities: [
+    {
+      capability: "receive",
+      label: "Receive form submissions",
+      description: "Validates signed form submission webhooks and normalizes accepted submissions into intake records.",
+      audiences: ["customer-facing", "mixed"],
+      providerObjects: [{ kind: "formSubmission", label: "Form Submission" }],
+      requiresCredential: true,
+      exposesSensitiveData: true,
+    },
+    {
+      capability: "read-provider-object",
+      label: "Read configured forms",
+      description: "Reads SDK-user-defined form schemas from the configured form registry.",
+      audiences: ["internal-support", "mixed"],
+      providerObjects: [{ kind: "formDefinition", label: "Form Definition" }],
+      requiresCredential: true,
+    },
+    {
+      capability: "form.webhook-signature",
+      label: "Validate form webhook signatures",
+      description: "Validates HMAC-SHA256 signatures for generic form webhooks before parsing submitted fields.",
+      audiences: ["internal-support"],
+      providerObjects: [{ kind: "signedFormWebhook", label: "Signed Form Webhook" }],
+      requiresCredential: true,
+      exposesSensitiveData: true,
+      extension: true,
+    },
+  ],
+  operations: [
+    {
+      alias: "cognidesk.form.definition.validate",
+      capability: "read-provider-object",
+      label: "Validate form definition",
+      providerObject: "formDefinition",
+      extension: true,
+      requiresCredential: true,
+    },
+    {
+      alias: "cognidesk.form.submission.normalize",
+      capability: "receive",
+      label: "Normalize form submission",
+      providerObject: "formSubmission",
+      extension: true,
+      requiresCredential: true,
+      exposesSensitiveData: true,
+    },
+    {
+      alias: "cognidesk.form.webhook.parse",
+      capability: "form.webhook-signature",
+      label: "Parse form webhook",
+      providerObject: "signedFormWebhook",
+      extension: true,
+      requiresCredential: true,
+      exposesSensitiveData: true,
+    },
+  ],
+  privacyNotes: [
+    "Form submissions can include customer contact details, free-text messages, uploaded-file references, and SDK-user-defined custom fields.",
+    "Webhook secrets and registry credentials stay server-side and are represented in Studio only as readiness state.",
+  ],
+  limitations: [
+    "Field definitions, required fields, accepted options, intake routing, retention, and automation policy are owned by SDK user configuration.",
+    "Validation is structural and explicit; this package does not infer customer intent or classify free text.",
+  ],
+  maintainers: [{ name: "Cognidesk", type: "official" }],
+  metadata: {
+    channelCoverage: {
+      formDefinitions: "typed-read-validate",
+      formSubmissions: "typed-validate-normalize",
+      formWebhooks: "typed-validate-parse",
+      thirdPartyFormsProviderApis: "not-covered",
+    },
+  },
+});
