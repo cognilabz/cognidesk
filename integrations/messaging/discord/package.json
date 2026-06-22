@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/integration-community-discord",
+  "name": "@cognidesk/integration-messaging-discord",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "type": "module",
@@ -42,7 +42,7 @@
     "kind": "provider-package",
     "providerPackage": true,
     "release": "independent-provider",
-    "category": "community",
+    "category": "messaging",
     "provider": "discord",
     "providerSdkDependencies": [
       "discord.js"
@@ -64,6 +64,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/cognilabz/cognidesk",
-    "directory": "integrations/community/discord"
+    "directory": "integrations/messaging/discord"
   }
 }

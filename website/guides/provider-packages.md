@@ -182,7 +182,7 @@ Social and messaging providers have strict policy and subscription requirements.
 | `@cognidesk/integration-social-messenger` | Send behavior depends on Meta's 24-hour standard messaging window or SDK-user-approved `MESSAGE_TAG` policy. Page webhook subscription is separate from webhook parsing. |
 | `@cognidesk/integration-social-instagram` | Instagram messaging uses Instagram-specific response and HUMAN_AGENT policy. Do not assume general Messenger tags are safe defaults. |
 | `@cognidesk/integration-social-tiktok` | The module supports selected Display API, Research API, Business comment, posting-status, and webhook surfaces. TikTok public APIs used here do not expose a generic customer-service DM inbox. |
-| `@cognidesk/integration-community-discord` | HTTP interactions and REST helpers are separate from Gateway ingestion and Discord Webhook Events subscriptions. |
+| `@cognidesk/integration-messaging-discord` | HTTP interactions and REST helpers are separate from Gateway ingestion and Discord Webhook Events subscriptions. |
 | `@cognidesk/integration-community-forum` | The module is Discourse-compatible and does not imply arbitrary forum-platform coverage. |
 
 ## Studio visibility
