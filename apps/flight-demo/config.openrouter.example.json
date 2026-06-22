@@ -15,8 +15,18 @@
   "voice": {
     "provider": "openai",
     "apiKeyEnv": "OPENAI_API_KEY",
-    "voice": "alloy",
+    "voice": "marin",
     "transcriptionLanguage": "de"
+  },
+  "discord": {
+    "enabled": false,
+    "botTokenEnv": "DISCORD_BOT_TOKEN",
+    "applicationId": "000000000000000000",
+    "guildId": "000000000000000000",
+    "supportChannelId": "000000000000000000",
+    "webAppUrl": "http://localhost:5173",
+    "threadAutoArchiveDuration": 1440,
+    "mirrorPollIntervalMs": 1000
   },
   "storage": {
     "sqlitePath": ".data/flight-demo.sqlite",

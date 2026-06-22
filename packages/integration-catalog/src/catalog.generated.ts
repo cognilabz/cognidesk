@@ -274,11 +274,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "community.discord",
     "category": "community",
     "provider": "discord",
-    "importPath": "@cognidesk/integrations/community/discord",
-    "modulePath": "./community/discord/index.js",
-    "manifestExport": "discordCommunityProviderManifest",
+    "importPath": "@cognidesk/integration-community-discord/manifest",
+    "modulePath": "integrations/community/discord/src/manifest.js",
+    "manifestExport": "discordCommunityManifestInput",
     "name": "Discord Community Support",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-community-discord",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -291,19 +291,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Discord Community Support",
-      "summary": "Coverage includes generated per-operation functions for every operation in Discord's official HTTP API v10 OpenAPI preview spec.",
+      "summary": "Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.",
       "tags": [
         "community",
         "discord",
         "official",
-        "provider-api-subset"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
         "label": "Receive Discord interactions",
-        "description": "Validates Ed25519-signed Discord outgoing-webhook interaction requests; does not subscribe to Gateway message events.",
+        "description": "Validates Ed25519-signed Discord outgoing-webhook interaction requests.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -323,7 +323,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Discord channel messages",
-        "description": "Sends bot-token-authenticated Discord channel messages when SDK-user policy permits public or private community replies.",
+        "description": "Sends bot-token-authenticated Discord channel messages through discord.js REST helpers.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -371,12 +371,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Discord channels and messages",
-        "description": "Reads Discord channel metadata and recent channel messages where bot permissions allow access.",
+        "description": "Reads Discord bot, application, guild, channel, and recent channel message records where bot permissions allow access.",
         "audiences": [
           "customer-facing",
           "mixed"
         ],
         "providerObjects": [
+          {
+            "kind": "discordBot",
+            "label": "Discord Bot"
+          },
+          {
+            "kind": "discordApplication",
+            "label": "Discord Application"
+          },
+          {
+            "kind": "discordGuild",
+            "label": "Discord Guild"
+          },
           {
             "kind": "discordChannel",
             "label": "Discord Channel"
@@ -437,22 +449,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Discord's official HTTP API v10 OpenAPI preview spec.",
-        "Typed convenience helpers remain available for selected Discord community support workflows: channel messages, text/forum/media-channel threads, webhook execution, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.",
-        "Discord marks the OpenAPI spec as a public preview and says the docs take precedence over spec discrepancies; the generated HTTP API surface is a cataloged transport slice, not a claim that Discord's full platform is covered.",
-        "Receive coverage is the Discord Interactions Endpoint URL/outgoing-webhook path only; Discord Gateway ingestion and Discord Webhook Events subscriptions are outside this package.",
-        "Non-HTTP Discord surfaces remain unsupported here: Gateway WebSocket sessions/events/intents, Voice Gateway/media transport, local RPC/IPC, Social SDK client features, CDN asset transformation semantics beyond HTTP calls, and Webhook Events subscription delivery."
+        "Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.",
+        "Typed operations cover channel messages, text/forum/media-channel threads, webhook execution, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.",
+        "The runtime export includes a Discord Gateway service that creates or reuses Discord threads, ingests customer messages through messageCreate events, mirrors Cognidesk runtime messages into threads, and records idempotency state through the bundled SQLite store.",
+        "This package intentionally removes the generated Discord HTTP API clone and does not claim full Discord platform coverage.",
+        "Discord bot installation, Gateway intents policy, channel permissions, moderation policy, retention, deletion, command registration lifecycle, voice/media transport, broad moderation/admin APIs, and Discord Webhook Events subscriptions remain SDK-user-owned configuration or future package surfaces."
       ],
       "evidence": [
         {
-          "label": "Discord official OpenAPI v10 spec",
-          "url": "https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json"
-        },
-        {
-          "label": "Discord official OpenAPI repository",
-          "url": "https://github.com/discord/discord-api-spec"
+          "label": "discord.js package",
+          "url": "https://www.npmjs.com/package/discord.js"
         },
         {
           "label": "Discord API reference",
@@ -483,10 +491,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://docs.discord.com/developers/topics/voice-connections"
         },
         {
-          "label": "Discord RPC",
-          "url": "https://docs.discord.com/developers/topics/rpc"
-        },
-        {
           "label": "Discord Webhook Events",
           "url": "https://docs.discord.com/developers/events/webhook-events"
         },
@@ -497,19 +501,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "provider-api-subset",
-      "level": "standard",
+      "scope": "support-workflow-subset",
+      "level": "partial",
       "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/community/discord",
-      "providerModule": "./community/discord/index.js",
-      "manifestExport": "discordCommunityProviderManifest",
-      "manifestSource": "packages/integrations/src/community/discord/manifest.ts",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-community-discord",
+      "runtimePackage": "@cognidesk/integration-community-discord",
+      "providerModule": "integrations/community/discord/src/manifest.js",
+      "manifestExport": "discordCommunityManifestInput",
+      "manifestSource": "integrations/community/discord/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json"
+      "documentationPath": "https://www.npmjs.com/package/discord.js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -528,7 +532,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "discord-bot-token",
           "label": "Discord bot token",
-          "description": "Server-side Discord bot token used for REST channel, guild, and bot/application readiness calls.",
+          "description": "Server-side Discord bot token used by discord.js REST helpers for channel, guild, bot, and application calls.",
           "scopes": [
             "bot",
             "applications.commands"
@@ -576,14 +580,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "privacyNotes": [
-      "Discord messages, user IDs, guild IDs, channel IDs, thread IDs, usernames, attachments, embeds, and interaction payloads can contain customer and moderator data.",
+      "Discord messages, user IDs, guild IDs, channel IDs, thread IDs, usernames, attachments, embeds, interaction payloads, and mirrored runtime transcripts can contain customer and moderator data.",
       "Discord bot tokens, public keys, application IDs, guild/channel routing, webhook URLs, consent, moderation, retention, and transcript policy stay SDK-user-owned configuration."
     ],
     "limitations": [
-      "Available REST operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.",
-      "Gateway intents are required only for SDK-user-owned Gateway integrations outside this package; this package does not ingest Gateway events or Discord Webhook Events subscriptions.",
-      "Discord rate limits use per-route and global buckets with Retry-After/retry_after details; SDK users own retry and backoff policy.",
-      "This package provides transport, readiness, and parsing helpers only; moderation policy, consent, public/private reply policy, escalation, retention, deletion, and human handoff are SDK-user configuration.",
+      "Available Discord operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.",
+      "The optional Gateway service requires Discord Gateway access with Message Content Intent enabled when message text is mirrored into Cognidesk.",
+      "Discord Webhook Events subscriptions, slash command registration, broader REST administration, voice, and local RPC/IPC remain outside this package.",
       "Discord interaction endpoint requests must fail closed when signature verification is required but the public key or signature headers are missing or invalid."
     ],
     "maintainers": [
@@ -593,38 +596,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "Discord Integration",
+      "integrationPackageName": "@cognidesk/integration-community-discord",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-community-discord/manifest",
+        "runtime": "@cognidesk/integration-community-discord/runtime"
+      },
       "apiBaseUrl": "https://discord.com/api",
-      "defaultApiVersion": "v10",
+      "defaultApiVersion": "10",
       "interactionSignatureHeaders": [
         "x-signature-ed25519",
         "x-signature-timestamp"
       ],
       "channelCoverage": {
-        "httpApiV10": "generated-per-operation-functions",
-        "channelMessages": "typed-send-list",
-        "threads": "typed-create",
-        "forumPosts": "typed-create",
-        "mediaPosts": "typed-create",
-        "webhookExecution": "typed-send",
+        "channelMessages": "sdk-owned-rest-send-list",
+        "threads": "sdk-owned-rest-create",
+        "forumPosts": "sdk-owned-rest-create",
+        "webhookExecution": "typed-fetch-send",
         "interactionsEndpoint": "typed-verify-parse",
-        "botApplicationGuildChannelReads": "typed-read",
-        "gatewayEvents": "provider-supported-not-typed",
-        "webhookEventsSubscriptions": "provider-supported-not-typed",
-        "voiceGatewayAndRpc": "provider-supported-not-typed",
-        "moderationScheduledEventsCommandsLifecycle": "generated-http-functions"
+        "botApplicationGuildChannelReads": "sdk-owned-rest-read",
+        "gatewayEvents": "sdk-owned-discord-js-gateway-service",
+        "webhookEventsSubscriptions": "not-covered",
+        "voiceGatewayAndRpc": "not-covered"
       },
-      "generatedProviderSliceVerification": {
-        "provider": "discord-http-api-v10-preview-openapi",
-        "apiVersion": "10",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/discord-http-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/discord-http-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/discord-http-api-2026-06-18.functions.json",
-        "documentedPathCount": 150,
-        "documentedOperationCount": 242,
-        "implementedOperationCount": 242,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 242
+      "gatewayService": {
+        "sourceId": "discord-gateway",
+        "store": "bundled-libsql-sqlite-binding-store",
+        "messageIngress": "discord-js-messageCreate",
+        "runtimeMirror": "cognidesk-runtime-event-list"
+      },
+      "providerClient": {
+        "package": "discord.js",
+        "versionRange": "^14.26.4",
+        "importPolicy": "runtime-entrypoint-only"
       }
     }
   },
