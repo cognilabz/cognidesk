@@ -1,18 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
-import { readProviderCoverageArtifact } from "../../provider-coverage-artifacts.js";
 import {
   createOracleServiceTicketingClient,
   createOracleServiceTicketingLiveChecks,
   oracleServiceTicketingCredentialStatuses,
   oracleServiceTicketingProviderManifest,
-} from "../../../src/ticketing/oracle-service/index.js";
+} from "../src/index.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/integration-ticketing-oracle-service", () => {
   it("exports an official provider manifest for Oracle Service ticketing", () => {
     expect(oracleServiceTicketingProviderManifest).toMatchObject({
       id: "ticketing.oracle-service",
-      packageName: "@cognidesk/integrations",
+      packageName: "@cognidesk/integration-ticketing-oracle-service",
       category: "ticketing",
       provider: "oracle-service",
       trustLevel: "official",
@@ -44,14 +43,13 @@ describe("@cognidesk/integrations", () => {
       "https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-srnumber-patch.html",
       "https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-srnumber-child-messages-post.html",
     ]));
-    const coverage = readProviderCoverageArtifact("docs/provider-coverage/oracle-service-checked-service-requests-2026-06-18.inventory.json");
     expect(oracleServiceTicketingProviderManifest.metadata).toMatchObject({
       checkedProviderApiCoverage: {
         coverageArtifact: "docs/provider-coverage/oracle-service-checked-service-requests-2026-06-18.inventory.json",
-        checkedFamilyCount: coverage.counts?.familyCount,
-        implementedFamilyCount: coverage.counts?.implementedFamilyCount,
-        gapFamilyCount: coverage.counts?.gapFamilyCount,
-        implementedOperationCount: coverage.counts?.implementedOperationCount,
+        checkedFamilyCount: 5,
+        implementedFamilyCount: 3,
+        gapFamilyCount: 2,
+        implementedOperationCount: 5,
       },
     });
   });

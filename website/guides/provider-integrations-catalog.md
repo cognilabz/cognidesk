@@ -1053,7 +1053,7 @@ Evidence: [Microsoft Dataverse Web API overview](https://learn.microsoft.com/en-
 | Manifest ID | `ticketing.oracle-service` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html](https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1076,7 +1076,7 @@ Evidence: [Oracle Fusion Service serviceRequests overview](https://docs.oracle.c
 | Manifest ID | `ticketing.pega-customer-service` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html](https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1122,7 +1122,7 @@ Evidence: [Salesforce REST API resources](https://developer.salesforce.com/docs/
 | Manifest ID | `ticketing.sap-service-cloud` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api](https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api) |
 | Directions | `bidirectional` |
 | Capabilities | `handoff`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object` |

@@ -1,18 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
-import { readProviderCoverageArtifact } from "../../provider-coverage-artifacts.js";
 import {
   createSapServiceCloudTicketingClient,
   createSapServiceCloudTicketingLiveChecks,
   sapServiceCloudTicketingCredentialStatuses,
   sapServiceCloudTicketingProviderManifest,
-} from "../../../src/ticketing/sap-service-cloud/index.js";
+} from "../src/index.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
   it("exports an official provider manifest for SAP Service Cloud ticketing", () => {
     expect(sapServiceCloudTicketingProviderManifest).toMatchObject({
       id: "ticketing.sap-service-cloud",
-      packageName: "@cognidesk/integrations",
+      packageName: "@cognidesk/integration-ticketing-sap-service-cloud",
       category: "ticketing",
       provider: "sap-service-cloud",
       trustLevel: "official",
@@ -32,14 +31,13 @@ describe("@cognidesk/integrations", () => {
     expect(handoff?.providerObjects).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: "sapServiceRequest", schemaName: "ServiceRequestCollection" }),
     ]));
-    const coverage = readProviderCoverageArtifact("docs/provider-coverage/sap-service-cloud-checked-c4c-odata-2026-06-18.inventory.json");
     expect(sapServiceCloudTicketingProviderManifest.metadata).toMatchObject({
       checkedProviderApiCoverage: {
         coverageArtifact: "docs/provider-coverage/sap-service-cloud-checked-c4c-odata-2026-06-18.inventory.json",
-        checkedFamilyCount: coverage.counts?.familyCount,
-        implementedFamilyCount: coverage.counts?.implementedFamilyCount,
-        gapFamilyCount: coverage.counts?.gapFamilyCount,
-        implementedOperationCount: coverage.counts?.implementedOperationCount,
+        checkedFamilyCount: 3,
+        implementedFamilyCount: 2,
+        gapFamilyCount: 1,
+        implementedOperationCount: 5,
       },
     });
   });

@@ -14,6 +14,7 @@ import { socialProviderReferences } from "../src/provider-catalog/categories/soc
 import { ticketingProviderReferences } from "../src/provider-catalog/categories/ticketing.js";
 import { videoProviderReferences } from "../src/provider-catalog/categories/video.js";
 import { workplaceProviderReferences } from "../src/provider-catalog/categories/workplace.js";
+import { defaultIntegrationProviderRuntimeRegistry } from "../src/provider-catalog/loader.js";
 
 const publicProviderCatalogs = [
   {
@@ -80,7 +81,12 @@ const publicProviderCatalogs = [
 
 describe.each(publicProviderCatalogs)("$categoryName public exports", ({ references }) => {
   it("imports every catalogued provider subpath", async () => {
-    for (const reference of references) {
+    const aggregateReferences = references.filter((reference) =>
+      defaultIntegrationProviderRuntimeRegistry.has(reference)
+    );
+    expect(aggregateReferences.length).toBeGreaterThan(0);
+
+    for (const reference of aggregateReferences) {
       const providerModule = await import(reference.importPath);
 
       expect(providerModule).toHaveProperty(reference.manifestExport);
