@@ -6,13 +6,13 @@ import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
-  createDiscordCommunityClient,
+  createDiscordMessagingClient,
   createDiscordIntegration,
-  createDiscordCommunityIntegration,
-  createDiscordCommunityLiveChecks,
-  discordCommunityCredentialStatuses,
-  discordCommunityOperationAliases,
-  discordCommunityProviderManifest,
+  createDiscordMessagingIntegration,
+  createDiscordMessagingLiveChecks,
+  discordMessagingCredentialStatuses,
+  discordMessagingOperationAliases,
+  discordMessagingProviderManifest,
   discordIntegrationManifest,
   discordInteractionPongResponse,
   normalizeDiscordInteractionChannelEvent,
@@ -23,46 +23,46 @@ import type { DiscordRestLike } from "../src/index.js";
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-describe("@cognidesk/integration-community-discord", () => {
+describe("@cognidesk/integration-messaging-discord", () => {
   it("exports split package metadata with exact provider-namespaced operation bindings", () => {
-    expect(discordCommunityProviderManifest).toMatchObject({
-      id: "community.discord",
-      packageName: "@cognidesk/integration-community-discord",
+    expect(discordMessagingProviderManifest).toMatchObject({
+      id: "messaging.discord",
+      packageName: "@cognidesk/integration-messaging-discord",
       provider: "discord",
-      category: "community",
+      category: "messaging",
       trustLevel: "official",
       coverage: { scope: "support-workflow-subset" },
     });
-    expect(discordCommunityProviderManifest.operations.map((operation) => operation.alias))
-      .toEqual([...discordCommunityOperationAliases]);
-    expect(discordCommunityProviderManifest.operations.every((operation) => operation.alias.startsWith("discord.")))
+    expect(discordMessagingProviderManifest.operations.map((operation) => operation.alias))
+      .toEqual([...discordMessagingOperationAliases]);
+    expect(discordMessagingProviderManifest.operations.every((operation) => operation.alias.startsWith("discord.")))
       .toBe(true);
-    expect(discordCommunityProviderManifest.coverage.notes.join(" ")).toContain("discord.js");
-    expect(discordCommunityProviderManifest.coverage.notes.join(" ")).toContain("removes the generated Discord HTTP API clone");
-    expect(discordCommunityProviderManifest.metadata?.providerClient).toMatchObject({
+    expect(discordMessagingProviderManifest.coverage.notes.join(" ")).toContain("discord.js");
+    expect(discordMessagingProviderManifest.coverage.notes.join(" ")).toContain("removes the generated Discord HTTP API clone");
+    expect(discordMessagingProviderManifest.metadata?.providerClient).toMatchObject({
       package: "discord.js",
       importPolicy: "runtime-entrypoint-only",
     });
 
-    const integration = createDiscordCommunityIntegration({
+    const integration = createDiscordMessagingIntegration({
       botToken: "discord-bot-token",
       publicKey: "a".repeat(64),
-      communityClient: fakeDiscordCommunityClient(),
+      messagingClient: fakeDiscordMessagingClient(),
     });
     const integrationAlias = createDiscordIntegration({
       botToken: "discord-bot-token",
       publicKey: "a".repeat(64),
-      communityClient: fakeDiscordCommunityClient(),
+      messagingClient: fakeDiscordMessagingClient(),
     });
-    expect(integration.operationAliases).toEqual([...discordCommunityOperationAliases]);
-    expect(integrationAlias.manifest.id).toBe("community.discord");
-    expect(discordIntegrationManifest.packageName).toBe("@cognidesk/integration-community-discord");
-    expect(discordCommunityProviderManifest.metadata).toMatchObject({
+    expect(integration.operationAliases).toEqual([...discordMessagingOperationAliases]);
+    expect(integrationAlias.manifest.id).toBe("messaging.discord");
+    expect(discordIntegrationManifest.packageName).toBe("@cognidesk/integration-messaging-discord");
+    expect(discordMessagingProviderManifest.metadata).toMatchObject({
       integrationName: "Discord Integration",
-      integrationPackageName: "@cognidesk/integration-community-discord",
+      integrationPackageName: "@cognidesk/integration-messaging-discord",
       integrationEntryPoints: {
-        manifest: "@cognidesk/integration-community-discord/manifest",
-        runtime: "@cognidesk/integration-community-discord/runtime",
+        manifest: "@cognidesk/integration-messaging-discord/manifest",
+        runtime: "@cognidesk/integration-messaging-discord/runtime",
       },
     });
     expect(assertIntegrationConformance({
@@ -75,7 +75,7 @@ describe("@cognidesk/integration-community-discord", () => {
     });
   });
 
-  it("uses discord.js REST-compatible calls for community support operations", async () => {
+  it("uses discord.js REST-compatible calls for messaging support operations", async () => {
     const restCalls: Array<{ method: string; route: string; options?: unknown }> = [];
     const rest: DiscordRestLike = {
       async get(route, options) {
@@ -94,7 +94,7 @@ describe("@cognidesk/integration-community-discord", () => {
       },
     };
     const fetchMock = vi.fn(async () => new Response(JSON.stringify({ id: "webhook_message_123" }), { status: 200 }));
-    const client = createDiscordCommunityClient({
+    const client = createDiscordMessagingClient({
       botToken: "discord-bot-token",
       rest,
       fetch: fetchMock as unknown as typeof fetch,
@@ -213,7 +213,7 @@ describe("@cognidesk/integration-community-discord", () => {
       },
       source: {
         provider: "discord",
-        providerPackageId: "community.discord",
+        providerPackageId: "messaging.discord",
         verified: true,
       },
     });
@@ -233,7 +233,7 @@ describe("@cognidesk/integration-community-discord", () => {
   });
 
   it("passes readiness and provider conformance without importing provider SDKs from /manifest", async () => {
-    const checks = createDiscordCommunityLiveChecks({
+    const checks = createDiscordMessagingLiveChecks({
       botToken: "discord-bot-token",
       applicationId: "app_123",
       guildId: "guild_123",
@@ -254,9 +254,9 @@ describe("@cognidesk/integration-community-discord", () => {
       },
     });
     const result = await runProviderConformance({
-      manifest: discordCommunityProviderManifest,
-      expectedPackageName: "@cognidesk/integration-community-discord",
-      credentialStatuses: discordCommunityCredentialStatuses({
+      manifest: discordMessagingProviderManifest,
+      expectedPackageName: "@cognidesk/integration-messaging-discord",
+      credentialStatuses: discordMessagingCredentialStatuses({
         botToken: "configured",
         applicationId: "app_123",
         publicKey: "a".repeat(64),
@@ -278,7 +278,7 @@ describe("@cognidesk/integration-community-discord", () => {
   });
 });
 
-function fakeDiscordCommunityClient() {
+function fakeDiscordMessagingClient() {
   return {
     rest: {} as never,
     async sendChannelMessage() {

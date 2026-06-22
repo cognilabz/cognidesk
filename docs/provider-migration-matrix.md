@@ -17,7 +17,7 @@ Runtime provider migrations are blocked until the reference provider packages ex
 | #22 metadata catalog | `packages/integration-catalog` exists and catalog docs are generated from metadata. | Landed | Catalog generation stays metadata-only and must not import runtime provider modules. |
 | #23 Gmail reference | Gmail still lives under `packages/integrations/src/email/gmail` with generated full API files. | Open | Treat Gmail as the first SDK-backed reference, not as a pattern already landed. |
 | #24 Microsoft Graph reference | Outlook and Teams still use local `graph-api.generated` surfaces. | Open | Treat Graph auth, pagination, and subscription handling as unresolved. |
-| #25 Slack and Discord reference | `integrations/workplace/slack` uses `@slack/web-api`; `integrations/community/discord` uses `discord.js`; old generated monolith runtime code is removed for both providers. | Landed | Treat workplace/community event, signed request, readiness, and manifest-only package split patterns as the chat-provider reference. |
+| #25 Slack and Discord reference | `integrations/workplace/slack` uses `@slack/web-api`; `integrations/messaging/discord` uses `discord.js`; old generated monolith runtime code is removed for both providers. | Landed | Treat workplace/messaging event, signed request, readiness, and manifest-only package split patterns as the chat-provider reference. |
 
 Additional local evidence:
 
@@ -53,6 +53,7 @@ The SDK checks do not unblock migration. They only establish first-pass package 
 | Provider | Current evidence | Decision | Target package | Notes |
 | --- | --- | --- | --- | --- |
 | `cobrowsing/cognidesk` | Local protocol helpers with client, request, readiness, and webhooks; no generated surface. | local-protocol | `@cognidesk/integration-cobrowsing-cognidesk` | Move only after #21 exposes local-protocol conformance. Keep SDK-user-owned store, consent, origin, signing, and relay responsibilities explicit. |
+| `messaging/discord` | Generated Discord HTTP API surface plus interactions, request, readiness, and tests. | official-sdk | `@cognidesk/integration-messaging-discord` | Reference issue #25 says reconcile with `integrations/messaging/discord` and keep `discord.js` usage. Retain only small direct/generated support slices for interactions or signed events if `discord.js` does not cover them. |
 | `community/forum` | Discourse-compatible direct implementation in `index.ts`; checked selected API evidence in tests/docs. | direct-http-support-slice | `@cognidesk/integration-community-forum` | Keep as a Discourse-compatible support slice, not arbitrary forum-platform coverage. Add source/version/checksum/allowlist metadata before packaging. |
 | `contact-center/8x8` | Generated official 8x8 contact-center API slice plus direct support helpers. | generated-support-slice | `@cognidesk/integration-contact-center-8x8` | Keep generated slice scoped to reviewed contact-center support operations. Do not claim full 8x8 platform coverage. |
 | `contact-center/aircall` | Direct support implementation in `index.ts`; checked inventory tests. | direct-http-support-slice | `@cognidesk/integration-contact-center-aircall` | No broad SDK-first migration until an official runtime SDK is verified. Keep callback/case support operations allowlisted. |

@@ -82,7 +82,7 @@ Default voice environment variables:
 
 ## Discord Continuation
 
-The flight demo can sync one conversation between web chat, web voice, and Discord threads through `@cognidesk/integration-community-discord`. Discord support is disabled unless `discord.enabled` is true in `config.json`.
+The flight demo can sync one conversation between web chat, web voice, and Discord threads through `@cognidesk/integration-messaging-discord`. Discord support is disabled unless `discord.enabled` is true in `config.json`.
 
 1. Create a Discord application and bot, then enable the Message Content Intent for the bot.
 2. Invite the bot to the test guild with these permissions: View Channel, Read Message History, Send Messages, Create Public Threads, Send Messages in Threads, and Add Reactions.

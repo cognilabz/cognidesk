@@ -9,14 +9,14 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 | Category | Provider count | Packages |
 |----------|----------------|---------|
 | Cobrowsing | 1 | `@cognidesk/integration-cobrowsing-cognidesk` |
-| Community | 2 | `@cognidesk/integration-community-discord`<br>`@cognidesk/integration-community-forum` |
+| Community | 1 | `@cognidesk/integration-community-forum` |
 | Contact Center | 12 | `@cognidesk/integration-contact-center-8x8`<br>`@cognidesk/integration-contact-center-aircall`<br>`@cognidesk/integration-contact-center-amazon-connect`<br>`@cognidesk/integration-contact-center-five9`<br>`@cognidesk/integration-contact-center-genesys-cloud`<br>`@cognidesk/integration-contact-center-genesys-engage`<br>`@cognidesk/integration-contact-center-genesys-pureconnect`<br>`@cognidesk/integration-contact-center-nextiva`<br>`@cognidesk/integration-contact-center-nice-cxone`<br>`@cognidesk/integration-contact-center-ringcentral`<br>`@cognidesk/integration-contact-center-talkdesk`<br>`@cognidesk/integration-contact-center-zoom` |
 | Ecommerce | 2 | `@cognidesk/integration-ecommerce-shopify`<br>`@cognidesk/integration-ecommerce-stripe` |
 | Email | 6 | `@cognidesk/integration-email-ses`<br>`@cognidesk/integration-email-gmail`<br>`@cognidesk/integration-email-imap`<br>`@cognidesk/integration-email-mailgun`<br>`@cognidesk/integration-email-outlook`<br>`@cognidesk/integration-email-postmark` |
 | Forms | 1 | `@cognidesk/integration-form-cognidesk` |
 | Help Center | 1 | `@cognidesk/integration-help-center-cognidesk` |
 | Marketplace | 2 | `@cognidesk/integration-marketplace-amazon`<br>`@cognidesk/integration-marketplace-ebay` |
-| Messaging | 2 | `@cognidesk/integration-messaging-rcs`<br>`@cognidesk/integration-messaging-whatsapp` |
+| Messaging | 3 | `@cognidesk/integration-messaging-discord`<br>`@cognidesk/integration-messaging-rcs`<br>`@cognidesk/integration-messaging-whatsapp` |
 | Reviews | 2 | `@cognidesk/integration-review-appstore`<br>`@cognidesk/integration-review-googleplay` |
 | SMS | 1 | `@cognidesk/integration-sms-twilio` |
 | Social | 3 | `@cognidesk/integration-social-messenger`<br>`@cognidesk/integration-social-instagram`<br>`@cognidesk/integration-social-tiktok` |
@@ -53,30 +53,6 @@ Boundary: This package provides the SDK adapter contract, readiness helpers, ses
 Evidence: [Cognidesk cobrowsing local protocol module](https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk); CONTEXT.md Built-In Adapter definition.
 
 ### Community
-
-#### Discord Community Support
-
-| Field | Value |
-|-------|-------|
-| Integration | Discord Integration |
-| Package | `@cognidesk/integration-community-discord` |
-| Manifest import | `@cognidesk/integration-community-discord/manifest` |
-| Runtime import | `@cognidesk/integration-community-discord/runtime` |
-| Workspace | `integrations/community/discord` |
-| Manifest ID | `community.discord` |
-| Scope | `support-workflow-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
-| Documentation | [https://www.npmjs.com/package/discord.js](https://www.npmjs.com/package/discord.js) |
-| Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `thread`, `read-provider-object`, `notify`, `discord.interaction-signature` |
-| Provider setup | required `discord-bot-token`, `discord-application-id`, `discord-public-key`; optional `discord-guild-id`, `discord-channel-id`, `discord-webhook-url` |
-
-Coverage: Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.
-
-Boundary: Available Discord operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.
-
-Evidence: [discord.js package](https://www.npmjs.com/package/discord.js); [Discord API reference](https://docs.discord.com/developers/reference); [Discord message resource](https://docs.discord.com/developers/resources/message); [Discord channel/thread endpoints](https://docs.discord.com/developers/resources/channel); plus 6 more.
 
 #### Discourse Forum
 
@@ -666,6 +642,30 @@ Boundary: The SDK user chooses marketplaces, OAuth flows, scopes, notification t
 Evidence: [eBay Sell Fulfillment API](https://developer.ebay.com/develop/api/sell/fulfillment_api); [eBay Digital Signatures for APIs](https://developer.ebay.com/develop/guides/digital-signatures-for-apis); [eBay Key Management API](https://developer.ebay.com/api-docs/developer/key-management/resources/methods); [eBay Commerce Notification API resources](https://developer.ebay.com/api-docs/commerce/notification/resources/methods); plus 10 more.
 
 ### Messaging
+
+#### Discord Messaging Support
+
+| Field | Value |
+|-------|-------|
+| Integration | Discord Integration |
+| Package | `@cognidesk/integration-messaging-discord` |
+| Manifest import | `@cognidesk/integration-messaging-discord/manifest` |
+| Runtime import | `@cognidesk/integration-messaging-discord/runtime` |
+| Workspace | `integrations/messaging/discord` |
+| Manifest ID | `messaging.discord` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.npmjs.com/package/discord.js](https://www.npmjs.com/package/discord.js) |
+| Directions | `receive-only`, `send-only`, `bidirectional` |
+| Capabilities | `receive`, `send`, `thread`, `read-provider-object`, `notify`, `discord.interaction-signature` |
+| Provider setup | required `discord-bot-token`, `discord-application-id`, `discord-public-key`; optional `discord-guild-id`, `discord-channel-id`, `discord-webhook-url` |
+
+Coverage: Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.
+
+Boundary: Available Discord operations depend on the SDK user's Discord application, bot installation, OAuth scopes, role permissions, channel permissions, forum settings, and rate limits.
+
+Evidence: [discord.js package](https://www.npmjs.com/package/discord.js); [Discord API reference](https://docs.discord.com/developers/reference); [Discord message resource](https://docs.discord.com/developers/resources/message); [Discord channel/thread endpoints](https://docs.discord.com/developers/resources/channel); plus 6 more.
 
 #### Google RCS for Business
 
