@@ -83,22 +83,31 @@ export function createSpeechPipelineVoiceProvider(options: SpeechPipelineVoicePr
       let speechGeneration = 0;
 
       const flushPendingAudio = async () => {
-        if (pending.durationMs < minSpeechMs || pending.chunks.length === 0) {
+        if (closed || input.signal.aborted) {
+          clearPendingAudio(pending);
+          return;
+        }
+        if (pending.chunks.length === 0) {
           clearPendingAudio(pending);
           return;
         }
         const audio = concatChunks(pending.chunks);
+        const hadSpeech = pending.inSpeech;
+        const durationMs = pending.durationMs;
         const startedAtMs = pending.startedAtMs;
         const endedAtMs = pending.endedAtMs;
         clearPendingAudio(pending);
-        await input.onEvent({
-          kind: "server_event",
-          event: {
-            type: "input_audio_buffer.speech_stopped",
-            event_id: createVoiceProviderEventId("speech_stopped"),
-            audio_end_ms: endedAtMs,
-          },
-        });
+        if (hadSpeech) {
+          await input.onEvent({
+            kind: "server_event",
+            event: {
+              type: "input_audio_buffer.speech_stopped",
+              event_id: createVoiceProviderEventId("speech_stopped"),
+              audio_end_ms: endedAtMs,
+            },
+          });
+        }
+        if (!hadSpeech || durationMs < minSpeechMs || closed || input.signal.aborted) return;
         const transcription = await options.transcribe({
           audio,
           sampleRate,

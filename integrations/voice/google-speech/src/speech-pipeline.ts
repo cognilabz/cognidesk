@@ -81,24 +81,34 @@ export function createSpeechPipelineVoiceProvider(options: SpeechPipelineVoicePr
       let closed = false;
       let flushQueue = Promise.resolve();
       let speechGeneration = 0;
+      let activeSynthesisAbort: AbortController | null = null;
 
       const flushPendingAudio = async () => {
-        if (pending.durationMs < minSpeechMs || pending.chunks.length === 0) {
+        if (closed || input.signal.aborted) {
+          clearPendingAudio(pending);
+          return;
+        }
+        if (pending.chunks.length === 0) {
           clearPendingAudio(pending);
           return;
         }
         const audio = concatChunks(pending.chunks);
+        const hadSpeech = pending.inSpeech;
+        const durationMs = pending.durationMs;
         const startedAtMs = pending.startedAtMs;
         const endedAtMs = pending.endedAtMs;
         clearPendingAudio(pending);
-        await input.onEvent({
-          kind: "server_event",
-          event: {
-            type: "input_audio_buffer.speech_stopped",
-            event_id: createVoiceProviderEventId("speech_stopped"),
-            audio_end_ms: endedAtMs,
-          },
-        });
+        if (hadSpeech) {
+          await input.onEvent({
+            kind: "server_event",
+            event: {
+              type: "input_audio_buffer.speech_stopped",
+              event_id: createVoiceProviderEventId("speech_stopped"),
+              audio_end_ms: endedAtMs,
+            },
+          });
+        }
+        if (!hadSpeech || durationMs < minSpeechMs || closed || input.signal.aborted) return;
         const transcription = await options.transcribe({
           audio,
           sampleRate,
@@ -127,15 +137,30 @@ export function createSpeechPipelineVoiceProvider(options: SpeechPipelineVoicePr
         const generation = ++speechGeneration;
         const responseId = createVoiceProviderEventId("response");
         const itemId = createVoiceProviderEventId("item");
-        const synthesis = await options.synthesize({
-          text,
-          signal: input.signal,
-          session: input.session,
-          ...(input.profile ? { profile: input.profile } : {}),
-        });
-        if (closed || generation !== speechGeneration) return;
+        const synthesisAbort = new AbortController();
+        activeSynthesisAbort?.abort();
+        activeSynthesisAbort = synthesisAbort;
+        const onSessionAbort = () => synthesisAbort.abort();
+        if (input.signal.aborted) {
+          synthesisAbort.abort();
+        } else {
+          input.signal.addEventListener("abort", onSessionAbort, { once: true });
+        }
+        let synthesis: SpeechPipelineSynthesis;
+        try {
+          synthesis = await options.synthesize({
+            text,
+            signal: synthesisAbort.signal,
+            session: input.session,
+            ...(input.profile ? { profile: input.profile } : {}),
+          });
+        } finally {
+          input.signal.removeEventListener("abort", onSessionAbort);
+          if (activeSynthesisAbort === synthesisAbort) activeSynthesisAbort = null;
+        }
+        if (closed || generation !== speechGeneration || synthesisAbort.signal.aborted) return;
         for await (const chunk of audioChunks(synthesis.audio)) {
-          if (closed || generation !== speechGeneration) return;
+          if (closed || generation !== speechGeneration || synthesisAbort.signal.aborted) return;
           await input.onEvent({
             kind: "server_event",
             event: {
@@ -228,6 +253,7 @@ export function createSpeechPipelineVoiceProvider(options: SpeechPipelineVoicePr
           }
           if (event.type === "response.cancel") {
             speechGeneration++;
+            activeSynthesisAbort?.abort();
           }
         },
         async speak({ text }) {
@@ -238,6 +264,7 @@ export function createSpeechPipelineVoiceProvider(options: SpeechPipelineVoicePr
         },
         async close() {
           closed = true;
+          activeSynthesisAbort?.abort();
           if (pending.chunks.length > 0) {
             await flushQueue.catch(() => undefined);
           }

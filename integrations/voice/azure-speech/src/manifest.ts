@@ -4,7 +4,7 @@ import type { ProviderManifestInput } from "@cognidesk/integration-kit";
 export const azureSpeechManifestInput = {
   id: "voice.azure-speech",
   name: "Azure AI Speech",
-  packageName: "@cognidesk/voice-azure-speech",
+  packageName: "@cognidesk/integration-voice-azure-speech",
   provider: "azure-speech",
   category: "voice",
   trustLevel: "official",
@@ -108,10 +108,10 @@ export const azureSpeechManifestInput = {
   ],
   metadata: {
     integrationName: "Azure AI Speech Integration",
-    integrationPackageName: "@cognidesk/voice-azure-speech",
+    integrationPackageName: "@cognidesk/integration-voice-azure-speech",
     integrationEntryPoints: {
-      manifest: "@cognidesk/voice-azure-speech/manifest",
-      runtime: "@cognidesk/voice-azure-speech/runtime",
+      manifest: "@cognidesk/integration-voice-azure-speech/manifest",
+      runtime: "@cognidesk/integration-voice-azure-speech/runtime",
     },
     channelCoverage: {
       speechToText: "typed-speech-sdk-recognize-once",

@@ -65,6 +65,7 @@ export function createSpeechPipelineVoiceProvider(options: SpeechPipelineVoicePr
   const endSilenceMs = options.endSilenceMs ?? 800;
   const minSpeechMs = options.minSpeechMs ?? 240;
   const maxSpeechMs = options.maxSpeechMs ?? 15_000;
+  assertPipelineConfig({ sampleRate, silenceThreshold, endSilenceMs, minSpeechMs, maxSpeechMs });
 
   return {
     id: options.id,
@@ -239,6 +240,7 @@ export function createSpeechPipelineVoiceProvider(options: SpeechPipelineVoicePr
         async close() {
           closed = true;
           if (pending.chunks.length > 0) {
+            scheduleFlush();
             await flushQueue.catch(() => undefined);
           }
         },
@@ -277,6 +279,29 @@ function assertProfileModel(modelSet: VoiceModelSet | undefined, options: Speech
   if (!modelSet) return;
   if (modelSet.provider !== options.provider) {
     throw new Error(`${options.id} cannot run voice provider '${modelSet.provider}'.`);
+  }
+}
+
+function assertPipelineConfig(input: {
+  sampleRate: number;
+  silenceThreshold: number;
+  endSilenceMs: number;
+  minSpeechMs: number;
+  maxSpeechMs: number;
+}) {
+  assertPositiveFiniteNumber(input.sampleRate, "sampleRate");
+  assertPositiveFiniteNumber(input.silenceThreshold, "silenceThreshold");
+  assertPositiveFiniteNumber(input.endSilenceMs, "endSilenceMs");
+  assertPositiveFiniteNumber(input.minSpeechMs, "minSpeechMs");
+  assertPositiveFiniteNumber(input.maxSpeechMs, "maxSpeechMs");
+  if (input.minSpeechMs >= input.maxSpeechMs) {
+    throw new Error("minSpeechMs must be less than maxSpeechMs.");
+  }
+}
+
+function assertPositiveFiniteNumber(value: number, name: string) {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`${name} must be a positive finite number.`);
   }
 }
 

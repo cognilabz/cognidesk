@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/voice-azure-speech",
+  "name": "@cognidesk/integration-voice-azure-speech",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",

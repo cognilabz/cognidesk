@@ -1,9 +1,9 @@
 export function languageFromVoiceName(voiceName: string) {
-  const match = /^[a-z]{2}-[A-Z]{2}/.exec(voiceName);
-  return match?.[0];
+  const match = /^([a-z]{2,3}(?:-[A-Za-z]{4})?-[A-Z]{2,3})/.exec(voiceName);
+  return match?.[1];
 }
 
-export function stripWavHeader(audio: ArrayBuffer) {
+export function stripWavHeader(audio: ArrayBuffer): ArrayBuffer {
   const bytes = new Uint8Array(audio);
   if (bytes.byteLength < 44) return audio;
   if (asciiAt(bytes, 0, "RIFF") !== true || asciiAt(bytes, 8, "WAVE") !== true) return audio;
@@ -12,7 +12,8 @@ export function stripWavHeader(audio: ArrayBuffer) {
     const chunkSize = readUint32Le(bytes, offset + 4);
     const dataStart = offset + 8;
     if (asciiAt(bytes, offset, "data")) {
-      return bytes.slice(dataStart, dataStart + chunkSize);
+      const dataEnd = Math.min(dataStart + chunkSize, bytes.byteLength);
+      return arrayBufferFromBytes(bytes.slice(dataStart, dataEnd));
     }
     offset = dataStart + chunkSize + chunkSize % 2;
   }

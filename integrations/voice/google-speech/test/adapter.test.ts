@@ -7,17 +7,17 @@ import {
   googleSpeechProviderManifest,
 } from "../src/index.js";
 
-describe("@cognidesk/voice-google-speech", () => {
+describe("@cognidesk/integration-voice-google-speech", () => {
   it("declares Google Cloud SDK-backed metadata and exact operation handlers", () => {
     expect(googleSpeechProviderManifest).toMatchObject({
       id: "voice.google-speech",
-      packageName: "@cognidesk/voice-google-speech",
+      packageName: "@cognidesk/integration-voice-google-speech",
       metadata: {
         integrationName: "Google Cloud Speech Integration",
-        integrationPackageName: "@cognidesk/voice-google-speech",
+        integrationPackageName: "@cognidesk/integration-voice-google-speech",
         integrationEntryPoints: {
-          manifest: "@cognidesk/voice-google-speech/manifest",
-          runtime: "@cognidesk/voice-google-speech/runtime",
+          manifest: "@cognidesk/integration-voice-google-speech/manifest",
+          runtime: "@cognidesk/integration-voice-google-speech/runtime",
         },
         implementation: {
           strategy: "official-sdk",

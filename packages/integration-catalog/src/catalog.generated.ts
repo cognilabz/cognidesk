@@ -8611,7 +8611,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "messaging",
     "provider": "discord",
     "importPath": "@cognidesk/integration-messaging-discord/manifest",
-    "modulePath": "integrations/messaging/discord/src/manifest.js",
+    "modulePath": "integrations/messaging/discord/dist/manifest.js",
     "manifestExport": "discordMessagingManifestInput",
     "name": "Discord Messaging Support",
     "packageName": "@cognidesk/integration-messaging-discord",
@@ -8845,7 +8845,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-messaging-discord",
       "runtimePackage": "@cognidesk/integration-messaging-discord",
-      "providerModule": "integrations/messaging/discord/src/manifest.js",
+      "providerModule": "integrations/messaging/discord/dist/manifest.js",
       "manifestExport": "discordMessagingManifestInput",
       "manifestSource": "integrations/messaging/discord/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -17951,11 +17951,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.aws-speech",
     "category": "voice",
     "provider": "aws-speech",
-    "importPath": "@cognidesk/voice-aws-speech/manifest",
-    "modulePath": "integrations/voice/aws-speech/src/manifest.js",
+    "importPath": "@cognidesk/integration-voice-aws-speech/manifest",
+    "modulePath": "integrations/voice/aws-speech/dist/manifest.js",
     "manifestExport": "awsSpeechManifestInput",
     "name": "AWS Speech",
-    "packageName": "@cognidesk/voice-aws-speech",
+    "packageName": "@cognidesk/integration-voice-aws-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18082,9 +18082,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "official-sdk",
-      "sdkPackage": "@cognidesk/voice-aws-speech",
-      "runtimePackage": "@cognidesk/voice-aws-speech",
-      "providerModule": "integrations/voice/aws-speech/src/manifest.js",
+      "sdkPackage": "@cognidesk/integration-voice-aws-speech",
+      "runtimePackage": "@cognidesk/integration-voice-aws-speech",
+      "providerModule": "integrations/voice/aws-speech/dist/manifest.js",
       "manifestExport": "awsSpeechManifestInput",
       "manifestSource": "integrations/voice/aws-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -18157,10 +18157,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "integrationName": "AWS Speech Integration",
-      "integrationPackageName": "@cognidesk/voice-aws-speech",
+      "integrationPackageName": "@cognidesk/integration-voice-aws-speech",
       "integrationEntryPoints": {
-        "manifest": "@cognidesk/voice-aws-speech/manifest",
-        "runtime": "@cognidesk/voice-aws-speech/runtime"
+        "manifest": "@cognidesk/integration-voice-aws-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-aws-speech/runtime"
       },
       "channelCoverage": {
         "speechToText": "typed-transcribe-streaming-sdk-adapter",
@@ -18189,11 +18189,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.azure-speech",
     "category": "voice",
     "provider": "azure-speech",
-    "importPath": "@cognidesk/voice-azure-speech/manifest",
-    "modulePath": "integrations/voice/azure-speech/src/manifest.js",
+    "importPath": "@cognidesk/integration-voice-azure-speech/manifest",
+    "modulePath": "integrations/voice/azure-speech/dist/manifest.js",
     "manifestExport": "azureSpeechManifestInput",
     "name": "Azure AI Speech",
-    "packageName": "@cognidesk/voice-azure-speech",
+    "packageName": "@cognidesk/integration-voice-azure-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18304,9 +18304,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "official-sdk",
-      "sdkPackage": "@cognidesk/voice-azure-speech",
-      "runtimePackage": "@cognidesk/voice-azure-speech",
-      "providerModule": "integrations/voice/azure-speech/src/manifest.js",
+      "sdkPackage": "@cognidesk/integration-voice-azure-speech",
+      "runtimePackage": "@cognidesk/integration-voice-azure-speech",
+      "providerModule": "integrations/voice/azure-speech/dist/manifest.js",
       "manifestExport": "azureSpeechManifestInput",
       "manifestSource": "integrations/voice/azure-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -18354,10 +18354,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "integrationName": "Azure AI Speech Integration",
-      "integrationPackageName": "@cognidesk/voice-azure-speech",
+      "integrationPackageName": "@cognidesk/integration-voice-azure-speech",
       "integrationEntryPoints": {
-        "manifest": "@cognidesk/voice-azure-speech/manifest",
-        "runtime": "@cognidesk/voice-azure-speech/runtime"
+        "manifest": "@cognidesk/integration-voice-azure-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-azure-speech/runtime"
       },
       "channelCoverage": {
         "speechToText": "typed-speech-sdk-recognize-once",
@@ -19017,11 +19017,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.google-speech",
     "category": "voice",
     "provider": "google-speech",
-    "importPath": "@cognidesk/voice-google-speech/manifest",
-    "modulePath": "integrations/voice/google-speech/src/manifest.js",
+    "importPath": "@cognidesk/integration-voice-google-speech/manifest",
+    "modulePath": "integrations/voice/google-speech/dist/manifest.js",
     "manifestExport": "googleSpeechManifestInput",
     "name": "Google Cloud Speech",
-    "packageName": "@cognidesk/voice-google-speech",
+    "packageName": "@cognidesk/integration-voice-google-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -19144,9 +19144,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "official-sdk",
-      "sdkPackage": "@cognidesk/voice-google-speech",
-      "runtimePackage": "@cognidesk/voice-google-speech",
-      "providerModule": "integrations/voice/google-speech/src/manifest.js",
+      "sdkPackage": "@cognidesk/integration-voice-google-speech",
+      "runtimePackage": "@cognidesk/integration-voice-google-speech",
+      "providerModule": "integrations/voice/google-speech/dist/manifest.js",
       "manifestExport": "googleSpeechManifestInput",
       "manifestSource": "integrations/voice/google-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -19186,10 +19186,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "integrationName": "Google Cloud Speech Integration",
-      "integrationPackageName": "@cognidesk/voice-google-speech",
+      "integrationPackageName": "@cognidesk/integration-voice-google-speech",
       "integrationEntryPoints": {
-        "manifest": "@cognidesk/voice-google-speech/manifest",
-        "runtime": "@cognidesk/voice-google-speech/runtime"
+        "manifest": "@cognidesk/integration-voice-google-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-google-speech/runtime"
       },
       "channelCoverage": {
         "speechToText": "typed-synchronous-recognize-rest",
@@ -19219,11 +19219,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.openai",
     "category": "voice",
     "provider": "openai",
-    "importPath": "@cognidesk/voice-openai/manifest",
-    "modulePath": "integrations/voice/openai/src/manifest.js",
+    "importPath": "@cognidesk/integration-voice-openai/manifest",
+    "modulePath": "integrations/voice/openai/dist/manifest.js",
     "manifestExport": "openAIVoiceManifestInput",
     "name": "OpenAI Realtime Voice",
-    "packageName": "@cognidesk/voice-openai",
+    "packageName": "@cognidesk/integration-voice-openai",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -19354,9 +19354,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "official-sdk",
-      "sdkPackage": "@cognidesk/voice-openai",
-      "runtimePackage": "@cognidesk/voice-openai",
-      "providerModule": "integrations/voice/openai/src/manifest.js",
+      "sdkPackage": "@cognidesk/integration-voice-openai",
+      "runtimePackage": "@cognidesk/integration-voice-openai",
+      "providerModule": "integrations/voice/openai/dist/manifest.js",
       "manifestExport": "openAIVoiceManifestInput",
       "manifestSource": "integrations/voice/openai/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -19403,10 +19403,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "integrationName": "OpenAI Realtime Voice Integration",
-      "integrationPackageName": "@cognidesk/voice-openai",
+      "integrationPackageName": "@cognidesk/integration-voice-openai",
       "integrationEntryPoints": {
-        "manifest": "@cognidesk/voice-openai/manifest",
-        "runtime": "@cognidesk/voice-openai/runtime"
+        "manifest": "@cognidesk/integration-voice-openai/manifest",
+        "runtime": "@cognidesk/integration-voice-openai/runtime"
       },
       "channelCoverage": {
         "realtimeAudio": "typed-session-events",

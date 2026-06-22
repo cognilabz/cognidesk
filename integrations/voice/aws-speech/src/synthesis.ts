@@ -32,6 +32,8 @@ export async function resamplePcm16Audio(
   fromSampleRate: number,
   toSampleRate: number,
 ): Promise<SpeechPipelineSynthesis["audio"]> {
+  assertPositiveFiniteSampleRate(fromSampleRate, "fromSampleRate");
+  assertPositiveFiniteSampleRate(toSampleRate, "toSampleRate");
   if (fromSampleRate === toSampleRate) return audio;
   const bytes = await collectAudioBytes(audio);
   return resamplePcm16Bytes(bytes, fromSampleRate, toSampleRate);
@@ -92,6 +94,8 @@ async function collectAudioBytes(audio: SpeechPipelineSynthesis["audio"]): Promi
 }
 
 function resamplePcm16Bytes(bytes: Uint8Array, fromSampleRate: number, toSampleRate: number): Uint8Array {
+  assertPositiveFiniteSampleRate(fromSampleRate, "fromSampleRate");
+  assertPositiveFiniteSampleRate(toSampleRate, "toSampleRate");
   const inputSampleCount = Math.floor(bytes.byteLength / 2);
   if (inputSampleCount === 0) return new Uint8Array();
   const outputSampleCount = Math.max(1, Math.round(inputSampleCount * toSampleRate / fromSampleRate));
@@ -109,6 +113,12 @@ function resamplePcm16Bytes(bytes: Uint8Array, fromSampleRate: number, toSampleR
     outputView.setInt16(outputIndex * 2, sample, true);
   }
   return output;
+}
+
+function assertPositiveFiniteSampleRate(value: number, name: string) {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`${name} must be a positive finite number.`);
+  }
 }
 
 function isReadableStream(value: unknown): value is ReadableStream<Uint8Array> {

@@ -21,24 +21,24 @@ Repository state after reconciliation:
 
 - `pnpm-workspace.yaml` includes nested provider workspaces at `integrations/*/*`.
 - `packages/integration-kit` provides manifest/handler binding, readiness helpers, category profiles, and conformance helpers.
-- `@cognidesk/voice-aws-speech`, `@cognidesk/voice-azure-speech`, and `@cognidesk/voice-google-speech` live under `integrations/voice/*`.
-- `@cognidesk/voice-openai` remains the canonical OpenAI Realtime voice package, lives at `integrations/voice/openai`, and now carries provider manifest metadata.
+- `@cognidesk/integration-voice-aws-speech`, `@cognidesk/integration-voice-azure-speech`, and `@cognidesk/integration-voice-google-speech` live under `integrations/voice/*`.
+- `@cognidesk/integration-voice-openai` remains the canonical OpenAI Realtime voice package, lives at `integrations/voice/openai`, and now carries provider manifest metadata.
 
 Old monolith deletion should wait until replacement package tests, catalog/docs, and smoke checks pass.
 
 ## Naming And Voice Boundary
 
-The ChatGPT package-shape rule applies here: source directories live under `integrations/{category}/{provider}`, while public package names are flattened but keep the integration category visible. That means the canonical OpenAI Realtime package is `integrations/voice/openai` published as `@cognidesk/voice-openai`, not `@cognidesk/openai` and not a retained `@cognidesk/integrations/voice/openai` subpath.
+The ChatGPT package-shape rule applies here: source directories live under `integrations/{category}/{provider}`, while public package names are flattened but keep the integration category visible. That means the canonical OpenAI Realtime package is `integrations/voice/openai` published as `@cognidesk/integration-voice-openai`, not `@cognidesk/openai` and not a retained `@cognidesk/integrations/voice/openai` subpath.
 
 The package and manifest must make the integration identity visible:
 
 - `package.json` declares `cognidesk.release = "independent-provider"`, `cognidesk.category = "voice"`, and `cognidesk.provider = "openai"`.
-- The manifest metadata includes `integrationName = "OpenAI Realtime Voice Integration"`, `integrationPackageName = "@cognidesk/voice-openai"`, and explicit `/manifest` and `/runtime` entry points.
+- The manifest metadata includes `integrationName = "OpenAI Realtime Voice Integration"`, `integrationPackageName = "@cognidesk/integration-voice-openai"`, and explicit `/manifest` and `/runtime` entry points.
 - Manifest-only imports stay SDK-free; runtime imports own the official `openai` SDK.
 
 `@cognidesk/voice-websocket` is different on purpose. It is the browser-facing Cognidesk voice transport and session protocol, not an external Provider Integration. It stays in `packages/voice-websocket`, remains excluded from provider-package conformance as infrastructure, and should not be moved to `integrations/voice/websocket`.
 
-The current duplicate `packages/integrations/src/voice/openai` path is old monolith residue. It exists only until the `@cognidesk/voice-openai` replacement, catalog/docs, application imports, and smoke checks pass; issue #27 then removes the monolith import surface rather than bridging it.
+The current duplicate `packages/integrations/src/voice/openai` path is old monolith residue. It exists only until the `@cognidesk/integration-voice-openai` replacement, catalog/docs, application imports, and smoke checks pass; issue #27 then removes the monolith import surface rather than bridging it.
 
 ## Verified SDK Targets
 
@@ -50,7 +50,7 @@ The candidate packages were checked against npm on 2026-06-21:
 | AWS Speech | `@aws-sdk/client-polly` | `3.1073.0` | Use for Amazon Polly synthesis. |
 | Azure Speech | `microsoft-cognitiveservices-speech-sdk` | `1.50.0` | Use for speech recognizer/synthesizer flows after Node/runtime compatibility spike. |
 | Google Speech | `@google-cloud/speech` | `7.4.0` | Use for Speech-to-Text; pair with `@google-cloud/text-to-speech` or document why direct TTS remains necessary. |
-| OpenAI Voice | `openai` | `^6.44.0` in `@cognidesk/voice-openai` | Keep the official OpenAI client and consolidate around one voice adapter package. |
+| OpenAI Voice | `openai` | `^6.44.0` in `@cognidesk/integration-voice-openai` | Keep the official OpenAI client and consolidate around one voice adapter package. |
 
 ## Current State By Provider
 
@@ -65,7 +65,7 @@ Current code already has an SDK-shaped seam:
 
 Migration target:
 
-- Create `@cognidesk/voice-aws-speech`.
+- Create `@cognidesk/integration-voice-aws-speech`.
 - Add `@aws-sdk/client-transcribe-streaming` and `@aws-sdk/client-polly` as package-local dependencies.
 - Keep structural client injection and expose created AWS clients as the raw-client escape hatch.
 - Remove generated full-provider clones from the migrated package surface.
@@ -81,7 +81,7 @@ Current code is still direct REST:
 
 Migration target:
 
-- Create `@cognidesk/voice-azure-speech`.
+- Create `@cognidesk/integration-voice-azure-speech`.
 - Add `microsoft-cognitiveservices-speech-sdk` as the package-local runtime dependency if the Node ESM/build spike passes.
 - Preserve short buffered-audio pipeline semantics unless the shared voice contract gains a true streaming speech-provider operation.
 - Keep direct REST only as an explicit fallback slice if the official SDK cannot support the Cognidesk buffered pipeline cleanly.
@@ -97,7 +97,7 @@ Current code is direct REST:
 
 Migration target:
 
-- Create `@cognidesk/voice-google-speech`.
+- Create `@cognidesk/integration-voice-google-speech`.
 - Add `@google-cloud/speech` for STT.
 - Verify `@google-cloud/text-to-speech` for TTS before deciding whether TTS stays as a documented direct REST support slice.
 - Preserve token/client injection, quota project behavior, normalized metadata, WAV stripping for Linear16, and synchronous pipeline constraints.
@@ -108,7 +108,7 @@ Migration target:
 Current state is split:
 
 - `packages/integrations/src/voice/openai` exports the monolith `@cognidesk/integrations/voice/openai` adapter.
-- `integrations/voice/openai` publishes `@cognidesk/voice-openai` as the canonical OpenAI Realtime voice package.
+- `integrations/voice/openai` publishes `@cognidesk/integration-voice-openai` as the canonical OpenAI Realtime voice package.
 - The monolith lazily imports `openai` only when a client is not injected, which is the right manifest-only import direction.
 
 Migration target:
@@ -146,10 +146,10 @@ Migrate cloud speech and voice AI integrations out of `@cognidesk/integrations` 
 
 ## Scope
 
-- Create `@cognidesk/voice-aws-speech` using `@aws-sdk/client-transcribe-streaming` and `@aws-sdk/client-polly`.
-- Create `@cognidesk/voice-azure-speech` using `microsoft-cognitiveservices-speech-sdk` if the Node/ESM/runtime spike passes; otherwise document the unsupported SDK gap and retain a reviewed direct support slice.
-- Create `@cognidesk/voice-google-speech` using `@google-cloud/speech`; verify `@google-cloud/text-to-speech` for TTS before deciding whether direct TTS remains necessary.
-- Reconcile OpenAI voice with the existing `@cognidesk/voice-openai` package and the official `openai` client instead of duplicating the adapter.
+- Create `@cognidesk/integration-voice-aws-speech` using `@aws-sdk/client-transcribe-streaming` and `@aws-sdk/client-polly`.
+- Create `@cognidesk/integration-voice-azure-speech` using `microsoft-cognitiveservices-speech-sdk` if the Node/ESM/runtime spike passes; otherwise document the unsupported SDK gap and retain a reviewed direct support slice.
+- Create `@cognidesk/integration-voice-google-speech` using `@google-cloud/speech`; verify `@google-cloud/text-to-speech` for TTS before deciding whether direct TTS remains necessary.
+- Reconcile OpenAI voice with the existing `@cognidesk/integration-voice-openai` package and the official `openai` client instead of duplicating the adapter.
 - Remove generated full-provider clones from migrated voice packages.
 - Preserve normalized Cognidesk voice events, speech pipeline behavior, readiness, mapper functions, raw-client escape hatches, and provider conformance tests.
 - Keep manifest-only imports metadata-only and free of provider SDK runtime initialization.

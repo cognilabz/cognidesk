@@ -10,17 +10,17 @@ import {
   type AwsTranscribeStreamingCommandInput,
 } from "../src/index.js";
 
-describe("@cognidesk/voice-aws-speech", () => {
+describe("@cognidesk/integration-voice-aws-speech", () => {
   it("declares SDK-backed voice adapter metadata and exact operation handlers", () => {
     expect(awsSpeechProviderManifest).toMatchObject({
       id: "voice.aws-speech",
-      packageName: "@cognidesk/voice-aws-speech",
+      packageName: "@cognidesk/integration-voice-aws-speech",
       metadata: {
         integrationName: "AWS Speech Integration",
-        integrationPackageName: "@cognidesk/voice-aws-speech",
+        integrationPackageName: "@cognidesk/integration-voice-aws-speech",
         integrationEntryPoints: {
-          manifest: "@cognidesk/voice-aws-speech/manifest",
-          runtime: "@cognidesk/voice-aws-speech/runtime",
+          manifest: "@cognidesk/integration-voice-aws-speech/manifest",
+          runtime: "@cognidesk/integration-voice-aws-speech/runtime",
         },
         implementation: {
           strategy: "official-sdk",

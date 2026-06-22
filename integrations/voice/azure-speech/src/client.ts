@@ -21,7 +21,7 @@ export function createAzureSpeechClient(options: AzureSpeechClientOptions): Azur
       stream.close();
       const audioConfig = sdk.AudioConfig.fromStreamInput(stream);
       const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-      const result = await recognizeOnce(recognizer);
+      const result = await recognizeOnce(recognizer, input.signal);
       return {
         text: result.text ?? "",
         ...(result.reason !== undefined ? { recognitionStatus: String(result.reason) } : {}),
@@ -36,7 +36,7 @@ export function createAzureSpeechClient(options: AzureSpeechClientOptions): Azur
       speechConfig.speechSynthesisLanguage = input.language ?? languageFromVoiceName(input.voiceName) ?? "en-US";
       setOutputFormat(sdk, speechConfig, input.outputFormat);
       const synthesizer = new sdk.SpeechSynthesizer(speechConfig);
-      const result = await speakText(synthesizer, input.text);
+      const result = await speakText(synthesizer, input.text, input.signal);
       if (!result.audioData) {
         throw new Error(result.errorDetails || "Azure Speech synthesis did not include audioData.");
       }
@@ -45,14 +45,41 @@ export function createAzureSpeechClient(options: AzureSpeechClientOptions): Azur
   };
 }
 
-function recognizeOnce(recognizer: { recognizeOnceAsync: Function; close?: () => void }) {
+function recognizeOnce(
+  recognizer: { recognizeOnceAsync: Function; close?: () => void },
+  signal?: AbortSignal,
+) {
   return new Promise<AzureSpeechRecognitionResult>((resolve, reject) => {
+    let settled = false;
+    let onAbort: (() => void) | undefined;
+    const cleanup = () => {
+      if (onAbort) signal?.removeEventListener("abort", onAbort);
+    };
+    const rejectAborted = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      recognizer.close?.();
+      reject(new Error("Azure Speech recognition aborted."));
+    };
+    onAbort = () => rejectAborted();
+    if (signal?.aborted) {
+      rejectAborted();
+      return;
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
     recognizer.recognizeOnceAsync(
       (result: AzureSpeechRecognitionResult) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
         recognizer.close?.();
         resolve(result);
       },
       (error: string) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
         recognizer.close?.();
         reject(new Error(error));
       },
@@ -60,15 +87,43 @@ function recognizeOnce(recognizer: { recognizeOnceAsync: Function; close?: () =>
   });
 }
 
-function speakText(synthesizer: { speakTextAsync: Function; close?: () => void }, text: string) {
+function speakText(
+  synthesizer: { speakTextAsync: Function; close?: () => void },
+  text: string,
+  signal?: AbortSignal,
+) {
   return new Promise<AzureSpeechSynthesisResult>((resolve, reject) => {
+    let settled = false;
+    let onAbort: (() => void) | undefined;
+    const cleanup = () => {
+      if (onAbort) signal?.removeEventListener("abort", onAbort);
+    };
+    const rejectAborted = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      synthesizer.close?.();
+      reject(new Error("Azure Speech synthesis aborted."));
+    };
+    onAbort = () => rejectAborted();
+    if (signal?.aborted) {
+      rejectAborted();
+      return;
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
     synthesizer.speakTextAsync(
       text,
       (result: AzureSpeechSynthesisResult) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
         synthesizer.close?.();
         resolve(result);
       },
       (error: string) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
         synthesizer.close?.();
         reject(new Error(error));
       },

@@ -35,12 +35,13 @@ export function createAzureSpeechVoiceProvider(options: AzureSpeechVoiceProvider
     },
     async synthesize(input) {
       const voiceName = input.profile?.modelSet?.voice ?? options.voiceName;
+      const outputFormat = options.outputFormat;
       const audio = await client.synthesizeSpeech({
         text: input.text,
         voiceName,
         signal: input.signal,
         ...(options.language !== undefined ? { language: options.language } : {}),
-        ...(options.outputFormat !== undefined ? { outputFormat: options.outputFormat } : {}),
+        ...(outputFormat !== undefined ? { outputFormat } : {}),
       });
       return {
         audio,
@@ -48,7 +49,7 @@ export function createAzureSpeechVoiceProvider(options: AzureSpeechVoiceProvider
         metadata: {
           provider: "azure-speech",
           voiceName,
-          outputFormat: options.outputFormat ?? "raw-24khz-16bit-mono-pcm",
+          ...(outputFormat !== undefined ? { outputFormat } : {}),
         },
       };
     },

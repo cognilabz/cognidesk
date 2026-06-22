@@ -42,7 +42,8 @@ export function createGoogleSpeechClient(options: GoogleSpeechClientOptions): Go
         .filter((alternative: any): alternative is NonNullable<typeof alternative> => Boolean(alternative));
       const text = alternatives
         .map((alternative: any) => alternative.transcript ?? "")
-        .join("")
+        .join(" ")
+        .replace(/\s+/g, " ")
         .trim();
       const firstConfidence = alternatives[0]?.confidence;
       const firstLanguageCode = results[0]?.languageCode;

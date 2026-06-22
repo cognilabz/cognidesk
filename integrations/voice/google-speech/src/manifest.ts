@@ -4,7 +4,7 @@ import type { ProviderManifestInput } from "@cognidesk/integration-kit";
 export const googleSpeechManifestInput = {
   id: "voice.google-speech",
   name: "Google Cloud Speech",
-  packageName: "@cognidesk/voice-google-speech",
+  packageName: "@cognidesk/integration-voice-google-speech",
   provider: "google-speech",
   category: "voice",
   trustLevel: "official",
@@ -105,10 +105,10 @@ export const googleSpeechManifestInput = {
   ],
   metadata: {
     integrationName: "Google Cloud Speech Integration",
-    integrationPackageName: "@cognidesk/voice-google-speech",
+    integrationPackageName: "@cognidesk/integration-voice-google-speech",
     integrationEntryPoints: {
-      manifest: "@cognidesk/voice-google-speech/manifest",
-      runtime: "@cognidesk/voice-google-speech/runtime",
+      manifest: "@cognidesk/integration-voice-google-speech/manifest",
+      runtime: "@cognidesk/integration-voice-google-speech/runtime",
     },
     channelCoverage: {
       speechToText: "typed-synchronous-recognize-rest",

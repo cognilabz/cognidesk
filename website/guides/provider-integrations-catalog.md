@@ -647,6 +647,7 @@ Evidence: [eBay Sell Fulfillment API](https://developer.ebay.com/develop/api/sel
 
 | Field | Value |
 |-------|-------|
+| Integration | Discord Integration |
 | Package | `@cognidesk/integration-messaging-discord` |
 | Manifest import | `@cognidesk/integration-messaging-discord/manifest` |
 | Runtime import | `@cognidesk/integration-messaging-discord/runtime` |

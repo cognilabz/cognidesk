@@ -8,17 +8,17 @@ import {
   type AzureSpeechSdk,
 } from "../src/index.js";
 
-describe("@cognidesk/voice-azure-speech", () => {
+describe("@cognidesk/integration-voice-azure-speech", () => {
   it("declares Speech SDK-backed metadata and exact operation handlers", () => {
     expect(azureSpeechProviderManifest).toMatchObject({
       id: "voice.azure-speech",
-      packageName: "@cognidesk/voice-azure-speech",
+      packageName: "@cognidesk/integration-voice-azure-speech",
       metadata: {
         integrationName: "Azure AI Speech Integration",
-        integrationPackageName: "@cognidesk/voice-azure-speech",
+        integrationPackageName: "@cognidesk/integration-voice-azure-speech",
         integrationEntryPoints: {
-          manifest: "@cognidesk/voice-azure-speech/manifest",
-          runtime: "@cognidesk/voice-azure-speech/runtime",
+          manifest: "@cognidesk/integration-voice-azure-speech/manifest",
+          runtime: "@cognidesk/integration-voice-azure-speech/runtime",
         },
         implementation: {
           strategy: "official-sdk",

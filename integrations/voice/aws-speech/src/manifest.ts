@@ -5,7 +5,7 @@ import { AWS_SPEECH_API_SOURCES } from "./contracts.js";
 export const awsSpeechManifestInput = {
   id: "voice.aws-speech",
   name: "AWS Speech",
-  packageName: "@cognidesk/voice-aws-speech",
+  packageName: "@cognidesk/integration-voice-aws-speech",
   provider: "aws-speech",
   category: "voice",
   trustLevel: "official",
@@ -131,10 +131,10 @@ export const awsSpeechManifestInput = {
   ],
   metadata: {
     integrationName: "AWS Speech Integration",
-    integrationPackageName: "@cognidesk/voice-aws-speech",
+    integrationPackageName: "@cognidesk/integration-voice-aws-speech",
     integrationEntryPoints: {
-      manifest: "@cognidesk/voice-aws-speech/manifest",
-      runtime: "@cognidesk/voice-aws-speech/runtime",
+      manifest: "@cognidesk/integration-voice-aws-speech/manifest",
+      runtime: "@cognidesk/integration-voice-aws-speech/runtime",
     },
     channelCoverage: {
       speechToText: "typed-transcribe-streaming-sdk-adapter",

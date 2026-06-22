@@ -10,25 +10,25 @@ const workspaceRoot = join(packageRoot, "../..");
 const splitVoiceProviderPackages = [
   {
     dir: "integrations/voice/aws-speech",
-    packageName: "@cognidesk/voice-aws-speech",
+    packageName: "@cognidesk/integration-voice-aws-speech",
     provider: "aws-speech",
     integrationName: "AWS Speech Integration",
   },
   {
     dir: "integrations/voice/azure-speech",
-    packageName: "@cognidesk/voice-azure-speech",
+    packageName: "@cognidesk/integration-voice-azure-speech",
     provider: "azure-speech",
     integrationName: "Azure AI Speech Integration",
   },
   {
     dir: "integrations/voice/google-speech",
-    packageName: "@cognidesk/voice-google-speech",
+    packageName: "@cognidesk/integration-voice-google-speech",
     provider: "google-speech",
     integrationName: "Google Cloud Speech Integration",
   },
   {
     dir: "integrations/voice/openai",
-    packageName: "@cognidesk/voice-openai",
+    packageName: "@cognidesk/integration-voice-openai",
     provider: "openai",
     integrationName: "OpenAI Realtime Voice Integration",
   },
@@ -38,7 +38,13 @@ const ownedVoiceManifestFiles = splitVoiceProviderPackages.map(
   (pkg) => `${pkg.dir}/src/manifest.ts`,
 );
 
-const runtimeProviderImportPattern = /from\s+["'](?:openai|openai\/[^"']+|@aws-sdk\/[^"']+|microsoft-cognitiveservices-speech-sdk|@google-cloud\/[^"']+)["']/;
+const providerSdkPackagePattern = String.raw`(?:openai|openai/[^"']+|@aws-sdk/[^"']+|microsoft-cognitiveservices-speech-sdk|@google-cloud/[^"']+)`;
+const runtimeProviderImportPattern = new RegExp(
+  String.raw`(?:\bfrom\s+["']${providerSdkPackagePattern}["']`
+    + String.raw`|\bimport\s+["']${providerSdkPackagePattern}["']`
+    + String.raw`|\bimport\s*\(\s*["']${providerSdkPackagePattern}["']\s*\)`
+    + String.raw`|\brequire\s*\(\s*["']${providerSdkPackagePattern}["']\s*\))`,
+);
 
 describe("voice SDK-first migration guardrails", () => {
   it("records the reconciled package split prerequisites", async () => {
@@ -56,6 +62,13 @@ describe("voice SDK-first migration guardrails", () => {
       expect(source, `${relativePath} should not import provider SDK runtime packages`)
         .not.toMatch(runtimeProviderImportPattern);
     }
+  });
+
+  it("detects provider SDK imports across common JavaScript import forms", () => {
+    expect('import OpenAI from "openai";').toMatch(runtimeProviderImportPattern);
+    expect('import "@aws-sdk/client-polly";').toMatch(runtimeProviderImportPattern);
+    expect('await import("@google-cloud/speech");').toMatch(runtimeProviderImportPattern);
+    expect('const sdk = require("microsoft-cognitiveservices-speech-sdk");').toMatch(runtimeProviderImportPattern);
   });
 
   it("keeps voice integration package names and entry points visible", async () => {
@@ -86,10 +99,10 @@ describe("voice SDK-first migration guardrails", () => {
       "utf8",
     );
 
-    expect(migrationDoc).toContain("@cognidesk/voice-aws-speech");
-    expect(migrationDoc).toContain("@cognidesk/voice-azure-speech");
-    expect(migrationDoc).toContain("@cognidesk/voice-google-speech");
-    expect(migrationDoc).toContain("@cognidesk/voice-openai");
+    expect(migrationDoc).toContain("@cognidesk/integration-voice-aws-speech");
+    expect(migrationDoc).toContain("@cognidesk/integration-voice-azure-speech");
+    expect(migrationDoc).toContain("@cognidesk/integration-voice-google-speech");
+    expect(migrationDoc).toContain("@cognidesk/integration-voice-openai");
     expect(migrationDoc).toContain("Dedicated GitHub Issue Body");
   });
 });
