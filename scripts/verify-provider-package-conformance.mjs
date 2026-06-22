@@ -46,7 +46,7 @@ const defaultDeclarationFileBudgetBytes = 4 * oneMiB;
 const stagedProviderPackages = [
   "@cognidesk/integration-email-gmail",
   "@cognidesk/integration-email-outlook",
-  "@cognidesk/integration-community-discord",
+  "@cognidesk/integration-messaging-discord",
   "@cognidesk/integration-workplace-slack",
   "@cognidesk/integration-workplace-teams",
   "@cognidesk/integration-ecommerce-stripe",
@@ -54,7 +54,7 @@ const stagedProviderPackages = [
 const stagedProviderPackageIssues = new Map([
   ["@cognidesk/integration-email-gmail", "#23"],
   ["@cognidesk/integration-email-outlook", "#24"],
-  ["@cognidesk/integration-community-discord", "#25"],
+  ["@cognidesk/integration-messaging-discord", "#25"],
   ["@cognidesk/integration-workplace-slack", "#25"],
   ["@cognidesk/integration-workplace-teams", "#24"],
   ["@cognidesk/integration-ecommerce-stripe", "#30"],
