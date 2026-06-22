@@ -462,16 +462,6 @@ const integrationProviderReferences: readonly [{
   provider: "cognidesk";
 }, {
   category: "community";
-<<<<<<< HEAD
-=======
-  id: "messaging.discord";
-  importPath: "@cognidesk/integrations/messaging/discord";
-  manifestExport: "discordMessagingProviderManifest";
-  modulePath: "./messaging/discord/index.js";
-  provider: "discord";
-}, {
-  category: "community";
->>>>>>> origin/codex/integrations-foundation-stack
   id: "community.forum";
   importPath: "@cognidesk/integrations/community/forum";
   manifestExport: "forumCommunityProviderManifest";
