@@ -41,7 +41,7 @@ export function normalizeDiscordInteractionChannelEvent(input: NormalizeDiscordC
     source: {
       sourceType: "provider-adapter",
       provider: "discord",
-      providerPackageId: "community.discord",
+      providerPackageId: "messaging.discord",
       eventId,
       streamId,
       raw: payload,
