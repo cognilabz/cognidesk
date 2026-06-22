@@ -98,6 +98,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
       providerObjects: [
         { kind: "messengerConversation", label: "Messenger Conversation" },
         { kind: "messengerMessage", label: "Messenger Message" },
+        { kind: "messengerPage", label: "Messenger Page" },
       ],
       requiresCredential: true,
       exposesSensitiveData: true,

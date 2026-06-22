@@ -20,6 +20,7 @@ export interface InstagramSocialIntegrationOptions extends InstagramSocialClient
 }
 
 export function defineInstagramSocialIntegration(options: InstagramSocialIntegrationOptions) {
+  type WebhookSignatureInput = Omit<ValidateInstagramWebhookSignatureInput, "appSecret">;
   const client = options.client ?? createInstagramSocialClient(options);
   return defineIntegration({
     manifest: instagramSocialProviderManifest,
@@ -50,8 +51,14 @@ export function defineInstagramSocialIntegration(options: InstagramSocialIntegra
       },
       "instagram.account.read": async (input: unknown) => client.getInstagramBusinessAccount(input as string[] | undefined),
       "instagram.page.read": async (input: unknown) => client.getPage(input as string[] | undefined),
-      "instagram.webhook-signature": async (input: unknown) =>
-        validateInstagramWebhookSignature(input as ValidateInstagramWebhookSignatureInput),
+      "instagram.webhook-signature": async (input: unknown) => {
+        const request = input as WebhookSignatureInput;
+        return validateInstagramWebhookSignature({
+          appSecret: options.appSecret,
+          rawBody: request.rawBody,
+          signature: request.signature,
+        });
+      },
     },
     metadata: {
       implementationStrategy: "direct-graph-support-slice",

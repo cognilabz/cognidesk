@@ -16,6 +16,7 @@ export interface MessengerSocialIntegrationOptions extends MessengerSocialClient
 }
 
 export function defineMessengerSocialIntegration(options: MessengerSocialIntegrationOptions) {
+  type WebhookSignatureInput = Omit<Parameters<typeof validateMessengerWebhookSignature>[0], "appSecret">;
   const client = options.client ?? createMessengerSocialClient(options);
   return defineIntegration({
     manifest: messengerSocialProviderManifest,
@@ -42,11 +43,14 @@ export function defineMessengerSocialIntegration(options: MessengerSocialIntegra
         return client.getConversationMessages(request.conversationId, request);
       },
       "messenger.page.read": async () => client.getPage(),
-      "messenger.webhook-signature": async (input: unknown) => validateMessengerWebhookSignature(input as {
-        rawBody: string;
-        signature: string;
-        appSecret: string;
-      }),
+      "messenger.webhook-signature": async (input: unknown) => {
+        const request = input as WebhookSignatureInput;
+        return validateMessengerWebhookSignature({
+          appSecret: options.appSecret,
+          rawBody: request.rawBody,
+          signature: request.signature,
+        });
+      },
     },
     metadata: {
       implementationStrategy: "direct-graph-support-slice",

@@ -11,6 +11,7 @@ export function normalizeMessengerWebhookEvents(payload: MessengerWebhookPayload
   const events: MessengerNormalizedEvent[] = [];
   for (const entry of payload.entry ?? []) {
     for (const messaging of entry.messaging ?? []) {
+      if (!isMessengerSocialJsonObject(messaging)) continue;
       if (!isMessengerSocialJsonObject(messaging.message)) continue;
       events.push({
         type: "social.message.received",

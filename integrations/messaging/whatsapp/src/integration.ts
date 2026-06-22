@@ -18,6 +18,7 @@ export interface WhatsAppMessagingIntegrationOptions extends WhatsAppMessagingCl
 }
 
 export function defineWhatsAppMessagingIntegration(options: WhatsAppMessagingIntegrationOptions) {
+  type WebhookSignatureInput = Omit<ValidateWhatsAppWebhookSignatureInput, "appSecret">;
   const client = options.client ?? createWhatsAppMessagingClient(options);
   return defineIntegration({
     manifest: whatsappMessagingProviderManifest,
@@ -34,8 +35,14 @@ export function defineWhatsAppMessagingIntegration(options: WhatsAppMessagingInt
       "whatsapp.businessProfile.read": async (input: unknown) => client.getBusinessProfile(input as string[] | undefined),
       "whatsapp.businessProfile.update": async (input: unknown) =>
         client.updateBusinessProfile(input as Parameters<WhatsAppMessagingClient["updateBusinessProfile"]>[0]),
-      "whatsapp.webhook-signature": async (input: unknown) =>
-        validateWhatsAppWebhookSignature(input as ValidateWhatsAppWebhookSignatureInput),
+      "whatsapp.webhook-signature": async (input: unknown) => {
+        const request = input as WebhookSignatureInput;
+        return validateWhatsAppWebhookSignature({
+          appSecret: options.appSecret,
+          rawBody: request.rawBody,
+          signature: request.signature,
+        });
+      },
     },
     metadata: {
       implementationStrategy: "direct-graph-support-slice",

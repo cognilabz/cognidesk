@@ -63,6 +63,23 @@ describe("@cognidesk/integration-messaging-whatsapp", () => {
     const body = JSON.stringify({ object: "whatsapp_business_account", entry: [] });
     const signature = `sha256=${createHmac("sha256", "secret").update(body).digest("hex")}`;
     expect(validateWhatsAppWebhookSignature({ appSecret: "secret", rawBody: body, signature })).toBe(true);
+    const integration = defineWhatsAppMessagingIntegration({
+      accessToken: "token",
+      phoneNumberId: "phone_1",
+      appSecret: "secret",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+    await expect(integration.run("whatsapp.webhook-signature", {
+      appSecret: "attacker",
+      rawBody: body,
+      signature,
+    })).resolves.toBe(true);
+    const attackerSignature = `sha256=${createHmac("sha256", "attacker").update(body).digest("hex")}`;
+    await expect(integration.run("whatsapp.webhook-signature", {
+      appSecret: "attacker",
+      rawBody: body,
+      signature: attackerSignature,
+    })).resolves.toBe(false);
     const request = new Request("https://example.test/webhook", {
       method: "POST",
       headers: { "x-hub-signature-256": signature },
@@ -73,19 +90,63 @@ describe("@cognidesk/integration-messaging-whatsapp", () => {
   });
 
   it("normalizes inbound message and delivery webhook events", () => {
+    const change = {
+      value: {
+        contacts: [{ wa_id: "15550100" }],
+        messages: [{ id: "wamid.inbound", text: { body: "Hi" } }],
+        statuses: [{ id: "wamid.outbound", status: "delivered" }],
+      },
+    };
+
+    expect(normalizeWhatsAppWebhookEvents({
+      entry: [{
+        changes: [change],
+      }],
+    })).toEqual([
+      {
+        type: "messaging.message.received",
+        provider: "whatsapp",
+        message: { id: "wamid.inbound", text: { body: "Hi" } },
+        contact: { wa_id: "15550100" },
+        raw: change,
+      },
+      {
+        type: "messaging.delivery.updated",
+        provider: "whatsapp",
+        status: { id: "wamid.outbound", status: "delivered" },
+        raw: change,
+      },
+    ]);
+  });
+
+  it("ignores malformed webhook collection fields", () => {
     expect(normalizeWhatsAppWebhookEvents({
       entry: [{
         changes: [{
           value: {
-            contacts: [{ wa_id: "15550100" }],
-            messages: [{ id: "wamid.inbound", text: { body: "Hi" } }],
-            statuses: [{ id: "wamid.outbound", status: "delivered" }],
+            contacts: "not-contacts" as never,
+            messages: "not-messages" as never,
+            statuses: { id: "not-statuses" } as never,
           },
         }],
       }],
-    })).toEqual([
-      expect.objectContaining({ type: "messaging.message.received", provider: "whatsapp" }),
-      expect.objectContaining({ type: "messaging.delivery.updated", provider: "whatsapp" }),
-    ]);
+    })).toEqual([]);
+
+    const change = {
+      value: {
+        contacts: "not-contacts" as never,
+        messages: [{ id: "wamid.inbound" }],
+        statuses: "not-statuses" as never,
+      },
+    };
+    expect(normalizeWhatsAppWebhookEvents({
+      entry: [{ changes: [change] }],
+    })).toEqual([{
+      type: "messaging.message.received",
+      provider: "whatsapp",
+      message: { id: "wamid.inbound" },
+      contact: undefined,
+      raw: change,
+    }]);
   });
 });

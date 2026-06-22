@@ -11107,6 +11107,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "messengerMessage",
             "label": "Messenger Message"
+          },
+          {
+            "kind": "messengerPage",
+            "label": "Messenger Page"
           }
         ],
         "requiresCredential": true,

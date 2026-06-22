@@ -20,16 +20,19 @@ export function normalizeWhatsAppWebhookEvents(payload: WhatsAppWebhookPayload):
   for (const entry of payload.entry ?? []) {
     for (const change of entry.changes ?? []) {
       const value = change.value;
-      for (const message of value?.messages ?? []) {
+      const messages = Array.isArray(value?.messages) ? value.messages : [];
+      const statuses = Array.isArray(value?.statuses) ? value.statuses : [];
+      const contacts = Array.isArray(value?.contacts) ? value.contacts : [];
+      for (const message of messages) {
         events.push({
           type: "messaging.message.received",
           provider: "whatsapp",
           message,
-          contact: value?.contacts?.[0],
+          contact: contacts[0],
           raw: change,
         });
       }
-      for (const status of value?.statuses ?? []) {
+      for (const status of statuses) {
         events.push({
           type: "messaging.delivery.updated",
           provider: "whatsapp",

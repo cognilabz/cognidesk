@@ -1,4 +1,4 @@
-import type { InstagramWebhookPayload } from "./contracts.js";
+import type { InstagramSocialJsonObject, InstagramWebhookPayload } from "./contracts.js";
 
 export type InstagramNormalizedEvent = {
   type: "social.message.received";
@@ -11,7 +11,8 @@ export function normalizeInstagramWebhookEvents(payload: InstagramWebhookPayload
   const events: InstagramNormalizedEvent[] = [];
   for (const entry of payload.entry ?? []) {
     for (const messaging of entry.messaging ?? []) {
-      if (!messaging.message) continue;
+      if (!isInstagramSocialJsonObject(messaging)) continue;
+      if (!isInstagramSocialJsonObject(messaging.message)) continue;
       events.push({
         type: "social.message.received",
         provider: "instagram",
@@ -21,4 +22,8 @@ export function normalizeInstagramWebhookEvents(payload: InstagramWebhookPayload
     }
   }
   return events;
+}
+
+function isInstagramSocialJsonObject(value: unknown): value is InstagramSocialJsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

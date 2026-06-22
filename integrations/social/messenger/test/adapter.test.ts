@@ -57,6 +57,23 @@ describe("@cognidesk/integration-social-messenger", () => {
     const body = JSON.stringify({ object: "page", entry: [] });
     const signature = `sha256=${createHmac("sha256", "secret").update(body).digest("hex")}`;
     expect(validateMessengerWebhookSignature({ appSecret: "secret", rawBody: body, signature })).toBe(true);
+    const integration = defineMessengerSocialIntegration({
+      pageAccessToken: "token",
+      pageId: "page_1",
+      appSecret: "secret",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+    await expect(integration.run("messenger.webhook-signature", {
+      appSecret: "attacker",
+      rawBody: body,
+      signature,
+    })).resolves.toBe(true);
+    const attackerSignature = `sha256=${createHmac("sha256", "attacker").update(body).digest("hex")}`;
+    await expect(integration.run("messenger.webhook-signature", {
+      appSecret: "attacker",
+      rawBody: body,
+      signature: attackerSignature,
+    })).resolves.toBe(false);
     const request = new Request("https://example.test/webhook", {
       method: "POST",
       headers: { "x-hub-signature-256": signature },
@@ -102,5 +119,28 @@ describe("@cognidesk/integration-social-messenger", () => {
       object: "page",
       entry: [{ id: "page_1", time: 1_718_000_000_001, messaging: [delivery] }],
     })).toEqual([]);
+  });
+
+  it("skips malformed delivery envelopes before reading message fields", () => {
+    const delivery = {
+      sender: { id: "psid_1" },
+      recipient: { id: "page_1" },
+      timestamp: 1_718_000_000_000,
+      message: { mid: "m_1", text: "Hi" },
+    };
+
+    expect(normalizeMessengerWebhookEvents({
+      object: "page",
+      entry: [{
+        id: "page_1",
+        time: 1_718_000_000_001,
+        messaging: [null, undefined, "not-an-envelope", delivery] as never,
+      }],
+    })).toEqual([{
+      type: "social.message.received",
+      provider: "messenger",
+      message: { mid: "m_1", text: "Hi" },
+      raw: delivery,
+    }]);
   });
 });
