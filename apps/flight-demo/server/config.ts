@@ -191,9 +191,38 @@ const voiceProviderSchema = z.discriminatedUnion("provider", [
   deepgramVoiceProviderSchema,
 ]);
 
+const discordThreadAutoArchiveDurationSchema = z.union([
+  z.literal(60),
+  z.literal(1440),
+  z.literal(4320),
+  z.literal(10080),
+]);
+
+const discordConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  botTokenEnv: z.string().min(1).default("DISCORD_BOT_TOKEN"),
+  applicationId: z.string().min(1).optional(),
+  guildId: z.string().min(1).optional(),
+  supportChannelId: z.string().min(1).optional(),
+  webAppUrl: z.string().url().optional(),
+  threadAutoArchiveDuration: discordThreadAutoArchiveDurationSchema.default(1440),
+  mirrorPollIntervalMs: z.number().int().positive().default(1_000),
+}).superRefine((discord, ctx) => {
+  if (!discord.enabled) return;
+  for (const key of ["applicationId", "guildId", "supportChannelId", "webAppUrl"] as const) {
+    if (discord[key]) continue;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [key],
+      message: `discord.${key} is required when discord.enabled is true.`,
+    });
+  }
+});
+
 const flightDemoConfigSchema = z.object({
   models: modelProviderSchema,
   voice: voiceProviderSchema.optional(),
+  discord: discordConfigSchema.optional(),
   storage: z.object({
     sqlitePath: z.string().min(1),
     knowledgeIndexPath: z.string().min(1),
@@ -205,6 +234,14 @@ export type FlightDemoModelConfig = FlightDemoConfig["models"];
 export type FlightDemoEmbeddingConfig = z.infer<typeof embeddingProviderSchema>;
 export type FlightDemoModelProvider = FlightDemoModelConfig["provider"];
 export type FlightDemoVoiceConfig = NonNullable<FlightDemoConfig["voice"]>;
+export type FlightDemoDiscordConfig = NonNullable<FlightDemoConfig["discord"]>;
+export type EnabledFlightDemoDiscordConfig = FlightDemoDiscordConfig & {
+  enabled: true;
+  applicationId: string;
+  guildId: string;
+  supportChannelId: string;
+  webAppUrl: string;
+};
 export type ConfiguredModelApiKeys = {
   language: string;
   embedding?: string;
@@ -222,6 +259,9 @@ export type ConfiguredVoiceProviderSecrets =
     }
   | { provider: "google-speech"; accessToken: string }
   | { provider: "deepgram"; apiKey: string };
+export type ConfiguredDiscordSecrets = {
+  botToken: string;
+};
 
 const textOnlyModelProviders = new Set<FlightDemoModelProvider>(["anthropic", "groq", "xai"]);
 const embeddingCapableModelProviders = new Set<FlightDemoModelProvider>([
@@ -415,6 +455,32 @@ export function getConfiguredVoiceProviderSecrets(config: FlightDemoConfig): Con
       return { provider: "deepgram", apiKey };
     }
   }
+}
+
+export function getConfiguredDiscordIntegration(config: FlightDemoConfig): {
+  config: EnabledFlightDemoDiscordConfig;
+  secrets: ConfiguredDiscordSecrets;
+} | undefined {
+  loadFlightDemoEnv();
+  if (!config.discord?.enabled) return undefined;
+  if (
+    !config.discord.applicationId
+    || !config.discord.guildId
+    || !config.discord.supportChannelId
+    || !config.discord.webAppUrl
+  ) {
+    throw new Error("Flight demo Discord integration is enabled but required Discord configuration is missing.");
+  }
+  const botToken = process.env[config.discord.botTokenEnv];
+  if (!botToken) {
+    throw new Error(
+      `Flight demo Discord integration requires ${config.discord.botTokenEnv} for Discord Gateway access.`,
+    );
+  }
+  return {
+    config: config.discord as EnabledFlightDemoDiscordConfig,
+    secrets: { botToken },
+  };
 }
 
 export function getConfiguredVoiceApiKey(config: FlightDemoConfig) {
