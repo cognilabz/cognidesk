@@ -1,7 +1,5 @@
-import type {
-  DiscordHttpApiGeneratedClient,
-  DiscordHttpApiGeneratedOperationCaller,
-} from "./http-api-client.generated.js";
+import type { ChannelEventEnvelopeInput } from "@cognidesk/core";
+import type { Client, ClientOptions, REST } from "discord.js";
 
 export type DiscordCommunityJsonPrimitive = string | number | boolean | null;
 export type DiscordCommunityJsonValue =
@@ -9,19 +7,34 @@ export type DiscordCommunityJsonValue =
   | DiscordCommunityJsonObject
   | readonly DiscordCommunityJsonValue[];
 export type DiscordCommunityProviderExtensionValue = DiscordCommunityJsonValue | object | undefined;
+
 export interface DiscordCommunityJsonObject {
   [key: string]: DiscordCommunityProviderExtensionValue;
 }
+
 export type DiscordCommunityProviderPayload = DiscordCommunityJsonObject | object;
-export type DiscordCommunityProviderQuery = Record<string, DiscordCommunityProviderExtensionValue>;
-export interface DiscordCommunityProviderResponse extends DiscordCommunityJsonObject {}
-export interface DiscordCommunityProviderExtensionFields extends DiscordCommunityJsonObject {}
+
+export interface DiscordRestOptions {
+  body?: DiscordCommunityProviderPayload;
+  query?: URLSearchParams;
+  reason?: string;
+}
+
+export interface DiscordRestLike {
+  get(route: string, options?: DiscordRestOptions): Promise<unknown>;
+  post(route: string, options?: DiscordRestOptions): Promise<unknown>;
+}
 
 export interface DiscordCommunityClientOptions {
   botToken: string;
   apiBaseUrl?: string;
   apiVersion?: string;
+  rest?: DiscordRestLike;
   fetch?: typeof fetch;
+}
+
+export interface DiscordGatewayClientOptions {
+  clientOptions?: ClientOptions;
 }
 
 export interface DiscordCredentialStatusInput {
@@ -75,7 +88,7 @@ export interface DiscordChannelResource {
   name?: string;
   topic?: string | null;
   parent_id?: string | null;
-  thread_metadata?: DiscordCommunityProviderExtensionFields;
+  thread_metadata?: DiscordCommunityJsonObject;
   message?: DiscordMessageResource;
   [key: string]: DiscordCommunityProviderExtensionValue;
 }
@@ -116,7 +129,7 @@ export interface DiscordMessageInput {
   stickerIds?: string[];
   attachments?: DiscordCommunityJsonValue[];
   flags?: number;
-  additionalFields?: DiscordCommunityProviderExtensionFields;
+  additionalFields?: DiscordCommunityJsonObject;
 }
 
 export interface DiscordSendChannelMessageInput extends DiscordMessageInput {
@@ -156,24 +169,16 @@ export interface DiscordExecuteWebhookInput extends DiscordMessageInput {
   threadId?: string;
 }
 
-export type DiscordHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-
-export interface DiscordResource {
-  [key: string]: DiscordCommunityProviderExtensionValue;
+export interface DiscordGetGuildInput {
+  guildId: string;
 }
 
-export interface DiscordOperationRequestInput {
-  pathParams?: Record<string, string | number> | undefined;
-  query?: DiscordCommunityProviderQuery | undefined;
-  body?: DiscordCommunityProviderPayload | undefined;
-  headers?: Record<string, string> | undefined;
-  reason?: string | undefined;
-  auth?: "bot" | "none" | undefined;
+export interface DiscordGetChannelInput {
+  channelId: string;
 }
 
 export interface DiscordCommunityClient {
-  httpApi: DiscordHttpApiGeneratedClient;
-  requestOperation: DiscordHttpApiGeneratedOperationCaller;
+  rest: DiscordRestLike | REST;
   sendChannelMessage(input: DiscordSendChannelMessageInput): Promise<DiscordMessageResource>;
   createThread(input: DiscordCreateThreadInput): Promise<DiscordChannelResource>;
   createForumPost(input: DiscordCreateForumPostInput): Promise<DiscordChannelResource>;
@@ -183,6 +188,7 @@ export interface DiscordCommunityClient {
   getGuild(guildId: string): Promise<DiscordGuildResource>;
   getChannel(channelId: string): Promise<DiscordChannelResource>;
   listChannelMessages(input: DiscordListMessagesInput): Promise<DiscordMessageResource[]>;
+  createGatewayClient(options?: DiscordGatewayClientOptions): Client;
 }
 
 export interface DiscordLiveCheckOptions extends DiscordCommunityClientOptions {
@@ -218,9 +224,20 @@ export interface ParseDiscordInteractionOptions {
   requireSignature?: boolean;
 }
 
+export interface ParseDiscordInteractionRequestInput extends ParseDiscordInteractionOptions {
+  request: Request;
+}
+
 export interface ValidateDiscordInteractionSignatureInput {
   publicKey: string;
   rawBody: string | Buffer;
   timestamp: string;
   signature: string;
 }
+
+export interface NormalizeDiscordChannelEventInput {
+  interaction: DiscordParsedInteractionRequest;
+  receivedAt?: string;
+}
+
+export type DiscordChannelEvent = ChannelEventEnvelopeInput<Record<string, unknown>, unknown>;

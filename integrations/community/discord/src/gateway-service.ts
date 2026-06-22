@@ -9,7 +9,7 @@ import {
   type TextChannel,
   type ThreadChannel,
 } from "discord.js";
-import type { DiscordGatewayServiceConfig, DiscordGatewayServiceCopy } from "./config.js";
+import type { DiscordGatewayServiceConfig, DiscordGatewayServiceCopy } from "./gateway-config.js";
 import type { DiscordGatewayStore, DiscordThreadBinding } from "./sqlite-store.js";
 
 const DISCORD_PROVIDER_PACKAGE_ID = "community.discord";
