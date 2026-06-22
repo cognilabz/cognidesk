@@ -1,21 +1,21 @@
 import type { ChannelEventEnvelopeInput } from "@cognidesk/core";
 import type { Client, ClientOptions, REST } from "discord.js";
 
-export type DiscordCommunityJsonPrimitive = string | number | boolean | null;
-export type DiscordCommunityJsonValue =
-  | DiscordCommunityJsonPrimitive
-  | DiscordCommunityJsonObject
-  | readonly DiscordCommunityJsonValue[];
-export type DiscordCommunityProviderExtensionValue = DiscordCommunityJsonValue | object | undefined;
+export type DiscordMessagingJsonPrimitive = string | number | boolean | null;
+export type DiscordMessagingJsonValue =
+  | DiscordMessagingJsonPrimitive
+  | DiscordMessagingJsonObject
+  | readonly DiscordMessagingJsonValue[];
+export type DiscordMessagingProviderExtensionValue = DiscordMessagingJsonValue | object | undefined;
 
-export interface DiscordCommunityJsonObject {
-  [key: string]: DiscordCommunityProviderExtensionValue;
+export interface DiscordMessagingJsonObject {
+  [key: string]: DiscordMessagingProviderExtensionValue;
 }
 
-export type DiscordCommunityProviderPayload = DiscordCommunityJsonObject | object;
+export type DiscordMessagingProviderPayload = DiscordMessagingJsonObject | object;
 
 export interface DiscordRestOptions {
-  body?: DiscordCommunityProviderPayload;
+  body?: DiscordMessagingProviderPayload;
   query?: URLSearchParams;
   reason?: string;
 }
@@ -25,7 +25,7 @@ export interface DiscordRestLike {
   post(route: string, options?: DiscordRestOptions): Promise<unknown>;
 }
 
-export interface DiscordCommunityClientOptions {
+export interface DiscordMessagingClientOptions {
   botToken: string;
   apiBaseUrl?: string;
   apiVersion?: string;
@@ -59,7 +59,7 @@ export interface DiscordUserResource {
   bot?: boolean;
   system?: boolean;
   avatar?: string | null;
-  [key: string]: DiscordCommunityProviderExtensionValue;
+  [key: string]: DiscordMessagingProviderExtensionValue;
 }
 
 export interface DiscordApplicationResource {
@@ -69,7 +69,7 @@ export interface DiscordApplicationResource {
   bot_public?: boolean;
   bot_require_code_grant?: boolean;
   verify_key?: string;
-  [key: string]: DiscordCommunityProviderExtensionValue;
+  [key: string]: DiscordMessagingProviderExtensionValue;
 }
 
 export interface DiscordGuildResource {
@@ -78,7 +78,7 @@ export interface DiscordGuildResource {
   icon?: string | null;
   owner_id?: string;
   features?: string[];
-  [key: string]: DiscordCommunityProviderExtensionValue;
+  [key: string]: DiscordMessagingProviderExtensionValue;
 }
 
 export interface DiscordChannelResource {
@@ -88,9 +88,9 @@ export interface DiscordChannelResource {
   name?: string;
   topic?: string | null;
   parent_id?: string | null;
-  thread_metadata?: DiscordCommunityJsonObject;
+  thread_metadata?: DiscordMessagingJsonObject;
   message?: DiscordMessageResource;
-  [key: string]: DiscordCommunityProviderExtensionValue;
+  [key: string]: DiscordMessagingProviderExtensionValue;
 }
 
 export interface DiscordMessageResource {
@@ -103,13 +103,13 @@ export interface DiscordMessageResource {
   edited_timestamp?: string | null;
   tts?: boolean;
   mention_everyone?: boolean;
-  mentions?: DiscordCommunityJsonValue[];
-  attachments?: DiscordCommunityJsonValue[];
-  embeds?: DiscordCommunityJsonValue[];
-  components?: DiscordCommunityJsonValue[];
+  mentions?: DiscordMessagingJsonValue[];
+  attachments?: DiscordMessagingJsonValue[];
+  embeds?: DiscordMessagingJsonValue[];
+  components?: DiscordMessagingJsonValue[];
   flags?: number;
   thread?: DiscordChannelResource;
-  [key: string]: DiscordCommunityProviderExtensionValue;
+  [key: string]: DiscordMessagingProviderExtensionValue;
 }
 
 export interface DiscordAllowedMentions {
@@ -122,14 +122,14 @@ export interface DiscordAllowedMentions {
 export interface DiscordMessageInput {
   content?: string;
   tts?: boolean;
-  embeds?: DiscordCommunityJsonValue[];
+  embeds?: DiscordMessagingJsonValue[];
   allowedMentions?: DiscordAllowedMentions;
-  messageReference?: DiscordCommunityJsonObject;
-  components?: DiscordCommunityJsonValue[];
+  messageReference?: DiscordMessagingJsonObject;
+  components?: DiscordMessagingJsonValue[];
   stickerIds?: string[];
-  attachments?: DiscordCommunityJsonValue[];
+  attachments?: DiscordMessagingJsonValue[];
   flags?: number;
-  additionalFields?: DiscordCommunityJsonObject;
+  additionalFields?: DiscordMessagingJsonObject;
 }
 
 export interface DiscordSendChannelMessageInput extends DiscordMessageInput {
@@ -177,7 +177,7 @@ export interface DiscordGetChannelInput {
   channelId: string;
 }
 
-export interface DiscordCommunityClient {
+export interface DiscordMessagingClient {
   rest: DiscordRestLike | REST;
   sendChannelMessage(input: DiscordSendChannelMessageInput): Promise<DiscordMessageResource>;
   createThread(input: DiscordCreateThreadInput): Promise<DiscordChannelResource>;
@@ -191,11 +191,11 @@ export interface DiscordCommunityClient {
   createGatewayClient(options?: DiscordGatewayClientOptions): Client;
 }
 
-export interface DiscordLiveCheckOptions extends DiscordCommunityClientOptions {
+export interface DiscordLiveCheckOptions extends DiscordMessagingClientOptions {
   applicationId?: string;
   guildId?: string;
   channelId?: string;
-  client?: Pick<DiscordCommunityClient, "getCurrentBot" | "getCurrentApplication" | "getGuild" | "getChannel">;
+  client?: Pick<DiscordMessagingClient, "getCurrentBot" | "getCurrentApplication" | "getGuild" | "getChannel">;
 }
 
 export interface DiscordInteractionPayload {
@@ -205,11 +205,11 @@ export interface DiscordInteractionPayload {
   token?: string;
   guild_id?: string;
   channel_id?: string;
-  member?: DiscordCommunityProviderExtensionValue;
+  member?: DiscordMessagingProviderExtensionValue;
   user?: DiscordUserResource;
-  data?: DiscordCommunityJsonObject;
+  data?: DiscordMessagingJsonObject;
   message?: DiscordMessageResource;
-  [key: string]: DiscordCommunityProviderExtensionValue;
+  [key: string]: DiscordMessagingProviderExtensionValue;
 }
 
 export interface DiscordParsedInteractionRequest {
