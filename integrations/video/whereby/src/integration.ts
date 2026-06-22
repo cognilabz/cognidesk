@@ -4,10 +4,13 @@ import {
 } from "@cognidesk/integration-kit";
 import { wherebyVideoProviderManifest } from "./manifest.js";
 import type {
+  WherebyFullApiOperationKey,
+  WherebyFullApiOperationRequestMap,
+} from "./full-api-client.generated.js";
+import type {
   ParseWherebyWebhookRequestOptions,
   WherebyCreateMeetingInput,
   WherebyGetMeetingInput,
-  WherebyOperationRequestInput,
   WherebyRoomThemeTokensInput,
   WherebyVideoClient,
 } from "./contracts.js";
@@ -18,10 +21,19 @@ export interface WherebyVideoIntegrationContext {
 }
 
 type WherebyVideoOperationContext = Partial<IntegrationOperationContext<WherebyVideoIntegrationContext>> & Partial<WherebyVideoIntegrationContext>;
+type WherebyRestRequestOperationInput<OperationKey extends WherebyFullApiOperationKey> = {
+  operation: OperationKey;
+  request: WherebyFullApiOperationRequestMap[OperationKey];
+};
 
 function requireWherebyVideoClient(context: WherebyVideoOperationContext): WherebyVideoClient {
   const client = context.credentials?.client ?? context.client;
-  if (!client) throw new Error("Whereby video operation requires a configured Whereby video client.");
+  if (!client) {
+    throw new Error(
+      "Whereby video operation requires a configured Whereby video client. " +
+      "Provide a client via context.credentials.client or context.client.",
+    );
+  }
   return client;
 }
 
@@ -40,10 +52,10 @@ export const wherebyVideoOperationHandlers = {
     input: { roomName: string; tokens: WherebyRoomThemeTokensInput },
     context: WherebyVideoOperationContext,
   ) => requireWherebyVideoClient(context).setRoomThemeTokens(input.roomName, input.tokens),
-  "whereby.rest.request": (
-    input: { operation: Parameters<WherebyVideoClient["requestOperation"]>[0]; request?: WherebyOperationRequestInput },
+  "whereby.rest.request": <OperationKey extends WherebyFullApiOperationKey>(
+    input: WherebyRestRequestOperationInput<OperationKey>,
     context: WherebyVideoOperationContext,
-  ) => requireWherebyVideoClient(context).requestOperation(input.operation, input.request as never),
+  ) => requireWherebyVideoClient(context).requestOperation(input.operation, input.request),
   "whereby.webhook.parse": (
     input: { request: Request; options?: ParseWherebyWebhookRequestOptions },
   ) => parseWherebyWebhookRequest(input.request, input.options),

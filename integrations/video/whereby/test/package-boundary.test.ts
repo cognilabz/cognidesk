@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createWherebyVideoClient, wherebyVideoIntegration, wherebyVideoOperationHandlers } from "../src/index.js";
 
 describe("@cognidesk/integration-video-whereby package boundary", () => {
-  it("binds every manifest operation to an executable handler", () => {
-    expect(Object.keys(wherebyVideoIntegration.operations).sort())
-      .toEqual(wherebyVideoIntegration.manifest.operations.map((operation) => operation.alias).sort());
-  });
-
   it("imports the manifest-only entry without importing provider clients", async () => {
     const manifestModule = await import("../src/manifest.js");
 
@@ -15,7 +9,16 @@ describe("@cognidesk/integration-video-whereby package boundary", () => {
     expect(manifestModule).not.toHaveProperty("createWherebyFullApiGeneratedClient");
   });
 
+  it("binds every manifest operation to an executable handler", async () => {
+    const { wherebyVideoIntegration } = await import("../src/integration.js");
+
+    expect(Object.keys(wherebyVideoIntegration.operations).sort())
+      .toEqual(wherebyVideoIntegration.manifest.operations.map((operation) => operation.alias).sort());
+  });
+
   it("executes normalized meeting creation through the integration handler", async () => {
+    const { createWherebyVideoClient } = await import("../src/client.js");
+    const { wherebyVideoOperationHandlers } = await import("../src/integration.js");
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({
         meetingId: "meeting_123",

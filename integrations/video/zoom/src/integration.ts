@@ -4,11 +4,14 @@ import {
 } from "@cognidesk/integration-kit";
 import { zoomVideoProviderManifest } from "./manifest.js";
 import type {
+  ZoomMeetingsApiOperationKey,
+  ZoomMeetingsApiOperationRequestMap,
+} from "./meetings-api-client.generated.js";
+import type {
   ParseZoomWebhookRequestOptions,
   ZoomCreateMeetingInput,
   ZoomDeleteMeetingInput,
   ZoomGetMeetingInput,
-  ZoomOperationRequestInput,
   ZoomUpdateMeetingInput,
   ZoomVideoClient,
 } from "./contracts.js";
@@ -19,6 +22,10 @@ export interface ZoomVideoIntegrationContext {
 }
 
 type ZoomVideoOperationContext = Partial<IntegrationOperationContext<ZoomVideoIntegrationContext>> & Partial<ZoomVideoIntegrationContext>;
+type ZoomMeetingsRequestOperationInput<OperationKey extends ZoomMeetingsApiOperationKey> = {
+  operation: OperationKey;
+  request: ZoomMeetingsApiOperationRequestMap[OperationKey];
+};
 
 function requireZoomVideoClient(context: ZoomVideoOperationContext): ZoomVideoClient {
   const client = context.credentials?.client ?? context.client;
@@ -45,10 +52,10 @@ export const zoomVideoOperationHandlers = {
   ) => requireZoomVideoClient(context).deleteMeeting(input.meetingId, input.options),
   "video.user.current.read": (_input: undefined, context: ZoomVideoOperationContext) =>
     requireZoomVideoClient(context).getCurrentUser(),
-  "zoom.meetings.request": (
-    input: { operation: Parameters<ZoomVideoClient["requestOperation"]>[0]; request?: ZoomOperationRequestInput },
+  "zoom.meetings.request": <OperationKey extends ZoomMeetingsApiOperationKey>(
+    input: ZoomMeetingsRequestOperationInput<OperationKey>,
     context: ZoomVideoOperationContext,
-  ) => requireZoomVideoClient(context).requestOperation(input.operation, input.request as never),
+  ) => requireZoomVideoClient(context).requestOperation(input.operation, input.request),
   "zoom.webhook.parse": (
     input: { request: Request; options?: ParseZoomWebhookRequestOptions },
   ) => parseZoomWebhookRequest(input.request, input.options),

@@ -1,9 +1,10 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
-
-const WHEREBY_FULL_API_SPEC_VERSION = "v1";
-const WHEREBY_FULL_API_PATH_COUNT = 20;
-const WHEREBY_FULL_API_OPERATION_COUNT = 27;
-const WHEREBY_FULL_API_GENERATED_FUNCTION_COUNT = 27;
+import { WHEREBY_FULL_API_GENERATED_FUNCTION_COUNT } from "./full-api-client.generated.js";
+import {
+  WHEREBY_FULL_API_OPERATION_COUNT,
+  WHEREBY_FULL_API_PATH_COUNT,
+  WHEREBY_FULL_API_SPEC_VERSION,
+} from "./full-api-operations.generated.js";
 
 export const wherebyVideoProviderManifest = defineProviderPackage({
   id: "video.whereby",

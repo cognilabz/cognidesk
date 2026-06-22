@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createZoomVideoClient, zoomVideoIntegration, zoomVideoOperationHandlers } from "../src/index.js";
 
 describe("@cognidesk/integration-video-zoom package boundary", () => {
-  it("binds every manifest operation to an executable handler", () => {
-    expect(Object.keys(zoomVideoIntegration.operations).sort())
-      .toEqual(zoomVideoIntegration.manifest.operations.map((operation) => operation.alias).sort());
-  });
-
   it("imports the manifest-only entry without importing provider clients", async () => {
     const manifestModule = await import("../src/manifest.js");
 
@@ -15,7 +9,16 @@ describe("@cognidesk/integration-video-zoom package boundary", () => {
     expect(manifestModule).not.toHaveProperty("createZoomMeetingsApiGeneratedClient");
   });
 
+  it("binds every manifest operation to an executable handler", async () => {
+    const { zoomVideoIntegration } = await import("../src/integration.js");
+
+    expect(Object.keys(zoomVideoIntegration.operations).sort())
+      .toEqual(zoomVideoIntegration.manifest.operations.map((operation) => operation.alias).sort());
+  });
+
   it("executes normalized meeting creation through the integration handler", async () => {
+    const { createZoomVideoClient } = await import("../src/client.js");
+    const { zoomVideoOperationHandlers } = await import("../src/integration.js");
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({ id: 123, topic: "Support video" }), { status: 201 })
     );
