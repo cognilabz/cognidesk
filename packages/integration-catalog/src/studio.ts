@@ -117,11 +117,10 @@ function deriveReadinessState(input: {
   blockerCount: number;
 }): StudioIntegrationReadinessState {
   if (!input.installed) return "unknown";
-  const hasCredentialBlocker = input.credentialStates.some((state) => blockedCredentialStates.has(state));
-  if (input.status === "blocked" || input.blockerCount > 0 || hasCredentialBlocker) {
+  if (input.status && readyStatuses.has(input.status)) return "ready";
+  if (input.status === "blocked" || input.blockerCount > 0 || input.credentialStates.some((state) => blockedCredentialStates.has(state))) {
     return "blocked";
   }
-  if (input.status && readyStatuses.has(input.status)) return "ready";
   if (input.status === "not-configured") return "not-configured";
   if (input.status === "configured") return "configured";
   return "unknown";

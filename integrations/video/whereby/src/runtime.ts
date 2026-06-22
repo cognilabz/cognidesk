@@ -21,8 +21,9 @@ export {
 } from "./full-api-operations.generated.js";
 export type * from "./full-api-schema-types.generated.js";
 export type * from "./contracts.js";
+
 export { createWherebyVideoClient } from "./client.js";
-export { wherebyVideoProviderManifest } from "./manifest.js";
+export { wherebyVideoIntegration, wherebyVideoOperationHandlers } from "./integration.js";
 export {
   createWherebyVideoLiveChecks,
   wherebyVideoCredentialStatuses,

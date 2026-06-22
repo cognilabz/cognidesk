@@ -210,6 +210,32 @@ initialize(): Promise<void>;
 
 [`StorageAdapter`](../../core/dist.md#storageadapter).[`initialize`](../../core/dist.md#initialize-1)
 
+##### listConversations()
+
+```ts
+listConversations<TConversationContext>(options?): Promise<ConversationRecord<TConversationContext>[]>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`ListConversationsOptions`](../../core/dist.md#listconversationsoptions) |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](../../core/dist.md#conversationrecord)\<`TConversationContext`\>[]\>
+
+###### Implementation of
+
+[`StorageAdapter`](../../core/dist.md#storageadapter).[`listConversations`](../../core/dist.md#listconversations-1)
+
 ##### listEvents()
 
 ```ts

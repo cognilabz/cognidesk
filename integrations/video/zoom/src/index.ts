@@ -23,6 +23,7 @@ export type * from "./meetings-api-schema-types.generated.js";
 
 export { createZoomVideoClient } from "./client.js";
 export type * from "./contracts.js";
+export { zoomVideoIntegration, zoomVideoOperationHandlers } from "./integration.js";
 export { zoomVideoCredentialStatuses } from "./credentials.js";
 export { zoomVideoProviderManifest } from "./manifest.js";
 export { createZoomVideoLiveChecks } from "./readiness.js";

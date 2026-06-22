@@ -10113,6 +10113,99 @@ const deepgramSpeechProviderManifest: {
   privacyNotes: string[];
   provider: string;
   trustLevel: "community" | "official" | "verified" | "experimental";
+} & {
+  capabilities: [{
+     audiences: ["customer-facing"];
+     capability: "receive";
+     description: "Transcribes customer PCM voice input with Deepgram speech-to-text.";
+     exposesSensitiveData: true;
+     label: "Transcribe speech";
+     providerObjects: [{
+        kind: "deepgramTranscript";
+        label: "Deepgram Transcript";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: ["customer-facing"];
+     capability: "send";
+     description: "Synthesizes Cognidesk assistant text with Deepgram Aura text-to-speech.";
+     exposesSensitiveData: true;
+     label: "Synthesize speech";
+     providerObjects: [{
+        kind: "deepgramSpeechSynthesis";
+        label: "Deepgram Speech Synthesis";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: ["customer-facing", "internal-support"];
+     capability: "media";
+     description: "Exchanges buffered PCM input and synthesized 24 kHz linear16 output for Cognidesk voice sessions.";
+     exposesSensitiveData: true;
+     label: "Speech audio media";
+     providerObjects: [{
+        kind: "voiceTranscript";
+        label: "Voice Transcript";
+      }, {
+        kind: "voiceAudio";
+        label: "Voice Audio";
+     }];
+     requiresCredential: true;
+  }];
+  category: "voice";
+  channelAudiences: ["customer-facing", "mixed"];
+  coverage: {
+     evidence: [{
+        label: "Deepgram prerecorded audio STT";
+        url: "https://developers.deepgram.com/docs/pre-recorded-audio";
+      }, {
+        label: "Deepgram Text-to-Speech REST";
+        url: "https://developers.deepgram.com/docs/text-to-speech";
+      }, {
+        label: "Deepgram TTS media output settings";
+        url: "https://developers.deepgram.com/docs/tts-media-output-settings";
+     }];
+     notes: ["Implements Deepgram prerecorded speech-to-text and Aura text-to-speech REST requests for Cognidesk STT/TTS voice pipelines.", "Generated operation inventory and caller interfaces cover Deepgram's official REST OpenAPI document, including /v1/listen and /v1/speak.", "Deepgram supplies transcripts and synthesized speech audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.", "Does not implement Deepgram Voice Agent, Flux websocket sessions, live streaming STT, custom model administration, self-hosted deployment management, telephony carrier setup, or Deepgram account policy."];
+     scope: "provider-api-subset";
+  };
+  credentialRequirements: [{
+     description: "Server-side Deepgram API key sent through the Authorization Token header for speech API requests.";
+     id: "deepgram-api-key";
+     label: "Deepgram API key";
+     metadata: {
+        enterpriseControls: readonly ["project-retention-policy", "region-routing", "self-hosted-or-private-deployment"];
+        minimumAccess: readonly ["speech-to-text", "text-to-speech"];
+     };
+     required: true;
+  }];
+  directions: ["receive-only", "send-only", "bidirectional"];
+  id: "voice.deepgram";
+  limitations: ["This package implements REST STT/TTS for Cognidesk speech pipelines, not Deepgram Voice Agent or full streaming websocket sessions.", "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Deepgram.", "Consent, recording, retention, project region, model-improvement settings, self-hosting, and Deepgram enterprise account policy remain SDK-user/provider configuration."];
+  maintainers: [{
+     name: "Cognidesk";
+     type: "official";
+  }];
+  metadata: {
+     channelCoverage: {
+        backgroundModelProvider: "sdk-owned-agent-model-set";
+        browserVoiceProtocol: "sdk-owned-cognidesk-voice-websocket";
+        deepgramVoiceAgent: "not-covered";
+        fluxStreaming: "not-covered";
+        speechToText: "typed-prerecorded-audio-rest";
+        telephony: "not-covered";
+        textToSpeech: "typed-rest";
+     };
+     generatedSpeechApi: {
+        apiVersion: "deepgram-1.0.0";
+        functionCount: 49;
+        operationCount: 49;
+     };
+  };
+  name: "Deepgram Speech";
+  packageName: "@cognidesk/integrations";
+  privacyNotes: ["Customer audio is sent to Deepgram for transcription, and assistant response text is sent to Deepgram for synthesis.", "Deepgram API keys remain server-side and are never issued to browsers by this package."];
+  provider: "deepgram";
+  trustLevel: "official";
 };
 ```
 
@@ -10120,25 +10213,60 @@ const deepgramSpeechProviderManifest: {
 
 | Name | Type |
 | ------ | ------ |
-| <a id="property-capabilities"></a> `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-category"></a> `category` | `string` |
-| <a id="property-channelaudiences"></a> `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
-| <a id="property-coverage"></a> `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
+| `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `category` | `string` |
+| `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
+| `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
 | `coverage.evidence` | \{ `label`: `string`; `url?`: `string`; \}[] |
 | `coverage.notes` | `string`[] |
 | `coverage.scope` | \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"` |
-| <a id="property-credentialrequirements"></a> `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
-| <a id="property-directions"></a> `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
-| <a id="property-id"></a> `id` | `string` |
-| <a id="property-limitations"></a> `limitations` | `string`[] |
-| <a id="property-maintainers"></a> `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
-| <a id="property-metadata"></a> `metadata?` | `Record`\<`string`, `unknown`\> |
-| <a id="property-name"></a> `name` | `string` |
-| <a id="property-operations"></a> `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-packagename"></a> `packageName` | `string` |
-| <a id="property-privacynotes"></a> `privacyNotes` | `string`[] |
-| <a id="property-provider"></a> `provider` | `string` |
-| <a id="property-trustlevel"></a> `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+| `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
+| `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
+| `id` | `string` |
+| `limitations` | `string`[] |
+| `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
+| `metadata?` | `Record`\<`string`, `unknown`\> |
+| `name` | `string` |
+| `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `packageName` | `string` |
+| `privacyNotes` | `string`[] |
+| `provider` | `string` |
+| `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| `capabilities` | \[\{ `audiences`: \[`"customer-facing"`\]; `capability`: `"receive"`; `description`: `"Transcribes customer PCM voice input with Deepgram speech-to-text."`; `exposesSensitiveData`: `true`; `label`: `"Transcribe speech"`; `providerObjects`: \[\{ `kind`: `"deepgramTranscript"`; `label`: `"Deepgram Transcript"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: \[`"customer-facing"`\]; `capability`: `"send"`; `description`: `"Synthesizes Cognidesk assistant text with Deepgram Aura text-to-speech."`; `exposesSensitiveData`: `true`; `label`: `"Synthesize speech"`; `providerObjects`: \[\{ `kind`: `"deepgramSpeechSynthesis"`; `label`: `"Deepgram Speech Synthesis"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: \[`"customer-facing"`, `"internal-support"`\]; `capability`: `"media"`; `description`: `"Exchanges buffered PCM input and synthesized 24 kHz linear16 output for Cognidesk voice sessions."`; `exposesSensitiveData`: `true`; `label`: `"Speech audio media"`; `providerObjects`: \[\{ `kind`: `"voiceTranscript"`; `label`: `"Voice Transcript"`; \}, \{ `kind`: `"voiceAudio"`; `label`: `"Voice Audio"`; \}\]; `requiresCredential`: `true`; \}\] |
+| `category` | `"voice"` |
+| `channelAudiences` | \[`"customer-facing"`, `"mixed"`\] |
+| `coverage` | \{ `evidence`: \[\{ `label`: `"Deepgram prerecorded audio STT"`; `url`: `"https://developers.deepgram.com/docs/pre-recorded-audio"`; \}, \{ `label`: `"Deepgram Text-to-Speech REST"`; `url`: `"https://developers.deepgram.com/docs/text-to-speech"`; \}, \{ `label`: `"Deepgram TTS media output settings"`; `url`: `"https://developers.deepgram.com/docs/tts-media-output-settings"`; \}\]; `notes`: \[`"Implements Deepgram prerecorded speech-to-text and Aura text-to-speech REST requests for Cognidesk STT/TTS voice pipelines."`, `"Generated operation inventory and caller interfaces cover Deepgram's official REST OpenAPI document, including /v1/listen and /v1/speak."`, `"Deepgram supplies transcripts and synthesized speech audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary."`, `"Does not implement Deepgram Voice Agent, Flux websocket sessions, live streaming STT, custom model administration, self-hosted deployment management, telephony carrier setup, or Deepgram account policy."`\]; `scope`: `"provider-api-subset"`; \} |
+| `coverage.evidence` | \[\{ `label`: `"Deepgram prerecorded audio STT"`; `url`: `"https://developers.deepgram.com/docs/pre-recorded-audio"`; \}, \{ `label`: `"Deepgram Text-to-Speech REST"`; `url`: `"https://developers.deepgram.com/docs/text-to-speech"`; \}, \{ `label`: `"Deepgram TTS media output settings"`; `url`: `"https://developers.deepgram.com/docs/tts-media-output-settings"`; \}\] |
+| `coverage.notes` | \[`"Implements Deepgram prerecorded speech-to-text and Aura text-to-speech REST requests for Cognidesk STT/TTS voice pipelines."`, `"Generated operation inventory and caller interfaces cover Deepgram's official REST OpenAPI document, including /v1/listen and /v1/speak."`, `"Deepgram supplies transcripts and synthesized speech audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary."`, `"Does not implement Deepgram Voice Agent, Flux websocket sessions, live streaming STT, custom model administration, self-hosted deployment management, telephony carrier setup, or Deepgram account policy."`\] |
+| `coverage.scope` | `"provider-api-subset"` |
+| `credentialRequirements` | \[\{ `description`: `"Server-side Deepgram API key sent through the Authorization Token header for speech API requests."`; `id`: `"deepgram-api-key"`; `label`: `"Deepgram API key"`; `metadata`: \{ `enterpriseControls`: readonly \[`"project-retention-policy"`, `"region-routing"`, `"self-hosted-or-private-deployment"`\]; `minimumAccess`: readonly \[`"speech-to-text"`, `"text-to-speech"`\]; \}; `required`: `true`; \}\] |
+| `directions` | \[`"receive-only"`, `"send-only"`, `"bidirectional"`\] |
+| `id` | `"voice.deepgram"` |
+| `limitations` | \[`"This package implements REST STT/TTS for Cognidesk speech pipelines, not Deepgram Voice Agent or full streaming websocket sessions."`, `"The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Deepgram."`, `"Consent, recording, retention, project region, model-improvement settings, self-hosting, and Deepgram enterprise account policy remain SDK-user/provider configuration."`\] |
+| `maintainers` | \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
+| `metadata` | \{ `channelCoverage`: \{ `backgroundModelProvider`: `"sdk-owned-agent-model-set"`; `browserVoiceProtocol`: `"sdk-owned-cognidesk-voice-websocket"`; `deepgramVoiceAgent`: `"not-covered"`; `fluxStreaming`: `"not-covered"`; `speechToText`: `"typed-prerecorded-audio-rest"`; `telephony`: `"not-covered"`; `textToSpeech`: `"typed-rest"`; \}; `generatedSpeechApi`: \{ `apiVersion`: `"deepgram-1.0.0"`; `functionCount`: `49`; `operationCount`: `49`; \}; \} |
+| `metadata.channelCoverage` | \{ `backgroundModelProvider`: `"sdk-owned-agent-model-set"`; `browserVoiceProtocol`: `"sdk-owned-cognidesk-voice-websocket"`; `deepgramVoiceAgent`: `"not-covered"`; `fluxStreaming`: `"not-covered"`; `speechToText`: `"typed-prerecorded-audio-rest"`; `telephony`: `"not-covered"`; `textToSpeech`: `"typed-rest"`; \} |
+| `metadata.channelCoverage.backgroundModelProvider` | `"sdk-owned-agent-model-set"` |
+| `metadata.channelCoverage.browserVoiceProtocol` | `"sdk-owned-cognidesk-voice-websocket"` |
+| `metadata.channelCoverage.deepgramVoiceAgent` | `"not-covered"` |
+| `metadata.channelCoverage.fluxStreaming` | `"not-covered"` |
+| `metadata.channelCoverage.speechToText` | `"typed-prerecorded-audio-rest"` |
+| `metadata.channelCoverage.telephony` | `"not-covered"` |
+| `metadata.channelCoverage.textToSpeech` | `"typed-rest"` |
+| `metadata.generatedSpeechApi` | \{ `apiVersion`: `"deepgram-1.0.0"`; `functionCount`: `49`; `operationCount`: `49`; \} |
+| `metadata.generatedSpeechApi.apiVersion` | `"deepgram-1.0.0"` |
+| `metadata.generatedSpeechApi.functionCount` | `49` |
+| `metadata.generatedSpeechApi.operationCount` | `49` |
+| `name` | `"Deepgram Speech"` |
+| `packageName` | `"@cognidesk/integrations"` |
+| `privacyNotes` | \[`"Customer audio is sent to Deepgram for transcription, and assistant response text is sent to Deepgram for synthesis."`, `"Deepgram API keys remain server-side and are never issued to browsers by this package."`\] |
+| `provider` | `"deepgram"` |
+| `trustLevel` | `"official"` |
 
 ## Functions
 

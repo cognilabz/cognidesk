@@ -17303,11 +17303,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "video.whereby",
     "category": "video",
     "provider": "whereby",
-    "importPath": "@cognidesk/integrations/video/whereby",
-    "modulePath": "./video/whereby/index.js",
+    "importPath": "@cognidesk/integration-video-whereby/manifest",
+    "modulePath": "integrations/video/whereby/src/manifest.js",
     "manifestExport": "wherebyVideoProviderManifest",
     "name": "Whereby Embedded",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-video-whereby",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -17326,7 +17326,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "video",
         "whereby",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
@@ -17511,11 +17511,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
         "Coverage includes generated per-operation functions for every operation in Whereby's official public REST OpenAPI spec.",
         "Typed convenience helpers remain available for meetings, room theme tokens/media, recordings, transcriptions, beta summaries, insights, signed webhook parsing, and live readiness checks.",
-        "This full-provider claim is limited to the Whereby REST API surface; browser/mobile SDK behavior, live media transport, embedded UI control, assistants, web-component APIs, React/React Native SDKs, camera effects, customer S3 policy, and webhook event catalogs are separate Whereby surfaces.",
+        "This support slice is limited to the Whereby REST API surface; browser/mobile SDK behavior, live media transport, embedded UI control, assistants, web-component APIs, React/React Native SDKs, camera effects, customer S3 policy, and webhook event catalogs are separate Whereby surfaces.",
         "The SDK user owns consent, recording/transcription/summarization eligibility, data retention, host/viewer URL distribution, room branding policy, and feature-gated beta availability decisions."
       ],
       "evidence": [
@@ -17546,17 +17546,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "full",
+      "scope": "provider-api-subset",
+      "level": "standard",
       "conformant": null
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/video/whereby",
-      "providerModule": "./video/whereby/index.js",
+      "strategy": "provider-api-subset",
+      "sdkPackage": "@cognidesk/integration-video-whereby",
+      "runtimePackage": "@cognidesk/integration-video-whereby",
+      "providerModule": "integrations/video/whereby/src/manifest.js",
       "manifestExport": "wherebyVideoProviderManifest",
-      "manifestSource": "packages/integrations/src/video/whereby/manifest.ts",
+      "manifestSource": "integrations/video/whereby/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.whereby.com/reference/whereby-rest-api-reference/meetings"
     },
@@ -17628,21 +17628,71 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "summaries": "typed-create-list-read-delete",
         "insights": "typed-list-read",
         "webhooks": "typed-validate-parse",
-        "fullRestApiOperations": "generated-per-operation-functions",
+        "restApiOperations": "generated-constrained-support-slice",
         "browserSdkLiveMediaEmbeddedUiAssistants": "provider-supported-not-typed-separate-surface"
       },
-      "fullProviderApiVerification": {
+      "generatedSupportSliceVerification": {
         "provider": "whereby-rest",
         "apiVersion": "v1",
-        "verifiedAt": "2026-06-18",
+        "verifiedAt": "2026-06-21",
+        "sourceChecksumSha256": "3d9aec0774ff42f149cfc67e94ae9b70c617957e278a5e89920807274d8cd77d",
         "coverageArtifact": "docs/provider-coverage/whereby-full-api-2026-06-18.operations.json",
         "operationCatalogArtifact": "docs/provider-coverage/whereby-full-api-2026-06-18.operations.json",
         "functionCatalogArtifact": "docs/provider-coverage/whereby-full-api-2026-06-18.functions.json",
+        "operationCatalogChecksumSha256": "690fac858b8041598c7297147e5635e227f86b1fd1545e047182839d5fd2803a",
+        "functionCatalogChecksumSha256": "d33fa387bc6cd105db3e21b743e68102d483b7e3dacd0b4c1bedd85be5bc07ef",
         "documentedPathCount": 20,
         "documentedOperationCount": 27,
         "implementedOperationCount": 27,
         "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 27
+        "generatedFunctionCount": 27,
+        "allowlist": [
+          "POST /meetings",
+          "GET /meetings",
+          "GET /meetings/{meetingId}",
+          "DELETE /meetings/{meetingId}",
+          "GET /recordings",
+          "GET /recordings/{recordingId}",
+          "GET /recordings/{recordingId}/access-link",
+          "POST /recordings/bulk-delete",
+          "DELETE /recordings/{recordingId}",
+          "POST /transcriptions",
+          "GET /transcriptions",
+          "GET /transcriptions/{transcriptionId}",
+          "GET /transcriptions/{transcriptionId}/access-link",
+          "POST /transcriptions/bulk-delete",
+          "DELETE /transcriptions/{transcriptionId}",
+          "POST /summaries",
+          "GET /summaries",
+          "GET /summaries/{summaryId}",
+          "DELETE /summaries/{summaryId}",
+          "PUT /rooms/{roomName}/theme/tokens",
+          "PUT /rooms/{roomName}/theme/logo",
+          "PUT /rooms/{roomName}/theme/room-background",
+          "PUT /rooms/{roomName}/theme/room-knock-page-background",
+          "GET /insights/rooms",
+          "GET /insights/room-sessions",
+          "GET /insights/participants",
+          "GET /insights/participant"
+        ]
+      },
+      "sdkViability": {
+        "decision": "no-official-maintained-server-rest-sdk-found",
+        "checkedAt": "2026-06-21",
+        "rejectedSdkPackages": [
+          {
+            "packageName": "@whereby.com/browser-sdk",
+            "reason": "Official browser SDK for custom video UI, not a server REST API client."
+          },
+          {
+            "packageName": "@whereby.com/core",
+            "reason": "Official media/core SDK requiring browser or WebRTC polyfills, not a REST client."
+          },
+          {
+            "packageName": "@whereby.com/assistant-sdk",
+            "reason": "Official Node assistant/media SDK with beta/plan constraints, not REST resource management."
+          }
+        ]
       }
     }
   },
@@ -17650,11 +17700,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "video.zoom",
     "category": "video",
     "provider": "zoom",
-    "importPath": "@cognidesk/integrations/video/zoom",
-    "modulePath": "./video/zoom/index.js",
+    "importPath": "@cognidesk/integration-video-zoom/manifest",
+    "modulePath": "integrations/video/zoom/src/manifest.js",
     "manifestExport": "zoomVideoProviderManifest",
     "name": "Zoom Meetings",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-video-zoom",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -17859,11 +17909,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/video/zoom",
-      "providerModule": "./video/zoom/index.js",
+      "sdkPackage": "@cognidesk/integration-video-zoom",
+      "runtimePackage": "@cognidesk/integration-video-zoom",
+      "providerModule": "integrations/video/zoom/src/manifest.js",
       "manifestExport": "zoomVideoProviderManifest",
-      "manifestSource": "packages/integrations/src/video/zoom/manifest.ts",
+      "manifestSource": "integrations/video/zoom/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.zoom.us/api-hub/meetings/methods/endpoints.json"
     },
@@ -17924,7 +17974,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "channelCoverage": {
-        "meetingsApiHub": "generated-per-operation-functions",
+        "meetingsApiHub": "generated-constrained-support-slice",
         "meetings": "typed-create-list-read-update-delete",
         "meetingsRecordingsRegistrantsReportsDevicesTspWebinars": "generated-full-surface-where-present-in-meetings-api-hub",
         "currentUser": "typed-read",
@@ -17935,15 +17985,57 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "generatedProviderSliceVerification": {
         "provider": "zoom-meetings-api-hub",
         "apiVersion": "2",
-        "verifiedAt": "2026-06-18",
+        "verifiedAt": "2026-06-21",
+        "sourceChecksumSha256": "07acb50f2a3f070b161ed57fbd9ca9ae83db42a6c1fa538f36b7e1c8300b6b06",
         "coverageArtifact": "docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json",
         "operationCatalogArtifact": "docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json",
         "functionCatalogArtifact": "docs/provider-coverage/zoom-meetings-api-2026-06-18.functions.json",
+        "operationCatalogChecksumSha256": "d32cdc0636126fef0491cfd13f95219359be167d339a57b4b4322f7be1146392",
+        "functionCatalogChecksumSha256": "8934aa5f43e3a15d5a087dcf663854d41bb013d38aee8d65171b967bcc43202b",
         "documentedPathCount": 129,
         "documentedOperationCount": 184,
         "implementedOperationCount": 184,
         "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 184
+        "generatedFunctionCount": 184,
+        "allowlist": [
+          "Archiving",
+          "Cloud Recording",
+          "Devices",
+          "H323 Devices",
+          "In-Meeting Apps",
+          "In-Meeting Features",
+          "Invitation & Registration",
+          "Live streaming",
+          "Meetings",
+          "PAC",
+          "Polls",
+          "Reports",
+          "SIP Phone",
+          "Summaries",
+          "Surveys",
+          "Templates",
+          "Tracking Field",
+          "TSP",
+          "Webinars"
+        ]
+      },
+      "sdkViability": {
+        "decision": "no-official-maintained-server-rest-sdk-found",
+        "checkedAt": "2026-06-21",
+        "rejectedSdkPackages": [
+          {
+            "packageName": "@zoom/meetingsdk",
+            "reason": "Official browser Meeting SDK for embedding/joining meetings, not a server REST API client."
+          },
+          {
+            "packageName": "@zoom/videosdk",
+            "reason": "Official browser Video SDK for custom video experiences, not the Zoom Meetings REST API."
+          },
+          {
+            "packageName": "@zoom/rtms",
+            "reason": "Official Node real-time media streams SDK, not scheduling/resource REST management."
+          }
+        ]
       }
     }
   },

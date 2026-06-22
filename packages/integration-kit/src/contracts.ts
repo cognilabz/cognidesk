@@ -114,13 +114,13 @@ export interface DefinedIntegration<
 
 export function defineIntegrationProviderPackage<const Manifest extends ProviderManifestInput>(
   manifest: Manifest,
-): ProviderManifest {
+): ProviderManifest & Manifest {
   const profile = getIntegrationCategoryProfile(manifest.category);
   const parsed = profile
     ? defineProviderWithProfileMetadata(manifest, profile)
     : defineProviderPackage(manifest);
   assertProviderExtensionOperationAliases(parsed, profile);
-  return parsed;
+  return parsed as ProviderManifest & Manifest;
 }
 
 export function defineIntegration<
@@ -179,11 +179,7 @@ export function defineIntegration<
           providerPackageId: manifest.id,
           provider: manifest.provider,
           operationAlias: alias,
-          ...(context.credentials !== undefined
-            ? { credentials: context.credentials }
-            : input.credentials !== undefined
-              ? { credentials: input.credentials }
-              : {}),
+          ...(input.credentials !== undefined ? { credentials: input.credentials } : {}),
           ...(context.abortSignal ? { abortSignal: context.abortSignal } : {}),
           ...(context.metadata ? { metadata: context.metadata } : {}),
         });

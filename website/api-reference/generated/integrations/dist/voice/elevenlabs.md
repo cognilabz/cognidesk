@@ -82240,16 +82240,16 @@ const elevenLabsVoiceProviderManifest: {
      scopes: string[];
   }[];
   directions: (
-     | "bidirectional"
      | "receive-only"
      | "send-only"
      | "inbound-only"
-    | "outbound-only")[];
+     | "outbound-only"
+    | "bidirectional")[];
   id: string;
   limitations: string[];
   maintainers: {
      name: string;
-     type: "unknown" | "community" | "official" | "partner";
+     type: "community" | "official" | "unknown" | "partner";
      url?: string;
   }[];
   metadata?: Record<string, unknown>;
@@ -82290,6 +82290,189 @@ const elevenLabsVoiceProviderManifest: {
   privacyNotes: string[];
   provider: string;
   trustLevel: "community" | "official" | "verified" | "experimental";
+} & {
+  capabilities: [{
+     audiences: ["customer-facing"];
+     capability: "send";
+     description: "Creates or streams speech audio with ElevenLabs Text to Speech.";
+     exposesSensitiveData: true;
+     label: "Create speech audio";
+     providerObjects: [{
+        kind: "elevenlabsVoice";
+        label: "ElevenLabs Voice";
+      }, {
+        kind: "elevenlabsSpeechGeneration";
+        label: "ElevenLabs Speech Generation";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: ["customer-facing"];
+     capability: "receive";
+     description: "Creates signed URLs for authorized ElevenLabs Conversational AI sessions and reads conversation transcripts.";
+     exposesSensitiveData: true;
+     label: "Receive conversational voice";
+     providerObjects: [{
+        kind: "elevenlabsConversation";
+        label: "ElevenLabs Conversation";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: ["customer-facing", "internal-support"];
+     capability: "media";
+     description: "Reads generated audio streams, conversation audio, speech timing alignments, and speech-to-text transcript resources.";
+     exposesSensitiveData: true;
+     label: "Voice media and transcripts";
+     providerObjects: [{
+        kind: "elevenlabsAudio";
+        label: "ElevenLabs Audio";
+      }, {
+        kind: "elevenlabsTranscript";
+        label: "ElevenLabs Transcript";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: ["customer-facing"];
+     capability: "elevenlabs.conversation-signed-url";
+     description: "Creates a signed URL for an authorized ElevenLabs Conversational AI agent session.";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Create conversation signed URL";
+     providerObjects: [{
+        kind: "elevenlabsConversation";
+        label: "ElevenLabs Conversation";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: ["customer-facing", "internal-support"];
+     capability: "elevenlabs.speech-to-text";
+     description: "Creates and retrieves ElevenLabs Speech to Text transcript resources.";
+     exposesSensitiveData: true;
+     extension: true;
+     label: "Transcribe audio";
+     providerObjects: [{
+        kind: "elevenlabsTranscript";
+        label: "ElevenLabs Transcript";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+  }];
+  category: "voice";
+  channelAudiences: ["customer-facing", "mixed"];
+  coverage: {
+     evidence: [{
+        label: "ElevenLabs REST OpenAPI specification";
+        url: "https://api.elevenlabs.io/openapi.json";
+      }, {
+        label: "ElevenLabs API reference";
+        url: "https://elevenlabs.io/docs/api-reference";
+      }, {
+        label: "ElevenLabs API authentication";
+        url: "https://elevenlabs.io/docs/api-reference/authentication";
+      }, {
+        label: "ElevenLabs Text to Speech create speech";
+        url: "https://elevenlabs.io/docs/api-reference/text-to-speech/convert";
+      }, {
+        label: "ElevenLabs Text to Speech stream speech";
+        url: "https://elevenlabs.io/docs/api-reference/text-to-speech/stream";
+      }, {
+        label: "ElevenLabs Text to Speech WebSocket";
+        url: "https://elevenlabs.io/docs/api-reference/text-to-speech/v-1-text-to-speech-voice-id-stream-input";
+      }, {
+        label: "ElevenLabs Speech to Text create transcript";
+        url: "https://elevenlabs.io/docs/api-reference/speech-to-text/convert";
+      }, {
+        label: "ElevenLabs Speech to Text get transcript";
+        url: "https://elevenlabs.io/docs/api-reference/speech-to-text/get";
+      }, {
+        label: "ElevenLabs Speech to Text webhooks";
+        url: "https://elevenlabs.io/docs/eleven-api/guides/how-to/speech-to-text/batch/webhooks";
+      }, {
+        label: "ElevenLabs Conversations signed URL";
+        url: "https://elevenlabs.io/docs/api-reference/conversations/get-signed-url";
+      }, {
+        label: "ElevenLabs Conversations list";
+        url: "https://elevenlabs.io/docs/api-reference/conversations/list";
+      }, {
+        label: "ElevenLabs Conversations get details";
+        url: "https://elevenlabs.io/docs/api-reference/conversations/get";
+      }, {
+        label: "ElevenLabs Conversations get audio";
+        url: "https://elevenlabs.io/docs/api-reference/conversations/get-audio";
+      }, {
+        label: "ElevenLabs Voices list";
+        url: "https://elevenlabs.io/docs/api-reference/voices/search";
+      }, {
+        label: "ElevenLabs Models list";
+        url: "https://elevenlabs.io/docs/api-reference/models/list";
+      }, {
+        label: "ElevenLabs Phone Numbers API";
+        url: "https://elevenlabs.io/docs/api-reference/phone-numbers";
+      }, {
+        label: "ElevenLabs Batch Calling API";
+        url: "https://elevenlabs.io/docs/api-reference/batch-calling";
+      }, {
+        label: "ElevenLabs Workspace Webhooks API";
+        url: "https://elevenlabs.io/docs/api-reference/workspace/webhooks";
+     }];
+     notes: ["Coverage includes generated per-operation functions for every operation in ElevenLabs' official public REST OpenAPI 3.1 specification.", "Typed convenience helpers remain available for Cognidesk support workflows: Text to Speech create/stream/timing, Speech to Text create/get, voice/model lookup, Conversational AI signed URLs, conversation list/detail/audio retrieval, history, user/subscription, single-use tokens, selected media transforms, and WebSocket URL builders.", "The generated REST surface covers agents, phone numbers, SIP trunk outbound call, Twilio/Exotel/WhatsApp outbound calls, batch calling, knowledge base, tools, workspace webhooks, service-account API keys, audit logs, voices, models, history, dubbing, studio, music, sound generation, audio isolation, and pronunciation dictionaries from the official OpenAPI artifact.", "The generic send and media capabilities mean ElevenLabs speech/audio generation, transcription, and conversation media objects only; they do not mean telephony carrier ownership, call-center routing, Studio configuration, workspace administration, or provider setup policy.", "Realtime WebSocket protocol behavior is not represented as REST OpenAPI operations; this package keeps WebSocket URL builders and single-use token helpers, while SDK users own browser/session transport behavior."];
+     scope: "full-provider-api";
+  };
+  credentialRequirements: [{
+     description: "Server-side ElevenLabs credential sent through the xi-api-key header for voice API requests.";
+     id: "elevenlabs-api-key";
+     label: "ElevenLabs API key";
+     metadata: {
+        minimumAccess: readonly ["text-to-speech", "speech-to-text", "conversations", "voices:read", "models:read"];
+        scopeModel: "elevenlabs-api-key-permissions";
+        supportsEndpointRestrictions: true;
+     };
+     required: true;
+  }];
+  directions: ["send-only", "receive-only", "bidirectional"];
+  id: "voice.elevenlabs";
+  limitations: ["The generated full-provider claim is limited to ElevenLabs REST OpenAPI operations verified on 2026-06-18; realtime WebSocket transport behavior remains a separate protocol surface.", "Telephony numbers, SIP trunking, WhatsApp setup, batch calling, call recording policy, consent, retention, and live agent routing remain SDK-user/provider configuration even when the underlying REST operations are callable.", "Zero-retention and tier-gated output formats depend on the SDK user's ElevenLabs plan and API-key permissions."];
+  maintainers: [{
+     name: "Cognidesk";
+     type: "official";
+  }];
+  metadata: {
+     channelCoverage: {
+        agentsKnowledgeToolsWorkspace: "generated-per-operation-functions";
+        batchCalling: "generated-per-operation-functions";
+        conversationalAiSignedUrl: "typed-create";
+        conversationReadAudio: "typed-read";
+        exotelIntegration: "generated-per-operation-functions";
+        fullRestApiOperations: "generated-per-operation-functions";
+        liveAgentTransfer: "provider-supported-not-typed";
+        phoneNumbers: "generated-per-operation-functions";
+        realtimeWebSocketProtocol: "typed-url-builder";
+        sipTrunk: "generated-per-operation-functions";
+        speechToText: "typed-create-read";
+        textToSpeech: "typed-create-stream";
+        twilioIntegration: "generated-per-operation-functions";
+        whatsapp: "generated-per-operation-functions";
+     };
+     fullProviderApiVerification: {
+        apiVersion: "1.0";
+        coverageArtifact: "docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json";
+        documentedOperationCount: 317;
+        documentedPathCount: 253;
+        functionCatalogArtifact: "docs/provider-coverage/elevenlabs-full-api-2026-06-18.functions.json";
+        generatedFunctionCount: 317;
+        implementedOperationCount: 317;
+        operationCatalogArtifact: "docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json";
+        provider: "elevenlabs-rest-openapi";
+        unimplementedOperationCount: 0;
+        verifiedAt: "2026-06-18";
+     };
+  };
+  name: "ElevenLabs Voice";
+  packageName: "@cognidesk/integrations";
+  privacyNotes: ["Text prompts, generated speech, uploaded audio/video, transcript text, conversation IDs, and conversation audio can contain personal data and are sent to or read from ElevenLabs.", "ElevenLabs API keys must remain server-side. Use signed URLs or single-use tokens for browser/client conversation startup instead of exposing the API key."];
+  provider: "elevenlabs";
+  trustLevel: "official";
 };
 ```
 
@@ -82297,25 +82480,75 @@ const elevenLabsVoiceProviderManifest: {
 
 | Name | Type |
 | ------ | ------ |
-| <a id="property-capabilities"></a> `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-category"></a> `category` | `string` |
-| <a id="property-channelaudiences"></a> `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
-| <a id="property-coverage"></a> `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
+| `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `category` | `string` |
+| `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
+| `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
 | `coverage.evidence` | \{ `label`: `string`; `url?`: `string`; \}[] |
 | `coverage.notes` | `string`[] |
 | `coverage.scope` | \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"` |
-| <a id="property-credentialrequirements"></a> `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
-| <a id="property-directions"></a> `directions` | ( \| `"bidirectional"` \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"`)[] |
-| <a id="property-id"></a> `id` | `string` |
-| <a id="property-limitations"></a> `limitations` | `string`[] |
-| <a id="property-maintainers"></a> `maintainers` | \{ `name`: `string`; `type`: `"unknown"` \| `"community"` \| `"official"` \| `"partner"`; `url?`: `string`; \}[] |
-| <a id="property-metadata"></a> `metadata?` | `Record`\<`string`, `unknown`\> |
-| <a id="property-name"></a> `name` | `string` |
-| <a id="property-operations"></a> `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-packagename"></a> `packageName` | `string` |
-| <a id="property-privacynotes"></a> `privacyNotes` | `string`[] |
-| <a id="property-provider"></a> `provider` | `string` |
-| <a id="property-trustlevel"></a> `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+| `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
+| `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
+| `id` | `string` |
+| `limitations` | `string`[] |
+| `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
+| `metadata?` | `Record`\<`string`, `unknown`\> |
+| `name` | `string` |
+| `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `packageName` | `string` |
+| `privacyNotes` | `string`[] |
+| `provider` | `string` |
+| `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| `capabilities` | \[\{ `audiences`: \[`"customer-facing"`\]; `capability`: `"send"`; `description`: `"Creates or streams speech audio with ElevenLabs Text to Speech."`; `exposesSensitiveData`: `true`; `label`: `"Create speech audio"`; `providerObjects`: \[\{ `kind`: `"elevenlabsVoice"`; `label`: `"ElevenLabs Voice"`; \}, \{ `kind`: `"elevenlabsSpeechGeneration"`; `label`: `"ElevenLabs Speech Generation"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: \[`"customer-facing"`\]; `capability`: `"receive"`; `description`: `"Creates signed URLs for authorized ElevenLabs Conversational AI sessions and reads conversation transcripts."`; `exposesSensitiveData`: `true`; `label`: `"Receive conversational voice"`; `providerObjects`: \[\{ `kind`: `"elevenlabsConversation"`; `label`: `"ElevenLabs Conversation"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: \[`"customer-facing"`, `"internal-support"`\]; `capability`: `"media"`; `description`: `"Reads generated audio streams, conversation audio, speech timing alignments, and speech-to-text transcript resources."`; `exposesSensitiveData`: `true`; `label`: `"Voice media and transcripts"`; `providerObjects`: \[\{ `kind`: `"elevenlabsAudio"`; `label`: `"ElevenLabs Audio"`; \}, \{ `kind`: `"elevenlabsTranscript"`; `label`: `"ElevenLabs Transcript"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: \[`"customer-facing"`\]; `capability`: `"elevenlabs.conversation-signed-url"`; `description`: `"Creates a signed URL for an authorized ElevenLabs Conversational AI agent session."`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Create conversation signed URL"`; `providerObjects`: \[\{ `kind`: `"elevenlabsConversation"`; `label`: `"ElevenLabs Conversation"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: \[`"customer-facing"`, `"internal-support"`\]; `capability`: `"elevenlabs.speech-to-text"`; `description`: `"Creates and retrieves ElevenLabs Speech to Text transcript resources."`; `exposesSensitiveData`: `true`; `extension`: `true`; `label`: `"Transcribe audio"`; `providerObjects`: \[\{ `kind`: `"elevenlabsTranscript"`; `label`: `"ElevenLabs Transcript"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}\] |
+| `category` | `"voice"` |
+| `channelAudiences` | \[`"customer-facing"`, `"mixed"`\] |
+| `coverage` | \{ `evidence`: \[\{ `label`: `"ElevenLabs REST OpenAPI specification"`; `url`: `"https://api.elevenlabs.io/openapi.json"`; \}, \{ `label`: `"ElevenLabs API reference"`; `url`: `"https://elevenlabs.io/docs/api-reference"`; \}, \{ `label`: `"ElevenLabs API authentication"`; `url`: `"https://elevenlabs.io/docs/api-reference/authentication"`; \}, \{ `label`: `"ElevenLabs Text to Speech create speech"`; `url`: `"https://elevenlabs.io/docs/api-reference/text-to-speech/convert"`; \}, \{ `label`: `"ElevenLabs Text to Speech stream speech"`; `url`: `"https://elevenlabs.io/docs/api-reference/text-to-speech/stream"`; \}, \{ `label`: `"ElevenLabs Text to Speech WebSocket"`; `url`: `"https://elevenlabs.io/docs/api-reference/text-to-speech/v-1-text-to-speech-voice-id-stream-input"`; \}, \{ `label`: `"ElevenLabs Speech to Text create transcript"`; `url`: `"https://elevenlabs.io/docs/api-reference/speech-to-text/convert"`; \}, \{ `label`: `"ElevenLabs Speech to Text get transcript"`; `url`: `"https://elevenlabs.io/docs/api-reference/speech-to-text/get"`; \}, \{ `label`: `"ElevenLabs Speech to Text webhooks"`; `url`: `"https://elevenlabs.io/docs/eleven-api/guides/how-to/speech-to-text/batch/webhooks"`; \}, \{ `label`: `"ElevenLabs Conversations signed URL"`; `url`: `"https://elevenlabs.io/docs/api-reference/conversations/get-signed-url"`; \}, \{ `label`: `"ElevenLabs Conversations list"`; `url`: `"https://elevenlabs.io/docs/api-reference/conversations/list"`; \}, \{ `label`: `"ElevenLabs Conversations get details"`; `url`: `"https://elevenlabs.io/docs/api-reference/conversations/get"`; \}, \{ `label`: `"ElevenLabs Conversations get audio"`; `url`: `"https://elevenlabs.io/docs/api-reference/conversations/get-audio"`; \}, \{ `label`: `"ElevenLabs Voices list"`; `url`: `"https://elevenlabs.io/docs/api-reference/voices/search"`; \}, \{ `label`: `"ElevenLabs Models list"`; `url`: `"https://elevenlabs.io/docs/api-reference/models/list"`; \}, \{ `label`: `"ElevenLabs Phone Numbers API"`; `url`: `"https://elevenlabs.io/docs/api-reference/phone-numbers"`; \}, \{ `label`: `"ElevenLabs Batch Calling API"`; `url`: `"https://elevenlabs.io/docs/api-reference/batch-calling"`; \}, \{ `label`: `"ElevenLabs Workspace Webhooks API"`; `url`: `"https://elevenlabs.io/docs/api-reference/workspace/webhooks"`; \}\]; `notes`: \[`"Coverage includes generated per-operation functions for every operation in ElevenLabs' official public REST OpenAPI 3.1 specification."`, `"Typed convenience helpers remain available for Cognidesk support workflows: Text to Speech create/stream/timing, Speech to Text create/get, voice/model lookup, Conversational AI signed URLs, conversation list/detail/audio retrieval, history, user/subscription, single-use tokens, selected media transforms, and WebSocket URL builders."`, `"The generated REST surface covers agents, phone numbers, SIP trunk outbound call, Twilio/Exotel/WhatsApp outbound calls, batch calling, knowledge base, tools, workspace webhooks, service-account API keys, audit logs, voices, models, history, dubbing, studio, music, sound generation, audio isolation, and pronunciation dictionaries from the official OpenAPI artifact."`, `"The generic send and media capabilities mean ElevenLabs speech/audio generation, transcription, and conversation media objects only; they do not mean telephony carrier ownership, call-center routing, Studio configuration, workspace administration, or provider setup policy."`, `"Realtime WebSocket protocol behavior is not represented as REST OpenAPI operations; this package keeps WebSocket URL builders and single-use token helpers, while SDK users own browser/session transport behavior."`\]; `scope`: `"full-provider-api"`; \} |
+| `coverage.evidence` | \[\{ `label`: `"ElevenLabs REST OpenAPI specification"`; `url`: `"https://api.elevenlabs.io/openapi.json"`; \}, \{ `label`: `"ElevenLabs API reference"`; `url`: `"https://elevenlabs.io/docs/api-reference"`; \}, \{ `label`: `"ElevenLabs API authentication"`; `url`: `"https://elevenlabs.io/docs/api-reference/authentication"`; \}, \{ `label`: `"ElevenLabs Text to Speech create speech"`; `url`: `"https://elevenlabs.io/docs/api-reference/text-to-speech/convert"`; \}, \{ `label`: `"ElevenLabs Text to Speech stream speech"`; `url`: `"https://elevenlabs.io/docs/api-reference/text-to-speech/stream"`; \}, \{ `label`: `"ElevenLabs Text to Speech WebSocket"`; `url`: `"https://elevenlabs.io/docs/api-reference/text-to-speech/v-1-text-to-speech-voice-id-stream-input"`; \}, \{ `label`: `"ElevenLabs Speech to Text create transcript"`; `url`: `"https://elevenlabs.io/docs/api-reference/speech-to-text/convert"`; \}, \{ `label`: `"ElevenLabs Speech to Text get transcript"`; `url`: `"https://elevenlabs.io/docs/api-reference/speech-to-text/get"`; \}, \{ `label`: `"ElevenLabs Speech to Text webhooks"`; `url`: `"https://elevenlabs.io/docs/eleven-api/guides/how-to/speech-to-text/batch/webhooks"`; \}, \{ `label`: `"ElevenLabs Conversations signed URL"`; `url`: `"https://elevenlabs.io/docs/api-reference/conversations/get-signed-url"`; \}, \{ `label`: `"ElevenLabs Conversations list"`; `url`: `"https://elevenlabs.io/docs/api-reference/conversations/list"`; \}, \{ `label`: `"ElevenLabs Conversations get details"`; `url`: `"https://elevenlabs.io/docs/api-reference/conversations/get"`; \}, \{ `label`: `"ElevenLabs Conversations get audio"`; `url`: `"https://elevenlabs.io/docs/api-reference/conversations/get-audio"`; \}, \{ `label`: `"ElevenLabs Voices list"`; `url`: `"https://elevenlabs.io/docs/api-reference/voices/search"`; \}, \{ `label`: `"ElevenLabs Models list"`; `url`: `"https://elevenlabs.io/docs/api-reference/models/list"`; \}, \{ `label`: `"ElevenLabs Phone Numbers API"`; `url`: `"https://elevenlabs.io/docs/api-reference/phone-numbers"`; \}, \{ `label`: `"ElevenLabs Batch Calling API"`; `url`: `"https://elevenlabs.io/docs/api-reference/batch-calling"`; \}, \{ `label`: `"ElevenLabs Workspace Webhooks API"`; `url`: `"https://elevenlabs.io/docs/api-reference/workspace/webhooks"`; \}\] |
+| `coverage.notes` | \[`"Coverage includes generated per-operation functions for every operation in ElevenLabs' official public REST OpenAPI 3.1 specification."`, `"Typed convenience helpers remain available for Cognidesk support workflows: Text to Speech create/stream/timing, Speech to Text create/get, voice/model lookup, Conversational AI signed URLs, conversation list/detail/audio retrieval, history, user/subscription, single-use tokens, selected media transforms, and WebSocket URL builders."`, `"The generated REST surface covers agents, phone numbers, SIP trunk outbound call, Twilio/Exotel/WhatsApp outbound calls, batch calling, knowledge base, tools, workspace webhooks, service-account API keys, audit logs, voices, models, history, dubbing, studio, music, sound generation, audio isolation, and pronunciation dictionaries from the official OpenAPI artifact."`, `"The generic send and media capabilities mean ElevenLabs speech/audio generation, transcription, and conversation media objects only; they do not mean telephony carrier ownership, call-center routing, Studio configuration, workspace administration, or provider setup policy."`, `"Realtime WebSocket protocol behavior is not represented as REST OpenAPI operations; this package keeps WebSocket URL builders and single-use token helpers, while SDK users own browser/session transport behavior."`\] |
+| `coverage.scope` | `"full-provider-api"` |
+| `credentialRequirements` | \[\{ `description`: `"Server-side ElevenLabs credential sent through the xi-api-key header for voice API requests."`; `id`: `"elevenlabs-api-key"`; `label`: `"ElevenLabs API key"`; `metadata`: \{ `minimumAccess`: readonly \[`"text-to-speech"`, `"speech-to-text"`, `"conversations"`, `"voices:read"`, `"models:read"`\]; `scopeModel`: `"elevenlabs-api-key-permissions"`; `supportsEndpointRestrictions`: `true`; \}; `required`: `true`; \}\] |
+| `directions` | \[`"send-only"`, `"receive-only"`, `"bidirectional"`\] |
+| `id` | `"voice.elevenlabs"` |
+| `limitations` | \[`"The generated full-provider claim is limited to ElevenLabs REST OpenAPI operations verified on 2026-06-18; realtime WebSocket transport behavior remains a separate protocol surface."`, `"Telephony numbers, SIP trunking, WhatsApp setup, batch calling, call recording policy, consent, retention, and live agent routing remain SDK-user/provider configuration even when the underlying REST operations are callable."`, `"Zero-retention and tier-gated output formats depend on the SDK user's ElevenLabs plan and API-key permissions."`\] |
+| `maintainers` | \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
+| `metadata` | \{ `channelCoverage`: \{ `agentsKnowledgeToolsWorkspace`: `"generated-per-operation-functions"`; `batchCalling`: `"generated-per-operation-functions"`; `conversationalAiSignedUrl`: `"typed-create"`; `conversationReadAudio`: `"typed-read"`; `exotelIntegration`: `"generated-per-operation-functions"`; `fullRestApiOperations`: `"generated-per-operation-functions"`; `liveAgentTransfer`: `"provider-supported-not-typed"`; `phoneNumbers`: `"generated-per-operation-functions"`; `realtimeWebSocketProtocol`: `"typed-url-builder"`; `sipTrunk`: `"generated-per-operation-functions"`; `speechToText`: `"typed-create-read"`; `textToSpeech`: `"typed-create-stream"`; `twilioIntegration`: `"generated-per-operation-functions"`; `whatsapp`: `"generated-per-operation-functions"`; \}; `fullProviderApiVerification`: \{ `apiVersion`: `"1.0"`; `coverageArtifact`: `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json"`; `documentedOperationCount`: `317`; `documentedPathCount`: `253`; `functionCatalogArtifact`: `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.functions.json"`; `generatedFunctionCount`: `317`; `implementedOperationCount`: `317`; `operationCatalogArtifact`: `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json"`; `provider`: `"elevenlabs-rest-openapi"`; `unimplementedOperationCount`: `0`; `verifiedAt`: `"2026-06-18"`; \}; \} |
+| `metadata.channelCoverage` | \{ `agentsKnowledgeToolsWorkspace`: `"generated-per-operation-functions"`; `batchCalling`: `"generated-per-operation-functions"`; `conversationalAiSignedUrl`: `"typed-create"`; `conversationReadAudio`: `"typed-read"`; `exotelIntegration`: `"generated-per-operation-functions"`; `fullRestApiOperations`: `"generated-per-operation-functions"`; `liveAgentTransfer`: `"provider-supported-not-typed"`; `phoneNumbers`: `"generated-per-operation-functions"`; `realtimeWebSocketProtocol`: `"typed-url-builder"`; `sipTrunk`: `"generated-per-operation-functions"`; `speechToText`: `"typed-create-read"`; `textToSpeech`: `"typed-create-stream"`; `twilioIntegration`: `"generated-per-operation-functions"`; `whatsapp`: `"generated-per-operation-functions"`; \} |
+| `metadata.channelCoverage.agentsKnowledgeToolsWorkspace` | `"generated-per-operation-functions"` |
+| `metadata.channelCoverage.batchCalling` | `"generated-per-operation-functions"` |
+| `metadata.channelCoverage.conversationalAiSignedUrl` | `"typed-create"` |
+| `metadata.channelCoverage.conversationReadAudio` | `"typed-read"` |
+| `metadata.channelCoverage.exotelIntegration` | `"generated-per-operation-functions"` |
+| `metadata.channelCoverage.fullRestApiOperations` | `"generated-per-operation-functions"` |
+| `metadata.channelCoverage.liveAgentTransfer` | `"provider-supported-not-typed"` |
+| `metadata.channelCoverage.phoneNumbers` | `"generated-per-operation-functions"` |
+| `metadata.channelCoverage.realtimeWebSocketProtocol` | `"typed-url-builder"` |
+| `metadata.channelCoverage.sipTrunk` | `"generated-per-operation-functions"` |
+| `metadata.channelCoverage.speechToText` | `"typed-create-read"` |
+| `metadata.channelCoverage.textToSpeech` | `"typed-create-stream"` |
+| `metadata.channelCoverage.twilioIntegration` | `"generated-per-operation-functions"` |
+| `metadata.channelCoverage.whatsapp` | `"generated-per-operation-functions"` |
+| `metadata.fullProviderApiVerification` | \{ `apiVersion`: `"1.0"`; `coverageArtifact`: `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json"`; `documentedOperationCount`: `317`; `documentedPathCount`: `253`; `functionCatalogArtifact`: `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.functions.json"`; `generatedFunctionCount`: `317`; `implementedOperationCount`: `317`; `operationCatalogArtifact`: `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json"`; `provider`: `"elevenlabs-rest-openapi"`; `unimplementedOperationCount`: `0`; `verifiedAt`: `"2026-06-18"`; \} |
+| `metadata.fullProviderApiVerification.apiVersion` | `"1.0"` |
+| `metadata.fullProviderApiVerification.coverageArtifact` | `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json"` |
+| `metadata.fullProviderApiVerification.documentedOperationCount` | `317` |
+| `metadata.fullProviderApiVerification.documentedPathCount` | `253` |
+| `metadata.fullProviderApiVerification.functionCatalogArtifact` | `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.functions.json"` |
+| `metadata.fullProviderApiVerification.generatedFunctionCount` | `317` |
+| `metadata.fullProviderApiVerification.implementedOperationCount` | `317` |
+| `metadata.fullProviderApiVerification.operationCatalogArtifact` | `"docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json"` |
+| `metadata.fullProviderApiVerification.provider` | `"elevenlabs-rest-openapi"` |
+| `metadata.fullProviderApiVerification.unimplementedOperationCount` | `0` |
+| `metadata.fullProviderApiVerification.verifiedAt` | `"2026-06-18"` |
+| `name` | `"ElevenLabs Voice"` |
+| `packageName` | `"@cognidesk/integrations"` |
+| `privacyNotes` | \[`"Text prompts, generated speech, uploaded audio/video, transcript text, conversation IDs, and conversation audio can contain personal data and are sent to or read from ElevenLabs."`, `"ElevenLabs API keys must remain server-side. Use signed URLs or single-use tokens for browser/client conversation startup instead of exposing the API key."`\] |
+| `provider` | `"elevenlabs"` |
+| `trustLevel` | `"official"` |
 
 ## Functions
 

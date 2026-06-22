@@ -6,7 +6,7 @@ import { registerWherebyGeneratedApiTests } from "./adapter/generated-api.js";
 import { registerWherebyManifestTests } from "./adapter/manifest.js";
 import { registerWherebyWebhookTests } from "./adapter/webhooks.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/integration-video-whereby", () => {
   registerWherebyManifestTests();
   registerWherebyClientOperationTests();
   registerWherebyGeneratedApiTests();

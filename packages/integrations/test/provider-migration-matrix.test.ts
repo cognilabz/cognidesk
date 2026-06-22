@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("../../..", import.meta.url)));
 const integrationsSrc = path.join(repoRoot, "packages", "integrations", "src");
+const splitIntegrationsSrc = path.join(repoRoot, "integrations");
 const matrixPath = path.join(repoRoot, "docs", "provider-migration-matrix.md");
 const matrixStart = "<!-- provider-migration-matrix:start -->";
 const matrixEnd = "<!-- provider-migration-matrix:end -->";
@@ -26,7 +27,7 @@ interface MatrixRow {
 }
 
 describe("provider migration matrix", () => {
-  it("records one migration decision for every current provider directory", async () => {
+  it("records one migration decision for every current provider directory or split package", async () => {
     const providers = await currentProviderDirs();
     const rows = parseMatrixRows(await readFile(matrixPath, "utf8"));
     const rowProviders = rows.map((row) => row.provider);
@@ -71,14 +72,19 @@ describe("provider migration matrix", () => {
 
 async function currentProviderDirs() {
   const providers: string[] = [];
-  for (const category of await readdir(integrationsSrc, { withFileTypes: true })) {
-    if (!category.isDirectory() || nonProviderDirs.has(category.name)) continue;
-    const categoryDir = path.join(integrationsSrc, category.name);
+  await collectProviderDirs(integrationsSrc, providers, nonProviderDirs);
+  await collectProviderDirs(splitIntegrationsSrc, providers);
+  return providers;
+}
+
+async function collectProviderDirs(root: string, providers: string[], excludedCategories = new Set<string>()) {
+  for (const category of await readdir(root, { withFileTypes: true })) {
+    if (!category.isDirectory() || excludedCategories.has(category.name)) continue;
+    const categoryDir = path.join(root, category.name);
     for (const provider of await readdir(categoryDir, { withFileTypes: true })) {
       if (provider.isDirectory()) providers.push(`${category.name}/${provider.name}`);
     }
   }
-  return providers;
 }
 
 function parseMatrixRows(source: string): MatrixRow[] {

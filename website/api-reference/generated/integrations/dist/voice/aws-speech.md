@@ -12720,11 +12720,11 @@ const awsSpeechProviderManifest: {
      scopes: string[];
   }[];
   directions: (
-     | "bidirectional"
      | "receive-only"
      | "send-only"
      | "inbound-only"
-    | "outbound-only")[];
+     | "outbound-only"
+    | "bidirectional")[];
   id: string;
   limitations: string[];
   maintainers: {
@@ -12770,6 +12770,124 @@ const awsSpeechProviderManifest: {
   privacyNotes: string[];
   provider: string;
   trustLevel: "community" | "official" | "verified" | "experimental";
+} & {
+  capabilities: [{
+     audiences: ["customer-facing"];
+     capability: "receive";
+     description: "Transcribes customer PCM voice input with Amazon Transcribe Streaming.";
+     exposesSensitiveData: true;
+     label: "Transcribe speech";
+     providerObjects: [{
+        kind: "awsTranscribeTranscript";
+        label: "Amazon Transcribe Transcript";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: ["customer-facing"];
+     capability: "send";
+     description: "Synthesizes Cognidesk assistant text with Amazon Polly.";
+     exposesSensitiveData: true;
+     label: "Synthesize speech";
+     providerObjects: [{
+        kind: "awsPollySynthesis";
+        label: "Amazon Polly Synthesis";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: ["customer-facing", "internal-support"];
+     capability: "media";
+     description: "Exchanges buffered PCM input and synthesized Polly audio for Cognidesk voice sessions.";
+     exposesSensitiveData: true;
+     label: "Speech audio media";
+     providerObjects: [{
+        kind: "voiceTranscript";
+        label: "Voice Transcript";
+      }, {
+        kind: "voiceAudio";
+        label: "Voice Audio";
+     }];
+     requiresCredential: true;
+  }];
+  category: "voice";
+  channelAudiences: ["customer-facing", "mixed"];
+  coverage: {
+     evidence: [{
+        label: "Amazon Transcribe StartStreamTranscription API";
+        url: "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html";
+      }, {
+        label: "Amazon Transcribe streaming setup";
+        url: "https://docs.aws.amazon.com/transcribe/latest/dg/streaming-setting-up.html";
+      }, {
+        label: "AWS SDK for JavaScript Transcribe Streaming client";
+        url: "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/transcribe-streaming";
+      }, {
+        label: "Amazon Polly SynthesizeSpeech API";
+        url: "https://docs.aws.amazon.com/polly/latest/dg/API_SynthesizeSpeech.html";
+      }, {
+        label: "Amazon Polly API reference";
+        url: "https://docs.aws.amazon.com/polly/latest/dg/API_Reference.html";
+      }, {
+        label: "AWS SDK for JavaScript Polly client";
+        url: "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/polly";
+     }];
+     notes: ["Implements Amazon Transcribe Streaming speech-to-text and Amazon Polly SynthesizeSpeech text-to-speech for Cognidesk STT/TTS voice pipelines.", "Generated operation inventory and caller interfaces cover the official AWS Transcribe Streaming, Transcribe, and Polly Smithy API models for SDK-user-owned execution.", "AWS supplies transcripts and synthesized audio only; Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, response generation, and durable transcript boundary.", "The built-in Cognidesk speech adapter executes only Transcribe Streaming and Polly SynthesizeSpeech through injected AWS SDK clients; broader generated operations require an SDK-user-owned caller and AWS account policy."];
+     scope: "provider-api-subset";
+  };
+  credentialRequirements: [{
+     description: "Server-side AWS access key ID scoped by the SDK user for Amazon Transcribe Streaming and Amazon Polly calls.";
+     id: "aws-access-key-id";
+     label: "AWS access key ID";
+     metadata: {
+        privilegeGuidance: "These strings are AWS IAM action names, not OAuth scopes.";
+        scopeKind: "provider-permission-labels";
+     };
+     required: true;
+     scopes: ["transcribe:StartStreamTranscription", "polly:SynthesizeSpeech"];
+   }, {
+     description: "Server-side AWS secret access key used by the SDK user's AWS client credential provider.";
+     id: "aws-secret-access-key";
+     label: "AWS secret access key";
+     required: true;
+   }, {
+     description: "SDK-user-selected AWS Region for Amazon Transcribe Streaming and Amazon Polly requests.";
+     id: "aws-region";
+     label: "AWS Region";
+     required: true;
+   }, {
+     description: "Optional server-side AWS session token when the SDK user uses temporary credentials.";
+     id: "aws-session-token";
+     label: "AWS session token";
+     required: false;
+  }];
+  directions: ["receive-only", "send-only", "bidirectional"];
+  id: "voice.aws-speech";
+  limitations: ["This package implements AWS STT/TTS for Cognidesk speech pipelines through injected AWS SDK clients; it does not own AWS credential resolution, IAM roles, VPC endpoints, or account policy.", "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Amazon Transcribe or Amazon Polly.", "Consent, recording, retention, region selection, private networking, custom vocabularies, lexicons, and AWS account policy remain SDK-user configuration.", "Amazon Polly PCM output is requested at 16 kHz by default because Polly documents PCM sample rates of 8000 and 16000 Hz; the adapter resamples PCM output to the Cognidesk voice protocol sample rate before sending browser audio deltas."];
+  maintainers: [{
+     name: "Cognidesk";
+     type: "official";
+  }];
+  metadata: {
+     channelCoverage: {
+        backgroundModelProvider: "sdk-owned-agent-model-set";
+        browserVoiceProtocol: "sdk-owned-cognidesk-voice-websocket";
+        fullAmazonPollyApi: "not-covered";
+        fullAwsTranscribeApi: "not-covered";
+        speechToText: "typed-transcribe-streaming-sdk-adapter";
+        telephony: "not-covered";
+        textToSpeech: "typed-polly-synthesize-speech-sdk-adapter";
+     };
+     generatedSpeechApi: {
+        apiVersion: "aws-api-models-main-2026-06-18";
+        functionCount: 58;
+        operationCount: 58;
+     };
+  };
+  name: "AWS Speech";
+  packageName: "@cognidesk/integrations";
+  privacyNotes: ["Customer audio is sent to Amazon Transcribe for transcription, and assistant response text is sent to Amazon Polly for synthesis.", "AWS credentials remain server-side and are never issued to browsers by this package."];
+  provider: "aws-speech";
+  trustLevel: "official";
 };
 ```
 
@@ -12777,25 +12895,60 @@ const awsSpeechProviderManifest: {
 
 | Name | Type |
 | ------ | ------ |
-| <a id="property-capabilities"></a> `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-category"></a> `category` | `string` |
-| <a id="property-channelaudiences"></a> `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
-| <a id="property-coverage"></a> `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
+| `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `category` | `string` |
+| `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
+| `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
 | `coverage.evidence` | \{ `label`: `string`; `url?`: `string`; \}[] |
 | `coverage.notes` | `string`[] |
 | `coverage.scope` | \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"` |
-| <a id="property-credentialrequirements"></a> `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
-| <a id="property-directions"></a> `directions` | ( \| `"bidirectional"` \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"`)[] |
-| <a id="property-id"></a> `id` | `string` |
-| <a id="property-limitations"></a> `limitations` | `string`[] |
-| <a id="property-maintainers"></a> `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
-| <a id="property-metadata"></a> `metadata?` | `Record`\<`string`, `unknown`\> |
-| <a id="property-name"></a> `name` | `string` |
-| <a id="property-operations"></a> `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-packagename"></a> `packageName` | `string` |
-| <a id="property-privacynotes"></a> `privacyNotes` | `string`[] |
-| <a id="property-provider"></a> `provider` | `string` |
-| <a id="property-trustlevel"></a> `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+| `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
+| `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
+| `id` | `string` |
+| `limitations` | `string`[] |
+| `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
+| `metadata?` | `Record`\<`string`, `unknown`\> |
+| `name` | `string` |
+| `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `packageName` | `string` |
+| `privacyNotes` | `string`[] |
+| `provider` | `string` |
+| `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| `capabilities` | \[\{ `audiences`: \[`"customer-facing"`\]; `capability`: `"receive"`; `description`: `"Transcribes customer PCM voice input with Amazon Transcribe Streaming."`; `exposesSensitiveData`: `true`; `label`: `"Transcribe speech"`; `providerObjects`: \[\{ `kind`: `"awsTranscribeTranscript"`; `label`: `"Amazon Transcribe Transcript"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: \[`"customer-facing"`\]; `capability`: `"send"`; `description`: `"Synthesizes Cognidesk assistant text with Amazon Polly."`; `exposesSensitiveData`: `true`; `label`: `"Synthesize speech"`; `providerObjects`: \[\{ `kind`: `"awsPollySynthesis"`; `label`: `"Amazon Polly Synthesis"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: \[`"customer-facing"`, `"internal-support"`\]; `capability`: `"media"`; `description`: `"Exchanges buffered PCM input and synthesized Polly audio for Cognidesk voice sessions."`; `exposesSensitiveData`: `true`; `label`: `"Speech audio media"`; `providerObjects`: \[\{ `kind`: `"voiceTranscript"`; `label`: `"Voice Transcript"`; \}, \{ `kind`: `"voiceAudio"`; `label`: `"Voice Audio"`; \}\]; `requiresCredential`: `true`; \}\] |
+| `category` | `"voice"` |
+| `channelAudiences` | \[`"customer-facing"`, `"mixed"`\] |
+| `coverage` | \{ `evidence`: \[\{ `label`: `"Amazon Transcribe StartStreamTranscription API"`; `url`: `"https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html"`; \}, \{ `label`: `"Amazon Transcribe streaming setup"`; `url`: `"https://docs.aws.amazon.com/transcribe/latest/dg/streaming-setting-up.html"`; \}, \{ `label`: `"AWS SDK for JavaScript Transcribe Streaming client"`; `url`: `"https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/transcribe-streaming"`; \}, \{ `label`: `"Amazon Polly SynthesizeSpeech API"`; `url`: `"https://docs.aws.amazon.com/polly/latest/dg/API_SynthesizeSpeech.html"`; \}, \{ `label`: `"Amazon Polly API reference"`; `url`: `"https://docs.aws.amazon.com/polly/latest/dg/API_Reference.html"`; \}, \{ `label`: `"AWS SDK for JavaScript Polly client"`; `url`: `"https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/polly"`; \}\]; `notes`: \[`"Implements Amazon Transcribe Streaming speech-to-text and Amazon Polly SynthesizeSpeech text-to-speech for Cognidesk STT/TTS voice pipelines."`, `"Generated operation inventory and caller interfaces cover the official AWS Transcribe Streaming, Transcribe, and Polly Smithy API models for SDK-user-owned execution."`, `"AWS supplies transcripts and synthesized audio only; Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, response generation, and durable transcript boundary."`, `"The built-in Cognidesk speech adapter executes only Transcribe Streaming and Polly SynthesizeSpeech through injected AWS SDK clients; broader generated operations require an SDK-user-owned caller and AWS account policy."`\]; `scope`: `"provider-api-subset"`; \} |
+| `coverage.evidence` | \[\{ `label`: `"Amazon Transcribe StartStreamTranscription API"`; `url`: `"https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html"`; \}, \{ `label`: `"Amazon Transcribe streaming setup"`; `url`: `"https://docs.aws.amazon.com/transcribe/latest/dg/streaming-setting-up.html"`; \}, \{ `label`: `"AWS SDK for JavaScript Transcribe Streaming client"`; `url`: `"https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/transcribe-streaming"`; \}, \{ `label`: `"Amazon Polly SynthesizeSpeech API"`; `url`: `"https://docs.aws.amazon.com/polly/latest/dg/API_SynthesizeSpeech.html"`; \}, \{ `label`: `"Amazon Polly API reference"`; `url`: `"https://docs.aws.amazon.com/polly/latest/dg/API_Reference.html"`; \}, \{ `label`: `"AWS SDK for JavaScript Polly client"`; `url`: `"https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/polly"`; \}\] |
+| `coverage.notes` | \[`"Implements Amazon Transcribe Streaming speech-to-text and Amazon Polly SynthesizeSpeech text-to-speech for Cognidesk STT/TTS voice pipelines."`, `"Generated operation inventory and caller interfaces cover the official AWS Transcribe Streaming, Transcribe, and Polly Smithy API models for SDK-user-owned execution."`, `"AWS supplies transcripts and synthesized audio only; Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, response generation, and durable transcript boundary."`, `"The built-in Cognidesk speech adapter executes only Transcribe Streaming and Polly SynthesizeSpeech through injected AWS SDK clients; broader generated operations require an SDK-user-owned caller and AWS account policy."`\] |
+| `coverage.scope` | `"provider-api-subset"` |
+| `credentialRequirements` | \[\{ `description`: `"Server-side AWS access key ID scoped by the SDK user for Amazon Transcribe Streaming and Amazon Polly calls."`; `id`: `"aws-access-key-id"`; `label`: `"AWS access key ID"`; `metadata`: \{ `privilegeGuidance`: `"These strings are AWS IAM action names, not OAuth scopes."`; `scopeKind`: `"provider-permission-labels"`; \}; `required`: `true`; `scopes`: \[`"transcribe:StartStreamTranscription"`, `"polly:SynthesizeSpeech"`\]; \}, \{ `description`: `"Server-side AWS secret access key used by the SDK user's AWS client credential provider."`; `id`: `"aws-secret-access-key"`; `label`: `"AWS secret access key"`; `required`: `true`; \}, \{ `description`: `"SDK-user-selected AWS Region for Amazon Transcribe Streaming and Amazon Polly requests."`; `id`: `"aws-region"`; `label`: `"AWS Region"`; `required`: `true`; \}, \{ `description`: `"Optional server-side AWS session token when the SDK user uses temporary credentials."`; `id`: `"aws-session-token"`; `label`: `"AWS session token"`; `required`: `false`; \}\] |
+| `directions` | \[`"receive-only"`, `"send-only"`, `"bidirectional"`\] |
+| `id` | `"voice.aws-speech"` |
+| `limitations` | \[`"This package implements AWS STT/TTS for Cognidesk speech pipelines through injected AWS SDK clients; it does not own AWS credential resolution, IAM roles, VPC endpoints, or account policy."`, `"The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Amazon Transcribe or Amazon Polly."`, `"Consent, recording, retention, region selection, private networking, custom vocabularies, lexicons, and AWS account policy remain SDK-user configuration."`, `"Amazon Polly PCM output is requested at 16 kHz by default because Polly documents PCM sample rates of 8000 and 16000 Hz; the adapter resamples PCM output to the Cognidesk voice protocol sample rate before sending browser audio deltas."`\] |
+| `maintainers` | \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
+| `metadata` | \{ `channelCoverage`: \{ `backgroundModelProvider`: `"sdk-owned-agent-model-set"`; `browserVoiceProtocol`: `"sdk-owned-cognidesk-voice-websocket"`; `fullAmazonPollyApi`: `"not-covered"`; `fullAwsTranscribeApi`: `"not-covered"`; `speechToText`: `"typed-transcribe-streaming-sdk-adapter"`; `telephony`: `"not-covered"`; `textToSpeech`: `"typed-polly-synthesize-speech-sdk-adapter"`; \}; `generatedSpeechApi`: \{ `apiVersion`: `"aws-api-models-main-2026-06-18"`; `functionCount`: `58`; `operationCount`: `58`; \}; \} |
+| `metadata.channelCoverage` | \{ `backgroundModelProvider`: `"sdk-owned-agent-model-set"`; `browserVoiceProtocol`: `"sdk-owned-cognidesk-voice-websocket"`; `fullAmazonPollyApi`: `"not-covered"`; `fullAwsTranscribeApi`: `"not-covered"`; `speechToText`: `"typed-transcribe-streaming-sdk-adapter"`; `telephony`: `"not-covered"`; `textToSpeech`: `"typed-polly-synthesize-speech-sdk-adapter"`; \} |
+| `metadata.channelCoverage.backgroundModelProvider` | `"sdk-owned-agent-model-set"` |
+| `metadata.channelCoverage.browserVoiceProtocol` | `"sdk-owned-cognidesk-voice-websocket"` |
+| `metadata.channelCoverage.fullAmazonPollyApi` | `"not-covered"` |
+| `metadata.channelCoverage.fullAwsTranscribeApi` | `"not-covered"` |
+| `metadata.channelCoverage.speechToText` | `"typed-transcribe-streaming-sdk-adapter"` |
+| `metadata.channelCoverage.telephony` | `"not-covered"` |
+| `metadata.channelCoverage.textToSpeech` | `"typed-polly-synthesize-speech-sdk-adapter"` |
+| `metadata.generatedSpeechApi` | \{ `apiVersion`: `"aws-api-models-main-2026-06-18"`; `functionCount`: `58`; `operationCount`: `58`; \} |
+| `metadata.generatedSpeechApi.apiVersion` | `"aws-api-models-main-2026-06-18"` |
+| `metadata.generatedSpeechApi.functionCount` | `58` |
+| `metadata.generatedSpeechApi.operationCount` | `58` |
+| `name` | `"AWS Speech"` |
+| `packageName` | `"@cognidesk/integrations"` |
+| `privacyNotes` | \[`"Customer audio is sent to Amazon Transcribe for transcription, and assistant response text is sent to Amazon Polly for synthesis."`, `"AWS credentials remain server-side and are never issued to browsers by this package."`\] |
+| `provider` | `"aws-speech"` |
+| `trustLevel` | `"official"` |
 
 ***
 

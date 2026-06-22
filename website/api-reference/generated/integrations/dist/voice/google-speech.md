@@ -3124,11 +3124,11 @@ const googleSpeechProviderManifest: {
      scopes: string[];
   }[];
   directions: (
-     | "bidirectional"
      | "receive-only"
      | "send-only"
      | "inbound-only"
-    | "outbound-only")[];
+     | "outbound-only"
+    | "bidirectional")[];
   id: string;
   limitations: string[];
   maintainers: {
@@ -3174,6 +3174,102 @@ const googleSpeechProviderManifest: {
   privacyNotes: string[];
   provider: string;
   trustLevel: "community" | "official" | "verified" | "experimental";
+} & {
+  capabilities: [{
+     audiences: ["customer-facing"];
+     capability: "receive";
+     description: "Transcribes customer PCM voice input with Google Cloud Speech-to-Text.";
+     exposesSensitiveData: true;
+     label: "Transcribe speech";
+     providerObjects: [{
+        kind: "googleSpeechTranscript";
+        label: "Google Speech Transcript";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: ["customer-facing"];
+     capability: "send";
+     description: "Synthesizes Cognidesk assistant text with Google Cloud Text-to-Speech.";
+     exposesSensitiveData: true;
+     label: "Synthesize speech";
+     providerObjects: [{
+        kind: "googleSpeechSynthesis";
+        label: "Google Speech Synthesis";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: ["customer-facing", "internal-support"];
+     capability: "media";
+     description: "Exchanges buffered PCM input and synthesized 24 kHz PCM output for Cognidesk voice sessions.";
+     exposesSensitiveData: true;
+     label: "Speech audio media";
+     providerObjects: [{
+        kind: "voiceTranscript";
+        label: "Voice Transcript";
+      }, {
+        kind: "voiceAudio";
+        label: "Voice Audio";
+     }];
+     requiresCredential: true;
+  }];
+  category: "voice";
+  channelAudiences: ["customer-facing", "mixed"];
+  coverage: {
+     evidence: [{
+        label: "Google Cloud Speech-to-Text speech.recognize REST API";
+        url: "https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize";
+      }, {
+        label: "Google Cloud Speech-to-Text RecognitionConfig";
+        url: "https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/RecognitionConfig";
+      }, {
+        label: "Google Cloud Text-to-Speech text.synthesize REST API";
+        url: "https://docs.cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize";
+      }, {
+        label: "Google Cloud Text-to-Speech audio encodings";
+        url: "https://docs.cloud.google.com/text-to-speech/docs/reference/rest/v1/AudioEncoding";
+      }, {
+        label: "Google Cloud REST authentication";
+        url: "https://docs.cloud.google.com/docs/authentication/rest";
+     }];
+     notes: ["Implements Google Cloud Speech-to-Text synchronous recognize and Cloud Text-to-Speech synchronous synthesize for Cognidesk STT/TTS voice pipelines.", "Generated operation inventory and caller interfaces cover the official Google Cloud Speech-to-Text and Text-to-Speech v1 Discovery documents.", "Google Cloud supplies transcripts and synthesized audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.", "Does not implement the full Google Cloud Speech SDKs, streaming recognizer sessions, long-running transcription, long audio synthesis, voice catalog administration, or Google Cloud IAM/project policy."];
+     scope: "provider-api-subset";
+  };
+  credentialRequirements: [{
+     description: "Server-side OAuth access token or token provider with the cloud-platform scope for Google Cloud Speech-to-Text and Text-to-Speech REST requests.";
+     id: "google-cloud-access-token";
+     label: "Google Cloud OAuth access token";
+     required: true;
+  }];
+  directions: ["receive-only", "send-only", "bidirectional"];
+  id: "voice.google-speech";
+  limitations: ["This package implements synchronous REST STT and REST TTS for Cognidesk speech pipelines, not full streaming Google Cloud Speech SDK sessions.", "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Google Cloud Speech.", "Consent, recording, retention, quota project selection, region/data-residency controls, private networking, and Google Cloud IAM policy remain SDK-user configuration."];
+  maintainers: [{
+     name: "Cognidesk";
+     type: "official";
+  }];
+  metadata: {
+     channelCoverage: {
+        backgroundModelProvider: "sdk-owned-agent-model-set";
+        browserVoiceProtocol: "sdk-owned-cognidesk-voice-websocket";
+        fullGoogleCloudSpeechSdk: "not-covered";
+        longAudioSynthesis: "not-covered";
+        longRunningRecognize: "not-covered";
+        speechToText: "typed-synchronous-recognize-rest";
+        streamingRecognize: "not-covered";
+        textToSpeech: "typed-synchronous-synthesize-rest";
+     };
+     generatedSpeechApi: {
+        apiVersion: "google-speech-discovery-2026-06-18";
+        functionCount: 21;
+        operationCount: 21;
+     };
+  };
+  name: "Google Cloud Speech";
+  packageName: "@cognidesk/integrations";
+  privacyNotes: ["Customer audio is sent to Google Cloud Speech-to-Text for transcription, and assistant response text is sent to Google Cloud Text-to-Speech for synthesis.", "Google Cloud credentials remain server-side and are never issued to browsers by this package."];
+  provider: "google-speech";
+  trustLevel: "official";
 };
 ```
 
@@ -3181,25 +3277,61 @@ const googleSpeechProviderManifest: {
 
 | Name | Type |
 | ------ | ------ |
-| <a id="property-capabilities"></a> `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-category"></a> `category` | `string` |
-| <a id="property-channelaudiences"></a> `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
-| <a id="property-coverage"></a> `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
+| `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `category` | `string` |
+| `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
+| `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
 | `coverage.evidence` | \{ `label`: `string`; `url?`: `string`; \}[] |
 | `coverage.notes` | `string`[] |
 | `coverage.scope` | \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"` |
-| <a id="property-credentialrequirements"></a> `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
-| <a id="property-directions"></a> `directions` | ( \| `"bidirectional"` \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"`)[] |
-| <a id="property-id"></a> `id` | `string` |
-| <a id="property-limitations"></a> `limitations` | `string`[] |
-| <a id="property-maintainers"></a> `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
-| <a id="property-metadata"></a> `metadata?` | `Record`\<`string`, `unknown`\> |
-| <a id="property-name"></a> `name` | `string` |
-| <a id="property-operations"></a> `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-packagename"></a> `packageName` | `string` |
-| <a id="property-privacynotes"></a> `privacyNotes` | `string`[] |
-| <a id="property-provider"></a> `provider` | `string` |
-| <a id="property-trustlevel"></a> `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+| `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
+| `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
+| `id` | `string` |
+| `limitations` | `string`[] |
+| `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
+| `metadata?` | `Record`\<`string`, `unknown`\> |
+| `name` | `string` |
+| `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `packageName` | `string` |
+| `privacyNotes` | `string`[] |
+| `provider` | `string` |
+| `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| `capabilities` | \[\{ `audiences`: \[`"customer-facing"`\]; `capability`: `"receive"`; `description`: `"Transcribes customer PCM voice input with Google Cloud Speech-to-Text."`; `exposesSensitiveData`: `true`; `label`: `"Transcribe speech"`; `providerObjects`: \[\{ `kind`: `"googleSpeechTranscript"`; `label`: `"Google Speech Transcript"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: \[`"customer-facing"`\]; `capability`: `"send"`; `description`: `"Synthesizes Cognidesk assistant text with Google Cloud Text-to-Speech."`; `exposesSensitiveData`: `true`; `label`: `"Synthesize speech"`; `providerObjects`: \[\{ `kind`: `"googleSpeechSynthesis"`; `label`: `"Google Speech Synthesis"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: \[`"customer-facing"`, `"internal-support"`\]; `capability`: `"media"`; `description`: `"Exchanges buffered PCM input and synthesized 24 kHz PCM output for Cognidesk voice sessions."`; `exposesSensitiveData`: `true`; `label`: `"Speech audio media"`; `providerObjects`: \[\{ `kind`: `"voiceTranscript"`; `label`: `"Voice Transcript"`; \}, \{ `kind`: `"voiceAudio"`; `label`: `"Voice Audio"`; \}\]; `requiresCredential`: `true`; \}\] |
+| `category` | `"voice"` |
+| `channelAudiences` | \[`"customer-facing"`, `"mixed"`\] |
+| `coverage` | \{ `evidence`: \[\{ `label`: `"Google Cloud Speech-to-Text speech.recognize REST API"`; `url`: `"https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize"`; \}, \{ `label`: `"Google Cloud Speech-to-Text RecognitionConfig"`; `url`: `"https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/RecognitionConfig"`; \}, \{ `label`: `"Google Cloud Text-to-Speech text.synthesize REST API"`; `url`: `"https://docs.cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize"`; \}, \{ `label`: `"Google Cloud Text-to-Speech audio encodings"`; `url`: `"https://docs.cloud.google.com/text-to-speech/docs/reference/rest/v1/AudioEncoding"`; \}, \{ `label`: `"Google Cloud REST authentication"`; `url`: `"https://docs.cloud.google.com/docs/authentication/rest"`; \}\]; `notes`: \[`"Implements Google Cloud Speech-to-Text synchronous recognize and Cloud Text-to-Speech synchronous synthesize for Cognidesk STT/TTS voice pipelines."`, `"Generated operation inventory and caller interfaces cover the official Google Cloud Speech-to-Text and Text-to-Speech v1 Discovery documents."`, `"Google Cloud supplies transcripts and synthesized audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary."`, `"Does not implement the full Google Cloud Speech SDKs, streaming recognizer sessions, long-running transcription, long audio synthesis, voice catalog administration, or Google Cloud IAM/project policy."`\]; `scope`: `"provider-api-subset"`; \} |
+| `coverage.evidence` | \[\{ `label`: `"Google Cloud Speech-to-Text speech.recognize REST API"`; `url`: `"https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize"`; \}, \{ `label`: `"Google Cloud Speech-to-Text RecognitionConfig"`; `url`: `"https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/RecognitionConfig"`; \}, \{ `label`: `"Google Cloud Text-to-Speech text.synthesize REST API"`; `url`: `"https://docs.cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize"`; \}, \{ `label`: `"Google Cloud Text-to-Speech audio encodings"`; `url`: `"https://docs.cloud.google.com/text-to-speech/docs/reference/rest/v1/AudioEncoding"`; \}, \{ `label`: `"Google Cloud REST authentication"`; `url`: `"https://docs.cloud.google.com/docs/authentication/rest"`; \}\] |
+| `coverage.notes` | \[`"Implements Google Cloud Speech-to-Text synchronous recognize and Cloud Text-to-Speech synchronous synthesize for Cognidesk STT/TTS voice pipelines."`, `"Generated operation inventory and caller interfaces cover the official Google Cloud Speech-to-Text and Text-to-Speech v1 Discovery documents."`, `"Google Cloud supplies transcripts and synthesized audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary."`, `"Does not implement the full Google Cloud Speech SDKs, streaming recognizer sessions, long-running transcription, long audio synthesis, voice catalog administration, or Google Cloud IAM/project policy."`\] |
+| `coverage.scope` | `"provider-api-subset"` |
+| `credentialRequirements` | \[\{ `description`: `"Server-side OAuth access token or token provider with the cloud-platform scope for Google Cloud Speech-to-Text and Text-to-Speech REST requests."`; `id`: `"google-cloud-access-token"`; `label`: `"Google Cloud OAuth access token"`; `required`: `true`; \}\] |
+| `directions` | \[`"receive-only"`, `"send-only"`, `"bidirectional"`\] |
+| `id` | `"voice.google-speech"` |
+| `limitations` | \[`"This package implements synchronous REST STT and REST TTS for Cognidesk speech pipelines, not full streaming Google Cloud Speech SDK sessions."`, `"The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Google Cloud Speech."`, `"Consent, recording, retention, quota project selection, region/data-residency controls, private networking, and Google Cloud IAM policy remain SDK-user configuration."`\] |
+| `maintainers` | \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
+| `metadata` | \{ `channelCoverage`: \{ `backgroundModelProvider`: `"sdk-owned-agent-model-set"`; `browserVoiceProtocol`: `"sdk-owned-cognidesk-voice-websocket"`; `fullGoogleCloudSpeechSdk`: `"not-covered"`; `longAudioSynthesis`: `"not-covered"`; `longRunningRecognize`: `"not-covered"`; `speechToText`: `"typed-synchronous-recognize-rest"`; `streamingRecognize`: `"not-covered"`; `textToSpeech`: `"typed-synchronous-synthesize-rest"`; \}; `generatedSpeechApi`: \{ `apiVersion`: `"google-speech-discovery-2026-06-18"`; `functionCount`: `21`; `operationCount`: `21`; \}; \} |
+| `metadata.channelCoverage` | \{ `backgroundModelProvider`: `"sdk-owned-agent-model-set"`; `browserVoiceProtocol`: `"sdk-owned-cognidesk-voice-websocket"`; `fullGoogleCloudSpeechSdk`: `"not-covered"`; `longAudioSynthesis`: `"not-covered"`; `longRunningRecognize`: `"not-covered"`; `speechToText`: `"typed-synchronous-recognize-rest"`; `streamingRecognize`: `"not-covered"`; `textToSpeech`: `"typed-synchronous-synthesize-rest"`; \} |
+| `metadata.channelCoverage.backgroundModelProvider` | `"sdk-owned-agent-model-set"` |
+| `metadata.channelCoverage.browserVoiceProtocol` | `"sdk-owned-cognidesk-voice-websocket"` |
+| `metadata.channelCoverage.fullGoogleCloudSpeechSdk` | `"not-covered"` |
+| `metadata.channelCoverage.longAudioSynthesis` | `"not-covered"` |
+| `metadata.channelCoverage.longRunningRecognize` | `"not-covered"` |
+| `metadata.channelCoverage.speechToText` | `"typed-synchronous-recognize-rest"` |
+| `metadata.channelCoverage.streamingRecognize` | `"not-covered"` |
+| `metadata.channelCoverage.textToSpeech` | `"typed-synchronous-synthesize-rest"` |
+| `metadata.generatedSpeechApi` | \{ `apiVersion`: `"google-speech-discovery-2026-06-18"`; `functionCount`: `21`; `operationCount`: `21`; \} |
+| `metadata.generatedSpeechApi.apiVersion` | `"google-speech-discovery-2026-06-18"` |
+| `metadata.generatedSpeechApi.functionCount` | `21` |
+| `metadata.generatedSpeechApi.operationCount` | `21` |
+| `name` | `"Google Cloud Speech"` |
+| `packageName` | `"@cognidesk/integrations"` |
+| `privacyNotes` | \[`"Customer audio is sent to Google Cloud Speech-to-Text for transcription, and assistant response text is sent to Google Cloud Text-to-Speech for synthesis."`, `"Google Cloud credentials remain server-side and are never issued to browsers by this package."`\] |
+| `provider` | `"google-speech"` |
+| `trustLevel` | `"official"` |
 
 ## Functions
 

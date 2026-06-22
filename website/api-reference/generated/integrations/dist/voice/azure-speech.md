@@ -13173,6 +13173,99 @@ const azureSpeechProviderManifest: {
   privacyNotes: string[];
   provider: string;
   trustLevel: "community" | "official" | "verified" | "experimental";
+} & {
+  capabilities: [{
+     audiences: ["customer-facing"];
+     capability: "receive";
+     description: "Transcribes customer PCM voice input with Azure AI Speech to text.";
+     exposesSensitiveData: true;
+     label: "Transcribe speech";
+     providerObjects: [{
+        kind: "azureSpeechTranscript";
+        label: "Azure Speech Transcript";
+     }];
+     requiresCredential: true;
+   }, {
+     audiences: ["customer-facing"];
+     capability: "send";
+     description: "Synthesizes Cognidesk assistant text with Azure AI Text to speech.";
+     exposesSensitiveData: true;
+     label: "Synthesize speech";
+     providerObjects: [{
+        kind: "azureSpeechSynthesis";
+        label: "Azure Speech Synthesis";
+     }];
+     requiresCredential: true;
+     sideEffect: true;
+   }, {
+     audiences: ["customer-facing", "internal-support"];
+     capability: "media";
+     description: "Exchanges buffered PCM input and synthesized 24 kHz PCM output for Cognidesk voice sessions.";
+     exposesSensitiveData: true;
+     label: "Speech audio media";
+     providerObjects: [{
+        kind: "voiceTranscript";
+        label: "Voice Transcript";
+      }, {
+        kind: "voiceAudio";
+        label: "Voice Audio";
+     }];
+     requiresCredential: true;
+  }];
+  category: "voice";
+  channelAudiences: ["customer-facing", "mixed"];
+  coverage: {
+     evidence: [{
+        label: "Azure AI Speech to text REST API";
+        url: "https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short";
+      }, {
+        label: "Azure AI Text to speech REST API";
+        url: "https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech";
+      }, {
+        label: "Azure Speech audio output formats";
+        url: "https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech#audio-outputs";
+     }];
+     notes: ["Implements Azure AI Speech speech-to-text and text-to-speech for Cognidesk STT/TTS voice pipelines.", "Generated operation inventory and caller interfaces cover Microsoft azure-rest-api-specs Speech data-plane files for Speech-to-Text management, custom voice, batch synthesis, and transcription surfaces.", "Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.", "The short-audio STT and realtime TTS endpoints used by the built-in adapter are documented in Microsoft REST docs but are not represented in the generated azure-rest-api-specs files, so that adapter code remains handwritten.", "Does not implement the full Azure AI Speech SDK, avatar/video APIs, telephony carrier setup, or Azure account policy."];
+     scope: "provider-api-subset";
+  };
+  credentialRequirements: [{
+     description: "Server-side Azure AI Speech resource key used for speech-to-text and text-to-speech REST calls.";
+     id: "azure-speech-key";
+     label: "Azure Speech resource key";
+     required: true;
+   }, {
+     description: "Azure region for the Speech resource, such as eastus or westeurope.";
+     id: "azure-speech-region";
+     label: "Azure Speech region";
+     required: true;
+  }];
+  directions: ["receive-only", "send-only", "bidirectional"];
+  id: "voice.azure-speech";
+  limitations: ["This package implements short-audio REST STT and REST TTS for Cognidesk speech pipelines, not full streaming Azure Speech SDK sessions.", "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Azure Speech.", "Consent, recording, retention, region selection, private networking, and Azure account policy remain SDK-user configuration."];
+  maintainers: [{
+     name: "Cognidesk";
+     type: "official";
+  }];
+  metadata: {
+     channelCoverage: {
+        backgroundModelProvider: "sdk-owned-agent-model-set";
+        browserVoiceProtocol: "sdk-owned-cognidesk-voice-websocket";
+        fullAzureSpeechSdk: "not-covered";
+        speechToText: "typed-short-audio-rest";
+        telephony: "not-covered";
+        textToSpeech: "typed-rest";
+     };
+     generatedSpeechApi: {
+        apiVersion: "azure-speech-rest-api-specs-2026-06-18";
+        functionCount: 105;
+        operationCount: 105;
+     };
+  };
+  name: "Azure AI Speech";
+  packageName: "@cognidesk/integrations";
+  privacyNotes: ["Customer audio is sent to Azure Speech for transcription, and assistant response text is sent to Azure Speech for synthesis.", "Azure Speech credentials remain server-side and are never issued to browsers by this package."];
+  provider: "azure-speech";
+  trustLevel: "official";
 };
 ```
 
@@ -13180,25 +13273,59 @@ const azureSpeechProviderManifest: {
 
 | Name | Type |
 | ------ | ------ |
-| <a id="property-capabilities"></a> `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-category"></a> `category` | `string` |
-| <a id="property-channelaudiences"></a> `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
-| <a id="property-coverage"></a> `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
+| `capabilities` | \{ `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension?`: `boolean`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `category` | `string` |
+| `channelAudiences` | (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[] |
+| `coverage` | \{ `evidence`: \{ `label`: `string`; `url?`: `string`; \}[]; `notes`: `string`[]; `scope`: \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"`; \} |
 | `coverage.evidence` | \{ `label`: `string`; `url?`: `string`; \}[] |
 | `coverage.notes` | `string`[] |
 | `coverage.scope` | \| `"support-workflow-subset"` \| `"provider-api-subset"` \| `"connector-required"` \| `"local-protocol"` \| `"full-provider-api"` |
-| <a id="property-credentialrequirements"></a> `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
-| <a id="property-directions"></a> `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
-| <a id="property-id"></a> `id` | `string` |
-| <a id="property-limitations"></a> `limitations` | `string`[] |
-| <a id="property-maintainers"></a> `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
-| <a id="property-metadata"></a> `metadata?` | `Record`\<`string`, `unknown`\> |
-| <a id="property-name"></a> `name` | `string` |
-| <a id="property-operations"></a> `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
-| <a id="property-packagename"></a> `packageName` | `string` |
-| <a id="property-privacynotes"></a> `privacyNotes` | `string`[] |
-| <a id="property-provider"></a> `provider` | `string` |
-| <a id="property-trustlevel"></a> `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+| `credentialRequirements` | \{ `description?`: `string`; `id`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `required`: `boolean`; `scopes`: `string`[]; \}[] |
+| `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
+| `id` | `string` |
+| `limitations` | `string`[] |
+| `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
+| `metadata?` | `Record`\<`string`, `unknown`\> |
+| `name` | `string` |
+| `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |
+| `packageName` | `string` |
+| `privacyNotes` | `string`[] |
+| `provider` | `string` |
+| `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+
+#### Type Declaration
+
+| Name | Type |
+| ------ | ------ |
+| `capabilities` | \[\{ `audiences`: \[`"customer-facing"`\]; `capability`: `"receive"`; `description`: `"Transcribes customer PCM voice input with Azure AI Speech to text."`; `exposesSensitiveData`: `true`; `label`: `"Transcribe speech"`; `providerObjects`: \[\{ `kind`: `"azureSpeechTranscript"`; `label`: `"Azure Speech Transcript"`; \}\]; `requiresCredential`: `true`; \}, \{ `audiences`: \[`"customer-facing"`\]; `capability`: `"send"`; `description`: `"Synthesizes Cognidesk assistant text with Azure AI Text to speech."`; `exposesSensitiveData`: `true`; `label`: `"Synthesize speech"`; `providerObjects`: \[\{ `kind`: `"azureSpeechSynthesis"`; `label`: `"Azure Speech Synthesis"`; \}\]; `requiresCredential`: `true`; `sideEffect`: `true`; \}, \{ `audiences`: \[`"customer-facing"`, `"internal-support"`\]; `capability`: `"media"`; `description`: `"Exchanges buffered PCM input and synthesized 24 kHz PCM output for Cognidesk voice sessions."`; `exposesSensitiveData`: `true`; `label`: `"Speech audio media"`; `providerObjects`: \[\{ `kind`: `"voiceTranscript"`; `label`: `"Voice Transcript"`; \}, \{ `kind`: `"voiceAudio"`; `label`: `"Voice Audio"`; \}\]; `requiresCredential`: `true`; \}\] |
+| `category` | `"voice"` |
+| `channelAudiences` | \[`"customer-facing"`, `"mixed"`\] |
+| `coverage` | \{ `evidence`: \[\{ `label`: `"Azure AI Speech to text REST API"`; `url`: `"https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short"`; \}, \{ `label`: `"Azure AI Text to speech REST API"`; `url`: `"https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech"`; \}, \{ `label`: `"Azure Speech audio output formats"`; `url`: `"https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech#audio-outputs"`; \}\]; `notes`: \[`"Implements Azure AI Speech speech-to-text and text-to-speech for Cognidesk STT/TTS voice pipelines."`, `"Generated operation inventory and caller interfaces cover Microsoft azure-rest-api-specs Speech data-plane files for Speech-to-Text management, custom voice, batch synthesis, and transcription surfaces."`, `"Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary."`, `"The short-audio STT and realtime TTS endpoints used by the built-in adapter are documented in Microsoft REST docs but are not represented in the generated azure-rest-api-specs files, so that adapter code remains handwritten."`, `"Does not implement the full Azure AI Speech SDK, avatar/video APIs, telephony carrier setup, or Azure account policy."`\]; `scope`: `"provider-api-subset"`; \} |
+| `coverage.evidence` | \[\{ `label`: `"Azure AI Speech to text REST API"`; `url`: `"https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short"`; \}, \{ `label`: `"Azure AI Text to speech REST API"`; `url`: `"https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech"`; \}, \{ `label`: `"Azure Speech audio output formats"`; `url`: `"https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech#audio-outputs"`; \}\] |
+| `coverage.notes` | \[`"Implements Azure AI Speech speech-to-text and text-to-speech for Cognidesk STT/TTS voice pipelines."`, `"Generated operation inventory and caller interfaces cover Microsoft azure-rest-api-specs Speech data-plane files for Speech-to-Text management, custom voice, batch synthesis, and transcription surfaces."`, `"Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary."`, `"The short-audio STT and realtime TTS endpoints used by the built-in adapter are documented in Microsoft REST docs but are not represented in the generated azure-rest-api-specs files, so that adapter code remains handwritten."`, `"Does not implement the full Azure AI Speech SDK, avatar/video APIs, telephony carrier setup, or Azure account policy."`\] |
+| `coverage.scope` | `"provider-api-subset"` |
+| `credentialRequirements` | \[\{ `description`: `"Server-side Azure AI Speech resource key used for speech-to-text and text-to-speech REST calls."`; `id`: `"azure-speech-key"`; `label`: `"Azure Speech resource key"`; `required`: `true`; \}, \{ `description`: `"Azure region for the Speech resource, such as eastus or westeurope."`; `id`: `"azure-speech-region"`; `label`: `"Azure Speech region"`; `required`: `true`; \}\] |
+| `directions` | \[`"receive-only"`, `"send-only"`, `"bidirectional"`\] |
+| `id` | `"voice.azure-speech"` |
+| `limitations` | \[`"This package implements short-audio REST STT and REST TTS for Cognidesk speech pipelines, not full streaming Azure Speech SDK sessions."`, `"The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Azure Speech."`, `"Consent, recording, retention, region selection, private networking, and Azure account policy remain SDK-user configuration."`\] |
+| `maintainers` | \[\{ `name`: `"Cognidesk"`; `type`: `"official"`; \}\] |
+| `metadata` | \{ `channelCoverage`: \{ `backgroundModelProvider`: `"sdk-owned-agent-model-set"`; `browserVoiceProtocol`: `"sdk-owned-cognidesk-voice-websocket"`; `fullAzureSpeechSdk`: `"not-covered"`; `speechToText`: `"typed-short-audio-rest"`; `telephony`: `"not-covered"`; `textToSpeech`: `"typed-rest"`; \}; `generatedSpeechApi`: \{ `apiVersion`: `"azure-speech-rest-api-specs-2026-06-18"`; `functionCount`: `105`; `operationCount`: `105`; \}; \} |
+| `metadata.channelCoverage` | \{ `backgroundModelProvider`: `"sdk-owned-agent-model-set"`; `browserVoiceProtocol`: `"sdk-owned-cognidesk-voice-websocket"`; `fullAzureSpeechSdk`: `"not-covered"`; `speechToText`: `"typed-short-audio-rest"`; `telephony`: `"not-covered"`; `textToSpeech`: `"typed-rest"`; \} |
+| `metadata.channelCoverage.backgroundModelProvider` | `"sdk-owned-agent-model-set"` |
+| `metadata.channelCoverage.browserVoiceProtocol` | `"sdk-owned-cognidesk-voice-websocket"` |
+| `metadata.channelCoverage.fullAzureSpeechSdk` | `"not-covered"` |
+| `metadata.channelCoverage.speechToText` | `"typed-short-audio-rest"` |
+| `metadata.channelCoverage.telephony` | `"not-covered"` |
+| `metadata.channelCoverage.textToSpeech` | `"typed-rest"` |
+| `metadata.generatedSpeechApi` | \{ `apiVersion`: `"azure-speech-rest-api-specs-2026-06-18"`; `functionCount`: `105`; `operationCount`: `105`; \} |
+| `metadata.generatedSpeechApi.apiVersion` | `"azure-speech-rest-api-specs-2026-06-18"` |
+| `metadata.generatedSpeechApi.functionCount` | `105` |
+| `metadata.generatedSpeechApi.operationCount` | `105` |
+| `name` | `"Azure AI Speech"` |
+| `packageName` | `"@cognidesk/integrations"` |
+| `privacyNotes` | \[`"Customer audio is sent to Azure Speech for transcription, and assistant response text is sent to Azure Speech for synthesis."`, `"Azure Speech credentials remain server-side and are never issued to browsers by this package."`\] |
+| `provider` | `"azure-speech"` |
+| `trustLevel` | `"official"` |
 
 ## Functions
 

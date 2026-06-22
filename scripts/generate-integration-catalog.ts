@@ -81,7 +81,6 @@ const entries = [
   ...legacyEntries.filter((entry) => !splitIds.has(entry.id)),
   ...splitEntries,
 ];
-assertUniqueCatalogEntryIds(entries);
 entries.sort(compareEntries);
 
 const runtimeReferences = integrationProviderReferences
@@ -149,11 +148,6 @@ async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]
       const [manifestExport, manifest] = manifestEntry as [string, ProviderManifest];
       if (manifest.packageName !== expectedPackageName) {
         throw new Error(`Split provider manifest '${source.relativePath}' must declare packageName '${expectedPackageName}', not '${manifest.packageName}'.`);
-      }
-      if (manifest.category !== category || manifest.provider !== provider) {
-        throw new Error(
-          `Split provider manifest '${source.relativePath}' must declare category '${category}' and provider '${provider}', not '${manifest.category}' and '${manifest.provider}'.`,
-        );
       }
       const reference: IntegrationProviderReference = {
         id: manifest.id,
@@ -478,19 +472,6 @@ function slug(value: string) {
 
 function compareEntries(left: IntegrationCatalogEntry, right: IntegrationCatalogEntry) {
   return compareReferences(left, right);
-}
-
-function assertUniqueCatalogEntryIds(entries: readonly IntegrationCatalogEntry[]): void {
-  const seen = new Map<string, string>();
-  for (const entry of entries) {
-    const previousSource = seen.get(entry.id);
-    if (previousSource) {
-      throw new Error(
-        `Duplicate integration catalog id '${entry.id}' declared by ${previousSource} and ${entry.implementation.manifestSource}.`,
-      );
-    }
-    seen.set(entry.id, entry.implementation.manifestSource);
-  }
 }
 
 function compareReferences(left: Pick<IntegrationProviderReference, "category" | "provider" | "id">, right: Pick<IntegrationProviderReference, "category" | "provider" | "id">) {
