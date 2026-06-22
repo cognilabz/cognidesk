@@ -1,9 +1,9 @@
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
-import { createDiscordCommunityClient } from "./client.js";
+import { createDiscordMessagingClient } from "./client.js";
 import type { DiscordCredentialStatusInput, DiscordLiveCheckOptions } from "./contracts.js";
-import { discordCommunityProviderManifest } from "./manifest.js";
+import { discordMessagingProviderManifest } from "./manifest.js";
 
-export function discordCommunityCredentialStatuses(
+export function discordMessagingCredentialStatuses(
   input: DiscordCredentialStatusInput,
 ): ProviderCredentialStatusInput[] {
   const missingScopes = (input.requiredScopes ?? []).filter((scope) => !(input.scopes ?? []).includes(scope));
@@ -24,7 +24,7 @@ export function discordCommunityCredentialStatuses(
 
   return [
     {
-      providerPackageId: discordCommunityProviderManifest.id,
+      providerPackageId: discordMessagingProviderManifest.id,
       requirementId: "discord-bot-token",
       state: botState,
       scopes: input.scopes ?? [],
@@ -40,7 +40,7 @@ export function discordCommunityCredentialStatuses(
               : "A Discord bot token is required for REST channel, guild, and bot readiness calls.",
     },
     {
-      providerPackageId: discordCommunityProviderManifest.id,
+      providerPackageId: discordMessagingProviderManifest.id,
       requirementId: "discord-application-id",
       state: input.applicationId ? "configured" : "missing",
       message: input.applicationId
@@ -48,7 +48,7 @@ export function discordCommunityCredentialStatuses(
         : "A Discord application ID is required for interaction and installation readiness.",
     },
     {
-      providerPackageId: discordCommunityProviderManifest.id,
+      providerPackageId: discordMessagingProviderManifest.id,
       requirementId: "discord-public-key",
       state: input.publicKey ? "configured" : "missing",
       message: input.publicKey
@@ -56,15 +56,15 @@ export function discordCommunityCredentialStatuses(
         : "A Discord application public key is required to validate interaction signatures.",
     },
     {
-      providerPackageId: discordCommunityProviderManifest.id,
+      providerPackageId: discordMessagingProviderManifest.id,
       requirementId: "discord-guild-id",
       state: input.guildId ? "configured" : "missing",
       message: input.guildId
         ? "Discord guild ID is configured."
-        : "A Discord guild/server ID is optional but recommended for community support routing checks.",
+        : "A Discord guild/server ID is optional but recommended for messaging support routing checks.",
     },
     {
-      providerPackageId: discordCommunityProviderManifest.id,
+      providerPackageId: discordMessagingProviderManifest.id,
       requirementId: "discord-channel-id",
       state: channelState,
       message: channelState === "configured"
@@ -74,7 +74,7 @@ export function discordCommunityCredentialStatuses(
           : "A Discord channel or forum ID is optional but recommended for message and thread readiness checks.",
     },
     {
-      providerPackageId: discordCommunityProviderManifest.id,
+      providerPackageId: discordMessagingProviderManifest.id,
       requirementId: "discord-webhook-url",
       state: input.webhookUrl ? "configured" : "missing",
       message: input.webhookUrl
@@ -84,14 +84,14 @@ export function discordCommunityCredentialStatuses(
   ];
 }
 
-export function createDiscordCommunityLiveChecks(options: DiscordLiveCheckOptions) {
+export function createDiscordMessagingLiveChecks(options: DiscordLiveCheckOptions) {
   return [
     {
       id: "current-bot",
       description: "Discord /users/@me endpoint is reachable with the configured bot token.",
       requiredCredentialIds: ["discord-bot-token"],
       async run(context: { signal?: AbortSignal }) {
-        const client = options.client ?? createDiscordCommunityClient(options);
+        const client = options.client ?? createDiscordMessagingClient(options);
         const bot = await client.getCurrentBot();
         if (context.signal?.aborted) throw new Error("Discord current bot live check aborted.");
         return {
@@ -108,7 +108,7 @@ export function createDiscordCommunityLiveChecks(options: DiscordLiveCheckOption
       description: "Discord current bot application endpoint is reachable with the configured bot token.",
       requiredCredentialIds: ["discord-bot-token", "discord-application-id"],
       async run(context: { signal?: AbortSignal }) {
-        const client = options.client ?? createDiscordCommunityClient(options);
+        const client = options.client ?? createDiscordMessagingClient(options);
         const application = await client.getCurrentApplication();
         if (context.signal?.aborted) throw new Error("Discord current application live check aborted.");
         return {
@@ -126,7 +126,7 @@ export function createDiscordCommunityLiveChecks(options: DiscordLiveCheckOption
       requiredCredentialIds: ["discord-bot-token", "discord-guild-id"],
       async run(context: { signal?: AbortSignal }) {
         if (!options.guildId) throw new Error("Discord guild ID is required for the guild live check.");
-        const client = options.client ?? createDiscordCommunityClient(options);
+        const client = options.client ?? createDiscordMessagingClient(options);
         const guild = await client.getGuild(options.guildId);
         if (context.signal?.aborted) throw new Error("Discord guild live check aborted.");
         return {
@@ -143,7 +143,7 @@ export function createDiscordCommunityLiveChecks(options: DiscordLiveCheckOption
       requiredCredentialIds: ["discord-bot-token", "discord-channel-id"],
       async run(context: { signal?: AbortSignal }) {
         if (!options.channelId) throw new Error("Discord channel ID is required for the channel live check.");
-        const client = options.client ?? createDiscordCommunityClient(options);
+        const client = options.client ?? createDiscordMessagingClient(options);
         const channel = await client.getChannel(options.channelId);
         if (context.signal?.aborted) throw new Error("Discord channel live check aborted.");
         return {
