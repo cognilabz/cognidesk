@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export interface TikTokSelectedOperation {
   uid: string;
   api: "tiktok-open.v2.display" | "tiktok-open.v2.content-posting" | "tiktok-open.v2.research" | "tiktok-business.v1.3";
@@ -82,7 +84,7 @@ export const TIKTOK_DIRECT_SLICE_METADATA = {
   source: "official TikTok Developers and TikTok Business API docs",
   sourceVersion: "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-21",
   allowlistChecksumAlgorithm: "sha256",
-  allowlistChecksum: "ec250ef62299d5cee6f9ea5c5db5060409aba55c7ebdb6dca2572c7286a4f3fb",
+  allowlistChecksum: selectedOperationsChecksum(TIKTOK_SELECTED_OPERATIONS),
   selectedOperations: TIKTOK_SELECTED_OPERATIONS,
   apiCoverage: {
     checkedAt: "2026-06-21",
@@ -96,3 +98,11 @@ export const TIKTOK_DIRECT_SLICE_METADATA = {
     ],
   },
 } as const;
+
+function selectedOperationsChecksum(operations: readonly TikTokSelectedOperation[]): string {
+  const serialized = JSON.stringify(operations);
+  if (serialized === undefined) {
+    throw new Error("TikTok selected operations could not be serialized for checksum generation.");
+  }
+  return createHash("sha256").update(serialized).digest("hex");
+}

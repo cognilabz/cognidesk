@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export interface RcsSelectedOperation {
   uid: string;
   api: "rcsbusinessmessaging.v1" | "businesscommunications.v1";
@@ -84,7 +86,7 @@ export const RCS_DIRECT_SLICE_METADATA = {
   source: "official Google RCS for Business REST reference plus documented Discovery URLs",
   sourceVersion: "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-21",
   allowlistChecksumAlgorithm: "sha256",
-  allowlistChecksum: "36c458c94ac8c4d639872098863ab9b9287970aa3af245a17f2f4f9ff3b4bda9",
+  allowlistChecksum: selectedOperationsChecksum(RCS_SELECTED_OPERATIONS),
   selectedOperations: RCS_SELECTED_OPERATIONS,
   apiCoverage: {
     checkedAt: "2026-06-21",
@@ -98,3 +100,11 @@ export const RCS_DIRECT_SLICE_METADATA = {
     ],
   },
 } as const;
+
+function selectedOperationsChecksum(operations: readonly RcsSelectedOperation[]): string {
+  const serialized = JSON.stringify(operations);
+  if (serialized === undefined) {
+    throw new Error("RCS selected operations could not be serialized for checksum generation.");
+  }
+  return createHash("sha256").update(serialized).digest("hex");
+}

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -81,6 +82,7 @@ const entries = [
   ...legacyEntries.filter((entry) => !splitIds.has(entry.id)),
   ...splitEntries,
 ];
+assertUniqueCatalogEntryIds(entries);
 entries.sort(compareEntries);
 
 const runtimeReferences = integrationProviderReferences
@@ -148,6 +150,11 @@ async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]
       const [manifestExport, manifest] = manifestEntry as [string, ProviderManifest];
       if (manifest.packageName !== expectedPackageName) {
         throw new Error(`Split provider manifest '${source.relativePath}' must declare packageName '${expectedPackageName}', not '${manifest.packageName}'.`);
+      }
+      if (manifest.category !== category || manifest.provider !== provider) {
+        throw new Error(
+          `Split provider manifest '${source.relativePath}' must declare category '${category}' and provider '${provider}', not '${manifest.category}' and '${manifest.provider}'.`,
+        );
       }
       const reference: IntegrationProviderReference = {
         id: manifest.id,
@@ -227,6 +234,7 @@ function toCatalogEntry(
 ): IntegrationCatalogEntry {
   const metadata = cloneJsonObject(manifest.metadata);
   const implementation = recordFrom(metadata?.implementation);
+  normalizeAllowlistChecksum(reference, source, implementation);
   const coverage = cloneJson(manifest.coverage);
   const capabilities = (manifest.capabilities ?? []).map(toCatalogCapability);
   const credentialRequirements = (manifest.credentialRequirements ?? []).map(toCredentialRequirement);
@@ -281,6 +289,34 @@ function toCatalogEntry(
     })),
     ...(metadata ? { metadata } : {}),
   };
+}
+
+function normalizeAllowlistChecksum(
+  reference: IntegrationProviderReference,
+  source: ManifestSource,
+  implementation: Record<string, unknown> | undefined,
+): void {
+  const selectedOperations = implementation?.selectedOperations;
+  if (!Array.isArray(selectedOperations)) return;
+
+  const declaredAlgorithm = stringFrom(implementation.allowlistChecksumAlgorithm);
+  const declaredChecksum = stringFrom(implementation.allowlistChecksum);
+  if (!declaredAlgorithm && !declaredChecksum) return;
+
+  if (declaredAlgorithm !== "sha256") {
+    throw new Error(
+      `Provider integration '${reference.id}' in ${source.relativePath} declares selectedOperations with unsupported allowlistChecksumAlgorithm '${declaredAlgorithm ?? "<missing>"}'.`,
+    );
+  }
+
+  const computedChecksum = sha256Json(selectedOperations, `${reference.id} selectedOperations`);
+  if (declaredChecksum && declaredChecksum !== computedChecksum) {
+    throw new Error(
+      `Provider integration '${reference.id}' in ${source.relativePath} has allowlistChecksum '${declaredChecksum}', expected '${computedChecksum}' from sha256(JSON.stringify(selectedOperations)).`,
+    );
+  }
+
+  implementation.allowlistChecksum = computedChecksum;
 }
 
 function toCatalogCapability(capability: Record<string, unknown>): IntegrationCatalogCapability {
@@ -442,6 +478,14 @@ function cloneJsonObject(value: unknown): JsonObject | undefined {
   return cloneJson(record as JsonObject);
 }
 
+function sha256Json(value: unknown, label: string): string {
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) {
+    throw new Error(`${label} could not be serialized for checksum generation.`);
+  }
+  return createHash("sha256").update(serialized).digest("hex");
+}
+
 function recordFrom(value: unknown): Record<string, unknown> | undefined {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
 }
@@ -472,6 +516,19 @@ function slug(value: string) {
 
 function compareEntries(left: IntegrationCatalogEntry, right: IntegrationCatalogEntry) {
   return compareReferences(left, right);
+}
+
+function assertUniqueCatalogEntryIds(entries: readonly IntegrationCatalogEntry[]): void {
+  const seen = new Map<string, string>();
+  for (const entry of entries) {
+    const previousSource = seen.get(entry.id);
+    if (previousSource) {
+      throw new Error(
+        `Duplicate integration catalog id '${entry.id}' declared by ${previousSource} and ${entry.implementation.manifestSource}.`,
+      );
+    }
+    seen.set(entry.id, entry.implementation.manifestSource);
+  }
 }
 
 function compareReferences(left: Pick<IntegrationProviderReference, "category" | "provider" | "id">, right: Pick<IntegrationProviderReference, "category" | "provider" | "id">) {

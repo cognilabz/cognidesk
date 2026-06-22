@@ -9318,7 +9318,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "source": "official Google RCS for Business REST reference plus documented Discovery URLs",
         "sourceVersion": "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-21",
         "allowlistChecksumAlgorithm": "sha256",
-        "allowlistChecksum": "36c458c94ac8c4d639872098863ab9b9287970aa3af245a17f2f4f9ff3b4bda9",
+        "allowlistChecksum": "7900131140a8ced55b584bb3216d637e21c1e35fee9e86de265cab0d55c97ce3",
         "selectedOperations": [
           {
             "uid": "rcsbusinessmessaging:files.create.metadata",
@@ -11802,7 +11802,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "source": "official TikTok Developers and TikTok Business API docs",
         "sourceVersion": "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-21",
         "allowlistChecksumAlgorithm": "sha256",
-        "allowlistChecksum": "ec250ef62299d5cee6f9ea5c5db5060409aba55c7ebdb6dca2572c7286a4f3fb",
+        "allowlistChecksum": "ed6fc3a9b917c05ee57f96f42fd3643a6a5ca334c84bdbfa3f757e1bf62cd841",
         "selectedOperations": [
           {
             "uid": "tiktok-open:user.info.get",
