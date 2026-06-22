@@ -42,8 +42,11 @@ const ebayMarketplaceOperations: Record<
     async (input, context) => {
       const operationInput = isOperationInput(input) ? input : {};
       const client = clientFor(operationInput, credentialsFor(context));
-      const method = client[operation.functionName] as (...args: unknown[]) => Promise<unknown>;
-      return method.apply(client, operationInput.args ?? []);
+      const method = client[operation.functionName] as unknown;
+      if (typeof method !== "function") {
+        throw new Error(`eBay marketplace client does not implement operation '${operation.functionName}'.`);
+      }
+      return (method as (...args: unknown[]) => Promise<unknown>).apply(client, operationInput.args ?? []);
     },
   ]),
 );

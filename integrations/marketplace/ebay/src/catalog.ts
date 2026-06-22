@@ -254,6 +254,19 @@ export const ebayMarketplaceProviderManifest = defineProviderPackage({
       changesWorkflow: true,
     },
     {
+      capability: "delete-provider-object",
+      label: "Delete eBay marketplace resources",
+      description: "Deletes notification destinations, subscriptions, and filters only when the SDK user's marketplace policy allows lifecycle changes.",
+      audiences: ["internal-support", "mixed"],
+      providerObjects: [
+        { kind: "ebayNotificationDestination", label: "eBay Notification Destination" },
+        { kind: "ebayNotificationSubscription", label: "eBay Notification Subscription" },
+      ],
+      requiresCredential: true,
+      sideEffect: true,
+      changesWorkflow: true,
+    },
+    {
       capability: "create-provider-object",
       label: "Create eBay fulfillment and message records",
       description: "Creates shipping fulfillments, buyer/seller messages, refunds, and payment-dispute actions only when SDK-user policy allows.",
@@ -314,7 +327,7 @@ export const ebayMarketplaceProviderManifest = defineProviderPackage({
   operations: ebaySelectedApiOperationCatalog.map((operation) => ({
     alias: ebayMarketplaceOperationAlias(operation.functionName),
     providerOperation: `${operation.api}.${operation.operationId}`,
-    capability: capabilityForEbayOperation(operation.method, operation.resource),
+    capability: capabilityForEbayOperation(operation),
     providerObject: `ebay.${operation.resource}`,
     label: operation.functionName,
     description: `Selected eBay ${operation.api} support-slice operation ${operation.operationId}.`,
@@ -428,14 +441,30 @@ export const ebayMarketplaceProviderManifest = defineProviderPackage({
   },
 });
 
-function capabilityForEbayOperation(
-  method: EbaySelectedApiOperation["method"],
-  resource: EbaySelectedApiOperation["resource"],
-) {
-  if (method === "GET") return resource === "order" || resource === "payment_dispute" || resource === "conversation"
-    ? "read-provider-object"
-    : "search-provider-object";
-  if (resource === "conversation") return "send";
-  if (method === "POST") return "create-provider-object";
+function capabilityForEbayOperation(operation: EbaySelectedApiOperation) {
+  const searchOperations = new Set([
+    "getOrders",
+    "getPaymentDisputeSummaries",
+    "getConversations",
+    "getDestinations",
+    "getSubscriptions",
+    "getSigningKeys",
+    "getTopics",
+  ]);
+  const createOperations = new Set([
+    "createShippingFulfillment",
+    "issueRefund",
+    "createDestination",
+    "createSubscription",
+    "createSubscriptionFilter",
+    "createSigningKey",
+  ]);
+
+  if (operation.operationId === "sendMessage") return "send";
+  if (operation.method === "GET") {
+    return searchOperations.has(operation.operationId) ? "search-provider-object" : "read-provider-object";
+  }
+  if (operation.method === "DELETE") return "delete-provider-object";
+  if (createOperations.has(operation.operationId)) return "create-provider-object";
   return "update-provider-object";
 }

@@ -49,9 +49,22 @@ export async function refreshAmazonLwaAccessToken(
     body,
   });
   const text = await response.text();
-  const parsed = text ? JSON.parse(text) as AmazonLwaTokenResponse & { error_description?: string; error?: string } : {};
+  const parsed = parseAmazonLwaTokenResponse(text, response.status);
   if (!response.ok) {
     throw new Error(parsed.error_description ?? parsed.error ?? `Amazon LWA token request returned ${response.status}.`);
   }
   return parsed;
+}
+
+function parseAmazonLwaTokenResponse(
+  text: string,
+  status: number,
+): AmazonLwaTokenResponse & { error_description?: string; error?: string } {
+  if (!text) return {};
+  try {
+    return JSON.parse(text) as AmazonLwaTokenResponse & { error_description?: string; error?: string };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Amazon LWA token request returned malformed JSON with HTTP ${status}: ${message}`);
+  }
 }

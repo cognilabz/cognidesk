@@ -7880,6 +7880,26 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
+        "capability": "delete-provider-object",
+        "label": "Delete Amazon support resources",
+        "description": "Deletes Amazon notification subscriptions only when the SDK user's marketplace policy allows subscription lifecycle changes.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "amazonNotificationSubscription",
+            "label": "Amazon Notification Subscription"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
         "capability": "send",
         "label": "Send Amazon buyer solicitations",
         "description": "Sends supported Solicitations API review/feedback requests chosen by the SDK user's workflow.",
@@ -8268,6 +8288,30 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "delete-provider-object",
+        "label": "Delete eBay marketplace resources",
+        "description": "Deletes notification destinations, subscriptions, and filters only when the SDK user's marketplace policy allows lifecycle changes.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "ebayNotificationDestination",
+            "label": "eBay Notification Destination"
+          },
+          {
+            "kind": "ebayNotificationSubscription",
+            "label": "eBay Notification Subscription"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": true,
         "extension": false
       },

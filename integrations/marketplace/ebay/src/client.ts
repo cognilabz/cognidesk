@@ -106,8 +106,9 @@ export function createEbayMarketplaceClient(options: EbayMarketplaceClientOption
       );
     },
     async fetchPaymentDisputeEvidenceContent(paymentDisputeId) {
-      return request<EbayMarketplaceJsonObject>(
+      return request<ArrayBuffer | EbayMarketplaceJsonObject>(
         `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}/fetch_evidence_content`,
+        { responseType: "arrayBuffer" },
       );
     },
     async getPaymentDisputeActivities(paymentDisputeId) {
@@ -411,6 +412,7 @@ interface EbayRequestInit {
   headers?: Record<string, string>;
   requireDigitalSignature?: boolean;
   accessToken?: string;
+  responseType?: "json" | "arrayBuffer" | "text";
 }
 
 async function ebayRequest<T>(input: EbayRequestInit & {
@@ -440,8 +442,8 @@ async function ebayRequest<T>(input: EbayRequestInit & {
     },
     ...(bodyText ? { body: bodyText } : {}),
   });
-  const text = await response.text();
-  const body = text ? JSON.parse(text) as T & { errors?: Array<{ message?: string }>; message?: string } : {} as T;
+  const responseType = input.responseType ?? "json";
+  const body = await readEbayResponseBody<T>(response, responseType);
   if (!response.ok) {
     const errorMessage = Array.isArray((body as { errors?: Array<{ message?: string }> }).errors)
       ? (body as { errors?: Array<{ message?: string }> }).errors?.[0]?.message
@@ -449,6 +451,31 @@ async function ebayRequest<T>(input: EbayRequestInit & {
     throw new Error(errorMessage ?? (body as { message?: string }).message ?? `eBay API returned ${response.status}.`);
   }
   return body as T;
+}
+
+async function readEbayResponseBody<T>(
+  response: Response,
+  responseType: "json" | "arrayBuffer" | "text",
+): Promise<T & { errors?: Array<{ message?: string }>; message?: string }> {
+  if (response.ok && responseType === "arrayBuffer") {
+    return await response.arrayBuffer() as unknown as T & { errors?: Array<{ message?: string }>; message?: string };
+  }
+
+  const text = await response.text();
+  if (response.ok && responseType === "text") {
+    return text as unknown as T & { errors?: Array<{ message?: string }>; message?: string };
+  }
+  if (!text) return {} as T & { errors?: Array<{ message?: string }>; message?: string };
+
+  try {
+    return JSON.parse(text) as T & { errors?: Array<{ message?: string }>; message?: string };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (response.ok) {
+      throw new Error(`eBay API returned malformed JSON with HTTP ${response.status}: ${message}`);
+    }
+    return { message: `eBay API returned non-JSON error body with HTTP ${response.status}: ${message}` } as unknown as T & { message: string };
+  }
 }
 
 async function resolveEbayDigitalSignatureHeaders(input: {

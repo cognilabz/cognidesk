@@ -15,6 +15,7 @@ export interface AmazonRequestInit {
   body?: AmazonMarketplaceProviderPayload | undefined;
   headers?: Record<string, string>;
   query?: AmazonMarketplaceProviderQuery;
+  signal?: AbortSignal;
 }
 
 export async function amazonRequest<T>(input: AmazonRequestInit & {
@@ -51,9 +52,10 @@ export async function amazonRequest<T>(input: AmazonRequestInit & {
     method: input.method ?? "GET",
     headers,
     ...(body ? { body } : {}),
+    ...(input.signal ? { signal: input.signal } : {}),
   });
   const text = await response.text();
-  const parsed = text ? JSON.parse(text) as T & { errors?: Array<{ message?: string }>; message?: string } : {} as T;
+  const parsed = parseAmazonResponseBody<T>(text, response.status);
   if (!response.ok) {
     const errorMessage = Array.isArray((parsed as { errors?: Array<{ message?: string }> }).errors)
       ? (parsed as { errors?: Array<{ message?: string }> }).errors?.[0]?.message
@@ -61,6 +63,16 @@ export async function amazonRequest<T>(input: AmazonRequestInit & {
     throw new Error(errorMessage ?? (parsed as { message?: string }).message ?? `Amazon SP-API returned ${response.status}.`);
   }
   return parsed as T;
+}
+
+function parseAmazonResponseBody<T>(text: string, status: number): T & { errors?: Array<{ message?: string }>; message?: string } {
+  if (!text) return {} as T;
+  try {
+    return JSON.parse(text) as T & { errors?: Array<{ message?: string }>; message?: string };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Amazon SP-API returned malformed JSON with HTTP ${status}: ${message}`);
+  }
 }
 
 export async function resolveAmazonRestrictedDataToken(

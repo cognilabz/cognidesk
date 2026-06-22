@@ -140,8 +140,8 @@ export function createAmazonMarketplaceClient(options: AmazonMarketplaceClientOp
         { marketplaceIds: (marketplaceIds ?? marketplaceIdsFromOptions(options)).join(",") },
       ), { method: "POST" });
     },
-    async getMarketplaceParticipations() {
-      return requestPath("/sellers/v1/marketplaceParticipations");
+    async getMarketplaceParticipations(input = {}) {
+      return requestPath("/sellers/v1/marketplaceParticipations", input.signal ? { signal: input.signal } : undefined);
     },
     async getDestinations() {
       return requestPath<AmazonNotificationDestinationsResponse>("/notifications/v1/destinations");
@@ -150,6 +150,12 @@ export function createAmazonMarketplaceClient(options: AmazonMarketplaceClientOp
       return requestPath<AmazonNotificationDestinationResponse>(`/notifications/v1/destinations/${encodeURIComponent(destinationId)}`);
     },
     async createSubscription(input) {
+      if (!input.notificationType) {
+        throw new Error("Amazon Notifications createSubscription requires a notificationType.");
+      }
+      if (!input.destinationId) {
+        throw new Error("Amazon Notifications createSubscription requires a destinationId.");
+      }
       if (input.marketplaceIds?.length) {
         throw new Error("Amazon Notifications createSubscription does not accept marketplaceIds as a query parameter; configure filtering through processingDirective when supported.");
       }
@@ -166,6 +172,9 @@ export function createAmazonMarketplaceClient(options: AmazonMarketplaceClientOp
       );
     },
     async getSubscription(input) {
+      if (!input.notificationType) {
+        throw new Error("Amazon Notifications getSubscription requires a notificationType.");
+      }
       return requestPath<AmazonNotificationSubscriptionResponse>(withQuery(
         `/notifications/v1/subscriptions/${encodeURIComponent(input.notificationType)}`,
         { payloadVersion: input.payloadVersion },

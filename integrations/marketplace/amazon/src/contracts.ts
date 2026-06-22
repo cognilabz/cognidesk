@@ -418,7 +418,7 @@ export interface AmazonNotificationEnvelope {
   marketplaceId?: string;
   payload: unknown;
   transport?: "direct" | "sns" | "sqs" | "eventbridge";
-  verifiedBy: "hook" | "shared-secret" | "signature";
+  verifiedBy: "hook" | "shared-secret" | "signature" | "unverified";
 }
 
 export interface ParseAmazonNotificationOptions {
@@ -446,7 +446,7 @@ export interface AmazonMarketplaceClient {
   getOrderV2026(amazonOrderId: string, input?: AmazonOrdersV2026GetInput): Promise<AmazonOrderResponse>;
   getSolicitationActionsForOrder(amazonOrderId: string, marketplaceIds?: string[]): Promise<AmazonSolicitationActionsResponse>;
   createProductReviewAndSellerFeedbackSolicitation(amazonOrderId: string, marketplaceIds?: string[]): Promise<AmazonResource>;
-  getMarketplaceParticipations(): Promise<AmazonMarketplaceParticipationsResponse>;
+  getMarketplaceParticipations(input?: { signal?: AbortSignal }): Promise<AmazonMarketplaceParticipationsResponse>;
   getDestinations(): Promise<AmazonNotificationDestinationsResponse>;
   getDestination(destinationId: string): Promise<AmazonNotificationDestinationResponse>;
   createSubscription(input: AmazonCreateSubscriptionInput): Promise<AmazonNotificationSubscriptionResponse>;

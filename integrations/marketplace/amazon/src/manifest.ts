@@ -137,6 +137,19 @@ export const amazonMarketplaceProviderManifest = defineProviderPackage({
       changesWorkflow: true,
     },
     {
+      capability: "delete-provider-object",
+      label: "Delete Amazon support resources",
+      description: "Deletes Amazon notification subscriptions only when the SDK user's marketplace policy allows subscription lifecycle changes.",
+      audiences: ["internal-support", "mixed"],
+      providerObjects: [
+        { kind: "amazonNotificationSubscription", label: "Amazon Notification Subscription" },
+      ],
+      requiresCredential: true,
+      sideEffect: true,
+      exposesSensitiveData: true,
+      changesWorkflow: true,
+    },
+    {
       capability: "send",
       label: "Send Amazon buyer solicitations",
       description: "Sends supported Solicitations API review/feedback requests chosen by the SDK user's workflow.",
@@ -183,7 +196,7 @@ export const amazonMarketplaceProviderManifest = defineProviderPackage({
     { alias: amazonMarketplaceOperationAliases.getDestination, providerOperation: "notifications.getDestination", capability: "read-provider-object", label: "Read Amazon notification destination", extension: true, requiresCredential: true },
     { alias: amazonMarketplaceOperationAliases.createSubscription, providerOperation: "notifications.createSubscription", capability: "create-provider-object", label: "Create Amazon notification subscription", extension: true, requiresCredential: true, sideEffect: true, changesWorkflow: true },
     { alias: amazonMarketplaceOperationAliases.getSubscription, providerOperation: "notifications.getSubscription", capability: "read-provider-object", label: "Read Amazon notification subscription", extension: true, requiresCredential: true },
-    { alias: amazonMarketplaceOperationAliases.deleteSubscription, providerOperation: "notifications.deleteSubscription", capability: "update-provider-object", label: "Delete Amazon notification subscription", extension: true, requiresCredential: true, sideEffect: true, changesWorkflow: true },
+    { alias: amazonMarketplaceOperationAliases.deleteSubscription, providerOperation: "notifications.deleteSubscription", capability: "delete-provider-object", label: "Delete Amazon notification subscription", extension: true, requiresCredential: true, sideEffect: true, changesWorkflow: true },
     { alias: amazonMarketplaceOperationAliases.parseNotificationWebhook, providerOperation: "notifications.parseWebhook", capability: "receive", label: "Parse Amazon notification webhook", extension: true, requiresCredential: true, exposesSensitiveData: true },
   ],
   privacyNotes: [

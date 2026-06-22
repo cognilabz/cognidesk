@@ -609,7 +609,7 @@ Evidence: No provider evidence listed in the manifest.
 | Implementation | `official-sdk` |
 | Documentation | [https://github.com/amzn/selling-partner-api-sdk](https://github.com/amzn/selling-partner-api-sdk) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |
+| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `delete-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |
 | Provider setup | required `amazon-lwa-client`, `amazon-lwa-token`, `amazon-marketplace-id`, `amazon-notification-destination`, `amazon-notification-signature`; optional `amazon-aws-role-region` |
 
 Coverage: Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership.
@@ -632,7 +632,7 @@ Evidence: [Amazon official SP-API JavaScript SDK](https://github.com/amzn/sellin
 | Implementation | `direct-support-slice` |
 | Documentation | [https://developer.ebay.com/api-docs](https://developer.ebay.com/api-docs) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.digital-signature`, `marketplace.notification-challenge` |
+| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `delete-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.digital-signature`, `marketplace.notification-challenge` |
 | Provider setup | required `ebay-oauth-access-token`, `ebay-application-access-token`, `ebay-client-id`, `ebay-client-secret`, `ebay-marketplace-id`, `ebay-notification-verification-token`; optional `ebay-digital-signature-key` |
 
 Coverage: Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.

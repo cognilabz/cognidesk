@@ -72,7 +72,7 @@ export function createAmazonMarketplaceLiveChecks(options: AmazonLiveCheckOption
     requiredCredentialIds: ["amazon-lwa-token", "amazon-marketplace-id"],
     async run(context: { signal?: AbortSignal }) {
       const client = options.client ?? createAmazonMarketplaceClient(options);
-      const account = await client.getMarketplaceParticipations();
+      const account = await client.getMarketplaceParticipations(context.signal ? { signal: context.signal } : undefined);
       if (context.signal?.aborted) throw new Error("Amazon live seller-account check aborted.");
       return {
         details: {

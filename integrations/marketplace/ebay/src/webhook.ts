@@ -76,7 +76,7 @@ export async function parseEbayNotificationWebhook(
       : options.publicKey
         ? verifyEbayNotificationSignature({ rawBody, signatureHeader, publicKey: options.publicKey })
         : false;
-    if (!verified) throw new Error("eBay notification signature verification failed.");
+    if (!verified && requireEbaySignature) throw new Error("eBay notification signature verification failed.");
   } else if (requireEbaySignature) {
     throw new Error("eBay notification signature header is required.");
   }

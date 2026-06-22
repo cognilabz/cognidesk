@@ -12,13 +12,14 @@ export async function parseAmazonMarketplaceNotificationWebhook(
 ): Promise<AmazonNotificationEnvelope> {
   const rawBody = await request.text();
   const parsed = rawBody ? JSON.parse(rawBody) as unknown : {};
+  const transport = inferTransport(parsed);
   const payload = unwrapAmazonNotificationPayload(parsed);
   const requireVerification = options.requireVerification ?? true;
 
   if (options.verifyNotification) {
     const verified = await options.verifyNotification({ rawBody, headers: request.headers, payload });
     if (!verified) throw new Error("Amazon notification verification hook rejected the payload.");
-    return normalizeAmazonNotification(rawBody, payload, "hook");
+    return normalizeAmazonNotification(rawBody, payload, "hook", transport);
   }
 
   if (options.expectedSignatureSecret) {
@@ -28,7 +29,7 @@ export async function parseAmazonMarketplaceNotificationWebhook(
     if (!actual || !constantTimeEqual(actual, expected)) {
       throw new Error("Amazon notification signature verification failed.");
     }
-    return normalizeAmazonNotification(rawBody, payload, "signature");
+    return normalizeAmazonNotification(rawBody, payload, "signature", transport);
   }
 
   if (options.expectedSharedSecret) {
@@ -37,13 +38,13 @@ export async function parseAmazonMarketplaceNotificationWebhook(
     if (!actual || !constantTimeEqual(actual, options.expectedSharedSecret)) {
       throw new Error("Amazon notification shared-secret verification failed.");
     }
-    return normalizeAmazonNotification(rawBody, payload, "shared-secret");
+    return normalizeAmazonNotification(rawBody, payload, "shared-secret", transport);
   }
 
   if (requireVerification) {
     throw new Error("Amazon notification verification is required.");
   }
-  return normalizeAmazonNotification(rawBody, payload, "hook");
+  return normalizeAmazonNotification(rawBody, payload, "unverified", transport);
 }
 
 export function unwrapAmazonNotificationPayload(payload: unknown): unknown {
@@ -70,13 +71,14 @@ function normalizeAmazonNotification(
   rawBody: string,
   payload: unknown,
   verifiedBy: AmazonNotificationEnvelope["verifiedBy"],
+  transportHint?: AmazonNotificationEnvelope["transport"],
 ): AmazonNotificationEnvelope {
   const envelope = readRecord(payload, "NotificationMetadata") ?? readRecord(payload, "notificationMetadata");
   const notificationType = readString(payload, "NotificationType") ?? readString(payload, "notificationType");
   const notificationId = readString(envelope, "NotificationId") ?? readString(envelope, "notificationId");
   const sellerId = readString(envelope, "SellerId") ?? readString(envelope, "sellerId");
   const marketplaceId = readString(envelope, "MarketplaceId") ?? readString(envelope, "marketplaceId");
-  const transport = inferTransport(payload);
+  const transport = transportHint ?? inferTransport(payload);
   return {
     rawBody,
     payload,
