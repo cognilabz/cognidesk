@@ -2,10 +2,10 @@ import {
   defineIntegration,
   type IntegrationOperationContext,
 } from "@cognidesk/integration-kit";
-import { createDiscordCommunityClient } from "./client.js";
+import { createDiscordMessagingClient } from "./client.js";
 import type {
-  DiscordCommunityClient,
-  DiscordCommunityClientOptions,
+  DiscordMessagingClient,
+  DiscordMessagingClientOptions,
   DiscordGetChannelInput,
   DiscordGetGuildInput,
   ParseDiscordInteractionRequestInput,
@@ -14,15 +14,15 @@ import {
   parseDiscordInteractionRequest,
   validateDiscordInteractionSignature,
 } from "./interactions.js";
-import { discordCommunityManifestInput } from "./manifest.js";
+import { discordMessagingManifestInput } from "./manifest.js";
 
-export interface DiscordCommunityIntegrationOptions extends DiscordCommunityClientOptions {
+export interface DiscordMessagingIntegrationOptions extends DiscordMessagingClientOptions {
   publicKey?: string;
-  communityClient?: DiscordCommunityClient;
+  messagingClient?: DiscordMessagingClient;
 }
 
-export function createDiscordCommunityOperationHandlers(options: DiscordCommunityIntegrationOptions) {
-  const client = options.communityClient ?? createDiscordCommunityClient(options);
+export function createDiscordMessagingOperationHandlers(options: DiscordMessagingIntegrationOptions) {
+  const client = options.messagingClient ?? createDiscordMessagingClient(options);
 
   return {
     "discord.interaction.receive": async (input: ParseDiscordInteractionRequestInput) => {
@@ -62,12 +62,12 @@ export function createDiscordCommunityOperationHandlers(options: DiscordCommunit
   } as const;
 }
 
-export function createDiscordCommunityIntegration(options: DiscordCommunityIntegrationOptions) {
+export function createDiscordMessagingIntegration(options: DiscordMessagingIntegrationOptions) {
   return defineIntegration({
-    manifest: discordCommunityManifestInput,
-    operations: createDiscordCommunityOperationHandlers(options),
+    manifest: discordMessagingManifestInput,
+    operations: createDiscordMessagingOperationHandlers(options),
   });
 }
 
-export const createDiscordIntegration = createDiscordCommunityIntegration;
-export const createDiscordIntegrationOperationHandlers = createDiscordCommunityOperationHandlers;
+export const createDiscordIntegration = createDiscordMessagingIntegration;
+export const createDiscordIntegrationOperationHandlers = createDiscordMessagingOperationHandlers;

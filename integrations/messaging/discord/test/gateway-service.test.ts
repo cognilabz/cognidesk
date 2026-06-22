@@ -7,27 +7,27 @@ import {
   DiscordGatewayService,
   collectDiscordMirrorItems,
   createDiscordSqliteStore,
-  discordCommunityProviderManifest,
+  discordMessagingProviderManifest,
 } from "../src/index.js";
 
-describe("@cognidesk/integration-community-discord Gateway manifest", () => {
+describe("@cognidesk/integration-messaging-discord Gateway manifest", () => {
   it("represents Discord Gateway support inside the split provider package", () => {
-    expect(discordCommunityProviderManifest).toMatchObject({
-      id: "community.discord",
-      packageName: "@cognidesk/integration-community-discord",
+    expect(discordMessagingProviderManifest).toMatchObject({
+      id: "messaging.discord",
+      packageName: "@cognidesk/integration-messaging-discord",
       provider: "discord",
-      category: "community",
+      category: "messaging",
       trustLevel: "official",
     });
-    expect(discordCommunityProviderManifest.coverage.notes.join(" "))
+    expect(discordMessagingProviderManifest.coverage.notes.join(" "))
       .toContain("optional discord.js Gateway service");
-    expect(discordCommunityProviderManifest.metadata?.channelCoverage).toMatchObject({
+    expect(discordMessagingProviderManifest.metadata?.channelCoverage).toMatchObject({
       gatewayEvents: "sdk-owned-discord-js-gateway-service",
     });
   });
 });
 
-describe("@cognidesk/integration-community-discord Gateway store", () => {
+describe("@cognidesk/integration-messaging-discord Gateway store", () => {
   it("persists thread bindings and mirrored event idempotency", async () => {
     const tempDir = await mkdtemp(join(tmpdir(), "cognidesk-discord-store-"));
     const store = createDiscordSqliteStore({ filename: join(tempDir, "demo.sqlite") });
