@@ -44,6 +44,7 @@ const requiredCleanupPhrases = [
 ];
 
 const currentProviders = await currentProviderDirs();
+const currentProviderSet = new Set(currentProviders);
 const cleanupSource = await readFile(cleanupMapPath, "utf8");
 const cleanupRows = parseTableRows(cleanupSource, cleanupStart, cleanupEnd, 8)
   .map(([provider, issue, targetPackage, legacyDir, oldImport, decision, generatedSurface, removalGate]) => ({
@@ -76,6 +77,9 @@ for (const phrase of requiredCleanupPhrases) {
 for (const row of cleanupRows) {
   if (cleanupByProvider.has(row.provider)) {
     failures.push(`docs/integrations-monolith-cleanup.md: duplicate cleanup row for ${row.provider}`);
+  }
+  if (!currentProviderSet.has(row.provider)) {
+    failures.push(`docs/integrations-monolith-cleanup.md: stale cleanup row for non-current legacy provider ${row.provider}`);
   }
   cleanupByProvider.set(row.provider, row);
 }

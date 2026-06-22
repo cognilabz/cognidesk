@@ -23,7 +23,6 @@ Additional local evidence:
 
 - `packages/integrations/package.json` remains the legacy staging source.
 - `pnpm providers:generate:list` still lists monolith generators for provider surfaces.
-- `docs/integrations-monolith-cleanup.md` records the #27 deletion checklist and must cover every current legacy provider directory until final removal.
 - `docs/adr/0085-split-provider-integrations-into-sdk-backed-packages.md` is the package-boundary source of truth. ADR-0081 is superseded.
 
 ## Decision Values
