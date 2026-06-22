@@ -55,10 +55,10 @@ export type ManifestOperationAlias<Manifest> =
       ? Alias
       : never
     : Manifest extends { operations?: readonly (infer Operation)[] }
-    ? Operation extends { alias: infer Alias extends string }
-      ? Alias
-      : never
-    : never;
+      ? Operation extends { alias: infer Alias extends string }
+        ? Alias
+        : never
+      : never;
 
 type HandlerAliases<Handlers> = Extract<keyof Handlers, string>;
 

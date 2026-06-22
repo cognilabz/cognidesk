@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   assertIntegrationReady,
+  collectIntegrationPages,
   contactCenterOperationAliasMap,
   createOperationBindingReport,
   defineIntegration,
@@ -11,7 +12,6 @@ import {
   ecommerceOperationAliasMap,
   emailOperationAliasMap,
   integrationCategoryProfiles,
-  type IntegrationOperationHandler,
   IntegrationError,
   integrationErrorToJSON,
   normalizeIntegrationError,
@@ -23,6 +23,7 @@ import {
   verifiedWebhook,
   voiceOperationAliasMap,
   workplaceOperationAliasMap,
+  type IntegrationOperationHandler,
 } from "../src/index.js";
 import {
   assertIntegrationConformance,
@@ -90,14 +91,44 @@ describe("integration kit contracts", () => {
     });
   });
 
-  it("passes run-scoped credentials to operation handlers", async () => {
-    const receiveWithCredentials: IntegrationOperationHandler<{}, { token: string }, { token?: string }> = async (
-      _input,
-      context,
-    ) => ({
-      token: context.credentials?.token ?? "missing",
+  it("prioritizes per-call operation context credentials", async () => {
+    const manifest = {
+      id: "email.acme",
+      name: "Acme Mail",
+      packageName: "@cognidesk/integration-acme-mail",
+      provider: "acme",
+      category: "email",
+      directions: ["bidirectional" as const],
+      capabilities: [
+        { capability: "receive" },
+      ],
+      operations: [
+        {
+          alias: "email.receive" as const,
+          capability: "receive",
+          providerObject: "emailMessage",
+        },
+      ],
+    };
+    type CredentialHandlers = {
+      "email.receive": IntegrationOperationHandler<{ id: string }, { token: string | undefined }, { token: string }>;
+    };
+
+    const integration = defineIntegration<typeof manifest, { token: string }, CredentialHandlers>({
+      manifest,
+      credentials: { token: "default-token" },
+      operations: {
+        "email.receive": async (_input, context) => ({
+          token: context.credentials?.token,
+        }),
+      },
     });
 
+    await expect(integration.run("email.receive", { id: "evt_1" })).resolves.toEqual({ token: "default-token" });
+    await expect(integration.run("email.receive", { id: "evt_2" }, { credentials: { token: "request-token" } })).resolves.toEqual({ token: "request-token" });
+  });
+
+  it("keeps instrumentation hook failures out of operation flow", async () => {
     const integration = defineIntegration({
       manifest: {
         id: "email.acme",
@@ -117,13 +148,23 @@ describe("integration kit contracts", () => {
           },
         ],
       },
+      instrumentation: {
+        onOperationStart() {
+          throw new Error("start hook failed");
+        },
+        onOperationSuccess() {
+          throw new Error("success hook failed");
+        },
+        onOperationError() {
+          throw new Error("error hook failed");
+        },
+      },
       operations: {
-        "email.receive": receiveWithCredentials,
-      } as never,
+        "email.receive": async (input: { id: string }) => ({ received: input.id }),
+      },
     });
 
-    await expect((integration.run as any)("email.receive", {}, { credentials: { token: "run-token" } }))
-      .resolves.toEqual({ token: "run-token" });
+    await expect(integration.run("email.receive", { id: "evt_1" })).resolves.toEqual({ received: "evt_1" });
   });
 
   it("reports missing and extra operation handlers at runtime", () => {
@@ -228,6 +269,35 @@ describe("integration kit contracts", () => {
       missingRequirementIds: ["api-key"],
     });
     expect(() => assertIntegrationReady(notReady)).toThrow(IntegrationError);
+
+    const missingRequiredStatus = summarizeIntegrationReadiness([
+      { providerPackageId: "email.acme", requirementId: "api-key", state: "configured" },
+    ], {
+      providerPackageId: "email.acme",
+      requiredRequirementIds: ["api-key", "webhook-secret"],
+    });
+    expect(missingRequiredStatus).toMatchObject({
+      ready: false,
+      blockingRequirementIds: ["webhook-secret"],
+      missingRequirementIds: ["webhook-secret"],
+    });
+  });
+
+  it("fails closed on invalid cursor pagination responses", async () => {
+    let calls = 0;
+    await expect(collectIntegrationPages({}, () => {
+      calls += 1;
+      return {
+        items: [calls],
+        pageInfo: { hasNextPage: true },
+      };
+    })).rejects.toThrow("hasNextPage=true but nextCursor is undefined");
+    expect(calls).toBe(1);
+
+    await expect(collectIntegrationPages({}, () => ({
+      items: [],
+      pageInfo: { hasNextPage: false },
+    }), { maxPages: 0 })).rejects.toThrow("maxPages >= 1");
   });
 
   it("normalizes provider errors and exposes stable webhook result shapes", () => {
@@ -240,6 +310,9 @@ describe("integration kit contracts", () => {
       providerPackageId: "ecommerce.acme",
       operationAlias: "ecommerce.order.read",
     });
+    expect(integrationErrorToJSON(new IntegrationError("unknown", "failed", {
+      cause: { token: "secret-token" },
+    }))).not.toHaveProperty("cause");
 
     expect(verifiedWebhook({ providerPackageId: "ecommerce.acme", eventId: "evt_1" })).toMatchObject({
       status: "verified",
