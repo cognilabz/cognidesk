@@ -196,6 +196,7 @@ describe("@cognidesk/integration-messaging-discord", () => {
     expect(event).toMatchObject({
       nature: "message",
       channel: {
+        channelId: "channel_123",
         kind: "community",
         provider: "discord",
         externalThreadId: "channel_123",
@@ -214,9 +215,24 @@ describe("@cognidesk/integration-messaging-discord", () => {
       source: {
         provider: "discord",
         providerPackageId: "messaging.discord",
+        eventId: "interaction_123",
         verified: true,
       },
     });
+
+    const missingIdEvent = normalizeDiscordInteractionChannelEvent({
+      interaction: {
+        rawBody: "large-raw-body-that-must-not-become-an-event-id",
+        payload: {
+          type: 2,
+          channel_id: "channel_123",
+          data: { name: "help" },
+        },
+      },
+    });
+    expect(missingIdEvent.identity).toEqual({ streamId: "channel_123" });
+    expect(missingIdEvent.identity).not.toHaveProperty("dedupeKey");
+    expect(missingIdEvent.source).not.toHaveProperty("eventId");
 
     const invalidRequest = new Request("https://example.test/discord/interactions", {
       method: "POST",

@@ -201,7 +201,9 @@ function expectedProviderPackageNameForPath(dir) {
   const relative = path.relative(repoRoot, dir).replace(/\\/g, "/");
   const match = /^integrations\/([^/]+)\/([^/]+)$/.exec(relative);
   if (!match) return undefined;
-  return `${providerPackagePrefix}${match[1]}-${match[2]}`;
+  const [, category, provider] = match;
+  if (!providerCategorySegments.has(category)) return undefined;
+  return `${providerPackagePrefix}${category}-${provider}`;
 }
 
 function formatStagedPackages(packageNames) {
