@@ -2,10 +2,10 @@ import { Client, GatewayIntentBits, REST } from "discord.js";
 import type {
   DiscordApplicationResource,
   DiscordChannelResource,
-  DiscordCommunityClient,
-  DiscordCommunityClientOptions,
-  DiscordCommunityJsonObject,
-  DiscordCommunityProviderPayload,
+  DiscordMessagingClient,
+  DiscordMessagingClientOptions,
+  DiscordMessagingJsonObject,
+  DiscordMessagingProviderPayload,
   DiscordCreateForumPostInput,
   DiscordCreateThreadInput,
   DiscordExecuteWebhookInput,
@@ -17,7 +17,7 @@ import type {
   DiscordUserResource,
 } from "./contracts.js";
 
-export function createDiscordCommunityClient(options: DiscordCommunityClientOptions): DiscordCommunityClient {
+export function createDiscordMessagingClient(options: DiscordMessagingClientOptions): DiscordMessagingClient {
   const apiBaseUrl = (options.apiBaseUrl ?? "https://discord.com/api").replace(/\/+$/, "");
   const apiVersion = options.apiVersion ?? "10";
   const rest: DiscordRestLike = options.rest ?? (new REST({ version: apiVersion }).setToken(options.botToken) as unknown as DiscordRestLike);
@@ -133,7 +133,7 @@ export function encodePath(value: string | number) {
   return encodeURIComponent(String(value));
 }
 
-export function stripUndefined<T extends DiscordCommunityJsonObject>(input: T): T {
+export function stripUndefined<T extends DiscordMessagingJsonObject>(input: T): T {
   return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as T;
 }
 
@@ -155,7 +155,7 @@ async function parseDiscordFetchResponse<T>(response: Response): Promise<T> {
 interface DiscordErrorResponse {
   message?: string;
   code?: number | string;
-  errors?: DiscordCommunityProviderPayload;
+  errors?: DiscordMessagingProviderPayload;
 }
 
 export type { DiscordRestLike };
