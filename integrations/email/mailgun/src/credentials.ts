@@ -5,9 +5,11 @@ export interface MailgunCredentialStatusInput {
   apiKeyConfigured?: boolean;
   domain?: string;
   webhookSigningKeyConfigured?: boolean;
+  requireWebhookSignature?: boolean;
 }
 
 export function mailgunEmailCredentialStatuses(input: MailgunCredentialStatusInput): ProviderCredentialStatusInput[] {
+  const webhookSigningKeyRequired = input.requireWebhookSignature === true;
   return [
     {
       providerPackageId: mailgunEmailProviderManifest.id,
@@ -24,10 +26,16 @@ export function mailgunEmailCredentialStatuses(input: MailgunCredentialStatusInp
     {
       providerPackageId: mailgunEmailProviderManifest.id,
       requirementId: "mailgun-webhook-signing-key",
-      state: input.webhookSigningKeyConfigured ? "configured" : "not-required",
+      state: input.webhookSigningKeyConfigured
+        ? "configured"
+        : webhookSigningKeyRequired
+          ? "missing"
+          : "not-required",
       message: input.webhookSigningKeyConfigured
         ? "Mailgun webhook signing key is configured."
-        : "Webhook signing key is optional unless webhook verification is required.",
+        : webhookSigningKeyRequired
+          ? "Webhook signing key is required when webhook signature verification is enabled."
+          : "Webhook signing key is optional unless webhook verification is required.",
     },
   ];
 }

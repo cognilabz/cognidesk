@@ -158,7 +158,7 @@ function resolveMailgunApiBaseUrl(region: MailgunEmailClientOptions["region"]) {
     : "https://api.mailgun.net";
 }
 
-function toMailgunMessageData(input: MailgunEmailAddressedInput): Record<string, unknown> {
+function toMailgunMessageData(input: MailgunEmailAddressedInput | MailgunReplyInput): Record<string, unknown> {
   const data: Record<string, unknown> = {
     from: input.from,
     to: input.to,
@@ -172,6 +172,10 @@ function toMailgunMessageData(input: MailgunEmailAddressedInput): Record<string,
   if (input.attachments !== undefined) data.attachment = input.attachments;
   for (const [name, value] of Object.entries(input.variables ?? {})) data[`v:${name}`] = JSON.stringify(value);
   for (const [name, value] of Object.entries(input.headers ?? {})) data[`h:${name}`] = value;
+  if ("inReplyTo" in input && input.inReplyTo !== undefined) data["h:In-Reply-To"] = input.inReplyTo;
+  if ("references" in input && input.references !== undefined) {
+    data["h:References"] = Array.isArray(input.references) ? input.references.join(" ") : input.references;
+  }
   return data;
 }
 

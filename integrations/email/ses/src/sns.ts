@@ -26,7 +26,9 @@ export async function parseSesSnsNotification(
   request: Request,
   options: ParseSesSnsNotificationOptions = {},
 ): Promise<ParsedSesSnsNotification> {
-  const notification = await request.json() as SesSnsNotification;
+  const parsed = await request.json();
+  if (!isRecord(parsed)) throw new Error("Amazon SNS notification payload must be a JSON object.");
+  const notification = parsed as SesSnsNotification;
   const verified = options.verifySignature ? await options.verifySignature(notification) : false;
   if (options.requireSignatureVerification && !verified) {
     throw new Error("Amazon SNS signature verification is required.");
@@ -39,7 +41,9 @@ export async function parseSesSnsNotification(
 }
 
 export function parseSesSqsRecord(record: { body: string }): ParsedSesSnsNotification {
-  const notification = JSON.parse(record.body) as SesSnsNotification;
+  const parsed = JSON.parse(record.body);
+  if (!isRecord(parsed)) throw new Error("Amazon SQS record body must contain a JSON SNS notification object.");
+  const notification = parsed as SesSnsNotification;
   return {
     notification,
     event: parseMessage(notification.Message),
@@ -54,4 +58,8 @@ function parseMessage(message: unknown): unknown {
   } catch {
     return message;
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

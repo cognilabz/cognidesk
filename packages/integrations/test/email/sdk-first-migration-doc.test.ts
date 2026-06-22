@@ -27,6 +27,7 @@ describe("email SDK-first migration docs", () => {
       "@aws-sdk/client-sesv2@3.1073.0",
       "@aws-sdk/client-ses@3.1073.0",
       "imapflow@1.4.2",
+      "or bridge through `@cognidesk/integrations`;",
       "Keep `/manifest` free of `mailgun.js` imports.",
       "Keep `/manifest` free of `postmark` imports.",
       "Keep `/manifest` free of AWS SDK client imports.",

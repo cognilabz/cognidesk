@@ -56,6 +56,11 @@ describe("@cognidesk/integration-email-ses", () => {
       region: "eu-central-1",
       snsVerificationConfigured: true,
     }).every((status) => status.state === "configured")).toBe(true);
+    expect(sesEmailCredentialStatuses({
+      credentialsConfigured: true,
+      region: "   ",
+      snsVerificationConfigured: true,
+    }).find((status) => status.requirementId === "aws-region")?.state).toBe("missing");
   });
 
   it("binds declared operations to AWS SDK v3 clients", async () => {
@@ -76,6 +81,29 @@ describe("@cognidesk/integration-email-ses", () => {
     await integration.operations["ses.account.read"]?.();
 
     expect(send).toHaveBeenCalledTimes(2);
+  });
+
+  it("passes fail-closed SNS verification options through inbound operations", async () => {
+    const integration = createSesEmailIntegration({
+      region: "eu-central-1",
+      rawClients: { sesv2: { send: vi.fn(async () => ({})) } } as unknown as SesRawClients,
+      snsParseOptions: {
+        verifySignature: () => true,
+      },
+    });
+
+    await expect(integration.operations["ses.snsNotification.receive"]?.(new Request("https://example.test", {
+      method: "POST",
+      body: JSON.stringify({
+        Message: JSON.stringify({ eventType: "Received" }),
+      }),
+    }))).resolves.toMatchObject({ verified: true, event: { eventType: "Received" } });
+    await expect(integration.operations["email.deliveryStatus.read"]?.(new Request("https://example.test", {
+      method: "POST",
+      body: JSON.stringify({
+        Message: JSON.stringify({ eventType: "Delivery" }),
+      }),
+    }))).resolves.toMatchObject({ verified: true, event: { eventType: "Delivery" } });
   });
 
   it("parses SNS and SQS SES events and fails closed when verification is required", async () => {

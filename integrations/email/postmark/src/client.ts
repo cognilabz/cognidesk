@@ -1,7 +1,11 @@
 import { AccountClient, ServerClient, type Models } from "postmark";
 import { defineIntegration, normalizeIntegrationError } from "@cognidesk/integration-kit";
 import { postmarkEmailProviderManifest } from "./manifest.js";
-import { parsePostmarkInboundWebhook } from "./webhooks.js";
+import {
+  parsePostmarkInboundWebhook,
+  type ParsePostmarkInboundWebhookOptions,
+  type PostmarkWebhookBasicAuthCredentials,
+} from "./webhooks.js";
 
 export interface PostmarkRawClients {
   server: ServerClient;
@@ -12,6 +16,8 @@ export interface PostmarkEmailClientOptions {
   serverToken: string;
   accountToken?: string;
   rawClients?: PostmarkRawClients;
+  webhookBasicAuth?: PostmarkWebhookBasicAuthCredentials;
+  requireWebhookBasicAuth?: boolean;
 }
 
 export interface PostmarkEmailClient {
@@ -70,7 +76,7 @@ export function createPostmarkEmailIntegration(options: PostmarkEmailClientOptio
     ...defineIntegration({
       manifest: postmarkEmailProviderManifest,
       operations: {
-        "email.receive": (input: unknown) => parsePostmarkInboundWebhook(input as Request),
+        "email.receive": (input: unknown) => parsePostmarkInboundWebhook(input as Request, postmarkWebhookParserOptions(options)),
         "email.send": (input: unknown) => client.sendEmail(input as Models.Message),
         "email.reply.send": (input: unknown) => client.sendEmail(input as Models.Message),
         "email.deliveryStatus.read": (input: unknown) => {
@@ -101,9 +107,17 @@ export function createPostmarkEmailLiveChecks(options: PostmarkEmailClientOption
     description: "Postmark server can be read through the official SDK.",
     requiredCredentialIds: ["postmark-server-token"],
     async run(context: { abortSignal?: AbortSignal }) {
+      if (context.abortSignal?.aborted) throw new Error("Postmark live server check aborted.");
       const server = await createPostmarkEmailClient(options).rawClients.server.getServer();
       if (context.abortSignal?.aborted) throw new Error("Postmark live server check aborted.");
       return { details: { server } };
     },
   }];
+}
+
+function postmarkWebhookParserOptions(options: PostmarkEmailClientOptions): ParsePostmarkInboundWebhookOptions {
+  return {
+    ...(options.webhookBasicAuth ? { basicAuth: options.webhookBasicAuth } : {}),
+    ...(options.requireWebhookBasicAuth !== undefined ? { requireBasicAuth: options.requireWebhookBasicAuth } : {}),
+  };
 }

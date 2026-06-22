@@ -6,6 +6,7 @@ import { assertIntegrationConformance, createOperationHandlerStubs } from "@cogn
 import {
   createPostmarkEmailIntegration,
   parsePostmarkInboundWebhook,
+  PostmarkWebhookAuthenticationError,
   postmarkEmailCredentialStatuses,
   postmarkEmailProviderManifest,
   type PostmarkRawClients,
@@ -83,5 +84,25 @@ describe("@cognidesk/integration-email-postmark", () => {
       method: "POST",
       body: JSON.stringify({ MessageID: "inbound-id", From: "customer@example.test" }),
     }))).resolves.toMatchObject({ MessageID: "inbound-id" });
+
+    const authorization = `Basic ${Buffer.from("postmark:secret").toString("base64")}`;
+    await expect(parsePostmarkInboundWebhook(new Request("https://example.test", {
+      method: "POST",
+      headers: { authorization },
+      body: JSON.stringify({ MessageID: "authenticated-id" }),
+    }), { basicAuth: { username: "postmark", password: "secret" } })).resolves.toMatchObject({ MessageID: "authenticated-id" });
+
+    await expect(parsePostmarkInboundWebhook(new Request("https://example.test", {
+      method: "POST",
+      headers: { authorization: `Basic ${Buffer.from("postmark:wrong").toString("base64")}` },
+      body: JSON.stringify({ MessageID: "rejected-id" }),
+    }), { basicAuth: { username: "postmark", password: "secret" } })).rejects.toMatchObject({
+      status: 401,
+      statusCode: 401,
+    });
+    await expect(parsePostmarkInboundWebhook(new Request("https://example.test", {
+      method: "POST",
+      body: JSON.stringify({ MessageID: "missing-id" }),
+    }), { requireBasicAuth: true })).rejects.toBeInstanceOf(PostmarkWebhookAuthenticationError);
   });
 });

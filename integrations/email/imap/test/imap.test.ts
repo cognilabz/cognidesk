@@ -75,5 +75,8 @@ describe("@cognidesk/integration-email-imap", () => {
       .resolves.toEqual([10]);
     await expect(integration.operations["email.thread.read"]?.({ range: [10], query: { envelope: true } }))
       .resolves.toEqual([{ uid: 10, envelope: { subject: "Hello" } }]);
+    expect(integration.rawClient).toBe(rawClient);
+    expect(integration.client.rawClient).toBe(rawClient);
+    expect(rawClient.connect).toHaveBeenCalledTimes(1);
   });
 });

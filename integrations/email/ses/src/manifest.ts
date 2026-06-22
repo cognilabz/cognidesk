@@ -91,9 +91,9 @@ export const sesEmailProviderManifest = defineIntegrationProviderPackage({
     },
   ],
   operations: [
-    { alias: "email.receive", capability: "receive", providerObject: "sesEvent", exposesSensitiveData: true },
     { alias: "email.send", capability: "send", providerObject: "sesMessage", sideEffect: true, exposesSensitiveData: true },
     { alias: "email.deliveryStatus.read", capability: "read-provider-object", providerObject: "deliveryStatus", exposesSensitiveData: true },
+    { alias: "ses.snsNotification.receive", capability: "receive", providerObject: "sesEvent", extension: true, exposesSensitiveData: true },
     { alias: "ses.account.read", capability: "read-provider-object", providerObject: "sesAccount", extension: true },
     { alias: "ses.identities.list", capability: "read-provider-object", providerObject: "sesIdentity", extension: true },
     { alias: "ses.suppressedDestination.delete", capability: "update-provider-object", providerObject: "sesSuppressedDestination", extension: true, sideEffect: true, changesWorkflow: true },

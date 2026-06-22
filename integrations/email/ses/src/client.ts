@@ -14,7 +14,7 @@ import {
 } from "@aws-sdk/client-sesv2";
 import { defineIntegration, normalizeIntegrationError } from "@cognidesk/integration-kit";
 import { sesEmailProviderManifest } from "./manifest.js";
-import { parseSesSnsNotification } from "./sns.js";
+import { parseSesSnsNotification, type ParseSesSnsNotificationOptions } from "./sns.js";
 
 export interface SesRawClients {
   sesv2: Pick<SESv2Client, "send">;
@@ -29,6 +29,7 @@ export interface SesEmailClientOptions {
     sessionToken?: string;
   };
   rawClients?: SesRawClients;
+  snsParseOptions?: ParseSesSnsNotificationOptions;
 }
 
 export interface SesEmailClient {
@@ -76,13 +77,14 @@ export function createSesEmailClient(options: SesEmailClientOptions): SesEmailCl
 
 export function createSesEmailIntegration(options: SesEmailClientOptions) {
   const client = createSesEmailClient(options);
+  const snsParseOptions = sesSnsParseOptions(options);
   return {
     ...defineIntegration({
       manifest: sesEmailProviderManifest,
       operations: {
-        "email.receive": (input: unknown) => parseSesSnsNotification(input as Request),
+        "ses.snsNotification.receive": (input: unknown) => parseSesSnsNotification(input as Request, snsParseOptions),
         "email.send": (input: unknown) => client.sendEmail(input as SendEmailCommandInput),
-        "email.deliveryStatus.read": (input: unknown) => parseSesSnsNotification(input as Request),
+        "email.deliveryStatus.read": (input: unknown) => parseSesSnsNotification(input as Request, snsParseOptions),
         "ses.account.read": () => client.getAccount(),
         "ses.identities.list": (input: unknown) => client.listEmailIdentities((input as ListEmailIdentitiesCommandInput | undefined) ?? {}),
         "ses.suppressedDestination.delete": (input: unknown) => client.deleteSuppressedDestination(input as DeleteSuppressedDestinationCommandInput),
@@ -99,10 +101,17 @@ export function createSesEmailLiveChecks(options: SesEmailClientOptions) {
     description: "Amazon SES account can be read through AWS SDK v3.",
     requiredCredentialIds: ["aws-credentials", "aws-region"],
     async run(context: { abortSignal?: AbortSignal }) {
-      const account = await createSesEmailClient(options).getAccount();
       if (context.abortSignal?.aborted) throw new Error("Amazon SES live account check aborted.");
+      const account = await createSesEmailClient(options).getAccount();
       if (account.SendingEnabled === false) throw new Error("Amazon SES sending is disabled in this Region.");
       return { details: account };
     },
   }];
+}
+
+function sesSnsParseOptions(options: SesEmailClientOptions): ParseSesSnsNotificationOptions {
+  return {
+    requireSignatureVerification: true,
+    ...options.snsParseOptions,
+  };
 }

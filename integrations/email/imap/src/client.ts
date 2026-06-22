@@ -15,6 +15,7 @@ export interface ImapEmailClientOptions {
   connection: ImapFlowOptions;
   mailbox?: string;
   rawClient?: ImapRawClient;
+  rawClientConnected?: boolean;
   leaveOpen?: boolean;
 }
 
@@ -38,7 +39,7 @@ export interface ImapEmailClient {
 export function createImapEmailClient(options: ImapEmailClientOptions): ImapEmailClient {
   const rawClient = (options.rawClient ?? new ImapFlow(options.connection)) as ImapRawClient;
   const mailbox = options.mailbox ?? "INBOX";
-  let connected = Boolean(options.rawClient);
+  let connected = options.rawClientConnected ?? false;
   const call = async <T>(operation: () => Promise<T>) => {
     try {
       if (!connected) {
@@ -116,6 +117,7 @@ export function createImapEmailLiveChecks(options: ImapEmailClientOptions) {
     description: "IMAP mailbox is reachable through ImapFlow.",
     requiredCredentialIds: ["imap-server", "imap-mailbox-credentials"],
     async run(context: { abortSignal?: AbortSignal }) {
+      if (context.abortSignal?.aborted) throw new Error("IMAP live mailbox check aborted.");
       const client = createImapEmailClient(options);
       try {
         const readiness = await client.checkMailbox();

@@ -6411,6 +6411,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
+          {
             "kind": "postmarkInboundMessage",
             "label": "Postmark Inbound Message"
           }
@@ -6429,6 +6433,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer-facing"
         ],
         "providerObjects": [
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
           {
             "kind": "postmarkMessage",
             "label": "Postmark Message"
@@ -6527,15 +6535,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
+          "email.receive",
+          "email.reply.send",
+          "email.send",
           "email.deliveryStatus.read"
         ],
         "missingRequiredOperations": [
-          "email.receive",
-          "email.thread.read",
-          "email.reply.send"
+          "email.thread.read"
         ],
         "missingRecommendedOperations": [
-          "email.send",
           "email.draft.create",
           "email.draft.update",
           "email.draft.send",
@@ -6636,15 +6644,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
+          "email.receive",
+          "email.reply.send",
+          "email.send",
           "email.deliveryStatus.read"
         ],
         "missingRequiredOperations": [
-          "email.receive",
-          "email.thread.read",
-          "email.reply.send"
+          "email.thread.read"
         ],
         "missingRecommendedOperations": [
-          "email.send",
           "email.draft.create",
           "email.draft.update",
           "email.draft.send",
@@ -6855,6 +6863,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "mailbox.watch"
         ],
         "extensionOperations": [
+          "ses.snsNotification.receive",
           "ses.account.read",
           "ses.identities.list",
           "ses.suppressedDestination.delete"
@@ -6984,6 +6993,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "mailbox.watch"
         ],
         "extensionOperations": [
+          "ses.snsNotification.receive",
           "ses.account.read",
           "ses.identities.list",
           "ses.suppressedDestination.delete"

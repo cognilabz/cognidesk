@@ -58,6 +58,11 @@ describe("@cognidesk/integration-email-mailgun", () => {
       domain: "mg.example.test",
       webhookSigningKeyConfigured: true,
     }).every((status) => status.state === "configured")).toBe(true);
+    expect(mailgunEmailCredentialStatuses({
+      apiKeyConfigured: true,
+      domain: "mg.example.test",
+      requireWebhookSignature: true,
+    }).find((status) => status.requirementId === "mailgun-webhook-signing-key")?.state).toBe("missing");
   });
 
   it("binds declared operations to the official SDK raw client", async () => {
@@ -74,11 +79,23 @@ describe("@cognidesk/integration-email-mailgun", () => {
       subject: "Hello",
       text: "Body",
     })).resolves.toMatchObject({ id: "<message@example.test>" });
+    await expect(integration.operations["email.reply.send"]?.({
+      from: "support@example.test",
+      to: "customer@example.test",
+      subject: "Re: Hello",
+      text: "Reply",
+      inReplyTo: "<original@example.test>",
+      references: ["<thread-root@example.test>", "<original@example.test>"],
+    })).resolves.toMatchObject({ id: "<message@example.test>" });
     await integration.operations["mailgun.storedMessage.read"]?.({ storageKey: "storage-key" });
 
     expect(rawClient.messages.create).toHaveBeenCalledWith("mg.example.test", expect.objectContaining({
       from: "support@example.test",
       to: "customer@example.test",
+    }));
+    expect(rawClient.messages.create).toHaveBeenCalledWith("mg.example.test", expect.objectContaining({
+      "h:In-Reply-To": "<original@example.test>",
+      "h:References": "<thread-root@example.test> <original@example.test>",
     }));
     expect((rawClient.messages as unknown as { retrieveStoredEmail: ReturnType<typeof vi.fn> }).retrieveStoredEmail)
       .toHaveBeenCalledWith("mg.example.test", "storage-key");
@@ -122,6 +139,10 @@ describe("@cognidesk/integration-email-mailgun", () => {
       method: "POST",
       body: JSON.stringify({ signature: { timestamp, token, signature }, event: "delivered" }),
     }), { signingKey, requireSignature: true })).resolves.toMatchObject({ verified: true });
+    await expect(parseMailgunWebhook(new Request("https://example.test", {
+      method: "POST",
+      body: JSON.stringify(null),
+    }), { requireSignature: true })).rejects.toThrow("payload must be a JSON object");
   });
 });
 

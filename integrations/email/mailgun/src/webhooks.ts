@@ -20,7 +20,12 @@ export async function parseMailgunWebhook(request: Request, options: {
   signingKey?: string;
   requireSignature?: boolean;
 } = {}) {
-  const payload = await request.json() as Record<string, unknown>;
+  const parsed = await request.json();
+  if (!isRecord(parsed)) {
+    if (options.requireSignature) throw new Error("Mailgun webhook payload must be a JSON object with signature data.");
+    return { payload: parsed, verified: false };
+  }
+  const payload = parsed;
   const signature = payload.signature;
   if (isRecord(signature)) {
     const verified = typeof options.signingKey === "string"
@@ -41,5 +46,5 @@ export async function parseMailgunWebhook(request: Request, options: {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

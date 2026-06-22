@@ -8,4 +8,10 @@ export {
   type PostmarkEmailClientOptions,
   type PostmarkRawClients,
 } from "./client.js";
-export { parsePostmarkInboundWebhook, type PostmarkInboundWebhook } from "./webhooks.js";
+export {
+  parsePostmarkInboundWebhook,
+  PostmarkWebhookAuthenticationError,
+  type ParsePostmarkInboundWebhookOptions,
+  type PostmarkInboundWebhook,
+  type PostmarkWebhookBasicAuthCredentials,
+} from "./webhooks.js";
