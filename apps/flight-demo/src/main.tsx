@@ -1,29 +1,146 @@
-import { StrictMode, useMemo, useState } from "react";
+import { StrictMode, useCallback, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import type { RuntimeEvent } from "@cognidesk/core";
-import { ChatWidget, createCognideskClient, useVoice, type WidgetRendererProps } from "@cognidesk/react";
+import {
+  ChatWidget,
+  createCognideskClient,
+  useVoice,
+  type ListConversationsResult,
+  type WidgetRendererProps,
+} from "@cognidesk/react";
 import "@cognidesk/ui/styles.css";
 import "streamdown/styles.css";
 import "./styles.css";
 
+const agentId = "flight-service";
+const apiBaseUrl = import.meta.env.VITE_COGNIDESK_API_URL ?? "http://localhost:8787/api";
+const demoApiBaseUrl = apiBaseUrl.replace(/\/+$/, "");
+
+type ConversationSummary = ListConversationsResult["conversations"][number];
+
+type DiscordStatus =
+  | { enabled: false; ready: false }
+  | {
+      enabled: true;
+      ready: boolean;
+      guildId: string;
+      supportChannelId: string;
+      applicationId: string;
+      botUser?: { id: string; tag: string };
+    };
+
 function App() {
-  const [chatConversationId, setChatConversationId] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(() => {
+    return new URL(window.location.href).searchParams.get("conversationId");
+  });
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [conversationError, setConversationError] = useState<string | null>(null);
+  const [discordStatus, setDiscordStatus] = useState<DiscordStatus>({ enabled: false, ready: false });
+  const [discordThreadUrl, setDiscordThreadUrl] = useState<string | null>(null);
+  const [discordBusy, setDiscordBusy] = useState(false);
+  const [discordError, setDiscordError] = useState<string | null>(null);
   const client = useMemo(() => createCognideskClient({
-    baseUrl: import.meta.env.VITE_COGNIDESK_API_URL ?? "http://localhost:8787/api",
+    baseUrl: apiBaseUrl,
   }), []);
+  const refreshConversations = useCallback(async () => {
+    try {
+      const result = await client.listConversations({ agentId, limit: 50 });
+      setConversations(result.conversations);
+      setConversationError(null);
+    } catch (error) {
+      setConversationError(error instanceof Error ? error.message : "Failed to load conversations.");
+    }
+  }, [client]);
+  const handleConversationCreated = useCallback((conversationId: string) => {
+    setActiveConversationId(conversationId);
+    setDiscordThreadUrl(null);
+    void refreshConversations();
+  }, [refreshConversations]);
   const voice = useVoice({
     client,
-    agentId: "flight-service",
+    agentId,
+    ...(activeConversationId ? { conversationId: activeConversationId } : {}),
     initialContext: {},
+    onConversationCreated: handleConversationCreated,
   });
 
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (activeConversationId) {
+      url.searchParams.set("conversationId", activeConversationId);
+    } else {
+      url.searchParams.delete("conversationId");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [activeConversationId]);
+
+  useEffect(() => {
+    void refreshConversations();
+    const interval = window.setInterval(() => {
+      void refreshConversations();
+    }, 2_500);
+    return () => window.clearInterval(interval);
+  }, [refreshConversations]);
+
+  useEffect(() => {
+    let active = true;
+    const loadStatus = async () => {
+      try {
+        const response = await fetch(`${demoApiBaseUrl}/demo/discord/status`);
+        const status = await response.json() as DiscordStatus;
+        if (active) setDiscordStatus(status);
+      } catch {
+        if (active) setDiscordStatus({ enabled: false, ready: false });
+      }
+    };
+    void loadStatus();
+    const interval = window.setInterval(() => {
+      void loadStatus();
+    }, 5_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const selectConversation = (conversationId: string | null) => {
+    if (voice.status === "connected") voice.stop();
+    setActiveConversationId(conversationId);
+    setDiscordThreadUrl(null);
+  };
+
+  const continueInDiscord = async () => {
+    if (!activeConversationId || !discordStatus.enabled) return;
+    setDiscordBusy(true);
+    setDiscordError(null);
+    setDiscordThreadUrl(null);
+    try {
+      if (voice.status === "connected") voice.stop();
+      const response = await fetch(`${demoApiBaseUrl}/demo/discord/continue`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ conversationId: activeConversationId }),
+      });
+      const result = await response.json() as { discordThreadUrl?: string; error?: string };
+      if (!response.ok || !result.discordThreadUrl) {
+        throw new Error(result.error ?? `Discord continuation failed with ${response.status}.`);
+      }
+      setDiscordThreadUrl(result.discordThreadUrl);
+      window.open(result.discordThreadUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      setDiscordError(error instanceof Error ? error.message : "Failed to continue in Discord.");
+    } finally {
+      setDiscordBusy(false);
+    }
+  };
+
   const handleWidgetSubmit = async (args: { promptId: string; kind: string; output: unknown }) => {
-    if (!chatConversationId) return;
-    const { events } = await client.listEvents(chatConversationId);
+    if (!activeConversationId) return;
+    const { events } = await client.listEvents(activeConversationId);
     if (isFlightSelectionPrompt(args.promptId)) {
-      const snapshot = await client.getSnapshot(chatConversationId);
+      const snapshot = await client.getSnapshot(activeConversationId);
       const summary = formatSelectedFlightFromSnapshot(snapshot.snapshot?.journeyContext);
-      await client.emitIntermediateMessage(chatConversationId, {
+      await client.emitIntermediateMessage(activeConversationId, {
         text: summary
           ? `${summary} selected. Please add the passenger name to continue.`
           : "Flight selected. Please add the passenger name to continue.",
@@ -38,7 +155,7 @@ function App() {
       const booking = [...events].reverse().find(isSuccessfulBookingEvent);
       const result = booking?.data.result;
       if (!isRecord(result) || typeof result.bookingReference !== "string") return;
-      await client.emitIntermediateMessage(chatConversationId, {
+      await client.emitIntermediateMessage(activeConversationId, {
         text: `Mock booking confirmed. Booking reference: **${result.bookingReference}**.`,
         visibleToModel: true,
       });
@@ -49,14 +166,14 @@ function App() {
       const searchResult = search?.data.result;
       if (isRecord(searchResult) && Array.isArray(searchResult.flights)) {
         if (searchResult.flights.length > 0) {
-          await client.emitIntermediateMessage(chatConversationId, {
+          await client.emitIntermediateMessage(activeConversationId, {
             text: `${formatFlights(searchResult.flights)}\n\nChoose a flight to continue.`,
           });
           return;
         }
         const suggestions = [...events].reverse().find(isSuccessfulSuggestionEvent);
         const suggestionResult = suggestions?.data.result;
-        await client.emitIntermediateMessage(chatConversationId, {
+        await client.emitIntermediateMessage(activeConversationId, {
           text: formatNoFlights(searchResult, suggestionResult),
         });
       }
@@ -65,6 +182,27 @@ function App() {
 
   return (
     <main className="demo-shell">
+      <aside className="demo-sidebar" aria-label="Conversations">
+        <div className="demo-sidebar-header">
+          <strong>Conversations</strong>
+          <button type="button" onClick={() => selectConversation(null)}>New</button>
+        </div>
+        <div className="demo-conversation-list">
+          {conversations.map((conversation) => (
+            <button
+              key={conversation.id}
+              type="button"
+              className={conversation.id === activeConversationId ? "is-active" : ""}
+              onClick={() => selectConversation(conversation.id)}
+            >
+              <span>{formatConversationTitle(conversation)}</span>
+              <small>{formatConversationMeta(conversation)}</small>
+            </button>
+          ))}
+          {conversations.length === 0 ? <span className="demo-empty">No conversations yet</span> : null}
+        </div>
+        {conversationError ? <span className="demo-sidebar-error">{conversationError}</span> : null}
+      </aside>
       <section className="demo-panel">
         <div className="demo-voice-bar">
           <div>
@@ -85,14 +223,29 @@ function App() {
           </div>
           {voice.error ? <span className="demo-voice-error">{voice.error.message}</span> : null}
         </div>
+        <div className="demo-discord-bar">
+          <div>
+            <strong>Discord</strong>
+            <span>{formatDiscordStatus(discordStatus)}</span>
+          </div>
+          <button
+            type="button"
+            disabled={!activeConversationId || !discordStatus.enabled || !discordStatus.ready || discordBusy}
+            onClick={() => void continueInDiscord()}
+          >
+            {discordBusy ? "Connecting" : "Continue in Discord"}
+          </button>
+          {discordThreadUrl ? <a href={discordThreadUrl} target="_blank" rel="noreferrer">Open Discord thread</a> : null}
+          {discordError ? <span className="demo-discord-error">{discordError}</span> : null}
+        </div>
         <ChatWidget
           client={client}
-          agentId="flight-service"
-          {...(chatConversationId ? { conversationId: chatConversationId } : {})}
+          agentId={agentId}
+          {...(activeConversationId ? { conversationId: activeConversationId } : {})}
           title="Flight support"
           placeholder="Ask about booking, ticket status, or flight info"
           widgets={{ confirmation: ConfirmationWidget }}
-          onConversationCreated={setChatConversationId}
+          onConversationCreated={handleConversationCreated}
           onWidgetSubmit={(args) => {
             void handleWidgetSubmit(args);
           }}
@@ -109,6 +262,12 @@ function App() {
   );
 }
 
+function formatDiscordStatus(status: DiscordStatus) {
+  if (!status.enabled) return "Disabled";
+  if (!status.ready) return "Connecting";
+  return status.botUser ? `Ready as ${status.botUser.tag}` : "Ready";
+}
+
 function formatVoiceStatus(status: string) {
   const labels: Record<string, string> = {
     idle: "Ready",
@@ -119,6 +278,27 @@ function formatVoiceStatus(status: string) {
     error: "Error",
   };
   return labels[status] ?? status;
+}
+
+function formatConversationTitle(conversation: ConversationSummary) {
+  const channel = conversation.channel;
+  if (channel && typeof channel === "object" && channel.provider === "discord" && channel.externalThreadId) {
+    return `Discord ${shortId(channel.externalThreadId)}`;
+  }
+  if (channel && typeof channel === "object" && channel.kind === "voice") return "Voice conversation";
+  return `Conversation ${shortId(conversation.id)}`;
+}
+
+function formatConversationMeta(conversation: ConversationSummary) {
+  const channel = conversation.channel;
+  const channelLabel = typeof channel === "string"
+    ? channel
+    : channel?.provider ?? channel?.kind ?? "web";
+  return `${channelLabel} · ${new Date(conversation.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function shortId(value: string) {
+  return value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || "thread";
 }
 
 function isConfirmed(output: unknown) {
