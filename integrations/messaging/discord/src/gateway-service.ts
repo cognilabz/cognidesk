@@ -12,7 +12,7 @@ import {
 import type { DiscordGatewayServiceConfig, DiscordGatewayServiceCopy } from "./gateway-config.js";
 import type { DiscordGatewayStore, DiscordThreadBinding } from "./sqlite-store.js";
 
-const DISCORD_PROVIDER_PACKAGE_ID = "community.discord";
+const DISCORD_PROVIDER_PACKAGE_ID = "messaging.discord";
 const DISCORD_SOURCE_ID = "discord-gateway";
 const EYE_REACTION = "👀";
 const DONE_REACTION = "✅";

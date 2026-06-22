@@ -3,7 +3,7 @@ import {
   type ProviderManifestInput,
 } from "@cognidesk/integration-kit";
 
-export const discordCommunityOperationAliases = [
+export const discordMessagingOperationAliases = [
   "discord.interaction.receive",
   "discord.message.send",
   "discord.thread.create",
@@ -17,12 +17,12 @@ export const discordCommunityOperationAliases = [
   "discord.interaction-signature.verify",
 ] as const;
 
-export const discordCommunityManifestInput = {
-  id: "community.discord",
-  name: "Discord Community Support",
-  packageName: "@cognidesk/integration-community-discord",
+export const discordMessagingManifestInput = {
+  id: "messaging.discord",
+  name: "Discord Messaging Support",
+  packageName: "@cognidesk/integration-messaging-discord",
   provider: "discord",
-  category: "community",
+  category: "messaging",
   trustLevel: "official",
   directions: ["receive-only", "send-only", "bidirectional"],
   channelAudiences: ["customer-facing", "mixed"],
@@ -50,7 +50,7 @@ export const discordCommunityManifestInput = {
     {
       id: "discord-guild-id",
       label: "Discord guild ID",
-      description: "Guild/server ID selected by SDK configuration for community support routing and live checks.",
+      description: "Guild/server ID selected by SDK configuration for messaging support routing and live checks.",
       required: false,
     },
     {
@@ -119,7 +119,7 @@ export const discordCommunityManifestInput = {
     {
       capability: "notify",
       label: "Notify Discord moderators",
-      description: "Uses SDK-user-selected Discord channels, threads, or Discord webhook URLs for moderator notification and community escalation workflows.",
+      description: "Uses SDK-user-selected Discord channels, threads, or Discord webhook URLs for moderator notification and messaging escalation workflows.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [
         { kind: "discordMessage", label: "Discord Message" },
@@ -300,10 +300,10 @@ export const discordCommunityManifestInput = {
   ],
   metadata: {
     integrationName: "Discord Integration",
-    integrationPackageName: "@cognidesk/integration-community-discord",
+    integrationPackageName: "@cognidesk/integration-messaging-discord",
     integrationEntryPoints: {
-      manifest: "@cognidesk/integration-community-discord/manifest",
-      runtime: "@cognidesk/integration-community-discord/runtime",
+      manifest: "@cognidesk/integration-messaging-discord/manifest",
+      runtime: "@cognidesk/integration-messaging-discord/runtime",
     },
     apiBaseUrl: "https://discord.com/api",
     defaultApiVersion: "10",
@@ -334,6 +334,6 @@ export const discordCommunityManifestInput = {
   maintainers: [{ name: "Cognidesk", type: "official" }],
 } as const satisfies ProviderManifestInput;
 
-export const discordCommunityProviderManifest = defineIntegrationProviderPackage(
-  discordCommunityManifestInput,
+export const discordMessagingProviderManifest = defineIntegrationProviderPackage(
+  discordMessagingManifestInput,
 );

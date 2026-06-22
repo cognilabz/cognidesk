@@ -10,7 +10,7 @@ The package names below are target names for staged trackers; they may not exist
 |-------|-------|----------|
 | #23 | Gmail SDK-backed package | `@cognidesk/integration-email-gmail` |
 | #24 | Microsoft Graph Outlook/Teams packages | `@cognidesk/integration-email-outlook`, `@cognidesk/integration-workplace-teams` |
-| #25 | Workplace/community SDK-backed packages | `@cognidesk/integration-workplace-slack`, `@cognidesk/integration-community-discord` |
+| #25 | Workplace/community SDK-backed packages | `@cognidesk/integration-workplace-slack`, `@cognidesk/integration-messaging-discord` |
 | #29 | Email family | `@cognidesk/integration-email-mailgun`, `@cognidesk/integration-email-postmark`, `@cognidesk/integration-email-ses`, `@cognidesk/integration-email-imap` |
 | #30 | Ecommerce | `@cognidesk/integration-ecommerce-shopify`, `@cognidesk/integration-ecommerce-stripe` |
 | #31 | Marketplace | `@cognidesk/integration-marketplace-amazon`, `@cognidesk/integration-marketplace-ebay` |
