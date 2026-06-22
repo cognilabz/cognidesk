@@ -66,7 +66,7 @@ const runtime = createRuntime({
 | `@cognidesk/ui` | Prebuilt UI components |
 | `@cognidesk/storage` | Storage adapters |
 | `@cognidesk/otel` | OpenTelemetry instrumentation |
-| `@cognidesk/integrations` | External Provider Integrations with category/provider subpaths, such as `@cognidesk/integrations/email/gmail`, `@cognidesk/integrations/voice/openai`, and `@cognidesk/integrations/voice/elevenlabs` |
+| `@cognidesk/integration-{category}-{provider}` | External Provider Integration packages installed individually, such as `@cognidesk/integration-email-gmail`, `@cognidesk/integration-workplace-slack`, and `@cognidesk/integration-voice-openai` |
 | `@cognidesk/voice-websocket` | Voice WebSocket adapter |
 | `@cognidesk/journey-index-json` | JSON-based journey index |
 

@@ -55,6 +55,7 @@ async function stripGeneratedMarkdownTrailingWhitespace() {
   }
 }
 
+await run("pnpm", ["--filter", "@cognidesk/integration-catalog", "build"]);
 await run(process.execPath, ["scripts/generate-provider-integration-catalog.mjs"]);
 await run(process.execPath, ["node_modules/typedoc/bin/typedoc"]);
 await stripGeneratedMarkdownTrailingWhitespace();

@@ -1,3 +1,4 @@
+import { deriveStudioIntegrationStates, integrationCatalog } from "@cognidesk/integration-catalog";
 import type { StudioAgentIntrospection, StudioConfigurationSurface, StudioJourneySummary } from "@cognidesk/studio-contracts";
 import type { StudioConversationRow } from "./types";
 
@@ -211,6 +212,26 @@ export function providerReadinessRows(configuration: StudioConfigurationSurface 
       .join(", ") || "-",
     summarizeOptionalRecord(readiness.metadata),
   ]) ?? [];
+}
+
+export function integrationLifecycleRows(configuration: StudioConfigurationSurface | null) {
+  return deriveStudioIntegrationStates({
+    catalog: integrationCatalog,
+    targetProviderPackages: configuration?.providerPackages ?? [],
+    providerReadiness: configuration?.providerReadiness ?? [],
+    credentialStatuses: configuration?.credentialStatuses ?? [],
+    capabilityAvailability: configuration?.capabilityAvailability ?? [],
+  }).map((state) => [
+    state.name,
+    state.providerPackageId,
+    state.category,
+    state.catalog.state,
+    state.installation.state,
+    state.readiness.state,
+    state.readiness.status,
+    state.readiness.credentialStates.join(", ") || "-",
+    state.readiness.blockerCount > 0 ? String(state.readiness.blockerCount) : "-",
+  ]);
 }
 
 export function providerPackageRows(configuration: StudioConfigurationSurface | null) {

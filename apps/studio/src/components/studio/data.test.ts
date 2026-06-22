@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StudioAgentIntrospection, StudioConfigurationSurface } from "@cognidesk/studio-contracts";
-import { agentPolicyRows, channelBehaviorRows, channelHandoffRows, providerPackageRows } from "./data";
+import { agentPolicyRows, channelBehaviorRows, channelHandoffRows, integrationLifecycleRows, providerPackageRows } from "./data";
 
 describe("studio configuration data rows", () => {
   it("keeps provider requirements and channel behavior visible", () => {
@@ -108,6 +108,17 @@ describe("studio configuration data rows", () => {
       "Live readiness depends on account permissions.",
       "Cognidesk:official",
       "region",
+    ]);
+    expect(integrationLifecycleRows(configuration).find((row) => row[1] === "voice.twilio")).toEqual([
+      "Twilio Programmable Voice",
+      "voice.twilio",
+      "voice",
+      "available",
+      "installed",
+      "unknown",
+      "unknown",
+      "-",
+      "-",
     ]);
   });
 

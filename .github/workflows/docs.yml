@@ -8,6 +8,7 @@ on:
       - "mkdocs.yml"
       - "requirements-docs.txt"
       - "packages/*/src/**"
+      - "integrations/*/*/src/**"
       - "typedoc.json"
   workflow_dispatch:
 

@@ -10,7 +10,7 @@ import {
   createDiscordGatewayService,
   createDiscordSqliteStore,
   type DiscordGatewayService,
-} from "@cognidesk/integration-discord";
+} from "@cognidesk/integration-messaging-discord";
 import {
   createAwsSpeechVoiceProvider,
   type AwsPollySynthesizeCommandInput,

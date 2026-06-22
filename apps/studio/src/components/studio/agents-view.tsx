@@ -14,6 +14,7 @@ import {
   channelConfigurationRows,
   channelPolicyRows,
   channelSetRows,
+  integrationLifecycleRows,
   knowledgeRows,
   providerCredentialRows,
   providerPackageRows,
@@ -222,6 +223,14 @@ function ConfigurationSection(props: {
           columns={["Channel", "Tone", "Max words", "Max chars", "Markdown", "Widgets", "Draft first", "Other policy"]}
           rows={channelBehaviorRows(configuration)}
           emptyText="No channel behavior policy returned."
+        />
+      </Panel>
+      <Panel>
+        <PanelHeader title="Integration lifecycle" />
+        <DataTable
+          columns={["Integration", "ID", "Category", "Catalog", "Target", "Readiness", "Status", "Credentials", "Blockers"]}
+          rows={integrationLifecycleRows(configuration)}
+          emptyText="No integration catalog metadata returned."
         />
       </Panel>
       <Panel>

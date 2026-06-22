@@ -17,7 +17,7 @@ Use a scoped generator during development when only one provider changed:
 pnpm providers:generate -- --only=generate-elevenlabs-full-api
 ```
 
-The generated source files are committed and published from `@cognidesk/integrations`. Consumer installs must not fetch upstream specs or generate provider code.
+The generated source files are committed and published from the owning provider package, such as `@cognidesk/integration-email-gmail` or `@cognidesk/integration-ecommerce-stripe`. Consumer installs must not fetch upstream specs or generate provider code.
 
 Generated provider files expose the provider's raw API surface; they do not decide the Cognidesk category semantics by themselves. A generated integration normally has four layers:
 
@@ -45,19 +45,21 @@ That script currently generates:
 
 The generated voice files expose operation inventories and caller interfaces. They do not replace the handwritten Cognidesk speech pipeline adapters, because buffering, audio format conversion, turn boundaries, browser protocol events, and background LLM handoff are Cognidesk behavior rather than provider OpenAPI behavior. Azure short-audio STT/TTS remains handwritten against Microsoft REST docs because those exact adapter endpoints are not represented in the generated Azure swagger bundle.
 
-The public Provider Integration Catalog is generated from built Provider Manifests:
+The public Provider Integration Catalog is generated from the serialized metadata package:
 
 ```bash
-pnpm --filter @cognidesk/integrations build
+pnpm providers:catalog:data
 pnpm providers:catalog
 ```
 
-The generator writes `website/guides/provider-integrations-catalog.md`. Do not edit that catalog by hand; change the provider manifest, rebuild, and regenerate the catalog instead.
+`pnpm providers:catalog:data` refreshes `@cognidesk/integration-catalog` from provider manifest-only exports where available and from current manifest sources while the migration is in progress. `pnpm providers:catalog` builds the metadata-only package and writes `website/guides/provider-integrations-catalog.md`, rendering the target split package names, manifest imports, runtime imports, and `integrations/{category}/{provider}` workspace paths for #23-#25 and #29-#43. Do not edit the catalog data or Markdown by hand; change the provider manifest, regenerate the catalog data, rebuild, and regenerate the docs instead.
+
+The Integration Packages workflow runs on `integrations/**`, package metadata, docs, and guardrail changes. It regenerates catalog data before building, then fails if the generated catalog data, legacy runtime-loader data, or provider catalog Markdown is stale.
 
 The API reference is generated from built declaration files:
 
 ```bash
-pnpm --filter @cognidesk/integrations build
+pnpm build
 pnpm docs:generate
 ```
 
@@ -69,6 +71,7 @@ Keep these documents handwritten because they explain intent rather than mirror 
 
 - guides such as `website/guides/voice.md` and `website/guides/provider-packages.md`
 - release workflow notes such as `docs/releasing.md`
+- split-package guardrails in `scripts/check-integration-package-architecture.mjs` and `scripts/verify-provider-package-conformance.mjs`
 - ADRs and coverage audits that justify a boundary or trade-off
 - examples, migration notes, and provider setup narratives
 
@@ -80,10 +83,11 @@ Before releasing generated provider changes, run:
 
 ```bash
 pnpm --filter @cognidesk/integrations build
+pnpm providers:catalog:data
 pnpm docs:generate
-pnpm --filter @cognidesk/integrations test
-pnpm --filter @cognidesk/integrations typecheck
-pnpm --dir packages/integrations test -- generated-surface-integrity
+pnpm providers:architecture
+pnpm provider-packages:check
+pnpm providers:check
 ```
 
 Run `pnpm docs:build` when MkDocs is installed in the environment.

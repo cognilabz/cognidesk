@@ -4,21 +4,21 @@ This page summarizes the current NG implementation decisions and the website-fac
 
 ## Package model
 
-Official external provider modules ship in one package:
+Official external provider modules ship as individually installed packages:
 
 ```bash
-pnpm add @cognidesk/integrations
+pnpm add @cognidesk/integration-email-gmail @cognidesk/integration-workplace-slack @cognidesk/integration-email-outlook @cognidesk/integration-workplace-teams
 ```
 
-Provider modules are imported through category/provider subpaths:
+Provider manifests are imported from manifest-only entry points, while runtime code is loaded only when the application asks for it:
 
 ```typescript
-import { gmailEmailProviderManifest } from "@cognidesk/integrations/email/gmail";
-import { genesysCloudContactCenterProviderManifest } from "@cognidesk/integrations/contact-center/genesys-cloud";
-import { twilioSmsProviderManifest } from "@cognidesk/integrations/sms/twilio";
+import { gmailEmailProviderManifest } from "@cognidesk/integration-email-gmail/manifest";
+import { genesysCloudContactCenterProviderManifest } from "@cognidesk/integration-contact-center-genesys-cloud/manifest";
+import { twilioSmsProviderManifest } from "@cognidesk/integration-sms-twilio/manifest";
 ```
 
-The root package stays lightweight. It exposes provider references, categories, and manifest loaders such as `integrationProviderReferences`, `integrationProviderCategories`, `loadProviderIntegration`, and `loadProviderIntegrationManifest`.
+`@cognidesk/integration-catalog` owns provider references, categories, and manifest metadata once the split provider packages from #23-#25 and #29-#43 publish from `integrations/{category}/{provider}`. Until then, generated docs may be staged from the legacy integration manifests.
 
 Infrastructure stays separate:
 
@@ -38,9 +38,9 @@ There are two different voice concepts:
 
 | Surface | Package | Meaning |
 |---------|---------|---------|
-| OpenAI Realtime Voice Provider Integration | `@cognidesk/integrations/voice/openai` | Connects Cognidesk voice runtime sessions to OpenAI Realtime as an entry channel and LLM-backed realtime session. |
+| OpenAI Realtime Voice Provider Integration | `@cognidesk/integration-voice-openai` | Connects Cognidesk voice runtime sessions to OpenAI Realtime as an entry channel and LLM-backed realtime session. |
 | Voice browser transport | `@cognidesk/voice-websocket` | Exposes Cognidesk's browser voice protocol over WebSocket. |
-| Voice Provider Integration | `@cognidesk/integrations/voice/elevenlabs`, `@cognidesk/integrations/voice/twilio`, `@cognidesk/integrations/voice/vonage`, `@cognidesk/integrations/voice/sip` | External voice-provider APIs, telephony objects, SIP/provider operations, and outbound-capable provider surfaces where supported. |
+| Voice Provider Integration | `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-twilio`, `@cognidesk/integration-voice-vonage`, `@cognidesk/integration-voice-sip` | External voice-provider APIs, telephony objects, SIP/provider operations, and outbound-capable provider surfaces where supported. |
 
 OpenAI Realtime is a Provider Integration even though it also hosts the LLM-backed realtime session. `@cognidesk/voice-websocket` remains the separately installed browser transport infrastructure.
 
@@ -69,7 +69,7 @@ Every Provider Integration exports a Provider Manifest with:
 - privacy notes and limitations
 - optional metadata such as channel coverage, generated API verification, and checked coverage artifacts
 
-The package name for official Provider Integrations is always `@cognidesk/integrations`. The provider import path lives in the root integration registry.
+The package name for official Provider Integrations is the individual provider package, such as `@cognidesk/integration-email-gmail` or `@cognidesk/integration-workplace-slack`. Catalog metadata must point at manifest-only imports and must not import provider SDK runtime code.
 
 ## Coverage and conformance
 

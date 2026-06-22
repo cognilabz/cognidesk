@@ -4,6 +4,8 @@ import { join } from "node:path";
 import {
   assertFixedPackageVersion,
   dependencyFields,
+  isPlatformPackage,
+  isProviderPackage,
   packageWorkspaces,
 } from "./release-workspace.mjs";
 
@@ -120,41 +122,44 @@ if (!distTag) {
 }
 
 const packages = sortByInternalDependencies(packageWorkspaces(root));
-const version = assertFixedPackageVersion(packages);
+const platformPackages = packages.filter(isPlatformPackage);
+const providerPackages = packages.filter(isProviderPackage);
+const platformVersion = assertFixedPackageVersion(platformPackages, "platform SDK packages");
 const decisions = packages.map((pkg) => ({
   pkg,
   ...readPublishedState(pkg),
 }));
-const alreadyPublished = decisions.filter(({ versionPublished }) => versionPublished);
+const alreadyPublishedPlatform = decisions
+  .filter(({ pkg, versionPublished }) => isPlatformPackage(pkg) && versionPublished);
 
-console.log(`Publish plan: ${packages.length} packages at ${version} with dist-tag "${distTag}".`);
+console.log(`Publish plan: ${packages.length} packages with dist-tag "${distTag}".`);
+console.log(`  platform SDK packages: ${platformPackages.length} at ${platformVersion}`);
+console.log(`  independent provider packages: ${providerPackages.length}`);
 
-if (alreadyPublished.length > 0 && failOnExisting) {
-  const names = alreadyPublished
+if (alreadyPublishedPlatform.length > 0 && failOnExisting) {
+  const names = alreadyPublishedPlatform
     .map(({ pkg }) => `${pkg.name}@${pkg.packageJson.version}`)
     .join(", ");
-  throw new Error(`Refusing to publish partial train; already published: ${names}`);
+  throw new Error(`Refusing to publish partial platform train; already published: ${names}`);
 }
 
 let publishedCount = 0;
 let skippedCount = 0;
 
 for (const { pkg, packageExists, versionPublished } of decisions) {
-  if (!packageExists) {
-    console.log(`Skipping ${pkg.name}@${pkg.packageJson.version}; package does not exist on ${registry}.`);
-    skippedCount += 1;
-    continue;
-  }
-
   if (versionPublished) {
     console.log(`Skipping ${pkg.name}@${pkg.packageJson.version}; already published.`);
     skippedCount += 1;
     continue;
   }
 
-  console.log(`Publishing ${pkg.name}@${pkg.packageJson.version} with dist-tag "${distTag}".`);
+  const firstTimePrefix = packageExists ? "" : "first-time ";
+  console.log(`Publishing ${firstTimePrefix}${pkg.name}@${pkg.packageJson.version} with dist-tag "${distTag}".`);
   if (dryRun) {
-    console.log(`Dry run: (cd ${pkg.dir} && npm publish . --tag ${distTag})`);
+    const access = pkg.packageJson.publishConfig?.access ?? "public";
+    console.log(
+      `Dry run: (cd ${pkg.dir} && npm publish . --access ${access} --tag ${distTag} --provenance --no-git-checks)`,
+    );
     publishedCount += 1;
     continue;
   }

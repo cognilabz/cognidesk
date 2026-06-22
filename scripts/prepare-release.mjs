@@ -5,7 +5,7 @@ import { stdin as input, stdout as output } from "node:process";
 import {
   assertFixedStablePackageVersion,
   bumpStableVersion,
-  packageWorkspaces,
+  platformPackageWorkspaces,
   updatePackageTrain,
   writePackages,
 } from "./release-workspace.mjs";
@@ -53,8 +53,8 @@ if (!validBumps.has(defaultBump)) {
   throw new Error(`Invalid default bump "${defaultBump}". Expected patch, minor, or major.`);
 }
 
-const packages = packageWorkspaces(root);
-const currentVersion = assertFixedStablePackageVersion(packages);
+const packages = platformPackageWorkspaces(root);
+const currentVersion = assertFixedStablePackageVersion(packages, "platform SDK packages");
 const bump = await readBump(currentVersion);
 
 if (!validBumps.has(bump)) {
@@ -69,7 +69,7 @@ runPnpmInstall();
 
 console.log("\nPrepared SDK release:");
 console.log(`  ${currentVersion} -> ${nextVersion} (${bump})`);
-console.log(`  Updated ${packages.length} publishable packages.`);
+console.log(`  Updated ${packages.length} platform SDK packages.`);
 
 console.log("\nNext steps:");
 console.log("  pnpm check");

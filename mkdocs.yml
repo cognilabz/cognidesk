@@ -127,6 +127,7 @@ nav:
       - Storage: guides/storage.md
       - Models & Providers: guides/models-and-providers.md
       - Provider Integrations: guides/provider-packages.md
+      - Provider Package Migration: guides/provider-package-migration.md
       - HTTP Transport: guides/http-transport.md
       - SSE Streaming: guides/sse-streaming.md
       - React UI: guides/react-ui.md

@@ -1,9 +1,9 @@
 ---
-Status: superseded by ADR-0081
+Status: superseded by ADR-0081; package naming restored and replaced by ADR-0085
 ---
 
 # Name provider packages by category and provider
 
-Superseded by ADR-0081. Do not use separate public provider package names for official providers; official external providers now ship through `@cognidesk/integrations` category/provider subpath exports, including OpenAI Realtime Voice at `@cognidesk/integrations/voice/openai`.
+Superseded by ADR-0081, then restored and replaced by ADR-0085. ADR-0085 is the current source of truth for official provider package naming, SDK-backed runtime boundaries, explicit registration, and removal of old aggregate imports.
 
-The superseded decision proposed separate packages named `@cognidesk/{provider-category}-{provider}`, such as `@cognidesk/voice-twilio`, `@cognidesk/email-gmail`, `@cognidesk/ticketing-zendesk`, `@cognidesk/workplace-slack`, and `@cognidesk/contact-center-genesys-cloud`, while SDK-owned runtime and adapter packages kept the existing flat package style. ADR-0081 replaced that with one `@cognidesk/integrations` package and category/provider subpaths.
+The restored decision uses separate packages named `@cognidesk/integration-{provider-category}-{provider}`, such as `@cognidesk/integration-voice-twilio`, `@cognidesk/integration-email-gmail`, `@cognidesk/integration-ticketing-zendesk`, `@cognidesk/integration-workplace-slack`, and `@cognidesk/integration-contact-center-genesys-cloud`, while provider-neutral SDK/runtime packages keep their existing package style.

@@ -114,6 +114,15 @@ jobs:
       - name: Check
         run: pnpm check
 
+      - name: Verify integration package architecture
+        run: pnpm providers:architecture
+
+      - name: Verify provider package conformance
+        run: pnpm provider-packages:check
+
+      - name: Verify package publish smoke
+        run: pnpm release:verify-packages -- --fail-size-budget
+
       - name: Sync package READMEs
         run: pnpm packages:sync-readmes
 

@@ -1,0 +1,88 @@
+name: Integration Packages
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/integration-packages.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "integrations/**"
+      - "packages/**"
+      - "scripts/**"
+      - "docs/adr/**"
+      - "docs/provider-migration-matrix.md"
+      - "docs/provider-generation.md"
+      - "docs/releasing.md"
+      - "website/api-reference/integrations.md"
+      - "website/guides/provider-packages.md"
+      - "website/guides/provider-package-migration.md"
+      - "website/guides/provider-integrations-catalog.md"
+      - "website/guides/omnichannel-changes.md"
+      - "website/getting-started/installation.md"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/integration-packages.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "integrations/**"
+      - "packages/**"
+      - "scripts/**"
+      - "docs/adr/**"
+      - "docs/provider-migration-matrix.md"
+      - "docs/provider-generation.md"
+      - "docs/releasing.md"
+      - "website/api-reference/integrations.md"
+      - "website/guides/provider-packages.md"
+      - "website/guides/provider-package-migration.md"
+      - "website/guides/provider-integrations-catalog.md"
+      - "website/guides/omnichannel-changes.md"
+      - "website/getting-started/installation.md"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24"
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate provider catalog data
+        run: pnpm providers:catalog:data
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Check integration architecture
+        run: pnpm providers:architecture
+
+      - name: Check provider package conformance
+        run: pnpm provider-packages:check
+
+      - name: Check package smoke and size budgets
+        run: pnpm release:verify-packages -- --fail-size-budget
+
+      - name: Generate provider docs
+        run: pnpm providers:catalog
+
+      - name: Verify generated provider catalog is committed
+        run: >-
+          git diff --exit-code --
+          packages/integration-catalog/src/catalog.generated.ts
+          packages/integrations/src/provider-catalog/runtime-loaders.generated.ts
+          website/guides/provider-integrations-catalog.md

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import {
   assertFixedStablePackageVersion,
-  packageWorkspaces,
+  platformPackageWorkspaces,
+  providerPackageWorkspaces,
 } from "./release-workspace.mjs";
 
 const args = process.argv.slice(2);
@@ -14,8 +15,10 @@ function readOption(name) {
   return args[index + 1];
 }
 
-const packages = packageWorkspaces(process.cwd());
-const version = assertFixedStablePackageVersion(packages);
+const root = process.cwd();
+const packages = platformPackageWorkspaces(root);
+const providers = providerPackageWorkspaces(root);
+const version = assertFixedStablePackageVersion(packages, "platform SDK packages");
 
 if (tag) {
   const tagVersion = tag.startsWith("v") ? tag.slice(1) : tag;
@@ -26,4 +29,5 @@ if (tag) {
 
 console.log("Verified SDK stable release:");
 console.log(`  version: ${version}`);
-console.log(`  publishable packages: ${packages.length}`);
+console.log(`  platform SDK packages: ${packages.length}`);
+console.log(`  independent provider packages: ${providers.length}`);
