@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("../../..", import.meta.url)));
 const integrationsSrc = path.join(repoRoot, "packages", "integrations", "src");
+const splitIntegrationsRoot = path.join(repoRoot, "integrations");
 const matrixPath = path.join(repoRoot, "docs", "provider-migration-matrix.md");
 const matrixStart = "<!-- provider-migration-matrix:start -->";
 const matrixEnd = "<!-- provider-migration-matrix:end -->";
@@ -70,15 +71,22 @@ describe("provider migration matrix", () => {
 });
 
 async function currentProviderDirs() {
-  const providers: string[] = [];
+  const providers = new Set<string>();
   for (const category of await readdir(integrationsSrc, { withFileTypes: true })) {
     if (!category.isDirectory() || nonProviderDirs.has(category.name)) continue;
     const categoryDir = path.join(integrationsSrc, category.name);
     for (const provider of await readdir(categoryDir, { withFileTypes: true })) {
-      if (provider.isDirectory()) providers.push(`${category.name}/${provider.name}`);
+      if (provider.isDirectory()) providers.add(`${category.name}/${provider.name}`);
     }
   }
-  return providers;
+  for (const category of await readdir(splitIntegrationsRoot, { withFileTypes: true })) {
+    if (!category.isDirectory()) continue;
+    const categoryDir = path.join(splitIntegrationsRoot, category.name);
+    for (const provider of await readdir(categoryDir, { withFileTypes: true })) {
+      if (provider.isDirectory()) providers.add(`${category.name}/${provider.name}`);
+    }
+  }
+  return [...providers];
 }
 
 function parseMatrixRows(source: string): MatrixRow[] {

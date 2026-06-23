@@ -1,0 +1,68 @@
+{
+  "name": "@cognidesk/integration-voice-azure-speech",
+  "version": "0.0.2",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    },
+    "./runtime": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/manifest.ts --format esm --dts --clean",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@cognidesk/core": "workspace:*",
+    "@cognidesk/integration-kit": "workspace:*",
+    "@cognidesk/voice-websocket": "workspace:*",
+    "microsoft-cognitiveservices-speech-sdk": "^1.50.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "cognidesk": {
+    "kind": "provider-package",
+    "providerPackage": true,
+    "release": "independent-provider",
+    "category": "voice",
+    "provider": "azure-speech",
+    "manifestOnlyExports": ["./manifest"],
+    "providerSdkDependencies": [
+      "microsoft-cognitiveservices-speech-sdk"
+    ],
+    "packageSizeBudgetBytes": {
+      "packedSizeBytes": 12582912,
+      "unpackedSizeBytes": 41943040,
+      "declarationFileBytes": 4194304
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cognilabz/cognidesk",
+    "directory": "integrations/voice/azure-speech"
+  }
+}

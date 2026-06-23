@@ -3,6 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  isIntegrationProviderReferenceAvailable,
+} from "../../integrations/src/provider-catalog/references.js";
+import {
   createIntegrationRuntimeRegistry,
   deriveStudioIntegrationStates,
   getIntegrationCatalogEntry,
@@ -38,6 +41,71 @@ describe("integration catalog", () => {
       installation: { state: "installed" },
       readiness: { state: "ready" },
     });
+  });
+
+  it("prefers split provider package imports for migrated enterprise service clouds", () => {
+    expect(getIntegrationCatalogEntry("ticketing.oracle-service")).toMatchObject({
+      importPath: "@cognidesk/integration-ticketing-oracle-service/manifest",
+      packageName: "@cognidesk/integration-ticketing-oracle-service",
+      implementation: {
+        strategy: "direct-http-support-slice",
+        runtimePackage: "@cognidesk/integration-ticketing-oracle-service",
+        manifestSource: "integrations/ticketing/oracle-service/src/manifest.ts",
+        manifestSourceKind: "manifest-only",
+      },
+    });
+    expect(getIntegrationCatalogEntry("ticketing.pega-customer-service")).toMatchObject({
+      importPath: "@cognidesk/integration-ticketing-pega-customer-service/manifest",
+      packageName: "@cognidesk/integration-ticketing-pega-customer-service",
+      implementation: {
+        strategy: "direct-http-support-slice",
+        runtimePackage: "@cognidesk/integration-ticketing-pega-customer-service",
+        manifestSource: "integrations/ticketing/pega-customer-service/src/manifest.ts",
+        manifestSourceKind: "manifest-only",
+      },
+    });
+    expect(getIntegrationCatalogEntry("ticketing.sap-service-cloud")).toMatchObject({
+      importPath: "@cognidesk/integration-ticketing-sap-service-cloud/manifest",
+      packageName: "@cognidesk/integration-ticketing-sap-service-cloud",
+      implementation: {
+        strategy: "direct-http-support-slice",
+        runtimePackage: "@cognidesk/integration-ticketing-sap-service-cloud",
+        manifestSource: "integrations/ticketing/sap-service-cloud/src/manifest.ts",
+        manifestSourceKind: "manifest-only",
+      },
+    });
+  });
+
+  it("does not advertise migrated enterprise service clouds through legacy integration references", () => {
+    const migratedProviders = [
+      {
+        id: "ticketing.oracle-service",
+        importPath: "@cognidesk/integration-ticketing-oracle-service/manifest",
+        packageName: "@cognidesk/integration-ticketing-oracle-service",
+      },
+      {
+        id: "ticketing.pega-customer-service",
+        importPath: "@cognidesk/integration-ticketing-pega-customer-service/manifest",
+        packageName: "@cognidesk/integration-ticketing-pega-customer-service",
+      },
+      {
+        id: "ticketing.sap-service-cloud",
+        importPath: "@cognidesk/integration-ticketing-sap-service-cloud/manifest",
+        packageName: "@cognidesk/integration-ticketing-sap-service-cloud",
+      },
+    ] as const;
+
+    for (const provider of migratedProviders) {
+      expect(isIntegrationProviderReferenceAvailable(provider.id)).toBe(false);
+      expect(getIntegrationCatalogEntry(provider.id)).toMatchObject({
+        importPath: provider.importPath,
+        packageName: provider.packageName,
+        implementation: {
+          manifestSourceKind: "manifest-only",
+          runtimePackage: provider.packageName,
+        },
+      });
+    }
   });
 
   it("keeps runtime loading explicit and app supplied", async () => {

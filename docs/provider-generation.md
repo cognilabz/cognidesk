@@ -14,7 +14,7 @@ pnpm providers:generate
 Use a scoped generator during development when only one provider changed:
 
 ```bash
-pnpm providers:generate -- --only=generate-elevenlabs-full-api
+pnpm providers:generate -- --only=generate-gmail-full-api
 ```
 
 The generated source files are committed and published from the owning provider package, such as `@cognidesk/integration-email-gmail` or `@cognidesk/integration-ecommerce-stripe`. Consumer installs must not fetch upstream specs or generate provider code.
@@ -40,7 +40,6 @@ That script currently generates:
 
 - AWS Speech from official AWS Smithy models for Transcribe Streaming, Transcribe, and Polly
 - Google Cloud Speech from Speech-to-Text and Text-to-Speech v1 Discovery documents
-- Deepgram Speech from Deepgram's official OpenAPI document
 - Azure Speech from Microsoft `azure-rest-api-specs` Speech data-plane files
 
 The generated voice files expose operation inventories and caller interfaces. They do not replace the handwritten Cognidesk speech pipeline adapters, because buffering, audio format conversion, turn boundaries, browser protocol events, and background LLM handoff are Cognidesk behavior rather than provider OpenAPI behavior. Azure short-audio STT/TTS remains handwritten against Microsoft REST docs because those exact adapter endpoints are not represented in the generated Azure swagger bundle.

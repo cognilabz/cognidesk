@@ -17,17 +17,6 @@ export interface IntegrationInstrumentationHooks {
   onOperationError?(event: IntegrationInstrumentationEvent): void;
 }
 
-function emitHook(
-  hook: ((event: IntegrationInstrumentationEvent) => void) | undefined,
-  event: IntegrationInstrumentationEvent,
-): void {
-  try {
-    hook?.(event);
-  } catch {
-    // Instrumentation must never decide provider operation control flow.
-  }
-}
-
 export function createOperationInstrumentation(input: {
   providerPackageId: string;
   provider?: string;
@@ -44,11 +33,11 @@ export function createOperationInstrumentation(input: {
     startedAt,
     ...(input.metadata ? { metadata: input.metadata } : {}),
   };
-  emitHook(input.hooks?.onOperationStart, startEvent);
+  input.hooks?.onOperationStart?.(startEvent);
 
   return {
     success(metadata?: Record<string, unknown>) {
-      emitHook(input.hooks?.onOperationSuccess, {
+      input.hooks?.onOperationSuccess?.({
         ...startEvent,
         phase: "success",
         durationMs: Date.now() - startedAt,
@@ -56,7 +45,7 @@ export function createOperationInstrumentation(input: {
       });
     },
     error(error: NormalizedIntegrationErrorShape, metadata?: Record<string, unknown>) {
-      emitHook(input.hooks?.onOperationError, {
+      input.hooks?.onOperationError?.({
         ...startEvent,
         phase: "error",
         durationMs: Date.now() - startedAt,

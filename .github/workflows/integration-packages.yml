@@ -11,6 +11,7 @@ on:
       - "packages/**"
       - "scripts/**"
       - "docs/adr/**"
+      - "docs/integrations-monolith-cleanup.md"
       - "docs/provider-migration-matrix.md"
       - "docs/provider-generation.md"
       - "docs/releasing.md"
@@ -32,6 +33,7 @@ on:
       - "packages/**"
       - "scripts/**"
       - "docs/adr/**"
+      - "docs/integrations-monolith-cleanup.md"
       - "docs/provider-migration-matrix.md"
       - "docs/provider-generation.md"
       - "docs/releasing.md"
@@ -49,15 +51,13 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          persist-credentials: false
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@v4
         with:
           node-version: "24"
 
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+      - uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -66,10 +66,13 @@ jobs:
         run: pnpm providers:catalog:data
 
       - name: Build packages
-        run: pnpm build
+        run: pnpm build --concurrency=1
 
       - name: Check integration architecture
         run: pnpm providers:architecture
+
+      - name: Check monolith cleanup map
+        run: pnpm providers:cleanup-map
 
       - name: Check provider package conformance
         run: pnpm provider-packages:check

@@ -18,86 +18,6 @@
       "types": "./dist/provider-manifest.d.ts",
       "import": "./dist/provider-manifest.js"
     },
-    "./contact-center/8x8": {
-      "types": "./dist/contact-center/8x8/index.d.ts",
-      "import": "./dist/contact-center/8x8/index.js"
-    },
-    "./contact-center/aircall": {
-      "types": "./dist/contact-center/aircall/index.d.ts",
-      "import": "./dist/contact-center/aircall/index.js"
-    },
-    "./contact-center/amazon-connect": {
-      "types": "./dist/contact-center/amazon-connect/index.d.ts",
-      "import": "./dist/contact-center/amazon-connect/index.js"
-    },
-    "./contact-center/five9": {
-      "types": "./dist/contact-center/five9/index.d.ts",
-      "import": "./dist/contact-center/five9/index.js"
-    },
-    "./contact-center/genesys-cloud": {
-      "types": "./dist/contact-center/genesys-cloud/index.d.ts",
-      "import": "./dist/contact-center/genesys-cloud/index.js"
-    },
-    "./contact-center/genesys-engage": {
-      "types": "./dist/contact-center/genesys-engage/index.d.ts",
-      "import": "./dist/contact-center/genesys-engage/index.js"
-    },
-    "./contact-center/genesys-pureconnect": {
-      "types": "./dist/contact-center/genesys-pureconnect/index.d.ts",
-      "import": "./dist/contact-center/genesys-pureconnect/index.js"
-    },
-    "./contact-center/nextiva": {
-      "types": "./dist/contact-center/nextiva/index.d.ts",
-      "import": "./dist/contact-center/nextiva/index.js"
-    },
-    "./contact-center/nice-cxone": {
-      "types": "./dist/contact-center/nice-cxone/index.d.ts",
-      "import": "./dist/contact-center/nice-cxone/index.js"
-    },
-    "./contact-center/ringcentral": {
-      "types": "./dist/contact-center/ringcentral/index.d.ts",
-      "import": "./dist/contact-center/ringcentral/index.js"
-    },
-    "./contact-center/talkdesk": {
-      "types": "./dist/contact-center/talkdesk/index.d.ts",
-      "import": "./dist/contact-center/talkdesk/index.js"
-    },
-    "./contact-center/zoom": {
-      "types": "./dist/contact-center/zoom/index.d.ts",
-      "import": "./dist/contact-center/zoom/index.js"
-    },
-    "./ecommerce/shopify": {
-      "types": "./dist/ecommerce/shopify/index.d.ts",
-      "import": "./dist/ecommerce/shopify/index.js"
-    },
-    "./ecommerce/stripe": {
-      "types": "./dist/ecommerce/stripe/index.d.ts",
-      "import": "./dist/ecommerce/stripe/index.js"
-    },
-    "./email/gmail": {
-      "types": "./dist/email/gmail/index.d.ts",
-      "import": "./dist/email/gmail/index.js"
-    },
-    "./email/imap": {
-      "types": "./dist/email/imap/index.d.ts",
-      "import": "./dist/email/imap/index.js"
-    },
-    "./email/mailgun": {
-      "types": "./dist/email/mailgun/index.d.ts",
-      "import": "./dist/email/mailgun/index.js"
-    },
-    "./email/outlook": {
-      "types": "./dist/email/outlook/index.d.ts",
-      "import": "./dist/email/outlook/index.js"
-    },
-    "./email/postmark": {
-      "types": "./dist/email/postmark/index.d.ts",
-      "import": "./dist/email/postmark/index.js"
-    },
-    "./email/ses": {
-      "types": "./dist/email/ses/index.d.ts",
-      "import": "./dist/email/ses/index.js"
-    },
     "./marketplace/amazon": {
       "types": "./dist/marketplace/amazon/index.d.ts",
       "import": "./dist/marketplace/amazon/index.js"
@@ -105,106 +25,6 @@
     "./marketplace/ebay": {
       "types": "./dist/marketplace/ebay/index.d.ts",
       "import": "./dist/marketplace/ebay/index.js"
-    },
-    "./messaging/rcs": {
-      "types": "./dist/messaging/rcs/index.d.ts",
-      "import": "./dist/messaging/rcs/index.js"
-    },
-    "./messaging/whatsapp": {
-      "types": "./dist/messaging/whatsapp/index.d.ts",
-      "import": "./dist/messaging/whatsapp/index.js"
-    },
-    "./review/appstore": {
-      "types": "./dist/review/appstore/index.d.ts",
-      "import": "./dist/review/appstore/index.js"
-    },
-    "./review/googleplay": {
-      "types": "./dist/review/googleplay/index.d.ts",
-      "import": "./dist/review/googleplay/index.js"
-    },
-    "./sms/twilio": {
-      "types": "./dist/sms/twilio/index.d.ts",
-      "import": "./dist/sms/twilio/index.js"
-    },
-    "./social/instagram": {
-      "types": "./dist/social/instagram/index.d.ts",
-      "import": "./dist/social/instagram/index.js"
-    },
-    "./social/messenger": {
-      "types": "./dist/social/messenger/index.d.ts",
-      "import": "./dist/social/messenger/index.js"
-    },
-    "./social/tiktok": {
-      "types": "./dist/social/tiktok/index.d.ts",
-      "import": "./dist/social/tiktok/index.js"
-    },
-    "./ticketing/dynamics365": {
-      "types": "./dist/ticketing/dynamics365/index.d.ts",
-      "import": "./dist/ticketing/dynamics365/index.js"
-    },
-    "./ticketing/freshdesk": {
-      "types": "./dist/ticketing/freshdesk/index.d.ts",
-      "import": "./dist/ticketing/freshdesk/index.js"
-    },
-    "./ticketing/front": {
-      "types": "./dist/ticketing/front/index.d.ts",
-      "import": "./dist/ticketing/front/index.js"
-    },
-    "./ticketing/gorgias": {
-      "types": "./dist/ticketing/gorgias/index.d.ts",
-      "import": "./dist/ticketing/gorgias/index.js"
-    },
-    "./ticketing/help-scout": {
-      "types": "./dist/ticketing/help-scout/index.d.ts",
-      "import": "./dist/ticketing/help-scout/index.js"
-    },
-    "./ticketing/hubspot": {
-      "types": "./dist/ticketing/hubspot/index.d.ts",
-      "import": "./dist/ticketing/hubspot/index.js"
-    },
-    "./ticketing/intercom": {
-      "types": "./dist/ticketing/intercom/index.d.ts",
-      "import": "./dist/ticketing/intercom/index.js"
-    },
-    "./ticketing/kustomer": {
-      "types": "./dist/ticketing/kustomer/index.d.ts",
-      "import": "./dist/ticketing/kustomer/index.js"
-    },
-    "./ticketing/oracle-service": {
-      "types": "./dist/ticketing/oracle-service/index.d.ts",
-      "import": "./dist/ticketing/oracle-service/index.js"
-    },
-    "./ticketing/pega-customer-service": {
-      "types": "./dist/ticketing/pega-customer-service/index.d.ts",
-      "import": "./dist/ticketing/pega-customer-service/index.js"
-    },
-    "./ticketing/salesforce": {
-      "types": "./dist/ticketing/salesforce/index.d.ts",
-      "import": "./dist/ticketing/salesforce/index.js"
-    },
-    "./ticketing/sap-service-cloud": {
-      "types": "./dist/ticketing/sap-service-cloud/index.d.ts",
-      "import": "./dist/ticketing/sap-service-cloud/index.js"
-    },
-    "./ticketing/servicenow": {
-      "types": "./dist/ticketing/servicenow/index.d.ts",
-      "import": "./dist/ticketing/servicenow/index.js"
-    },
-    "./ticketing/zendesk": {
-      "types": "./dist/ticketing/zendesk/index.d.ts",
-      "import": "./dist/ticketing/zendesk/index.js"
-    },
-    "./ticketing/zoho-desk": {
-      "types": "./dist/ticketing/zoho-desk/index.d.ts",
-      "import": "./dist/ticketing/zoho-desk/index.js"
-    },
-    "./video/whereby": {
-      "types": "./dist/video/whereby/index.d.ts",
-      "import": "./dist/video/whereby/index.js"
-    },
-    "./video/zoom": {
-      "types": "./dist/video/zoom/index.d.ts",
-      "import": "./dist/video/zoom/index.js"
     },
     "./voice/aws-speech": {
       "types": "./dist/voice/aws-speech/index.d.ts",
@@ -214,14 +34,6 @@
       "types": "./dist/voice/azure-speech/index.d.ts",
       "import": "./dist/voice/azure-speech/index.js"
     },
-    "./voice/deepgram": {
-      "types": "./dist/voice/deepgram/index.d.ts",
-      "import": "./dist/voice/deepgram/index.js"
-    },
-    "./voice/elevenlabs": {
-      "types": "./dist/voice/elevenlabs/index.d.ts",
-      "import": "./dist/voice/elevenlabs/index.js"
-    },
     "./voice/google-speech": {
       "types": "./dist/voice/google-speech/index.d.ts",
       "import": "./dist/voice/google-speech/index.js"
@@ -229,39 +41,13 @@
     "./voice/openai": {
       "types": "./dist/voice/openai/index.d.ts",
       "import": "./dist/voice/openai/index.js"
-    },
-    "./voice/twilio": {
-      "types": "./dist/voice/twilio/index.d.ts",
-      "import": "./dist/voice/twilio/index.js"
-    },
-    "./voice/vonage": {
-      "types": "./dist/voice/vonage/index.d.ts",
-      "import": "./dist/voice/vonage/index.js"
-    },
-    "./workplace/slack": {
-      "types": "./dist/workplace/slack/index.d.ts",
-      "import": "./dist/workplace/slack/index.js"
-    },
-    "./workplace/teams": {
-      "types": "./dist/workplace/teams/index.d.ts",
-      "import": "./dist/workplace/teams/index.js"
     }
   },
   "scripts": {
     "build:deps": "pnpm --filter @cognidesk/core --filter @cognidesk/integration-kit --filter @cognidesk/voice-websocket --filter @cognidesk/test-harness build",
-    "build": "pnpm run build:deps && pnpm run build:entries:voice && pnpm run build:entries:contact-center-a && pnpm run build:entries:contact-center-b && pnpm run build:entries:ecommerce-marketplace && pnpm run build:entries:messaging-sms-social && pnpm run build:entries:review && pnpm run build:entries:video && pnpm run build:entries:email && pnpm run build:entries:ticketing-a && pnpm run build:entries:ticketing-b && pnpm run build:entries:ticketing-c && pnpm run build:entries:workplace",
-    "build:entries:voice": "tsup src/index.ts src/category-profiles.ts src/provider-manifest.ts src/voice/aws-speech/index.ts src/voice/azure-speech/index.ts src/voice/deepgram/index.ts src/voice/elevenlabs/index.ts src/voice/google-speech/index.ts src/voice/openai/index.ts src/voice/twilio/index.ts src/voice/vonage/index.ts --format esm --dts --clean --external openai",
-    "build:entries:contact-center-a": "tsup src/contact-center/8x8/index.ts src/contact-center/aircall/index.ts src/contact-center/amazon-connect/index.ts src/contact-center/five9/index.ts src/contact-center/genesys-cloud/index.ts src/contact-center/genesys-engage/index.ts --format esm --dts --outDir dist/contact-center --external openai",
-    "build:entries:contact-center-b": "tsup src/contact-center/genesys-pureconnect/index.ts src/contact-center/nextiva/index.ts src/contact-center/nice-cxone/index.ts src/contact-center/ringcentral/index.ts src/contact-center/talkdesk/index.ts src/contact-center/zoom/index.ts --format esm --dts --outDir dist/contact-center --external openai",
-    "build:entries:ecommerce-marketplace": "tsup src/ecommerce/shopify/index.ts src/ecommerce/stripe/index.ts src/marketplace/amazon/index.ts src/marketplace/ebay/index.ts --format esm --dts --external openai",
-    "build:entries:messaging-sms-social": "tsup src/messaging/rcs/index.ts src/messaging/whatsapp/index.ts src/sms/twilio/index.ts src/social/instagram/index.ts src/social/messenger/index.ts src/social/tiktok/index.ts --format esm --dts --external openai",
-    "build:entries:review": "tsup src/review/appstore/index.ts src/review/googleplay/index.ts --format esm --dts --outDir dist/review --external openai",
-    "build:entries:video": "tsup src/video/whereby/index.ts src/video/zoom/index.ts --format esm --dts --outDir dist/video --external openai",
-    "build:entries:email": "tsup src/email/gmail/index.ts src/email/imap/index.ts src/email/mailgun/index.ts src/email/outlook/index.ts src/email/postmark/index.ts src/email/ses/index.ts --format esm --dts --outDir dist/email --external openai",
-    "build:entries:ticketing-a": "tsup src/ticketing/dynamics365/index.ts src/ticketing/freshdesk/index.ts src/ticketing/front/index.ts src/ticketing/gorgias/index.ts src/ticketing/help-scout/index.ts --format esm --dts --outDir dist/ticketing --external openai",
-    "build:entries:ticketing-b": "tsup src/ticketing/hubspot/index.ts src/ticketing/intercom/index.ts src/ticketing/kustomer/index.ts src/ticketing/oracle-service/index.ts src/ticketing/pega-customer-service/index.ts --format esm --dts --outDir dist/ticketing --external openai",
-    "build:entries:ticketing-c": "tsup src/ticketing/salesforce/index.ts src/ticketing/sap-service-cloud/index.ts src/ticketing/servicenow/index.ts src/ticketing/zendesk/index.ts src/ticketing/zoho-desk/index.ts --format esm --dts --outDir dist/ticketing --external openai",
-    "build:entries:workplace": "tsup src/workplace/slack/index.ts src/workplace/teams/index.ts --format esm --dts --outDir dist/workplace --external openai",
+    "build": "pnpm run build:deps && pnpm run build:entries:voice && pnpm run build:entries:marketplace",
+    "build:entries:voice": "tsup src/index.ts src/category-profiles.ts src/provider-manifest.ts src/voice/aws-speech/index.ts src/voice/azure-speech/index.ts src/voice/google-speech/index.ts src/voice/openai/index.ts --format esm --dts --clean --external openai",
+    "build:entries:marketplace": "tsup src/marketplace/amazon/index.ts src/marketplace/ebay/index.ts --format esm --dts --outDir dist/marketplace --external openai",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run build && vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"

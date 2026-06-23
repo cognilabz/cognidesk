@@ -40,9 +40,8 @@ export function createIntegrationProviderRuntimeRegistry(
       loaders.set(registration.id, registration.load);
     },
     has(idOrReference) {
-      if (!isIntegrationProviderReferenceAvailable(idOrReference)) return false;
-      const id = typeof idOrReference === "string" ? idOrReference : idOrReference.id;
-      return loaders.has(id);
+      const reference = resolveIntegrationProviderReference(idOrReference);
+      return loaders.has(reference.id);
     },
     async loadProviderIntegration(idOrReference) {
       const reference = resolveIntegrationProviderReference(idOrReference);

@@ -4,8 +4,6 @@ Official Provider Integrations are moving to individual packages named `@cognide
 
 Examples:
 
-The package set below is a staged rollout example for the first-wave providers after #28, #23, #24, and #25 land. Use packages that exist in the current release when installing today.
-
 ```bash
 pnpm add @cognidesk/integration-email-gmail @cognidesk/integration-workplace-slack @cognidesk/integration-email-outlook @cognidesk/integration-workplace-teams @cognidesk/integration-voice-openai
 ```
@@ -63,4 +61,3 @@ Legacy generated type reference: [`@cognidesk/integrations/voice/openai`](genera
 
 - [`@cognidesk/integrations/voice/aws-speech`](generated/integrations/dist/voice/aws-speech.md)
 - [`@cognidesk/integrations/voice/google-speech`](generated/integrations/dist/voice/google-speech.md)
-- [`@cognidesk/integrations/voice/deepgram`](generated/integrations/dist/voice/deepgram.md)

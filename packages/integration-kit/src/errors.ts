@@ -92,6 +92,7 @@ export function integrationErrorToJSON(error: IntegrationError): NormalizedInteg
   if (error.statusCode !== undefined) result.statusCode = error.statusCode;
   if (error.retryable !== undefined) result.retryable = error.retryable;
   if (error.details !== undefined) result.details = error.details;
+  if (error.cause !== undefined) result.cause = error.cause;
   return result;
 }
 
