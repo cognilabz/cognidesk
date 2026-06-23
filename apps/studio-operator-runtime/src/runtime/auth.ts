@@ -1,17 +1,16 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { timingSafeEqual } from "node:crypto";
 import type { IncomingHttpHeaders } from "node:http";
+import {
+  signStudioRuntimeClaimsPayload,
+  signStudioRuntimeHeaders,
+  studioRuntimeClaimsHeader,
+  studioRuntimeSignatureHeader,
+  type SignedStudioRuntimeClaims,
+} from "@cognidesk/studio-contracts/runtime-auth";
 import type { StudioClaims } from "./types.js";
 
 const localDevRuntimeSecret = "cognidesk-studio-local-runtime-secret-change-me";
-const claimsHeader = "x-studio-runtime-claims";
-const signatureHeader = "x-studio-runtime-signature";
-const defaultClaimsTtlMs = 60_000;
 const maxClockSkewMs = 30_000;
-
-interface SignedStudioRuntimeClaims extends StudioClaims {
-  expiresAt: number;
-  nonce?: string;
-}
 
 export function operatorRuntimeSecret(env: NodeJS.ProcessEnv = process.env): string | null {
   const configured = env.STUDIO_OPERATOR_RUNTIME_SECRET?.trim();
@@ -42,8 +41,8 @@ export function claimsFromTrustedStudioHeaders(
     throw new Error("STUDIO_OPERATOR_RUNTIME_SECRET is required for Studio Operator Runtime WebSocket authentication");
   }
 
-  const encodedClaims = headerValue(headers, claimsHeader);
-  const suppliedSignature = headerValue(headers, signatureHeader);
+  const encodedClaims = headerValue(headers, studioRuntimeClaimsHeader);
+  const suppliedSignature = headerValue(headers, studioRuntimeSignatureHeader);
   if (!encodedClaims || !suppliedSignature) {
     throw new Error("Studio Operator Runtime WebSocket authentication failed");
   }
@@ -61,7 +60,7 @@ export function claimsFromTrustedStudioHeaders(
   return {
     userId: claims.userId,
     role: claims.role,
-    ...(claims.permissions ? { permissions: claims.permissions } : {}),
+    ...(claims.permissions ? { permissions: [...claims.permissions] } : {}),
     ...(claims.sessionToken ? { sessionToken: claims.sessionToken } : {}),
   };
 }
@@ -69,26 +68,13 @@ export function claimsFromTrustedStudioHeaders(
 export function signStudioRuntimeClaims(
   claims: StudioClaims,
   env: NodeJS.ProcessEnv = process.env,
-  options: { now?: number; ttlMs?: number; nonce?: string } = {},
+  options: { now?: number; ttlMs?: number } = {},
 ): Record<string, string> {
   const secret = operatorRuntimeSecret(env);
   if (!secret) {
     throw new Error("STUDIO_OPERATOR_RUNTIME_SECRET is required for Studio Operator Runtime WebSocket authentication");
   }
-  const now = options.now ?? Date.now();
-  const payload: SignedStudioRuntimeClaims = {
-    userId: claims.userId,
-    role: claims.role,
-    ...(claims.permissions ? { permissions: claims.permissions } : {}),
-    ...(claims.sessionToken ? { sessionToken: claims.sessionToken } : {}),
-    expiresAt: now + (options.ttlMs ?? defaultClaimsTtlMs),
-    ...(options.nonce ? { nonce: options.nonce } : {}),
-  };
-  const encodedClaims = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-  return {
-    [claimsHeader]: encodedClaims,
-    [signatureHeader]: signStudioRuntimeClaimsPayload(encodedClaims, secret),
-  };
+  return signStudioRuntimeHeaders(claims, secret, options);
 }
 
 function parseSignedClaims(encodedClaims: string): SignedStudioRuntimeClaims {
@@ -106,7 +92,6 @@ function parseSignedClaims(encodedClaims: string): SignedStudioRuntimeClaims {
     ? value.permissions.filter((permission): permission is string => typeof permission === "string")
     : undefined;
   const sessionToken = typeof value.sessionToken === "string" ? value.sessionToken.trim() : undefined;
-  const nonce = typeof value.nonce === "string" ? value.nonce : undefined;
   if (!userId || !role || !Number.isFinite(expiresAt)) {
     throw new Error("Studio Operator Runtime WebSocket authentication failed");
   }
@@ -116,12 +101,7 @@ function parseSignedClaims(encodedClaims: string): SignedStudioRuntimeClaims {
     expiresAt,
     ...(permissions ? { permissions } : {}),
     ...(sessionToken ? { sessionToken } : {}),
-    ...(nonce ? { nonce } : {}),
   };
-}
-
-function signStudioRuntimeClaimsPayload(encodedClaims: string, secret: string) {
-  return createHmac("sha256", secret).update(encodedClaims).digest("base64url");
 }
 
 function headerValue(headers: IncomingHttpHeaders, name: string) {

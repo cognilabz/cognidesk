@@ -20,11 +20,22 @@ describe("integration catalog", () => {
     expect(listIntegrationCatalogEntries({ category: "voice" }).length).toBeGreaterThan(0);
   });
 
+  it("does not expose duplicate capability/provider-object rows", () => {
+    for (const entry of integrationCatalog) {
+      const keys = entry.capabilities.map((capability) => [
+        capability.capability,
+        capability.providerObjects.map((providerObject) => providerObject.kind).sort().join(","),
+      ].join(":"));
+      expect(new Set(keys).size, entry.id).toBe(keys.length);
+    }
+  });
+
   it("uses current hyphenated provider categories in catalog queries", () => {
     const contactCenterEntries = listIntegrationCatalogEntries({ category: "contact-center" });
 
     expect(contactCenterEntries).toHaveLength(12);
-    expect(listIntegrationCatalogEntries({ category: "contact_center" })).toHaveLength(0);
+    expect(listIntegrationCatalogEntries({ category: "contact_center" })).toHaveLength(12);
+    expect(listIntegrationCatalogEntries({ category: "Contact Center" })).toHaveLength(12);
     expect(contactCenterEntries.every((entry) => entry.packageName.startsWith("@cognidesk/integration-contact-center-"))).toBe(true);
   });
 

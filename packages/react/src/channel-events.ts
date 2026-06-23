@@ -44,10 +44,13 @@ export function createChannelEventInput<TPayload = NormalizedChannelPayloadInput
   if (!isRecord(input)) throw new Error("Channel Event input must be an object.");
   const eventRecord = isRecord(input.event) ? input.event : undefined;
   const sourceRecord = eventRecord ?? input;
-  if (Object.prototype.hasOwnProperty.call(sourceRecord, "kind")) {
+  if (
+    Object.prototype.hasOwnProperty.call(input, "kind")
+    || Object.prototype.hasOwnProperty.call(sourceRecord, "kind")
+  ) {
     throw new Error("Channel Event uses nature; kind is not supported.");
   }
-  const nature = stringValue(sourceRecord.nature)
+  const nature = stringValue(input.nature ?? sourceRecord.nature)
     ?? inferNature(sourceRecord, input);
   if (!nature) throw new Error("Channel Event nature is required.");
   const direction = stringValue(sourceRecord.direction ?? input.direction) as ChannelEventDirection | undefined

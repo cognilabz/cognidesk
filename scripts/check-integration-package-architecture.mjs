@@ -302,7 +302,7 @@ async function checkNoRetiredProviderAggregatePackages(packages) {
     }
 
     for (const metadataKey of retiredBridgeMetadataKeys) {
-      if (pkg.packageJson.cognidesk?.[metadataKey] === true) {
+      if (Object.prototype.hasOwnProperty.call(pkg.packageJson.cognidesk ?? {}, metadataKey)) {
         failures.push(
           `${path.relative(repoRoot, pkg.packageJsonPath)}: cognidesk.${metadataKey} is not allowed; use explicit provider registration instead`,
         );
@@ -633,7 +633,7 @@ export function providerCoverageArtifactReferenceFailuresForSource(
 
 function providerCoverageArtifactReferencesForSource(source) {
   const references = [];
-  const pattern = /\b(coverageArtifact|operationCatalogArtifact|functionCatalogArtifact):\s*["']([^"']+)["']/g;
+  const pattern = /(?:\b|["'])(coverageArtifact|operationCatalogArtifact|functionCatalogArtifact)(?:\b|["'])\s*:\s*["']([^"']+)["']/g;
   let match;
   while ((match = pattern.exec(source))) {
     references.push({ key: match[1], artifactPath: match[2] });

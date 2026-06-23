@@ -8,7 +8,7 @@ The demo agent is split by authoring concern so it can be used as a reference sh
 
 - `server/agent/domain`: app-owned schemas and domain types
 - `server/agent/data`: mocked Demo Data
-- `server/agent/tools`: Tool definitions that wrap mocked integrations
+- `server/agent/tools`: Tool definitions that wrap mocked flight-service APIs
 - `server/agent/knowledge`: Knowledge Source wiring
 - `server/agent/journeys`: one module per Journey
 - `server/agent/models`: Agent Model Set construction

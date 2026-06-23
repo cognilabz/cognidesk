@@ -93,7 +93,7 @@ Evidence: [Discourse API docs](https://docs.discourse.org/); [Discourse webhook 
 | Implementation | `support-workflow-adapter` |
 | Documentation | [https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `update-provider-object`, `update-provider-object` |
+| Capabilities | `handoff`, `send`, `update-provider-object` |
 | Provider setup | required `8x8-contact-center-api-base`, `8x8-contact-center-api-access`; optional `8x8-contact-center-routing` |
 
 Coverage: No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.
@@ -202,7 +202,7 @@ Evidence: [Genesys Cloud JavaScript SDK](https://github.com/MyPureCloud/platform
 | Implementation | `support-workflow-adapter` |
 | Documentation | [https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI](https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `schedule`, `send`, `send` |
+| Capabilities | `handoff`, `schedule`, `send` |
 | Provider setup | required `genesys-engage-gms-base-url`; optional `genesys-engage-auth`, `genesys-engage-routing` |
 
 Coverage: No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.
@@ -330,7 +330,7 @@ Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/publ
 | Implementation | `support-workflow-adapter` |
 | Documentation | [https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json](https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `read-provider-object`, `read-provider-object` |
+| Capabilities | `handoff`, `send`, `read-provider-object` |
 | Provider setup | required `zoom-contact-center-account`, `zoom-contact-center-api-access`; optional `zoom-contact-center-routing` |
 
 Coverage: @zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.
@@ -539,7 +539,7 @@ Evidence: [Postmark Node.js library](https://github.com/ActiveCampaign/postmark.
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
-| Documentation | website/guides/provider-integrations-catalog.md#form-cognidesk |
+| Documentation | website/guides/provider-integrations-catalog.md#cognidesk-forms |
 | Directions | `receive-only`, `inbound-only` |
 | Capabilities | `receive`, `read-provider-object`, `form.webhook-signature` |
 | Provider setup | required `form-registry`; optional `form-webhook-secret` |
@@ -564,7 +564,7 @@ Evidence: No provider evidence listed in the manifest.
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
-| Documentation | website/guides/provider-integrations-catalog.md#help-center-cognidesk |
+| Documentation | website/guides/provider-integrations-catalog.md#cognidesk-help-center |
 | Directions | `receive-only`, `inbound-only` |
 | Capabilities | `read-provider-object`, `search-provider-object`, `receive`, `help-center.webhook-signature` |
 | Provider setup | required `help-center-source`; optional `help-center-webhook-secret` |
@@ -1342,7 +1342,7 @@ Evidence: [ElevenLabs JavaScript SDK package](https://www.npmjs.com/package/@ele
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
-| Documentation | website/guides/provider-integrations-catalog.md#voice-sip |
+| Documentation | website/guides/provider-integrations-catalog.md#generic-sip-voice-connection |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `transfer`, `recording`, `transcription`, `sip.webhook-signature` |
 | Provider setup | required `sip-registrar`, `sip-domain`, `sip-auth`, `sip-tls`, `sip-srtp`, `sip-webhook-callback`; optional `sip-proxy` |

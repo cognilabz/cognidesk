@@ -1,5 +1,5 @@
-import { createHmac, randomUUID } from "node:crypto";
 import { createServer, type IncomingMessage } from "node:http";
+import { signStudioRuntimeHeaders } from "@cognidesk/studio-contracts/runtime-auth";
 import next from "next";
 import { WebSocket, WebSocketServer } from "ws";
 import { ensureArtifactBucket } from "@/server/artifacts";
@@ -70,7 +70,7 @@ function handleStudioSocket(client: WebSocket, claims: StudioSocketClaims) {
 
   const queuedClientMessages: string[] = [];
   const upstream = new WebSocket(env.operatorRuntimeWsUrl, {
-    headers: signedStudioRuntimeHeaders(claims, env.operatorRuntimeSecret),
+    headers: signStudioRuntimeHeaders(claims, env.operatorRuntimeSecret),
   });
 
   upstream.on("open", () => {
@@ -152,19 +152,4 @@ function toHeaders(request: IncomingMessage) {
     }
   }
   return headers;
-}
-
-function signedStudioRuntimeHeaders(claims: StudioSocketClaims, secret: string): Record<string, string> {
-  const encodedClaims = Buffer.from(JSON.stringify({
-    userId: claims.userId,
-    role: claims.role,
-    permissions: claims.permissions,
-    sessionToken: claims.sessionToken,
-    expiresAt: Date.now() + 60_000,
-    nonce: randomUUID(),
-  }), "utf8").toString("base64url");
-  return {
-    "x-studio-runtime-claims": encodedClaims,
-    "x-studio-runtime-signature": createHmac("sha256", secret).update(encodedClaims).digest("base64url"),
-  };
 }

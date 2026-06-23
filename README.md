@@ -126,9 +126,6 @@ pnpm check
 Build the documentation with the pinned MkDocs environment:
 
 ```bash
-python3 -m venv /tmp/cognidesk-docs-venv
-. /tmp/cognidesk-docs-venv/bin/activate
-python -m pip install -r requirements-docs.txt
 pnpm build
 pnpm docs:generate
 pnpm docs:build

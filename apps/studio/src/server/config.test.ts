@@ -20,7 +20,9 @@ describe("studio configuration", () => {
 
   it("rejects Postgres database URLs instead of passing them to libsql", () => {
     expect(resolveStudioDatabaseUrl("file:./data/studio.sqlite")).toBe("file:./data/studio.sqlite");
+    expect(resolveStudioDatabaseUrl(" file:./data/studio.sqlite ")).toBe("file:./data/studio.sqlite");
     expect(resolveSqliteFilename(":memory:")).toBe(":memory:");
+    expect(() => resolveStudioDatabaseUrl(" postgres://studio:studio@127.0.0.1:5432/cognidesk_studio")).toThrow("Postgres URLs are not supported");
     expect(() => resolveStudioDatabaseUrl("postgres://studio:studio@127.0.0.1:5432/cognidesk_studio")).toThrow("Postgres URLs are not supported");
   });
 
@@ -90,6 +92,14 @@ describe("studio configuration", () => {
     expect(() => studioArtifactStorage({
       NODE_ENV: "production",
       STUDIO_S3_ENDPOINT: "http://127.0.0.1:9000",
+    })).toThrow("local MinIO endpoint");
+    expect(() => studioArtifactStorage({
+      NODE_ENV: "production",
+      STUDIO_S3_ENDPOINT: "http://localhost:9000/",
+    })).toThrow("local MinIO endpoint");
+    expect(() => studioArtifactStorage({
+      NODE_ENV: "production",
+      STUDIO_S3_ENDPOINT: "http://[::1]:9000",
     })).toThrow("local MinIO endpoint");
     expect(() => studioArtifactStorage({
       NODE_ENV: "production",

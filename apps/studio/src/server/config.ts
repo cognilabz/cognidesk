@@ -59,10 +59,11 @@ export function resolveStudioDatabaseProvider(provider = process.env.STUDIO_DATA
 }
 
 export function resolveStudioDatabaseUrl(databaseUrl = "file:./data/studio.sqlite") {
-  if (isUnsupportedDatabaseUrl(databaseUrl)) {
+  const normalized = databaseUrl.trim();
+  if (isUnsupportedDatabaseUrl(normalized)) {
     throw new Error("STUDIO_DATABASE_URL must be a SQLite filename, :memory:, or file: URL; Postgres URLs are not supported by Studio yet.");
   }
-  return databaseUrl;
+  return normalized;
 }
 
 export function studioOperatorRuntimeSecret(env: NodeJS.ProcessEnv = process.env) {
@@ -108,7 +109,7 @@ export function studioArtifactStorage(env: NodeJS.ProcessEnv = process.env): Stu
   const accessKeyId = stringEnv(env.STUDIO_S3_ACCESS_KEY_ID) ?? (localDefaults ? "minioadmin" : undefined);
   const secretAccessKey = stringEnv(env.STUDIO_S3_SECRET_ACCESS_KEY) ?? (localDefaults ? "minioadmin" : undefined);
   if (!localDefaults) {
-    if (endpoint === "http://127.0.0.1:9000") {
+    if (endpoint && isLocalMinioEndpoint(endpoint)) {
       throw new Error("STUDIO_S3_ENDPOINT must not use the local MinIO endpoint outside local development.");
     }
     if (accessKeyId === "minioadmin" || secretAccessKey === "minioadmin") {
@@ -168,6 +169,26 @@ function readJson(path: string): unknown {
 
 function isUnsupportedDatabaseUrl(value: string) {
   return /^[a-z][a-z0-9+.-]*:/i.test(value) && !value.startsWith("file:");
+}
+
+function isLocalMinioEndpoint(value: string) {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  const port = url.port || (url.protocol === "http:" ? "80" : url.protocol === "https:" ? "443" : "");
+  return port === "9000" && isLoopbackHostname(hostname);
+}
+
+function isLoopbackHostname(hostname: string) {
+  return hostname === "localhost"
+    || hostname === "::1"
+    || hostname === "0:0:0:0:0:0:0:1"
+    || hostname === "0.0.0.0"
+    || /^127(?:\.\d{1,3}){3}$/.test(hostname);
 }
 
 function truthyFlag(value: string | undefined) {

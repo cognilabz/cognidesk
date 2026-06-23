@@ -184,6 +184,30 @@ describe("@cognidesk/connections", () => {
       operations: {},
     })).toThrow("source is required");
   });
+
+  it("reports malformed runtime connection input through validation failures", () => {
+    expect(() => defineOpenApiConnection({
+      id: 123,
+      provider: "front",
+      source: openApiDocument,
+      auth: { kind: "apiKey", credentialId: 42, in: "header", name: null },
+      providerPackageId: 99,
+      reviewedContract: { source: null },
+      operations: {
+        replyToConversation: {
+          providerOperation: 123,
+          providerPackageId: false,
+        },
+      },
+    } as never)).toThrow(/Invalid openapi connection definition: .*id must be a string.*auth\.credentialId must be a string.*replyToConversation\.providerOperation must be a string/s);
+
+    expect(() => defineOpenApiConnection({
+      id: "front",
+      provider: "front",
+      source: openApiDocument,
+      operations: undefined,
+    } as never)).toThrow("operations must be an object");
+  });
 });
 
 function fakeTelemetry() {

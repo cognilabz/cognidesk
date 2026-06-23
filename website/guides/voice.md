@@ -64,8 +64,6 @@ The HTTP handler creates voice socket metadata. The WebSocket adapter owns the b
 ```typescript
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createOpenAIVoiceProvider } from "@cognidesk/integration-voice-openai/runtime";
-import { createDeepgramVoiceProvider } from "@cognidesk/integration-voice-deepgram/runtime";
-import { createAzureSpeechVoiceProvider } from "@cognidesk/integration-voice-azure-speech/runtime";
 import {
   attachNodeVoiceWebSocketAdapter,
   createInMemoryVoiceSessionStore,
@@ -73,20 +71,8 @@ import {
 } from "@cognidesk/voice-websocket";
 
 const voiceSessionStore = createInMemoryVoiceSessionStore();
-const voiceProvider = createOpenAIVoiceProvider({
+const openAiVoiceProvider = createOpenAIVoiceProvider({
   apiKey: process.env.OPENAI_API_KEY,
-});
-
-const azureSpeechProvider = createAzureSpeechVoiceProvider({
-  speechKey: process.env.AZURE_SPEECH_KEY,
-  region: process.env.AZURE_SPEECH_REGION,
-  voiceName: "en-US-AvaMultilingualNeural",
-});
-
-const deepgramSpeechProvider = createDeepgramVoiceProvider({
-  apiKey: process.env.DEEPGRAM_API_KEY,
-  textToSpeechModel: "aura-2-thalia-en",
-  speechToTextModel: "nova-3",
 });
 
 const handler = createCognideskHttpHandler({
@@ -102,11 +88,13 @@ attachNodeVoiceWebSocketAdapter({
   server,
   store: voiceSessionStore,
   runtime,
-  provider: voiceProvider,
+  provider: openAiVoiceProvider,
   ...(agent.voice ? { profile: agent.voice } : {}),
   pathPrefix: "/api/voice/connections",
 });
 ```
+
+Use exactly one voice provider per adapter instance. Azure Speech, Deepgram, Google Speech, AWS Speech, and ElevenLabs packages can replace `openAiVoiceProvider` when that deployment should run Cognidesk agent turns with provider STT/TTS instead of OpenAI Realtime.
 
 ## Browser client
 

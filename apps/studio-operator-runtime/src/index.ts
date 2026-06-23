@@ -16,9 +16,10 @@ wss.on("connection", (socket, request) => {
   try {
     claims = claimsFromTrustedStudioHeaders(request.headers);
   } catch (error) {
+    console.warn(`Rejected Studio Operator Runtime WebSocket: ${error instanceof Error ? error.message : String(error)}`);
     send(socket, {
       type: "error",
-      message: error instanceof Error ? error.message : "Studio Operator Runtime WebSocket authentication failed",
+      message: "Studio Operator Runtime WebSocket authentication failed",
     });
     socket.close(1008, "Unauthorized");
     return;

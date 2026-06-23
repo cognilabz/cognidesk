@@ -208,12 +208,10 @@ Generated provider API coverage is committed to the owning provider package and 
 
 Maintainers review provider specs or fixtures before changing generated slices. Provider metadata and public docs are regenerated from manifests:
 
-```bash
-pnpm providers:catalog:data
-pnpm providers:catalog
-pnpm providers:architecture
-pnpm provider-packages:check
-```
+    pnpm providers:catalog:data
+    pnpm providers:catalog
+    pnpm providers:architecture
+    pnpm provider-packages:check
 
 ## Verification
 

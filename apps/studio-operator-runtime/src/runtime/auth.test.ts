@@ -62,7 +62,6 @@ describe("operator runtime WebSocket authentication", () => {
     }, {
       now: 1_000,
       ttlMs: 5_000,
-      nonce: "nonce-1",
     });
 
     expect(claimsFromTrustedStudioHeaders(headers, {

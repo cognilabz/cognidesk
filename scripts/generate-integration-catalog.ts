@@ -3,6 +3,7 @@ import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { normalizeIntegrationCatalogCategory } from "../packages/integration-catalog/src/categories.js";
 import type {
   IntegrationAdapterCoverage,
   IntegrationCatalogCapability,
@@ -109,7 +110,7 @@ async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]
       }
       const reference: IntegrationProviderReference = {
         id: manifest.id,
-        category: canonicalCategory(manifest.category),
+        category: normalizeIntegrationCatalogCategory(manifest.category),
         provider: manifest.provider,
         importPath: `${manifest.packageName}/manifest`,
         modulePath: `${path.relative(repoRoot, path.join(packageDir, "dist", "manifest.js")).replace(/\\/g, "/")}`,
@@ -156,10 +157,6 @@ function splitProviderPackageName(category: string, provider: string): string {
   return `${providerPackagePrefix}${category}-${provider}`;
 }
 
-function canonicalCategory(category: string): string {
-  return category;
-}
-
 function isProviderManifest(value: unknown): value is ProviderManifest {
   const manifest = recordFrom(value);
   return Boolean(
@@ -183,7 +180,7 @@ function toCatalogEntry(
   const implementation = recordFrom(metadata?.implementation);
   normalizeAllowlistChecksum(reference, source, implementation);
   const coverage = cloneJson(manifest.coverage);
-  const capabilities = (manifest.capabilities ?? []).map(toCatalogCapability);
+  const capabilities = dedupeCatalogCapabilities((manifest.capabilities ?? []).map(toCatalogCapability));
   const credentialRequirements = (manifest.credentialRequirements ?? []).map(toCredentialRequirement);
   const requiredCredentialIds = credentialRequirements.filter((credential) => credential.required).map((credential) => credential.id);
   const optionalCredentialIds = credentialRequirements.filter((credential) => !credential.required).map((credential) => credential.id);
@@ -192,7 +189,7 @@ function toCatalogEntry(
 
   return {
     id: manifest.id,
-    category: canonicalCategory(manifest.category),
+    category: normalizeIntegrationCatalogCategory(manifest.category),
     provider: manifest.provider,
     importPath: reference.importPath,
     modulePath: reference.modulePath,
@@ -205,7 +202,7 @@ function toCatalogEntry(
     display: {
       label: manifest.name,
       summary,
-      tags: [canonicalCategory(manifest.category), manifest.provider, manifest.trustLevel, coverage.scope],
+      tags: [normalizeIntegrationCatalogCategory(manifest.category), manifest.provider, manifest.trustLevel, coverage.scope],
     },
     capabilities,
     coverage,
@@ -286,6 +283,20 @@ function toCatalogCapability(capability: Record<string, unknown>): IntegrationCa
     extension: booleanFrom(capability.extension),
     ...(cloneJsonObject(capability.metadata) ? { metadata: cloneJsonObject(capability.metadata) } : {}),
   };
+}
+
+function dedupeCatalogCapabilities(capabilities: readonly IntegrationCatalogCapability[]) {
+  const seen = new Set<string>();
+  return capabilities.filter((capability) => {
+    const providerObjectKey = capability.providerObjects
+      .map((providerObject) => providerObject.kind)
+      .sort()
+      .join(",");
+    const key = `${capability.capability}:${providerObjectKey}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function toCredentialRequirement(credential: Record<string, unknown>): IntegrationCatalogCredentialRequirement {
@@ -386,7 +397,7 @@ function documentationPath(manifest: ProviderManifest, reference: IntegrationPro
   }
   const evidence = manifest.coverage.evidence.find((entry) => typeof entry.url === "string" && entry.url.length > 0);
   if (evidence?.url) return evidence.url;
-  return `website/guides/provider-integrations-catalog.md#${slug(reference.id)}`;
+  return `website/guides/provider-integrations-catalog.md#${slug(manifest.name)}`;
 }
 
 function renderCatalogData(catalogEntries: readonly IntegrationCatalogEntry[]) {

@@ -130,8 +130,8 @@ describe("providerCoverageArtifactReferenceFailuresForSource", () => {
     const source = [
       "export const metadata = {",
       "  coverageArtifact: \"docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json\",",
-      "  operationCatalogArtifact: \"docs/provider-coverage/zoom-meetings-api-2026-06-18.functions.json\",",
-      "  functionCatalogArtifact: \"tmp/functions.json\",",
+      "  \"operationCatalogArtifact\": \"docs/provider-coverage/zoom-meetings-api-2026-06-18.functions.json\",",
+      "  'functionCatalogArtifact': \"tmp/functions.json\",",
       "};",
     ].join("\n");
 

@@ -1915,21 +1915,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
-      },
-      {
-        "capability": "send",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contact",
-            "label": "contact"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
       }
     ],
     "coverage": {
@@ -3417,21 +3402,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "read-provider-object",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contact",
-            "label": "contact"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
@@ -6273,7 +6243,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestExport": "cognideskFormsProviderManifest",
       "manifestSource": "integrations/form/cognidesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "website/guides/provider-integrations-catalog.md#form-cognidesk"
+      "documentationPath": "website/guides/provider-integrations-catalog.md#cognidesk-forms"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -6457,7 +6427,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestExport": "cognideskHelpCenterProviderManifest",
       "manifestSource": "integrations/help-center/cognidesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "website/guides/provider-integrations-catalog.md#help-center-cognidesk"
+      "documentationPath": "website/guides/provider-integrations-catalog.md#cognidesk-help-center"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -18590,7 +18560,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestExport": "sipVoiceProviderManifest",
       "manifestSource": "integrations/voice/sip/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "website/guides/provider-integrations-catalog.md#voice-sip"
+      "documentationPath": "website/guides/provider-integrations-catalog.md#generic-sip-voice-connection"
     },
     "readiness": {
       "mode": "credential-and-live-check",

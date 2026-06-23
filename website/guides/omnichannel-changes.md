@@ -41,7 +41,7 @@ There are four related voice surfaces:
 | OpenAI Realtime Voice Provider Integration | `@cognidesk/integration-voice-openai` | Connects Cognidesk voice runtime sessions to OpenAI Realtime as an entry channel and LLM-backed realtime session. |
 | Speech Provider-backed voice adapters | `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-azure-speech`, `@cognidesk/integration-voice-aws-speech`, `@cognidesk/integration-voice-google-speech`, `@cognidesk/integration-voice-deepgram` | Use provider STT/TTS while Cognidesk runs the background Agent Model Set and owns the agent turn. |
 | Voice browser transport | `@cognidesk/voice-websocket` | Exposes Cognidesk's browser voice protocol over WebSocket. |
-| Voice Provider Integration | `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-twilio`, `@cognidesk/integration-voice-vonage`, `@cognidesk/integration-voice-sip` | External voice-provider APIs, telephony objects, SIP/provider operations, and outbound-capable provider surfaces where supported. |
+| Voice Provider Integration | `@cognidesk/integration-voice-twilio`, `@cognidesk/integration-voice-vonage`, `@cognidesk/integration-voice-sip` | External telephony provider APIs, telephony objects, SIP/provider operations, and outbound-capable provider surfaces where supported. |
 
 OpenAI Realtime is a Provider Integration even though it also hosts the LLM-backed realtime session. Speech Provider-backed voice adapters are Provider Integrations too, but they are not text/chat Model Providers and they do not replace the Cognidesk Agent Model Set. `@cognidesk/voice-websocket` remains the separately installed browser transport infrastructure.
 
@@ -109,6 +109,10 @@ Policy configuration should cover:
 - retention and deletion behavior
 - handoff payload and transcript sharing
 - provider-specific compliance constraints
+
+## Channel entries
+
+SDK configuration separates channel entries from channel kinds. A channel entry `id` names the configured route or provider binding, while `channel` names the normalized channel kind such as `email`, `sms`, `chat`, or `voice`. Policy scopes can target one entry with `channelIds` or broader channel kinds with `channels`, so Studio should show both fields instead of flattening them into one label.
 
 ## Studio visibility
 

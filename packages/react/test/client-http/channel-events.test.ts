@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCognideskClient } from "../../src/index.js";
+import { createChannelEventInput, createCognideskClient } from "../../src/index.js";
 
 describe("createCognideskClient channel-event methods", () => {
   it("posts ergonomic channel-event client methods for adapter code", async () => {
@@ -171,5 +171,28 @@ describe("createCognideskClient channel-event methods", () => {
         },
         handling: { disposition: "handoff-review" },
       });
+    });
+
+    it("uses top-level nature for wrapped channel events and rejects top-level kind", () => {
+      const input = createChannelEventInput({
+        nature: "message",
+        event: {
+          channel: { channelId: "gmail-thread-123", kind: "email", provider: "gmail" },
+          text: "Please refund my ticket.",
+        },
+      });
+
+      expect(input.event).toMatchObject({
+        nature: "message",
+        direction: "inbound",
+        intent: "customer-message",
+      });
+      expect(() => createChannelEventInput({
+        kind: "message",
+        event: {
+          channel: { channelId: "gmail-thread-123", kind: "email", provider: "gmail" },
+          text: "Please refund my ticket.",
+        },
+      } as never)).toThrow("Channel Event uses nature; kind is not supported.");
     });
 });

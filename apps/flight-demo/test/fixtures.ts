@@ -109,7 +109,7 @@ function createTestMatcher(messages: ModelMessage[]) {
   const latestUser = extractLatestUserMessage(prompt);
   if (prompt.includes("explicitly confirms the pending side-effect action")) {
     const latestUtterance = extractLatestUtterance(prompt) || latestUser;
-    const confirmed = /\b(yes|yes please|confirm|go ahead|create|book it|proceed)\b/.test(latestUtterance);
+    const confirmed = isExplicitBookingConfirmation(latestUtterance);
     const structured = {
       confirmed,
       confidence: confirmed ? 0.95 : 0.2,
@@ -195,10 +195,7 @@ function createTestMatcher(messages: ModelMessage[]) {
           || latestUser.includes("tomorrow")
           || latestUser.includes("cheaper")
           || latestUser.includes("cheapest")
-          || latestUser.includes("book that")
-          || latestUser.includes("create the mocked booking")
-          || latestUser.includes("confirm")
-          || latestUser.includes("yes")
+          || isBookingConfirmationIntent(latestUser)
           || /\bcl\d{3}\b/i.test(latestUser)
         )
       )
@@ -347,6 +344,36 @@ function extractLatestUserMessage(prompt: string) {
 
 function extractLatestUtterance(prompt: string) {
   return prompt.match(/"latestutterance"\s*:\s*"([^"]*)"/)?.[1]?.replace(/\\"/g, "\"") ?? "";
+}
+
+const confirmationPhrases = [
+  "yes please",
+  "go ahead",
+  "book it",
+  "book that",
+  "create the mocked booking",
+  "confirm",
+  "create",
+  "proceed",
+  "yes",
+];
+
+export function isExplicitBookingConfirmation(utterance: string) {
+  return isBookingConfirmationIntent(utterance);
+}
+
+export function isBookingConfirmationIntent(utterance: string) {
+  const normalized = utterance.toLowerCase();
+  if (/\b(no|not|never|cancel|stop|don't|dont|do not)\b/.test(normalized)) return false;
+  return confirmationPhrases.some((phrase) => phrasePattern(phrase).test(normalized));
+}
+
+function phrasePattern(phrase: string) {
+  return new RegExp(`\\b${escapeRegExp(phrase).replace(/\\s+/g, "\\s+")}\\b`);
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function cheapestFlightIdFromContext(contextJson: string) {

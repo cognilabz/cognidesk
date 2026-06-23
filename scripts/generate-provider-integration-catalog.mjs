@@ -89,6 +89,10 @@ function codeList(values) {
   return values.map(inlineCode).join(", ");
 }
 
+function uniqueStrings(values) {
+  return [...new Set(values)];
+}
+
 function credentialSummary(credentials) {
   const required = credentials.filter((credential) => credential.required !== false).map((credential) => credential.id);
   const optional = credentials.filter((credential) => credential.required === false).map((credential) => credential.id);
@@ -178,7 +182,7 @@ function renderCatalog(groupedProviders) {
     lines.push("", `### ${displayCategory(category)}`);
 
     for (const provider of providers) {
-      const capabilities = provider.capabilities.map((capability) => capability.capability);
+      const capabilities = uniqueStrings(provider.capabilities.map((capability) => capability.capability));
       const coverageNotes = provider.coverage?.notes ?? [];
       const coverage = firstNonEmpty(coverageNotes) ?? "Coverage details are declared in the provider manifest.";
       const boundary = firstNonEmpty([...(provider.limitations ?? []), ...coverageNotes.slice(1), ...(provider.privacyNotes ?? [])]);
