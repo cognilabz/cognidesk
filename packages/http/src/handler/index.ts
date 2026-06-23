@@ -156,7 +156,6 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
               conversationId,
               event: {
                 channel,
-                kind: "message",
                 nature: "message",
                 direction: "inbound",
                 intent: "customer-message",

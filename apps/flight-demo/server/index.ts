@@ -31,6 +31,8 @@ import { startCognideskDemoTelemetrySeed, startCognideskOtel } from "@cognidesk/
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
 import {
+  flightDemoCorsEnabled,
+  flightDemoStudioServiceToken,
   getConfiguredDiscordIntegration,
   getConfiguredVoiceProviderSecrets,
   loadFlightDemoConfig,
@@ -61,6 +63,7 @@ const demoTelemetrySeed = otel && process.env.COGNIDESK_OTEL_FAKE_DATA !== "fals
   : null;
 
 const config = await loadFlightDemoConfig();
+const corsEnabled = flightDemoCorsEnabled();
 const sqlitePath = resolveFlightDemoPath(config.storage.sqlitePath);
 await mkdir(dirname(sqlitePath), { recursive: true });
 
@@ -116,7 +119,7 @@ const handler = createCognideskHttpHandler({
         }),
       }
     : {}),
-  cors: process.env.COGNIDESK_CORS === "false" ? false : true,
+  cors: corsEnabled,
   ssePollIntervalMs: 300,
 });
 
@@ -125,8 +128,8 @@ const studioAdapter = createCognideskStudioAdapter({
   agent,
   runtime,
   basePath: "/api/studio",
-  serviceToken: process.env.COGNIDESK_STUDIO_TARGET_TOKEN ?? "dev-studio-token",
-  cors: process.env.COGNIDESK_CORS === "false" ? false : true,
+  serviceToken: flightDemoStudioServiceToken(),
+  cors: corsEnabled,
 });
 
 const port = Number(process.env.PORT ?? 8787);
@@ -242,7 +245,7 @@ function demoJson(value: unknown, status = 200) {
 }
 
 function demoCorsHeaders() {
-  if (process.env.COGNIDESK_CORS === "false") return {};
+  if (!corsEnabled) return {};
   return {
     "access-control-allow-origin": "*",
     "access-control-allow-methods": "GET,POST,OPTIONS",

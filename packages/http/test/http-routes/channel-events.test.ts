@@ -112,7 +112,6 @@ describe("HTTP channel-event routes", () => {
         conversationId: "conversation_1",
         event: expect.objectContaining({
           id: "provider_event_2",
-          kind: "message",
           nature: "message",
           direction: "inbound",
           intent: "customer-message",

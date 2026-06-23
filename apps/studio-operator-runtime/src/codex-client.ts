@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createServer } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
 import { WebSocket } from "ws";
+import { buildChildProcessEnv } from "./runtime/child-env.js";
 
 interface PendingRequest {
   resolve(value: unknown): void;
@@ -40,7 +41,7 @@ export class CodexAppServerClient {
     this.port = await findFreePort();
     this.process = spawn("codex", ["app-server", "--listen", `ws://127.0.0.1:${this.port}`], {
       stdio: ["ignore", "pipe", "pipe"],
-      env: process.env,
+      env: buildChildProcessEnv(),
     });
     this.process.stderr?.on("data", (chunk) => {
       process.stderr.write(chunk);

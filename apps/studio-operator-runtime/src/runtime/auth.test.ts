@@ -119,4 +119,15 @@ describe("operator runtime WebSocket authentication", () => {
       NODE_ENV: "production",
     })).toThrow("STUDIO_OPERATOR_RUNTIME_SECRET is required");
   });
+
+  it("rejects the built-in local runtime secret in production-like modes", () => {
+    expect(() => operatorRuntimeSecret({
+      NODE_ENV: "production",
+      STUDIO_OPERATOR_RUNTIME_SECRET: "cognidesk-studio-local-runtime-secret-change-me",
+    })).toThrow("must not use the local development secret");
+    expect(operatorRuntimeSecret({
+      NODE_ENV: "development",
+      STUDIO_HOSTED: "true",
+    })).toBeNull();
+  });
 });

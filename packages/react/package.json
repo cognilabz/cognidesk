@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsup src/index.tsx --format esm --dts --clean",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

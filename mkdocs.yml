@@ -54,6 +54,12 @@ plugins:
   - search
   - social
 
+validation:
+  nav:
+    omitted_files: ignore
+  links:
+    anchors: ignore
+
 markdown_extensions:
   - abbr
   - admonition

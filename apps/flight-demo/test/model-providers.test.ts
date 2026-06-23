@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import {
+  flightDemoCorsEnabled,
+  flightDemoStudioServiceToken,
   getConfiguredVoiceProviderSecrets,
   parseFlightDemoConfig,
   requireConfiguredModelApiKeys,
@@ -222,6 +224,44 @@ describe("flight demo model provider config", () => {
       language: "text-key",
       embedding: "embedding-key",
     });
+  });
+
+  it("requires an explicit Studio target token outside local development", () => {
+    expect(flightDemoStudioServiceToken({ NODE_ENV: "development" })).toBe("dev-studio-token");
+    expect(flightDemoStudioServiceToken({
+      NODE_ENV: "production",
+      COGNIDESK_STUDIO_TARGET_TOKEN: "target-secret",
+    })).toBe("target-secret");
+    expect(() => flightDemoStudioServiceToken({ NODE_ENV: "production" })).toThrow("COGNIDESK_STUDIO_TARGET_TOKEN is required");
+    expect(() => flightDemoStudioServiceToken({
+      NODE_ENV: "development",
+      COGNIDESK_FLIGHT_DEMO_HOSTED: "true",
+    })).toThrow("COGNIDESK_STUDIO_TARGET_TOKEN is required");
+    expect(() => flightDemoStudioServiceToken({
+      NODE_ENV: "production",
+      COGNIDESK_STUDIO_TARGET_TOKEN: "dev-studio-token",
+    })).toThrow("must not use dev-studio-token");
+  });
+
+  it("defaults CORS to local-only unless explicitly configured", () => {
+    expect(flightDemoCorsEnabled({ NODE_ENV: "development" })).toBe(true);
+    expect(flightDemoCorsEnabled({ NODE_ENV: "production" })).toBe(false);
+    expect(flightDemoCorsEnabled({
+      NODE_ENV: "development",
+      COGNIDESK_FLIGHT_DEMO_HOSTED: "true",
+    })).toBe(false);
+    expect(flightDemoCorsEnabled({
+      NODE_ENV: "production",
+      COGNIDESK_CORS: "true",
+    })).toBe(true);
+    expect(flightDemoCorsEnabled({
+      NODE_ENV: "development",
+      COGNIDESK_CORS: "false",
+    })).toBe(false);
+    expect(() => flightDemoCorsEnabled({
+      NODE_ENV: "development",
+      COGNIDESK_CORS: "sometimes",
+    })).toThrow("COGNIDESK_CORS must be a boolean-like value");
   });
 
   it("reads ElevenLabs voice credentials without live provider calls", () => {

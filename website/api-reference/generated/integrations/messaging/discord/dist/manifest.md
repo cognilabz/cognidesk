@@ -489,7 +489,7 @@ const discordMessagingProviderManifest: {
   packageName: string;
   privacyNotes: string[];
   provider: string;
-  trustLevel: "community" | "official" | "verified" | "experimental";
+  trustLevel: "community" | "verified" | "official" | "experimental";
 } & {
   capabilities: [{
      audiences: ["customer-facing", "mixed"];
@@ -840,7 +840,7 @@ const discordMessagingProviderManifest: {
 | `packageName` | `string` |
 | `privacyNotes` | `string`[] |
 | `provider` | `string` |
-| `trustLevel` | `"community"` \| `"official"` \| `"verified"` \| `"experimental"` |
+| `trustLevel` | `"community"` \| `"verified"` \| `"official"` \| `"experimental"` |
 
 #### Type Declaration
 

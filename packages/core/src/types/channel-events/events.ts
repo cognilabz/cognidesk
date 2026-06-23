@@ -8,7 +8,6 @@ import type {
   ChannelEventHandlingDispositionKind,
   ChannelEventIntakeStatus,
   ChannelEventIntent,
-  ChannelEventKind,
   ChannelEventNature,
   ChannelEventSourceType,
 } from "./constants.js";
@@ -59,7 +58,6 @@ export interface ChannelEventIdentity {
 
 export interface ChannelEventEnvelope<TPayload = NormalizedChannelPayload, TRawPayload = unknown> {
   id?: string;
-  kind: ChannelEventKind;
   nature: ChannelEventNature;
   direction: ChannelEventDirection;
   intent?: ChannelEventIntent;
@@ -78,8 +76,7 @@ export type ChannelSourceEvidence<TRawPayload = unknown> = ChannelEventSourceEvi
 
 export interface ChannelEventEnvelopeInput<TPayload = NormalizedChannelPayloadInput, TRawPayload = unknown> {
   id?: string;
-  kind?: ChannelEventKind;
-  nature?: ChannelEventNature;
+  nature: ChannelEventNature;
   direction?: ChannelEventDirection;
   intent?: ChannelEventIntent;
   actor?: ChannelEventActor;

@@ -105,7 +105,6 @@ describe("HTTP output and compatibility routes", () => {
       expect(handleChannelEvent).toHaveBeenCalledWith(expect.objectContaining({
         conversationId: "conversation_1",
         event: expect.objectContaining({
-          kind: "provider.object.updated",
           nature: "provider.object.updated",
           direction: "internal",
           intent: "provider-update",

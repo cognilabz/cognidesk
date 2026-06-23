@@ -26,8 +26,8 @@ export const cognideskStudioAdapterProviderManifest = defineProviderPackage({
     {
       id: "studio-service-token",
       label: "Studio service token",
-      description: "Optional bearer token used by Studio to authenticate to the target adapter.",
-      required: false,
+      description: "Bearer token used by Studio to authenticate to the target adapter outside explicit local unauthenticated development mode.",
+      required: true,
     },
   ],
   capabilities: [

@@ -11,8 +11,8 @@ export function stripBasePath(pathname: string, basePath: string) {
   return null;
 }
 
-export function isAuthorized(request: Request, serviceToken?: string) {
-  if (!serviceToken) return true;
+export function isAuthorized(request: Request, serviceToken: string | undefined, allowUnauthenticated = false) {
+  if (!serviceToken) return allowUnauthenticated;
   const authorization = request.headers.get("authorization");
   const tokenHeader = request.headers.get("x-cognidesk-studio-token");
   return authorization === `Bearer ${serviceToken}` || tokenHeader === `Bearer ${serviceToken}`;

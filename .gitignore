@@ -1,4 +1,5 @@
 .env
+HANDOFF.md
 apps/flight-demo/config.json
 node_modules/
 dist/
@@ -12,6 +13,7 @@ apps/*/*data/
 apps/*/.next
 .codex-demo-logs
 .playwright-cli/
+output/playwright/
 site/
 .cache/
 website/api-reference/generated/

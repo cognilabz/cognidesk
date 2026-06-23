@@ -7,7 +7,7 @@ import type {
   ChannelEventHandlingDisposition,
   ChannelEventIdentity,
   ChannelEventIntent,
-  ChannelEventKind,
+  ChannelEventNature,
   ChannelSourceEvidence,
 } from "./channel-events.js";
 import type { RuntimeEventTelemetry } from "../telemetry.js";
@@ -43,7 +43,7 @@ export type RuntimeEvent =
   | RuntimeEventBase<"message.aborted", { reason: string; partialText?: string }>
   | RuntimeEventBase<"channel.event.received", {
       eventId?: string;
-      kind: ChannelEventKind;
+      nature: ChannelEventNature;
       direction?: ChannelEventDirection;
       intent?: ChannelEventIntent;
       actor?: ChannelEventActor;

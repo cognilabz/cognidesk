@@ -256,7 +256,7 @@ export function channelOutputResolutionEventInput<TPayload>(args: {
     conversationId: args.conversationId,
     type: "channel.event.received",
     data: {
-      kind: args.channelEvent.kind,
+      nature: args.channelEvent.nature,
       direction: args.channelEvent.direction,
       ...(args.channelEvent.id ? { eventId: args.channelEvent.id } : {}),
       ...(args.channelEvent.intent ? { intent: args.channelEvent.intent } : {}),
@@ -445,7 +445,7 @@ export function channelEventRecordInput(args: {
     type: "channel.event.received",
     data: {
       ...(args.channelEvent.id ? { eventId: args.channelEvent.id } : {}),
-      kind: args.channelEvent.kind,
+      nature: args.channelEvent.nature,
       direction: args.channelEvent.direction,
       ...(args.channelEvent.intent ? { intent: args.channelEvent.intent } : {}),
       ...(args.channelEvent.actor ? { actor: args.channelEvent.actor } : {}),

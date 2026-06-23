@@ -44,28 +44,30 @@ export function createChannelEventInput<TPayload = NormalizedChannelPayloadInput
   if (!isRecord(input)) throw new Error("Channel Event input must be an object.");
   const eventRecord = isRecord(input.event) ? input.event : undefined;
   const sourceRecord = eventRecord ?? input;
-  const kind = stringValue(sourceRecord.kind ?? sourceRecord.nature)
-    ?? inferKind(sourceRecord, input);
-  if (!kind) throw new Error("Channel Event kind or nature is required.");
+  if (Object.prototype.hasOwnProperty.call(sourceRecord, "kind")) {
+    throw new Error("Channel Event uses nature; kind is not supported.");
+  }
+  const nature = stringValue(sourceRecord.nature)
+    ?? inferNature(sourceRecord, input);
+  if (!nature) throw new Error("Channel Event nature is required.");
   const direction = stringValue(sourceRecord.direction ?? input.direction) as ChannelEventDirection | undefined
-    ?? inferDirection(kind);
+    ?? inferDirection(nature);
   const channel = (sourceRecord.channel ?? input.channel) as ConversationChannelInput | undefined;
   if (channel === undefined) throw new Error("Channel Event channel is required.");
   const text = firstText(sourceRecord, input);
   const turn = firstDefined(sourceRecord.turn, input.turn) as TTurn | undefined;
   const payload = buildPayload(sourceRecord, input, text, turn);
-  const source = buildSource(sourceRecord, input, inferSourceType(kind));
+  const source = buildSource(sourceRecord, input, inferSourceType(nature));
   const identity = buildIdentity(sourceRecord, input);
-  const actor = normalizeActor(firstDefined(sourceRecord.actor, input.actor)) ?? inferActor(kind, direction);
+  const actor = normalizeActor(firstDefined(sourceRecord.actor, input.actor)) ?? inferActor(nature, direction);
   const handling = buildHandling(input, text, turn);
   const event = compact({
     ...passthroughEventFields(eventRecord),
     id: stringValue(sourceRecord.id ?? input.id),
     channel,
-    kind,
-    nature: stringValue(sourceRecord.nature ?? input.nature) ?? kind,
+    nature,
     direction,
-    intent: stringValue(sourceRecord.intent ?? input.intent) ?? inferIntent(kind, direction),
+    intent: stringValue(sourceRecord.intent ?? input.intent) ?? inferIntent(nature, direction),
     actor,
     occurredAt: stringValue(sourceRecord.occurredAt ?? input.occurredAt),
     payload,
@@ -102,8 +104,7 @@ export function createMessageChannelEventInput<TPayload = NormalizedChannelPaylo
   const direction = input.direction ?? "inbound";
   return createChannelEventInput({
     ...input,
-    kind: input.kind ?? "message",
-    nature: input.nature ?? input.kind ?? "message",
+    nature: input.nature ?? "message",
     direction,
     intent: input.intent ?? (direction === "outbound" ? "agent-message" : "customer-message"),
     actor: input.actor ?? (direction === "outbound" ? "agent" : "customer"),
@@ -115,8 +116,7 @@ export function createProviderObjectChannelEventInput<TPayload = NormalizedChann
 ): HandleChannelEventInput<TPayload, TTurn> {
   return createChannelEventInput({
     ...input,
-    kind: input.kind ?? "provider.object.updated",
-    nature: input.nature ?? input.kind ?? "provider.object.updated",
+    nature: input.nature ?? "provider.object.updated",
     direction: input.direction ?? "internal",
     intent: input.intent ?? "provider-update",
     actor: input.actor ?? "provider",
@@ -132,8 +132,7 @@ export function createVoiceTurnChannelEventInput<TPayload = NormalizedChannelPay
     ...input,
     channel: input.channel ?? "voice",
     ...(text !== undefined ? { text } : {}),
-    kind: input.kind ?? "voice.turn.finalized",
-    nature: input.nature ?? input.kind ?? "voice.turn.finalized",
+    nature: input.nature ?? "voice.turn.finalized",
     direction: input.direction ?? "inbound",
     intent: input.intent ?? "customer-voice-turn",
     actor: input.actor ?? "customer",
@@ -146,8 +145,7 @@ export function createOutboundContactChannelEventInput<TPayload = NormalizedChan
 ): HandleChannelEventInput<TPayload, TTurn> {
   return createChannelEventInput({
     ...input,
-    kind: input.kind ?? "outbound.contact.requested",
-    nature: input.nature ?? input.kind ?? "outbound.contact.requested",
+    nature: input.nature ?? "outbound.contact.requested",
     direction: input.direction ?? "outbound",
     intent: input.intent ?? "outbound-contact",
     actor: input.actor ?? "application",
@@ -159,8 +157,7 @@ export function createScheduledChannelEventInput<TPayload = NormalizedChannelPay
 ): HandleChannelEventInput<TPayload, TTurn> {
   return createChannelEventInput({
     ...input,
-    kind: input.kind ?? "schedule.due",
-    nature: input.nature ?? input.kind ?? "schedule.due",
+    nature: input.nature ?? "schedule.due",
     direction: input.direction ?? "internal",
     intent: input.intent ?? "scheduled-support-action",
     actor: input.actor ?? "scheduler",
@@ -173,8 +170,7 @@ export function createChannelOutputResolutionEventInput<TPayload = NormalizedCha
 ): HandleChannelEventInput<TPayload, TTurn> {
   return createChannelEventInput({
     ...input,
-    kind: input.kind ?? "output.resolution",
-    nature: input.nature ?? input.kind ?? "output.resolution",
+    nature: input.nature ?? "output.resolution",
     direction: input.direction ?? "outbound",
     intent: input.intent ?? "output-resolution",
     actor: input.actor ?? "application",
@@ -199,8 +195,7 @@ export function createChannelHandoffEventInput<TPayload = NormalizedChannelPaylo
       ...(input.reasonCode ? { reasonCode: input.reasonCode } : {}),
       ...(input.reasonLabel ? { reasonLabel: input.reasonLabel } : {}),
     } as TPayload,
-    kind: input.kind ?? "channel.handoff.requested",
-    nature: input.nature ?? input.kind ?? "channel.handoff.requested",
+    nature: input.nature ?? "channel.handoff.requested",
     direction: input.direction ?? "internal",
     intent: input.intent ?? "channel-handoff",
     actor: input.actor ?? "application",
@@ -216,8 +211,7 @@ export function createChannelHandoffReviewEventInput<TPayload = NormalizedChanne
 ): HandleChannelEventInput<TPayload, TTurn> {
   return createChannelEventInput({
     ...input,
-    kind: input.kind ?? "custom",
-    nature: input.nature ?? input.kind ?? "custom",
+    nature: input.nature ?? "custom",
     direction: input.direction ?? "internal",
     intent: input.intent ?? "handoff-review",
     actor: input.actor ?? "operator",
@@ -338,6 +332,7 @@ function passthroughEventFields(eventRecord: Record<string, unknown> | undefined
     "identityStreamId",
     "sequence",
     "identityMetadata",
+    "kind",
   ]) {
     delete output[key];
   }
@@ -356,7 +351,7 @@ function firstText<TPayload, TRawPayload, TTurn>(
   return undefined;
 }
 
-function inferKind<TPayload, TRawPayload, TTurn>(
+function inferNature<TPayload, TRawPayload, TTurn>(
   sourceRecord: Record<string, unknown>,
   input: ChannelEventSubmitInput<TPayload, TRawPayload, TTurn>,
 ) {
@@ -370,46 +365,46 @@ function inferKind<TPayload, TRawPayload, TTurn>(
   return undefined;
 }
 
-function inferDirection(kind: string): ChannelEventDirection {
-  if (kind === "provider.object.updated" || kind === "schedule.due" || kind === "custom") return "internal";
-  if (kind === "outbound.contact.requested" || kind === "output.resolution") return "outbound";
+function inferDirection(nature: string): ChannelEventDirection {
+  if (nature === "provider.object.updated" || nature === "schedule.due" || nature === "custom") return "internal";
+  if (nature === "outbound.contact.requested" || nature === "output.resolution") return "outbound";
   return "inbound";
 }
 
-function inferIntent(kind: string, direction: ChannelEventDirection | undefined): ChannelEventIntent | undefined {
-  if (kind === "message") return direction === "outbound" ? "agent-message" : "customer-message";
-  if (kind === "voice.turn.finalized") return "customer-voice-turn";
-  if (kind === "provider.object.updated") return "provider-update";
-  if (kind === "operator.resume") return "operator-resume";
-  if (kind === "outbound.contact.requested") return "outbound-contact";
-  if (kind === "channel.handoff.requested") return "channel-handoff";
-  if (kind === "schedule.due") return "scheduled-support-action";
-  if (kind === "output.resolution") return "output-resolution";
-  if (kind === "delivery.updated") return "delivery-update";
+function inferIntent(nature: string, direction: ChannelEventDirection | undefined): ChannelEventIntent | undefined {
+  if (nature === "message") return direction === "outbound" ? "agent-message" : "customer-message";
+  if (nature === "voice.turn.finalized") return "customer-voice-turn";
+  if (nature === "provider.object.updated") return "provider-update";
+  if (nature === "operator.resume") return "operator-resume";
+  if (nature === "outbound.contact.requested") return "outbound-contact";
+  if (nature === "channel.handoff.requested") return "channel-handoff";
+  if (nature === "schedule.due") return "scheduled-support-action";
+  if (nature === "output.resolution") return "output-resolution";
+  if (nature === "delivery.updated") return "delivery-update";
   return undefined;
 }
 
-function inferActor(kind: string, direction: ChannelEventDirection | undefined): ChannelEventActor | undefined {
-  if (kind === "message") return { type: direction === "outbound" ? "agent" : "customer" };
-  if (kind === "voice.turn.finalized") return { type: "customer" };
-  if (kind === "provider.object.updated" || kind === "delivery.updated") return { type: "provider" };
-  if (kind === "schedule.due") return { type: "scheduler" };
-  if (kind === "channel.handoff.requested") return { type: "application" };
-  if (kind === "outbound.contact.requested" || kind === "output.resolution") return { type: "application" };
-  if (kind === "operator.resume") return { type: "operator" };
+function inferActor(nature: string, direction: ChannelEventDirection | undefined): ChannelEventActor | undefined {
+  if (nature === "message") return { type: direction === "outbound" ? "agent" : "customer" };
+  if (nature === "voice.turn.finalized") return { type: "customer" };
+  if (nature === "provider.object.updated" || nature === "delivery.updated") return { type: "provider" };
+  if (nature === "schedule.due") return { type: "scheduler" };
+  if (nature === "channel.handoff.requested") return { type: "application" };
+  if (nature === "outbound.contact.requested" || nature === "output.resolution") return { type: "application" };
+  if (nature === "operator.resume") return { type: "operator" };
   return undefined;
 }
 
 function inferSourceType<TRawPayload>(
-  kind: string,
+  nature: string,
 ): ChannelEventSourceEvidence<TRawPayload>["sourceType"] | undefined {
-  if (kind === "schedule.due") return "schedule-adapter";
+  if (nature === "schedule.due") return "schedule-adapter";
   if (
-    kind === "message"
-    || kind === "voice.session.started"
-    || kind === "voice.turn.finalized"
-    || kind === "provider.object.updated"
-    || kind === "delivery.updated"
+    nature === "message"
+    || nature === "voice.session.started"
+    || nature === "voice.turn.finalized"
+    || nature === "provider.object.updated"
+    || nature === "delivery.updated"
   ) return "provider-adapter";
   return undefined;
 }

@@ -28,10 +28,15 @@ import type {
 export function createCognideskStudioAdapter(options: CreateCognideskStudioAdapterOptions): CognideskStudioAdapter {
   const basePath = normalizeBasePath(options.basePath ?? "/api/studio");
   const cors = options.cors ?? true;
+  const serviceToken = options.serviceToken?.trim();
+  const allowUnauthenticated = options.allowUnauthenticated === true;
+  if (!serviceToken && !allowUnauthenticated) {
+    throw new Error("Studio adapter requires serviceToken unless allowUnauthenticated is true for local development.");
+  }
 
   async function handle(request: Request): Promise<Response> {
     if (request.method === "OPTIONS" && cors) return withCors(new Response(null, { status: 204 }), cors);
-    if (!isAuthorized(request, options.serviceToken)) {
+    if (!isAuthorized(request, serviceToken, allowUnauthenticated)) {
       return withCors(jsonResponse({ error: "Unauthorized" }, { status: 401 }), cors);
     }
 

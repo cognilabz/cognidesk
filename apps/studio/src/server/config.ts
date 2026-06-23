@@ -27,31 +27,25 @@ export interface StudioEnv {
 }
 
 const localDevOperatorRuntimeSecret = "cognidesk-studio-local-runtime-secret-change-me";
+const localDevBetterAuthSecret = "cognidesk-studio-local-development-secret-change-me";
+const localDevTargetServiceToken = "dev-studio-token";
+const buildTimeBetterAuthSecret = "cognidesk-studio-build-time-placeholder-secret";
 
 export function studioEnv(): StudioEnv {
   const manifestOverlayPath = process.env.STUDIO_TARGET_OVERLAY;
-  const targetServiceToken = process.env.COGNIDESK_STUDIO_TARGET_TOKEN ?? "dev-studio-token";
-  const endpoint = process.env.STUDIO_S3_ENDPOINT ?? "http://127.0.0.1:9000";
-  const accessKeyId = process.env.STUDIO_S3_ACCESS_KEY_ID ?? "minioadmin";
-  const secretAccessKey = process.env.STUDIO_S3_SECRET_ACCESS_KEY ?? "minioadmin";
+  const targetServiceToken = studioTargetServiceToken();
   const operatorRuntimeSecret = studioOperatorRuntimeSecret();
   return {
     appUrl: process.env.STUDIO_APP_URL ?? `http://127.0.0.1:${process.env.PORT ?? "3000"}`,
     databaseProvider: resolveStudioDatabaseProvider(),
     databaseUrl: resolveStudioDatabaseUrl(process.env.STUDIO_DATABASE_URL),
-    betterAuthSecret: process.env.BETTER_AUTH_SECRET ?? "cognidesk-studio-local-development-secret-change-me",
+    betterAuthSecret: studioBetterAuthSecret(),
     manifestPath: process.env.STUDIO_TARGET_MANIFEST ?? resolve(/*turbopackIgnore: true*/ process.cwd(), "../../cognidesk.studio.json"),
     ...(manifestOverlayPath ? { manifestOverlayPath } : {}),
     ...(targetServiceToken ? { targetServiceToken } : {}),
     operatorRuntimeWsUrl: process.env.STUDIO_OPERATOR_RUNTIME_WS_URL ?? "ws://127.0.0.1:4099/ws",
     ...(operatorRuntimeSecret ? { operatorRuntimeSecret } : {}),
-    artifact: {
-      ...(endpoint ? { endpoint } : {}),
-      region: process.env.STUDIO_S3_REGION ?? "us-east-1",
-      ...(accessKeyId ? { accessKeyId } : {}),
-      ...(secretAccessKey ? { secretAccessKey } : {}),
-      forcePathStyle: process.env.STUDIO_S3_FORCE_PATH_STYLE !== "false",
-    },
+    artifact: studioArtifactStorage(),
   };
 }
 
@@ -73,8 +67,75 @@ export function resolveStudioDatabaseUrl(databaseUrl = "file:./data/studio.sqlit
 
 export function studioOperatorRuntimeSecret(env: NodeJS.ProcessEnv = process.env) {
   const configured = env.STUDIO_OPERATOR_RUNTIME_SECRET?.trim();
-  if (configured) return configured;
-  return env.NODE_ENV === "production" ? undefined : localDevOperatorRuntimeSecret;
+  if (configured) {
+    if (!allowsLocalStudioDefaults(env) && configured === localDevOperatorRuntimeSecret) {
+      throw new Error("STUDIO_OPERATOR_RUNTIME_SECRET must not use the local development secret outside local development.");
+    }
+    return configured;
+  }
+  return allowsLocalStudioDefaults(env) ? localDevOperatorRuntimeSecret : undefined;
+}
+
+export function studioBetterAuthSecret(env: NodeJS.ProcessEnv = process.env) {
+  const configured = env.BETTER_AUTH_SECRET?.trim();
+  if (configured) {
+    if (!allowsLocalStudioDefaults(env) && configured === localDevBetterAuthSecret) {
+      throw new Error("BETTER_AUTH_SECRET must not use the local development secret outside local development.");
+    }
+    return configured;
+  }
+  if (!allowsLocalStudioDefaults(env)) {
+    if (isStudioBuildPhase(env)) return buildTimeBetterAuthSecret;
+    throw new Error("BETTER_AUTH_SECRET is required outside local development.");
+  }
+  return localDevBetterAuthSecret;
+}
+
+export function studioTargetServiceToken(env: NodeJS.ProcessEnv = process.env) {
+  const configured = env.COGNIDESK_STUDIO_TARGET_TOKEN?.trim();
+  if (configured) {
+    if (!allowsLocalStudioDefaults(env) && configured === localDevTargetServiceToken) {
+      throw new Error("COGNIDESK_STUDIO_TARGET_TOKEN must not use dev-studio-token outside local development.");
+    }
+    return configured;
+  }
+  return allowsLocalStudioDefaults(env) ? localDevTargetServiceToken : undefined;
+}
+
+export function studioArtifactStorage(env: NodeJS.ProcessEnv = process.env): StudioEnv["artifact"] {
+  const localDefaults = allowsLocalStudioDefaults(env);
+  const endpoint = stringEnv(env.STUDIO_S3_ENDPOINT) ?? (localDefaults ? "http://127.0.0.1:9000" : undefined);
+  const accessKeyId = stringEnv(env.STUDIO_S3_ACCESS_KEY_ID) ?? (localDefaults ? "minioadmin" : undefined);
+  const secretAccessKey = stringEnv(env.STUDIO_S3_SECRET_ACCESS_KEY) ?? (localDefaults ? "minioadmin" : undefined);
+  if (!localDefaults) {
+    if (endpoint === "http://127.0.0.1:9000") {
+      throw new Error("STUDIO_S3_ENDPOINT must not use the local MinIO endpoint outside local development.");
+    }
+    if (accessKeyId === "minioadmin" || secretAccessKey === "minioadmin") {
+      throw new Error("STUDIO_S3_ACCESS_KEY_ID and STUDIO_S3_SECRET_ACCESS_KEY must not use local MinIO credentials outside local development.");
+    }
+  }
+  if ((accessKeyId && !secretAccessKey) || (!accessKeyId && secretAccessKey)) {
+    throw new Error("STUDIO_S3_ACCESS_KEY_ID and STUDIO_S3_SECRET_ACCESS_KEY must be configured together.");
+  }
+  const forcePathStyle = stringEnv(env.STUDIO_S3_FORCE_PATH_STYLE);
+  return {
+    ...(endpoint ? { endpoint } : {}),
+    region: stringEnv(env.STUDIO_S3_REGION) ?? "us-east-1",
+    ...(accessKeyId ? { accessKeyId } : {}),
+    ...(secretAccessKey ? { secretAccessKey } : {}),
+    forcePathStyle: forcePathStyle ? forcePathStyle !== "false" : localDefaults,
+  };
+}
+
+export function allowsLocalStudioDefaults(env: NodeJS.ProcessEnv = process.env) {
+  return env.NODE_ENV !== "production" && !truthyFlag(env.STUDIO_HOSTED) && !truthyFlag(env.COGNIDESK_STUDIO_HOSTED);
+}
+
+export function isStudioBuildPhase(env: NodeJS.ProcessEnv = process.env) {
+  return env.NEXT_PHASE === "phase-production-build"
+    || env.npm_lifecycle_event === "build"
+    || truthyFlag(env.COGNIDESK_STUDIO_BUILD);
 }
 
 export function resolveSqliteFilename(databaseUrl = studioEnv().databaseUrl) {
@@ -107,4 +168,13 @@ function readJson(path: string): unknown {
 
 function isUnsupportedDatabaseUrl(value: string) {
   return /^[a-z][a-z0-9+.-]*:/i.test(value) && !value.startsWith("file:");
+}
+
+function truthyFlag(value: string | undefined) {
+  return ["1", "true", "yes", "on"].includes(value?.trim().toLowerCase() ?? "");
+}
+
+function stringEnv(value: string | undefined) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
 }

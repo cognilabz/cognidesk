@@ -25,11 +25,10 @@ export function defineChannelEvent<TPayload = NormalizedChannelPayload, TRawPayl
   input: ChannelEventEnvelopeInput<TPayload, TRawPayload>,
 ): ChannelEventEnvelope<TPayload, TRawPayload> {
   const parsed = ChannelEventEnvelopeInputSchema.parse(input);
-  const nature = parsed.nature ?? parsed.kind;
-  if (!nature) throw new Error("Channel Event requires either nature or kind.");
+  const nature = parsed.nature;
+  if (!nature) throw new Error("Channel Event requires nature.");
   return {
     ...parsed,
-    kind: parsed.kind ?? nature,
     nature,
     channel: defineChannelContext(parsed.channel),
   } as ChannelEventEnvelope<TPayload, TRawPayload>;

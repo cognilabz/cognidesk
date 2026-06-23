@@ -67,7 +67,7 @@ function channelEventToUserMessageInput(input: HandleChannelEventInput) {
 
 function isInboundMessageEvent(event: ChannelEventEnvelopeInput<unknown>) {
   const inbound = event.direction === undefined || event.direction === "inbound";
-  return inbound && (event.nature === "message" || event.kind === "message" || event.intent === "customer-message");
+  return inbound && (event.nature === "message" || event.intent === "customer-message");
 }
 
 function textFromChannelEventPayload(payload: unknown) {

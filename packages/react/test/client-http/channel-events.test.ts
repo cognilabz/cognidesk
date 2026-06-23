@@ -115,7 +115,7 @@ describe("createCognideskClient channel-event methods", () => {
         "requestChannelHandoffReview",
       ]);
       expect(requests[0]?.signal).toBe(controller.signal);
-      expect(requests.map((request) => request.body.event.kind)).toEqual([
+      expect(requests.map((request) => request.body.event.nature)).toEqual([
         "message",
         "provider.object.updated",
         "voice.turn.finalized",

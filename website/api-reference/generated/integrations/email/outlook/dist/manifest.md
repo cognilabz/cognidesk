@@ -379,7 +379,7 @@ const outlookEmailProviderManifest: {
   limitations: string[];
   maintainers: {
      name: string;
-     type: "community" | "official" | "unknown" | "partner";
+     type: "unknown" | "community" | "official" | "partner";
      url?: string;
   }[];
   metadata?: Record<string, unknown>;
@@ -677,7 +677,7 @@ const outlookEmailProviderManifest: {
 | `directions` | ( \| `"receive-only"` \| `"send-only"` \| `"inbound-only"` \| `"outbound-only"` \| `"bidirectional"`)[] |
 | `id` | `string` |
 | `limitations` | `string`[] |
-| `maintainers` | \{ `name`: `string`; `type`: `"community"` \| `"official"` \| `"unknown"` \| `"partner"`; `url?`: `string`; \}[] |
+| `maintainers` | \{ `name`: `string`; `type`: `"unknown"` \| `"community"` \| `"official"` \| `"partner"`; `url?`: `string`; \}[] |
 | `metadata?` | `Record`\<`string`, `unknown`\> |
 | `name` | `string` |
 | `operations` | \{ `alias`: `string`; `audience?`: `"customer-facing"` \| `"internal-support"` \| `"mixed"`; `audiences?`: (`"customer-facing"` \| `"internal-support"` \| `"mixed"`)[]; `capability`: `string`; `changesWorkflow?`: `boolean`; `description?`: `string`; `exposesSensitiveData?`: `boolean`; `extension`: `boolean`; `externallyVisible?`: `boolean`; `inputSchema?`: `unknown`; `inputSchemaName?`: `string`; `inputSchemaRef?`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `outputSchema?`: `unknown`; `outputSchemaName?`: `string`; `outputSchemaRef?`: `string`; `providerObject?`: `string`; `providerObjects?`: \{ `description?`: `string`; `kind`: `string`; `label?`: `string`; `metadata?`: `Record`\<`string`, `unknown`\>; `schemaName?`: `string`; \}[]; `providerOperation?`: `string`; `requiredPolicyIds?`: `string`[]; `requiresApproval?`: `boolean`; `requiresCredential?`: `boolean`; `sideEffect?`: `boolean`; \}[] |

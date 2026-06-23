@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean && cp src/styles.css dist/styles.css",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "peerDependencies": {

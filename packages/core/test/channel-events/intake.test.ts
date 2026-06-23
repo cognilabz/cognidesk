@@ -63,7 +63,7 @@ describe("channel event intake runtime", () => {
         "message.completed",
       ]));
       expect(events.find((event) => event.type === "channel.event.received")?.data).toMatchObject({
-        kind: "message",
+        nature: "message",
         bindingOutcome: "resume-existing",
         handlingDisposition: "model-turn",
         source: {
@@ -253,7 +253,7 @@ describe("channel event intake runtime", () => {
           provider: "zendesk",
           externalThreadId: "ticket_123",
         },
-        kind: "provider.object.updated",
+        nature: "provider.object.updated",
         bindingOutcome: "resume-existing",
         handlingDisposition: "record-only",
         payload: {
@@ -375,14 +375,30 @@ describe("channel event intake runtime", () => {
       expect(result.events).toEqual([]);
     });
 
-    it("normalizes the legacy kind alias to Channel Event nature", () => {
-      const event = defineChannelEvent({
+    it("fails closed for unsupported Channel Event kind input", () => {
+      expect(() => defineChannelEvent({
         kind: "message",
+        channel: "chat",
+        payload: { text: "hello" },
+      } as unknown as Parameters<typeof defineChannelEvent>[0])).toThrow(
+        "Channel Event uses nature; kind is not supported.",
+      );
+    });
+
+    it("requires Channel Event nature", () => {
+      expect(() => defineChannelEvent({
+        channel: "chat",
+        payload: { text: "hello" },
+      } as unknown as Parameters<typeof defineChannelEvent>[0])).toThrow("Channel Event requires nature.");
+    });
+
+    it("normalizes Channel Events with nature", () => {
+      const event = defineChannelEvent({
+        nature: "message",
         channel: "chat",
         payload: { text: "hello" },
       });
 
-      expect(event.kind).toBe("message");
       expect(event.nature).toBe("message");
       expect(event.direction).toBe("inbound");
       expect(event.channel.kind).toBe("chat");

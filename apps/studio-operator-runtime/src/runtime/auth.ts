@@ -15,8 +15,21 @@ interface SignedStudioRuntimeClaims extends StudioClaims {
 
 export function operatorRuntimeSecret(env: NodeJS.ProcessEnv = process.env): string | null {
   const configured = env.STUDIO_OPERATOR_RUNTIME_SECRET?.trim();
-  if (configured) return configured;
-  return env.NODE_ENV === "production" ? null : localDevRuntimeSecret;
+  if (configured) {
+    if (!allowsLocalRuntimeDefaults(env) && configured === localDevRuntimeSecret) {
+      throw new Error("STUDIO_OPERATOR_RUNTIME_SECRET must not use the local development secret outside local development");
+    }
+    return configured;
+  }
+  return allowsLocalRuntimeDefaults(env) ? localDevRuntimeSecret : null;
+}
+
+function allowsLocalRuntimeDefaults(env: NodeJS.ProcessEnv) {
+  return env.NODE_ENV !== "production" && !truthyFlag(env.STUDIO_HOSTED) && !truthyFlag(env.COGNIDESK_STUDIO_HOSTED);
+}
+
+function truthyFlag(value: string | undefined) {
+  return ["1", "true", "yes", "on"].includes(value?.trim().toLowerCase() ?? "");
 }
 
 export function claimsFromTrustedStudioHeaders(

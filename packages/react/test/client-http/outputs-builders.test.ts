@@ -83,7 +83,7 @@ describe("createCognideskClient output resolution and builders", () => {
         provider: "zendesk",
       })).toMatchObject({
         event: {
-          kind: "provider.object.updated",
+          nature: "provider.object.updated",
           intent: "provider-update",
           actor: { type: "provider" },
         },
@@ -93,7 +93,7 @@ describe("createCognideskClient output resolution and builders", () => {
         channel: "chat",
       })).toMatchObject({
         event: {
-          kind: "custom",
+          nature: "custom",
           intent: "handoff-review",
         },
         handling: { disposition: "handoff-review" },

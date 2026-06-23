@@ -50,7 +50,7 @@ describe("manifestOnlyRuntimeImportViolationsForSource", () => {
       'import { defineProviderPackage } from "@cognidesk/integration-kit";',
       'import { createGmailRuntime } from "./runtime.js";',
       'import { createGmailClient } from "./client/index.js";',
-      'import { createLegacyRuntime } from "../runtime.js";',
+      'import { createProviderRuntime } from "../runtime.js";',
       'import { gmailRuntime } from "@cognidesk/integration-email-gmail/runtime";',
       'export { gmailClient } from "@cognidesk/integration-email-gmail/client/testing";',
     ].join("\n");
