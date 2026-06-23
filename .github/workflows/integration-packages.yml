@@ -68,7 +68,7 @@ jobs:
         run: pnpm providers:catalog:data
 
       - name: Build packages
-        run: pnpm build
+        run: pnpm build --concurrency=1
 
       - name: Check integration architecture
         run: pnpm providers:architecture
