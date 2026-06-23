@@ -381,7 +381,6 @@ const integrationProviderCategories: (
   | "form"
   | "helpCenter"
   | "marketplace"
-  | "sms"
   | "video"
   | "voice"
   | "workplace")[];
@@ -435,13 +434,6 @@ const integrationProviderReferences: readonly [{
   modulePath: "integrations/marketplace/ebay/src/manifest.js";
   provider: "ebay";
 }, {
-  category: "sms";
-  id: "sms.twilio";
-  importPath: "@cognidesk/integrations/sms/twilio";
-  manifestExport: "twilioSmsProviderManifest";
-  modulePath: "./sms/twilio/index.js";
-  provider: "twilio";
-}, {
   category: "video";
   id: "video.whereby";
   importPath: "@cognidesk/integrations/video/whereby";
@@ -457,13 +449,6 @@ const integrationProviderReferences: readonly [{
   provider: "zoom";
 }, {
   category: "voice";
-  id: "voice.elevenlabs";
-  importPath: "@cognidesk/integrations/voice/elevenlabs";
-  manifestExport: "elevenLabsVoiceProviderManifest";
-  modulePath: "./voice/elevenlabs/index.js";
-  provider: "elevenlabs";
-}, {
-  category: "voice";
   id: "voice.azure-speech";
   importPath: "@cognidesk/integrations/voice/azure-speech";
   manifestExport: "azureSpeechProviderManifest";
@@ -476,13 +461,6 @@ const integrationProviderReferences: readonly [{
   manifestExport: "awsSpeechProviderManifest";
   modulePath: "./voice/aws-speech/index.js";
   provider: "aws-speech";
-}, {
-  category: "voice";
-  id: "voice.deepgram";
-  importPath: "@cognidesk/integrations/voice/deepgram";
-  manifestExport: "deepgramSpeechProviderManifest";
-  modulePath: "./voice/deepgram/index.js";
-  provider: "deepgram";
 }, {
   category: "voice";
   id: "voice.google-speech";
@@ -504,20 +482,6 @@ const integrationProviderReferences: readonly [{
   manifestExport: "sipVoiceProviderManifest";
   modulePath: "./voice/sip/index.js";
   provider: "sip";
-}, {
-  category: "voice";
-  id: "voice.twilio";
-  importPath: "@cognidesk/integrations/voice/twilio";
-  manifestExport: "twilioVoiceProviderManifest";
-  modulePath: "./voice/twilio/index.js";
-  provider: "twilio";
-}, {
-  category: "voice";
-  id: "voice.vonage";
-  importPath: "@cognidesk/integrations/voice/vonage";
-  manifestExport: "vonageVoiceProviderManifest";
-  modulePath: "./voice/vonage/index.js";
-  provider: "vonage";
 }, {
   category: "workplace";
   id: "workplace.teams";

@@ -396,7 +396,7 @@ describe("integration kit contracts", () => {
         }
       }
     }
-    expect([...externalImports].sort()).toEqual(["@cognidesk/core"]);
+    expect([...externalImports].sort()).toEqual(["@cognidesk/core", "@cognidesk/voice-websocket"]);
   });
 });
 

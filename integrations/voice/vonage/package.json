@@ -1,5 +1,5 @@
 {
-  "name": "@cognidesk/integration-kit",
+  "name": "@cognidesk/integration-voice-vonage",
   "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",
@@ -10,33 +10,33 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./category-profiles": {
-      "types": "./dist/category-profiles.d.ts",
-      "import": "./dist/category-profiles.js"
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
     },
-    "./speech": {
-      "types": "./dist/speech.d.ts",
-      "import": "./dist/speech.js"
-    },
-    "./testing": {
-      "types": "./dist/testing/index.d.ts",
-      "import": "./dist/testing/index.js"
+    "./runtime": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/category-profiles.ts src/speech.ts src/testing/index.ts --format esm --dts --clean",
+    "build": "tsup src/index.ts src/manifest.ts --format esm --dts --clean",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
-    "@cognidesk/voice-websocket": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "@vonage/server-sdk": "^3.27.0"
   },
   "devDependencies": {
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
+  },
+  "cognidesk": {
+    "kind": "provider-package",
+    "providerPackage": true
   },
   "publishConfig": {
     "access": "public",
@@ -49,6 +49,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/cognilabz/cognidesk",
-    "directory": "packages/integration-kit"
+    "directory": "integrations/voice/vonage"
   }
 }

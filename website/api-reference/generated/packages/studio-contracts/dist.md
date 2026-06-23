@@ -2454,7 +2454,7 @@ function roleHasPermission(role, permission): boolean;
 
 | Parameter | Type |
 | ------ | ------ |
-| `role` | `"operator"` \| `"admin"` \| `"viewer"` \| `"dashboard_editor"` |
+| `role` | `"operator"` \| `"viewer"` \| `"dashboard_editor"` \| `"admin"` |
 | `permission` | \| `"studio:view"` \| `"dashboards:edit"` \| `"dashboards:publish"` \| `"operator:use"` \| `"operator:publish_code"` \| `"admin:manage"` |
 
 #### Returns

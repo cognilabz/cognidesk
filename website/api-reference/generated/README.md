@@ -16,8 +16,6 @@
 - [packages/integrations/dist](packages/integrations/dist.md)
 - [packages/integrations/dist/voice/aws-speech](packages/integrations/dist/voice/aws-speech.md)
 - [packages/integrations/dist/voice/azure-speech](packages/integrations/dist/voice/azure-speech.md)
-- [packages/integrations/dist/voice/deepgram](packages/integrations/dist/voice/deepgram.md)
-- [packages/integrations/dist/voice/elevenlabs](packages/integrations/dist/voice/elevenlabs.md)
 - [packages/integrations/dist/voice/google-speech](packages/integrations/dist/voice/google-speech.md)
 - [packages/integrations/dist/voice/openai](packages/integrations/dist/voice/openai.md)
 - [packages/journey-index-json/dist](packages/journey-index-json/dist.md)

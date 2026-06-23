@@ -686,19 +686,19 @@ Evidence: [Google Play Android Publisher API](https://developers.google.com/andr
 | Runtime import | `@cognidesk/integration-sms-twilio/runtime` |
 | Workspace | `integrations/sms/twilio` |
 | Manifest ID | `sms.twilio` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://www.twilio.com/docs/messaging/api](https://www.twilio.com/docs/messaging/api) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/twilio](https://www.npmjs.com/package/twilio) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `schedule`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `twilio.webhook-signature` |
+| Capabilities | `receive`, `send`, `schedule`, `read-provider-object`, `search-provider-object`, `twilio.webhook-signature` |
 | Provider setup | required `twilio-account`, `twilio-sms-sender` |
 
-Coverage: Coverage includes generated per-operation functions for Twilio's official Messaging-domain OpenAPI surfaces: core Message/Media/Feedback/ShortCode resources, Messaging Services v1-v3, Conversations v1-v2, Content v1-v2, Verify v2-v3, and Studio v1-v2.
+Coverage: Implements normalized SMS/MMS send, read, list, cancel, readiness, webhook, and raw Twilio helper-client access with the official Twilio Node helper library.
 
 Boundary: Live SMS readiness depends on the SDK user's Twilio account, SMS-capable sender, Messaging Service configuration, phone-number capabilities, regions, carrier registration, webhooks, and account permissions.
 
-Evidence: [Twilio Messaging API overview](https://www.twilio.com/docs/messaging/api); [Twilio Message resource](https://www.twilio.com/docs/messaging/api/message-resource); [Twilio Message Scheduling](https://www.twilio.com/docs/messaging/features/message-scheduling); [Twilio Link Shortening](https://www.twilio.com/docs/messaging/features/link-shortening); plus 2 more.
+Evidence: [Twilio Node helper library](https://www.npmjs.com/package/twilio); [Twilio Messaging API overview](https://www.twilio.com/docs/messaging/api); [Twilio Message resource](https://www.twilio.com/docs/messaging/api/message-resource); [Twilio webhook security](https://www.twilio.com/docs/usage/webhooks/webhooks-security).
 
 ### Social
 
@@ -1216,7 +1216,7 @@ Boundary: This package adapts buffered Cognidesk voice turns through the Speech 
 
 Evidence: [Azure Speech SDK for JavaScript](https://github.com/microsoft/cognitive-services-speech-sdk-js); [Azure AI Speech SDK documentation](https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk).
 
-#### Deepgram Speech
+#### Deepgram Voice
 
 | Field | Value |
 |-------|-------|
@@ -1227,17 +1227,17 @@ Evidence: [Azure Speech SDK for JavaScript](https://github.com/microsoft/cogniti
 | Manifest ID | `voice.deepgram` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://developers.deepgram.com/docs/pre-recorded-audio](https://developers.deepgram.com/docs/pre-recorded-audio) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@deepgram/sdk](https://www.npmjs.com/package/@deepgram/sdk) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media` |
 | Provider setup | required `deepgram-api-key` |
 
-Coverage: Implements Deepgram prerecorded speech-to-text and Aura text-to-speech REST requests for Cognidesk STT/TTS voice pipelines.
+Coverage: Implements normalized Cognidesk speech-to-text and text-to-speech operations with the official Deepgram SDK.
 
-Boundary: This package implements REST STT/TTS for Cognidesk speech pipelines, not Deepgram Voice Agent or full streaming websocket sessions.
+Boundary: This package implements SDK-backed STT/TTS for Cognidesk speech pipelines, not Deepgram Voice Agent or Flux websocket sessions.
 
-Evidence: [Deepgram prerecorded audio STT](https://developers.deepgram.com/docs/pre-recorded-audio); [Deepgram Text-to-Speech REST](https://developers.deepgram.com/docs/text-to-speech); [Deepgram TTS media output settings](https://developers.deepgram.com/docs/tts-media-output-settings).
+Evidence: [Deepgram SDK package](https://www.npmjs.com/package/@deepgram/sdk); [Deepgram prerecorded audio STT](https://developers.deepgram.com/docs/pre-recorded-audio); [Deepgram Text-to-Speech REST](https://developers.deepgram.com/docs/text-to-speech).
 
 #### ElevenLabs Voice
 
@@ -1248,19 +1248,19 @@ Evidence: [Deepgram prerecorded audio STT](https://developers.deepgram.com/docs/
 | Runtime import | `@cognidesk/integration-voice-elevenlabs/runtime` |
 | Workspace | `integrations/voice/elevenlabs` |
 | Manifest ID | `voice.elevenlabs` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://api.elevenlabs.io/openapi.json](https://api.elevenlabs.io/openapi.json) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@elevenlabs/elevenlabs-js](https://www.npmjs.com/package/@elevenlabs/elevenlabs-js) |
 | Directions | `send-only`, `receive-only`, `bidirectional` |
-| Capabilities | `send`, `receive`, `media`, `elevenlabs.conversation-signed-url`, `elevenlabs.speech-to-text` |
+| Capabilities | `send`, `receive`, `media` |
 | Provider setup | required `elevenlabs-api-key` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in ElevenLabs' official public REST OpenAPI 3.1 specification.
+Coverage: Implements normalized Cognidesk speech, transcription, and conversational session helpers with the official ElevenLabs JavaScript SDK.
 
-Boundary: The generated full-provider claim is limited to ElevenLabs REST OpenAPI operations verified on 2026-06-18; realtime WebSocket transport behavior remains a separate protocol surface.
+Boundary: Realtime WebSocket transport behavior, telephony setup, batch calling, call recording policy, consent, retention, and live agent routing remain SDK-user/provider configuration.
 
-Evidence: [ElevenLabs REST OpenAPI specification](https://api.elevenlabs.io/openapi.json); [ElevenLabs API reference](https://elevenlabs.io/docs/api-reference); [ElevenLabs API authentication](https://elevenlabs.io/docs/api-reference/authentication); [ElevenLabs Text to Speech create speech](https://elevenlabs.io/docs/api-reference/text-to-speech/convert); plus 14 more.
+Evidence: [ElevenLabs JavaScript SDK package](https://www.npmjs.com/package/@elevenlabs/elevenlabs-js); [ElevenLabs API reference](https://elevenlabs.io/docs/api-reference); [ElevenLabs Speech to Text](https://elevenlabs.io/docs/api-reference/speech-to-text/convert); [ElevenLabs Text to Speech](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).
 
 #### Generic SIP Voice Connection
 
@@ -1342,21 +1342,21 @@ Evidence: [OpenAI Realtime and audio guide](https://developers.openai.com/api/do
 | Runtime import | `@cognidesk/integration-voice-twilio/runtime` |
 | Workspace | `integrations/voice/twilio` |
 | Manifest ID | `voice.twilio` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://www.twilio.com/docs/voice/api](https://www.twilio.com/docs/voice/api) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/twilio](https://www.npmjs.com/package/twilio) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `transfer`, `twilio.webhook-signature` |
-| Provider setup | required `twilio-account`, `twilio-rest-api-credentials`; optional `twilio-webhook-auth-token`, `twilio-voice-number` |
+| Provider setup | required `twilio-account`, `twilio-rest-api-credentials`; optional `twilio-webhook-auth-token` |
 
-Coverage: Coverage includes generated per-operation functions for Twilio's official Voice-domain OpenAPI surfaces: core Voice call/conference/queue/recording/transcription/stream/SIP resources, Voice v1/v3, Trunking v1, and Insights v1-v3.
+Coverage: Implements normalized call-control, TwiML media stream, webhook, readiness, and raw Twilio helper-client access with the official Twilio Node helper library.
 
 Boundary: Live call readiness depends on the SDK user's Twilio account, voice-capable numbers, regions, webhooks, and account permissions.
 
-Evidence: [Twilio Programmable Voice API overview](https://www.twilio.com/docs/voice/api); [Twilio Call resource](https://www.twilio.com/docs/voice/api/call-resource); [Twilio Stream TwiML](https://www.twilio.com/docs/voice/twiml/stream); [Twilio request signature validation](https://www.twilio.com/docs/usage/security); plus 3 more.
+Evidence: [Twilio Node helper library](https://www.npmjs.com/package/twilio); [Twilio Programmable Voice API](https://www.twilio.com/docs/voice/api); [Twilio Call Resource](https://www.twilio.com/docs/voice/api/call-resource); [Twilio webhook security](https://www.twilio.com/docs/usage/webhooks/webhooks-security).
 
-#### Vonage Voice API
+#### Vonage Voice
 
 | Field | Value |
 |-------|-------|
@@ -1365,19 +1365,19 @@ Evidence: [Twilio Programmable Voice API overview](https://www.twilio.com/docs/v
 | Runtime import | `@cognidesk/integration-voice-vonage/runtime` |
 | Workspace | `integrations/voice/vonage` |
 | Manifest ID | `voice.vonage` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer.vonage.com/en/voice/voice-api](https://developer.vonage.com/en/voice/voice-api) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@vonage/server-sdk](https://www.npmjs.com/package/@vonage/server-sdk) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `transfer`, `voice.webhook-signature` |
-| Provider setup | required `vonage-application`, `vonage-voice-application-webhooks`; optional `vonage-api-key-secret`, `vonage-voice-number`, `vonage-webhook-signature-secret`, `vonage-fallback-answer-url`, `vonage-signed-callbacks` |
+| Provider setup | required `vonage-application`; optional `vonage-webhook-signature` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in the official Vonage Voice v1, Voice v2, Application v2, Conversation v1, and Numbers OpenAPI specs used by this voice package.
+Coverage: Implements normalized Vonage Voice call-control, NCCO, webhook, readiness, and raw SDK access with the official Vonage server SDK.
 
-Boundary: The SDK user configures application answer/event/fallback webhooks, signed callbacks, phone numbers, regions, recording consent, outbound eligibility, and handoff policy.
+Boundary: Live call readiness depends on the SDK user's Vonage application, numbers, webhook URLs, regions, and account permissions.
 
-Evidence: [Vonage Voice API v1 OpenAPI](https://developer.vonage.com/api/v1/developer/api/file/voice?format=json&vendorId=vonage); [Vonage Voice API v2 OpenAPI](https://developer.vonage.com/api/v1/developer/api/file/voice.v2?format=json&vendorId=vonage); [Vonage Application API v2 OpenAPI](https://developer.vonage.com/api/v1/developer/api/file/application.v2?format=json&vendorId=vonage); [Vonage Conversation API v1 OpenAPI](https://developer.vonage.com/api/v1/developer/api/file/conversation?format=json&vendorId=vonage); plus 11 more.
+Evidence: [Vonage Server SDK package](https://www.npmjs.com/package/@vonage/server-sdk); [Vonage Voice API reference](https://developer.vonage.com/en/api/voice); [Vonage Voice webhooks](https://developer.vonage.com/en/voice/voice-api/webhook-reference); [Vonage NCCO reference](https://developer.vonage.com/en/voice/voice-api/ncco-reference).
 
 ### Workplace
 

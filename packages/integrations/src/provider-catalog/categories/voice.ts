@@ -2,14 +2,6 @@ import type { IntegrationProviderReference } from "../types.js";
 
 export const voiceProviderReferences = [
   {
-    "id": "voice.elevenlabs",
-    "category": "voice",
-    "provider": "elevenlabs",
-    "importPath": "@cognidesk/integrations/voice/elevenlabs",
-    "modulePath": "./voice/elevenlabs/index.js",
-    "manifestExport": "elevenLabsVoiceProviderManifest"
-  },
-  {
     "id": "voice.azure-speech",
     "category": "voice",
     "provider": "azure-speech",
@@ -24,14 +16,6 @@ export const voiceProviderReferences = [
     "importPath": "@cognidesk/integrations/voice/aws-speech",
     "modulePath": "./voice/aws-speech/index.js",
     "manifestExport": "awsSpeechProviderManifest"
-  },
-  {
-    "id": "voice.deepgram",
-    "category": "voice",
-    "provider": "deepgram",
-    "importPath": "@cognidesk/integrations/voice/deepgram",
-    "modulePath": "./voice/deepgram/index.js",
-    "manifestExport": "deepgramSpeechProviderManifest"
   },
   {
     "id": "voice.google-speech",
@@ -57,20 +41,4 @@ export const voiceProviderReferences = [
     "modulePath": "./voice/sip/index.js",
     "manifestExport": "sipVoiceProviderManifest"
   },
-  {
-    "id": "voice.twilio",
-    "category": "voice",
-    "provider": "twilio",
-    "importPath": "@cognidesk/integrations/voice/twilio",
-    "modulePath": "./voice/twilio/index.js",
-    "manifestExport": "twilioVoiceProviderManifest"
-  },
-  {
-    "id": "voice.vonage",
-    "category": "voice",
-    "provider": "vonage",
-    "importPath": "@cognidesk/integrations/voice/vonage",
-    "modulePath": "./voice/vonage/index.js",
-    "manifestExport": "vonageVoiceProviderManifest"
-  }
 ] as const satisfies readonly IntegrationProviderReference[];

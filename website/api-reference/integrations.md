@@ -63,4 +63,3 @@ Legacy generated type reference: [`@cognidesk/integrations/voice/openai`](genera
 
 - [`@cognidesk/integrations/voice/aws-speech`](generated/integrations/dist/voice/aws-speech.md)
 - [`@cognidesk/integrations/voice/google-speech`](generated/integrations/dist/voice/google-speech.md)
-- [`@cognidesk/integrations/voice/deepgram`](generated/integrations/dist/voice/deepgram.md)
