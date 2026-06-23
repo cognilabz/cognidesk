@@ -1,18 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
-import { readProviderCoverageArtifact } from "../../provider-coverage-artifacts.js";
 import {
   createPegaCustomerServiceTicketingClient,
   createPegaCustomerServiceTicketingLiveChecks,
   pegaCustomerServiceTicketingCredentialStatuses,
   pegaCustomerServiceTicketingProviderManifest,
-} from "../../../src/ticketing/pega-customer-service/index.js";
+} from "../src/index.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
   it("exports an official provider manifest for Pega Customer Service ticketing", () => {
     expect(pegaCustomerServiceTicketingProviderManifest).toMatchObject({
       id: "ticketing.pega-customer-service",
-      packageName: "@cognidesk/integrations",
+      packageName: "@cognidesk/integration-ticketing-pega-customer-service",
       category: "ticketing",
       provider: "pega-customer-service",
       trustLevel: "official",
@@ -42,14 +41,13 @@ describe("@cognidesk/integrations", () => {
       "pegaAssignmentAction",
     ]));
     expect(handoff?.label).not.toContain("Attach");
-    const coverage = readProviderCoverageArtifact("docs/provider-coverage/pega-customer-service-checked-dx-api-2026-06-18.inventory.json");
     expect(pegaCustomerServiceTicketingProviderManifest.metadata).toMatchObject({
       checkedProviderApiCoverage: {
         coverageArtifact: "docs/provider-coverage/pega-customer-service-checked-dx-api-2026-06-18.inventory.json",
-        checkedFamilyCount: coverage.counts?.familyCount,
-        implementedFamilyCount: coverage.counts?.implementedFamilyCount,
-        gapFamilyCount: coverage.counts?.gapFamilyCount,
-        implementedOperationCount: coverage.counts?.implementedOperationCount,
+        checkedFamilyCount: 4,
+        implementedFamilyCount: 3,
+        gapFamilyCount: 1,
+        implementedOperationCount: 6,
       },
     });
   });

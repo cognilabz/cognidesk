@@ -1,140 +1,8 @@
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
-import { defineIntegrationProviderPackage as defineProviderPackage } from "../../provider-manifest.js";
+import { defineIntegration } from "@cognidesk/integration-kit";
+import { pegaCustomerServiceTicketingProviderManifest } from "./manifest.js";
 
-export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackage({
-  id: "ticketing.pega-customer-service",
-  name: "Pega Customer Service",
-  packageName: "@cognidesk/integrations",
-  provider: "pega-customer-service",
-  category: "ticketing",
-  trustLevel: "official",
-  directions: ["bidirectional"],
-  channelAudiences: ["customer-facing", "internal-support", "mixed"],
-  coverage: {
-    scope: "support-workflow-subset",
-    notes: [
-      "Coverage is typed for Pega DX API case creation, case read/update, case search/listing, case-type listing, assignment action submission, and readiness checks used by Cognidesk support workflows.",
-      "This is not full Pega Customer Service or Pega Platform API coverage; broader assignments/actions lifecycle, stages/process navigation, attachments, data views/pages, bulk actions, views, refresh/validation flows, security rules, and broader application administration remain outside this adapter.",
-    ],
-    evidence: [
-      { label: "Pega DX API overview", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html" },
-      { label: "Pega DX API cases endpoints", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/managing-cases-dx-api.html" },
-      { label: "Pega DX API POST /cases", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-post-cases.html" },
-      { label: "Pega DX API GET /cases", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-get-cases.html" },
-      { label: "Pega DX API GET /cases/{ID}", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-get-cases-id.html" },
-      { label: "Pega DX API PUT /cases/{ID}", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-put-cases-id.html" },
-      { label: "Pega DX API GET /casetypes", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-get-casetypes_0.html" },
-      { label: "Pega DX API PATCH /assignments/{assignmentID}/actions/{actionID}", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-patch-assignments-assignmentid-actions-actionid.html" },
-    ],
-  },
-  credentialRequirements: [
-    {
-      id: "pega-customer-service-instance",
-      label: "Pega Customer Service instance URL",
-      description: "The SDK user's Pega Platform or Pega Customer Service application URL.",
-      required: true,
-    },
-    {
-      id: "pega-customer-service-api-access",
-      label: "Pega DX API access",
-      description: "Server-side OAuth bearer access or Basic Auth credentials for Pega DX API endpoints with operator/client privileges for cases, case types, and assignment actions.",
-      scopes: ["cases:read", "cases:write", "casetypes:read"],
-      required: true,
-      metadata: {
-        scopeKind: "internal-capability-labels",
-        privilegeGuidance: "These strings are Cognidesk capability labels, not proven official Pega OAuth scopes. Pega access depends on the operator/client access group and privileges for case list/read/create/update, case type read, and assignment action submission.",
-      },
-    },
-  ],
-  capabilities: [
-    {
-      capability: "create-provider-object",
-      label: "Create Pega cases",
-      description: "Creates Pega Customer Service cases with the Pega DX API from SDK-user-selected workflows.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [{ kind: "pegaCase", label: "Pega Case", schemaName: "Pega-API-CaseManagement-Case" }],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-    {
-      capability: "read-provider-object",
-      label: "Read Pega cases",
-      description: "Reads Pega cases and case type metadata through the Pega DX API.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [
-        { kind: "pegaCase", label: "Pega Case", schemaName: "Pega-API-CaseManagement-Case" },
-        { kind: "pegaCaseType", label: "Pega Case Type", schemaName: "Pega-API-CaseManagement-CaseType" },
-      ],
-      requiresCredential: true,
-      exposesSensitiveData: true,
-    },
-    {
-      capability: "update-provider-object",
-      label: "Update Pega cases",
-      description: "Updates Pega cases with SDK-user-supplied case data through the Pega DX API.",
-      audiences: ["internal-support", "mixed"],
-      providerObjects: [{ kind: "pegaCase", label: "Pega Case", schemaName: "Pega-API-CaseManagement-Case" }],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-    {
-      capability: "search-provider-object",
-      label: "Search Pega cases",
-      description: "Queries Pega cases with SDK-user-supplied case type, status, assignment, and pagination controls.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [{ kind: "pegaCase", label: "Pega Case", schemaName: "Pega-API-CaseManagement-Case" }],
-      requiresCredential: true,
-      exposesSensitiveData: true,
-    },
-    {
-      capability: "handoff",
-      label: "Run Pega case handoff action",
-      description: "Submits SDK-user-configured Pega DX assignment actions or case operations for human handoff workflows.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [
-        { kind: "pegaCase", label: "Pega Case", schemaName: "Pega-API-CaseManagement-Case" },
-        { kind: "pegaAssignmentAction", label: "Pega Assignment Action", schemaName: "Pega-API-CaseManagement-AssignmentAction" },
-      ],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-  ],
-  privacyNotes: [
-    "Pega cases can contain customer identity, interaction details, assignments, statuses, case data, attachments metadata, and internal workflow context.",
-    "Pega API credentials stay server-side and Studio receives only readiness and scope status.",
-  ],
-  limitations: [
-    "Case types, starting processes, field requirements, assignment routing, security rules, data pages, and stage transitions are owned by the SDK user's Pega application.",
-    "SDK users own case-type selection, field mapping, handoff timing, customer identity matching, notification policy, and retention before calling Pega APIs.",
-  ],
-  metadata: {
-    checkedProviderApiCoverage: {
-      verifiedAt: "2026-06-18",
-      sourceKind: "checked-endpoint-family-inventory",
-      coverageArtifact: "docs/provider-coverage/pega-customer-service-checked-dx-api-2026-06-18.inventory.json",
-      checkedFamilyCount: 4,
-      implementedFamilyCount: 3,
-      gapFamilyCount: 1,
-      implementedOperationCount: 6,
-    },
-    channelCoverage: {
-      cases: "typed-create-read-update-search",
-      assignmentActions: "typed-submit",
-      caseTypes: "typed-list",
-      readiness: "typed-list",
-      attachmentsDataPages: "provider-supported-not-typed",
-      stageLifecycleActions: "provider-supported-not-typed",
-      broaderCaseManagementAdmin: "not-covered",
-    },
-  },
-  maintainers: [{ name: "Cognidesk", type: "official" }],
-});
+export { pegaCustomerServiceTicketingProviderManifest } from "./manifest.js";
 
 export type PegaCustomerServiceJsonPrimitive = string | number | boolean | null;
 export type PegaCustomerServiceJsonValue =
@@ -232,6 +100,18 @@ export interface PegaCustomerServiceTicketingClient {
 
 export interface PegaCustomerServiceLiveCheckOptions extends PegaCustomerServiceTicketingClientOptions {
   client?: Pick<PegaCustomerServiceTicketingClient, "readiness">;
+}
+
+export interface PegaReadCaseOperationInput {
+  caseId: string;
+}
+
+export interface PegaUpdateCaseOperationInput extends PegaUpdateCaseInput {
+  caseId: string;
+}
+
+export interface PegaCustomerServiceTicketingIntegrationOptions extends PegaCustomerServiceTicketingClientOptions {
+  client?: PegaCustomerServiceTicketingClient;
 }
 
 export function createPegaCustomerServiceTicketingClient(
@@ -340,6 +220,32 @@ export function createPegaCustomerServiceTicketingLiveChecks(options: PegaCustom
       return { details: { caseTypeCount: caseTypes.length } };
     },
   }];
+}
+
+export function createPegaCustomerServiceTicketingOperationHandlers(client: PegaCustomerServiceTicketingClient) {
+  return {
+    "ticket.create": (input: PegaCreateCaseInput) => client.createCase(input),
+    "ticket.read": (input: PegaReadCaseOperationInput) => client.getCase(input.caseId),
+    "ticket.update": (input: PegaUpdateCaseOperationInput) => {
+      const { caseId, ...update } = input;
+      return client.updateCase(caseId, update);
+    },
+    "ticket.search": (input: PegaSearchCasesInput = {}) => client.searchCases(input),
+    "pega-customer-service.caseTypes.list": () => client.listCaseTypes(),
+    "pega-customer-service.assignmentAction.submit": (input: PegaAssignmentActionInput) =>
+      client.performAssignmentAction(input),
+  };
+}
+
+export function createPegaCustomerServiceTicketingIntegration(
+  options: PegaCustomerServiceTicketingIntegrationOptions,
+) {
+  const client = options.client ?? createPegaCustomerServiceTicketingClient(options);
+  return defineIntegration({
+    manifest: pegaCustomerServiceTicketingProviderManifest,
+    operations: createPegaCustomerServiceTicketingOperationHandlers(client),
+    credentials: options,
+  });
 }
 
 function createCaseBody(input: PegaCreateCaseInput) {

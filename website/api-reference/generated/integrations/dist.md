@@ -707,32 +707,11 @@ const integrationProviderReferences: readonly [{
   provider: "kustomer";
 }, {
   category: "ticketing";
-  id: "ticketing.oracle-service";
-  importPath: "@cognidesk/integrations/ticketing/oracle-service";
-  manifestExport: "oracleServiceTicketingProviderManifest";
-  modulePath: "./ticketing/oracle-service/index.js";
-  provider: "oracle-service";
-}, {
-  category: "ticketing";
-  id: "ticketing.pega-customer-service";
-  importPath: "@cognidesk/integrations/ticketing/pega-customer-service";
-  manifestExport: "pegaCustomerServiceTicketingProviderManifest";
-  modulePath: "./ticketing/pega-customer-service/index.js";
-  provider: "pega-customer-service";
-}, {
-  category: "ticketing";
   id: "ticketing.salesforce";
   importPath: "@cognidesk/integrations/ticketing/salesforce";
   manifestExport: "salesforceTicketingProviderManifest";
   modulePath: "./ticketing/salesforce/index.js";
   provider: "salesforce";
-}, {
-  category: "ticketing";
-  id: "ticketing.sap-service-cloud";
-  importPath: "@cognidesk/integrations/ticketing/sap-service-cloud";
-  manifestExport: "sapServiceCloudTicketingProviderManifest";
-  modulePath: "./ticketing/sap-service-cloud/index.js";
-  provider: "sap-service-cloud";
 }, {
   category: "ticketing";
   id: "ticketing.servicenow";

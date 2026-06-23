@@ -1,139 +1,11 @@
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
-import { defineIntegrationProviderPackage as defineProviderPackage } from "../../provider-manifest.js";
+import { defineIntegration } from "@cognidesk/integration-kit";
+import {
+  ORACLE_SERVICE_DEFAULT_API_VERSION,
+  oracleServiceTicketingProviderManifest,
+} from "./manifest.js";
 
-export const ORACLE_SERVICE_DEFAULT_API_VERSION = "11.13.18.05";
-
-export const oracleServiceTicketingProviderManifest = defineProviderPackage({
-  id: "ticketing.oracle-service",
-  name: "Oracle Service",
-  packageName: "@cognidesk/integrations",
-  provider: "oracle-service",
-  category: "ticketing",
-  trustLevel: "official",
-  directions: ["bidirectional"],
-  channelAudiences: ["customer-facing", "internal-support", "mixed"],
-  coverage: {
-    scope: "support-workflow-subset",
-    notes: [
-      "Coverage is typed for Oracle Fusion Service serviceRequests create, read by SrNumber, patch, collection search, child message creation, and readiness checks used by Cognidesk support workflows.",
-      "This is not full Oracle Fusion Service API coverage; service request child resources such as activities, attachments, contacts, message attachment/channel-communication lifecycle, milestones, resources, smart actions, tags, LOV/metadata behavior, workflow rules, queues, privileges, and broader Fusion CX APIs remain outside this adapter.",
-    ],
-    evidence: [
-      { label: "Oracle Fusion Service serviceRequests overview", url: "https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html" },
-      { label: "Oracle Fusion Service create service request", url: "https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-post.html" },
-      { label: "Oracle Fusion Service get all service requests", url: "https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-get.html" },
-      { label: "Oracle Fusion Service get service request", url: "https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-srnumber-get.html" },
-      { label: "Oracle Fusion Service update service request", url: "https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-srnumber-patch.html" },
-      { label: "Oracle Fusion Service create service request message", url: "https://docs.oracle.com/en/cloud/saas/sales/faaps/op-servicerequests-srnumber-child-messages-post.html" },
-    ],
-  },
-  credentialRequirements: [
-    {
-      id: "oracle-service-instance",
-      label: "Oracle Fusion Service instance URL",
-      description: "The SDK user's Oracle Fusion Service host, for example https://example.fa.oraclecloud.com.",
-      required: true,
-    },
-    {
-      id: "oracle-service-api-access",
-      label: "Oracle Fusion Service REST API access",
-      description: "Server-side OAuth bearer access or Basic Auth credentials for Oracle Fusion Service REST APIs with service roles and privileges for serviceRequests and child messages.",
-      scopes: ["serviceRequests:read", "serviceRequests:write"],
-      required: true,
-      metadata: {
-        scopeKind: "internal-capability-labels",
-        privilegeGuidance: "These strings are Cognidesk capability labels, not official Oracle OAuth scope names. Oracle access depends on Fusion Service roles and privileges for service request read/create/update/search and message creation.",
-      },
-    },
-  ],
-  capabilities: [
-    {
-      capability: "create-provider-object",
-      label: "Create Oracle service requests",
-      description: "Creates Oracle Fusion Service serviceRequests records from SDK-user-selected support workflows.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [
-        { kind: "oracleServiceRequest", label: "Oracle Service Request", schemaName: "serviceRequests" },
-        { kind: "oracleServiceRequestMessage", label: "Oracle Service Request Message", schemaName: "serviceRequests.child.messages" },
-      ],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-    {
-      capability: "read-provider-object",
-      label: "Read Oracle service requests",
-      description: "Reads Oracle Fusion Service service request records by SrNumber.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [{ kind: "oracleServiceRequest", label: "Oracle Service Request", schemaName: "serviceRequests" }],
-      requiresCredential: true,
-      exposesSensitiveData: true,
-    },
-    {
-      capability: "update-provider-object",
-      label: "Update Oracle service requests",
-      description: "Updates Oracle Fusion Service service request status, queue, assignee, resolution, or custom fields.",
-      audiences: ["internal-support", "mixed"],
-      providerObjects: [{ kind: "oracleServiceRequest", label: "Oracle Service Request", schemaName: "serviceRequests" }],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-    {
-      capability: "search-provider-object",
-      label: "Search Oracle service requests",
-      description: "Queries Oracle Fusion Service service requests with SDK-user-supplied q, finder, fields, and paging controls.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [{ kind: "oracleServiceRequest", label: "Oracle Service Request", schemaName: "serviceRequests" }],
-      requiresCredential: true,
-      exposesSensitiveData: true,
-    },
-    {
-      capability: "handoff",
-      label: "Attach handoff to Oracle Service",
-      description: "Provides Oracle service request operations for SDK-user-configured human handoff workflows.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [
-        { kind: "oracleServiceRequest", label: "Oracle Service Request", schemaName: "serviceRequests" },
-        { kind: "oracleServiceRequestMessage", label: "Oracle Service Request Message", schemaName: "serviceRequests.child.messages" },
-      ],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-  ],
-  privacyNotes: [
-    "Oracle service requests can contain customer identity, problem descriptions, service profile data, queue and assignee details, and internal resolution notes.",
-    "Oracle credentials stay server-side and are represented in Studio only as credential readiness and scope status.",
-  ],
-  limitations: [
-    "Oracle Service categories, required fields, queues, assignment rules, milestones, extensions, and privileges are owned by the SDK user's Fusion Service environment.",
-    "SDK users own handoff timing, field mapping, customer identity matching, visibility, consent, notification policy, and retention before calling Oracle APIs.",
-  ],
-  metadata: {
-    checkedProviderApiCoverage: {
-      verifiedAt: "2026-06-18",
-      sourceKind: "checked-endpoint-family-inventory",
-      coverageArtifact: "docs/provider-coverage/oracle-service-checked-service-requests-2026-06-18.inventory.json",
-      checkedFamilyCount: 5,
-      implementedFamilyCount: 3,
-      gapFamilyCount: 2,
-      implementedOperationCount: 5,
-    },
-    channelCoverage: {
-      serviceRequests: "typed-create-read-update-search",
-      serviceRequestMessages: "typed-create",
-      readinessSearch: "typed-search",
-      attachments: "provider-supported-not-typed",
-      activitiesContactsMilestones: "provider-supported-not-typed",
-      queuesSmartActionsWorkflowRules: "not-covered",
-    },
-  },
-  maintainers: [{ name: "Cognidesk", type: "official" }],
-});
+export { oracleServiceTicketingProviderManifest } from "./manifest.js";
 
 export type OracleServiceJsonPrimitive = string | number | boolean | null;
 export type OracleServiceJsonValue =
@@ -245,6 +117,18 @@ export interface OracleServiceLiveCheckOptions extends OracleServiceTicketingCli
   client?: Pick<OracleServiceTicketingClient, "readiness">;
 }
 
+export interface OracleServiceReadOperationInput {
+  srNumber: string;
+}
+
+export interface OracleServiceUpdateOperationInput extends OracleServiceUpdateRequestInput {
+  srNumber: string;
+}
+
+export interface OracleServiceTicketingIntegrationOptions extends OracleServiceTicketingClientOptions {
+  client?: OracleServiceTicketingClient;
+}
+
 export function createOracleServiceTicketingClient(
   options: OracleServiceTicketingClientOptions,
 ): OracleServiceTicketingClient {
@@ -349,6 +233,29 @@ export function createOracleServiceTicketingLiveChecks(options: OracleServiceLiv
       return { details: { sampleCount: result.items.length, hasMore: result.hasMore } };
     },
   }];
+}
+
+export function createOracleServiceTicketingOperationHandlers(client: OracleServiceTicketingClient) {
+  return {
+    "ticket.create": (input: OracleServiceCreateRequestInput) => client.createServiceRequest(input),
+    "ticket.read": (input: OracleServiceReadOperationInput) => client.getServiceRequest(input.srNumber),
+    "ticket.update": (input: OracleServiceUpdateOperationInput) => {
+      const { srNumber, ...update } = input;
+      return client.updateServiceRequest(srNumber, update);
+    },
+    "ticket.search": (input: OracleServiceSearchInput = {}) => client.searchServiceRequests(input),
+    "oracle-service.serviceRequestMessage.create": (input: OracleServiceCreateMessageInput) =>
+      client.createServiceRequestMessage(input),
+  };
+}
+
+export function createOracleServiceTicketingIntegration(options: OracleServiceTicketingIntegrationOptions) {
+  const client = options.client ?? createOracleServiceTicketingClient(options);
+  return defineIntegration({
+    manifest: oracleServiceTicketingProviderManifest,
+    operations: createOracleServiceTicketingOperationHandlers(client),
+    credentials: options,
+  });
 }
 
 function createServiceRequestBody(input: OracleServiceCreateRequestInput) {

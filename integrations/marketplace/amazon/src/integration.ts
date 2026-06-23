@@ -15,6 +15,11 @@ export interface AmazonMarketplaceOperationInput {
   [key: string]: unknown;
 }
 
+type AmazonMarketplaceOperationAlias = (typeof amazonMarketplaceProviderManifest.operations)[number]["alias"];
+type AmazonMarketplaceOperations = {
+  [Alias in AmazonMarketplaceOperationAlias]: IntegrationOperationHandler<unknown, unknown, unknown>;
+};
+
 function clientFor(
   input: AmazonMarketplaceOperationInput,
   credentials: AmazonMarketplaceOperationCredentials | undefined,
@@ -53,10 +58,7 @@ function readStringArray(input: unknown, key: string): string[] | undefined {
   return Array.isArray(value) && value.every((item) => typeof item === "string") ? value : undefined;
 }
 
-const amazonMarketplaceOperations: Record<
-  string,
-  IntegrationOperationHandler<unknown, unknown, unknown>
-> = {
+const amazonMarketplaceOperations: AmazonMarketplaceOperations = {
     [amazonMarketplaceOperationAliases.refreshAccessToken]: async (input, context) =>
       clientFor(amazonInput(input), credentialsFor(context)).refreshAccessToken(),
     [amazonMarketplaceOperationAliases.createRestrictedDataToken]: async (

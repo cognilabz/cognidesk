@@ -14325,11 +14325,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.oracle-service",
     "category": "ticketing",
     "provider": "oracle-service",
-    "importPath": "@cognidesk/integrations/ticketing/oracle-service",
-    "modulePath": "./ticketing/oracle-service/index.js",
+    "importPath": "@cognidesk/integration-ticketing-oracle-service/manifest",
+    "modulePath": "integrations/ticketing/oracle-service/src/manifest.js",
     "manifestExport": "oracleServiceTicketingProviderManifest",
     "name": "Oracle Service",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-oracle-service",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -14539,17 +14539,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "oracle-service.serviceRequestMessage.create"
+        ]
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/oracle-service",
-      "providerModule": "./ticketing/oracle-service/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-oracle-service",
+      "runtimePackage": "@cognidesk/integration-ticketing-oracle-service",
+      "providerModule": "integrations/ticketing/oracle-service/src/manifest.js",
       "manifestExport": "oracleServiceTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/oracle-service/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/oracle-service/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html"
     },
     "readiness": {
@@ -14599,6 +14601,55 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice"
+      },
+      "implementationStrategy": {
+        "strategy": "direct-support-slice",
+        "reason": "No suitable official JavaScript SDK was found for Oracle Fusion Service serviceRequests; oci-fusionapps targets OCI Fusion Apps Service resource management, not this REST surface.",
+        "checkedAt": "2026-06-21",
+        "rejectedLibraries": [
+          {
+            "packageName": "oci-fusionapps",
+            "version": "2.135.0",
+            "integrity": "sha512-L0mF2w4tYeVBM1DXEDVuufuKysTQqhvS65GCN7meubjWzxUNMRDO9P/EM1ouSguyjJio7NeCr4hQWSP5AEe46Q==",
+            "reason": "Official Oracle-maintained OCI SDK package, but not a Fusion Service service request client."
+          }
+        ]
+      },
+      "supportOperationSlice": {
+        "sourceKind": "official-docs-reviewed-slice",
+        "sourceVersion": "11.13.18.05",
+        "checkedAt": "2026-06-21",
+        "allowlistSha256": "5f3ff8ea4febec8a1f5e4c9d881124c9f215a7b97ebb3ae7a92d7e3f98b370f5",
+        "operations": [
+          {
+            "alias": "ticket.create",
+            "method": "POST",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests"
+          },
+          {
+            "alias": "ticket.read",
+            "method": "GET",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}"
+          },
+          {
+            "alias": "ticket.update",
+            "method": "PATCH",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}"
+          },
+          {
+            "alias": "ticket.search",
+            "method": "GET",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests"
+          },
+          {
+            "alias": "oracle-service.serviceRequestMessage.create",
+            "method": "POST",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}/child/messages"
+          }
+        ]
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -14650,7 +14701,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "oracle-service.serviceRequestMessage.create"
+        ]
       }
     }
   },
@@ -14658,11 +14711,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.pega-customer-service",
     "category": "ticketing",
     "provider": "pega-customer-service",
-    "importPath": "@cognidesk/integrations/ticketing/pega-customer-service",
-    "modulePath": "./ticketing/pega-customer-service/index.js",
+    "importPath": "@cognidesk/integration-ticketing-pega-customer-service/manifest",
+    "modulePath": "integrations/ticketing/pega-customer-service/src/manifest.js",
     "manifestExport": "pegaCustomerServiceTicketingProviderManifest",
     "name": "Pega Customer Service",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-pega-customer-service",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -14880,17 +14933,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "pega-customer-service.caseTypes.list",
+          "pega-customer-service.assignmentAction.submit"
+        ]
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/pega-customer-service",
-      "providerModule": "./ticketing/pega-customer-service/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-pega-customer-service",
+      "runtimePackage": "@cognidesk/integration-ticketing-pega-customer-service",
+      "providerModule": "integrations/ticketing/pega-customer-service/src/manifest.js",
       "manifestExport": "pegaCustomerServiceTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/pega-customer-service/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/pega-customer-service/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html"
     },
     "readiness": {
@@ -14941,6 +14997,60 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice"
+      },
+      "implementationStrategy": {
+        "strategy": "direct-support-slice",
+        "reason": "No suitable maintained server-side JavaScript SDK was found for Pega Customer Service/DX API case operations; current Pega JavaScript packages are Constellation UI/client orchestration assets.",
+        "checkedAt": "2026-06-21",
+        "rejectedLibraries": [
+          {
+            "packageName": "@pega/constellationjs",
+            "version": "25.1.3",
+            "integrity": "sha512-dPPo+e/ADjMwabHfQ5s9DX2P8IeJiSg6NPXFRLFkFZm1OFbkDevf3YoSpf5/XzWD3IqcBo0dx8NzV7tLjp4EJw==",
+            "reason": "Pega-maintained package, but it provides ConstellationJS engine files rather than a server-side DX API case client."
+          }
+        ]
+      },
+      "supportOperationSlice": {
+        "sourceKind": "official-docs-reviewed-slice",
+        "sourceVersion": "/api/v1",
+        "checkedAt": "2026-06-21",
+        "allowlistSha256": "6b4e3eb1f0a9b371002d8a3be22827c473680c7ce1335a0faf9d990e94cd32fd",
+        "operations": [
+          {
+            "alias": "ticket.create",
+            "method": "POST",
+            "path": "{apiBasePath}/cases"
+          },
+          {
+            "alias": "ticket.read",
+            "method": "GET",
+            "path": "{apiBasePath}/cases/{ID}"
+          },
+          {
+            "alias": "ticket.update",
+            "method": "PUT",
+            "path": "{apiBasePath}/cases/{ID}"
+          },
+          {
+            "alias": "ticket.search",
+            "method": "GET",
+            "path": "{apiBasePath}/cases"
+          },
+          {
+            "alias": "pega-customer-service.caseTypes.list",
+            "method": "GET",
+            "path": "{apiBasePath}/casetypes"
+          },
+          {
+            "alias": "pega-customer-service.assignmentAction.submit",
+            "method": "PATCH",
+            "path": "{apiBasePath}/assignments/{assignmentID}/actions/{actionID}"
+          }
+        ]
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -14993,7 +15103,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "pega-customer-service.caseTypes.list",
+          "pega-customer-service.assignmentAction.submit"
+        ]
       }
     }
   },
@@ -15335,11 +15448,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.sap-service-cloud",
     "category": "ticketing",
     "provider": "sap-service-cloud",
-    "importPath": "@cognidesk/integrations/ticketing/sap-service-cloud",
-    "modulePath": "./ticketing/sap-service-cloud/index.js",
+    "importPath": "@cognidesk/integration-ticketing-sap-service-cloud/manifest",
+    "modulePath": "integrations/ticketing/sap-service-cloud/src/manifest.js",
     "manifestExport": "sapServiceCloudTicketingProviderManifest",
     "name": "SAP Service Cloud",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-sap-service-cloud",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -15535,13 +15648,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/sap-service-cloud",
-      "providerModule": "./ticketing/sap-service-cloud/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-sap-service-cloud",
+      "runtimePackage": "@cognidesk/integration-ticketing-sap-service-cloud",
+      "providerModule": "integrations/ticketing/sap-service-cloud/src/manifest.js",
       "manifestExport": "sapServiceCloudTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/sap-service-cloud/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/sap-service-cloud/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api"
     },
     "readiness": {
@@ -15591,6 +15704,59 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice"
+      },
+      "implementationStrategy": {
+        "strategy": "sdk-viable-reviewed-support-slice",
+        "reason": "SAP Cloud SDK for JavaScript is maintained and viable for OData v2/generator/HTTP transport, but this package keeps the reviewed ServiceRequestCollection slice until a redistributable EDMX/source artifact can be pinned.",
+        "checkedAt": "2026-06-21",
+        "viableLibraries": [
+          {
+            "packageName": "@sap-cloud-sdk/odata-v2",
+            "version": "4.7.0",
+            "integrity": "sha512-/t1ncLEnm3yTzHRkIgpNcUMGHk7jvQ1nSHrb7YgvgU+/Q2P5Au8llPEH/zudXZ8Bd3k9Qdrfdq/hl+w+YWkBIg=="
+          },
+          {
+            "packageName": "@sap-cloud-sdk/generator",
+            "version": "4.7.0",
+            "integrity": "sha512-aW17rUVIZl5RA3WoTTErBwwWCX5A3AresM13Vs7fKEc3Z52919KTlH+7Cpf/9qJrNDQUZU6RzCw+bHd5gs8wHA=="
+          },
+          {
+            "packageName": "@sap-cloud-sdk/http-client",
+            "version": "4.7.0",
+            "integrity": "sha512-7+S6ru7SrnyKA2MGimX09oix0EVwmPGcCAz0TRwFZVnglU+VTRmZ8QdcwcVTR26E9YhkR4OVl6EK7jb2Z0OxfQ=="
+          }
+        ]
+      },
+      "supportOperationSlice": {
+        "sourceKind": "official-docs-reviewed-slice",
+        "sourceVersion": "/sap/c4c/odata/v1/c4codataapi",
+        "checkedAt": "2026-06-21",
+        "allowlistSha256": "0878a63145c55ce016d71a56643a963adc9fe945c7d0a029286d567e5027f30f",
+        "operations": [
+          {
+            "alias": "ticket.create",
+            "method": "POST",
+            "path": "{odataPath}/ServiceRequestCollection"
+          },
+          {
+            "alias": "ticket.read",
+            "method": "GET",
+            "path": "{odataPath}/ServiceRequestCollection('{ObjectID}')"
+          },
+          {
+            "alias": "ticket.update",
+            "method": "PATCH",
+            "path": "{odataPath}/ServiceRequestCollection('{ObjectID}')"
+          },
+          {
+            "alias": "ticket.search",
+            "method": "GET",
+            "path": "{odataPath}/ServiceRequestCollection"
+          }
+        ]
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",

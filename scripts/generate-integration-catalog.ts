@@ -81,7 +81,7 @@ for (const reference of integrationProviderReferences) {
 }
 
 const entries = [
-  ...legacyEntries.filter((entry) => !splitIds.has(entry.id)),
+  ...legacyEntries,
   ...splitEntries,
 ];
 assertUniqueCatalogEntryIds(entries);

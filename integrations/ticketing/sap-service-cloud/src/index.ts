@@ -1,129 +1,8 @@
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
-import { defineIntegrationProviderPackage as defineProviderPackage } from "../../provider-manifest.js";
+import { defineIntegration } from "@cognidesk/integration-kit";
+import { sapServiceCloudTicketingProviderManifest } from "./manifest.js";
 
-export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
-  id: "ticketing.sap-service-cloud",
-  name: "SAP Service Cloud",
-  packageName: "@cognidesk/integrations",
-  provider: "sap-service-cloud",
-  category: "ticketing",
-  trustLevel: "official",
-  directions: ["bidirectional"],
-  channelAudiences: ["customer-facing", "internal-support", "mixed"],
-  coverage: {
-    scope: "support-workflow-subset",
-    notes: [
-      "Coverage is typed for SAP Cloud for Customer OData ServiceRequestCollection create, read by ObjectID, patch, collection query, CSRF token preflight, and readiness checks used by Cognidesk support workflows.",
-      "This is not full SAP Service Cloud API coverage; notes, descriptions, attachments, involved parties, service categories, code-list discovery, custom OData services, communication arrangements, workflow actions, v2 migration policy, and broader SAP Cloud for Customer APIs remain outside this adapter.",
-    ],
-    evidence: [
-      { label: "SAP Cloud for Customer OData API", url: "https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api" },
-      { label: "SAP Cloud for Customer OData API overview", url: "https://help.sap.com/docs/sap-cloud-for-customer/1364b70b9cbb417ea5e2d80e966d4f49/6c0a463cc9ca450cbd01a9a5057ce682.html" },
-      { label: "SAP Cloud for Customer OData API v2 Reference", url: "https://help.sap.com/docs/r/1364b70b9cbb417ea5e2d80e966d4f49/LATEST/en-US/6cb5cd1ebe1c49d8b99c22afa29aa5d4.html" },
-      { label: "SAP Cloud for Customer OData Services PDF", url: "https://help.sap.com/doc/77979cd206da4b7f9bd264b390d373fc/CLOUD/en-US/OData_Services.pdf" },
-    ],
-  },
-  credentialRequirements: [
-    {
-      id: "sap-service-cloud-tenant",
-      label: "SAP Service Cloud tenant URL",
-      description: "The SDK user's SAP Cloud for Customer or SAP Service Cloud tenant URL.",
-      required: true,
-    },
-    {
-      id: "sap-service-cloud-api-access",
-      label: "SAP Service Cloud OData API access",
-      description: "Server-side Basic Auth, communication user/arrangement, or OAuth bearer access authorized for the SAP Cloud for Customer OData API.",
-      scopes: ["ServiceRequestCollection:read", "ServiceRequestCollection:write"],
-      required: true,
-      metadata: {
-        scopeKind: "internal-capability-labels",
-        privilegeGuidance: "These strings are Cognidesk capability labels for ServiceRequestCollection access, not official SAP OAuth scope names. SAP authorization depends on communication arrangements, business user permissions, and exposed OData services.",
-      },
-    },
-  ],
-  capabilities: [
-    {
-      capability: "handoff",
-      label: "Create SAP Service Cloud handoff",
-      description: "Creates or updates SAP Service Cloud ServiceRequestCollection records as SDK-configured support handoff targets.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-    {
-      capability: "create-provider-object",
-      label: "Create SAP service requests",
-      description: "Creates SAP Service Cloud ServiceRequestCollection tickets from SDK-user-selected workflows.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-    {
-      capability: "read-provider-object",
-      label: "Read SAP service requests",
-      description: "Reads SAP Service Cloud service requests by ObjectID.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
-      requiresCredential: true,
-      exposesSensitiveData: true,
-    },
-    {
-      capability: "update-provider-object",
-      label: "Update SAP service requests",
-      description: "Updates SAP Service Cloud ticket fields, statuses, priorities, or SDK-user custom fields.",
-      audiences: ["internal-support", "mixed"],
-      providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
-      requiresCredential: true,
-      sideEffect: true,
-      exposesSensitiveData: true,
-      changesWorkflow: true,
-    },
-    {
-      capability: "search-provider-object",
-      label: "Search SAP service requests",
-      description: "Queries SAP Service Cloud ServiceRequestCollection with SDK-user-supplied OData filters and projections.",
-      audiences: ["customer-facing", "internal-support", "mixed"],
-      providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
-      requiresCredential: true,
-      exposesSensitiveData: true,
-    },
-  ],
-  privacyNotes: [
-    "SAP service requests can contain customer account/contact details, ticket descriptions, categories, priorities, involved parties, notes, and internal routing data.",
-    "SAP API credentials stay server-side and Studio receives only readiness and scope status.",
-  ],
-  limitations: [
-    "SAP tenant OData exposure, communication arrangements, required fields, statuses, code lists, workflow rules, and extensions are SDK-user configuration.",
-    "SDK users own escalation timing, customer matching, field mapping, reply visibility, retention, and notification policy before calling SAP APIs.",
-  ],
-  metadata: {
-    checkedProviderApiCoverage: {
-      verifiedAt: "2026-06-18",
-      sourceKind: "checked-endpoint-family-inventory",
-      coverageArtifact: "docs/provider-coverage/sap-service-cloud-checked-c4c-odata-2026-06-18.inventory.json",
-      checkedFamilyCount: 3,
-      implementedFamilyCount: 2,
-      gapFamilyCount: 1,
-      implementedOperationCount: 5,
-    },
-    channelCoverage: {
-      serviceRequests: "typed-create-read-update-search",
-      csrfToken: "typed-selected",
-      readinessSearch: "typed-search",
-      attachmentFolder: "provider-supported-not-typed",
-      notesInvolvedPartiesCodeLists: "provider-supported-not-typed",
-      workflowRulesCommunicationArrangements: "not-covered",
-    },
-  },
-  maintainers: [{ name: "Cognidesk", type: "official" }],
-});
+export { sapServiceCloudTicketingProviderManifest } from "./manifest.js";
 
 export type SapServiceCloudJsonPrimitive = string | number | boolean | null;
 export type SapServiceCloudJsonValue =
@@ -210,6 +89,19 @@ export interface SapServiceCloudTicketingClient {
 
 export interface SapServiceCloudLiveCheckOptions extends SapServiceCloudTicketingClientOptions {
   client?: Pick<SapServiceCloudTicketingClient, "readiness">;
+}
+
+export interface SapReadServiceRequestOperationInput {
+  objectId: string;
+}
+
+export interface SapUpdateServiceRequestOperationInput extends SapServiceUpdateRequestInput {
+  objectId: string;
+  etag?: string;
+}
+
+export interface SapServiceCloudTicketingIntegrationOptions extends SapServiceCloudTicketingClientOptions {
+  client?: SapServiceCloudTicketingClient;
 }
 
 export function createSapServiceCloudTicketingClient(
@@ -305,6 +197,27 @@ export function createSapServiceCloudTicketingLiveChecks(options: SapServiceClou
       return { details: { sampleCount: result.results.length, count: result.count } };
     },
   }];
+}
+
+export function createSapServiceCloudTicketingOperationHandlers(client: SapServiceCloudTicketingClient) {
+  return {
+    "ticket.create": (input: SapServiceCreateRequestInput) => client.createServiceRequest(input),
+    "ticket.read": (input: SapReadServiceRequestOperationInput) => client.getServiceRequest(input.objectId),
+    "ticket.update": (input: SapUpdateServiceRequestOperationInput) => {
+      const { objectId, etag, ...update } = input;
+      return client.updateServiceRequest(objectId, update, etag);
+    },
+    "ticket.search": (input: SapServiceSearchInput = {}) => client.searchServiceRequests(input),
+  };
+}
+
+export function createSapServiceCloudTicketingIntegration(options: SapServiceCloudTicketingIntegrationOptions) {
+  const client = options.client ?? createSapServiceCloudTicketingClient(options);
+  return defineIntegration({
+    manifest: sapServiceCloudTicketingProviderManifest,
+    operations: createSapServiceCloudTicketingOperationHandlers(client),
+    credentials: options,
+  });
 }
 
 function createServiceRequestBody(input: SapServiceCreateRequestInput) {

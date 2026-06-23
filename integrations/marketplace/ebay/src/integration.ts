@@ -16,6 +16,11 @@ export interface EbayMarketplaceOperationInput {
   args?: unknown[];
 }
 
+type EbayMarketplaceOperationAlias = (typeof ebayMarketplaceProviderManifest.operations)[number]["alias"];
+type EbayMarketplaceOperations = {
+  [Alias in EbayMarketplaceOperationAlias]: IntegrationOperationHandler<unknown, unknown, unknown>;
+};
+
 function clientFor(
   input: EbayMarketplaceOperationInput,
   credentials: EbayMarketplaceClientOptions | undefined,
@@ -33,10 +38,7 @@ function credentialsFor(
   return context.credentials as EbayMarketplaceClientOptions | undefined;
 }
 
-const ebayMarketplaceOperations: Record<
-  string,
-  IntegrationOperationHandler<unknown, unknown, unknown>
-> = Object.fromEntries(
+const ebayMarketplaceOperations = Object.fromEntries(
   ebaySelectedApiOperationCatalog.map((operation) => [
     ebayMarketplaceOperationAlias(operation.functionName),
     async (input, context) => {
@@ -49,7 +51,7 @@ const ebayMarketplaceOperations: Record<
       return (method as (...args: unknown[]) => Promise<unknown>).apply(client, operationInput.args ?? []);
     },
   ]),
-);
+) as EbayMarketplaceOperations;
 
 export const ebayMarketplaceIntegration = defineIntegration({
   manifest: ebayMarketplaceProviderManifest,
