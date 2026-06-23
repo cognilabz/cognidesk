@@ -11,6 +11,7 @@ packages/*/README.md
 apps/*/*data/
 apps/*/.next
 .codex-demo-logs
+.playwright-cli/
 site/
 .cache/
 website/api-reference/generated/
