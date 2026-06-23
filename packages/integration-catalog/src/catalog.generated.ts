@@ -6,11 +6,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "cobrowsing.cognidesk",
     "category": "cobrowsing",
     "provider": "cognidesk",
-    "importPath": "@cognidesk/integrations/cobrowsing/cognidesk",
-    "modulePath": "./cobrowsing/cognidesk/index.js",
+    "importPath": "@cognidesk/integration-cobrowsing-cognidesk/manifest",
+    "modulePath": "integrations/cobrowsing/cognidesk/dist/manifest.js",
     "manifestExport": "cognideskCobrowsingProviderManifest",
     "name": "Cognidesk Cobrowsing",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-cobrowsing-cognidesk",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -164,7 +164,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "evidence": [
         {
           "label": "Cognidesk cobrowsing local protocol module",
-          "url": "https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk"
+          "url": "https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk"
         },
         {
           "label": "CONTEXT.md Built-In Adapter definition"
@@ -178,13 +178,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "local-protocol",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/cobrowsing/cognidesk",
-      "providerModule": "./cobrowsing/cognidesk/index.js",
+      "sdkPackage": "@cognidesk/integration-cobrowsing-cognidesk",
+      "runtimePackage": "@cognidesk/integration-cobrowsing-cognidesk",
+      "providerModule": "integrations/cobrowsing/cognidesk/dist/manifest.js",
       "manifestExport": "cognideskCobrowsingProviderManifest",
-      "manifestSource": "packages/integrations/src/cobrowsing/cognidesk/manifest.ts",
+      "manifestSource": "integrations/cobrowsing/cognidesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk"
+      "documentationPath": "https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -261,7 +261,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://github.com/cognilabz/cognidesk/tree/main/packages/integrations/src/cobrowsing/cognidesk",
+      "docs": "https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk",
       "channelCoverage": {
         "sessions": "typed-create-read-update",
         "sessionTokens": "typed-create-validate",
@@ -274,11 +274,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "community.forum",
     "category": "community",
     "provider": "forum",
-    "importPath": "@cognidesk/integrations/community/forum",
-    "modulePath": "./community/forum/index.js",
+    "importPath": "@cognidesk/integration-community-forum/manifest",
+    "modulePath": "integrations/community/forum/dist/manifest.js",
     "manifestExport": "forumCommunityProviderManifest",
     "name": "Discourse Forum",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-community-forum",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -490,12 +490,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/community/forum",
-      "providerModule": "./community/forum/index.js",
+      "sdkPackage": "@cognidesk/integration-community-forum",
+      "runtimePackage": "@cognidesk/integration-community-forum",
+      "providerModule": "integrations/community/forum/dist/manifest.js",
       "manifestExport": "forumCommunityProviderManifest",
-      "manifestSource": "packages/integrations/src/community/forum/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/community/forum/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.discourse.org/"
     },
     "readiness": {
@@ -6167,11 +6167,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "form.cognidesk",
     "category": "form",
     "provider": "cognidesk",
-    "importPath": "@cognidesk/integrations/form/cognidesk",
-    "modulePath": "./form/cognidesk/index.js",
+    "importPath": "@cognidesk/integration-form-cognidesk/manifest",
+    "modulePath": "integrations/form/cognidesk/dist/manifest.js",
     "manifestExport": "cognideskFormsProviderManifest",
     "name": "Cognidesk Forms",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-form-cognidesk",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -6267,12 +6267,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "local-protocol",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/form/cognidesk",
-      "providerModule": "./form/cognidesk/index.js",
+      "sdkPackage": "@cognidesk/integration-form-cognidesk",
+      "runtimePackage": "@cognidesk/integration-form-cognidesk",
+      "providerModule": "integrations/form/cognidesk/dist/manifest.js",
       "manifestExport": "cognideskFormsProviderManifest",
-      "manifestSource": "packages/integrations/src/form/cognidesk/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/form/cognidesk/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "website/guides/provider-integrations-catalog.md#form-cognidesk"
     },
     "readiness": {
@@ -6328,11 +6328,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "helpcenter.cognidesk",
     "category": "helpCenter",
     "provider": "cognidesk",
-    "importPath": "@cognidesk/integrations/help-center/cognidesk",
-    "modulePath": "./help-center/cognidesk/index.js",
+    "importPath": "@cognidesk/integration-help-center-cognidesk/manifest",
+    "modulePath": "integrations/help-center/cognidesk/dist/manifest.js",
     "manifestExport": "cognideskHelpCenterProviderManifest",
     "name": "Cognidesk Help Center",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-help-center-cognidesk",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -6386,8 +6386,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "helpCenterSearchResult",
-            "label": "Help Center Search Result"
+            "kind": "helpCenterArticle",
+            "label": "Help Center Article"
           }
         ],
         "requiresCredential": true,
@@ -6451,12 +6451,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "local-protocol",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/help-center/cognidesk",
-      "providerModule": "./help-center/cognidesk/index.js",
+      "sdkPackage": "@cognidesk/integration-help-center-cognidesk",
+      "runtimePackage": "@cognidesk/integration-help-center-cognidesk",
+      "providerModule": "integrations/help-center/cognidesk/dist/manifest.js",
       "manifestExport": "cognideskHelpCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/help-center/cognidesk/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/help-center/cognidesk/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "website/guides/provider-integrations-catalog.md#helpcenter-cognidesk"
     },
     "readiness": {
@@ -18359,11 +18359,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.sip",
     "category": "voice",
     "provider": "sip",
-    "importPath": "@cognidesk/integrations/voice/sip",
-    "modulePath": "./voice/sip/index.js",
+    "importPath": "@cognidesk/integration-voice-sip/manifest",
+    "modulePath": "integrations/voice/sip/dist/manifest.js",
     "manifestExport": "sipVoiceProviderManifest",
     "name": "Generic SIP Voice Connection",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-sip",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -18569,16 +18569,26 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "voice.conference.addParticipant",
           "voice.mediaStream.start"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "sip.call.start",
+          "sip.call.answer",
+          "sip.call.hangup",
+          "sip.call.transfer",
+          "sip.recording.start",
+          "sip.recording.stop",
+          "sip.dtmf.send",
+          "sip.media.update",
+          "sip.webhook.parse"
+        ]
       }
     },
     "implementation": {
       "strategy": "local-protocol",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/sip",
-      "providerModule": "./voice/sip/index.js",
+      "sdkPackage": "@cognidesk/integration-voice-sip",
+      "runtimePackage": "@cognidesk/integration-voice-sip",
+      "providerModule": "integrations/voice/sip/dist/manifest.js",
       "manifestExport": "sipVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/sip/manifest.ts",
+      "manifestSource": "integrations/voice/sip/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "website/guides/provider-integrations-catalog.md#voice-sip"
     },
@@ -18717,7 +18727,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "voice.conference.addParticipant",
           "voice.mediaStream.start"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "sip.call.start",
+          "sip.call.answer",
+          "sip.call.hangup",
+          "sip.call.transfer",
+          "sip.recording.start",
+          "sip.recording.stop",
+          "sip.dtmf.send",
+          "sip.media.update",
+          "sip.webhook.parse"
+        ]
       }
     }
   },

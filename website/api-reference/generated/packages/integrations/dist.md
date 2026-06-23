@@ -375,14 +375,7 @@ const defaultIntegrationProviderRuntimeRegistry: IntegrationProviderRuntimeRegis
 ### integrationProviderCategories
 
 ```ts
-const integrationProviderCategories: (
-  | "cobrowsing"
-  | "community"
-  | "form"
-  | "helpCenter"
-  | "marketplace"
-  | "voice"
-  | "workplace")[];
+const integrationProviderCategories: ("marketplace" | "voice" | "workplace")[];
 ```
 
 ***
@@ -391,34 +384,6 @@ const integrationProviderCategories: (
 
 ```ts
 const integrationProviderReferences: readonly [{
-  category: "cobrowsing";
-  id: "cobrowsing.cognidesk";
-  importPath: "@cognidesk/integrations/cobrowsing/cognidesk";
-  manifestExport: "cognideskCobrowsingProviderManifest";
-  modulePath: "./cobrowsing/cognidesk/index.js";
-  provider: "cognidesk";
-}, {
-  category: "community";
-  id: "community.forum";
-  importPath: "@cognidesk/integrations/community/forum";
-  manifestExport: "forumCommunityProviderManifest";
-  modulePath: "./community/forum/index.js";
-  provider: "forum";
-}, {
-  category: "form";
-  id: "form.cognidesk";
-  importPath: "@cognidesk/integrations/form/cognidesk";
-  manifestExport: "cognideskFormsProviderManifest";
-  modulePath: "./form/cognidesk/index.js";
-  provider: "cognidesk";
-}, {
-  category: "helpCenter";
-  id: "helpcenter.cognidesk";
-  importPath: "@cognidesk/integrations/help-center/cognidesk";
-  manifestExport: "cognideskHelpCenterProviderManifest";
-  modulePath: "./help-center/cognidesk/index.js";
-  provider: "cognidesk";
-}, {
   category: "marketplace";
   id: "marketplace.amazon";
   importPath: "@cognidesk/integration-marketplace-amazon/manifest";
@@ -460,13 +425,6 @@ const integrationProviderReferences: readonly [{
   manifestExport: "openAIVoiceProviderManifest";
   modulePath: "./voice/openai/index.js";
   provider: "openai";
-}, {
-  category: "voice";
-  id: "voice.sip";
-  importPath: "@cognidesk/integrations/voice/sip";
-  manifestExport: "sipVoiceProviderManifest";
-  modulePath: "./voice/sip/index.js";
-  provider: "sip";
 }, {
   category: "workplace";
   id: "workplace.teams";

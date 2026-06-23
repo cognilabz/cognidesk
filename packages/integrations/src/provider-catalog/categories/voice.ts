@@ -32,13 +32,5 @@ export const voiceProviderReferences = [
     "importPath": "@cognidesk/integrations/voice/openai",
     "modulePath": "./voice/openai/index.js",
     "manifestExport": "openAIVoiceProviderManifest"
-  },
-  {
-    "id": "voice.sip",
-    "category": "voice",
-    "provider": "sip",
-    "importPath": "@cognidesk/integrations/voice/sip",
-    "modulePath": "./voice/sip/index.js",
-    "manifestExport": "sipVoiceProviderManifest"
-  },
+  }
 ] as const satisfies readonly IntegrationProviderReference[];
