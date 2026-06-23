@@ -3096,6 +3096,22 @@ handleUserMessage(input): Promise<HandleUserMessageResult>;
 
 `Promise`\<[`HandleUserMessageResult`](../core/dist.md#handleusermessageresult)\>
 
+##### listConversations()?
+
+```ts
+optional listConversations(input?): Promise<ConversationRecord<unknown>[]>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`ListRuntimeConversationsOptions`](../core/dist.md#listruntimeconversationsoptions) |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](../core/dist.md#conversationrecord)\<`unknown`\>[]\>
+
 ##### listEvents()
 
 ```ts

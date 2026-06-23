@@ -626,6 +626,28 @@ initialize(): Promise<void>;
 
 `Promise`\<`void`\>
 
+##### listConversations()
+
+```ts
+listConversations<TConversationContext>(input?): Promise<ConversationRecord<TConversationContext>[]>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `input?` | [`ListRuntimeConversationsOptions`](#listruntimeconversationsoptions) |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](#conversationrecord)\<`TConversationContext`\>[]\>
+
 ##### listEvents()
 
 ```ts
@@ -1058,7 +1080,7 @@ readonly id: TId;
 
 ###### Implementation of
 
-[`StateReference`](#statereference).[`id`](#id-34)
+[`StateReference`](#statereference).[`id`](#id-35)
 
 ##### knowledge
 
@@ -8383,6 +8405,24 @@ when: ContextReusePredicate<unknown, unknown, unknown, TContext>;
 
 ***
 
+### ConversationListCursor
+
+#### Properties
+
+##### id
+
+```ts
+id: string;
+```
+
+##### updatedAt
+
+```ts
+updatedAt: string;
+```
+
+***
+
 ### ConversationRecord
 
 #### Type Parameters
@@ -8529,7 +8569,7 @@ optional id?: string;
 
 ###### Inherited from
 
-[`CreateConversationInput`](#createconversationinput).[`id`](#id-17)
+[`CreateConversationInput`](#createconversationinput).[`id`](#id-18)
 
 ***
 
@@ -11316,6 +11356,56 @@ optional widget?: FieldWidgetOption;
 
 ***
 
+### ListConversationsOptions
+
+#### Extended by
+
+- [`ListRuntimeConversationsOptions`](#listruntimeconversationsoptions)
+
+#### Properties
+
+##### after?
+
+```ts
+optional after?: ConversationListCursor;
+```
+
+##### afterUpdatedAt?
+
+```ts
+optional afterUpdatedAt?: string;
+```
+
+Timestamp-only range filter. Use `after` for lossless cursor pagination.
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+##### before?
+
+```ts
+optional before?: ConversationListCursor;
+```
+
+##### beforeUpdatedAt?
+
+```ts
+optional beforeUpdatedAt?: string;
+```
+
+Timestamp-only range filter. Use `before` for lossless cursor pagination.
+
+##### limit?
+
+```ts
+optional limit?: number;
+```
+
+***
+
 ### ListEventsOptions
 
 #### Properties
@@ -11349,6 +11439,80 @@ optional limit?: number;
 ```ts
 conversationId: string;
 ```
+
+***
+
+### ListRuntimeConversationsOptions
+
+#### Extends
+
+- [`ListConversationsOptions`](#listconversationsoptions)
+
+#### Properties
+
+##### after?
+
+```ts
+optional after?: ConversationListCursor;
+```
+
+###### Inherited from
+
+[`ListConversationsOptions`](#listconversationsoptions).[`after`](#after)
+
+##### afterUpdatedAt?
+
+```ts
+optional afterUpdatedAt?: string;
+```
+
+Timestamp-only range filter. Use `after` for lossless cursor pagination.
+
+###### Inherited from
+
+[`ListConversationsOptions`](#listconversationsoptions).[`afterUpdatedAt`](#afterupdatedat)
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+###### Inherited from
+
+[`ListConversationsOptions`](#listconversationsoptions).[`agentId`](#agentid-8)
+
+##### before?
+
+```ts
+optional before?: ConversationListCursor;
+```
+
+###### Inherited from
+
+[`ListConversationsOptions`](#listconversationsoptions).[`before`](#before)
+
+##### beforeUpdatedAt?
+
+```ts
+optional beforeUpdatedAt?: string;
+```
+
+Timestamp-only range filter. Use `before` for lossless cursor pagination.
+
+###### Inherited from
+
+[`ListConversationsOptions`](#listconversationsoptions).[`beforeUpdatedAt`](#beforeupdatedat)
+
+##### limit?
+
+```ts
+optional limit?: number;
+```
+
+###### Inherited from
+
+[`ListConversationsOptions`](#listconversationsoptions).[`limit`](#limit)
 
 ***
 
@@ -17884,6 +18048,28 @@ optional initialize(): void | Promise<void>;
 
 `void` \| `Promise`\<`void`\>
 
+##### listConversations()
+
+```ts
+listConversations<TConversationContext>(options?): Promise<ConversationRecord<TConversationContext>[]>;
+```
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `TConversationContext` | `unknown` |
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`ListConversationsOptions`](#listconversationsoptions) |
+
+###### Returns
+
+`Promise`\<[`ConversationRecord`](#conversationrecord)\<`TConversationContext`\>[]\>
+
 ##### listEvents()
 
 ```ts
@@ -23229,6 +23415,7 @@ const telemetrySpanNames: {
   runtimeHandleChannelEvent: "cognidesk.runtime.handle_channel_event";
   runtimeHandleUserMessage: "cognidesk.runtime.handle_user_message";
   runtimeInitialize: "cognidesk.runtime.initialize";
+  runtimeListConversations: "cognidesk.runtime.list_conversations";
   runtimeListEvents: "cognidesk.runtime.list_events";
   runtimeReplayConversation: "cognidesk.runtime.replay_conversation";
   runtimeRequestHandoff: "cognidesk.runtime.request_handoff";
@@ -23258,6 +23445,7 @@ const telemetrySpanNames: {
 | <a id="property-runtimehandlechannelevent"></a> `runtimeHandleChannelEvent` | `"cognidesk.runtime.handle_channel_event"` |
 | <a id="property-runtimehandleusermessage"></a> `runtimeHandleUserMessage` | `"cognidesk.runtime.handle_user_message"` |
 | <a id="property-runtimeinitialize"></a> `runtimeInitialize` | `"cognidesk.runtime.initialize"` |
+| <a id="property-runtimelistconversations"></a> `runtimeListConversations` | `"cognidesk.runtime.list_conversations"` |
 | <a id="property-runtimelistevents"></a> `runtimeListEvents` | `"cognidesk.runtime.list_events"` |
 | <a id="property-runtimereplayconversation"></a> `runtimeReplayConversation` | `"cognidesk.runtime.replay_conversation"` |
 | <a id="property-runtimerequesthandoff"></a> `runtimeRequestHandoff` | `"cognidesk.runtime.request_handoff"` |
