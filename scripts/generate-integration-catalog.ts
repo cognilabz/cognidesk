@@ -97,6 +97,14 @@ console.log(`Generated ${path.relative(repoRoot, runtimeLoaderPath)} from ${runt
 
 function resolveManifestSource(reference: IntegrationProviderReference): ManifestSource {
   const moduleSource = reference.modulePath.replace(/^\.\//, "").replace(/\.js$/, ".ts");
+  const repoRelativeManifestPath = path.join(repoRoot, moduleSource);
+  if (!reference.modulePath.startsWith("./") && existsSync(repoRelativeManifestPath)) {
+    return {
+      absolutePath: repoRelativeManifestPath,
+      relativePath: moduleSource,
+      kind: "manifest-only",
+    };
+  }
   const manifestSource = moduleSource.replace(/\/index\.ts$/, "/manifest.ts");
   const manifestPath = path.join(integrationsSrcDir, manifestSource);
   if (existsSync(manifestPath)) {

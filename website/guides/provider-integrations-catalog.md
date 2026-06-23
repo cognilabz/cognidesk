@@ -604,19 +604,19 @@ Evidence: No provider evidence listed in the manifest.
 | Runtime import | `@cognidesk/integration-marketplace-amazon/runtime` |
 | Workspace | `integrations/marketplace/amazon` |
 | Manifest ID | `marketplace.amazon` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `full` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer-docs.amazon.com/sp-api](https://developer-docs.amazon.com/sp-api) |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/amzn/selling-partner-api-sdk](https://github.com/amzn/selling-partner-api-sdk) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |
+| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `delete-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |
 | Provider setup | required `amazon-lwa-client`, `amazon-lwa-token`, `amazon-marketplace-id`, `amazon-notification-destination`, `amazon-notification-signature`; optional `amazon-aws-role-region` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Amazon's official Selling Partner API model repository.
+Coverage: Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership.
 
 Boundary: The SDK user chooses marketplaces, roles, restricted-data-token policy, notification topics, outbound solicitation rules, operator visibility, retention, consent, and redaction.
 
-Evidence: [Amazon official SP-API model repository](https://github.com/amzn/selling-partner-api-models/tree/main/models); [Amazon SP-API Orders v0 reference](https://developer-docs.amazon.com/sp-api/reference/orders-v0); [Amazon SP-API Orders v2026-01-01 reference](https://developer-docs.amazon.com/sp-api/reference/orders-v2026-01-01); [Amazon SP-API Orders migration guide](https://developer-docs.amazon.com/sp-api/docs/orders-api-migration-guide); plus 6 more.
+Evidence: [Amazon official SP-API JavaScript SDK](https://github.com/amzn/selling-partner-api-sdk); [Amazon prebuilt JavaScript SDK tutorial](https://developer-docs.amazon.com/sp-api/docs/automate-your-sp-api-calls-using-a-prebuilt-javascript-sdk); [Amazon SP-API Orders v0 reference](https://developer-docs.amazon.com/sp-api/reference/orders-v0); [Amazon SP-API Orders v2026-01-01 reference](https://developer-docs.amazon.com/sp-api/reference/orders-v2026-01-01); plus 2 more.
 
 #### eBay Marketplace
 
@@ -629,10 +629,10 @@ Evidence: [Amazon official SP-API model repository](https://github.com/amzn/sell
 | Manifest ID | `marketplace.ebay` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-support-slice` |
 | Documentation | [https://developer.ebay.com/api-docs](https://developer.ebay.com/api-docs) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.digital-signature`, `marketplace.notification-challenge` |
+| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `delete-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.digital-signature`, `marketplace.notification-challenge` |
 | Provider setup | required `ebay-oauth-access-token`, `ebay-application-access-token`, `ebay-client-id`, `ebay-client-secret`, `ebay-marketplace-id`, `ebay-notification-verification-token`; optional `ebay-digital-signature-key` |
 
 Coverage: Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.
