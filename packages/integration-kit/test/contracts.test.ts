@@ -11,6 +11,7 @@ import {
   defineIntegrationProviderPackage,
   ecommerceOperationAliasMap,
   emailOperationAliasMap,
+  getIntegrationCategoryProfile,
   integrationCategoryProfiles,
   IntegrationError,
   integrationErrorToJSON,
@@ -52,6 +53,8 @@ describe("integration kit contracts", () => {
       "voice",
       "contact-center",
     ]));
+    expect(getIntegrationCategoryProfile("contactCenter")?.id).toBe("contact-center");
+    expect(getIntegrationCategoryProfile("contact-center")?.category).toBe("contactCenter");
   });
 
   it("binds manifest operation declarations to executable handlers", async () => {

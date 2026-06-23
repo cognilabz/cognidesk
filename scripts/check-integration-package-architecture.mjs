@@ -40,6 +40,7 @@ const providerSdkPackages = new Set([
   "intercom-client",
   "jsforce",
   "@microsoft/microsoft-graph-client",
+  "@ringcentral/sdk",
   "@shopify/admin-api-client",
   "@shopify/shopify-api",
   "@slack/web-api",
@@ -48,6 +49,7 @@ const providerSdkPackages = new Set([
   "googleapis",
   "mailgun.js",
   "openai",
+  "purecloud-platform-client-v2",
   "stripe",
   "twilio",
 ]);

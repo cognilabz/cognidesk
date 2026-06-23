@@ -582,6 +582,826 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
+    "id": "contactCenter.amazon-connect",
+    "category": "contact-center",
+    "provider": "amazon-connect",
+    "importPath": "@cognidesk/integration-contact-center-amazon-connect/manifest",
+    "modulePath": "integrations/contact-center/amazon-connect/src/manifest.js",
+    "manifestExport": "amazonConnectContactCenterManifest",
+    "name": "Amazon Connect",
+    "packageName": "@cognidesk/integration-contact-center-amazon-connect",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "Amazon Connect",
+      "summary": "Runtime uses AWS SDK v3 clients for normalized Amazon Connect support workflows.",
+      "tags": [
+        "contact-center",
+        "amazon-connect",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "label": "Create Amazon Connect task handoffs",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "amazonConnectTaskContact",
+            "label": "Amazon Connect Task Contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "label": "Start Amazon Connect chat contacts and send participant messages",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "amazonConnectChatContact",
+            "label": "Amazon Connect Chat Contact"
+          },
+          {
+            "kind": "amazonConnectChatMessage",
+            "label": "Amazon Connect Chat Message"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "transfer",
+        "label": "Transfer Amazon Connect task or email contacts",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "amazonConnectContactTransfer",
+            "label": "Amazon Connect Contact Transfer"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Read Amazon Connect instance and transcript state",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "amazonConnectInstance",
+            "label": "Amazon Connect Instance"
+          },
+          {
+            "kind": "amazonConnectChatTranscript",
+            "label": "Amazon Connect Chat Transcript"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "Runtime uses AWS SDK v3 clients for normalized Amazon Connect support workflows.",
+        "Raw AWS SDK clients are exposed as escape hatches for provider-specific operations.",
+        "The previous generated Connect-family full-provider clone is not carried forward as a Cognidesk-owned API; broader Connect-family SDK clients should be added only when normalized support workflows need them.",
+        "Connect Health was present in the old generated model bundle, but no @aws-sdk/client-connect-health npm package was found during the 2026-06-21 SDK check."
+      ],
+      "evidence": [
+        {
+          "label": "AWS SDK for JavaScript v3",
+          "url": "https://github.com/aws/aws-sdk-js-v3"
+        },
+        {
+          "label": "Amazon Connect API Reference",
+          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html"
+        },
+        {
+          "label": "Amazon Connect Participant Service",
+          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Participant_Service.html"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.transfer.request",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.task.create",
+          "contactCenter.transcript.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    },
+    "implementation": {
+      "strategy": "official-sdk",
+      "sdkPackage": "@aws-sdk/client-connect, @aws-sdk/client-connectparticipant",
+      "runtimePackage": "@cognidesk/integration-contact-center-amazon-connect",
+      "providerModule": "integrations/contact-center/amazon-connect/src/manifest.js",
+      "manifestExport": "amazonConnectContactCenterManifest",
+      "manifestSource": "integrations/contact-center/amazon-connect/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/aws/aws-sdk-js-v3"
+    },
+    "readiness": {
+      "mode": "credential-configuration",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "amazon-connect-instance",
+        "amazon-connect-api-access"
+      ],
+      "optionalCredentialIds": [],
+      "credentialRequirements": [
+        {
+          "id": "amazon-connect-instance",
+          "label": "Amazon Connect instance",
+          "description": "Amazon Connect instance ID and AWS region.",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "amazon-connect-api-access",
+          "label": "Amazon Connect API access",
+          "description": "AWS SDK v3 credentials with the required Amazon Connect and Connect Participant permissions.",
+          "scopes": [
+            "connect:StartTaskContact",
+            "connect:StartChatContact",
+            "connect:TransferContact",
+            "connect:DescribeInstance"
+          ],
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission-labels",
+            "privilegeGuidance": "These are AWS IAM action names, not OAuth scopes."
+          }
+        }
+      ]
+    },
+    "privacyNotes": [
+      "Task, chat, transfer, and transcript operations can include customer identifiers, routing attributes, messages, summaries, and participant tokens.",
+      "AWS credentials remain inside the SDK user's runtime configuration."
+    ],
+    "limitations": [
+      "Contact flows, queue/quick-connect routing, outbound consent, IAM policy, participant token custody, and WebSocket subscription behavior remain application/AWS configuration.",
+      "Raw AWS SDK clients are available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."
+    ],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@aws-sdk/client-connect, @aws-sdk/client-connectparticipant",
+        "sdkPackages": [
+          "@aws-sdk/client-connect",
+          "@aws-sdk/client-connectparticipant"
+        ]
+      },
+      "channelCoverage": {
+        "taskContact": "sdk-normalized",
+        "chatContact": "sdk-normalized",
+        "participantMessages": "sdk-normalized",
+        "participantTranscript": "sdk-normalized",
+        "taskEmailTransfer": "sdk-normalized",
+        "rawAwsSdkClients": "escape-hatch",
+        "connectHealth": "sdk-gap"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.transfer.request",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.task.create",
+          "contactCenter.transcript.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    }
+  },
+  {
+    "id": "contactCenter.genesys-cloud",
+    "category": "contact-center",
+    "provider": "genesys-cloud",
+    "importPath": "@cognidesk/integration-contact-center-genesys-cloud/manifest",
+    "modulePath": "integrations/contact-center/genesys-cloud/src/manifest.js",
+    "manifestExport": "genesysCloudContactCenterManifest",
+    "name": "Genesys Cloud CX",
+    "packageName": "@cognidesk/integration-contact-center-genesys-cloud",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "Genesys Cloud CX",
+      "summary": "Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.",
+      "tags": [
+        "contact-center",
+        "genesys-cloud",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "label": "Create Genesys Cloud callback or Open Messaging ingress",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "genesysCloudCallback",
+            "label": "Genesys Cloud Callback"
+          },
+          {
+            "kind": "genesysCloudOpenMessage",
+            "label": "Genesys Cloud Open Messaging inbound message/event/receipt"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "contact-center.open-messaging-ingress",
+        "label": "Deliver Genesys Cloud Open Messaging ingress",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "genesysCloudOpenMessage",
+            "label": "Genesys Cloud Open Messaging inbound message/event/receipt"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": true
+      },
+      {
+        "capability": "schedule",
+        "label": "Create Genesys Cloud callbacks",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "genesysCloudCallback",
+            "label": "Genesys Cloud Callback"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Read Genesys Cloud conversations and queues",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "genesysCloudConversation",
+            "label": "Genesys Cloud Conversation"
+          },
+          {
+            "kind": "genesysCloudQueue",
+            "label": "Genesys Cloud Queue"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.",
+        "The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations.",
+        "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.",
+        "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."
+      ],
+      "evidence": [
+        {
+          "label": "Genesys Cloud JavaScript SDK",
+          "url": "https://github.com/MyPureCloud/platform-client-sdk-javascript"
+        },
+        {
+          "label": "Genesys Cloud Developer Center",
+          "url": "https://developer.genesys.cloud/"
+        },
+        {
+          "label": "Genesys Cloud Open Messaging",
+          "url": "https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.handoff.request",
+          "contactCenter.callback.schedule"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": [
+          "genesys-cloud.openMessaging.message.create"
+        ]
+      }
+    },
+    "implementation": {
+      "strategy": "official-sdk",
+      "sdkPackage": "purecloud-platform-client-v2",
+      "runtimePackage": "@cognidesk/integration-contact-center-genesys-cloud",
+      "providerModule": "integrations/contact-center/genesys-cloud/src/manifest.js",
+      "manifestExport": "genesysCloudContactCenterManifest",
+      "manifestSource": "integrations/contact-center/genesys-cloud/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/MyPureCloud/platform-client-sdk-javascript"
+    },
+    "readiness": {
+      "mode": "credential-configuration",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "genesys-cloud-region",
+        "genesys-cloud-api-access"
+      ],
+      "optionalCredentialIds": [
+        "genesys-cloud-open-messaging",
+        "genesys-cloud-routing"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "genesys-cloud-region",
+          "label": "Genesys Cloud API region/base URL",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "genesys-cloud-api-access",
+          "label": "Genesys Cloud OAuth access",
+          "scopes": [
+            "conversation:callback:create",
+            "routing:queue:view",
+            "user:me:view"
+          ],
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission-labels",
+            "privilegeGuidance": "Genesys Cloud permissions are configured through OAuth clients and org roles."
+          }
+        },
+        {
+          "id": "genesys-cloud-open-messaging",
+          "label": "Genesys Cloud Open Messaging integration and webhook secret",
+          "scopes": [
+            "Messaging > Integration > All"
+          ],
+          "required": false,
+          "metadata": {
+            "scopeKind": "provider-permission-labels"
+          }
+        },
+        {
+          "id": "genesys-cloud-routing",
+          "label": "Genesys Cloud queue, callback, or digital messaging routing configuration",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [
+      "Callbacks and Open Messaging ingress can include customer phone numbers, identity, channel metadata, message content, and routing data.",
+      "OAuth tokens stay inside the SDK user's runtime configuration."
+    ],
+    "limitations": [
+      "Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.",
+      "Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."
+    ],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "purecloud-platform-client-v2",
+        "sdkPackages": [
+          "purecloud-platform-client-v2"
+        ]
+      },
+      "channelCoverage": {
+        "callback": "sdk-normalized",
+        "openMessagingInboundApi": "sdk-normalized",
+        "openMessagingOutboundWebhookSignature": "typed-verify-only",
+        "conversations": "sdk-normalized",
+        "queues": "sdk-normalized",
+        "rawGenesysCloudSdkClient": "escape-hatch",
+        "messengerJavascriptSdk": "provider-supported-customer-site-not-typed"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.handoff.request",
+          "contactCenter.callback.schedule"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": [
+          "genesys-cloud.openMessaging.message.create"
+        ]
+      }
+    }
+  },
+  {
+    "id": "contactCenter.ringcentral",
+    "category": "contact-center",
+    "provider": "ringcentral",
+    "importPath": "@cognidesk/integration-contact-center-ringcentral/manifest",
+    "modulePath": "integrations/contact-center/ringcentral/src/manifest.js",
+    "manifestExport": "ringCentralContactCenterManifest",
+    "name": "RingCentral RingCX",
+    "packageName": "@cognidesk/integration-contact-center-ringcentral",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "RingCentral RingCX",
+      "summary": "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
+      "tags": [
+        "contact-center",
+        "ringcentral",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "label": "Create RingCX handoff",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "ringcxHandoff",
+            "label": "RingCX Handoff"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Check RingCentral readiness",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "ringcentralReadiness",
+            "label": "RingCentral Readiness"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
+        "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation that the old monolith generated.",
+        "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness plus raw SDK request escape hatches.",
+        "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk."
+      ],
+      "evidence": [
+        {
+          "label": "RingCentral JavaScript SDK",
+          "url": "https://github.com/ringcentral/ringcentral-js"
+        },
+        {
+          "label": "RingCX Voice APIs",
+          "url": "https://developers.ringcentral.com/engage-voice-api"
+        },
+        {
+          "label": "RingCX Digital APIs",
+          "url": "https://developers.ringcentral.com/engage-digital-api"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.handoff.status.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    },
+    "implementation": {
+      "strategy": "official-sdk",
+      "sdkPackage": "@ringcentral/sdk",
+      "runtimePackage": "@cognidesk/integration-contact-center-ringcentral",
+      "providerModule": "integrations/contact-center/ringcentral/src/manifest.js",
+      "manifestExport": "ringCentralContactCenterManifest",
+      "manifestSource": "integrations/contact-center/ringcentral/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/ringcentral/ringcentral-js"
+    },
+    "readiness": {
+      "mode": "credential-and-live-check",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "ringcentral-api-base",
+        "ringcentral-api-access"
+      ],
+      "optionalCredentialIds": [
+        "ringcentral-ringcx-routing"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "ringcentral-api-base",
+          "label": "RingCentral API base URL",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "ringcentral-api-access",
+          "label": "RingCentral API access",
+          "description": "RingCentral SDK OAuth access or an injected SDK platform client.",
+          "scopes": [],
+          "required": true,
+          "metadata": {
+            "scopeKind": "mixed-auth-mode",
+            "privilegeGuidance": "RingCX deployments may still require product-specific permissions beyond RingCentral OAuth token possession."
+          }
+        },
+        {
+          "id": "ringcentral-ringcx-routing",
+          "label": "RingCX handoff/readiness routing configuration",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [
+      "RingCX handoffs can include customer identifiers, queue/campaign metadata, and conversation summaries.",
+      "RingCentral OAuth credentials stay inside the SDK user's runtime configuration."
+    ],
+    "limitations": [
+      "RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.",
+      "Legacy RingCX Voice APIs, product-private endpoints, Channel SDK runtime, web/mobile widgets, and broader RingCentral platform APIs remain separate surfaces."
+    ],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "strategy": "official-sdk-plus-reviewed-slices",
+        "sdkPackage": "@ringcentral/sdk",
+        "sdkPackages": [
+          "@ringcentral/sdk"
+        ]
+      },
+      "channelCoverage": {
+        "configuredHttpHandoff": "sdk-dispatched",
+        "configuredReadiness": "sdk-dispatched",
+        "rawRingCentralSdkPlatform": "escape-hatch",
+        "currentVoiceRestApiOperations": "provider-supported-not-typed",
+        "digitalRestApiOperations": "provider-supported-not-typed",
+        "channelSdkMessaging": "provider-supported-sdk-runtime-not-typed"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.handoff.status.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    }
+  },
+  {
     "id": "contactCenter.8x8",
     "category": "contactCenter",
     "provider": "8x8",
@@ -1250,390 +2070,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.amazon-connect",
-    "category": "contactCenter",
-    "provider": "amazon-connect",
-    "importPath": "@cognidesk/integrations/contact-center/amazon-connect",
-    "modulePath": "./contact-center/amazon-connect/index.js",
-    "manifestExport": "amazonConnectContactCenterProviderManifest",
-    "name": "Amazon Connect",
-    "packageName": "@cognidesk/integrations",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "Amazon Connect",
-      "summary": "Coverage includes generated per-operation functions for every operation in the selected official AWS Connect-family API models bundled in aws/api-models-aws.",
-      "tags": [
-        "contactCenter",
-        "amazon-connect",
-        "official",
-        "full-provider-api"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "label": "Create Amazon Connect task handoffs",
-        "description": "Starts Amazon Connect task contacts for SDK-user-configured human handoff queues or flows; this is not broad bidirectional voice/chat transfer.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "amazonConnectTaskContact",
-            "label": "Amazon Connect Task Contact"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "send",
-        "label": "Send Amazon Connect chat messages",
-        "description": "Starts Amazon Connect chat contacts and sends participant-service messages only with SDK-user-managed ParticipantToken/ConnectionToken flow.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "amazonConnectChatContact",
-            "label": "Amazon Connect Chat Contact"
-          },
-          {
-            "kind": "amazonConnectChatMessage",
-            "label": "Amazon Connect Chat Message"
-          },
-          {
-            "kind": "amazonConnectParticipantEvent",
-            "label": "Amazon Connect Participant Event"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "transfer",
-        "label": "Transfer Amazon Connect task or email contacts",
-        "description": "Transfers active TASK or EMAIL contacts through TransferContact when SDK configuration supplies a transfer flow and exactly one queue or user target.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "amazonConnectContactTransfer",
-            "label": "Amazon Connect Contact Transfer"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "read-provider-object",
-        "label": "Check Amazon Connect API readiness",
-        "description": "Uses the configured client to verify Amazon Connect API access without exposing credentials.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "amazonConnectInstance",
-            "label": "Amazon Connect Instance"
-          },
-          {
-            "kind": "amazonConnectChatTranscript",
-            "label": "Amazon Connect Chat Transcript"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "full-provider-api",
-      "notes": [
-        "Coverage includes generated per-operation functions for every operation in the selected official AWS Connect-family API models bundled in aws/api-models-aws.",
-        "Typed helpers remain available for Amazon Connect StartTaskContact handoffs, StartChatContact chat initiation, selected Connect Participant Service chat operations, TransferContact for documented TASK/EMAIL transfer, and DescribeInstance readiness.",
-        "StartTaskContact can select a routing target such as ContactFlowId, QuickConnectId, or TaskTemplateId and can include documented task attachments by S3 URL. StartChatContact returns a ParticipantToken that must be exchanged through CreateParticipantConnection before participant SendMessage/SendEvent/GetTranscript calls.",
-        "Generated functions cover StartEmailContact, StartOutboundChatContact, StartOutboundEmailContact, StartOutboundVoiceContact, StartWebRTCContact, queues, users, flows, analytics, campaigns, cases, Contact Lens, Connect Health, AppIntegrations, Customer Profiles, Q Connect, Wisdom, and full Connect Participant Service operations present in the official models.",
-        "SDK users still own IAM permissions, SigV4 signing, participant bearer-token custody, regional endpoint policy, contact-flow design, outbound consent, and feature entitlement checks."
-      ],
-      "evidence": [
-        {
-          "label": "AWS official API models for Amazon Connect family",
-          "url": "https://github.com/aws/api-models-aws/tree/main/models"
-        },
-        {
-          "label": "AWS API models announcement",
-          "url": "https://aws.amazon.com/blogs/aws/introducing-aws-api-models-and-publicly-available-resources-for-aws-api-definitions/"
-        },
-        {
-          "label": "Amazon Connect StartTaskContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StartTaskContact.html"
-        },
-        {
-          "label": "Amazon Connect StartChatContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StartChatContact.html"
-        },
-        {
-          "label": "Amazon Connect API operations",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Service.html"
-        },
-        {
-          "label": "Amazon Connect StartOutboundVoiceContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundVoiceContact.html"
-        },
-        {
-          "label": "Amazon Connect StartOutboundChatContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundChatContact.html"
-        },
-        {
-          "label": "Amazon Connect StopContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StopContact.html"
-        },
-        {
-          "label": "Amazon Connect Participant Service",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Participant_Service.html"
-        },
-        {
-          "label": "Amazon Connect Participant SendEvent",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_connect-participant_SendEvent.html"
-        },
-        {
-          "label": "Amazon Connect Participant GetTranscript",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_connect-participant_GetTranscript.html"
-        },
-        {
-          "label": "Amazon Connect Participant StartAttachmentUpload",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_connect-participant_StartAttachmentUpload.html"
-        },
-        {
-          "label": "Amazon Connect TransferContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_TransferContact.html"
-        },
-        {
-          "label": "Amazon Connect DescribeInstance",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_DescribeInstance.html"
-        },
-        {
-          "label": "Amazon Connect API Reference",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html"
-        },
-        {
-          "label": "Amazon AppIntegrations API Reference",
-          "url": "https://docs.aws.amazon.com/appintegrations/latest/APIReference/Welcome.html"
-        },
-        {
-          "label": "Amazon Connect Customer Profiles API Reference",
-          "url": "https://docs.aws.amazon.com/customerprofiles/latest/APIReference/Welcome.html"
-        },
-        {
-          "label": "Amazon Q in Connect API Reference",
-          "url": "https://docs.aws.amazon.com/amazon-q-connect/latest/APIReference/Welcome.html"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/amazon-connect",
-      "providerModule": "./contact-center/amazon-connect/index.js",
-      "manifestExport": "amazonConnectContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/amazon-connect/manifest.ts",
-      "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/aws/api-models-aws/tree/main/models"
-    },
-    "readiness": {
-      "mode": "credential-and-live-check",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "amazon-connect-instance",
-        "amazon-connect-api-access"
-      ],
-      "optionalCredentialIds": [],
-      "credentialRequirements": [
-        {
-          "id": "amazon-connect-instance",
-          "label": "Amazon Connect instance",
-          "description": "The SDK user's Amazon Connect instance ID and AWS region.",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "amazon-connect-api-access",
-          "label": "Amazon Connect API access",
-          "description": "Server-side AWS SigV4-signed access for Amazon Connect APIs.",
-          "scopes": [
-            "connect:StartTaskContact",
-            "connect:StartChatContact",
-            "connect:TransferContact",
-            "connect:DescribeInstance"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "These strings are AWS IAM action names, not OAuth scopes."
-          }
-        }
-      ]
-    },
-    "privacyNotes": [
-      "Task contacts can contain customer identifiers, transcript summaries, references, and routing attributes.",
-      "Chat contacts and participant-service calls can contain customer display names, initial messages, message content, events, connection tokens, participant tokens, and transcript records.",
-      "AWS credentials or SigV4 signing material stay server-side and are represented in Studio only as readiness."
-    ],
-    "limitations": [
-      "Exactly one of contactFlowId, quickConnectId, or taskTemplateId should be supplied unless the task template has its own flow.",
-      "StartChatContact requires contactFlowId and participantDetails; clients must create the participant connection within Amazon Connect's documented timing and own WebSocket subscription behavior.",
-      "TransferContact is documented for TASK and EMAIL contacts only; this package does not claim broad voice-call or chat transfer coverage.",
-      "Queue selection, contact-flow design, assignment, outbound consent, participant token custody, chat transcript retention, and handoff timing remain SDK-user configuration."
-    ],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "channelCoverage": {
-        "taskContact": "typed-create",
-        "chatContact": "typed-start",
-        "participantMessages": "typed-selected",
-        "participantEvents": "typed-selected",
-        "participantTranscript": "typed-read",
-        "participantAttachments": "generated-full-surface",
-        "taskEmailTransfer": "typed-transfer",
-        "fullConnectFamilyApiOperations": "generated-per-operation-functions",
-        "emailContact": "generated-full-surface",
-        "outboundChatContact": "generated-full-surface",
-        "outboundEmailContact": "generated-full-surface",
-        "outboundSmsWhatsappContact": "generated-full-surface-where-present-in-official-models",
-        "chatStreaming": "generated-full-surface",
-        "queuedCallbackStop": "generated-full-surface",
-        "voiceCallTransfer": "generated-full-surface-where-present-in-official-models",
-        "outboundVoiceContact": "generated-full-surface",
-        "callback": "generated-full-surface-where-present-in-official-models",
-        "outboundCampaigns": "generated-full-surface",
-        "webRtcContactLifecycle": "generated-full-surface",
-        "chatTransfer": "generated-full-surface-where-present-in-official-models",
-        "appIntegrations": "generated-full-surface",
-        "customerProfiles": "generated-full-surface",
-        "qConnect": "generated-full-surface",
-        "wisdom": "generated-full-surface"
-      },
-      "fullProviderApiVerification": {
-        "provider": "amazon-connect-family",
-        "apiVersion": "main",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/amazon-connect-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/amazon-connect-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/amazon-connect-full-api-2026-06-17.functions.json",
-        "officialModelCount": 11,
-        "documentedOperationCount": 765,
-        "implementedOperationCount": 765,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 765
-      },
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
     "id": "contactCenter.five9",
     "category": "contactCenter",
     "provider": "five9",
@@ -1831,343 +2267,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "transfer": "provider-supported-not-typed",
         "crmObjects": "provider-supported-not-typed",
         "recordings": "provider-supported-not-typed"
-      },
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.genesys-cloud",
-    "category": "contactCenter",
-    "provider": "genesys-cloud",
-    "importPath": "@cognidesk/integrations/contact-center/genesys-cloud",
-    "modulePath": "./contact-center/genesys-cloud/index.js",
-    "manifestExport": "genesysCloudContactCenterProviderManifest",
-    "name": "Genesys Cloud CX",
-    "packageName": "@cognidesk/integrations",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "Genesys Cloud CX",
-      "summary": "Coverage includes generated per-operation functions for every operation in the current official Genesys Cloud Platform API Swagger exposed at /api/v2/docs/swagger.",
-      "tags": [
-        "contactCenter",
-        "genesys-cloud",
-        "official",
-        "full-provider-api"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "label": "Create Genesys Cloud callback or Open Messaging ingress",
-        "description": "Creates SDK-configured Genesys Cloud support-workflow requests and typed callback/Open Messaging deliveries; native transfer, chat, Web Messaging, and Messenger REST operations are available through generated fullApi functions rather than this generic handoff capability.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "genesysCloudCallback",
-            "label": "Genesys Cloud Callback"
-          },
-          {
-            "kind": "genesysCloudOpenMessage",
-            "label": "Genesys Cloud Open Messaging inbound message/event/receipt"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "contact-center.open-messaging-ingress",
-        "label": "Deliver Genesys Cloud Open Messaging ingress",
-        "description": "Delivers customer-originated messages, events, and receipts into a configured Genesys Cloud Open Messaging integration; this is not native Web Messaging, Messenger, or human-transfer coverage.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "genesysCloudOpenMessage",
-            "label": "Genesys Cloud Open Messaging inbound message/event/receipt"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": true
-      },
-      {
-        "capability": "send",
-        "label": "Create outbound callback",
-        "description": "Supports outbound callback creation only when the SDK configuration enables it and the Genesys org supports it.",
-        "audiences": [
-          "customer-facing"
-        ],
-        "providerObjects": [
-          {
-            "kind": "genesysCloudCallback",
-            "label": "Genesys Cloud Callback"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "full-provider-api",
-      "notes": [
-        "Coverage includes generated per-operation functions for every operation in the current official Genesys Cloud Platform API Swagger exposed at /api/v2/docs/swagger.",
-        "The package keeps typed support helpers for callback creation, Open Messaging inbound API message/event/receipt requests, Open Messaging outbound webhook signature validation, conversation read, queue listing, and current-user readiness.",
-        "Genesys Cloud handoff is not limited to voice or callback: this package types Open Messaging digital ingress for chat-like third-party messaging handoff into Genesys ACD.",
-        "Native Genesys Cloud Messenger customer-site JavaScript behavior is not a server-side REST endpoint, but all REST configuration/deployment endpoints in the Swagger are exposed through generated functions."
-      ],
-      "evidence": [
-        {
-          "label": "Genesys Cloud Platform API Swagger",
-          "url": "https://api.mypurecloud.com/api/v2/docs/swagger"
-        },
-        {
-          "label": "Genesys APIs by Service",
-          "url": "https://all.docs.genesys.com/Developer/APIbyService"
-        },
-        {
-          "label": "Genesys Cloud Developer Center",
-          "url": "https://developer.genesys.cloud/"
-        },
-        {
-          "label": "Genesys Cloud API Explorer Create Callback",
-          "url": "https://developer.genesys.cloud/devapps/api-explorer#post-api-v2-conversations-callbacks"
-        },
-        {
-          "label": "Genesys Cloud Open Messaging inbound endpoint deprecation",
-          "url": "https://help.genesys.cloud/announcements/deprecation-current-open-messaging-inbound-endpoint/"
-        },
-        {
-          "label": "Genesys Cloud Configure Open Messaging",
-          "url": "https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"
-        },
-        {
-          "label": "Genesys Cloud Web Chat widgets",
-          "url": "https://help.genesys.cloud/articles/about-widgets-for-web-chat/"
-        },
-        {
-          "label": "Genesys Cloud Web Messaging overview",
-          "url": "https://help.genesys.cloud/articles/web-messaging-overview/"
-        },
-        {
-          "label": "Genesys Cloud Conversations API overview",
-          "url": "https://developer.genesys.cloud/api/rest/v2/conversations/overview.html"
-        },
-        {
-          "label": "Genesys Cloud Routing APIs",
-          "url": "https://developer.genesys.cloud/api/rest/v2/routing/"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/genesys-cloud",
-      "providerModule": "./contact-center/genesys-cloud/index.js",
-      "manifestExport": "genesysCloudContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/genesys-cloud/manifest.ts",
-      "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://api.mypurecloud.com/api/v2/docs/swagger"
-    },
-    "readiness": {
-      "mode": "credential-configuration",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "genesys-cloud-region",
-        "genesys-cloud-api-access"
-      ],
-      "optionalCredentialIds": [
-        "genesys-cloud-routing",
-        "genesys-cloud-open-messaging"
-      ],
-      "credentialRequirements": [
-        {
-          "id": "genesys-cloud-region",
-          "label": "Genesys Cloud API region/base URL",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "genesys-cloud-api-access",
-          "label": "Genesys Cloud OAuth access",
-          "scopes": [
-            "conversation:callback:create",
-            "routing:queue:view",
-            "user:me:view"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "Genesys Cloud OAuth clients require roles/permissions such as conversation:callback:create, routing:queue:view, and user:me:view; these are permission labels for the org configuration."
-          }
-        },
-        {
-          "id": "genesys-cloud-routing",
-          "label": "Genesys Cloud queue, callback, or digital messaging routing configuration",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "genesys-cloud-open-messaging",
-          "label": "Genesys Cloud Open Messaging integration and webhook secret",
-          "description": "Requires an Open Messaging integration, Messaging > Integration > All permission, and the optional webhook signature secret when outbound webhooks are enabled.",
-          "scopes": [
-            "Messaging > Integration > All"
-          ],
-          "required": false,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "This is a Genesys Cloud permission label, not an OAuth scope string."
-          }
-        }
-      ]
-    },
-    "privacyNotes": [
-      "Genesys handoffs can include customer phone numbers, callback windows, summaries, and queue/agent routing metadata.",
-      "Open Messaging ingress can include customer identity, message content, channel metadata, and third-party conversation identifiers.",
-      "OAuth credentials stay server-side and Studio only receives readiness status."
-    ],
-    "limitations": [
-      "Genesys regions, OAuth scopes/permissions, queues, callback eligibility, Architect flows, digital integrations, and outbound policy are SDK-user configuration.",
-      "Generated fullApi/requestOperation functions expose documented Genesys Cloud REST operations; configured handoff paths remain limited to SDK-owned workflow wiring.",
-      "Genesys Cloud Messenger JavaScript SDK usage is a separate customer-site implementation surface; REST web chat, Web Messaging, Messenger deployment, transfer, routing, conversation, and messaging operations are exposed through generated fullApi functions."
-    ],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "channelCoverage": {
-        "fullPlatformRestApiOperations": "generated-per-operation-functions",
-        "voiceCall": "generated-full-surface",
-        "callback": "typed-create-and-generated-full-surface",
-        "callbackHandoff": "typed-create-and-generated-full-surface",
-        "nativeVoiceHandoff": "generated-full-surface",
-        "nativeChatHandoff": "generated-full-surface",
-        "webMessagingGuestApi": "generated-full-platform-admin-surface",
-        "messengerJavascriptSdk": "provider-supported-customer-site-not-typed",
-        "openMessagingAcdHandoff": "typed-digital-ingress-message-event-receipt-and-generated-full-surface",
-        "openMessagingInboundApi": "typed-digital-ingress-message-event-receipt-and-generated-full-surface",
-        "openMessagingOutboundWebhookSignature": "typed-verify-only",
-        "openMessagingWebhookParser": "not-covered",
-        "nativeWebMessaging": "generated-full-platform-admin-surface",
-        "webMessagingMessenger": "generated-full-platform-admin-surface",
-        "webChatWidget": "legacy-provider-supported-customer-site-not-typed",
-        "transfer": "generated-full-surface"
-      },
-      "fullProviderApiVerification": {
-        "provider": "genesys-cloud",
-        "apiVersion": "genesys-cloud-v2-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/genesys-cloud-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/genesys-cloud-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/genesys-cloud-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 3147,
-        "implementedOperationCount": 3147,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 3147
-      },
-      "deploymentModes": {
-        "cloud": "supported",
-        "engageOnPremises": "separate-package-supported",
-        "pureConnectOnPremises": "separate-package-supported"
       },
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
@@ -3303,292 +3402,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "implementedOperationCount": 618,
         "unimplementedOperationCount": 0,
         "generatedFunctionCount": 618
-      },
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.ringcentral",
-    "category": "contactCenter",
-    "provider": "ringcentral",
-    "importPath": "@cognidesk/integrations/contact-center/ringcentral",
-    "modulePath": "./contact-center/ringcentral/index.js",
-    "manifestExport": "ringCentralContactCenterProviderManifest",
-    "name": "RingCentral RingCX",
-    "packageName": "@cognidesk/integrations",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "RingCentral RingCX",
-      "summary": "Coverage includes generated per-operation functions for the current official RingCentral RingCX Voice OpenAPI spec and the official RingCentral Engage Digital OpenAPI spec.",
-      "tags": [
-        "contactCenter",
-        "ringcentral",
-        "official",
-        "provider-api-subset"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "label": "Create RingCX handoff",
-        "description": "Creates SDK-configured RingCX support-workflow requests; current RingCX Voice and Engage Digital REST operations are exposed separately through generated voiceApi and digitalApi functions.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "ringcxHandoff",
-            "label": "RingCX Handoff"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "provider-api-subset",
-      "notes": [
-        "Coverage includes generated per-operation functions for the current official RingCentral RingCX Voice OpenAPI spec and the official RingCentral Engage Digital OpenAPI spec.",
-        "Generated current Voice functions cover active calls, agents, agent groups, campaigns, dial groups, leads, lists, recordings, reports, requeue shortcuts, skills, teams, web services, and related current RingCX Voice REST operations.",
-        "Generated Digital functions cover events/webhooks, attachments, bots, content, identities, interventions, threads, sources, tasks, users, user capacities, teams, channels, topologies, and provisioning/routing resources from the Engage Digital REST spec.",
-        "Existing SDK-configured handoff and readiness helpers remain available, but the package still does not claim legacy RingCX Voice, broader RingCentral platform, Channel SDK runtime, or customer-site widget coverage."
-      ],
-      "evidence": [
-        {
-          "label": "RingCX Voice APIs",
-          "url": "https://developers.ringcentral.com/engage-voice-api"
-        },
-        {
-          "label": "RingCX Voice OpenAPI",
-          "url": "https://raw.githubusercontent.com/ringcentral/engage-voice-api-docs/main/specs/engage-voice_openapi3.json"
-        },
-        {
-          "label": "RingCX Voice API docs repository",
-          "url": "https://github.com/ringcentral/engage-voice-api-docs"
-        },
-        {
-          "label": "RingCX Digital APIs",
-          "url": "https://developers.ringcentral.com/engage-digital-api"
-        },
-        {
-          "label": "RingCX Digital OpenAPI",
-          "url": "https://raw.githubusercontent.com/ringcentral/engage-digital-api-docs/master/specs/engage-digital_openapi3.yaml"
-        },
-        {
-          "label": "RingCX Digital API docs repository",
-          "url": "https://github.com/ringcentral/engage-digital-api-docs"
-        },
-        {
-          "label": "RingCX authentication modes",
-          "url": "https://developers.ringcentral.com/engage/voice/guide/authentication"
-        },
-        {
-          "label": "RingCX Digital messaging source permissions",
-          "url": "https://developers.ringcentral.com/engage/digital/guide/interactions/web-messaging/source"
-        },
-        {
-          "label": "RingCX Channel SDK quick start",
-          "url": "https://developers.ringcentral.com/engage/digital/guide/sdks/source-sdk/quick-start"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/ringcentral",
-      "providerModule": "./contact-center/ringcentral/index.js",
-      "manifestExport": "ringCentralContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/ringcentral/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developers.ringcentral.com/engage-voice-api"
-    },
-    "readiness": {
-      "mode": "credential-configuration",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "ringcentral-ringcx-api-base",
-        "ringcentral-ringcx-api-access"
-      ],
-      "optionalCredentialIds": [
-        "ringcentral-ringcx-routing"
-      ],
-      "credentialRequirements": [
-        {
-          "id": "ringcentral-ringcx-api-base",
-          "label": "RingCX API base URL",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "ringcentral-ringcx-api-access",
-          "label": "RingCX API access",
-          "description": "RingCX access token or RingCentral OAuth token plus user/platform permissions configured by the SDK app; this package does not invent a generic `ringcx` OAuth scope.",
-          "scopes": [],
-          "required": true,
-          "metadata": {
-            "scopeKind": "mixed-auth-mode",
-            "privilegeGuidance": "RingCX deployments can use RingCentral OAuth scopes plus RingCX product permissions, or product-specific bearer/token modes for legacy/current APIs."
-          }
-        },
-        {
-          "id": "ringcentral-ringcx-routing",
-          "label": "RingCX queue/campaign routing configuration",
-          "scopes": [],
-          "required": false
-        }
-      ]
-    },
-    "privacyNotes": [
-      "RingCX handoffs can include customer identifiers, leads, active calls, queue metadata, and conversation summaries.",
-      "RingCentral credentials stay server-side and Studio receives only readiness."
-    ],
-    "limitations": [
-      "RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.",
-      "Generated functions expose the current RingCX Voice and Engage Digital REST specs, but SDK users still own account/region host selection, permissions, entitlement, safe mutating-operation policy, and payload validation.",
-      "Legacy RingCX Voice OpenAPI specs, product-specific private endpoints, the Engage Digital Channel SDK runtime, web/mobile widgets, and broader RingCentral platform APIs remain separate surfaces.",
-      "Per-conversation handoff calls cannot override the configured RingCX path; use generated voiceApi or digitalApi functions for consequential lead, campaign, active-call, digital, outbound, transfer, recording, bot, or task actions."
-    ],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "authModes": {
-        "currentRingCx": "authorization-bearer",
-        "legacyEngageVoice": "x-auth-token",
-        "explicitAuthorizationHeader": "supported"
-      },
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "currentVoiceRestApiOperations": "generated-per-operation-functions",
-        "currentVoiceLeadCampaignActiveCall": "generated-current-openapi-surface",
-        "currentVoiceOutboundDialing": "generated-current-openapi-surface",
-        "currentVoiceRecording": "generated-current-openapi-surface",
-        "currentVoiceTransfer": "generated-current-openapi-surface-where-present-in-current-openapi",
-        "digitalRestApiOperations": "generated-per-operation-functions",
-        "digitalCasesMessaging": "generated-digital-openapi-surface",
-        "digitalTasksThreadsInterventions": "generated-digital-openapi-surface",
-        "digitalWebhooksEvents": "generated-digital-openapi-surface",
-        "liveWebChat": "provider-supported-customer-site-not-typed",
-        "mobileMessaging": "provider-supported-customer-site-not-typed",
-        "channelSdkMessaging": "provider-supported-sdk-runtime-not-typed",
-        "smsEmailSocial": "generated-digital-openapi-surface-where-present",
-        "legacyVoiceRestApiOperations": "provider-supported-not-typed"
-      },
-      "generatedProviderApiSlices": {
-        "ringCxVoiceCurrent": {
-          "provider": "ringcentral-ringcx-voice-current",
-          "apiVersion": "1.0.0",
-          "verifiedAt": "2026-06-18",
-          "coverageArtifact": "docs/provider-coverage/ringcentral-voice-api-2026-06-18.operations.json",
-          "operationCatalogArtifact": "docs/provider-coverage/ringcentral-voice-api-2026-06-18.operations.json",
-          "functionCatalogArtifact": "docs/provider-coverage/ringcentral-voice-api-2026-06-18.functions.json",
-          "documentedPathCount": 87,
-          "documentedOperationCount": 138,
-          "implementedOperationCount": 138,
-          "generatedFunctionCount": 138
-        },
-        "engageDigital": {
-          "provider": "ringcentral-engage-digital",
-          "apiVersion": "1.0.1",
-          "verifiedAt": "2026-06-18",
-          "coverageArtifact": "docs/provider-coverage/ringcentral-digital-api-2026-06-18.operations.json",
-          "operationCatalogArtifact": "docs/provider-coverage/ringcentral-digital-api-2026-06-18.operations.json",
-          "functionCatalogArtifact": "docs/provider-coverage/ringcentral-digital-api-2026-06-18.functions.json",
-          "documentedPathCount": 90,
-          "documentedOperationCount": 149,
-          "implementedOperationCount": 149,
-          "generatedFunctionCount": 149
-        }
       },
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",

@@ -18,28 +18,12 @@ export const contactCenterProviderReferences = [
     "manifestExport": "aircallContactCenterProviderManifest"
   },
   {
-    "id": "contactCenter.amazon-connect",
-    "category": "contactCenter",
-    "provider": "amazon-connect",
-    "importPath": "@cognidesk/integrations/contact-center/amazon-connect",
-    "modulePath": "./contact-center/amazon-connect/index.js",
-    "manifestExport": "amazonConnectContactCenterProviderManifest"
-  },
-  {
     "id": "contactCenter.five9",
     "category": "contactCenter",
     "provider": "five9",
     "importPath": "@cognidesk/integrations/contact-center/five9",
     "modulePath": "./contact-center/five9/index.js",
     "manifestExport": "five9ContactCenterProviderManifest"
-  },
-  {
-    "id": "contactCenter.genesys-cloud",
-    "category": "contactCenter",
-    "provider": "genesys-cloud",
-    "importPath": "@cognidesk/integrations/contact-center/genesys-cloud",
-    "modulePath": "./contact-center/genesys-cloud/index.js",
-    "manifestExport": "genesysCloudContactCenterProviderManifest"
   },
   {
     "id": "contactCenter.genesys-engage",
@@ -72,14 +56,6 @@ export const contactCenterProviderReferences = [
     "importPath": "@cognidesk/integrations/contact-center/nice-cxone",
     "modulePath": "./contact-center/nice-cxone/index.js",
     "manifestExport": "niceCxoneContactCenterProviderManifest"
-  },
-  {
-    "id": "contactCenter.ringcentral",
-    "category": "contactCenter",
-    "provider": "ringcentral",
-    "importPath": "@cognidesk/integrations/contact-center/ringcentral",
-    "modulePath": "./contact-center/ringcentral/index.js",
-    "manifestExport": "ringCentralContactCenterProviderManifest"
   },
   {
     "id": "contactCenter.talkdesk",
