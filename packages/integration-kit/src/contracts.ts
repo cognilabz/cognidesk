@@ -77,6 +77,16 @@ export type ExactIntegrationOperationHandlers<
 
 export type ProviderNamespacedOperationAlias<Provider extends string> = `${Provider}.${string}`;
 
+export interface ProviderManifestAuthorInput {
+  id: string;
+  name: string;
+  packageName: string;
+  provider: string;
+  category: string;
+  operations?: readonly ({ alias: string } | undefined)[] | undefined;
+  metadata?: unknown | undefined;
+}
+
 export interface OperationBindingReport {
   declaredOperationAliases: string[];
   handlerOperationAliases: string[];
@@ -86,7 +96,7 @@ export interface OperationBindingReport {
 }
 
 export interface DefineIntegrationInput<
-  Manifest extends ProviderManifestInput,
+  Manifest extends ProviderManifestAuthorInput,
   Credentials = unknown,
   Handlers extends IntegrationOperationHandlers<Credentials> = IntegrationOperationHandlers<Credentials>,
 > {
@@ -98,7 +108,7 @@ export interface DefineIntegrationInput<
 }
 
 export interface DefinedIntegration<
-  Manifest extends ProviderManifestInput,
+  Manifest extends ProviderManifestAuthorInput,
   Credentials = unknown,
   Handlers extends IntegrationOperationHandlers<Credentials> = IntegrationOperationHandlers<Credentials>,
 > {
@@ -116,19 +126,19 @@ export interface DefinedIntegration<
   ): Promise<Awaited<ReturnType<Handlers[Alias]>>>;
 }
 
-export function defineIntegrationProviderPackage<const Manifest extends ProviderManifestInput>(
+export function defineIntegrationProviderPackage<const Manifest extends ProviderManifestAuthorInput>(
   manifest: Manifest,
 ): ProviderManifest & Manifest {
   const profile = getIntegrationCategoryProfile(manifest.category);
   const parsed = profile
     ? defineProviderWithProfileMetadata(manifest, profile)
-    : defineProviderPackage(manifest);
+    : defineProviderPackage(manifest as unknown as ProviderManifestInput);
   assertProviderExtensionOperationAliases(parsed, profile);
   return parsed as ProviderManifest & Manifest;
 }
 
 export function defineIntegration<
-  const Manifest extends ProviderManifestInput,
+  const Manifest extends ProviderManifestAuthorInput,
   Credentials = unknown,
   const Handlers extends IntegrationOperationHandlers<Credentials> = IntegrationOperationHandlers<Credentials>,
 >(input: DefineIntegrationInput<Manifest, Credentials, Handlers>): DefinedIntegration<Manifest, Credentials, Handlers> {
@@ -244,13 +254,13 @@ export function providerOperationAliasNamespaces(
   ].filter((value): value is string => Boolean(value)))];
 }
 
-function defineProviderWithProfileMetadata<const Manifest extends ProviderManifestInput>(
+function defineProviderWithProfileMetadata<const Manifest extends ProviderManifestAuthorInput>(
   manifest: Manifest,
   profile: IntegrationCategoryProfile,
 ): ProviderManifest {
   const coverage = deriveProviderCapabilityCoverage({
     profile,
-    manifest,
+    manifest: manifest as unknown as ProviderManifestInput,
   });
   return defineProviderPackage({
     ...manifest,
@@ -269,7 +279,7 @@ function defineProviderWithProfileMetadata<const Manifest extends ProviderManife
         extensionOperations: coverage.extensionOperations,
       } satisfies IntegrationProviderProfileAttachment,
     },
-  });
+  } as unknown as ProviderManifestInput);
 }
 
 function assertOperationBindingReport(

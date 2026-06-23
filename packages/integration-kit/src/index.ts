@@ -15,6 +15,7 @@ export type {
   IntegrationProviderProfileAttachment,
   ManifestOperationAlias,
   OperationBindingReport,
+  ProviderManifestAuthorInput,
   ProviderNamespacedOperationAlias,
 } from "./contracts.js";
 
@@ -107,6 +108,16 @@ export type {
   IntegrationInstrumentationEvent,
   IntegrationInstrumentationHooks,
 } from "./instrumentation.js";
+
+export {
+  providerJsonRequest,
+  providerRequestUrl,
+} from "./http.js";
+export type {
+  ProviderHttpMethod,
+  ProviderJsonRequestInput,
+  ProviderQueryValue,
+} from "./http.js";
 
 export type {
   CategoryDataSourceDeclaration,

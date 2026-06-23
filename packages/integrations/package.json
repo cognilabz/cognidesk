@@ -18,42 +18,6 @@
       "types": "./dist/provider-manifest.d.ts",
       "import": "./dist/provider-manifest.js"
     },
-    "./contact-center/8x8": {
-      "types": "./dist/contact-center/8x8/index.d.ts",
-      "import": "./dist/contact-center/8x8/index.js"
-    },
-    "./contact-center/aircall": {
-      "types": "./dist/contact-center/aircall/index.d.ts",
-      "import": "./dist/contact-center/aircall/index.js"
-    },
-    "./contact-center/five9": {
-      "types": "./dist/contact-center/five9/index.d.ts",
-      "import": "./dist/contact-center/five9/index.js"
-    },
-    "./contact-center/genesys-engage": {
-      "types": "./dist/contact-center/genesys-engage/index.d.ts",
-      "import": "./dist/contact-center/genesys-engage/index.js"
-    },
-    "./contact-center/genesys-pureconnect": {
-      "types": "./dist/contact-center/genesys-pureconnect/index.d.ts",
-      "import": "./dist/contact-center/genesys-pureconnect/index.js"
-    },
-    "./contact-center/nextiva": {
-      "types": "./dist/contact-center/nextiva/index.d.ts",
-      "import": "./dist/contact-center/nextiva/index.js"
-    },
-    "./contact-center/nice-cxone": {
-      "types": "./dist/contact-center/nice-cxone/index.d.ts",
-      "import": "./dist/contact-center/nice-cxone/index.js"
-    },
-    "./contact-center/talkdesk": {
-      "types": "./dist/contact-center/talkdesk/index.d.ts",
-      "import": "./dist/contact-center/talkdesk/index.js"
-    },
-    "./contact-center/zoom": {
-      "types": "./dist/contact-center/zoom/index.d.ts",
-      "import": "./dist/contact-center/zoom/index.js"
-    },
     "./cobrowsing/cognidesk": {
       "types": "./dist/cobrowsing/cognidesk/index.d.ts",
       "import": "./dist/cobrowsing/cognidesk/index.js"
@@ -129,10 +93,8 @@
   },
   "scripts": {
     "build:deps": "pnpm --filter @cognidesk/core --filter @cognidesk/integration-kit --filter @cognidesk/voice-websocket --filter @cognidesk/test-harness build",
-    "build": "pnpm run build:deps && pnpm run build:entries:voice && pnpm run build:entries:contact-center-a && pnpm run build:entries:contact-center-b && pnpm run build:entries:community && pnpm run build:entries:marketplace && pnpm run build:entries:form-help-center && pnpm run build:entries:sms && pnpm run build:entries:video",
+    "build": "pnpm run build:deps && pnpm run build:entries:voice && pnpm run build:entries:community && pnpm run build:entries:marketplace && pnpm run build:entries:form-help-center && pnpm run build:entries:sms && pnpm run build:entries:video",
     "build:entries:voice": "tsup src/index.ts src/category-profiles.ts src/provider-manifest.ts src/voice/aws-speech/index.ts src/voice/azure-speech/index.ts src/voice/deepgram/index.ts src/voice/elevenlabs/index.ts src/voice/google-speech/index.ts src/voice/openai/index.ts src/voice/sip/index.ts src/voice/twilio/index.ts src/voice/vonage/index.ts --format esm --dts --clean --external openai",
-    "build:entries:contact-center-a": "tsup src/contact-center/8x8/index.ts src/contact-center/aircall/index.ts src/contact-center/five9/index.ts src/contact-center/genesys-engage/index.ts --format esm --dts --outDir dist/contact-center --external openai",
-    "build:entries:contact-center-b": "tsup src/contact-center/genesys-pureconnect/index.ts src/contact-center/nextiva/index.ts src/contact-center/nice-cxone/index.ts src/contact-center/talkdesk/index.ts src/contact-center/zoom/index.ts --format esm --dts --outDir dist/contact-center --external openai",
     "build:entries:community": "tsup src/cobrowsing/cognidesk/index.ts src/community/forum/index.ts --format esm --dts --external openai",
     "build:entries:marketplace": "tsup src/marketplace/amazon/index.ts src/marketplace/ebay/index.ts --format esm --dts --outDir dist/marketplace --external openai",
     "build:entries:form-help-center": "tsup src/form/cognidesk/index.ts src/help-center/cognidesk/index.ts --format esm --dts --external openai",
