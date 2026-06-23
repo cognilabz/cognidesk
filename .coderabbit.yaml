@@ -4,6 +4,7 @@ reviews:
   profile: "chill"
   request_changes_workflow: false
   path_filters:
+    - "**/*"
     - "!packages/integrations/**"
     - "!website/api-reference/**"
     - "!docs/**"
