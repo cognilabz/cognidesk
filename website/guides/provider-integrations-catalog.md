@@ -960,19 +960,19 @@ Evidence: [Help Scout JavaScript SDK](https://developer.helpscout.com/apps/javas
 | Runtime import | `@cognidesk/integration-ticketing-hubspot/runtime` |
 | Workspace | `integrations/ticketing/hubspot` |
 | Manifest ID | `ticketing.hubspot` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://api.hubapi.com/public/api/spec/v1/specs](https://api.hubapi.com/public/api/spec/v1/specs) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/HubSpot/hubspot-api-nodejs](https://github.com/HubSpot/hubspot-api-nodejs) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `hubspot.request-signature-v3` |
-| Provider setup | required `hubspot-private-app-token`, `hubspot-portal`; optional `hubspot-app`, `hubspot-webhook-secret` |
+| Capabilities | `read-provider-object`, `send`, `create-provider-object`, `update-provider-object`, `search-provider-object`, `draft`, `link-provider-object` |
+| Provider setup | required `hubspot-private-app-token` |
 
-Coverage: Coverage includes generated per-operation functions for every selected current API entry in HubSpot's official public spec index.
+Coverage: Coverage is scoped to normalized ticketing support operations implemented by typed handlers.
 
-Boundary: Ticket pipelines, pipeline stages, priorities, owners, custom properties, association labels, webhook subscriptions, private app scopes, and Service Hub entitlements are owned by the SDK user's HubSpot portal.
+Boundary: Ticket pipelines, stages, owners, custom properties, association labels, scopes, and portal-specific workflow policy are SDK-user configuration.
 
-Evidence: [HubSpot public OpenAPI spec index](https://api.hubapi.com/public/api/spec/v1/specs); [HubSpot CRM Tickets API guide](https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/tickets/guide); [HubSpot CRM Notes API guide](https://developers.hubspot.com/docs/api-reference/legacy/crm/activities/notes/guide); [HubSpot CRM search guide](https://developers.hubspot.com/docs/api-reference/latest/crm/search-the-crm); plus 5 more.
+Evidence: [HubSpot Node client](https://github.com/HubSpot/hubspot-api-nodejs); [HubSpot CRM Tickets API guide](https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/tickets/guide); [HubSpot CRM Notes API guide](https://developers.hubspot.com/docs/api-reference/legacy/crm/activities/notes/guide); [HubSpot CRM search guide](https://developers.hubspot.com/docs/api-reference/latest/crm/search-the-crm).
 
 #### Intercom
 
@@ -983,19 +983,19 @@ Evidence: [HubSpot public OpenAPI spec index](https://api.hubapi.com/public/api/
 | Runtime import | `@cognidesk/integration-ticketing-intercom/runtime` |
 | Workspace | `integrations/ticketing/intercom` |
 | Manifest ID | `ticketing.intercom` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://github.com/intercom/Intercom-OpenAPI](https://github.com/intercom/Intercom-OpenAPI) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/intercom/intercom-node](https://github.com/intercom/intercom-node) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `intercom.request-signature` |
-| Provider setup | required `intercom-access-token`; optional `intercom-webhook-secret` |
+| Capabilities | `read-provider-object`, `send`, `create-provider-object`, `update-provider-object`, `search-provider-object`, `draft` |
+| Provider setup | required `intercom-access-token` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Intercom's official stable REST API 2.15 OpenAPI file.
+Coverage: Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.
 
-Boundary: Ticket types, ticket attributes, ticket states, conversation search fields, Inbox assignment targets, teammate availability, and API scopes are owned by the SDK user's Intercom workspace.
+Boundary: Ticket types, attributes, states, assignment targets, teammate availability, scopes, and public/private reply policy are SDK-user configuration.
 
-Evidence: [Intercom official OpenAPI specs](https://github.com/intercom/Intercom-OpenAPI); [Intercom REST API 2.15 OpenAPI YAML](https://raw.githubusercontent.com/intercom/Intercom-OpenAPI/main/descriptions/2.15/api.intercom.io.yaml); [Intercom REST API reference](https://developers.intercom.com/docs/references/rest-api/api.intercom.io); [Intercom Conversations API](https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations); plus 3 more.
+Evidence: [Intercom Node client](https://github.com/intercom/intercom-node); [Intercom Tickets API](https://developers.intercom.com/docs/references/rest-api/api.intercom.io/tickets); [Intercom Conversations API](https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations).
 
 #### Kustomer
 
@@ -1031,7 +1031,7 @@ Evidence: [Kustomer developer portal](https://developer.kustomer.com/); [Kustome
 | Manifest ID | `ticketing.dynamics365` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1100,17 +1100,17 @@ Evidence: [Pega DX API overview](https://docs.pega.com/bundle/dx-api/page/platfo
 | Manifest ID | `ticketing.salesforce` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm) |
+| Implementation | `maintained-library` |
+| Documentation | [https://github.com/jsforce/jsforce](https://github.com/jsforce/jsforce) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `salesforce.webhook-verifier` |
-| Provider setup | required `salesforce-instance`, `salesforce-oauth-access`; optional `salesforce-webhook-secret` |
+| Capabilities | `read-provider-object`, `send`, `create-provider-object`, `update-provider-object`, `search-provider-object`, `draft` |
+| Provider setup | required `salesforce-instance`, `salesforce-oauth-access` |
 
-Coverage: Coverage is limited to selected Salesforce REST API and Service Cloud support primitives: Case create/read/update/search, sObject describe, assignment-rule header opt-in, CaseComment, FeedItem, Contact/Account SOQL search, user/org readiness, and SDK-user inbound event relay parsing.
+Coverage: Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.
 
-Boundary: Salesforce Case record types, required fields, queues, owners, entitlements, assignment rules, triggers, Flow automation, field-level security, and Service Cloud licenses are owned by the SDK user's org.
+Boundary: Record types, required fields, queues, owners, assignment rules, Flow automation, field-level security, and Service Cloud licenses are SDK-user configuration.
 
-Evidence: [Salesforce REST API resources](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm); [Salesforce sObject Describe](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_describe.htm); [Salesforce Assignment Rule header](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/headers_autoassign.htm); [Salesforce Case object reference](https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_case.htm); plus 9 more.
+Evidence: [JSforce](https://github.com/jsforce/jsforce); [Salesforce REST API resources](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm); [Salesforce Case object reference](https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_case.htm); [Salesforce CaseComment object reference](https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_casecomment.htm); plus 1 more.
 
 #### SAP Service Cloud
 
@@ -1146,7 +1146,7 @@ Evidence: [SAP Cloud for Customer OData API](https://help.sap.com/docs/sap-cloud
 | Manifest ID | `ticketing.servicenow` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://www.servicenow.com/docs/r/washingtondc/api-reference/rest-apis/c_TableAPI.html](https://www.servicenow.com/docs/r/washingtondc/api-reference/rest-apis/c_TableAPI.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1192,7 +1192,7 @@ Evidence: [Zendesk Node.js API client docs](https://developer.zendesk.com/docume
 | Manifest ID | `ticketing.zoho-desk` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://desk.zoho.com/DeskAPIDocument](https://desk.zoho.com/DeskAPIDocument) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |

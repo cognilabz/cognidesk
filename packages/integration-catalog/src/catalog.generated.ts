@@ -11699,11 +11699,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.dynamics365",
     "category": "ticketing",
     "provider": "dynamics365",
-    "importPath": "@cognidesk/integrations/ticketing/dynamics365",
-    "modulePath": "./ticketing/dynamics365/index.js",
+    "importPath": "@cognidesk/integration-ticketing-dynamics365/manifest",
+    "modulePath": "integrations/ticketing/dynamics365/src/manifest.js",
     "manifestExport": "dynamics365TicketingProviderManifest",
     "name": "Microsoft Dynamics 365 Customer Service",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-dynamics365",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -11971,13 +11971,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/dynamics365",
-      "providerModule": "./ticketing/dynamics365/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-dynamics365",
+      "runtimePackage": "@cognidesk/integration-ticketing-dynamics365",
+      "providerModule": "integrations/ticketing/dynamics365/src/manifest.js",
       "manifestExport": "dynamics365TicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/dynamics365/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/dynamics365/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview"
     },
     "readiness": {
@@ -12024,6 +12024,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "runtimePackage": "@cognidesk/integration-ticketing-dynamics365",
+        "manifestImport": "no-sdk-client-initialization"
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -13352,11 +13357,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.hubspot",
     "category": "ticketing",
     "provider": "hubspot",
-    "importPath": "@cognidesk/integrations/ticketing/hubspot",
-    "modulePath": "./ticketing/hubspot/index.js",
+    "importPath": "@cognidesk/integration-ticketing-hubspot/manifest",
+    "modulePath": "integrations/ticketing/hubspot/src/manifest.js",
     "manifestExport": "hubSpotTicketingProviderManifest",
     "name": "HubSpot Service Hub",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-hubspot",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -13370,19 +13375,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "HubSpot Service Hub",
-      "summary": "Coverage includes generated per-operation functions for every selected current API entry in HubSpot's official public spec index.",
+      "summary": "Coverage is scoped to normalized ticketing support operations implemented by typed handlers.",
       "tags": [
         "ticketing",
         "hubspot",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
-        "capability": "receive",
-        "label": "Receive HubSpot webhooks",
-        "description": "Validates and parses HubSpot CRM webhook events for SDK-user-owned ticketing workflows.",
+        "capability": "read-provider-object",
+        "label": "Read HubSpot tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13390,8 +13394,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "hubspotWebhookEvent",
-            "label": "HubSpot Webhook Event"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -13401,39 +13405,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "create-provider-object",
-        "label": "Create HubSpot CRM records",
-        "description": "Creates HubSpot tickets, contacts, companies, notes, and SDK-user-selected associations.",
+        "capability": "send",
+        "label": "Create HubSpot ticket comments",
         "audiences": [
           "customer-facing",
-          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotContact",
-            "label": "HubSpot Contact",
-            "schemaName": "contacts"
-          },
-          {
-            "kind": "hubspotCompany",
-            "label": "HubSpot Company",
-            "schemaName": "companies"
-          },
-          {
-            "kind": "hubspotNote",
-            "label": "HubSpot Note",
-            "schemaName": "notes"
-          },
-          {
-            "kind": "hubspotAssociation",
-            "label": "HubSpot Association",
-            "schemaName": "associations"
+            "kind": "ticketComment",
+            "label": "Ticket Comment"
           }
         ],
         "requiresCredential": true,
@@ -13443,9 +13424,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "read-provider-object",
-        "label": "Read HubSpot CRM records",
-        "description": "Reads HubSpot tickets, contacts, companies, association labels, and account readiness details.",
+        "capability": "create-provider-object",
+        "label": "Create HubSpot tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13453,60 +13433,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotContact",
-            "label": "HubSpot Contact",
-            "schemaName": "contacts"
-          },
-          {
-            "kind": "hubspotCompany",
-            "label": "HubSpot Company",
-            "schemaName": "companies"
-          },
-          {
-            "kind": "hubspotAssociationLabel",
-            "label": "HubSpot Association Label",
-            "schemaName": "associations/labels"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": false,
+        "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": false,
+        "changesWorkflow": true,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Update HubSpot CRM records",
-        "description": "Updates HubSpot ticket, contact, company, note, pinned activity, assignment, pipeline, and custom fields when SDK-user policy permits.",
+        "label": "Update HubSpot tickets",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotContact",
-            "label": "HubSpot Contact",
-            "schemaName": "contacts"
-          },
-          {
-            "kind": "hubspotCompany",
-            "label": "HubSpot Company",
-            "schemaName": "companies"
-          },
-          {
-            "kind": "hubspotNote",
-            "label": "HubSpot Note",
-            "schemaName": "notes"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -13517,8 +13464,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search HubSpot CRM records",
-        "description": "Searches HubSpot tickets, contacts, and companies using SDK-user-supplied CRM Search API filters, sorts, properties, and pagination.",
+        "label": "Search HubSpot tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13526,19 +13472,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotContact",
-            "label": "HubSpot Contact",
-            "schemaName": "contacts"
-          },
-          {
-            "kind": "hubspotCompany",
-            "label": "HubSpot Company",
-            "schemaName": "companies"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -13548,68 +13483,55 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "handoff",
-        "label": "Attach support handoff to HubSpot",
-        "description": "Provides ticket creation/update, contact/company lookup, and configurable internal handoff notes that can associate existing HubSpot file IDs.",
+        "capability": "draft",
+        "label": "Create HubSpot internal notes",
         "audiences": [
-          "customer-facing",
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotNote",
-            "label": "HubSpot Note",
-            "schemaName": "notes"
-          },
-          {
-            "kind": "hubspotAssociation",
-            "label": "HubSpot Association",
-            "schemaName": "associations"
+            "kind": "internalNote",
+            "label": "Internal Note"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "hubspot.request-signature-v3",
-        "label": "Validate HubSpot v3 request signatures",
-        "description": "Validates X-HubSpot-Signature-v3 using method, URI, raw body, timestamp, and app client secret before parsing webhook JSON.",
+        "capability": "link-provider-object",
+        "label": "Create HubSpot associations",
         "audiences": [
-          "internal-support"
+          "internal-support",
+          "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "hubspotSignedRequest",
-            "label": "HubSpot Signed Request"
+            "kind": "conversationLink",
+            "label": "Conversation Link"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
+        "sideEffect": true,
+        "exposesSensitiveData": false,
+        "changesWorkflow": true,
         "extension": true
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every selected current API entry in HubSpot's official public spec index.",
-        "Typed convenience helpers remain available for HubSpot CRM v3 ticket/contact/company read-write records, note create/update records, selected associations, CRM search, properties, owners, ticket pipelines, account readiness, webhook payload parsing, and v3 request-signature validation used by Cognidesk support workflows.",
-        "Generated functions cover HubSpot's date-versioned 2026-03 surfaces where they are the current public spec, including broader CRM objects, pipeline/stage mutation, owner reads, properties CRUD, conversations and custom channels, files, timeline events, webhooks, CMS, marketing, automation, and account APIs. SDK users still own HubSpot app scopes, entitlements, portal-specific configuration, and private-app/OAuth credential policy."
+        "Coverage is scoped to normalized ticketing support operations implemented by typed handlers.",
+        "Implementation uses the maintained official @hubspot/api-client package; broader HubSpot APIs remain available through the rawClient escape hatch.",
+        "Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."
       ],
       "evidence": [
         {
-          "label": "HubSpot public OpenAPI spec index",
-          "url": "https://api.hubapi.com/public/api/spec/v1/specs"
+          "label": "HubSpot Node client",
+          "url": "https://github.com/HubSpot/hubspot-api-nodejs"
         },
         {
           "label": "HubSpot CRM Tickets API guide",
@@ -13622,48 +13544,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "HubSpot CRM search guide",
           "url": "https://developers.hubspot.com/docs/api-reference/latest/crm/search-the-crm"
-        },
-        {
-          "label": "HubSpot CRM properties guide",
-          "url": "https://developers.hubspot.com/docs/api-reference/legacy/crm/properties/guide"
-        },
-        {
-          "label": "HubSpot CRM owners guide",
-          "url": "https://developers.hubspot.com/docs/api-reference/legacy/crm/owners/guide"
-        },
-        {
-          "label": "HubSpot CRM pipelines guide",
-          "url": "https://developers.hubspot.com/docs/api-reference/legacy/crm/pipelines/guide"
-        },
-        {
-          "label": "HubSpot account information details",
-          "url": "https://developers.hubspot.com/docs/api-reference/legacy/account/account-information/get-account-details"
-        },
-        {
-          "label": "HubSpot request validation",
-          "url": "https://developers.hubspot.com/docs/apps/legacy-apps/authentication/validating-requests"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -13681,79 +13583,52 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "hubspot.association.create"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/hubspot",
-      "providerModule": "./ticketing/hubspot/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@hubspot/api-client",
+      "runtimePackage": "@cognidesk/integration-ticketing-hubspot",
+      "providerModule": "integrations/ticketing/hubspot/src/manifest.js",
       "manifestExport": "hubSpotTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/hubspot/manifest.ts",
+      "manifestSource": "integrations/ticketing/hubspot/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://api.hubapi.com/public/api/spec/v1/specs"
+      "documentationPath": "https://github.com/HubSpot/hubspot-api-nodejs"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "hubspot-private-app-token",
-        "hubspot-portal"
+        "hubspot-private-app-token"
       ],
-      "optionalCredentialIds": [
-        "hubspot-app",
-        "hubspot-webhook-secret"
-      ],
+      "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "hubspot-private-app-token",
           "label": "HubSpot private app token",
-          "description": "Server-side private app access token for HubSpot CRM and Service Hub APIs.",
+          "description": "Server-side private app access token or OAuth bearer token for HubSpot CRM APIs.",
           "scopes": [
             "tickets",
             "crm.objects.contacts.read",
             "crm.objects.contacts.write",
-            "crm.objects.companies.read",
-            "crm.objects.companies.write",
             "crm.objects.owners.read"
           ],
           "required": true,
           "metadata": {
             "scopeKind": "provider-oauth-scopes"
           }
-        },
-        {
-          "id": "hubspot-portal",
-          "label": "HubSpot portal",
-          "description": "The SDK user's HubSpot portal ID, used for readiness, routing, and webhook ownership checks.",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "hubspot-app",
-          "label": "HubSpot app",
-          "description": "The HubSpot app or private app identifier that owns webhook subscriptions and API credentials.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "hubspot-webhook-secret",
-          "label": "HubSpot webhook client secret",
-          "description": "Server-side app client secret used to validate X-HubSpot-Signature-v3 webhook requests.",
-          "scopes": [],
-          "required": false
         }
       ]
     },
     "privacyNotes": [
-      "HubSpot tickets, notes, contacts, companies, webhook events, owners, associations, and custom properties can contain customer data and internal support context.",
-      "HubSpot access tokens and webhook secrets stay server-side and are represented in Studio only as readiness and scope status."
+      "HubSpot tickets, notes, contacts, companies, associations, owners, and custom properties can contain customer data and internal support context."
     ],
     "limitations": [
-      "Ticket pipelines, pipeline stages, priorities, owners, custom properties, association labels, webhook subscriptions, private app scopes, and Service Hub entitlements are owned by the SDK user's HubSpot portal.",
-      "HubSpot association labels are directional; SDK users must configure the correct associationTypeId values for their portal and handoff flow.",
-      "SDK-user-owned configuration controls handoff timing, contact/company matching, portal routing, note visibility, consent, retention, redaction, and outbound notification policy before calling HubSpot APIs."
+      "Ticket pipelines, stages, owners, custom properties, association labels, scopes, and portal-specific workflow policy are SDK-user configuration.",
+      "This package does not claim full HubSpot API coverage; use rawClient for advanced official SDK methods."
     ],
     "maintainers": [
       {
@@ -13762,51 +13637,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@hubspot/api-client",
+        "sdkVersionRange": "^13.5.0",
+        "rawClientEscapeHatch": "HubSpotTicketingClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization"
+      },
       "channelCoverage": {
         "tickets": "typed-create-read-update-search",
-        "contacts": "typed-create-read-update-search",
-        "companies": "typed-create-read-update-search",
-        "notes": "typed-create-update-handoff",
-        "associations": "typed-create-read-labels",
-        "propertiesOwnersPipelines": "typed-read",
-        "webhooks": "typed-verify-parse-only",
-        "accountReadiness": "typed-read",
-        "fullHubSpotPublicApiOperations": "generated-per-operation-functions",
-        "conversationsInbox": "generated-full-surface",
-        "filesTimelineEvents": "generated-full-surface",
-        "webhookSubscriptionLifecycle": "generated-full-surface",
-        "dateVersioned2026Api": "generated-full-surface"
-      },
-      "fullProviderApiVerification": {
-        "provider": "hubspot",
-        "apiVersion": "2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/hubspot-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/hubspot-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/hubspot-full-api-2026-06-17.functions.json",
-        "documentedSpecCount": 101,
-        "documentedOperationCount": 1182,
-        "implementedOperationCount": 1182,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 1182
+        "comments": "typed-note-create",
+        "internalNotes": "typed-note-create",
+        "associations": "typed-extension",
+        "broaderHubSpotApi": "provider-supported-raw-client"
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -13824,7 +13685,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "hubspot.association.create"
+        ]
       }
     }
   },
@@ -13832,11 +13695,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.intercom",
     "category": "ticketing",
     "provider": "intercom",
-    "importPath": "@cognidesk/integrations/ticketing/intercom",
-    "modulePath": "./ticketing/intercom/index.js",
+    "importPath": "@cognidesk/integration-ticketing-intercom/manifest",
+    "modulePath": "integrations/ticketing/intercom/src/manifest.js",
     "manifestExport": "intercomTicketingProviderManifest",
     "name": "Intercom",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-intercom",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -13850,19 +13713,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Intercom",
-      "summary": "Coverage includes generated per-operation functions for every operation in Intercom's official stable REST API 2.15 OpenAPI file.",
+      "summary": "Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.",
       "tags": [
         "ticketing",
         "intercom",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
-        "capability": "receive",
-        "label": "Receive Intercom webhooks",
-        "description": "Validates and parses Intercom webhook notifications for SDK-user-owned support workflows.",
+        "capability": "read-provider-object",
+        "label": "Read Intercom tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13870,8 +13732,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "intercomWebhookNotification",
-            "label": "Intercom Webhook Notification"
+            "kind": "ticket",
+            "label": "Ticket"
+          },
+          {
+            "kind": "conversationLink",
+            "label": "Conversation"
           }
         ],
         "requiresCredential": true,
@@ -13881,22 +13747,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "create-provider-object",
-        "label": "Create Intercom conversations and tickets",
-        "description": "Creates Intercom contact-initiated conversations or tickets from SDK-user-selected support workflows.",
+        "capability": "send",
+        "label": "Create Intercom replies",
         "audiences": [
           "customer-facing",
-          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "ticketComment",
+            "label": "Ticket Comment"
           }
         ],
         "requiresCredential": true,
@@ -13906,9 +13766,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "read-provider-object",
-        "label": "Read Intercom conversations and tickets",
-        "description": "Reads Intercom conversations or tickets by API id.",
+        "capability": "create-provider-object",
+        "label": "Create Intercom tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13916,36 +13775,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": false,
+        "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": false,
+        "changesWorkflow": true,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Intercom conversations and tickets",
-        "description": "Updates Intercom conversation metadata, read state, ticket attributes, sharing, snooze, assignment, and state fields when SDK-user policy permits.",
+        "label": "Update Intercom tickets",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -13956,8 +13806,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search Intercom conversations and tickets",
-        "description": "Searches Intercom conversations or tickets with SDK-user-supplied Intercom query objects and pagination.",
+        "label": "Search Intercom tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13965,12 +13814,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -13980,107 +13825,66 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "handoff",
-        "label": "Attach support handoff to Intercom",
-        "description": "Provides conversation and ticket operations for SDK-user-configured human handoff workflows.",
+        "capability": "draft",
+        "label": "Create Intercom internal notes",
         "audiences": [
-          "customer-facing",
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "internalNote",
+            "label": "Internal Note"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "intercom.request-signature",
-        "label": "Validate Intercom request signatures",
-        "description": "Validates Intercom X-Hub-Signature values before parsing webhook notification JSON.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "intercomSignedRequest",
-            "label": "Intercom Signed Request"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
         "changesWorkflow": false,
-        "extension": true
+        "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Intercom's official stable REST API 2.15 OpenAPI file.",
-        "Typed convenience helpers remain limited to selected Intercom conversation, ticket, /me identity, and X-Hub-Signature webhook primitives for Cognidesk support workflows.",
-        "SDK users still own Intercom app scopes, workspace ticket schemas, teammate/team assignment policy, webhook subscriptions, and API version rollout policy."
+        "Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.",
+        "Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient.",
+        "Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."
       ],
       "evidence": [
         {
-          "label": "Intercom official OpenAPI specs",
-          "url": "https://github.com/intercom/Intercom-OpenAPI"
-        },
-        {
-          "label": "Intercom REST API 2.15 OpenAPI YAML",
-          "url": "https://raw.githubusercontent.com/intercom/Intercom-OpenAPI/main/descriptions/2.15/api.intercom.io.yaml"
-        },
-        {
-          "label": "Intercom REST API reference",
-          "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io"
-        },
-        {
-          "label": "Intercom Conversations API",
-          "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations"
+          "label": "Intercom Node client",
+          "url": "https://github.com/intercom/intercom-node"
         },
         {
           "label": "Intercom Tickets API",
           "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/tickets"
         },
         {
-          "label": "Intercom identify admin",
-          "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/admins/identifyadmin"
-        },
-        {
-          "label": "Intercom Webhook Topics and signed notifications",
-          "url": "https://developers.intercom.com/docs/references/webhooks/webhook-models"
+          "label": "Intercom Conversations API",
+          "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -14098,33 +13902,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "intercom.conversation.read"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/intercom",
-      "providerModule": "./ticketing/intercom/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "intercom-client",
+      "runtimePackage": "@cognidesk/integration-ticketing-intercom",
+      "providerModule": "integrations/ticketing/intercom/src/manifest.js",
       "manifestExport": "intercomTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/intercom/manifest.ts",
+      "manifestSource": "integrations/ticketing/intercom/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/intercom/Intercom-OpenAPI"
+      "documentationPath": "https://github.com/intercom/intercom-node"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "intercom-access-token"
       ],
-      "optionalCredentialIds": [
-        "intercom-webhook-secret"
-      ],
+      "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "intercom-access-token",
           "label": "Intercom access token",
-          "description": "Server-side Intercom access token or OAuth bearer token for REST API calls.",
+          "description": "Server-side Intercom access token or OAuth bearer token.",
           "scopes": [
             "read_conversations",
             "write_conversations",
@@ -14135,24 +13939,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "metadata": {
             "scopeKind": "provider-oauth-scopes"
           }
-        },
-        {
-          "id": "intercom-webhook-secret",
-          "label": "Intercom webhook secret",
-          "description": "Server-side app client secret used to validate Intercom X-Hub-Signature webhooks.",
-          "scopes": [],
-          "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Intercom conversations, conversation parts, tickets, ticket parts, contacts, admins, teams, tags, custom attributes, webhook payloads, and assignment metadata can contain customer data and internal support context.",
-      "Intercom access tokens and webhook secrets stay server-side and are represented in Studio only as readiness and scope status."
+      "Intercom conversations, tickets, contacts, admins, teams, custom attributes, and assignment metadata can contain customer data and internal support context."
     ],
     "limitations": [
-      "Ticket types, ticket attributes, ticket states, conversation search fields, Inbox assignment targets, teammate availability, and API scopes are owned by the SDK user's Intercom workspace.",
-      "SDK users own human handoff timing, assignment rules, reply visibility, customer consent, notification suppression, data retention, redaction, and workspace policy decisions before calling Intercom APIs.",
-      "Public replies, internal notes, shared ticket visibility, and customer-facing ticket state labels must be mapped by the SDK user to their Intercom workspace policy."
+      "Ticket types, attributes, states, assignment targets, teammate availability, scopes, and public/private reply policy are SDK-user configuration.",
+      "This package does not claim full Intercom REST API coverage; use rawClient for advanced official SDK methods."
     ],
     "maintainers": [
       {
@@ -14161,45 +13956,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "fullProviderApiVerification": {
-        "provider": "intercom",
-        "apiVersion": "intercom-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/intercom-rest-api-2.15-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/intercom-rest-api-2.15-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/intercom-rest-api-2.15-2026-06-18.functions.json",
-        "documentedOperationCount": 160,
-        "implementedOperationCount": 160,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 160
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "intercom-client",
+        "sdkVersionRange": "7.0.3",
+        "rawClientEscapeHatch": "IntercomTicketingClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization",
+        "supplyChainNote": "7.0.3 is pinned; do not allow compromised 7.0.4."
       },
       "channelCoverage": {
-        "fullIntercomRestApi215Operations": "generated-per-operation-functions",
-        "conversations": "typed-create-read-update-reply-search-and-generated-full-surface",
-        "tickets": "typed-create-read-update-search-and-generated-full-surface",
-        "webhooks": "typed-verify-parse-only",
-        "adminIdentity": "typed-readiness-read-and-generated-full-surface",
-        "contactsCompaniesAdminsTeamsTags": "generated-full-surface",
-        "helpCenterArticlesFinWhatsApp": "generated-full-surface",
-        "webhookSubscriptionManagement": "generated-full-surface"
+        "tickets": "typed-create-read-update-search",
+        "conversations": "typed-reply-read-extension",
+        "internalNotes": "typed-conversation-note",
+        "broaderIntercomApi": "provider-supported-raw-client"
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -14217,7 +14004,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "intercom.conversation.read"
+        ]
       }
     }
   },
@@ -15212,11 +15001,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.salesforce",
     "category": "ticketing",
     "provider": "salesforce",
-    "importPath": "@cognidesk/integrations/ticketing/salesforce",
-    "modulePath": "./ticketing/salesforce/index.js",
+    "importPath": "@cognidesk/integration-ticketing-salesforce/manifest",
+    "modulePath": "integrations/ticketing/salesforce/src/manifest.js",
     "manifestExport": "salesforceTicketingProviderManifest",
     "name": "Salesforce Service Cloud",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-salesforce",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -15230,7 +15019,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Salesforce Service Cloud",
-      "summary": "Coverage is limited to selected Salesforce REST API and Service Cloud support primitives: Case create/read/update/search, sObject describe, assignment-rule header opt-in, CaseComment, FeedItem, Contact/Account SOQL search, user/org readiness, and SDK-user inbound event relay parsing.",
+      "summary": "Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.",
       "tags": [
         "ticketing",
         "salesforce",
@@ -15240,9 +15029,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "capabilities": [
       {
-        "capability": "receive",
-        "label": "Parse Salesforce event relay payloads",
-        "description": "Validates and parses SDK-user-configured Salesforce Platform Event, Outbound Message, or webhook relay HTTP payloads; it does not subscribe to Pub/Sub, Streaming API, or SOAP outbound messages.",
+        "capability": "read-provider-object",
+        "label": "Read Salesforce Cases",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -15250,8 +15038,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "salesforceEvent",
-            "label": "Salesforce Event"
+            "kind": "ticket",
+            "label": "Case",
+            "schemaName": "Case"
           }
         ],
         "requiresCredential": true,
@@ -15261,29 +15050,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "create-provider-object",
-        "label": "Create Salesforce cases and comments",
-        "description": "Creates Salesforce Service Cloud Case, CaseComment, and FeedItem records when SDK-user policy permits.",
+        "capability": "send",
+        "label": "Create Salesforce CaseComments",
         "audiences": [
           "customer-facing",
-          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
-            "schemaName": "Case"
-          },
-          {
-            "kind": "salesforceCaseComment",
-            "label": "Salesforce Case Comment",
+            "kind": "ticketComment",
+            "label": "CaseComment",
             "schemaName": "CaseComment"
-          },
-          {
-            "kind": "salesforceFeedItem",
-            "label": "Salesforce Feed Item",
-            "schemaName": "FeedItem"
           }
         ],
         "requiresCredential": true,
@@ -15293,9 +15070,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "read-provider-object",
-        "label": "Read Salesforce cases and org identity",
-        "description": "Reads Salesforce cases, comments, feed items, contacts, accounts, current user info, and organization readiness details.",
+        "capability": "create-provider-object",
+        "label": "Create Salesforce Cases",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -15303,54 +15079,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
+            "kind": "ticket",
+            "label": "Case",
             "schemaName": "Case"
-          },
-          {
-            "kind": "salesforceCaseComment",
-            "label": "Salesforce Case Comment",
-            "schemaName": "CaseComment"
-          },
-          {
-            "kind": "salesforceFeedItem",
-            "label": "Salesforce Feed Item",
-            "schemaName": "FeedItem"
-          },
-          {
-            "kind": "salesforceContact",
-            "label": "Salesforce Contact",
-            "schemaName": "Contact"
-          },
-          {
-            "kind": "salesforceAccount",
-            "label": "Salesforce Account",
-            "schemaName": "Account"
-          },
-          {
-            "kind": "salesforceOrganization",
-            "label": "Salesforce Organization",
-            "schemaName": "Organization"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": false,
+        "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": false,
+        "changesWorkflow": true,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Salesforce cases",
-        "description": "Updates Salesforce Case fields such as status, priority, owner, contact, account, or SDK-user-configured custom fields.",
+        "label": "Update Salesforce Cases",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
+            "kind": "ticket",
+            "label": "Case",
             "schemaName": "Case"
           }
         ],
@@ -15362,8 +15112,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search Salesforce records",
-        "description": "Searches Salesforce cases, contacts, and accounts with bounded helpers; the generic SOQL query helper is an SDK-user-owned escape hatch and not generated broader Salesforce object coverage.",
+        "label": "Search Salesforce Cases",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -15371,19 +15120,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
+            "kind": "ticket",
+            "label": "Case",
             "schemaName": "Case"
-          },
-          {
-            "kind": "salesforceContact",
-            "label": "Salesforce Contact",
-            "schemaName": "Contact"
-          },
-          {
-            "kind": "salesforceAccount",
-            "label": "Salesforce Account",
-            "schemaName": "Account"
           }
         ],
         "requiresCredential": true,
@@ -15393,76 +15132,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "handoff",
-        "label": "Attach case handoff to Salesforce",
-        "description": "Provides Case creation/update plus configurable comment and feed-item foundations for SDK-user-owned record handoff workflows; this is not native Enhanced Chat, Live Agent, Messaging, or Voice transfer coverage.",
+        "capability": "draft",
+        "label": "Create Salesforce internal feed items",
         "audiences": [
-          "customer-facing",
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
-            "schemaName": "Case"
-          },
-          {
-            "kind": "salesforceCaseComment",
-            "label": "Salesforce Case Comment",
-            "schemaName": "CaseComment"
-          },
-          {
-            "kind": "salesforceFeedItem",
-            "label": "Salesforce Feed Item",
+            "kind": "internalNote",
+            "label": "FeedItem",
             "schemaName": "FeedItem"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "salesforce.webhook-verifier",
-        "label": "Validate Salesforce webhook payloads",
-        "description": "Requires a configured shared secret or verifier before parsing Salesforce event relay, Platform Event, or Outbound Message payloads.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "salesforceWebhookRequest",
-            "label": "Salesforce Webhook Request"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
         "changesWorkflow": false,
-        "extension": true
+        "extension": false
       }
     ],
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Coverage is limited to selected Salesforce REST API and Service Cloud support primitives: Case create/read/update/search, sObject describe, assignment-rule header opt-in, CaseComment, FeedItem, Contact/Account SOQL search, user/org readiness, and SDK-user inbound event relay parsing.",
-        "The generic SOQL `query()` helper is SDK-user-owned endpoint plumbing and does not prove generated broader sObject, custom-object, relationship, or Service Cloud coverage.",
-        "This is not full Salesforce REST, Service Cloud, metadata, composite, Bulk, Pub/Sub, Streaming, Platform Event, EmailMessage, ContentVersion/file, assignment-rule discovery, or broader sObject API coverage."
+        "Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.",
+        "Implementation uses maintained jsforce v3. Broader Salesforce APIs and org-specific sObjects remain accessible through rawClient, but are not Cognidesk adapter coverage.",
+        "Generated or direct monolith code should be removed only after this package's replacement tests pass."
       ],
       "evidence": [
         {
+          "label": "JSforce",
+          "url": "https://github.com/jsforce/jsforce"
+        },
+        {
           "label": "Salesforce REST API resources",
           "url": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm"
-        },
-        {
-          "label": "Salesforce sObject Describe",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_describe.htm"
-        },
-        {
-          "label": "Salesforce Assignment Rule header",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/headers_autoassign.htm"
         },
         {
           "label": "Salesforce Case object reference",
@@ -15475,56 +15179,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Salesforce FeedItem object reference",
           "url": "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_feeditem.htm"
-        },
-        {
-          "label": "Salesforce Platform Events Developer Guide",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.platform_events.meta/platform_events/platform_events_intro.htm"
-        },
-        {
-          "label": "Salesforce Streaming API overview",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/intro_stream.htm"
-        },
-        {
-          "label": "Salesforce Outbound Messaging setup",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_om_outboundmessaging_setting_up.htm"
-        },
-        {
-          "label": "Salesforce Enhanced Chat API",
-          "url": "https://developer.salesforce.com/docs/service/messaging-api/overview"
-        },
-        {
-          "label": "Salesforce Conversation Entries Connect REST API",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_conversation_entries.htm"
-        },
-        {
-          "label": "Salesforce MessagingSession object reference",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_messagingsession.htm"
-        },
-        {
-          "label": "Salesforce Conversation Toolkit API",
-          "url": "https://developer.salesforce.com/docs/platform/lightning-component-reference/guide/lightning-conversation-toolkit-api.html"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -15542,41 +15218,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "salesforce.soql.query"
+        ]
       }
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/salesforce",
-      "providerModule": "./ticketing/salesforce/index.js",
+      "strategy": "maintained-library",
+      "sdkPackage": "jsforce",
+      "runtimePackage": "@cognidesk/integration-ticketing-salesforce",
+      "providerModule": "integrations/ticketing/salesforce/src/manifest.js",
       "manifestExport": "salesforceTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/salesforce/manifest.ts",
+      "manifestSource": "integrations/ticketing/salesforce/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm"
+      "documentationPath": "https://github.com/jsforce/jsforce"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "salesforce-instance",
         "salesforce-oauth-access"
       ],
-      "optionalCredentialIds": [
-        "salesforce-webhook-secret"
-      ],
+      "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "salesforce-instance",
           "label": "Salesforce instance URL",
-          "description": "The SDK user's Salesforce org instance URL, for example https://example.my.salesforce.com.",
           "scopes": [],
           "required": true
         },
         {
           "id": "salesforce-oauth-access",
           "label": "Salesforce OAuth access token",
-          "description": "Server-side OAuth bearer token with SDK-user-selected Salesforce REST API access.",
           "scopes": [
             "api",
             "refresh_token",
@@ -15586,24 +15260,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "metadata": {
             "scopeKind": "provider-oauth-scopes"
           }
-        },
-        {
-          "id": "salesforce-webhook-secret",
-          "label": "Salesforce webhook shared secret or verifier",
-          "description": "SDK-user-configured secret or verifier used before accepting Platform Event, Outbound Message, or webhook relay payloads.",
-          "scopes": [],
-          "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Salesforce cases, comments, feed items, contacts, accounts, platform events, and outbound messages can contain customer data and internal support context.",
-      "Salesforce OAuth tokens and webhook secrets stay server-side and are represented in Studio only as readiness and scope status."
+      "Salesforce cases, comments, feed items, contacts, accounts, platform events, and custom fields can contain customer data and internal support context."
     ],
     "limitations": [
-      "Salesforce Case record types, required fields, queues, owners, entitlements, assignment rules, triggers, Flow automation, field-level security, and Service Cloud licenses are owned by the SDK user's org.",
-      "SOQL filters, field mappings, webhook relay shape, Platform Event schema, Outbound Message configuration, and event subscription delivery are SDK-user configuration.",
-      "SDK users own handoff timing, customer identity matching, case visibility, comment/feed visibility, consent, retention, redaction, and outbound notification policy before calling Salesforce APIs."
+      "Record types, required fields, queues, owners, assignment rules, Flow automation, field-level security, and Service Cloud licenses are SDK-user configuration.",
+      "Generic SOQL remains an SDK-user-owned escape hatch and does not imply full Salesforce, metadata, Bulk, Pub/Sub, Streaming, or org-specific sObject coverage."
     ],
     "maintainers": [
       {
@@ -15612,55 +15277,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedProviderApiCoverage": {
-        "verifiedAt": "2026-06-18",
-        "sourceKind": "checked-endpoint-family-inventory",
-        "coverageArtifact": "docs/provider-coverage/salesforce-checked-rest-service-cloud-2026-06-18.inventory.json",
-        "familyCount": 5,
-        "implementedFamilyCount": 4,
-        "gapFamilyCount": 1,
-        "implementedOperationCount": 16,
-        "fullCoverageExportRequirement": "Full org-specific Salesforce coverage requires sObject describe/metadata exports, enabled Service Cloud product evidence, event schemas, connected-app scopes, permission sets, and object/field-level security evidence from the SDK user's org."
+      "implementation": {
+        "strategy": "maintained-library",
+        "sdkPackage": "jsforce",
+        "sdkVersionRange": "^3.10.16",
+        "rawClientEscapeHatch": "SalesforceTicketingClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization"
       },
       "channelCoverage": {
         "cases": "typed-create-read-update-search",
-        "caseComments": "typed-create-read",
-        "feedItems": "typed-create-read",
-        "contactsAccounts": "typed-read-search",
-        "genericSoqlQuery": "sdk-owned-classified-endpoint",
-        "organizationReadiness": "typed-read",
-        "sObjectDescribe": "typed-read",
-        "eventRelay": "typed-verify-parse-only",
-        "platformEventsOutboundMessages": "typed-parse-relay-only",
-        "enhancedChatApi": "provider-supported-not-typed",
-        "messagingSessions": "provider-supported-not-typed",
-        "conversationDataGetApi": "provider-supported-not-typed",
-        "conversationEntriesConnectRest": "provider-supported-not-typed",
-        "liveAgentChatRestApi": "provider-supported-not-typed",
-        "tasks": "provider-supported-not-typed",
-        "voiceCallsTranscripts": "provider-supported-not-typed",
-        "emailMessage": "provider-supported-not-implemented",
-        "filesContentVersion": "provider-supported-not-implemented",
-        "streamingPubSubSubscriptions": "provider-supported-not-implemented",
-        "compositeBulkMetadataCrud": "not-covered"
+        "caseComments": "typed-create",
+        "feedItems": "typed-internal-note-create",
+        "soql": "sdk-owned-extension",
+        "broaderSalesforceApi": "provider-supported-raw-client"
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -15678,7 +15325,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "salesforce.soql.query"
+        ]
       }
     }
   },
@@ -16001,11 +15650,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.servicenow",
     "category": "ticketing",
     "provider": "servicenow",
-    "importPath": "@cognidesk/integrations/ticketing/servicenow",
-    "modulePath": "./ticketing/servicenow/index.js",
+    "importPath": "@cognidesk/integration-ticketing-servicenow/manifest",
+    "modulePath": "integrations/ticketing/servicenow/src/manifest.js",
     "manifestExport": "serviceNowTicketingProviderManifest",
     "name": "ServiceNow Ticketing",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-servicenow",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -16235,13 +15884,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/servicenow",
-      "providerModule": "./ticketing/servicenow/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-servicenow",
+      "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
+      "providerModule": "integrations/ticketing/servicenow/src/manifest.js",
       "manifestExport": "serviceNowTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/servicenow/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/servicenow/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://www.servicenow.com/docs/r/washingtondc/api-reference/rest-apis/c_TableAPI.html"
     },
     "readiness": {
@@ -16290,6 +15939,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
+        "manifestImport": "no-sdk-client-initialization"
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -16676,11 +16330,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.zoho-desk",
     "category": "ticketing",
     "provider": "zoho-desk",
-    "importPath": "@cognidesk/integrations/ticketing/zoho-desk",
-    "modulePath": "./ticketing/zoho-desk/index.js",
+    "importPath": "@cognidesk/integration-ticketing-zoho-desk/manifest",
+    "modulePath": "integrations/ticketing/zoho-desk/src/manifest.js",
     "manifestExport": "zohoDeskTicketingProviderManifest",
     "name": "Zoho Desk",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-zoho-desk",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -16903,13 +16557,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/zoho-desk",
-      "providerModule": "./ticketing/zoho-desk/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-zoho-desk",
+      "runtimePackage": "@cognidesk/integration-ticketing-zoho-desk",
+      "providerModule": "integrations/ticketing/zoho-desk/src/manifest.js",
       "manifestExport": "zohoDeskTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/zoho-desk/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/zoho-desk/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://desk.zoho.com/DeskAPIDocument"
     },
     "readiness": {
@@ -16956,6 +16610,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "runtimePackage": "@cognidesk/integration-ticketing-zoho-desk",
+        "manifestImport": "no-sdk-client-initialization"
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",

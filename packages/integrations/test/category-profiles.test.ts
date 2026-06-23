@@ -5,6 +5,7 @@ import {
   defineIntegrationCategoryProfile,
   defineIntegrationProviderPackage,
   deriveProviderCapabilityCoverage,
+  defaultIntegrationProviderRuntimeRegistry,
   ecommerceCategoryProfile,
   emailCategoryProfile,
   findCategoryOperation,
