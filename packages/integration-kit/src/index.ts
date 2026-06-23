@@ -15,6 +15,7 @@ export type {
   IntegrationProviderProfileAttachment,
   ManifestOperationAlias,
   OperationBindingReport,
+  ProviderManifestAuthorInput,
   ProviderNamespacedOperationAlias,
 } from "./contracts.js";
 
@@ -126,6 +127,8 @@ export type {
   CategoryOutputDeclaration,
   ChannelCapabilityDeclaration,
   ProviderCredentialRequirement,
+  ProviderCredentialStatus,
+  ProviderCredentialStatusInput,
   ProviderManifest,
   ProviderManifestInput,
   ProviderOperationDeclaration,
