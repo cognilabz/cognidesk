@@ -60,7 +60,7 @@ describe("studio adapter", () => {
           providerPackages: [{
             id: "contactCenter.amazon-connect",
             name: "Amazon Connect",
-            packageName: "@cognidesk/integrations",
+            packageName: "@cognidesk/integration-contact-center-amazon-connect",
             provider: "amazon-connect",
             category: "contactCenter",
             trustLevel: "official",
@@ -228,7 +228,7 @@ describe("studio adapter", () => {
           providerPackages: [{
             id: "ticketing.oracle-service",
             name: "Oracle Service",
-            packageName: "@cognidesk/integrations",
+            packageName: "@cognidesk/integration-ticketing-oracle-service",
             provider: "oracle-service",
             category: "ticketing",
             trustLevel: "official",
@@ -308,7 +308,7 @@ describe("studio adapter", () => {
               providerPackages: [{
                 id: "email.postmark",
                 name: "Postmark",
-                packageName: "@cognidesk/integrations",
+                packageName: "@cognidesk/integration-email-postmark",
                 provider: "postmark",
                 category: "email",
                 trustLevel: "official",
@@ -337,7 +337,7 @@ describe("studio adapter", () => {
       })]);
       expect(body.providerPackages).toEqual([expect.objectContaining({
         id: "email.postmark",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/integration-email-postmark",
       })]);
       expect(body.providerReadiness).toEqual([expect.objectContaining({
         providerPackageId: "email.postmark",

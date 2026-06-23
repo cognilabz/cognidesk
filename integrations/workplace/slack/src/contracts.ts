@@ -208,7 +208,7 @@ export interface SlackLiveCheckOptions extends Omit<SlackWorkplaceClientOptions,
 }
 
 export interface ValidateSlackRequestSignatureInput {
-  signingSecret: string;
+  signingSecret?: string;
   rawBody: string | Buffer;
   timestamp: string | number;
   signature: string;

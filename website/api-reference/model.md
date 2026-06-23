@@ -21,4 +21,4 @@ Use `createModelSet` to map concrete provider models into Cognidesk roles such a
 
 ## Full type reference
 
-Open the generated [`@cognidesk/model` type reference](generated/model/dist.md).
+Open the generated [`@cognidesk/model` type reference](generated/packages/model/dist.md).

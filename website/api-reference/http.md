@@ -50,4 +50,4 @@ The handler exposes:
 
 ## Full type reference
 
-Open the generated [`@cognidesk/http` type reference](generated/http/dist.md).
+Open the generated [`@cognidesk/http` type reference](generated/packages/http/dist.md).

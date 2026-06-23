@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createRuntime, type AgentModelSet, type CognideskRuntime, type CompiledAgent, type ModelAdapter } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import type { VoiceControlNotification, VoiceSocketSession } from "@cognidesk/voice-websocket";
-import { createFlightDemoRuntimeParts } from "../server/flight-agent.js";
+import { createFlightDemoRuntimeParts } from "../server/agent/index.js";
 import { createFlightDemoVoiceControlSurface } from "../server/voice-control.js";
 import type { FlightKnowledgeIndex } from "../server/knowledge-index.js";
 import { createTestKnowledgeIndex, createTestModelSet, testConfig } from "./fixtures.js";

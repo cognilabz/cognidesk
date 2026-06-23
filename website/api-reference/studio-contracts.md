@@ -55,4 +55,4 @@ shape without making Studio own the target application's runtime behavior.
 
 ## Full type reference
 
-Open the generated [`@cognidesk/studio-contracts` type reference](generated/studio-contracts/dist.md).
+Open the generated [`@cognidesk/studio-contracts` type reference](generated/packages/studio-contracts/dist.md).

@@ -19,7 +19,7 @@ import {
   parseDiscordInteractionRequest,
   validateDiscordInteractionSignature,
 } from "../src/index.js";
-import type { DiscordRestLike } from "../src/index.js";
+import type { DiscordInteractionPayload, DiscordRestLike } from "../src/index.js";
 
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -245,7 +245,7 @@ describe("@cognidesk/integration-messaging-discord", () => {
     const event = normalizeDiscordInteractionChannelEvent({
       interaction: {
         rawBody,
-        payload: JSON.parse(rawBody) as Record<string, unknown>,
+        payload: JSON.parse(rawBody) as DiscordInteractionPayload,
         validSignature: true,
       },
     });
@@ -260,6 +260,7 @@ describe("@cognidesk/integration-messaging-discord", () => {
         verified: true,
       },
     });
+    if (!event.identity?.dedupeKey) throw new Error("Discord interaction should include a dedupe key.");
     expect(event.identity.dedupeKey.length).toBeLessThan(80);
     expect(event.identity.dedupeKey).not.toContain("Need help");
   });

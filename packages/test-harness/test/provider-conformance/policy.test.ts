@@ -7,7 +7,7 @@ describe("provider conformance policy and package checks", () => {
         manifest: {
           id: "ticketing.servicenow",
           name: "ServiceNow",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-servicenow",
           provider: "servicenow",
           category: "ticketing",
           trustLevel: "official",
@@ -82,7 +82,7 @@ describe("provider conformance policy and package checks", () => {
       expect(result.checks.find((check) => check.id === "provider.package_name")).toMatchObject({
         status: "failed",
         details: {
-          expected: ["@cognidesk/integration-voice-twilio", "@cognidesk/integrations"],
+          expected: ["@cognidesk/integration-voice-twilio"],
         },
       });
     });
@@ -111,7 +111,7 @@ describe("provider conformance policy and package checks", () => {
         manifest: {
           id: "contactCenter.genesys-cloud",
           name: "Genesys Cloud CX",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
           category: "contactCenter",
           trustLevel: "official",
@@ -165,7 +165,7 @@ describe("provider conformance policy and package checks", () => {
         manifest: {
           id: "workplace.slack",
           name: "Slack",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-workplace-slack",
           provider: "slack",
           category: "workplace",
           directions: ["send-only"],

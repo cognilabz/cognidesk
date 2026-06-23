@@ -35,5 +35,5 @@ guide assumes you've read the [Concepts](../concepts/index.md) section.
 
 - [Voice](voice.md) — real-time voice conversations
 - [Observability](observability.md) — OpenTelemetry integration
-- [Provider Integration Catalog](provider-integrations-catalog.md) — inspect every official provider subpath, scope, capabilities, setup, and boundaries
-- [Omnichannel NG Changes](omnichannel-changes.md) — review the new SDK configuration, channel, policy, handoff, Studio, and integration-package rules
+- [Provider Integration Catalog](provider-integrations-catalog.md) — inspect every official provider package, scope, capabilities, setup, and boundaries
+- [Omnichannel NG Changes](omnichannel-changes.md) — review the new SDK configuration, channel, policy, handoff, Studio, and provider package rules

@@ -23,8 +23,10 @@ plus SDK examples and documentation, including:
 - packages/studio-contracts
 - packages/test-harness
 - packages/ui
-- packages/integrations
+- packages/integration-catalog
+- packages/integration-kit
 - packages/voice-websocket
+- integrations/*/*
 - apps/flight-demo
 - docs
 - website

@@ -326,7 +326,7 @@ describe("provider policy and vocabulary contracts", () => {
         defineProviderPackage({
           id: "voice.twilio",
           name: "Twilio Voice",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-voice-twilio",
           provider: "twilio",
           category: "voice",
           directions: ["bidirectional"],

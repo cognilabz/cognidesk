@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -30,16 +29,29 @@ const providerCategorySegments = new Set([
 ]);
 const providerPackagePrefix = "@cognidesk/integration-";
 const providerSdkPackages = new Set([
+  "@amazon-sp-api-release/amazon-sp-api-sdk-js",
   "@aws-sdk/client-connect",
+  "@aws-sdk/client-connectparticipant",
+  "@aws-sdk/client-polly",
   "@aws-sdk/client-ses",
+  "@aws-sdk/client-sesv2",
+  "@aws-sdk/client-transcribe-streaming",
   "@azure/communication-email",
   "@azure/communication-sms",
   "@azure/identity",
+  "@deepgram/sdk",
+  "@elevenlabs/elevenlabs-js",
+  "@google-cloud/speech",
+  "@google-cloud/text-to-speech",
+  "@googleapis/androidpublisher",
   "@googleapis/gmail",
   "@hubspot/api-client",
   "intercom-client",
+  "imapflow",
   "jsforce",
+  "microsoft-cognitiveservices-speech-sdk",
   "@microsoft/microsoft-graph-client",
+  "postmark",
   "@ringcentral/sdk",
   "@shopify/admin-api-client",
   "@shopify/shopify-api",
@@ -56,7 +68,8 @@ const providerSdkPackages = new Set([
 const infrastructurePackageNames = new Set([
   "@cognidesk/voice-websocket",
 ]);
-const aggregateIntegrationsPackageName = "@cognidesk/integrations";
+const retiredProviderAggregatePath = ["packages", "integrations"];
+const retiredProviderAggregatePackageName = ["@cognidesk", "integrations"].join("/");
 const providerNeutralManifestOnlyPackageNames = new Set([
   "@cognidesk/core",
   "@cognidesk/integration-catalog",
@@ -69,17 +82,10 @@ const manifestOnlyRuntimeRelativeModuleNames = new Set([
   "runtime",
   "runtimes",
 ]);
-const oldImportBridgeMetadataKeys = [
-  "compatibilityBridge",
-  "legacyImportBridge",
-  "oldImportBridge",
-  "oldImportCompatibilityPackage",
+const retiredBridgeMetadataKeys = [
+  "providerBridge",
+  "aggregateBridge",
 ];
-const migratedHelpdeskProviders = ["front", "gorgias", "kustomer", "zendesk"];
-const staleHelpdeskFullCloneGenerators = new Set([
-  "generate-zendesk-full-api.mjs",
-]);
-
 const failures = [];
 const warnings = [];
 const splitProviderPackages = [];
@@ -96,13 +102,13 @@ async function main() {
   }
 
   checkProviderPackageNaming(splitProviderPackages);
-  await checkNoOldImportCompatibilityPackages(workspaces);
-  await checkAggregateProviderReferencesMatchPackageExports(workspaces);
+  await checkNoRetiredProviderAggregatePackages(workspaces);
   await checkNoRuntimeNodeModulesScanning(workspaces);
   await checkManifestOnlyEntrypoints();
   await checkSdkBackedGeneratedClones(splitProviderPackages);
+  checkProviderSdkDependencyMetadata(splitProviderPackages);
   await checkFullProviderApiClaimsUseAdapterVerification(splitProviderPackages);
-  await checkProviderGeneratorDiscovery();
+  await checkProviderCoverageArtifactReferences(splitProviderPackages);
 
   if (warnings.length > 0) {
     console.log("Integration package architecture warnings:");
@@ -118,13 +124,13 @@ async function main() {
 
   console.log("Integration package architecture check passed:");
   console.log(`  split provider packages discovered: ${splitProviderPackages.length}`);
-  console.log("  no old-import compatibility packages or provider bridges were discovered");
-  console.log("  aggregate provider references match exported @cognidesk/integrations subpaths");
+  console.log("  no retired aggregate package or provider bridge was discovered");
   console.log("  package source does not scan node_modules at runtime");
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
+  console.log("  SDK-backed provider packages declare provider SDK dependency metadata");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
-  console.log("  provider generation discovery does not expose migrated helpdesk full-clone generators");
+  console.log("  provider coverage artifact references resolve under docs/provider-coverage");
   console.log("  provider package names use @cognidesk/integration-{category}-{provider}");
 }
 
@@ -259,17 +265,10 @@ async function checkManifestOnlyEntrypoints() {
   const roots = [
     path.join(repoRoot, "packages", "integration-catalog", "src"),
   ];
-  const providerCatalogRoot = path.join(repoRoot, "packages", "integrations", "src", "provider-catalog");
-  const files = [
-    path.join(repoRoot, "packages", "integrations", "src", "provider-manifest.ts"),
-    path.join(repoRoot, "packages", "integrations", "src", "category-profiles.ts"),
-  ];
+  const files = [];
 
   for (const root of roots) {
     if (existsSync(root)) files.push(...await walk(root));
-  }
-  if (existsSync(providerCatalogRoot)) {
-    files.push(...(await walk(providerCatalogRoot)).filter(isProviderCatalogMetadataSourceFile));
   }
 
   for (const pkg of splitProviderPackages) {
@@ -284,41 +283,38 @@ async function checkManifestOnlyEntrypoints() {
   }
 }
 
-async function checkNoOldImportCompatibilityPackages(packages) {
+async function checkNoRetiredProviderAggregatePackages(packages) {
+  if (existsSync(path.join(repoRoot, ...retiredProviderAggregatePath, "package.json"))) {
+    failures.push("retired provider aggregate package is not allowed; provider runtime code must live in split @cognidesk/integration-{category}-{provider} packages");
+  }
+
   for (const pkg of packages) {
-    if (pkg.name !== "@cognidesk/integrations" && isOldImportCompatibilityPackage(pkg)) {
+    if (pkg.name === retiredProviderAggregatePackageName) {
       failures.push(
-        `${path.relative(repoRoot, pkg.packageJsonPath)}: split provider migration must not add an old-import compatibility package or bridge`,
+        `${path.relative(repoRoot, pkg.packageJsonPath)}: retired provider aggregate package is not allowed; provider runtime code must live in split @cognidesk/integration-{category}-{provider} packages`,
       );
     }
 
-    for (const metadataKey of oldImportBridgeMetadataKeys) {
+    if (isRetiredProviderBridgePackage(pkg)) {
+      failures.push(
+        `${path.relative(repoRoot, pkg.packageJsonPath)}: provider runtime packages must not add aggregate compatibility packages or bridges`,
+      );
+    }
+
+    for (const metadataKey of retiredBridgeMetadataKeys) {
       if (pkg.packageJson.cognidesk?.[metadataKey] === true) {
         failures.push(
-          `${path.relative(repoRoot, pkg.packageJsonPath)}: cognidesk.${metadataKey} is not allowed; use codemods and explicit registration instead`,
+          `${path.relative(repoRoot, pkg.packageJsonPath)}: cognidesk.${metadataKey} is not allowed; use explicit provider registration instead`,
         );
       }
     }
   }
-
-  const legacySrcDir = path.join(repoRoot, "packages", "integrations", "src");
-  if (!existsSync(legacySrcDir)) return;
-
-  for (const file of (await walk(legacySrcDir)).filter((candidate) => candidate.endsWith(".ts") && !isGeneratedSourceFile(candidate))) {
-    const source = await readFile(file, "utf8");
-    for (const specifier of moduleSpecifiers(source)) {
-      if (!isSplitProviderPackageSpecifier(specifier)) continue;
-      failures.push(
-        `${path.relative(repoRoot, file)}: @cognidesk/integrations must not bridge old imports to split provider package '${specifier}'`,
-      );
-    }
-  }
 }
 
-function isOldImportCompatibilityPackage(pkg) {
+function isRetiredProviderBridgePackage(pkg) {
   const slug = pkg.name.replace(/^@cognidesk\//, "");
-  return /(?:^|-)(?:integrations?|providers?)-(?:compat|compatibility|bridge|legacy)(?:-|$)/.test(slug)
-    || /(?:^|-)(?:compat|compatibility|bridge|legacy)-(?:integrations?|providers?)(?:-|$)/.test(slug);
+  return /(?:^|-)(?:integrations?|providers?)-(?:compat|compatibility|bridge)(?:-|$)/.test(slug)
+    || /(?:^|-)(?:compat|compatibility|bridge)-(?:integrations?|providers?)(?:-|$)/.test(slug);
 }
 
 function isSplitProviderPackageSpecifier(specifier) {
@@ -331,80 +327,6 @@ function scopedPackageName(specifier) {
   const segments = specifier.split("/");
   if (segments.length < 2) return specifier;
   return `${segments[0]}/${segments[1]}`;
-}
-
-async function checkAggregateProviderReferencesMatchPackageExports(packages) {
-  const aggregatePackage = packages.find((pkg) => pkg.name === aggregateIntegrationsPackageName);
-  if (!aggregatePackage) {
-    failures.push("packages/integrations/package.json: @cognidesk/integrations package was not found");
-    return;
-  }
-
-  const exportedSubpaths = packageExportSubpaths(aggregatePackage.packageJson.exports);
-  const categoriesDir = path.join(repoRoot, "packages", "integrations", "src", "provider-catalog", "categories");
-  if (!existsSync(categoriesDir)) return;
-
-  const categoryFiles = (await walk(categoriesDir))
-    .filter((file) => file.endsWith(".ts"))
-    .filter((file) => !isGeneratedSourceFile(file));
-
-  for (const file of categoryFiles) {
-    const source = await readFile(file, "utf8");
-    const relative = path.relative(repoRoot, file);
-
-    for (const reference of providerReferenceImportPaths(source)) {
-      const exportSubpath = aggregateExportSubpathForImportPath(
-        reference.importPath,
-        aggregateIntegrationsPackageName,
-      );
-      if (!exportSubpath) continue;
-      if (exportedSubpaths.has(exportSubpath)) continue;
-
-      failures.push(
-        `${relative}:${reference.line}: provider catalog importPath '${reference.importPath}' is not exported by packages/integrations/package.json as '${exportSubpath}'`,
-      );
-    }
-  }
-}
-
-export function packageExportSubpaths(exportsField) {
-  if (exportsField === undefined) return new Set();
-  if (!isObjectRecord(exportsField)) return new Set(["."]);
-
-  const keys = Object.keys(exportsField);
-  if (keys.some((key) => key === "." || key.startsWith("./"))) {
-    return new Set(keys);
-  }
-
-  return new Set(["."]);
-}
-
-export function aggregateExportSubpathForImportPath(importPath, packageName = aggregateIntegrationsPackageName) {
-  if (importPath === packageName) return ".";
-
-  const prefix = `${packageName}/`;
-  if (!importPath.startsWith(prefix)) return undefined;
-
-  return `./${importPath.slice(prefix.length)}`;
-}
-
-export function providerReferenceImportPaths(source) {
-  const references = [];
-  const importPathPattern = /["']?importPath["']?\s*:\s*["']([^"']+)["']/g;
-  let match;
-
-  while ((match = importPathPattern.exec(source))) {
-    references.push({
-      importPath: match[1],
-      line: source.slice(0, match.index).split("\n").length,
-    });
-  }
-
-  return references;
-}
-
-function isObjectRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 async function checkNoRuntimeNodeModulesScanning(packages) {
@@ -491,24 +413,6 @@ function runtimeImportSpecifiers(source) {
   const dynamicImportPattern = /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
 
   for (const pattern of [importPattern, exportPattern, dynamicImportPattern]) {
-    let match;
-    while ((match = pattern.exec(source))) {
-      specifiers.push(match[2] ?? match[1]);
-    }
-  }
-
-  return specifiers;
-}
-
-function moduleSpecifiers(source) {
-  const specifiers = [];
-  const patterns = [
-    /(^|\n)\s*import\s+(?:type\s+)?(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']/g,
-    /(^|\n)\s*export\s+(?:type\s+)?(?:[\s\S]*?\s+from\s+)["']([^"']+)["']/g,
-    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
-  ];
-
-  for (const pattern of patterns) {
     let match;
     while ((match = pattern.exec(source))) {
       specifiers.push(match[2] ?? match[1]);
@@ -636,52 +540,6 @@ async function checkFullProviderApiClaimsUseAdapterVerification(packages) {
       }
     }
   }
-}
-
-async function checkProviderGeneratorDiscovery() {
-  const listedScripts = providerGeneratorList();
-
-  for (const script of staleHelpdeskFullCloneGenerators) {
-    if (listedScripts.includes(script)) {
-      failures.push(
-        `scripts/generate-provider-surfaces.mjs: providers:generate:list must not expose stale migrated helpdesk full-clone generator ${script}`,
-      );
-    }
-  }
-
-  for (const script of listedScripts) {
-    const source = await readFile(path.join(repoRoot, "scripts", script), "utf8");
-    const provider = migratedHelpdeskProviders.find((candidate) =>
-      source.includes(`packages/integrations/src/ticketing/${candidate}`)
-    );
-    if (!provider) continue;
-
-    failures.push(
-      `${path.join("scripts", script)}: listed provider generator must not write deleted aggregate ticketing/${provider} source paths`,
-    );
-  }
-
-  for (const script of ["generate-ticketing-provider-coverage.mjs", "generate-zendesk-full-api.mjs"]) {
-    const source = await readFile(path.join(repoRoot, "scripts", script), "utf8");
-    const provider = migratedHelpdeskProviders.find((candidate) =>
-      source.includes(`packages/integrations/src/ticketing/${candidate}`)
-    );
-    if (!provider) continue;
-
-    failures.push(
-      `${path.join("scripts", script)}: migrated helpdesk coverage generator must not write deleted aggregate ticketing/${provider} source paths`,
-    );
-  }
-}
-
-function providerGeneratorList() {
-  return execFileSync(process.execPath, [path.join(repoRoot, "scripts", "generate-provider-surfaces.mjs"), "--list"], {
-    cwd: repoRoot,
-    encoding: "utf8",
-  })
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.endsWith(".mjs"));
 }
 
 async function sourceFilesForPackage(pkg) {

@@ -88,7 +88,7 @@ describe("studio contracts", () => {
       providerPackages: [{
         id: "voice.twilio",
         name: "Twilio Voice",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/integration-voice-twilio",
         provider: "twilio",
         category: "voice",
         trustLevel: "official",

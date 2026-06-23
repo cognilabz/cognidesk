@@ -7,7 +7,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "contactCenter.genesys-cloud",
           name: "Genesys Cloud CX",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
           category: "contactCenter",
           trustLevel: "official",
@@ -43,7 +43,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "voice.twilio",
           name: "Twilio Programmable Voice",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-voice-twilio",
           provider: "twilio",
           category: "voice",
           trustLevel: "official",
@@ -72,7 +72,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "contactCenter.genesys-cloud",
           name: "Genesys Cloud CX",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
           category: "contactCenter",
           trustLevel: "community",
@@ -108,7 +108,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.servicenow",
           name: "ServiceNow",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-servicenow",
           provider: "servicenow",
           category: "ticketing",
           trustLevel: "official",
@@ -141,7 +141,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -172,7 +172,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -203,7 +203,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -230,7 +230,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -256,7 +256,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -292,7 +292,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -338,7 +338,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "contactCenter.genesys-cloud",
           name: "Genesys Cloud CX",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
           category: "contactCenter",
           trustLevel: "official",
@@ -363,7 +363,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.front",
           name: "Front",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-front",
           provider: "front",
           category: "ticketing",
           trustLevel: "official",
@@ -416,7 +416,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.front",
           name: "Front",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-front",
           provider: "front",
           category: "ticketing",
           trustLevel: "official",

@@ -329,7 +329,7 @@ function createApprovalScenario(options: {
     providerPackages: [defineProviderPackage({
       id: "ticketing.front",
       name: "Front",
-      packageName: "@cognidesk/integrations",
+      packageName: "@cognidesk/integration-ticketing-front",
       provider: "front",
       category: "ticketing",
       trustLevel: "verified",

@@ -14,8 +14,6 @@ The demo agent is split by authoring concern so it can be used as a reference sh
 - `server/agent/models`: Agent Model Set construction
 - `server/agent/index.ts`: composition, compile, and Journey Index build
 
-`server/flight-agent.ts` stays as a compatibility entry point for tests and server code.
-
 ## Configuration
 
 Copy `config.example.json`, `config.openrouter.example.json`, `config.providers.example.json`, `config.azure-speech.example.json`, `config.aws-speech.example.json`, `config.google-speech.example.json`, or `config.deepgram.example.json` to `config.json`. The config file chooses the provider and model for each runtime role. API keys stay in environment variables and should not be committed.

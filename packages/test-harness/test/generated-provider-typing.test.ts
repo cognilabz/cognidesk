@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("../../..", import.meta.url)));
-const generatedIntegrationRoot = path.join(repoRoot, "packages", "integrations", "src");
+const splitIntegrationsRoot = path.join(repoRoot, "integrations");
 const fixtureGeneratedRoot = path.join(repoRoot, "packages", "test-harness", "test", "fixtures", "generated-provider");
 
 describe("generated provider API typing", () => {
@@ -181,8 +181,10 @@ describe("generated provider API typing", () => {
 });
 
 async function generatedProviderFiles(kind: "client" | "operations" | "schema") {
-  const workspaceFiles = await findGeneratedFiles(path.join(repoRoot, "packages"), kind, { excludeFixtures: true });
-  if (workspaceFiles.length > 0 || existsSync(generatedIntegrationRoot)) {
+  const workspaceFiles = (await Promise.all(
+    generatedProviderSearchRoots().map((root) => findGeneratedFiles(root, kind, { excludeFixtures: true })),
+  )).flat().sort((a, b) => a.localeCompare(b));
+  if (workspaceFiles.length > 0 || existsSync(splitIntegrationsRoot)) {
     expect(workspaceFiles.length).toBeGreaterThan(0);
     return workspaceFiles;
   }
@@ -193,24 +195,29 @@ async function generatedProviderFiles(kind: "client" | "operations" | "schema") 
 }
 
 async function generatedProviderIndexFiles() {
-  if (await hasWorkspaceGeneratedProviderFiles() || existsSync(generatedIntegrationRoot)) {
-    const workspaceIndexFiles = await integrationIndexFiles(path.join(repoRoot, "packages"), { excludeFixtures: true });
-    expect(workspaceIndexFiles.length).toBeGreaterThan(0);
-    return workspaceIndexFiles;
-  }
-
-  const fixtureIndexFiles = await integrationIndexFiles(fixtureGeneratedRoot);
-  expect(fixtureIndexFiles.length).toBeGreaterThan(0);
-  return fixtureIndexFiles;
+  const indexFiles = [...new Set(
+    (await generatedProviderFiles("client"))
+      .map((file) => path.join(path.dirname(file), "index.ts"))
+      .filter((file) => existsSync(file)),
+  )].sort((a, b) => a.localeCompare(b));
+  expect(indexFiles.length).toBeGreaterThan(0);
+  return indexFiles;
 }
 
 async function hasWorkspaceGeneratedProviderFiles() {
   const generatedFileGroups = await Promise.all([
-    findGeneratedFiles(path.join(repoRoot, "packages"), "client", { excludeFixtures: true }),
-    findGeneratedFiles(path.join(repoRoot, "packages"), "operations", { excludeFixtures: true }),
-    findGeneratedFiles(path.join(repoRoot, "packages"), "schema", { excludeFixtures: true }),
+    ...generatedProviderSearchRoots().map((root) => findGeneratedFiles(root, "client", { excludeFixtures: true })),
+    ...generatedProviderSearchRoots().map((root) => findGeneratedFiles(root, "operations", { excludeFixtures: true })),
+    ...generatedProviderSearchRoots().map((root) => findGeneratedFiles(root, "schema", { excludeFixtures: true })),
   ]);
   return generatedFileGroups.some((files) => files.length > 0);
+}
+
+function generatedProviderSearchRoots() {
+  return [
+    path.join(repoRoot, "integrations"),
+    path.join(repoRoot, "packages"),
+  ].filter((root) => existsSync(root));
 }
 
 async function findGeneratedFiles(

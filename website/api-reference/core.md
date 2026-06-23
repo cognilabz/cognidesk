@@ -104,4 +104,4 @@ Builds an embedding-based journey activation index.
 
     Descriptions will improve as TSDoc comments are added to the source code.
 
-Open the generated [`@cognidesk/core` type reference](generated/core/dist.md).
+Open the generated [`@cognidesk/core` type reference](generated/packages/core/dist.md).

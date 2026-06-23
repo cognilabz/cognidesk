@@ -30,7 +30,7 @@ export const ringCentralContactCenterManifestInput = {
     scope: "support-workflow-subset",
     notes: [
       "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
-      "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation that the old monolith generated.",
+      "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation.",
       "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness plus raw SDK request escape hatches.",
       "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk.",
     ],

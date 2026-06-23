@@ -36,7 +36,7 @@ export function amazonMarketplaceCredentialStatuses(
       state: input.awsRoleConfigured && input.awsRegion ? "configured" : "not-required",
       message: input.awsRoleConfigured && input.awsRegion
         ? `Amazon SP-API AWS role/signing region '${input.awsRegion}' is configured.`
-        : "AWS role/signing material is required only when the SDK user enables SigV4 or legacy gateway signing.",
+        : "AWS role/signing material is required only when the SDK user enables SigV4 gateway signing.",
     },
     {
       providerPackageId: amazonMarketplaceProviderManifest.id,

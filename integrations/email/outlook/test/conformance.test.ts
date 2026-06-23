@@ -9,7 +9,7 @@ import {
   runProviderConformance,
 } from "./helpers.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/integration-email-outlook", () => {
   it("reports live conformance as credential-blocked until Outlook credentials are configured", async () => {
     const result = await runProviderConformance({
       manifest: outlookEmailProviderManifest,

@@ -92,6 +92,42 @@ describe("integration kit contracts", () => {
     });
   });
 
+  it("passes per-run credentials to operation handlers", async () => {
+    const integration = defineIntegration({
+      manifest: {
+        id: "email.credentials",
+        name: "Credentials Mail",
+        packageName: "@cognidesk/integration-email-credentials",
+        provider: "credentials",
+        category: "email",
+        directions: ["outbound-only"],
+        capabilities: [
+          { capability: "send" },
+        ],
+        operations: [
+          {
+            alias: "email.send",
+            capability: "send",
+            providerObject: "emailMessage",
+          },
+        ],
+      },
+      credentials: { token: "default-token" },
+      operations: {
+        "email.send": async (_input: unknown, context: { credentials?: { token: string } }) => ({
+          token: context.credentials?.token,
+        }),
+      },
+    });
+
+    await expect(integration.run("email.send", {}, { credentials: { token: "run-token" } })).resolves.toEqual({
+      token: "run-token",
+    });
+    await expect(integration.run("email.send", {})).resolves.toEqual({
+      token: "default-token",
+    });
+  });
+
   it("reports missing and extra operation handlers at runtime", () => {
     const manifest = defineIntegrationProviderPackage({
       id: "sms.acme",

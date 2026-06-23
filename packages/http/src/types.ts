@@ -101,7 +101,7 @@ export interface CognideskHttpHandlerOptions {
   journeyEvents?: JourneyEventDefinition[];
   ssePollIntervalMs?: number;
   /**
-   * Enable CORS. `true` keeps the legacy wildcard behavior; prefer an object
+   * Enable CORS. `true` allows any origin; prefer an object
    * with explicit origins for browser-facing deployments.
    */
   cors?: CognideskHttpCorsConfig;

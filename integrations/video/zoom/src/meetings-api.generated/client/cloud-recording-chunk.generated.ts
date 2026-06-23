@@ -1,5 +1,5 @@
 // Generated endpoint chunk for ZoomMeetingsApi.
-// Do not edit by hand; run scripts/split-generated-client-modules.mjs after updating provider specs.
+// Do not edit by hand; refresh this generated provider package after updating provider specs.
 
 import type {
   ZoomMeetingsGeneratedOperationCaller,

@@ -13,7 +13,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
     scope: "support-workflow-subset",
     notes: [
       "Coverage is typed for selected Messenger Platform support workflows: Page messages send, text payloads, sender actions, attachment payload/upload helpers, conversation/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation.",
-      "Meta's current Messenger routing surface is Conversation Routing; legacy Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package.",
+      "Meta's current Messenger routing surface is Conversation Routing; deprecated Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package.",
       "This is not full Messenger Platform coverage; Messenger profile, persistent menu, personas, discovery and engagement tools, account linking, NLP, analytics, marketing messages, conversation routing configuration, and broader Page/Graph administration remain outside this adapter.",
     ],
     evidence: [
@@ -255,7 +255,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
   ],
   limitations: [
     "Available operations depend on the SDK user's Meta app mode, Page connection, permissions, Page access token, webhook subscriptions, and messaging window rules.",
-    "Meta no longer supports Handover Protocol as the normal Messenger routing model; SDK users should configure Conversation Routing outside this adapter, and the thread-control client methods are legacy escape hatches only.",
+    "Meta no longer supports Handover Protocol as the normal Messenger routing model; SDK users should configure Conversation Routing outside this adapter, and the thread-control client methods are deprecated provider escape hatches only.",
     "Consent, outbound-contact policy, human escalation, attachment retention, redaction, and deletion behavior remain SDK-user configuration.",
     "This package provides Messenger transport helpers and does not choose default automation, promotional messaging, retry, or rate-limit policy.",
   ],
@@ -268,7 +268,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
       conversations: "typed-list-read",
       pageReadiness: "typed-read",
       webhooks: "typed-challenge-verify-parse",
-      legacyHandoverProtocol: "legacy-provider-supported-typed-thread-control",
+      handoverProtocolThreadControl: "provider-supported-deprecated-typed-thread-control",
       conversationRouting: "provider-supported-not-typed",
     },
     docs: "https://developers.facebook.com/docs/messenger-platform",

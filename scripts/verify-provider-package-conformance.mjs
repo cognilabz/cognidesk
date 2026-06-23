@@ -161,7 +161,6 @@ async function workspacePackageDirs() {
 }
 
 async function isProviderPackage(pkg) {
-  if (pkg.name === "@cognidesk/integrations") return false;
   if (infrastructurePackageNames.has(pkg.name)) return false;
   if (expectedProviderPackageNameForPath(pkg.dir)) return true;
   if (pkg.packageJson.cognidesk?.providerPackage === true) return true;

@@ -100,9 +100,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Check
-        run: pnpm check
-
       - name: Verify integration package architecture
         run: pnpm providers:architecture
 

@@ -171,7 +171,7 @@ describe("provider category coverage conformance", () => {
       });
     });
 
-    it("keeps legacy manifests without category profiles backward-compatible", async () => {
+    it("skips category profile coverage when manifest metadata does not declare a profile", async () => {
       const result = await runProviderConformance({
         manifest: ticketingManifestWithOperations([
           "ticket.read",

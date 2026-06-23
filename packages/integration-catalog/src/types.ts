@@ -16,7 +16,7 @@ export type IntegrationImplementationStrategy =
   | "app-supplied-connector"
   | "local-protocol";
 
-export type IntegrationManifestSourceKind = "manifest-only" | "runtime-module-fallback";
+export type IntegrationManifestSourceKind = "manifest-only";
 
 export interface IntegrationProviderReference {
   id: string;

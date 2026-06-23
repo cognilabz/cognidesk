@@ -62,4 +62,4 @@ widget behavior beyond the default `ChatWidget`.
 
 ## Full type reference
 
-Open the generated [`@cognidesk/react` type reference](generated/react/dist.md).
+Open the generated [`@cognidesk/react` type reference](generated/packages/react/dist.md).

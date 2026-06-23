@@ -26,13 +26,23 @@ const categoryLabels = new Map([
 ]);
 
 const categoryOrder = [...categoryLabels.keys()];
+const categoryAliases = new Map([
+  ["contact-center", "contactCenter"],
+  ["contact_center", "contactCenter"],
+  ["help-center", "helpCenter"],
+  ["help_center", "helpCenter"],
+]);
 
 function compareText(left, right) {
   return left.localeCompare(right, "en", { sensitivity: "base", numeric: true });
 }
 
+function canonicalCategory(category) {
+  return categoryAliases.get(category) ?? category;
+}
+
 function displayCategory(category) {
-  const known = categoryLabels.get(category);
+  const known = categoryLabels.get(canonicalCategory(category));
   if (known) return known;
   return category
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
@@ -64,7 +74,7 @@ function providerWorkspacePath(provider) {
 }
 
 function categoryRank(category) {
-  const index = categoryOrder.indexOf(category);
+  const index = categoryOrder.indexOf(canonicalCategory(category));
   return index === -1 ? Number.MAX_SAFE_INTEGER : index;
 }
 
@@ -133,7 +143,7 @@ async function loadProviderCatalogEntries() {
 function groupProviders(providers) {
   const grouped = new Map();
   for (const provider of providers) {
-    const category = provider.category;
+    const category = canonicalCategory(provider.category);
     const entries = grouped.get(category) ?? [];
     entries.push(provider);
     grouped.set(category, entries);

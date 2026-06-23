@@ -55,7 +55,7 @@ describe("provider capability coverage contracts", () => {
         manifest: {
           id: "ticketing.partial",
           name: "Partial Ticketing",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-partialdesk",
           provider: "partialdesk",
           category: "ticketing",
           directions: ["bidirectional"],
@@ -97,7 +97,7 @@ describe("provider capability coverage contracts", () => {
         manifest: {
           id: "ticketing.standard",
           name: "Standard Ticketing",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-standarddesk",
           provider: "standarddesk",
           category: "ticketing",
           directions: ["bidirectional"],
@@ -127,7 +127,7 @@ describe("provider capability coverage contracts", () => {
         manifest: {
           id: "ticketing.full",
           name: "Full Ticketing",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-fulldesk",
           provider: "fulldesk",
           category: "ticketing",
           directions: ["bidirectional"],
@@ -177,7 +177,7 @@ describe("provider capability coverage contracts", () => {
         manifest: {
           id: "email.badmail",
           name: "Bad Mail",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-email-badmail",
           provider: "badmail",
           category: "email",
           directions: ["bidirectional"],
@@ -231,7 +231,7 @@ describe("provider capability coverage contracts", () => {
       const manifest = defineProviderPackage({
         id: "handoff.custom",
         name: "Custom Handoff",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/handoff-customhandoff",
         provider: "customhandoff",
         category: "handoff",
         directions: ["bidirectional"],
@@ -264,7 +264,7 @@ describe("provider capability coverage contracts", () => {
       expect(() => defineProviderPackage({
         id: "voice.duplicate",
         name: "Duplicate Voice",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/integration-voice-voiceco",
         provider: "voiceco",
         category: "voice",
         directions: ["bidirectional"],

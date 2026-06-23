@@ -3,10 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
-  isIntegrationProviderReferenceAvailable,
-} from "../../integrations/src/provider-catalog/references.js";
-import {
-  createIntegrationRuntimeRegistry,
   deriveStudioIntegrationStates,
   getIntegrationCatalogEntry,
   integrationCatalog,
@@ -24,13 +20,21 @@ describe("integration catalog", () => {
     expect(listIntegrationCatalogEntries({ category: "voice" }).length).toBeGreaterThan(0);
   });
 
+  it("normalizes provider category aliases in catalog queries", () => {
+    const contactCenterEntries = listIntegrationCatalogEntries({ category: "contact-center" });
+
+    expect(contactCenterEntries).toHaveLength(12);
+    expect(listIntegrationCatalogEntries({ category: "contactCenter" })).toHaveLength(contactCenterEntries.length);
+    expect(contactCenterEntries.every((entry) => entry.packageName.startsWith("@cognidesk/integration-contact-center-"))).toBe(true);
+  });
+
   it("separates catalog availability from target installation and readiness", () => {
     const twilio = getIntegrationCatalogEntry("voice.twilio");
     if (!twilio) throw new Error("voice.twilio catalog entry is missing");
 
     const states = deriveStudioIntegrationStates({
       catalog: [twilio],
-      targetProviderPackages: [{ id: "voice.twilio", packageName: "@cognidesk/integrations" }],
+      targetProviderPackages: [{ id: "voice.twilio", packageName: "@cognidesk/integration-voice-twilio" }],
       providerReadiness: [{ providerPackageId: "voice.twilio", status: "ready" }],
       credentialStatuses: [{ providerPackageId: "voice.twilio", requirementId: "twilio-account", state: "configured" }],
     });
@@ -76,7 +80,7 @@ describe("integration catalog", () => {
     });
   });
 
-  it("does not advertise migrated enterprise service clouds through legacy integration references", () => {
+  it("keeps migrated enterprise service clouds on split package catalog entries", () => {
     const migratedProviders = [
       {
         id: "ticketing.oracle-service",
@@ -96,7 +100,6 @@ describe("integration catalog", () => {
     ] as const;
 
     for (const provider of migratedProviders) {
-      expect(isIntegrationProviderReferenceAvailable(provider.id)).toBe(false);
       expect(getIntegrationCatalogEntry(provider.id)).toMatchObject({
         importPath: provider.importPath,
         packageName: provider.packageName,
@@ -108,17 +111,10 @@ describe("integration catalog", () => {
     }
   });
 
-  it("keeps runtime loading explicit and app supplied", async () => {
-    const registry = createIntegrationRuntimeRegistry();
-    registry.register({
-      id: "voice.twilio",
-      async load() {
-        return { twilioVoiceProviderManifest: { id: "voice.twilio" } };
-      },
-    });
-
-    await expect(registry.loadManifest("voice.twilio")).resolves.toEqual({ id: "voice.twilio" });
-    await expect(registry.load("email.gmail")).rejects.toThrow("not registered");
+  it("keeps catalog entries on split provider manifest imports", () => {
+    expect(integrationCatalog.every((entry) => entry.importPath === `${entry.packageName}/manifest`)).toBe(true);
+    expect(integrationCatalog.every((entry) => entry.packageName.startsWith("@cognidesk/integration-"))).toBe(true);
+    expect(integrationCatalog.every((entry) => entry.implementation.manifestSourceKind === "manifest-only")).toBe(true);
   });
 
   it("does not import provider runtime packages from catalog source or build output", async () => {
@@ -126,7 +122,6 @@ describe("integration catalog", () => {
       "src/index.ts",
       "src/catalog.ts",
       "src/catalog.generated.ts",
-      "src/runtime-registration.ts",
       "src/studio.ts",
       "dist/index.js",
       "dist/chunk-*.js",

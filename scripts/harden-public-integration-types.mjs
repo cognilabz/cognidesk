@@ -66,7 +66,7 @@ function insertTypeBlock(source, prefix) {
 function hardenSource(source, prefix) {
   let next = insertTypeBlock(source, prefix);
 
-  const legacyBlock = `export type ${prefix}JsonValue =
+  const previousBlock = `export type ${prefix}JsonValue =
   | ${prefix}JsonPrimitive
   | ${prefix}JsonObject
   | ${prefix}JsonValue[];
@@ -77,7 +77,7 @@ export interface ${prefix}ProviderPayload extends ${prefix}JsonObject {}
 export interface ${prefix}ProviderQuery extends ${prefix}JsonObject {}
 export interface ${prefix}ProviderResponse extends ${prefix}JsonObject {}
 export interface ${prefix}ProviderExtensionFields extends ${prefix}JsonObject {}`;
-  next = next.replace(legacyBlock, `export type ${prefix}JsonValue =
+  next = next.replace(previousBlock, `export type ${prefix}JsonValue =
   | ${prefix}JsonPrimitive
   | ${prefix}JsonObject
   | readonly ${prefix}JsonValue[];

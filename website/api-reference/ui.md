@@ -17,4 +17,4 @@ Components accept an `appearance` prop for customization via CSS variables and e
 
 ## Full type reference
 
-Open the generated [`@cognidesk/ui` type reference](generated/ui/dist.md).
+Open the generated [`@cognidesk/ui` type reference](generated/packages/ui/dist.md).

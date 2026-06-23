@@ -38,7 +38,8 @@ import {
   type ConfiguredVoiceProviderSecrets,
   type FlightDemoConfig,
 } from "./config.js";
-import { createFlightDemoRuntimeParts } from "./flight-agent.js";
+import { flightDemoRuntimeChannels } from "./agent/policies.js";
+import { createFlightDemoRuntimeParts } from "./agent/index.js";
 import { createFlightDemoVoiceControlSurface } from "./voice-control.js";
 
 const otel = process.env.COGNIDESK_OTEL === "true"
@@ -74,6 +75,7 @@ const runtime = createRuntime({
   agent,
   models,
   journeyIndex,
+  channels: flightDemoRuntimeChannels,
   topKJourneys: 3,
   streaming: {
     syntheticDeltas: true,

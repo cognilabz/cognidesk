@@ -3,8 +3,6 @@ import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { integrationProviderReferences } from "../packages/integrations/src/provider-catalog/references.js";
-import type { IntegrationProviderReference } from "../packages/integrations/src/provider-catalog/types.js";
 import type {
   IntegrationAdapterCoverage,
   IntegrationCatalogCapability,
@@ -12,7 +10,7 @@ import type {
   IntegrationCatalogCredentialRequirement,
   IntegrationCatalogEntry,
   IntegrationImplementationStrategy,
-  IntegrationManifestSourceKind,
+  IntegrationProviderReference,
   IntegrationReadinessMode,
   JsonObject,
   JsonValue,
@@ -43,14 +41,12 @@ type ProviderManifest = {
 type ManifestSource = {
   absolutePath: string;
   relativePath: string;
-  kind: IntegrationManifestSourceKind;
+  kind: "manifest-only";
 };
 
 const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const integrationsSrcDir = path.join(repoRoot, "packages/integrations/src");
 const splitIntegrationsDir = path.join(repoRoot, "integrations");
 const catalogDataPath = path.join(repoRoot, "packages/integration-catalog/src/catalog.generated.ts");
-const runtimeLoaderPath = path.join(repoRoot, "packages/integrations/src/provider-catalog/runtime-loaders.generated.ts");
 const providerPackagePrefix = "@cognidesk/integration-";
 const knownImplementationStrategies = new Set<IntegrationImplementationStrategy>([
   "official-sdk",
@@ -64,64 +60,20 @@ const knownImplementationStrategies = new Set<IntegrationImplementationStrategy>
   "app-supplied-connector",
   "local-protocol",
 ]);
+const categoryAliases = new Map([
+  ["contactCenter", "contact-center"],
+  ["contact_center", "contact-center"],
+  ["helpCenter", "help-center"],
+  ["help_center", "help-center"],
+]);
 
-const splitEntries = await discoverSplitProviderEntries();
-const splitIds = new Set(splitEntries.map((entry) => entry.id));
-
-const legacyEntries: IntegrationCatalogEntry[] = [];
-for (const reference of integrationProviderReferences) {
-  if (splitIds.has(reference.id)) continue;
-
-  const source = resolveManifestSource(reference);
-  const manifest = await loadManifestExport(reference, source);
-  if (!manifest) {
-    throw new Error(`Provider integration '${reference.id}' did not export '${reference.manifestExport}' from ${source.relativePath}.`);
-  }
-  legacyEntries.push(toCatalogEntry(reference, manifest, source));
-}
-
-const entries = [
-  ...legacyEntries,
-  ...splitEntries,
-];
+const entries = await discoverSplitProviderEntries();
 entries.sort(compareEntries);
-
-const runtimeReferences = integrationProviderReferences
-  .filter((reference) => !splitIds.has(reference.id))
-  .sort(compareReferences);
 
 await mkdir(path.dirname(catalogDataPath), { recursive: true });
 await writeFile(catalogDataPath, renderCatalogData(entries));
-await writeFile(runtimeLoaderPath, renderRuntimeLoaders(runtimeReferences));
 
-console.log(`Generated ${path.relative(repoRoot, catalogDataPath)} from ${entries.length} integration manifests (${splitEntries.length} split provider packages).`);
-console.log(`Generated ${path.relative(repoRoot, runtimeLoaderPath)} from ${runtimeReferences.length} legacy runtime loaders.`);
-
-function resolveManifestSource(reference: IntegrationProviderReference): ManifestSource {
-  const moduleSource = reference.modulePath.replace(/^\.\//, "").replace(/\.js$/, ".ts");
-  const repoRelativeManifestPath = path.join(repoRoot, moduleSource);
-  if (!reference.modulePath.startsWith("./") && existsSync(repoRelativeManifestPath)) {
-    return {
-      absolutePath: repoRelativeManifestPath,
-      relativePath: moduleSource,
-      kind: "manifest-only",
-    };
-  }
-  const manifestSource = moduleSource.replace(/\/index\.ts$/, "/manifest.ts");
-  const manifestPath = path.join(integrationsSrcDir, manifestSource);
-  if (existsSync(manifestPath)) {
-    return {
-      absolutePath: manifestPath,
-      relativePath: `packages/integrations/src/${manifestSource}`,
-      kind: "manifest-only",
-    };
-  }
-  return {
-    absolutePath: path.join(integrationsSrcDir, moduleSource),
-    relativePath: `packages/integrations/src/${moduleSource}`,
-    kind: "runtime-module-fallback",
-  };
-}
+console.log(`Generated ${path.relative(repoRoot, catalogDataPath)} from ${entries.length} split provider manifests.`);
 
 async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]> {
   const entries: IntegrationCatalogEntry[] = [];
@@ -162,7 +114,7 @@ async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]
       }
       const reference: IntegrationProviderReference = {
         id: manifest.id,
-        category: manifest.category,
+        category: canonicalCategory(manifest.category),
         provider: manifest.provider,
         importPath: `${manifest.packageName}/manifest`,
         modulePath: `${path.relative(repoRoot, path.join(packageDir, "dist", "manifest.js")).replace(/\\/g, "/")}`,
@@ -209,12 +161,8 @@ function splitProviderPackageName(category: string, provider: string): string {
   return `${providerPackagePrefix}${category}-${provider}`;
 }
 
-async function loadManifestExport(
-  reference: IntegrationProviderReference,
-  source: ManifestSource,
-): Promise<ProviderManifest | undefined> {
-  const module = await import(pathToFileURL(source.absolutePath).href) as Record<string, unknown>;
-  return module[reference.manifestExport] as ProviderManifest | undefined;
+function canonicalCategory(category: string): string {
+  return categoryAliases.get(category) ?? category;
 }
 
 function isProviderManifest(value: unknown): value is ProviderManifest {
@@ -249,7 +197,7 @@ function toCatalogEntry(
 
   return {
     id: manifest.id,
-    category: manifest.category,
+    category: canonicalCategory(manifest.category),
     provider: manifest.provider,
     importPath: reference.importPath,
     modulePath: reference.modulePath,
@@ -262,7 +210,7 @@ function toCatalogEntry(
     display: {
       label: manifest.name,
       summary,
-      tags: [manifest.category, manifest.provider, manifest.trustLevel, coverage.scope],
+      tags: [canonicalCategory(manifest.category), manifest.provider, manifest.trustLevel, coverage.scope],
     },
     capabilities,
     coverage,
@@ -452,22 +400,6 @@ function renderCatalogData(catalogEntries: readonly IntegrationCatalogEntry[]) {
     "",
     "// Generated by scripts/generate-integration-catalog.ts. Do not edit by hand.",
     `export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = ${JSON.stringify(catalogEntries, null, 2)};`,
-    "",
-  ].join("\n");
-}
-
-function renderRuntimeLoaders(references: readonly IntegrationProviderReference[]) {
-  const loaders = references.map((reference) => {
-    const importPath = `../${reference.modulePath.replace(/^\.\//, "")}`;
-    return `  { id: ${JSON.stringify(reference.id)}, load: () => import(${JSON.stringify(importPath)}) },`;
-  });
-  return [
-    "import type { IntegrationProviderRuntimeLoaderRegistration } from \"./loader.js\";",
-    "",
-    "// Generated by scripts/generate-integration-catalog.ts. Do not edit by hand.",
-    "export const integrationProviderRuntimeLoaders = [",
-    ...loaders,
-    "] as const satisfies readonly IntegrationProviderRuntimeLoaderRegistration[];",
     "",
   ].join("\n");
 }

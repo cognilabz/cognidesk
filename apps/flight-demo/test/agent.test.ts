@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createRuntime, type CognideskRuntime, type RuntimeEvent } from "@cognidesk/core";
+import { createRuntime, createTelemetryContext, type CognideskRuntime, type RuntimeEvent } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
-import { createFlightDemoRuntimeParts } from "../server/flight-agent.js";
+import { createFlightDemoRuntimeParts } from "../server/agent/index.js";
+import { flightDemoRuntimeChannels } from "../server/agent/policies.js";
+import { flightTools } from "../server/agent/tools/flight-tools.js";
 import { createTestKnowledgeIndex, createTestModelSet, testConfig } from "./fixtures.js";
 
 type FlightDemoTestRuntime = {
@@ -292,6 +294,32 @@ describe("flight demo customer use cases", () => {
     });
   });
 
+  it("allows verbally confirmed mocked bookings in the voice channel policy", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime({ channels: flightDemoRuntimeChannels });
+    const started = await runtime.startVoiceConversation({ agentId, context: {} });
+    const voiceTurn = (text: string) => runtime.handleVoiceUserMessage({
+      conversationId: started.conversation.id,
+      channelSegmentId: started.channelSegment.id,
+      connectionId: started.connection.id,
+      text,
+    });
+
+    await voiceTurn("Find flights from Vienna to Berlin tomorrow for Alex Morgan.");
+    await voiceTurn("Select CL102.");
+    await voiceTurn("Yes, please create the mocked booking now.");
+
+    const events = await runtime.listEvents(started.conversation.id);
+    expect(findSuccessfulTool(events, "bookFlight")?.data.result).toEqual({ bookingReference: "CD-CL102-4821" });
+    expect(events.some((event) => (
+      event.type === "tool.completed"
+      && event.data.toolName === "bookFlight"
+      && !event.data.success
+      && event.data.policyBlock?.code === "missing-policy"
+    ))).toBe(false);
+    expect(events.map((event) => event.type)).toContain("journey.completed");
+    expect(events.some((event) => event.type === "ui.prompted")).toBe(false);
+  });
+
   it("does not ask for booking confirmation again after a confirmed booking follow-up", async () => {
     const { runtime, agentId } = await setupFlightDemoRuntime();
     const conversation = await runtime.createConversation({ agentId, context: {} });
@@ -426,9 +454,21 @@ describe("flight demo customer use cases", () => {
     expect(result.activeJourneyId).toBe("human-handoff");
     expect(result.text.toLowerCase()).toContain("human");
   });
+
+  it("normalizes spoken flight numbers before looking up flight status", async () => {
+    await expect(flightTools.getFlightInfo.execute({
+      input: { flightNumber: "CL 204" },
+      app: {},
+      conversationId: "test-conversation",
+      telemetry: createTelemetryContext({}),
+      signal: new AbortController().signal,
+    })).resolves.toMatchObject({
+      id: "CL204",
+    });
+  });
 });
 
-async function setupFlightDemoRuntime(): Promise<FlightDemoTestRuntime> {
+async function setupFlightDemoRuntime(options: { channels?: typeof flightDemoRuntimeChannels } = {}): Promise<FlightDemoTestRuntime> {
   const models = createTestModelSet();
   const knowledgeIndex = await createTestKnowledgeIndex(models);
   const { agent, journeyIndex } = await createFlightDemoRuntimeParts({
@@ -441,6 +481,7 @@ async function setupFlightDemoRuntime(): Promise<FlightDemoTestRuntime> {
     agent,
     models,
     journeyIndex,
+    ...(options.channels ? { channels: options.channels } : {}),
     topKJourneys: 3,
     streaming: {
       syntheticDeltas: true,

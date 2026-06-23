@@ -32,11 +32,13 @@ const findTicket = tool("findTicket", {
   }),
 });
 
-const agent = createAgent("support", {
+const agentBuilder = createAgent("support", {
   instructions: "You are a helpful support agent.",
-})
-  .tools.add(findTicket)
-  .compile();
+});
+
+agentBuilder.tools.add(findTicket);
+
+const agent = agentBuilder.compile();
 
 const runtime = createRuntime({
   storage: createSqliteStorage({ filename: "data.sqlite" }),

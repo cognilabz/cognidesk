@@ -85,7 +85,7 @@ describe("flight demo model provider config", () => {
   });
 
   it("preserves the existing OpenAI config defaults and dispatches to responses plus embeddings", async () => {
-    const { createConfiguredModelSet } = await import("../server/flight-agent.js");
+    const { createConfiguredModelSet } = await import("../server/agent/index.js");
     const config = parseFlightDemoConfig(configWithModels({
       provider: "openai",
       roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
@@ -103,7 +103,7 @@ describe("flight demo model provider config", () => {
   });
 
   it("preserves OpenRouter options and dispatches to chat plus text embeddings", async () => {
-    const { createConfiguredModelSet } = await import("../server/flight-agent.js");
+    const { createConfiguredModelSet } = await import("../server/agent/index.js");
     const config = parseFlightDemoConfig(configWithModels({
       provider: "openrouter",
       appName: "Cognidesk Flight Demo",
@@ -144,7 +144,7 @@ describe("flight demo model provider config", () => {
     textModel,
     embeddingModel,
   ) => {
-    const { createConfiguredModelSet } = await import("../server/flight-agent.js");
+    const { createConfiguredModelSet } = await import("../server/agent/index.js");
     const config = parseFlightDemoConfig(configWithModels({
       provider,
       ...(provider === "azure-openai" ? { resourceName: "test-resource" } : {}),
@@ -163,7 +163,7 @@ describe("flight demo model provider config", () => {
     ["groq", "groq.language", "llama-3.3-70b-versatile"],
     ["xai", "xai.chat", "grok-4"],
   ])("supports %s text with a separate embedding provider", async (provider, expectedTextProvider, textModel) => {
-    const { createConfiguredModelSet } = await import("../server/flight-agent.js");
+    const { createConfiguredModelSet } = await import("../server/agent/index.js");
     const config = parseFlightDemoConfig(configWithModels({
       provider,
       roles: roles(textModel, "text-embedding-3-small"),

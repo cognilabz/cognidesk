@@ -7,7 +7,7 @@ import {
   verifyOutlookWebhookValidationToken,
 } from "./helpers.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/integration-email-outlook", () => {
   it("validates and parses Microsoft Graph change notifications", async () => {
     const body = JSON.stringify({
       value: [{

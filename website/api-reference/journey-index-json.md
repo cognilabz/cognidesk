@@ -13,4 +13,4 @@ Provides a JSON-serializable journey index for environments where embedding-base
 
 ## Full type reference
 
-Open the generated [`@cognidesk/journey-index-json` type reference](generated/journey-index-json/dist.md).
+Open the generated [`@cognidesk/journey-index-json` type reference](generated/packages/journey-index-json/dist.md).

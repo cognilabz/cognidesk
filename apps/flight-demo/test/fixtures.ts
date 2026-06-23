@@ -107,6 +107,16 @@ export async function createTestKnowledgeIndex(models: AgentModelSet) {
 function createTestMatcher(messages: ModelMessage[]) {
   const prompt = messages.map((message) => message.content).join("\n").toLowerCase();
   const latestUser = extractLatestUserMessage(prompt);
+  if (prompt.includes("explicitly confirms the pending side-effect action")) {
+    const latestUtterance = extractLatestUtterance(prompt) || latestUser;
+    const confirmed = /\b(yes|yes please|confirm|go ahead|create|book it|proceed)\b/.test(latestUtterance);
+    const structured = {
+      confirmed,
+      confidence: confirmed ? 0.95 : 0.2,
+      reason: confirmed ? "Clear voice confirmation." : "No explicit voice confirmation.",
+    };
+    return { text: JSON.stringify(structured), structured };
+  }
   if (prompt.includes("state transition candidates")) {
     const candidates = [];
     const mentionsAvailableFlights = prompt.includes("availableflights");
@@ -186,6 +196,9 @@ function createTestMatcher(messages: ModelMessage[]) {
           || latestUser.includes("cheaper")
           || latestUser.includes("cheapest")
           || latestUser.includes("book that")
+          || latestUser.includes("create the mocked booking")
+          || latestUser.includes("confirm")
+          || latestUser.includes("yes")
           || /\bcl\d{3}\b/i.test(latestUser)
         )
       )
@@ -330,6 +343,10 @@ function extractLatestUserMessage(prompt: string) {
   const jsonValue = prompt.match(/"latestusermessage"\s*:\s*"([^"]*)"/)?.[1];
   if (jsonValue) return jsonValue.replace(/\\"/g, "\"");
   return prompt.match(/latest user message:\s*([^\n]+)/)?.[1] ?? prompt;
+}
+
+function extractLatestUtterance(prompt: string) {
+  return prompt.match(/"latestutterance"\s*:\s*"([^"]*)"/)?.[1]?.replace(/\\"/g, "\"") ?? "";
 }
 
 function cheapestFlightIdFromContext(contextJson: string) {
