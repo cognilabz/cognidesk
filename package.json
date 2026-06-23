@@ -24,6 +24,7 @@
     "providers:catalog:data": "pnpm --filter @cognidesk/core build && pnpm --filter @cognidesk/voice-websocket build && pnpm --filter @cognidesk/integration-kit build && tsx scripts/generate-integration-catalog.ts",
     "providers:catalog": "pnpm --filter @cognidesk/integration-catalog build && node scripts/generate-provider-integration-catalog.mjs",
     "providers:architecture": "node scripts/check-integration-package-architecture.mjs",
+    "providers:cleanup-map": "node scripts/check-integrations-cleanup-map.mjs",
     "provider-packages:check": "node scripts/verify-provider-package-conformance.mjs",
     "providers:check": "pnpm providers:architecture && pnpm --filter @cognidesk/integrations typecheck && pnpm --dir packages/integrations test -- generated-surface-integrity",
     "packages:check-version-train": "node scripts/check-package-version-train.mjs",

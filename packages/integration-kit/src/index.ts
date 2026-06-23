@@ -15,6 +15,7 @@ export type {
   IntegrationProviderProfileAttachment,
   ManifestOperationAlias,
   OperationBindingReport,
+  ProviderManifestAuthorInput,
   ProviderNamespacedOperationAlias,
 } from "./contracts.js";
 
@@ -108,6 +109,16 @@ export type {
   IntegrationInstrumentationHooks,
 } from "./instrumentation.js";
 
+export {
+  providerJsonRequest,
+  providerRequestUrl,
+} from "./http.js";
+export type {
+  ProviderHttpMethod,
+  ProviderJsonRequestInput,
+  ProviderQueryValue,
+} from "./http.js";
+
 export type {
   CategoryDataSourceDeclaration,
   CategoryEventDeclaration,
@@ -116,6 +127,7 @@ export type {
   CategoryOutputDeclaration,
   ChannelCapabilityDeclaration,
   ProviderCredentialRequirement,
+  ProviderCredentialStatus,
   ProviderCredentialStatusInput,
   ProviderManifest,
   ProviderManifestInput,

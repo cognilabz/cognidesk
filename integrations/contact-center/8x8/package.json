@@ -1,0 +1,65 @@
+{
+  "name": "@cognidesk/integration-contact-center-8x8",
+  "version": "0.0.2",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/manifest.ts src/runtime.ts --format esm --dts --clean",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@cognidesk/integration-kit": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cognilabz/cognidesk",
+    "directory": "integrations/contact-center/8x8"
+  },
+  "cognidesk": {
+    "kind": "provider-package",
+    "providerPackage": true,
+    "category": "contact-center",
+    "provider": "8x8",
+    "issue": "#39",
+    "release": "independent-provider",
+    "manifestOnlyExports": [
+      "./manifest"
+    ],
+    "packageSizeBudgetBytes": {
+      "packedSizeBytes": 2097152,
+      "unpackedSizeBytes": 4194304,
+      "declarationFileBytes": 1048576
+    }
+  }
+}
