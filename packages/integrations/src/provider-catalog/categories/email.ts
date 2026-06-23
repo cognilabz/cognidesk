@@ -21,8 +21,8 @@ export const emailProviderReferences = [
     "id": "email.outlook",
     "category": "email",
     "provider": "outlook",
-    "importPath": "@cognidesk/integrations/email/outlook",
-    "modulePath": "./email/outlook/index.js",
+    "importPath": "@cognidesk/integration-email-outlook/manifest",
+    "modulePath": "./email/outlook/manifest.js",
     "manifestExport": "outlookEmailProviderManifest"
   },
   {

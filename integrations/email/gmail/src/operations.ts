@@ -101,6 +101,7 @@ export const gmailEmailProviderOperations: ProviderOperationDeclarationInput[] =
     providerObject: "emailThread",
     sideEffect: true,
     changesWorkflow: true,
+    exposesSensitiveData: true,
     inputSchemaName: "GmailArchiveThreadInput",
     outputSchemaName: "GmailEmailThread",
   },

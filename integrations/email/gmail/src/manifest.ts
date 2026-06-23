@@ -104,6 +104,7 @@ export const gmailEmailProviderManifest = defineIntegrationProviderPackage({
       providerObjects: [{ kind: "emailThread", label: "Email Thread" }],
       requiresCredential: true,
       sideEffect: true,
+      exposesSensitiveData: true,
       changesWorkflow: true,
     },
   ],

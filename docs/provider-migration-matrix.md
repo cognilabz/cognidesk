@@ -8,7 +8,7 @@ This matrix records the migration decision for every current provider directory 
 
 ## Dependency Gate
 
-Runtime provider migrations are blocked until the reference provider packages exist.
+The Gmail reference package is landed and unblocks SDK-backed provider migrations that match its manifest-only import, raw-client escape-hatch, and adapter coverage pattern. Microsoft Graph and Slack/Discord reference gates remain open for provider families that depend on their auth, event, pagination, or package split patterns.
 
 | Gate | Current repo evidence | State | Effect |
 | --- | --- | --- | --- |

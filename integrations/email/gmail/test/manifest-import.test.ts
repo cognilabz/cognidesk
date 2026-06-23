@@ -7,12 +7,15 @@ describe("@cognidesk/integration-email-gmail/manifest", () => {
       throw new Error("manifest imported the Gmail SDK");
     });
 
-    const { gmailEmailProviderManifest } = await import("../src/manifest.js");
+    try {
+      const { gmailEmailProviderManifest } = await import("../src/manifest.js");
 
-    expect(gmailEmailProviderManifest.packageName).toBe("@cognidesk/integration-email-gmail");
-    expect(gmailEmailProviderManifest.metadata?.implementation).toMatchObject({
-      manifestImport: "no-sdk-client-initialization",
-    });
-    vi.doUnmock("@googleapis/gmail");
+      expect(gmailEmailProviderManifest.packageName).toBe("@cognidesk/integration-email-gmail");
+      expect(gmailEmailProviderManifest.metadata?.implementation).toMatchObject({
+        manifestImport: "no-sdk-client-initialization",
+      });
+    } finally {
+      vi.doUnmock("@googleapis/gmail");
+    }
   });
 });

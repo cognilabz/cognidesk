@@ -30,6 +30,7 @@ export interface GmailEmailClientOptions extends GmailProviderRequestOptions {
 
 export interface GmailCredentialStatusInput {
   accessToken?: string;
+  auth?: GmailOfficialAuthClient;
   scopes?: string[];
   expiresAt?: string;
 }

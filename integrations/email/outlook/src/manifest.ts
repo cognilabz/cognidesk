@@ -1,8 +1,7 @@
-import type { ProviderManifestInput } from "@cognidesk/integration-kit";
-import { defineIntegrationProviderPackage } from "../../provider-manifest.js";
-
-// Metadata-only legacy catalog input. The executable Outlook adapter lives in
-// integrations/email/outlook and is not re-exported from @cognidesk/integrations.
+import {
+  defineIntegrationProviderPackage,
+  type ProviderManifestInput,
+} from "@cognidesk/integration-kit";
 
 export const outlookEmailOperationAliases = {
   receive: "email.receive",

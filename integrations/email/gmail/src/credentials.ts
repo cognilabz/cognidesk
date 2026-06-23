@@ -7,12 +7,14 @@ import type { GmailCredentialStatusInput } from "./contracts.js";
 import { gmailEmailProviderManifest } from "./manifest.js";
 
 export function gmailEmailCredentialStatuses(input: GmailCredentialStatusInput): ProviderCredentialStatusInput[] {
-  const status = input.accessToken
+  const status = input.accessToken || input.auth
     ? credentialConfigured({
       providerPackageId: gmailEmailProviderManifest.id,
       requirementId: "google-oauth-access-token",
       scopes: input.scopes ?? [],
-      message: "Google OAuth access token is configured.",
+      message: input.accessToken
+        ? "Google OAuth access token is configured."
+        : "Injected Gmail SDK auth client is configured.",
     })
     : credentialMissing({
       providerPackageId: gmailEmailProviderManifest.id,

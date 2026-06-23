@@ -90,10 +90,6 @@
       "types": "./dist/email/mailgun/index.d.ts",
       "import": "./dist/email/mailgun/index.js"
     },
-    "./email/outlook": {
-      "types": "./dist/email/outlook/index.d.ts",
-      "import": "./dist/email/outlook/index.js"
-    },
     "./email/postmark": {
       "types": "./dist/email/postmark/index.d.ts",
       "import": "./dist/email/postmark/index.js"
@@ -257,10 +253,6 @@
     "./workplace/slack": {
       "types": "./dist/workplace/slack/index.d.ts",
       "import": "./dist/workplace/slack/index.js"
-    },
-    "./workplace/teams": {
-      "types": "./dist/workplace/teams/index.d.ts",
-      "import": "./dist/workplace/teams/index.js"
     }
   },
   "scripts": {
@@ -275,11 +267,11 @@
     "build:entries:messaging-sms-social": "tsup src/messaging/rcs/index.ts src/messaging/whatsapp/index.ts src/sms/twilio/index.ts src/social/instagram/index.ts src/social/messenger/index.ts src/social/tiktok/index.ts --format esm --dts --external openai",
     "build:entries:review": "tsup src/review/appstore/index.ts src/review/googleplay/index.ts --format esm --dts --outDir dist/review --external openai",
     "build:entries:video": "tsup src/video/whereby/index.ts src/video/zoom/index.ts --format esm --dts --outDir dist/video --external openai",
-    "build:entries:email": "tsup src/email/imap/index.ts src/email/mailgun/index.ts src/email/outlook/index.ts src/email/postmark/index.ts src/email/ses/index.ts --format esm --dts --outDir dist/email --external openai",
+    "build:entries:email": "tsup src/email/imap/index.ts src/email/mailgun/index.ts src/email/postmark/index.ts src/email/ses/index.ts --format esm --dts --outDir dist/email --external openai",
     "build:entries:ticketing-a": "tsup src/ticketing/dynamics365/index.ts src/ticketing/freshdesk/index.ts src/ticketing/front/index.ts src/ticketing/gorgias/index.ts src/ticketing/help-scout/index.ts --format esm --dts --outDir dist/ticketing --external openai",
     "build:entries:ticketing-b": "tsup src/ticketing/hubspot/index.ts src/ticketing/intercom/index.ts src/ticketing/kustomer/index.ts src/ticketing/oracle-service/index.ts src/ticketing/pega-customer-service/index.ts --format esm --dts --outDir dist/ticketing --external openai",
     "build:entries:ticketing-c": "tsup src/ticketing/salesforce/index.ts src/ticketing/sap-service-cloud/index.ts src/ticketing/servicenow/index.ts src/ticketing/zendesk/index.ts src/ticketing/zoho-desk/index.ts --format esm --dts --outDir dist/ticketing --external openai",
-    "build:entries:workplace": "tsup src/workplace/slack/index.ts src/workplace/teams/index.ts --format esm --dts --outDir dist/workplace --external openai",
+    "build:entries:workplace": "tsup src/workplace/slack/index.ts --format esm --dts --outDir dist/workplace/slack --external openai",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run build && vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"

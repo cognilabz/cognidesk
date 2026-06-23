@@ -151,6 +151,45 @@ describe("@cognidesk/integration-email-gmail", () => {
     });
   });
 
+  it("normalizes Gmail SDK failures with retry-after metadata", async () => {
+    const rawClient = gmailClientMock();
+    const sdkError = new Error("rate limited") as Error & {
+      response: {
+        status: number;
+        statusText: string;
+        headers: Record<string, string>;
+        data: { error: { message: string; status: string } };
+        config: { url: string };
+      };
+    };
+    sdkError.response = {
+      status: 429,
+      statusText: "Too Many Requests",
+      headers: {
+        "retry-after": "30",
+        "x-goog-request-id": "gmail-request-1",
+      },
+      data: { error: { message: "Quota exceeded", status: "RESOURCE_EXHAUSTED" } },
+      config: { url: "https://gmail.googleapis.com/gmail/v1/users/me/threads/thread_1" },
+    };
+    rawClient.users.threads.get = vi.fn(async () => {
+      throw sdkError;
+    }) as never;
+    const client = createGmailEmailClient({ rawClient });
+
+    await expect(client.readThread({ threadId: "thread_1" })).rejects.toMatchObject({
+      name: "ProviderApiError",
+      provider: "gmail",
+      status: 429,
+      code: "RESOURCE_EXHAUSTED",
+      retryAfter: "30",
+      response: {
+        requestId: "gmail-request-1",
+        url: "https://gmail.googleapis.com/gmail/v1/users/me/threads/thread_1",
+      },
+    });
+  });
+
   it("sends replies and drafts via official Gmail SDK methods", async () => {
     const rawClient = gmailClientMock();
     const client = createGmailEmailClient({ rawClient });
@@ -287,6 +326,14 @@ describe("@cognidesk/integration-email-gmail", () => {
   });
 
   it("passes readiness conformance when Gmail live checks and credentials are configured", async () => {
+    expect(gmailEmailCredentialStatuses({ auth: {} as never })).toEqual([
+      expect.objectContaining({
+        providerPackageId: gmailEmailProviderManifest.id,
+        requirementId: "google-oauth-access-token",
+        state: "configured",
+      }),
+    ]);
+
     const result = await runProviderConformance({
       manifest: gmailEmailProviderManifest,
       expectedPackageName: "@cognidesk/integration-email-gmail",

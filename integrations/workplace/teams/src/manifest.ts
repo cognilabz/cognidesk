@@ -1,8 +1,7 @@
-import type { ProviderManifestInput } from "@cognidesk/integration-kit";
-import { defineIntegrationProviderPackage } from "../../provider-manifest.js";
-
-// Metadata-only legacy catalog input. The executable Teams adapter lives in
-// integrations/workplace/teams and is not re-exported from @cognidesk/integrations.
+import {
+  defineIntegrationProviderPackage,
+  type ProviderManifestInput,
+} from "@cognidesk/integration-kit";
 
 export const teamsWorkplaceOperationAliases = {
   receive: "workplace.message.receive",

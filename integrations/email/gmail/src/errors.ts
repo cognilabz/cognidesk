@@ -41,6 +41,7 @@ export function normalizeGmailProviderError(error: unknown, operationAlias: stri
   const response = providerObject(record?.response);
   const status = typeof response?.status === "number" ? response.status : 0;
   if (!response || !status) throw error;
+  const responseHeaders = headersToRecord(response.headers);
 
   const body = response.data;
   const bodyError = providerObject(providerObject(body)?.error);
@@ -62,16 +63,17 @@ export function normalizeGmailProviderError(error: unknown, operationAlias: stri
     body,
     response: {
       statusText: typeof response.statusText === "string" ? response.statusText : "",
-      headers: headersToRecord(response.headers),
+      headers: responseHeaders,
       ...(typeof response.config === "object"
         && response.config !== null
         && "url" in response.config
         && typeof response.config.url === "string"
         ? { url: response.config.url }
         : {}),
-      ...requestIdMetadata(headersToRecord(response.headers)),
+      ...requestIdMetadata(responseHeaders),
     },
     ...(code !== undefined ? { code } : {}),
+    ...(responseHeaders["retry-after"] ? { retryAfter: responseHeaders["retry-after"] } : {}),
   });
 }
 
