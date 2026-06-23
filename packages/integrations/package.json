@@ -94,10 +94,6 @@
       "types": "./dist/messaging/rcs/index.d.ts",
       "import": "./dist/messaging/rcs/index.js"
     },
-    "./messaging/whatsapp": {
-      "types": "./dist/messaging/whatsapp/index.d.ts",
-      "import": "./dist/messaging/whatsapp/index.js"
-    },
     "./review/appstore": {
       "types": "./dist/review/appstore/index.d.ts",
       "import": "./dist/review/appstore/index.js"
@@ -109,14 +105,6 @@
     "./sms/twilio": {
       "types": "./dist/sms/twilio/index.d.ts",
       "import": "./dist/sms/twilio/index.js"
-    },
-    "./social/instagram": {
-      "types": "./dist/social/instagram/index.d.ts",
-      "import": "./dist/social/instagram/index.js"
-    },
-    "./social/messenger": {
-      "types": "./dist/social/messenger/index.d.ts",
-      "import": "./dist/social/messenger/index.js"
     },
     "./social/tiktok": {
       "types": "./dist/social/tiktok/index.d.ts",
@@ -236,7 +224,7 @@
     "build:entries:community": "tsup src/cobrowsing/cognidesk/index.ts src/community/forum/index.ts --format esm --dts --external openai",
     "build:entries:marketplace": "tsup src/marketplace/amazon/index.ts src/marketplace/ebay/index.ts --format esm --dts --outDir dist/marketplace --external openai",
     "build:entries:form-help-center": "tsup src/form/cognidesk/index.ts src/help-center/cognidesk/index.ts --format esm --dts --external openai",
-    "build:entries:messaging-sms-social": "tsup src/messaging/rcs/index.ts src/messaging/whatsapp/index.ts src/sms/twilio/index.ts src/social/instagram/index.ts src/social/messenger/index.ts src/social/tiktok/index.ts --format esm --dts --external openai",
+    "build:entries:messaging-sms-social": "tsup src/messaging/rcs/index.ts src/sms/twilio/index.ts src/social/tiktok/index.ts --format esm --dts --external openai",
     "build:entries:review": "tsup src/review/appstore/index.ts src/review/googleplay/index.ts --format esm --dts --outDir dist/review --external openai",
     "build:entries:video": "tsup src/video/whereby/index.ts src/video/zoom/index.ts --format esm --dts --outDir dist/video --external openai",
     "build:entries:ticketing-a": "tsup src/ticketing/dynamics365/index.ts src/ticketing/freshdesk/index.ts src/ticketing/front/index.ts src/ticketing/gorgias/index.ts src/ticketing/help-scout/index.ts --format esm --dts --outDir dist/ticketing --external openai",

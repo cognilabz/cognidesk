@@ -9090,11 +9090,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "messaging.whatsapp",
     "category": "messaging",
     "provider": "whatsapp",
-    "importPath": "@cognidesk/integrations/messaging/whatsapp",
-    "modulePath": "./messaging/whatsapp/index.js",
+    "importPath": "@cognidesk/integration-messaging-whatsapp/manifest",
+    "modulePath": "integrations/messaging/whatsapp/src/manifest.js",
     "manifestExport": "whatsappMessagingProviderManifest",
     "name": "WhatsApp Business Platform",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-messaging-whatsapp",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -9335,20 +9335,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "messaging",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "messaging.message.receive",
           "messaging.message.send",
+          "messaging.draft.create",
+          "messaging.template.send",
+          "messaging.media.send"
+        ],
+        "missingRequiredOperations": [
           "messaging.thread.read"
         ],
         "missingRecommendedOperations": [
           "messaging.message.reply",
-          "messaging.draft.create",
           "messaging.thread.search",
           "messaging.thread.create",
           "messaging.template.list",
-          "messaging.template.send",
-          "messaging.media.send",
           "messaging.deliveryStatus.read"
         ],
         "missingOptionalOperations": [
@@ -9360,16 +9361,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "messaging.optIn.status.update",
           "messaging.thread.assign"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "whatsapp.phoneNumber.read",
+          "whatsapp.businessProfile.read",
+          "whatsapp.businessProfile.update",
+          "whatsapp.webhook-signature"
+        ]
       }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/messaging/whatsapp",
-      "providerModule": "./messaging/whatsapp/index.js",
+      "sdkPackage": "@cognidesk/integration-messaging-whatsapp",
+      "runtimePackage": "@cognidesk/integration-messaging-whatsapp",
+      "providerModule": "integrations/messaging/whatsapp/src/manifest.js",
       "manifestExport": "whatsappMessagingProviderManifest",
-      "manifestSource": "packages/integrations/src/messaging/whatsapp/manifest.ts",
+      "manifestSource": "integrations/messaging/whatsapp/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.facebook.com/documentation/business-messaging/whatsapp/get-started"
     },
@@ -9474,20 +9480,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "messaging",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "messaging.message.receive",
           "messaging.message.send",
+          "messaging.draft.create",
+          "messaging.template.send",
+          "messaging.media.send"
+        ],
+        "missingRequiredOperations": [
           "messaging.thread.read"
         ],
         "missingRecommendedOperations": [
           "messaging.message.reply",
-          "messaging.draft.create",
           "messaging.thread.search",
           "messaging.thread.create",
           "messaging.template.list",
-          "messaging.template.send",
-          "messaging.media.send",
           "messaging.deliveryStatus.read"
         ],
         "missingOptionalOperations": [
@@ -9499,7 +9506,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "messaging.optIn.status.update",
           "messaging.thread.assign"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "whatsapp.phoneNumber.read",
+          "whatsapp.businessProfile.read",
+          "whatsapp.businessProfile.update",
+          "whatsapp.webhook-signature"
+        ]
       }
     }
   },
@@ -10367,11 +10379,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "social.instagram",
     "category": "social",
     "provider": "instagram",
-    "importPath": "@cognidesk/integrations/social/instagram",
-    "modulePath": "./social/instagram/index.js",
+    "importPath": "@cognidesk/integration-social-instagram/manifest",
+    "modulePath": "integrations/social/instagram/src/manifest.js",
     "manifestExport": "instagramSocialProviderManifest",
     "name": "Instagram Direct Messages",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-social-instagram",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -10589,11 +10601,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/social/instagram",
-      "providerModule": "./social/instagram/index.js",
+      "sdkPackage": "@cognidesk/integration-social-instagram",
+      "runtimePackage": "@cognidesk/integration-social-instagram",
+      "providerModule": "integrations/social/instagram/src/manifest.js",
       "manifestExport": "instagramSocialProviderManifest",
-      "manifestSource": "packages/integrations/src/social/instagram/manifest.ts",
+      "manifestSource": "integrations/social/instagram/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/features/send-message"
     },
@@ -10729,11 +10741,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "social.messenger",
     "category": "social",
     "provider": "messenger",
-    "importPath": "@cognidesk/integrations/social/messenger",
-    "modulePath": "./social/messenger/index.js",
+    "importPath": "@cognidesk/integration-social-messenger/manifest",
+    "modulePath": "integrations/social/messenger/src/manifest.js",
     "manifestExport": "messengerSocialProviderManifest",
     "name": "Facebook Messenger",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-social-messenger",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -10834,6 +10846,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "messengerMessage",
             "label": "Messenger Message"
+          },
+          {
+            "kind": "messengerPage",
+            "label": "Messenger Page"
           }
         ],
         "requiresCredential": true,
@@ -10967,11 +10983,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/social/messenger",
-      "providerModule": "./social/messenger/index.js",
+      "sdkPackage": "@cognidesk/integration-social-messenger",
+      "runtimePackage": "@cognidesk/integration-social-messenger",
+      "providerModule": "integrations/social/messenger/src/manifest.js",
       "manifestExport": "messengerSocialProviderManifest",
-      "manifestSource": "packages/integrations/src/social/messenger/manifest.ts",
+      "manifestSource": "integrations/social/messenger/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.facebook.com/docs/messenger-platform"
     },

@@ -622,13 +622,6 @@ const integrationProviderReferences: readonly [{
   modulePath: "./messaging/rcs/index.js";
   provider: "rcs";
 }, {
-  category: "messaging";
-  id: "messaging.whatsapp";
-  importPath: "@cognidesk/integrations/messaging/whatsapp";
-  manifestExport: "whatsappMessagingProviderManifest";
-  modulePath: "./messaging/whatsapp/index.js";
-  provider: "whatsapp";
-}, {
   category: "review";
   id: "review.appstore";
   importPath: "@cognidesk/integrations/review/appstore";
@@ -649,20 +642,6 @@ const integrationProviderReferences: readonly [{
   manifestExport: "twilioSmsProviderManifest";
   modulePath: "./sms/twilio/index.js";
   provider: "twilio";
-}, {
-  category: "social";
-  id: "social.instagram";
-  importPath: "@cognidesk/integrations/social/instagram";
-  manifestExport: "instagramSocialProviderManifest";
-  modulePath: "./social/instagram/index.js";
-  provider: "instagram";
-}, {
-  category: "social";
-  id: "social.messenger";
-  importPath: "@cognidesk/integrations/social/messenger";
-  manifestExport: "messengerSocialProviderManifest";
-  modulePath: "./social/messenger/index.js";
-  provider: "messenger";
 }, {
   category: "social";
   id: "social.tiktok";
