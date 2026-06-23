@@ -17,3 +17,9 @@ export {
   validateRcsWebhookSignature,
   verifyRcsWebhookChallenge,
 } from "./webhooks.js";
+export {
+  RCS_DIRECT_SLICE_METADATA,
+  RCS_SELECTED_OPERATION_COUNT,
+  RCS_SELECTED_OPERATIONS,
+  type RcsSelectedOperation,
+} from "./selected-operations.js";

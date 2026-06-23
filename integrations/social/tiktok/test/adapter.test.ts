@@ -11,13 +11,13 @@ import {
   tiktokSocialCredentialStatuses,
   tiktokSocialProviderManifest,
   validateTikTokWebhookSignature,
-} from "../../../src/social/tiktok/index.js";
+} from "../src/index.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/integration-social-tiktok", () => {
   it("exports an official provider manifest for TikTok social support", () => {
     expect(tiktokSocialProviderManifest).toMatchObject({
       id: "social.tiktok",
-      packageName: "@cognidesk/integrations",
+      packageName: "@cognidesk/integration-social-tiktok",
       category: "social",
       provider: "tiktok",
       trustLevel: "official",
@@ -60,7 +60,7 @@ describe("@cognidesk/integrations", () => {
     expect(tiktokSocialProviderManifest.coverage.notes.join(" "))
       .toContain("does not implement a general TikTok direct-message inbox");
     expect(tiktokSocialProviderManifest.metadata?.apiCoverage).toMatchObject({
-      operationCatalog: "docs/provider-coverage/tiktok-selected-api-2026-06-18.operations.json",
+      operationCatalog: "package:src/selected-operations.ts",
       generatedFromOfficialSpec: false,
       selectedOperationCount: 8,
       implementedOperationCount: 8,
