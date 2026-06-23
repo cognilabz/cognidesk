@@ -41,6 +41,7 @@ const providerSdkPackages = new Set([
   "@shopify/shopify-api",
   "@slack/web-api",
   "@vonage/server-sdk",
+  "discord.js",
   "googleapis",
   "mailgun.js",
   "openai",

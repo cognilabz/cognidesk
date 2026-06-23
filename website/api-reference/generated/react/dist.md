@@ -3320,6 +3320,22 @@ handleChannelEvent(input): Promise<HandleChannelEventResult<unknown>>;
 
 `Promise`\<`HandleChannelEventResult`\<`unknown`\>\>
 
+##### listConversations()
+
+```ts
+listConversations(options?): Promise<ListConversationsResult>;
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | [`ListConversationsOptions`](#listconversationsoptions) |
+
+###### Returns
+
+`Promise`\<[`ListConversationsResult`](#listconversationsresult)\>
+
 ##### listEvents()
 
 ```ts
@@ -3949,6 +3965,114 @@ conversation: {
   lifecycle: string;
   updatedAt: string;
 };
+```
+
+###### agentId
+
+```ts
+agentId: string;
+```
+
+###### channel?
+
+```ts
+optional channel?: ConversationChannel;
+```
+
+###### context
+
+```ts
+context: unknown;
+```
+
+###### createdAt
+
+```ts
+createdAt: string;
+```
+
+###### id
+
+```ts
+id: string;
+```
+
+###### lifecycle
+
+```ts
+lifecycle: string;
+```
+
+###### updatedAt
+
+```ts
+updatedAt: string;
+```
+
+***
+
+### ListConversationsOptions
+
+#### Properties
+
+##### after?
+
+```ts
+optional after?: ConversationListCursor;
+```
+
+##### afterUpdatedAt?
+
+```ts
+optional afterUpdatedAt?: string;
+```
+
+Timestamp-only range filter. Use `after` for lossless cursor pagination.
+
+##### agentId?
+
+```ts
+optional agentId?: string;
+```
+
+##### before?
+
+```ts
+optional before?: ConversationListCursor;
+```
+
+##### beforeUpdatedAt?
+
+```ts
+optional beforeUpdatedAt?: string;
+```
+
+Timestamp-only range filter. Use `before` for lossless cursor pagination.
+
+##### limit?
+
+```ts
+optional limit?: number;
+```
+
+***
+
+### ListConversationsResult
+
+#### Properties
+
+##### conversations
+
+```ts
+conversations: {
+  agentId: string;
+  channel?: ConversationChannel;
+  context: unknown;
+  createdAt: string;
+  id: string;
+  lifecycle: string;
+  updatedAt: string;
+}[];
 ```
 
 ###### agentId
@@ -7251,6 +7375,7 @@ type CognideskEventSourceFactory = (url, options) => EventSource;
 ```ts
 type CognideskRequestOperation =
   | "createConversation"
+  | "listConversations"
   | "handleChannelEvent"
   | "receiveMessage"
   | "recordProviderUpdate"

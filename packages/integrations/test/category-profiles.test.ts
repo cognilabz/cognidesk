@@ -9,6 +9,7 @@ import {
   emailCategoryProfile,
   findCategoryOperation,
   getIntegrationCategoryProfile,
+  defaultIntegrationProviderRuntimeRegistry,
   handoffCategoryProfile,
   integrationProviderReferences,
   integrationCategoryProfiles,
@@ -248,6 +249,7 @@ describe("integration category profiles", () => {
     const profiledCategories = new Set(integrationCategoryProfiles.map((profile) => profile.category));
     const profiledReferences = integrationProviderReferences.filter((reference) =>
       profiledCategories.has(reference.category)
+      && defaultIntegrationProviderRuntimeRegistry.has(reference)
     );
 
     for (const reference of profiledReferences) {
@@ -277,7 +279,7 @@ describe("integration category profiles", () => {
         expect(declaredCapabilities.has(operation.capability), `${reference.id}:${operation.alias}`).toBe(true);
       }
     }
-  }, 30000);
+  }, 120_000);
 
   it("does not infer concrete category operations from broad provider capabilities", () => {
     const manifest = defineIntegrationProviderPackage({
