@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  path_filters:
+    - "!packages/integrations/**"
+    - "!website/api-reference/**"
+    - "!docs/**"
+    - "!.github/workflows/**"
+    - "!docs/provider-coverage/**"
+    - "!.playwright-cli/**"
+    - "!output/playwright/**"
+    - "!pnpm-lock.yaml"
+    - "!**/*.generated.ts"
+    - "!**/*.generated/**"
+    - "!scripts/generate-*/**"
+    - "!scripts/generate-*.mjs"
+    - "!integrations/**"
+    - "integrations/email/gmail/package.json"
+    - "integrations/messaging/discord/src/gateway-service.ts"
+    - "integrations/voice/openai/package.json"
