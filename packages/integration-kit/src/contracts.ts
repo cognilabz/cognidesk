@@ -50,11 +50,15 @@ export type IntegrationOperationHandlers<Credentials = unknown> = Record<
 type AnyIntegrationOperationHandlers = Record<string, IntegrationOperationHandler<any, any, any>>;
 
 export type ManifestOperationAlias<Manifest> =
-  Manifest extends { operations?: readonly (infer Operation)[] }
-    ? Operation extends { alias: infer Alias extends string }
+  Manifest extends { readonly operations: readonly (infer Operation)[] }
+    ? Operation extends { readonly alias: infer Alias extends string }
       ? Alias
       : never
-    : never;
+    : Manifest extends { operations?: readonly (infer Operation)[] }
+      ? Operation extends { alias: infer Alias extends string }
+        ? Alias
+        : never
+      : never;
 
 type HandlerAliases<Handlers> = Extract<keyof Handlers, string>;
 

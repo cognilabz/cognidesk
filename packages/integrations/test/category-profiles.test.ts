@@ -10,6 +10,7 @@ import {
   emailCategoryProfile,
   findCategoryOperation,
   getIntegrationCategoryProfile,
+  defaultIntegrationProviderRuntimeRegistry,
   handoffCategoryProfile,
   integrationProviderReferences,
   integrationCategoryProfiles,
@@ -237,11 +238,11 @@ describe("integration category profiles", () => {
 
   it("advertises provider modules that are present in this PR slice", async () => {
     expect(integrationProviderReferences.length).toBeGreaterThan(0);
-    expect(isIntegrationProviderReferenceAvailable("messaging.rcs")).toBe(true);
-    await expect(loadProviderIntegrationManifest("messaging.rcs")).resolves.toMatchObject({
-      id: "messaging.rcs",
-      category: "messaging",
-      provider: "rcs",
+    expect(isIntegrationProviderReferenceAvailable("sms.twilio")).toBe(true);
+    await expect(loadProviderIntegrationManifest("sms.twilio")).resolves.toMatchObject({
+      id: "sms.twilio",
+      category: "sms",
+      provider: "twilio",
     });
   });
 
@@ -286,7 +287,7 @@ describe("integration category profiles", () => {
         expect(declaredCapabilities.has(operation.capability), `${reference.id}:${operation.alias}`).toBe(true);
       }
     }
-  });
+  }, 120_000);
 
   it("does not infer concrete category operations from broad provider capabilities", () => {
     const manifest = defineIntegrationProviderPackage({

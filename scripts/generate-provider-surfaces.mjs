@@ -11,11 +11,15 @@ const onlyArg = args.find((arg) => arg.startsWith("--only="));
 const only = onlyArg
   ? new Set(onlyArg.slice("--only=".length).split(",").map((value) => value.trim()).filter(Boolean))
   : undefined;
+const excludedGenerators = new Set([
+  "generate-provider-surfaces.mjs",
+  "generate-provider-integration-catalog.mjs",
+  "generate-zendesk-full-api.mjs",
+]);
 
 const scripts = (await readdir(scriptsDir))
   .filter((file) => /^generate-.*\.mjs$/.test(file))
-  .filter((file) => file !== "generate-provider-surfaces.mjs")
-  .filter((file) => file !== "generate-provider-integration-catalog.mjs")
+  .filter((file) => !excludedGenerators.has(file))
   .filter((file) => !only || only.has(file.replace(/\.mjs$/, "")) || only.has(file))
   .sort((a, b) => a.localeCompare(b));
 

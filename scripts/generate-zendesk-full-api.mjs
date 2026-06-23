@@ -45,9 +45,7 @@ try {
   operations.sort((a, b) => a.functionName.localeCompare(b.functionName));
 
   const docsDir = path.join(repoRoot, "docs/provider-coverage");
-  const srcDir = path.join(repoRoot, "packages/integrations/src/ticketing/zendesk");
   await mkdir(docsDir, { recursive: true });
-  await mkdir(srcDir, { recursive: true });
 
   const artifactStem = `zendesk-full-api-${generatedAt}`;
   const specSummary = {
@@ -73,26 +71,9 @@ try {
       sourceUrl,
     })),
   }, null, 2)}\n`);
-  await writeFile(path.join(srcDir, "full-api-operations.generated.ts"), renderOperationsFile(specSummary, operations));
-  await writeFile(path.join(srcDir, "full-api-client.generated.ts"), renderClientFile(operations));
-  console.log(`packages/integrations/src/ticketing/zendesk: generated ${operations.length} operations`);
+  console.log(`docs/provider-coverage: cataloged ${operations.length} Zendesk Support operations`);
 } finally {
   await rm(tmpDir, { recursive: true, force: true });
-}
-
-function renderOperationsFile(specSummary, operations) {
-  return `// Generated from Zendesk Support OpenAPI (${sourceUrl}).\n// Do not edit by hand; run scripts/generate-zendesk-full-api.mjs after checking upstream docs.\n\nexport type ZendeskFullApiOperationMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";\n\nexport interface ZendeskFullApiSpec {\n  sourceUrl: string;\n  openapi: string;\n  version: string;\n  title: string;\n  documentedOperationCount: number;\n  pathCount: number;\n}\n\nexport interface ZendeskFullApiOperation {\n  id: string;\n  operationId: string;\n  functionName: string;\n  method: ZendeskFullApiOperationMethod;\n  path: string;\n  tags: readonly string[];\n  summary: string;\n  sourceUrl: string;\n}\n\nexport const ZENDESK_FULL_API_SPEC_SOURCE = "${sourceUrl}" as const;\nexport const ZENDESK_FULL_API_SPEC_VERSION = "zendesk-support-${specSummary.version}-${generatedAt}" as const;\nexport const ZENDESK_FULL_API_GENERATED_AT = "${generatedAt}" as const;\nexport const ZENDESK_FULL_API_OPERATION_COUNT = ${operations.length} as const;\n\nexport const ZENDESK_FULL_API_SPEC: ZendeskFullApiSpec = ${literal(specSummary)};\n\nexport const ZENDESK_FULL_API_OPERATIONS = JSON.parse(${JSON.stringify(JSON.stringify(operations))}) as readonly ZendeskFullApiOperation[];\n\nexport type ZendeskFullApiOperationId = string;\n\nexport const ZENDESK_FULL_API_OPERATION_BY_ID = new Map<string, ZendeskFullApiOperation>(\n  ZENDESK_FULL_API_OPERATIONS.map((operation) => [operation.id, operation]),\n);\n`;
-}
-
-function renderClientFile(operations) {
-  const interfaceMethods = operations.map((operation) =>
-    `  ${operation.functionName}<T = ZendeskResource>(input?: ZendeskOperationRequestInput): Promise<T>;`
-  ).join("\n");
-  const functionNames = operations.map((operation) => operation.functionName);
-  const bodyMethods = operations.map((operation) =>
-    `    ${operation.functionName}: (input) => callOperation("${operation.id}", input),`
-  ).join("\n");
-  return `// Generated from Zendesk Support OpenAPI (${sourceUrl}).\n// Do not edit by hand; run scripts/generate-zendesk-full-api.mjs after checking upstream docs.\n\nimport type { ZendeskOperationRequestInput, ZendeskResource } from "./index.js";\n\nexport type ZendeskGeneratedOperationCaller = <T = ZendeskResource>(operationId: string, input?: ZendeskOperationRequestInput) => Promise<T>;\n\nexport interface ZendeskFullApiGeneratedClient {\n${interfaceMethods}\n}\n\nexport const ZENDESK_FULL_API_GENERATED_FUNCTION_COUNT = ${operations.length} as const;\nexport const ZENDESK_FULL_API_GENERATED_FUNCTION_NAMES = JSON.parse(${JSON.stringify(JSON.stringify(functionNames))}) as readonly string[];\n\nexport function createZendeskFullApiGeneratedClient(\n  callOperation: ZendeskGeneratedOperationCaller,\n): ZendeskFullApiGeneratedClient {\n  return {\n${bodyMethods}\n  };\n}\n`;
 }
 
 function pascal(value) {
@@ -115,8 +96,4 @@ function uniqueFunctionName(existingOperations, candidate) {
     index += 1;
   }
   return name;
-}
-
-function literal(value) {
-  return JSON.stringify(value, null, 2);
 }
