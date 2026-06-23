@@ -237,11 +237,11 @@ describe("integration category profiles", () => {
 
   it("advertises provider modules that are present in this PR slice", async () => {
     expect(integrationProviderReferences.length).toBeGreaterThan(0);
-    expect(isIntegrationProviderReferenceAvailable("ticketing.zendesk")).toBe(true);
-    await expect(loadProviderIntegrationManifest("ticketing.zendesk")).resolves.toMatchObject({
-      id: "ticketing.zendesk",
+    expect(isIntegrationProviderReferenceAvailable("ticketing.intercom")).toBe(true);
+    await expect(loadProviderIntegrationManifest("ticketing.intercom")).resolves.toMatchObject({
+      id: "ticketing.intercom",
       category: "ticketing",
-      provider: "zendesk",
+      provider: "intercom",
     });
   });
 

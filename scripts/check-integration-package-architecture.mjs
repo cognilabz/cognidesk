@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -69,6 +70,10 @@ const oldImportBridgeMetadataKeys = [
   "oldImportBridge",
   "oldImportCompatibilityPackage",
 ];
+const migratedHelpdeskProviders = ["front", "gorgias", "kustomer", "zendesk"];
+const staleHelpdeskFullCloneGenerators = new Set([
+  "generate-zendesk-full-api.mjs",
+]);
 
 const failures = [];
 const warnings = [];
@@ -91,6 +96,7 @@ async function main() {
   await checkManifestOnlyEntrypoints();
   await checkSdkBackedGeneratedClones(splitProviderPackages);
   await checkFullProviderApiClaimsUseAdapterVerification(splitProviderPackages);
+  await checkProviderGeneratorDiscovery();
 
   if (warnings.length > 0) {
     console.log("Integration package architecture warnings:");
@@ -111,6 +117,7 @@ async function main() {
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
+  console.log("  provider generation discovery does not expose migrated helpdesk full-clone generators");
   console.log("  provider package names use @cognidesk/integration-{category}-{provider}");
 }
 
@@ -555,6 +562,52 @@ async function checkFullProviderApiClaimsUseAdapterVerification(packages) {
       }
     }
   }
+}
+
+async function checkProviderGeneratorDiscovery() {
+  const listedScripts = providerGeneratorList();
+
+  for (const script of staleHelpdeskFullCloneGenerators) {
+    if (listedScripts.includes(script)) {
+      failures.push(
+        `scripts/generate-provider-surfaces.mjs: providers:generate:list must not expose stale migrated helpdesk full-clone generator ${script}`,
+      );
+    }
+  }
+
+  for (const script of listedScripts) {
+    const source = await readFile(path.join(repoRoot, "scripts", script), "utf8");
+    const provider = migratedHelpdeskProviders.find((candidate) =>
+      source.includes(`packages/integrations/src/ticketing/${candidate}`)
+    );
+    if (!provider) continue;
+
+    failures.push(
+      `${path.join("scripts", script)}: listed provider generator must not write deleted aggregate ticketing/${provider} source paths`,
+    );
+  }
+
+  for (const script of ["generate-ticketing-provider-coverage.mjs", "generate-zendesk-full-api.mjs"]) {
+    const source = await readFile(path.join(repoRoot, "scripts", script), "utf8");
+    const provider = migratedHelpdeskProviders.find((candidate) =>
+      source.includes(`packages/integrations/src/ticketing/${candidate}`)
+    );
+    if (!provider) continue;
+
+    failures.push(
+      `${path.join("scripts", script)}: migrated helpdesk coverage generator must not write deleted aggregate ticketing/${provider} source paths`,
+    );
+  }
+}
+
+function providerGeneratorList() {
+  return execFileSync(process.execPath, [path.join(repoRoot, "scripts", "generate-provider-surfaces.mjs"), "--list"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  })
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.endsWith(".mjs"));
 }
 
 async function sourceFilesForPackage(pkg) {
