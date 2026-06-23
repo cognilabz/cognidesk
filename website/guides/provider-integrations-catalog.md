@@ -368,17 +368,17 @@ Evidence: [Zoom Contact Center APIs](https://developers.zoom.us/docs/api/contact
 | Manifest ID | `ecommerce.shopify` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `official-sdk` |
 | Documentation | [https://shopify.dev/docs/api/admin-graphql/latest](https://shopify.dev/docs/api/admin-graphql/latest) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `ecommerce.graphql` |
 | Provider setup | required `shopify-shop-domain`, `shopify-admin-access`; optional `shopify-webhook-secret` |
 
-Coverage: Official Shopify Admin GraphQL 2026-04 docs are inventoried as 792 root fields (282 QueryRoot, 510 Mutation), but this package implements only selected typed helpers plus a raw Admin GraphQL escape hatch.
+Coverage: Coverage is limited to selected Shopify Admin GraphQL support operations backed by the official Shopify Admin API client.
 
 Boundary: The SDK user chooses Admin API version, scopes, webhook topics, customer visibility, fulfillment behavior, consent rules, and retention policy.
 
-Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/admin-graphql/latest); [Shopify Admin GraphQL QueryRoot 2026-04 catalog](https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot); [Shopify Admin GraphQL Mutation 2026-04 catalog](https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation); [Shopify Admin GraphQL products query](https://shopify.dev/docs/api/admin-graphql/latest/queries/products); plus 4 more.
+Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/admin-graphql/latest); [Shopify Admin API client](https://www.npmjs.com/package/@shopify/admin-api-client); [Shopify webhook HMAC validation](https://shopify.dev/docs/apps/build/webhooks/subscribe/https#step-5-verify-the-webhook).
 
 #### Stripe
 
@@ -389,19 +389,19 @@ Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/adm
 | Runtime import | `@cognidesk/integration-ecommerce-stripe/runtime` |
 | Workspace | `integrations/ecommerce/stripe` |
 | Manifest ID | `ecommerce.stripe` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
+| Implementation | `official-sdk` |
 | Documentation | [https://docs.stripe.com/api](https://docs.stripe.com/api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `update-provider-object`, `ecommerce.payments` |
-| Provider setup | required `stripe-secret-key`, `stripe-webhook-signing-secret`; optional `stripe-publishable-key`, `stripe-connect-mode`, `stripe-restricted-key-scopes` |
+| Provider setup | required `stripe-secret-key`, `stripe-webhook-signing-secret`; optional `stripe-connect-mode` |
 
-Coverage: Coverage includes a generated operation catalog for every operation in the official Stripe OpenAPI spec for this API version, exposed through requestOperation(operationId, ...).
+Coverage: Coverage is limited to Cognidesk-normalized Stripe commerce support operations backed by the official Stripe SDK.
 
 Boundary: The SDK user chooses Stripe account mode, restricted-key permissions, event destinations, webhook subscriptions, checkout UI, refund policy, dispute evidence policy, consent, and retention.
 
-Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe PaymentIntents API](https://docs.stripe.com/api/payment_intents); [Stripe Checkout Sessions API](https://docs.stripe.com/api/checkout/sessions); [Stripe Subscriptions update API](https://docs.stripe.com/api/subscriptions/update); plus 2 more.
+Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe Node SDK](https://github.com/stripe/stripe-node); [Stripe webhook signature verification](https://docs.stripe.com/webhooks/signature).
 
 ### Email
 
@@ -414,19 +414,19 @@ Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe PaymentIn
 | Runtime import | `@cognidesk/integration-email-ses/runtime` |
 | Workspace | `integrations/email/ses` |
 | Manifest ID | `email.ses` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html](https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
-| Provider setup | required `aws-access-key-id`, `aws-secret-access-key`, `aws-region`; optional `ses-sender-identity`, `ses-event-ingestion` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `update-provider-object` |
+| Provider setup | required `aws-credentials`, `aws-region`; optional `ses-sns-verification` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in the official AWS SESv2 and classic SES API models.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by AWS SDK v3 SES clients.
 
-Boundary: The SDK user chooses regions, IAM policy, sender identities, suppression policy, configuration sets, templates, event routing, webhook verification, retention, and outbound approval policy.
+Boundary: SES is not a mailbox product and does not expose mailbox-style message history.
 
-Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/blob/main/models/sesv2/service/2019-09-27/sesv2-2019-09-27.json); [AWS official classic SES API model](https://github.com/aws/api-models-aws/blob/main/models/ses/service/2010-12-01/ses-2010-12-01.json); [AWS SDK SESv2 client API reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/sesv2/); [AWS SDK classic SES client API reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/ses/); plus 11 more.
+Evidence: [AWS SDK for JavaScript v3 SESv2 client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2); [AWS SDK for JavaScript v3 SES classic client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-ses); [Amazon SES API v2](https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html); [Amazon SES event publishing](https://docs.aws.amazon.com/ses/latest/dg/monitor-sending-activity.html); plus 1 more.
 
 #### Gmail
 
@@ -437,19 +437,19 @@ Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/b
 | Runtime import | `@cognidesk/integration-email-gmail/runtime` |
 | Workspace | `integrations/email/gmail` |
 | Manifest ID | `email.gmail` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://gmail.googleapis.com/$discovery/rest?version=v1](https://gmail.googleapis.com/$discovery/rest?version=v1) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@googleapis/gmail](https://www.npmjs.com/package/@googleapis/gmail) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object` |
+| Capabilities | `receive`, `read-provider-object`, `draft`, `send`, `update-provider-object` |
 | Provider setup | required `google-oauth-access-token` |
 
-Coverage: Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.
+Coverage: Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.
 
-Boundary: Available operations depend on the OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.
+Boundary: Available operations depend on OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.
 
-Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery/rest?version=v1); [Gmail messages list](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list); [Gmail users getProfile](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile); [Gmail drafts create](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create); plus 7 more.
+Evidence: [@googleapis/gmail package](https://www.npmjs.com/package/@googleapis/gmail); [Gmail API Node.js quickstart](https://developers.google.com/workspace/gmail/api/quickstart/nodejs); [Gmail users.threads.get](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get); [Gmail users.messages.send](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send); plus 4 more.
 
 #### IMAP Mailbox
 
@@ -460,19 +460,19 @@ Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery
 | Runtime import | `@cognidesk/integration-email-imap/runtime` |
 | Workspace | `integrations/email/imap` |
 | Manifest ID | `email.imap` |
-| Scope | `support-workflow-subset` |
+| Scope | `local-protocol` |
 | Adapter coverage | `partial` |
-| Implementation | `app-supplied-connector` |
+| Implementation | `local-protocol` |
 | Documentation | [https://datatracker.ietf.org/doc/html/rfc9051](https://datatracker.ietf.org/doc/html/rfc9051) |
 | Directions | `inbound-only` |
-| Capabilities | `read-provider-object` |
-| Provider setup | required `imap-server`, `imap-mailbox-credentials`, `imap-connector` |
+| Capabilities | `read-provider-object`, `search-provider-object` |
+| Provider setup | required `imap-server`, `imap-mailbox-credentials` |
 
-Coverage: Coverage is limited to credential status and SDK-user-injected mailbox readiness checks.
+Coverage: Coverage is a focused Cognidesk IMAP protocol adapter backed by ImapFlow.
 
-Boundary: This package does not bundle an IMAP client dependency; SDK users inject a connector that matches their runtime, TLS, auth, and proxy requirements.
+Boundary: This package does not implement full mailbox synchronization, storage, retention, MIME parsing policy, attachment handling policy, deletion policy, or outbound SMTP.
 
-Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051).
+Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051); [ImapFlow](https://imapflow.com/).
 
 #### Mailgun
 
@@ -483,19 +483,19 @@ Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051).
 | Runtime import | `@cognidesk/integration-email-mailgun/runtime` |
 | Workspace | `integrations/email/mailgun` |
 | Manifest ID | `email.mailgun` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://documentation.mailgun.com/docs/mailgun](https://documentation.mailgun.com/docs/mailgun) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/mailgun/mailgun.js](https://github.com/mailgun/mailgun.js) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object` |
-| Provider setup | required `mailgun-api-key`, `mailgun-domain`; optional `mailgun-webhook-signing-key`, `mailgun-region` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `search-provider-object` |
+| Provider setup | required `mailgun-api-key`, `mailgun-domain`; optional `mailgun-webhook-signing-key` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Mailgun's official public OpenAPI 3.1 API reference.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by the official Mailgun SDK.
 
-Boundary: The SDK user chooses domains, routes, templates, tracking, webhook endpoints, retention, redaction, and outbound approval policy.
+Boundary: The SDK user owns domain selection, route policy, retention, redaction, replay-cache storage, outbound approval, and rate limiting.
 
-Evidence: [Mailgun OpenAPI specification](https://documentation.mailgun.com/_spec/docs/mailgun/api-reference/send/mailgun.json?download); [Mailgun Messages API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/messages); [Mailgun Events API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/events); [Mailgun Logs API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/logs); plus 7 more.
+Evidence: [mailgun.js package](https://github.com/mailgun/mailgun.js); [Mailgun Messages API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/messages); [Mailgun Events API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/events); [Mailgun Webhooks](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/domain-webhooks).
 
 #### Microsoft Outlook
 
@@ -507,18 +507,18 @@ Evidence: [Mailgun OpenAPI specification](https://documentation.mailgun.com/_spe
 | Workspace | `integrations/email/outlook` |
 | Manifest ID | `email.outlook` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@microsoft/microsoft-graph-client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object`, `outlook.webhook-client-state` |
+| Capabilities | `receive`, `draft`, `send`, `read-provider-object`, `update-provider-object` |
 | Provider setup | required `microsoft-graph-oauth-access-token`; optional `microsoft-graph-mailbox-user`, `microsoft-graph-webhook-client-state` |
 
-Coverage: Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Outlook mailbox slice used by this package: /me and /users/{user-id}, messages, mailFolders, message attachments, sendMail, subscriptions, and Outlook category paths.
+Coverage: Coverage includes SDK-backed Microsoft Graph Outlook mailbox support workflows: messages, mailFolders, attachments, sendMail, subscriptions, mailbox user readiness, and change notifications.
 
 Boundary: Available operations depend on Microsoft Graph permissions, OAuth grant type, tenant admin consent, conditional access, mailbox licensing, Exchange Online policy, and delegated or application user selection.
 
-Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml); [Microsoft Graph v1.0 OpenAPI](https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml); [Microsoft Graph create message](https://learn.microsoft.com/en-us/graph/api/user-post-messages?view=graph-rest-1.0); [Microsoft Graph sendMail](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0); plus 6 more.
+Evidence: [Microsoft Graph JavaScript client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client); [Microsoft Graph create message](https://learn.microsoft.com/en-us/graph/api/user-post-messages?view=graph-rest-1.0); [Microsoft Graph sendMail](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0); [Microsoft Graph message delta](https://learn.microsoft.com/en-us/graph/api/message-delta?view=graph-rest-1.0); plus 3 more.
 
 #### Postmark
 
@@ -529,19 +529,19 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 | Runtime import | `@cognidesk/integration-email-postmark/runtime` |
 | Workspace | `integrations/email/postmark` |
 | Manifest ID | `email.postmark` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://postmarkapp.com/developer](https://postmarkapp.com/developer) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/ActiveCampaign/postmark.js](https://github.com/ActiveCampaign/postmark.js) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
-| Provider setup | required `postmark-server-token`, `postmark-account-token`; optional `postmark-message-stream`, `postmark-webhook-auth` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `update-provider-object` |
+| Provider setup | required `postmark-server-token`; optional `postmark-account-token` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Postmark's official server and account Swagger files.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by the official Postmark Node client.
 
-Boundary: The SDK user chooses streams, sender signatures, templates, inbound domains, webhook protection, retention, redaction, and outbound approval policy.
+Boundary: The SDK user owns message stream selection, webhook auth policy, retention, redaction, outbound approval, and rate limiting.
 
-Evidence: [Postmark Server API Swagger](https://postmarkapp.com/swagger/server.yml); [Postmark Account API Swagger](https://postmarkapp.com/swagger/account.yml); [Postmark API Explorer](https://postmarkapp.com/api-explorer); [Postmark Email API](https://postmarkapp.com/developer/user-guide/send-email-with-api); plus 5 more.
+Evidence: [Postmark Node.js library](https://github.com/ActiveCampaign/postmark.js); [Postmark Email API](https://postmarkapp.com/developer/api/email-api); [Postmark Messages API](https://postmarkapp.com/developer/api/messages-api); [Postmark inbound webhooks](https://postmarkapp.com/developer/webhooks/inbound-webhook).
 
 ### Forms
 
@@ -647,6 +647,7 @@ Evidence: [eBay Sell Fulfillment API](https://developer.ebay.com/develop/api/sel
 
 | Field | Value |
 |-------|-------|
+| Integration | Discord Integration |
 | Package | `@cognidesk/integration-messaging-discord` |
 | Manifest import | `@cognidesk/integration-messaging-discord/manifest` |
 | Runtime import | `@cognidesk/integration-messaging-discord/runtime` |
@@ -1472,18 +1473,18 @@ Evidence: [Vonage Voice API v1 OpenAPI](https://developer.vonage.com/api/v1/deve
 | Workspace | `integrations/workplace/teams` |
 | Manifest ID | `workplace.teams` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@microsoft/microsoft-graph-client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `notify`, `thread`, `read-provider-object`, `create-provider-object`, `update-provider-object`, `teams.change-notification-client-state` |
+| Capabilities | `receive`, `send`, `notify`, `thread`, `read-provider-object`, `create-provider-object`, `update-provider-object` |
 | Provider setup | required `microsoft-graph-oauth-access-token`, `microsoft-graph-tenant`, `microsoft-graph-app-registration`; optional `microsoft-graph-change-notification-client-state` |
 
-Coverage: Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Teams/workplace collaboration slice used by this package: Teams app catalog, chats, communications/calls, group team, joinedTeams, onlineMeetings, presence, teams/channels, teamwork, user teamwork, and subscriptions.
+Coverage: Coverage includes SDK-backed Microsoft Graph Teams support workflows: channel and chat messages, channel replies, message updates, subscriptions, current-user readiness, and change notifications.
 
 Boundary: Available operations depend on the SDK user's Microsoft Entra tenant, Teams licensing, Graph OAuth scopes, delegated versus application permission mode, resource-specific consent, tenant/admin consent, channel membership, and Teams policy.
 
-Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml); [Microsoft Graph v1.0 OpenAPI](https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml); [Microsoft Graph send channel message](https://learn.microsoft.com/en-us/graph/api/channel-post-messages?view=graph-rest-1.0); [Microsoft Graph send chat message](https://learn.microsoft.com/en-us/graph/api/chat-post-messages?view=graph-rest-1.0); plus 9 more.
+Evidence: [Microsoft Graph JavaScript client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client); [Microsoft Graph send channel message](https://learn.microsoft.com/en-us/graph/api/channel-post-messages?view=graph-rest-1.0); [Microsoft Graph send chat message](https://learn.microsoft.com/en-us/graph/api/chat-post-messages?view=graph-rest-1.0); [Microsoft Graph send channel reply](https://learn.microsoft.com/en-us/graph/api/chatmessage-post-replies?view=graph-rest-1.0); plus 6 more.
 
 #### Slack
 
@@ -1494,16 +1495,16 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 | Runtime import | `@cognidesk/integration-workplace-slack/runtime` |
 | Workspace | `integrations/workplace/slack` |
 | Manifest ID | `workplace.slack` |
-| Scope | `provider-api-subset` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json) |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.npmjs.com/package/@slack/web-api](https://www.npmjs.com/package/@slack/web-api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `notify`, `thread`, `media`, `read-provider-object`, `update-provider-object`, `slack.request-signature` |
 | Provider setup | required `slack-bot-token`, `slack-signing-secret` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.
+Coverage: Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.
 
 Boundary: Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.
 
-Evidence: [Slack archived official Web API Swagger](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json); [Slack official API specs repository](https://github.com/slackapi/slack-api-specs); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); plus 9 more.
+Evidence: [Slack Web API package](https://www.npmjs.com/package/@slack/web-api); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); [Slack chat.update](https://docs.slack.dev/reference/methods/chat.update/); plus 6 more.
