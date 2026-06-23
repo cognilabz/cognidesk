@@ -166,7 +166,7 @@ async function discoverSplitProviderEntries(): Promise<IntegrationCatalogEntry[]
         category: manifest.category,
         provider: manifest.provider,
         importPath: `${manifest.packageName}/manifest`,
-        modulePath: `${path.relative(repoRoot, manifestPath).replace(/\\/g, "/").replace(/\.ts$/, ".js")}`,
+        modulePath: `${path.relative(repoRoot, path.join(packageDir, "dist", "manifest.js")).replace(/\\/g, "/")}`,
         manifestExport,
       };
 

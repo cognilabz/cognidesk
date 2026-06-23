@@ -586,7 +586,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contact-center",
     "provider": "amazon-connect",
     "importPath": "@cognidesk/integration-contact-center-amazon-connect/manifest",
-    "modulePath": "integrations/contact-center/amazon-connect/src/manifest.js",
+    "modulePath": "integrations/contact-center/amazon-connect/dist/manifest.js",
     "manifestExport": "amazonConnectContactCenterManifest",
     "name": "Amazon Connect",
     "packageName": "@cognidesk/integration-contact-center-amazon-connect",
@@ -751,7 +751,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@aws-sdk/client-connect, @aws-sdk/client-connectparticipant",
       "runtimePackage": "@cognidesk/integration-contact-center-amazon-connect",
-      "providerModule": "integrations/contact-center/amazon-connect/src/manifest.js",
+      "providerModule": "integrations/contact-center/amazon-connect/dist/manifest.js",
       "manifestExport": "amazonConnectContactCenterManifest",
       "manifestSource": "integrations/contact-center/amazon-connect/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -866,7 +866,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contact-center",
     "provider": "genesys-cloud",
     "importPath": "@cognidesk/integration-contact-center-genesys-cloud/manifest",
-    "modulePath": "integrations/contact-center/genesys-cloud/src/manifest.js",
+    "modulePath": "integrations/contact-center/genesys-cloud/dist/manifest.js",
     "manifestExport": "genesysCloudContactCenterManifest",
     "name": "Genesys Cloud CX",
     "packageName": "@cognidesk/integration-contact-center-genesys-cloud",
@@ -1033,7 +1033,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "purecloud-platform-client-v2",
       "runtimePackage": "@cognidesk/integration-contact-center-genesys-cloud",
-      "providerModule": "integrations/contact-center/genesys-cloud/src/manifest.js",
+      "providerModule": "integrations/contact-center/genesys-cloud/dist/manifest.js",
       "manifestExport": "genesysCloudContactCenterManifest",
       "manifestSource": "integrations/contact-center/genesys-cloud/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -1166,7 +1166,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contact-center",
     "provider": "ringcentral",
     "importPath": "@cognidesk/integration-contact-center-ringcentral/manifest",
-    "modulePath": "integrations/contact-center/ringcentral/src/manifest.js",
+    "modulePath": "integrations/contact-center/ringcentral/dist/manifest.js",
     "manifestExport": "ringCentralContactCenterManifest",
     "name": "RingCentral RingCX",
     "packageName": "@cognidesk/integration-contact-center-ringcentral",
@@ -1291,7 +1291,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@ringcentral/sdk",
       "runtimePackage": "@cognidesk/integration-contact-center-ringcentral",
-      "providerModule": "integrations/contact-center/ringcentral/src/manifest.js",
+      "providerModule": "integrations/contact-center/ringcentral/dist/manifest.js",
       "manifestExport": "ringCentralContactCenterManifest",
       "manifestSource": "integrations/contact-center/ringcentral/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -1406,7 +1406,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "8x8",
     "importPath": "@cognidesk/integration-contact-center-8x8/manifest",
-    "modulePath": "integrations/contact-center/8x8/src/manifest.js",
+    "modulePath": "integrations/contact-center/8x8/dist/manifest.js",
     "manifestExport": "eightByEightProviderManifest",
     "name": "8x8 Contact Center",
     "packageName": "@cognidesk/integration-contact-center-8x8",
@@ -1552,7 +1552,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-8x8",
       "runtimePackage": "@cognidesk/integration-contact-center-8x8",
-      "providerModule": "integrations/contact-center/8x8/src/manifest.js",
+      "providerModule": "integrations/contact-center/8x8/dist/manifest.js",
       "manifestExport": "eightByEightProviderManifest",
       "manifestSource": "integrations/contact-center/8x8/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -1673,7 +1673,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "aircall",
     "importPath": "@cognidesk/integration-contact-center-aircall/manifest",
-    "modulePath": "integrations/contact-center/aircall/src/manifest.js",
+    "modulePath": "integrations/contact-center/aircall/dist/manifest.js",
     "manifestExport": "aircallProviderManifest",
     "name": "Aircall",
     "packageName": "@cognidesk/integration-contact-center-aircall",
@@ -1774,7 +1774,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-aircall",
       "runtimePackage": "@cognidesk/integration-contact-center-aircall",
-      "providerModule": "integrations/contact-center/aircall/src/manifest.js",
+      "providerModule": "integrations/contact-center/aircall/dist/manifest.js",
       "manifestExport": "aircallProviderManifest",
       "manifestSource": "integrations/contact-center/aircall/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -1879,7 +1879,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "five9",
     "importPath": "@cognidesk/integration-contact-center-five9/manifest",
-    "modulePath": "integrations/contact-center/five9/src/manifest.js",
+    "modulePath": "integrations/contact-center/five9/dist/manifest.js",
     "manifestExport": "five9ProviderManifest",
     "name": "Five9",
     "packageName": "@cognidesk/integration-contact-center-five9",
@@ -1980,7 +1980,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-five9",
       "runtimePackage": "@cognidesk/integration-contact-center-five9",
-      "providerModule": "integrations/contact-center/five9/src/manifest.js",
+      "providerModule": "integrations/contact-center/five9/dist/manifest.js",
       "manifestExport": "five9ProviderManifest",
       "manifestSource": "integrations/contact-center/five9/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -2085,7 +2085,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "genesys-engage",
     "importPath": "@cognidesk/integration-contact-center-genesys-engage/manifest",
-    "modulePath": "integrations/contact-center/genesys-engage/src/manifest.js",
+    "modulePath": "integrations/contact-center/genesys-engage/dist/manifest.js",
     "manifestExport": "genesysEngageProviderManifest",
     "name": "Genesys Engage / GMS",
     "packageName": "@cognidesk/integration-contact-center-genesys-engage",
@@ -2233,7 +2233,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-genesys-engage",
       "runtimePackage": "@cognidesk/integration-contact-center-genesys-engage",
-      "providerModule": "integrations/contact-center/genesys-engage/src/manifest.js",
+      "providerModule": "integrations/contact-center/genesys-engage/dist/manifest.js",
       "manifestExport": "genesysEngageProviderManifest",
       "manifestSource": "integrations/contact-center/genesys-engage/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -2356,7 +2356,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "genesys-pureconnect",
     "importPath": "@cognidesk/integration-contact-center-genesys-pureconnect/manifest",
-    "modulePath": "integrations/contact-center/genesys-pureconnect/src/manifest.js",
+    "modulePath": "integrations/contact-center/genesys-pureconnect/dist/manifest.js",
     "manifestExport": "genesysPureConnectProviderManifest",
     "name": "Genesys PureConnect / ICWS",
     "packageName": "@cognidesk/integration-contact-center-genesys-pureconnect",
@@ -2490,7 +2490,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-genesys-pureconnect",
       "runtimePackage": "@cognidesk/integration-contact-center-genesys-pureconnect",
-      "providerModule": "integrations/contact-center/genesys-pureconnect/src/manifest.js",
+      "providerModule": "integrations/contact-center/genesys-pureconnect/dist/manifest.js",
       "manifestExport": "genesysPureConnectProviderManifest",
       "manifestSource": "integrations/contact-center/genesys-pureconnect/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -2606,7 +2606,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "nextiva",
     "importPath": "@cognidesk/integration-contact-center-nextiva/manifest",
-    "modulePath": "integrations/contact-center/nextiva/src/manifest.js",
+    "modulePath": "integrations/contact-center/nextiva/dist/manifest.js",
     "manifestExport": "nextivaProviderManifest",
     "name": "Nextiva Contact Center",
     "packageName": "@cognidesk/integration-contact-center-nextiva",
@@ -2728,7 +2728,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-nextiva",
       "runtimePackage": "@cognidesk/integration-contact-center-nextiva",
-      "providerModule": "integrations/contact-center/nextiva/src/manifest.js",
+      "providerModule": "integrations/contact-center/nextiva/dist/manifest.js",
       "manifestExport": "nextivaProviderManifest",
       "manifestSource": "integrations/contact-center/nextiva/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -2835,7 +2835,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "nice-cxone",
     "importPath": "@cognidesk/integration-contact-center-nice-cxone/manifest",
-    "modulePath": "integrations/contact-center/nice-cxone/src/manifest.js",
+    "modulePath": "integrations/contact-center/nice-cxone/dist/manifest.js",
     "manifestExport": "niceCxoneProviderManifest",
     "name": "NICE CXone",
     "packageName": "@cognidesk/integration-contact-center-nice-cxone",
@@ -2998,7 +2998,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-nice-cxone",
       "runtimePackage": "@cognidesk/integration-contact-center-nice-cxone",
-      "providerModule": "integrations/contact-center/nice-cxone/src/manifest.js",
+      "providerModule": "integrations/contact-center/nice-cxone/dist/manifest.js",
       "manifestExport": "niceCxoneProviderManifest",
       "manifestSource": "integrations/contact-center/nice-cxone/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -3121,7 +3121,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "talkdesk",
     "importPath": "@cognidesk/integration-contact-center-talkdesk/manifest",
-    "modulePath": "integrations/contact-center/talkdesk/src/manifest.js",
+    "modulePath": "integrations/contact-center/talkdesk/dist/manifest.js",
     "manifestExport": "talkdeskProviderManifest",
     "name": "Talkdesk",
     "packageName": "@cognidesk/integration-contact-center-talkdesk",
@@ -3252,7 +3252,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-talkdesk",
       "runtimePackage": "@cognidesk/integration-contact-center-talkdesk",
-      "providerModule": "integrations/contact-center/talkdesk/src/manifest.js",
+      "providerModule": "integrations/contact-center/talkdesk/dist/manifest.js",
       "manifestExport": "talkdeskProviderManifest",
       "manifestSource": "integrations/contact-center/talkdesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -3365,7 +3365,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "contactCenter",
     "provider": "zoom",
     "importPath": "@cognidesk/integration-contact-center-zoom/manifest",
-    "modulePath": "integrations/contact-center/zoom/src/manifest.js",
+    "modulePath": "integrations/contact-center/zoom/dist/manifest.js",
     "manifestExport": "zoomContactCenterProviderManifest",
     "name": "Zoom Contact Center",
     "packageName": "@cognidesk/integration-contact-center-zoom",
@@ -3517,7 +3517,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-contact-center-zoom",
       "runtimePackage": "@cognidesk/integration-contact-center-zoom",
-      "providerModule": "integrations/contact-center/zoom/src/manifest.js",
+      "providerModule": "integrations/contact-center/zoom/dist/manifest.js",
       "manifestExport": "zoomContactCenterProviderManifest",
       "manifestSource": "integrations/contact-center/zoom/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -3632,7 +3632,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ecommerce",
     "provider": "shopify",
     "importPath": "@cognidesk/integration-ecommerce-shopify/manifest",
-    "modulePath": "integrations/ecommerce/shopify/src/manifest.js",
+    "modulePath": "integrations/ecommerce/shopify/dist/manifest.js",
     "manifestExport": "shopifyEcommerceProviderManifest",
     "name": "Shopify",
     "packageName": "@cognidesk/integration-ecommerce-shopify",
@@ -3842,7 +3842,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@shopify/admin-api-client",
       "runtimePackage": "@cognidesk/integration-ecommerce-shopify",
-      "providerModule": "integrations/ecommerce/shopify/src/manifest.js",
+      "providerModule": "integrations/ecommerce/shopify/dist/manifest.js",
       "manifestExport": "shopifyEcommerceProviderManifest",
       "manifestSource": "integrations/ecommerce/shopify/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -3960,7 +3960,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ecommerce",
     "provider": "stripe",
     "importPath": "@cognidesk/integration-ecommerce-stripe/manifest",
-    "modulePath": "integrations/ecommerce/stripe/src/manifest.js",
+    "modulePath": "integrations/ecommerce/stripe/dist/manifest.js",
     "manifestExport": "stripeEcommerceProviderManifest",
     "name": "Stripe",
     "packageName": "@cognidesk/integration-ecommerce-stripe",
@@ -4214,7 +4214,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "stripe",
       "runtimePackage": "@cognidesk/integration-ecommerce-stripe",
-      "providerModule": "integrations/ecommerce/stripe/src/manifest.js",
+      "providerModule": "integrations/ecommerce/stripe/dist/manifest.js",
       "manifestExport": "stripeEcommerceProviderManifest",
       "manifestSource": "integrations/ecommerce/stripe/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -4337,7 +4337,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "email",
     "provider": "gmail",
     "importPath": "@cognidesk/integration-email-gmail/manifest",
-    "modulePath": "integrations/email/gmail/src/manifest.js",
+    "modulePath": "integrations/email/gmail/dist/manifest.js",
     "manifestExport": "gmailEmailProviderManifest",
     "name": "Gmail",
     "packageName": "@cognidesk/integration-email-gmail",
@@ -4574,7 +4574,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@googleapis/gmail",
       "runtimePackage": "@cognidesk/integration-email-gmail",
-      "providerModule": "integrations/email/gmail/src/manifest.js",
+      "providerModule": "integrations/email/gmail/dist/manifest.js",
       "manifestExport": "gmailEmailProviderManifest",
       "manifestSource": "integrations/email/gmail/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -4707,7 +4707,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "email",
     "provider": "imap",
     "importPath": "@cognidesk/integration-email-imap/manifest",
-    "modulePath": "integrations/email/imap/src/manifest.js",
+    "modulePath": "integrations/email/imap/dist/manifest.js",
     "manifestExport": "imapEmailProviderManifest",
     "name": "IMAP Mailbox",
     "packageName": "@cognidesk/integration-email-imap",
@@ -4834,7 +4834,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "local-protocol",
       "sdkPackage": "@cognidesk/integration-email-imap",
       "runtimePackage": "@cognidesk/integration-email-imap",
-      "providerModule": "integrations/email/imap/src/manifest.js",
+      "providerModule": "integrations/email/imap/dist/manifest.js",
       "manifestExport": "imapEmailProviderManifest",
       "manifestSource": "integrations/email/imap/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -4953,7 +4953,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "email",
     "provider": "mailgun",
     "importPath": "@cognidesk/integration-email-mailgun/manifest",
-    "modulePath": "integrations/email/mailgun/src/manifest.js",
+    "modulePath": "integrations/email/mailgun/dist/manifest.js",
     "manifestExport": "mailgunEmailProviderManifest",
     "name": "Mailgun",
     "packageName": "@cognidesk/integration-email-mailgun",
@@ -5140,7 +5140,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "mailgun.js",
       "runtimePackage": "@cognidesk/integration-email-mailgun",
-      "providerModule": "integrations/email/mailgun/src/manifest.js",
+      "providerModule": "integrations/email/mailgun/dist/manifest.js",
       "manifestExport": "mailgunEmailProviderManifest",
       "manifestSource": "integrations/email/mailgun/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -5258,7 +5258,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "email",
     "provider": "outlook",
     "importPath": "@cognidesk/integration-email-outlook/manifest",
-    "modulePath": "integrations/email/outlook/src/manifest.js",
+    "modulePath": "integrations/email/outlook/dist/manifest.js",
     "manifestExport": "outlookEmailManifestInput",
     "name": "Microsoft Outlook",
     "packageName": "@cognidesk/integration-email-outlook",
@@ -5451,7 +5451,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@microsoft/microsoft-graph-client",
       "runtimePackage": "@cognidesk/integration-email-outlook",
-      "providerModule": "integrations/email/outlook/src/manifest.js",
+      "providerModule": "integrations/email/outlook/dist/manifest.js",
       "manifestExport": "outlookEmailManifestInput",
       "manifestSource": "integrations/email/outlook/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -5538,7 +5538,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "email",
     "provider": "postmark",
     "importPath": "@cognidesk/integration-email-postmark/manifest",
-    "modulePath": "integrations/email/postmark/src/manifest.js",
+    "modulePath": "integrations/email/postmark/dist/manifest.js",
     "manifestExport": "postmarkEmailProviderManifest",
     "name": "Postmark",
     "packageName": "@cognidesk/integration-email-postmark",
@@ -5733,7 +5733,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "postmark",
       "runtimePackage": "@cognidesk/integration-email-postmark",
-      "providerModule": "integrations/email/postmark/src/manifest.js",
+      "providerModule": "integrations/email/postmark/dist/manifest.js",
       "manifestExport": "postmarkEmailProviderManifest",
       "manifestSource": "integrations/email/postmark/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -5844,7 +5844,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "email",
     "provider": "ses",
     "importPath": "@cognidesk/integration-email-ses/manifest",
-    "modulePath": "integrations/email/ses/src/manifest.js",
+    "modulePath": "integrations/email/ses/dist/manifest.js",
     "manifestExport": "sesEmailProviderManifest",
     "name": "Amazon SES",
     "packageName": "@cognidesk/integration-email-ses",
@@ -6036,7 +6036,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@cognidesk/integration-email-ses",
       "runtimePackage": "@cognidesk/integration-email-ses",
-      "providerModule": "integrations/email/ses/src/manifest.js",
+      "providerModule": "integrations/email/ses/dist/manifest.js",
       "manifestExport": "sesEmailProviderManifest",
       "manifestSource": "integrations/email/ses/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -6513,7 +6513,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "marketplace",
     "provider": "amazon",
     "importPath": "@cognidesk/integration-marketplace-amazon/manifest",
-    "modulePath": "integrations/marketplace/amazon/src/manifest.js",
+    "modulePath": "integrations/marketplace/amazon/dist/manifest.js",
     "manifestExport": "amazonMarketplaceProviderManifest",
     "name": "Amazon Marketplace",
     "packageName": "@cognidesk/integration-marketplace-amazon",
@@ -6769,7 +6769,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@amazon-sp-api-release/amazon-sp-api-sdk-js",
       "runtimePackage": "@cognidesk/integration-marketplace-amazon",
-      "providerModule": "integrations/marketplace/amazon/src/manifest.js",
+      "providerModule": "integrations/marketplace/amazon/dist/manifest.js",
       "manifestExport": "amazonMarketplaceProviderManifest",
       "manifestSource": "integrations/marketplace/amazon/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -6906,7 +6906,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "marketplace",
     "provider": "ebay",
     "importPath": "@cognidesk/integration-marketplace-ebay/manifest",
-    "modulePath": "integrations/marketplace/ebay/src/manifest.js",
+    "modulePath": "integrations/marketplace/ebay/dist/manifest.js",
     "manifestExport": "ebayMarketplaceProviderManifest",
     "name": "eBay Marketplace",
     "packageName": "@cognidesk/integration-marketplace-ebay",
@@ -7273,7 +7273,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-support-slice",
       "sdkPackage": "@cognidesk/integration-marketplace-ebay",
       "runtimePackage": "@cognidesk/integration-marketplace-ebay",
-      "providerModule": "integrations/marketplace/ebay/src/manifest.js",
+      "providerModule": "integrations/marketplace/ebay/dist/manifest.js",
       "manifestExport": "ebayMarketplaceProviderManifest",
       "manifestSource": "integrations/marketplace/ebay/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -7805,7 +7805,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "messaging",
     "provider": "discord",
     "importPath": "@cognidesk/integration-messaging-discord/manifest",
-    "modulePath": "integrations/messaging/discord/src/manifest.js",
+    "modulePath": "integrations/messaging/discord/dist/manifest.js",
     "manifestExport": "discordMessagingManifestInput",
     "name": "Discord Messaging Support",
     "packageName": "@cognidesk/integration-messaging-discord",
@@ -8039,7 +8039,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-messaging-discord",
       "runtimePackage": "@cognidesk/integration-messaging-discord",
-      "providerModule": "integrations/messaging/discord/src/manifest.js",
+      "providerModule": "integrations/messaging/discord/dist/manifest.js",
       "manifestExport": "discordMessagingManifestInput",
       "manifestSource": "integrations/messaging/discord/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -8167,7 +8167,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "messaging",
     "provider": "rcs",
     "importPath": "@cognidesk/integration-messaging-rcs/manifest",
-    "modulePath": "integrations/messaging/rcs/src/manifest.js",
+    "modulePath": "integrations/messaging/rcs/dist/manifest.js",
     "manifestExport": "rcsMessagingProviderManifest",
     "name": "Google RCS for Business",
     "packageName": "@cognidesk/integration-messaging-rcs",
@@ -8423,7 +8423,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-messaging-rcs",
       "runtimePackage": "@cognidesk/integration-messaging-rcs",
-      "providerModule": "integrations/messaging/rcs/src/manifest.js",
+      "providerModule": "integrations/messaging/rcs/dist/manifest.js",
       "manifestExport": "rcsMessagingProviderManifest",
       "manifestSource": "integrations/messaging/rcs/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -8632,7 +8632,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "messaging",
     "provider": "whatsapp",
     "importPath": "@cognidesk/integration-messaging-whatsapp/manifest",
-    "modulePath": "integrations/messaging/whatsapp/src/manifest.js",
+    "modulePath": "integrations/messaging/whatsapp/dist/manifest.js",
     "manifestExport": "whatsappMessagingProviderManifest",
     "name": "WhatsApp Business Platform",
     "packageName": "@cognidesk/integration-messaging-whatsapp",
@@ -8914,7 +8914,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-messaging-whatsapp",
       "runtimePackage": "@cognidesk/integration-messaging-whatsapp",
-      "providerModule": "integrations/messaging/whatsapp/src/manifest.js",
+      "providerModule": "integrations/messaging/whatsapp/dist/manifest.js",
       "manifestExport": "whatsappMessagingProviderManifest",
       "manifestSource": "integrations/messaging/whatsapp/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -9061,7 +9061,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "review",
     "provider": "appstore",
     "importPath": "@cognidesk/integration-review-appstore/manifest",
-    "modulePath": "integrations/review/appstore/src/manifest.js",
+    "modulePath": "integrations/review/appstore/dist/manifest.js",
     "manifestExport": "appStoreReviewsProviderManifest",
     "name": "App Store Reviews",
     "packageName": "@cognidesk/integration-review-appstore",
@@ -9241,7 +9241,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-review-appstore",
       "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
-      "providerModule": "integrations/review/appstore/src/manifest.js",
+      "providerModule": "integrations/review/appstore/dist/manifest.js",
       "manifestExport": "appStoreReviewsProviderManifest",
       "manifestSource": "integrations/review/appstore/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -9400,7 +9400,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "review",
     "provider": "googleplay",
     "importPath": "@cognidesk/integration-review-googleplay/manifest",
-    "modulePath": "integrations/review/googleplay/src/manifest.js",
+    "modulePath": "integrations/review/googleplay/dist/manifest.js",
     "manifestExport": "googlePlayReviewsProviderManifest",
     "name": "Google Play Reviews",
     "packageName": "@cognidesk/integration-review-googleplay",
@@ -9552,7 +9552,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@googleapis/androidpublisher",
       "runtimePackage": "@cognidesk/integration-review-googleplay/runtime",
-      "providerModule": "integrations/review/googleplay/src/manifest.js",
+      "providerModule": "integrations/review/googleplay/dist/manifest.js",
       "manifestExport": "googlePlayReviewsProviderManifest",
       "manifestSource": "integrations/review/googleplay/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -9978,7 +9978,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "social",
     "provider": "instagram",
     "importPath": "@cognidesk/integration-social-instagram/manifest",
-    "modulePath": "integrations/social/instagram/src/manifest.js",
+    "modulePath": "integrations/social/instagram/dist/manifest.js",
     "manifestExport": "instagramSocialProviderManifest",
     "name": "Instagram Direct Messages",
     "packageName": "@cognidesk/integration-social-instagram",
@@ -10201,7 +10201,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-social-instagram",
       "runtimePackage": "@cognidesk/integration-social-instagram",
-      "providerModule": "integrations/social/instagram/src/manifest.js",
+      "providerModule": "integrations/social/instagram/dist/manifest.js",
       "manifestExport": "instagramSocialProviderManifest",
       "manifestSource": "integrations/social/instagram/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -10340,7 +10340,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "social",
     "provider": "messenger",
     "importPath": "@cognidesk/integration-social-messenger/manifest",
-    "modulePath": "integrations/social/messenger/src/manifest.js",
+    "modulePath": "integrations/social/messenger/dist/manifest.js",
     "manifestExport": "messengerSocialProviderManifest",
     "name": "Facebook Messenger",
     "packageName": "@cognidesk/integration-social-messenger",
@@ -10583,7 +10583,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-social-messenger",
       "runtimePackage": "@cognidesk/integration-social-messenger",
-      "providerModule": "integrations/social/messenger/src/manifest.js",
+      "providerModule": "integrations/social/messenger/dist/manifest.js",
       "manifestExport": "messengerSocialProviderManifest",
       "manifestSource": "integrations/social/messenger/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -10692,7 +10692,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "social",
     "provider": "tiktok",
     "importPath": "@cognidesk/integration-social-tiktok/manifest",
-    "modulePath": "integrations/social/tiktok/src/manifest.js",
+    "modulePath": "integrations/social/tiktok/dist/manifest.js",
     "manifestExport": "tiktokSocialProviderManifest",
     "name": "TikTok Social",
     "packageName": "@cognidesk/integration-social-tiktok",
@@ -10922,7 +10922,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-social-tiktok",
       "runtimePackage": "@cognidesk/integration-social-tiktok",
-      "providerModule": "integrations/social/tiktok/src/manifest.js",
+      "providerModule": "integrations/social/tiktok/dist/manifest.js",
       "manifestExport": "tiktokSocialProviderManifest",
       "manifestSource": "integrations/social/tiktok/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -11155,7 +11155,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "dynamics365",
     "importPath": "@cognidesk/integration-ticketing-dynamics365/manifest",
-    "modulePath": "integrations/ticketing/dynamics365/src/manifest.js",
+    "modulePath": "integrations/ticketing/dynamics365/dist/manifest.js",
     "manifestExport": "dynamics365TicketingProviderManifest",
     "name": "Microsoft Dynamics 365 Customer Service",
     "packageName": "@cognidesk/integration-ticketing-dynamics365",
@@ -11429,7 +11429,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-dynamics365",
       "runtimePackage": "@cognidesk/integration-ticketing-dynamics365",
-      "providerModule": "integrations/ticketing/dynamics365/src/manifest.js",
+      "providerModule": "integrations/ticketing/dynamics365/dist/manifest.js",
       "manifestExport": "dynamics365TicketingProviderManifest",
       "manifestSource": "integrations/ticketing/dynamics365/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -11557,7 +11557,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "freshdesk",
     "importPath": "@cognidesk/integration-ticketing-freshdesk/manifest",
-    "modulePath": "integrations/ticketing/freshdesk/src/manifest.js",
+    "modulePath": "integrations/ticketing/freshdesk/dist/manifest.js",
     "manifestExport": "freshdeskTicketingProviderManifest",
     "name": "Freshdesk Ticketing",
     "packageName": "@cognidesk/integration-ticketing-freshdesk",
@@ -11771,7 +11771,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-freshdesk",
       "runtimePackage": "@cognidesk/integration-ticketing-freshdesk",
-      "providerModule": "integrations/ticketing/freshdesk/src/manifest.js",
+      "providerModule": "integrations/ticketing/freshdesk/dist/manifest.js",
       "manifestExport": "freshdeskTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/freshdesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -11904,7 +11904,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "front",
     "importPath": "@cognidesk/integration-ticketing-front/manifest",
-    "modulePath": "integrations/ticketing/front/src/manifest.js",
+    "modulePath": "integrations/ticketing/front/dist/manifest.js",
     "manifestExport": "frontTicketingProviderManifest",
     "name": "Front",
     "packageName": "@cognidesk/integration-ticketing-front",
@@ -12101,7 +12101,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-front",
       "runtimePackage": "@cognidesk/integration-ticketing-front",
-      "providerModule": "integrations/ticketing/front/src/manifest.js",
+      "providerModule": "integrations/ticketing/front/dist/manifest.js",
       "manifestExport": "frontTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/front/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -12219,7 +12219,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "gorgias",
     "importPath": "@cognidesk/integration-ticketing-gorgias/manifest",
-    "modulePath": "integrations/ticketing/gorgias/src/manifest.js",
+    "modulePath": "integrations/ticketing/gorgias/dist/manifest.js",
     "manifestExport": "gorgiasTicketingProviderManifest",
     "name": "Gorgias",
     "packageName": "@cognidesk/integration-ticketing-gorgias",
@@ -12407,7 +12407,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-gorgias",
       "runtimePackage": "@cognidesk/integration-ticketing-gorgias",
-      "providerModule": "integrations/ticketing/gorgias/src/manifest.js",
+      "providerModule": "integrations/ticketing/gorgias/dist/manifest.js",
       "manifestExport": "gorgiasTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/gorgias/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -12526,7 +12526,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "help-scout",
     "importPath": "@cognidesk/integration-ticketing-help-scout/manifest",
-    "modulePath": "integrations/ticketing/help-scout/src/manifest.js",
+    "modulePath": "integrations/ticketing/help-scout/dist/manifest.js",
     "manifestExport": "helpScoutTicketingProviderManifest",
     "name": "Help Scout",
     "packageName": "@cognidesk/integration-ticketing-help-scout",
@@ -12709,7 +12709,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-help-scout",
       "runtimePackage": "@cognidesk/integration-ticketing-help-scout",
-      "providerModule": "integrations/ticketing/help-scout/src/manifest.js",
+      "providerModule": "integrations/ticketing/help-scout/dist/manifest.js",
       "manifestExport": "helpScoutTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/help-scout/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -12813,7 +12813,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "hubspot",
     "importPath": "@cognidesk/integration-ticketing-hubspot/manifest",
-    "modulePath": "integrations/ticketing/hubspot/src/manifest.js",
+    "modulePath": "integrations/ticketing/hubspot/dist/manifest.js",
     "manifestExport": "hubSpotTicketingProviderManifest",
     "name": "HubSpot Service Hub",
     "packageName": "@cognidesk/integration-ticketing-hubspot",
@@ -13047,7 +13047,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@hubspot/api-client",
       "runtimePackage": "@cognidesk/integration-ticketing-hubspot",
-      "providerModule": "integrations/ticketing/hubspot/src/manifest.js",
+      "providerModule": "integrations/ticketing/hubspot/dist/manifest.js",
       "manifestExport": "hubSpotTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/hubspot/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -13151,7 +13151,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "intercom",
     "importPath": "@cognidesk/integration-ticketing-intercom/manifest",
-    "modulePath": "integrations/ticketing/intercom/src/manifest.js",
+    "modulePath": "integrations/ticketing/intercom/dist/manifest.js",
     "manifestExport": "intercomTicketingProviderManifest",
     "name": "Intercom",
     "packageName": "@cognidesk/integration-ticketing-intercom",
@@ -13366,7 +13366,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "intercom-client",
       "runtimePackage": "@cognidesk/integration-ticketing-intercom",
-      "providerModule": "integrations/ticketing/intercom/src/manifest.js",
+      "providerModule": "integrations/ticketing/intercom/dist/manifest.js",
       "manifestExport": "intercomTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/intercom/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -13470,7 +13470,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "kustomer",
     "importPath": "@cognidesk/integration-ticketing-kustomer/manifest",
-    "modulePath": "integrations/ticketing/kustomer/src/manifest.js",
+    "modulePath": "integrations/ticketing/kustomer/dist/manifest.js",
     "manifestExport": "kustomerTicketingProviderManifest",
     "name": "Kustomer",
     "packageName": "@cognidesk/integration-ticketing-kustomer",
@@ -13663,7 +13663,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-kustomer",
       "runtimePackage": "@cognidesk/integration-ticketing-kustomer",
-      "providerModule": "integrations/ticketing/kustomer/src/manifest.js",
+      "providerModule": "integrations/ticketing/kustomer/dist/manifest.js",
       "manifestExport": "kustomerTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/kustomer/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -13781,7 +13781,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "oracle-service",
     "importPath": "@cognidesk/integration-ticketing-oracle-service/manifest",
-    "modulePath": "integrations/ticketing/oracle-service/src/manifest.js",
+    "modulePath": "integrations/ticketing/oracle-service/dist/manifest.js",
     "manifestExport": "oracleServiceTicketingProviderManifest",
     "name": "Oracle Service",
     "packageName": "@cognidesk/integration-ticketing-oracle-service",
@@ -14003,7 +14003,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-oracle-service",
       "runtimePackage": "@cognidesk/integration-ticketing-oracle-service",
-      "providerModule": "integrations/ticketing/oracle-service/src/manifest.js",
+      "providerModule": "integrations/ticketing/oracle-service/dist/manifest.js",
       "manifestExport": "oracleServiceTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/oracle-service/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -14167,7 +14167,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "pega-customer-service",
     "importPath": "@cognidesk/integration-ticketing-pega-customer-service/manifest",
-    "modulePath": "integrations/ticketing/pega-customer-service/src/manifest.js",
+    "modulePath": "integrations/ticketing/pega-customer-service/dist/manifest.js",
     "manifestExport": "pegaCustomerServiceTicketingProviderManifest",
     "name": "Pega Customer Service",
     "packageName": "@cognidesk/integration-ticketing-pega-customer-service",
@@ -14398,7 +14398,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-pega-customer-service",
       "runtimePackage": "@cognidesk/integration-ticketing-pega-customer-service",
-      "providerModule": "integrations/ticketing/pega-customer-service/src/manifest.js",
+      "providerModule": "integrations/ticketing/pega-customer-service/dist/manifest.js",
       "manifestExport": "pegaCustomerServiceTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/pega-customer-service/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -14570,7 +14570,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "salesforce",
     "importPath": "@cognidesk/integration-ticketing-salesforce/manifest",
-    "modulePath": "integrations/ticketing/salesforce/src/manifest.js",
+    "modulePath": "integrations/ticketing/salesforce/dist/manifest.js",
     "manifestExport": "salesforceTicketingProviderManifest",
     "name": "Salesforce Service Cloud",
     "packageName": "@cognidesk/integration-ticketing-salesforce",
@@ -14795,7 +14795,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "maintained-library",
       "sdkPackage": "jsforce",
       "runtimePackage": "@cognidesk/integration-ticketing-salesforce",
-      "providerModule": "integrations/ticketing/salesforce/src/manifest.js",
+      "providerModule": "integrations/ticketing/salesforce/dist/manifest.js",
       "manifestExport": "salesforceTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/salesforce/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -14904,7 +14904,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "sap-service-cloud",
     "importPath": "@cognidesk/integration-ticketing-sap-service-cloud/manifest",
-    "modulePath": "integrations/ticketing/sap-service-cloud/src/manifest.js",
+    "modulePath": "integrations/ticketing/sap-service-cloud/dist/manifest.js",
     "manifestExport": "sapServiceCloudTicketingProviderManifest",
     "name": "SAP Service Cloud",
     "packageName": "@cognidesk/integration-ticketing-sap-service-cloud",
@@ -15106,7 +15106,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-sap-service-cloud",
       "runtimePackage": "@cognidesk/integration-ticketing-sap-service-cloud",
-      "providerModule": "integrations/ticketing/sap-service-cloud/src/manifest.js",
+      "providerModule": "integrations/ticketing/sap-service-cloud/dist/manifest.js",
       "manifestExport": "sapServiceCloudTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/sap-service-cloud/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -15272,7 +15272,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "servicenow",
     "importPath": "@cognidesk/integration-ticketing-servicenow/manifest",
-    "modulePath": "integrations/ticketing/servicenow/src/manifest.js",
+    "modulePath": "integrations/ticketing/servicenow/dist/manifest.js",
     "manifestExport": "serviceNowTicketingProviderManifest",
     "name": "ServiceNow Ticketing",
     "packageName": "@cognidesk/integration-ticketing-servicenow",
@@ -15508,7 +15508,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-servicenow",
       "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
-      "providerModule": "integrations/ticketing/servicenow/src/manifest.js",
+      "providerModule": "integrations/ticketing/servicenow/dist/manifest.js",
       "manifestExport": "serviceNowTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/servicenow/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -15636,7 +15636,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "zendesk",
     "importPath": "@cognidesk/integration-ticketing-zendesk/manifest",
-    "modulePath": "integrations/ticketing/zendesk/src/manifest.js",
+    "modulePath": "integrations/ticketing/zendesk/dist/manifest.js",
     "manifestExport": "zendeskTicketingProviderManifest",
     "name": "Zendesk Support",
     "packageName": "@cognidesk/integration-ticketing-zendesk",
@@ -15833,7 +15833,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-zendesk",
       "runtimePackage": "@cognidesk/integration-ticketing-zendesk",
-      "providerModule": "integrations/ticketing/zendesk/src/manifest.js",
+      "providerModule": "integrations/ticketing/zendesk/dist/manifest.js",
       "manifestExport": "zendeskTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/zendesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -15952,7 +15952,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "ticketing",
     "provider": "zoho-desk",
     "importPath": "@cognidesk/integration-ticketing-zoho-desk/manifest",
-    "modulePath": "integrations/ticketing/zoho-desk/src/manifest.js",
+    "modulePath": "integrations/ticketing/zoho-desk/dist/manifest.js",
     "manifestExport": "zohoDeskTicketingProviderManifest",
     "name": "Zoho Desk",
     "packageName": "@cognidesk/integration-ticketing-zoho-desk",
@@ -16181,7 +16181,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "direct-http-support-slice",
       "sdkPackage": "@cognidesk/integration-ticketing-zoho-desk",
       "runtimePackage": "@cognidesk/integration-ticketing-zoho-desk",
-      "providerModule": "integrations/ticketing/zoho-desk/src/manifest.js",
+      "providerModule": "integrations/ticketing/zoho-desk/dist/manifest.js",
       "manifestExport": "zohoDeskTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/zoho-desk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -16945,11 +16945,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.aws-speech",
     "category": "voice",
     "provider": "aws-speech",
-    "importPath": "@cognidesk/integrations/voice/aws-speech",
-    "modulePath": "./voice/aws-speech/index.js",
-    "manifestExport": "awsSpeechProviderManifest",
+    "importPath": "@cognidesk/integration-voice-aws-speech/manifest",
+    "modulePath": "integrations/voice/aws-speech/dist/manifest.js",
+    "manifestExport": "awsSpeechManifestInput",
     "name": "AWS Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-aws-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -17038,9 +17038,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Amazon Transcribe Streaming speech-to-text and Amazon Polly SynthesizeSpeech text-to-speech for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover the official AWS Transcribe Streaming, Transcribe, and Polly Smithy API models for SDK-user-owned execution.",
+        "Uses official AWS SDK for JavaScript v3 clients for Amazon Transcribe Streaming and Amazon Polly.",
         "AWS supplies transcripts and synthesized audio only; Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, response generation, and durable transcript boundary.",
-        "The built-in Cognidesk speech adapter executes only Transcribe Streaming and Polly SynthesizeSpeech through injected AWS SDK clients; broader generated operations require an SDK-user-owned caller and AWS account policy."
+        "The Cognidesk adapter executes only Transcribe Streaming and Polly SynthesizeSpeech. Broader AWS SDK operations remain available through SDK-user-owned raw clients and AWS account policy."
       ],
       "evidence": [
         {
@@ -17071,48 +17071,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/aws-speech",
-      "providerModule": "./voice/aws-speech/index.js",
-      "manifestExport": "awsSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/aws-speech/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-voice-aws-speech",
+      "runtimePackage": "@cognidesk/integration-voice-aws-speech",
+      "providerModule": "integrations/voice/aws-speech/dist/manifest.js",
+      "manifestExport": "awsSpeechManifestInput",
+      "manifestSource": "integrations/voice/aws-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html"
     },
@@ -17182,6 +17150,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "AWS Speech Integration",
+      "integrationPackageName": "@cognidesk/integration-voice-aws-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-voice-aws-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-aws-speech/runtime"
+      },
       "channelCoverage": {
         "speechToText": "typed-transcribe-streaming-sdk-adapter",
         "textToSpeech": "typed-polly-synthesize-speech-sdk-adapter",
@@ -17191,44 +17165,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "fullAmazonPollyApi": "not-covered",
         "telephony": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 58,
-        "functionCount": 58,
-        "apiVersion": "aws-api-models-main-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "@aws-sdk/client-transcribe-streaming",
+          "@aws-sdk/client-polly"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "StartStreamTranscription",
+          "SynthesizeSpeech"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -17236,11 +17183,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.azure-speech",
     "category": "voice",
     "provider": "azure-speech",
-    "importPath": "@cognidesk/integrations/voice/azure-speech",
-    "modulePath": "./voice/azure-speech/index.js",
-    "manifestExport": "azureSpeechProviderManifest",
+    "importPath": "@cognidesk/integration-voice-azure-speech/manifest",
+    "modulePath": "integrations/voice/azure-speech/dist/manifest.js",
+    "manifestExport": "azureSpeechManifestInput",
     "name": "Azure AI Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-azure-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -17265,7 +17212,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "receive",
         "label": "Transcribe speech",
-        "description": "Transcribes customer PCM voice input with Azure AI Speech to text.",
+        "description": "Transcribes customer PCM voice input with Azure AI Speech.",
         "audiences": [
           "customer-facing"
         ],
@@ -17284,7 +17231,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Synthesize speech",
-        "description": "Synthesizes Cognidesk assistant text with Azure AI Text to speech.",
+        "description": "Synthesizes Cognidesk assistant text with Azure AI Speech.",
         "audiences": [
           "customer-facing"
         ],
@@ -17329,72 +17276,35 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Azure AI Speech speech-to-text and text-to-speech for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover Microsoft azure-rest-api-specs Speech data-plane files for Speech-to-Text management, custom voice, batch synthesis, and transcription surfaces.",
-        "Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
-        "The short-audio STT and realtime TTS endpoints used by the built-in adapter are documented in Microsoft REST docs but are not represented in the generated azure-rest-api-specs files, so that adapter code remains handwritten.",
+        "Uses the official Microsoft Cognitive Services Speech SDK for JavaScript.",
+        "Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
         "Does not implement the full Azure AI Speech SDK, avatar/video APIs, telephony carrier setup, or Azure account policy."
       ],
       "evidence": [
         {
-          "label": "Azure AI Speech to text REST API",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short"
+          "label": "Azure Speech SDK for JavaScript",
+          "url": "https://github.com/microsoft/cognitive-services-speech-sdk-js"
         },
         {
-          "label": "Azure AI Text to speech REST API",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech"
-        },
-        {
-          "label": "Azure Speech audio output formats",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech#audio-outputs"
+          "label": "Azure AI Speech SDK documentation",
+          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/azure-speech",
-      "providerModule": "./voice/azure-speech/index.js",
-      "manifestExport": "azureSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/azure-speech/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short"
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-voice-azure-speech",
+      "runtimePackage": "@cognidesk/integration-voice-azure-speech",
+      "providerModule": "integrations/voice/azure-speech/dist/manifest.js",
+      "manifestExport": "azureSpeechManifestInput",
+      "manifestSource": "integrations/voice/azure-speech/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/microsoft/cognitive-services-speech-sdk-js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -17408,7 +17318,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "azure-speech-key",
           "label": "Azure Speech resource key",
-          "description": "Server-side Azure AI Speech resource key used for speech-to-text and text-to-speech REST calls.",
+          "description": "Server-side Azure AI Speech resource key used for speech-to-text and text-to-speech SDK calls.",
           "scopes": [],
           "required": true
         },
@@ -17426,7 +17336,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Azure Speech credentials remain server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "This package implements short-audio REST STT and REST TTS for Cognidesk speech pipelines, not full streaming Azure Speech SDK sessions.",
+      "This package adapts buffered Cognidesk voice turns through the Speech SDK; it does not expose continuous recognizer sessions as Cognidesk operations.",
       "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Azure Speech.",
       "Consent, recording, retention, region selection, private networking, and Azure account policy remain SDK-user configuration."
     ],
@@ -17437,52 +17347,30 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "Azure AI Speech Integration",
+      "integrationPackageName": "@cognidesk/integration-voice-azure-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-voice-azure-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-azure-speech/runtime"
+      },
       "channelCoverage": {
-        "speechToText": "typed-short-audio-rest",
-        "textToSpeech": "typed-rest",
+        "speechToText": "typed-speech-sdk-recognize-once",
+        "textToSpeech": "typed-speech-sdk-speak-text",
         "browserVoiceProtocol": "sdk-owned-cognidesk-voice-websocket",
         "backgroundModelProvider": "sdk-owned-agent-model-set",
-        "fullAzureSpeechSdk": "not-covered",
+        "fullAzureSpeechSdk": "raw-client-only",
         "telephony": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 105,
-        "functionCount": 105,
-        "apiVersion": "azure-speech-rest-api-specs-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "microsoft-cognitiveservices-speech-sdk"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "SpeechRecognizer.recognizeOnceAsync",
+          "SpeechSynthesizer.speakTextAsync"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -18123,11 +18011,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.google-speech",
     "category": "voice",
     "provider": "google-speech",
-    "importPath": "@cognidesk/integrations/voice/google-speech",
-    "modulePath": "./voice/google-speech/index.js",
-    "manifestExport": "googleSpeechProviderManifest",
+    "importPath": "@cognidesk/integration-voice-google-speech/manifest",
+    "modulePath": "integrations/voice/google-speech/dist/manifest.js",
+    "manifestExport": "googleSpeechManifestInput",
     "name": "Google Cloud Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-google-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18216,7 +18104,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Google Cloud Speech-to-Text synchronous recognize and Cloud Text-to-Speech synchronous synthesize for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover the official Google Cloud Speech-to-Text and Text-to-Speech v1 Discovery documents.",
+        "Uses official Google Cloud Node.js clients for Speech-to-Text and Text-to-Speech.",
         "Google Cloud supplies transcripts and synthesized audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
         "Does not implement the full Google Cloud Speech SDKs, streaming recognizer sessions, long-running transcription, long audio synthesis, voice catalog administration, or Google Cloud IAM/project policy."
       ],
@@ -18245,48 +18133,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/google-speech",
-      "providerModule": "./voice/google-speech/index.js",
-      "manifestExport": "googleSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/google-speech/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-voice-google-speech",
+      "runtimePackage": "@cognidesk/integration-voice-google-speech",
+      "providerModule": "integrations/voice/google-speech/dist/manifest.js",
+      "manifestExport": "googleSpeechManifestInput",
+      "manifestSource": "integrations/voice/google-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize"
     },
@@ -18323,54 +18179,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "Google Cloud Speech Integration",
+      "integrationPackageName": "@cognidesk/integration-voice-google-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-voice-google-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-google-speech/runtime"
+      },
       "channelCoverage": {
         "speechToText": "typed-synchronous-recognize-rest",
         "textToSpeech": "typed-synchronous-synthesize-rest",
         "browserVoiceProtocol": "sdk-owned-cognidesk-voice-websocket",
         "backgroundModelProvider": "sdk-owned-agent-model-set",
-        "fullGoogleCloudSpeechSdk": "not-covered",
+        "fullGoogleCloudSpeechSdk": "raw-client-only",
         "streamingRecognize": "not-covered",
         "longRunningRecognize": "not-covered",
         "longAudioSynthesis": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 21,
-        "functionCount": 21,
-        "apiVersion": "google-speech-discovery-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "@google-cloud/speech",
+          "@google-cloud/text-to-speech"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "speech.recognize",
+          "text.synthesize"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -18378,11 +18213,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.openai",
     "category": "voice",
     "provider": "openai",
-    "importPath": "@cognidesk/integrations/voice/openai",
-    "modulePath": "./voice/openai/index.js",
-    "manifestExport": "openAIVoiceProviderManifest",
+    "importPath": "@cognidesk/integration-voice-openai/manifest",
+    "modulePath": "integrations/voice/openai/dist/manifest.js",
+    "manifestExport": "openAIVoiceManifestInput",
     "name": "OpenAI Realtime Voice",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-openai",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -18489,8 +18324,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "notes": [
         "Implements a server-side OpenAI Realtime voice adapter for Cognidesk browser voice sessions, including session updates, audio events, speech responses, and function-tool outputs.",
         "The generic send and handoff capabilities mean OpenAI Realtime audio response events and Cognidesk-approved Realtime function tools only; they do not mean outbound telephony, carrier handoff, or full OpenAI API coverage.",
-        "Does not implement the full OpenAI API surface, client-side ephemeral session issuance, transcription-only sessions, model administration, file/vector-store APIs, Responses API breadth, or telephony provider operations.",
-        "Telephony numbers, outbound calling, consent, recording, retention, and OpenAI credential distribution remain SDK-user/provider configuration outside this package."
+        "Does not implement the full OpenAI API surface, client-side ephemeral session issuance, transcription-only sessions, model administration, file/vector-store APIs, Responses API breadth, or telephony provider operations."
       ],
       "evidence": [
         {
@@ -18504,57 +18338,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "OpenAI Realtime client events reference",
           "url": "https://developers.openai.com/api/reference/resources/realtime/client-events/"
-        },
-        {
-          "label": "OpenAI realtime models prompting guide",
-          "url": "https://developers.openai.com/api/docs/guides/realtime-models-prompting"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/openai",
-      "providerModule": "./voice/openai/index.js",
-      "manifestExport": "openAIVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/openai/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-voice-openai",
+      "runtimePackage": "@cognidesk/integration-voice-openai",
+      "providerModule": "integrations/voice/openai/dist/manifest.js",
+      "manifestExport": "openAIVoiceManifestInput",
+      "manifestSource": "integrations/voice/openai/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.openai.com/api/docs/guides/realtime"
     },
@@ -18598,6 +18396,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "OpenAI Realtime Voice Integration",
+      "integrationPackageName": "@cognidesk/integration-voice-openai",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-voice-openai/manifest",
+        "runtime": "@cognidesk/integration-voice-openai/runtime"
+      },
       "channelCoverage": {
         "realtimeAudio": "typed-session-events",
         "realtimeTranscript": "typed-selected",
@@ -18607,39 +18411,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "ephemeralSessionIssuance": "not-covered",
         "transcriptionOnlySessions": "not-covered"
       },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "openai"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "OpenAIRealtimeWS.create",
+          "session.update",
+          "response.create"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -19751,7 +19533,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "workplace",
     "provider": "slack",
     "importPath": "@cognidesk/integration-workplace-slack/manifest",
-    "modulePath": "integrations/workplace/slack/src/manifest.js",
+    "modulePath": "integrations/workplace/slack/dist/manifest.js",
     "manifestExport": "slackWorkplaceManifestInput",
     "name": "Slack",
     "packageName": "@cognidesk/integration-workplace-slack",
@@ -20003,7 +19785,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-workplace-slack",
       "runtimePackage": "@cognidesk/integration-workplace-slack",
-      "providerModule": "integrations/workplace/slack/src/manifest.js",
+      "providerModule": "integrations/workplace/slack/dist/manifest.js",
       "manifestExport": "slackWorkplaceManifestInput",
       "manifestSource": "integrations/workplace/slack/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -20084,7 +19866,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "workplace",
     "provider": "teams",
     "importPath": "@cognidesk/integration-workplace-teams/manifest",
-    "modulePath": "integrations/workplace/teams/src/manifest.js",
+    "modulePath": "integrations/workplace/teams/dist/manifest.js",
     "manifestExport": "teamsWorkplaceManifestInput",
     "name": "Microsoft Teams",
     "packageName": "@cognidesk/integration-workplace-teams",
@@ -20319,7 +20101,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "official-sdk",
       "sdkPackage": "@microsoft/microsoft-graph-client",
       "runtimePackage": "@cognidesk/integration-workplace-teams",
-      "providerModule": "integrations/workplace/teams/src/manifest.js",
+      "providerModule": "integrations/workplace/teams/dist/manifest.js",
       "manifestExport": "teamsWorkplaceManifestInput",
       "manifestSource": "integrations/workplace/teams/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
