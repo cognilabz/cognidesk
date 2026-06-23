@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -99,6 +100,14 @@ console.log(`Generated ${path.relative(repoRoot, runtimeLoaderPath)} from ${runt
 
 function resolveManifestSource(reference: IntegrationProviderReference): ManifestSource {
   const moduleSource = reference.modulePath.replace(/^\.\//, "").replace(/\.js$/, ".ts");
+  const repoRelativeManifestPath = path.join(repoRoot, moduleSource);
+  if (!reference.modulePath.startsWith("./") && existsSync(repoRelativeManifestPath)) {
+    return {
+      absolutePath: repoRelativeManifestPath,
+      relativePath: moduleSource,
+      kind: "manifest-only",
+    };
+  }
   const manifestSource = moduleSource.replace(/\/index\.ts$/, "/manifest.ts");
   const manifestPath = path.join(integrationsSrcDir, manifestSource);
   if (existsSync(manifestPath)) {
@@ -235,6 +244,7 @@ function toCatalogEntry(
 ): IntegrationCatalogEntry {
   const metadata = cloneJsonObject(manifest.metadata);
   const implementation = recordFrom(metadata?.implementation);
+  normalizeAllowlistChecksum(reference, source, implementation);
   const coverage = cloneJson(manifest.coverage);
   const capabilities = (manifest.capabilities ?? []).map(toCatalogCapability);
   const credentialRequirements = (manifest.credentialRequirements ?? []).map(toCredentialRequirement);
@@ -289,6 +299,34 @@ function toCatalogEntry(
     })),
     ...(metadata ? { metadata } : {}),
   };
+}
+
+function normalizeAllowlistChecksum(
+  reference: IntegrationProviderReference,
+  source: ManifestSource,
+  implementation: Record<string, unknown> | undefined,
+): void {
+  const selectedOperations = implementation?.selectedOperations;
+  if (!Array.isArray(selectedOperations)) return;
+
+  const declaredAlgorithm = stringFrom(implementation.allowlistChecksumAlgorithm);
+  const declaredChecksum = stringFrom(implementation.allowlistChecksum);
+  if (!declaredAlgorithm && !declaredChecksum) return;
+
+  if (declaredAlgorithm !== "sha256") {
+    throw new Error(
+      `Provider integration '${reference.id}' in ${source.relativePath} declares selectedOperations with unsupported allowlistChecksumAlgorithm '${declaredAlgorithm ?? "<missing>"}'.`,
+    );
+  }
+
+  const computedChecksum = sha256Json(selectedOperations, `${reference.id} selectedOperations`);
+  if (declaredChecksum && declaredChecksum !== computedChecksum) {
+    throw new Error(
+      `Provider integration '${reference.id}' in ${source.relativePath} has allowlistChecksum '${declaredChecksum}', expected '${computedChecksum}' from sha256(JSON.stringify(selectedOperations)).`,
+    );
+  }
+
+  implementation.allowlistChecksum = computedChecksum;
 }
 
 function toCatalogCapability(capability: Record<string, unknown>): IntegrationCatalogCapability {
@@ -448,6 +486,14 @@ function cloneJsonObject(value: unknown): JsonObject | undefined {
   const record = recordFrom(value);
   if (!record) return undefined;
   return cloneJson(record as JsonObject);
+}
+
+function sha256Json(value: unknown, label: string): string {
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) {
+    throw new Error(`${label} could not be serialized for checksum generation.`);
+  }
+  return createHash("sha256").update(serialized).digest("hex");
 }
 
 function recordFrom(value: unknown): Record<string, unknown> | undefined {

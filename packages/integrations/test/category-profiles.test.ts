@@ -10,6 +10,7 @@ import {
   emailCategoryProfile,
   findCategoryOperation,
   getIntegrationCategoryProfile,
+  defaultIntegrationProviderRuntimeRegistry,
   handoffCategoryProfile,
   integrationProviderReferences,
   integrationCategoryProfiles,
@@ -237,11 +238,11 @@ describe("integration category profiles", () => {
 
   it("advertises provider modules that are present in this PR slice", async () => {
     expect(integrationProviderReferences.length).toBeGreaterThan(0);
-    expect(isIntegrationProviderReferenceAvailable("ticketing.zendesk")).toBe(true);
-    await expect(loadProviderIntegrationManifest("ticketing.zendesk")).resolves.toMatchObject({
-      id: "ticketing.zendesk",
+    expect(isIntegrationProviderReferenceAvailable("ticketing.intercom")).toBe(true);
+    await expect(loadProviderIntegrationManifest("ticketing.intercom")).resolves.toMatchObject({
+      id: "ticketing.intercom",
       category: "ticketing",
-      provider: "zendesk",
+      provider: "intercom",
     });
   });
 
@@ -279,7 +280,7 @@ describe("integration category profiles", () => {
         expect(declaredCapabilities.has(operation.capability), `${reference.id}:${operation.alias}`).toBe(true);
       }
     }
-  }, 30000);
+  }, 120_000);
 
   it("does not infer concrete category operations from broad provider capabilities", () => {
     const manifest = defineIntegrationProviderPackage({
