@@ -86,14 +86,17 @@ export const integrationCategoryProfiles = [
 export type IntegrationCategoryProfileId = typeof integrationCategoryProfiles[number]["id"];
 
 export const integrationCategoryProfilesByCategory = Object.fromEntries(
-  integrationCategoryProfiles.map((profile) => [profile.category, profile]),
+  integrationCategoryProfiles.flatMap((profile) => [
+    [profile.category, profile],
+    [profile.id, profile],
+  ]),
 ) as Readonly<Record<string, IntegrationCategoryProfile>>;
 
-export function getIntegrationCategoryProfile(category: ProviderCategory): IntegrationCategoryProfile | undefined {
+export function getIntegrationCategoryProfile(category: ProviderCategory | IntegrationCategoryProfileId): IntegrationCategoryProfile | undefined {
   return integrationCategoryProfilesByCategory[category];
 }
 
-export function requireIntegrationCategoryProfile(category: ProviderCategory): IntegrationCategoryProfile {
+export function requireIntegrationCategoryProfile(category: ProviderCategory | IntegrationCategoryProfileId): IntegrationCategoryProfile {
   const profile = getIntegrationCategoryProfile(category);
   if (!profile) throw new Error(`Unknown integration category profile '${category}'.`);
   return profile;

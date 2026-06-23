@@ -10,7 +10,7 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 |----------|----------------|---------|
 | Cobrowsing | 1 | `@cognidesk/integration-cobrowsing-cognidesk` |
 | Community | 1 | `@cognidesk/integration-community-forum` |
-| Contact Center | 12 | `@cognidesk/integration-contact-center-8x8`<br>`@cognidesk/integration-contact-center-aircall`<br>`@cognidesk/integration-contact-center-amazon-connect`<br>`@cognidesk/integration-contact-center-five9`<br>`@cognidesk/integration-contact-center-genesys-cloud`<br>`@cognidesk/integration-contact-center-genesys-engage`<br>`@cognidesk/integration-contact-center-genesys-pureconnect`<br>`@cognidesk/integration-contact-center-nextiva`<br>`@cognidesk/integration-contact-center-nice-cxone`<br>`@cognidesk/integration-contact-center-ringcentral`<br>`@cognidesk/integration-contact-center-talkdesk`<br>`@cognidesk/integration-contact-center-zoom` |
+| Contact Center | 9 | `@cognidesk/integration-contact-center-8x8`<br>`@cognidesk/integration-contact-center-aircall`<br>`@cognidesk/integration-contact-center-five9`<br>`@cognidesk/integration-contact-center-genesys-engage`<br>`@cognidesk/integration-contact-center-genesys-pureconnect`<br>`@cognidesk/integration-contact-center-nextiva`<br>`@cognidesk/integration-contact-center-nice-cxone`<br>`@cognidesk/integration-contact-center-talkdesk`<br>`@cognidesk/integration-contact-center-zoom` |
 | Ecommerce | 2 | `@cognidesk/integration-ecommerce-shopify`<br>`@cognidesk/integration-ecommerce-stripe` |
 | Email | 6 | `@cognidesk/integration-email-ses`<br>`@cognidesk/integration-email-gmail`<br>`@cognidesk/integration-email-imap`<br>`@cognidesk/integration-email-mailgun`<br>`@cognidesk/integration-email-outlook`<br>`@cognidesk/integration-email-postmark` |
 | Forms | 1 | `@cognidesk/integration-form-cognidesk` |
@@ -24,6 +24,7 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 | Video | 2 | `@cognidesk/integration-video-whereby`<br>`@cognidesk/integration-video-zoom` |
 | Voice Provider APIs | 9 | `@cognidesk/integration-voice-aws-speech`<br>`@cognidesk/integration-voice-azure-speech`<br>`@cognidesk/integration-voice-deepgram`<br>`@cognidesk/integration-voice-elevenlabs`<br>`@cognidesk/integration-voice-sip`<br>`@cognidesk/integration-voice-google-speech`<br>`@cognidesk/integration-voice-openai`<br>`@cognidesk/integration-voice-twilio`<br>`@cognidesk/integration-voice-vonage` |
 | Workplace | 2 | `@cognidesk/integration-workplace-teams`<br>`@cognidesk/integration-workplace-slack` |
+| Contact Center | 3 | `@cognidesk/integration-contact-center-amazon-connect`<br>`@cognidesk/integration-contact-center-genesys-cloud`<br>`@cognidesk/integration-contact-center-ringcentral` |
 
 ## Provider Modules
 
@@ -88,19 +89,17 @@ Evidence: [Discourse API docs](https://docs.discourse.org/); [Discourse webhook 
 | Runtime import | `@cognidesk/integration-contact-center-8x8/runtime` |
 | Workspace | `integrations/contact-center/8x8` |
 | Manifest ID | `contactCenter.8x8` |
-| Scope | `provider-api-subset` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json) |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `contact-center.call-control`, `update-provider-object` |
+| Capabilities | `handoff`, `send`, `update-provider-object`, `update-provider-object` |
 | Provider setup | required `8x8-contact-center-api-base`, `8x8-contact-center-api-access`; optional `8x8-contact-center-routing` |
 
-Coverage: Coverage includes generated per-operation functions for 11 official machine-readable 8x8 OpenAPI specs covering Contact Center Actions/Events, Chat Gateway, public Chat API variants, campaigns, Contact Center analytics, and QMSA.
+Coverage: No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.
 
-Boundary: 8x8 regional endpoints, queue/campaign IDs, contact flows, and outbound eligibility are SDK-user configuration.
-
-Evidence: [8x8 Contact Center Chat API V2 OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json); [8x8 Contact Center Dynamic Campaigns OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_dynamic_campaigns.json); [8x8 Contact Center Campaigns API OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_new_campaigns.json); [8x8 Chapi Chat API OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/chapi_-_chat_api.json); plus 25 more.
+Evidence: [8x8 Contact Center Call API OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json); [8x8 Contact Center Agent Status OpenAPI](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json).
 
 #### Aircall
 
@@ -119,34 +118,9 @@ Evidence: [8x8 Contact Center Chat API V2 OpenAPI](https://raw.githubusercontent
 | Capabilities | `handoff` |
 | Provider setup | required `aircall-api-base`, `aircall-api-access`; optional `aircall-routing` |
 
-Coverage: Coverage is limited to a constructor-configured SDK-owned Aircall workflow path and the documented Aircall `/v1/ping` readiness check; this is not typed outbound callback/call, message, webhook, or transfer coverage.
+Coverage: aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.
 
-Boundary: Aircall number ownership, callback workflows, routing, recording, transfer, messaging, webhook, and outbound consent remain SDK-user configuration.
-
-Evidence: [Aircall API References](https://developer.aircall.io/api-references/); [Aircall Webhooks Guide](https://developer.aircall.io/tutorials/webhooks-guide/); [Aircall SMS webhook tutorial](https://developer.aircall.io/tutorials/logging-sms-events-with-aircall-webhooks).
-
-#### Amazon Connect
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-amazon-connect` |
-| Manifest import | `@cognidesk/integration-contact-center-amazon-connect/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-amazon-connect/runtime` |
-| Workspace | `integrations/contact-center/amazon-connect` |
-| Manifest ID | `contactCenter.amazon-connect` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://github.com/aws/api-models-aws/tree/main/models](https://github.com/aws/api-models-aws/tree/main/models) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `transfer`, `read-provider-object` |
-| Provider setup | required `amazon-connect-instance`, `amazon-connect-api-access` |
-
-Coverage: Coverage includes generated per-operation functions for every operation in the selected official AWS Connect-family API models bundled in aws/api-models-aws.
-
-Boundary: Exactly one of contactFlowId, quickConnectId, or taskTemplateId should be supplied unless the task template has its own flow.
-
-Evidence: [AWS official API models for Amazon Connect family](https://github.com/aws/api-models-aws/tree/main/models); [AWS API models announcement](https://aws.amazon.com/blogs/aws/introducing-aws-api-models-and-publicly-available-resources-for-aws-api-definitions/); [Amazon Connect StartTaskContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartTaskContact.html); [Amazon Connect StartChatContact](https://docs.aws.amazon.com/connect/latest/APIReference/API_StartChatContact.html); plus 14 more.
+Evidence: [Aircall API References](https://developer.aircall.io/api-references/); [Aircall Everywhere SDK](https://github.com/aircall/aircall-everywhere).
 
 #### Five9
 
@@ -165,34 +139,9 @@ Evidence: [AWS official API models for Amazon Connect family](https://github.com
 | Capabilities | `handoff` |
 | Provider setup | required `five9-api-base`, `five9-api-access`; optional `five9-routing` |
 
-Coverage: Coverage is limited to SDK-configured handoff and readiness request paths; this is not typed outbound dialing or transfer coverage.
+Coverage: No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.
 
-Boundary: Five9 domain, API product, skills, campaigns, CRM object mapping, and outbound eligibility are SDK-user configuration.
-
-Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/capabilities/call-center-apis-and-sdks); [Five9 development program](https://www.five9.com/development); [Five9 campaigns documentation](https://documentation.five9.com/bundle/studio-combo/page/studio-build/campaigns/_ch-studio-campaigns.htm).
-
-#### Genesys Cloud CX
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-genesys-cloud` |
-| Manifest import | `@cognidesk/integration-contact-center-genesys-cloud/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-genesys-cloud/runtime` |
-| Workspace | `integrations/contact-center/genesys-cloud` |
-| Manifest ID | `contactCenter.genesys-cloud` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://api.mypurecloud.com/api/v2/docs/swagger](https://api.mypurecloud.com/api/v2/docs/swagger) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `contact-center.open-messaging-ingress`, `send` |
-| Provider setup | required `genesys-cloud-region`, `genesys-cloud-api-access`; optional `genesys-cloud-routing`, `genesys-cloud-open-messaging` |
-
-Coverage: Coverage includes generated per-operation functions for every operation in the current official Genesys Cloud Platform API Swagger exposed at /api/v2/docs/swagger.
-
-Boundary: Genesys regions, OAuth scopes/permissions, queues, callback eligibility, Architect flows, digital integrations, and outbound policy are SDK-user configuration.
-
-Evidence: [Genesys Cloud Platform API Swagger](https://api.mypurecloud.com/api/v2/docs/swagger); [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIbyService); [Genesys Cloud Developer Center](https://developer.genesys.cloud/); [Genesys Cloud API Explorer Create Callback](https://developer.genesys.cloud/devapps/api-explorer#post-api-v2-conversations-callbacks); plus 6 more.
+Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/capabilities/call-center-apis-and-sdks); [Five9 development program](https://www.five9.com/development).
 
 #### Genesys Engage / GMS
 
@@ -206,16 +155,14 @@ Evidence: [Genesys Cloud Platform API Swagger](https://api.mypurecloud.com/api/v
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
-| Documentation | [https://all.docs.genesys.com/Developer/APIbyService](https://all.docs.genesys.com/Developer/APIbyService) |
+| Documentation | [https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI](https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `contact-center.on-prem-configured-handoff`, `send` |
+| Capabilities | `handoff`, `schedule`, `send`, `send` |
 | Provider setup | required `genesys-engage-gms-base-url`; optional `genesys-engage-auth`, `genesys-engage-routing` |
 
-Coverage: Coverage includes typed Genesys Mobile Services callback creation only, typed GMS Chat API v2 customer chat lifecycle/file operations, and SDK-configured REST handoff paths for deployment-specific Genesys Engage on-premises services.
+Coverage: No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.
 
-Boundary: Genesys Engage deployment topology, service names, chat version, routing targets, and authentication are SDK-user configuration.
-
-Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIbyService); [Genesys GMS Callback Services API](https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI); [Genesys GMS Chat API v2](https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2); [Genesys WebChatService](https://all.docs.genesys.com/WID/Current/GCAPI/WebChatService).
+Evidence: [Genesys GMS Callback Services API](https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI); [Genesys GMS Chat API v2](https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2).
 
 #### Genesys PureConnect / ICWS
 
@@ -229,16 +176,14 @@ Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIby
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
-| Documentation | [https://all.docs.genesys.com/Developer/APIbyService](https://all.docs.genesys.com/Developer/APIbyService) |
+| Documentation | [https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm](https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `contact-center.pureconnect-session` |
+| Capabilities | `handoff`, `create-provider-object`, `read-provider-object` |
 | Provider setup | required `genesys-pureconnect-icws-base-url`; optional `genesys-pureconnect-session`, `genesys-pureconnect-routing` |
 
-Coverage: Coverage introduces Genesys PureConnect as a separate deployment/provider mode from Genesys Cloud and Genesys Engage/GMS.
+Coverage: No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations.
 
-Boundary: PureConnect CIC topology, ICWS version, reverse proxy/base path, authentication, Interaction Web Tools handlers, chat forms, callback forms, and routing targets are SDK-user configuration.
-
-Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIbyService); [PureConnect ICWS connection](https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm); [PureConnect ICWS interactions](https://help.genesys.com/staging/developer/root/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm); [PureConnect ICWS messages](https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/%28sessionId%29/messaging/messages/index.htm); plus 3 more.
+Evidence: [PureConnect ICWS connection](https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm); [PureConnect ICWS interactions](https://help.genesys.com/staging/developer/root/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm).
 
 #### Nextiva Contact Center
 
@@ -254,14 +199,12 @@ Evidence: [Genesys APIs by Service](https://all.docs.genesys.com/Developer/APIby
 | Implementation | `support-workflow-adapter` |
 | Documentation | [https://www.nextiva.com/resources/learn/rest-apis](https://www.nextiva.com/resources/learn/rest-apis) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `nextiva.request` |
-| Provider setup | required `nextiva-contact-center-api-base`, `nextiva-contact-center-api-access`; optional `nextiva-contact-center-authorities`, `nextiva-contact-center-routing` |
+| Capabilities | `handoff`, `read-provider-object` |
+| Provider setup | required `nextiva-contact-center-api-base`, `nextiva-contact-center-api-access`; optional `nextiva-contact-center-routing` |
 
-Coverage: Coverage is limited to SDK-configured handoff/readiness requests plus a generic authenticated request helper for SDK-user-owned Nextiva endpoints; this is not typed outbound or transfer coverage.
+Coverage: ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request.
 
-Boundary: Nextiva tenant endpoint, queue/campaign IDs, custom API object paths, and outbound eligibility are SDK-user configuration.
-
-Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/learn/rest-apis); [Nextiva User Service](https://developer.nextiva.com/nextiva/docs/user-service); [Nextiva ACD Service](https://developer.nextiva.com/nextiva/docs/acd-service); [Nextiva WorkItem Service](https://developer.nextiva.com/nextiva/docs/workitem-service); plus 2 more.
+Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/learn/rest-apis); [Nextiva WorkItem Service](https://developer.nextiva.com/nextiva/docs/workitem-service); [Nextiva ncx-sdk](https://github.com/Nextiva/ncx-sdk).
 
 #### NICE CXone
 
@@ -272,42 +215,17 @@ Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/l
 | Runtime import | `@cognidesk/integration-contact-center-nice-cxone/runtime` |
 | Workspace | `integrations/contact-center/nice-cxone` |
 | Manifest ID | `contactCenter.nice-cxone` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
+| Implementation | `support-workflow-adapter` |
 | Documentation | [https://developer.niceincontact.com/API](https://developer.niceincontact.com/API) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff` |
+| Capabilities | `handoff`, `schedule`, `send`, `update-provider-object`, `read-provider-object` |
 | Provider setup | required `nice-cxone-api-base`, `nice-cxone-api-access`; optional `nice-cxone-routing` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in NICE CXone's public OpenAPI catalog reachable from the official API documentation pages.
+Coverage: Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.
 
-Boundary: CXone API domains, business units, skills, points of contact, WFM/QM access, and outbound eligibility are SDK-user configuration.
-
-Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE CXone Patron API](https://developer.niceincontact.com/API/PatronAPI); [NICE CXone Agent API](https://developer.niceincontact.com/API/AgentAPI); [NICE CXone Digital Engagement API](https://developer.niceincontact.com/API/DigitalEngagementAPI); plus 4 more.
-
-#### RingCentral RingCX
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-ringcentral` |
-| Manifest import | `@cognidesk/integration-contact-center-ringcentral/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-ringcentral/runtime` |
-| Workspace | `integrations/contact-center/ringcentral` |
-| Manifest ID | `contactCenter.ringcentral` |
-| Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://developers.ringcentral.com/engage-voice-api](https://developers.ringcentral.com/engage-voice-api) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff` |
-| Provider setup | required `ringcentral-ringcx-api-base`, `ringcentral-ringcx-api-access`; optional `ringcentral-ringcx-routing` |
-
-Coverage: Coverage includes generated per-operation functions for the current official RingCentral RingCX Voice OpenAPI spec and the official RingCentral Engage Digital OpenAPI spec.
-
-Boundary: RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.
-
-Evidence: [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-api); [RingCX Voice OpenAPI](https://raw.githubusercontent.com/ringcentral/engage-voice-api-docs/main/specs/engage-voice_openapi3.json); [RingCX Voice API docs repository](https://github.com/ringcentral/engage-voice-api-docs); [RingCX Digital APIs](https://developers.ringcentral.com/engage-digital-api); plus 5 more.
+Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE CXone Agent SDK](https://github.com/nice-devone/nice-cxone-agent-sdk).
 
 #### Talkdesk
 
@@ -318,19 +236,17 @@ Evidence: [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-ap
 | Runtime import | `@cognidesk/integration-contact-center-talkdesk/runtime` |
 | Workspace | `integrations/contact-center/talkdesk` |
 | Manifest ID | `contactCenter.talkdesk` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
+| Implementation | `support-workflow-adapter` |
 | Documentation | [https://api-docs.talkdeskapp.com/public-api](https://api-docs.talkdeskapp.com/public-api) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `create-provider-object` |
+| Capabilities | `handoff`, `schedule`, `create-provider-object` |
 | Provider setup | required `talkdesk-api-root`, `talkdesk-api-access`; optional `talkdesk-routing` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Talkdesk's official public OpenAPI bundle.
+Coverage: No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation.
 
-Boundary: Talkdesk API access, scopes, localized API root, callback availability, and destination mapping are SDK-user configuration.
-
-Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/public-api); [Talkdesk API Endpoints](https://docs.talkdesk.com/reference/api-reference); [Talkdesk Contact Center API Overview](https://docs.talkdesk.com/docs/contact-center-overview); [Talkdesk Callback API](https://docs.talkdesk.com/docs/callback-api); plus 3 more.
+Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/public-api); [Talkdesk Callback API](https://docs.talkdesk.com/docs/callback-api).
 
 #### Zoom Contact Center
 
@@ -341,19 +257,17 @@ Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/publ
 | Runtime import | `@cognidesk/integration-contact-center-zoom/runtime` |
 | Workspace | `integrations/contact-center/zoom` |
 | Manifest ID | `contactCenter.zoom` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developers.zoom.us/docs/api/contact-center/](https://developers.zoom.us/docs/api/contact-center/) |
-| Directions | `inbound-only` |
-| Capabilities | `handoff` |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json](https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `send`, `read-provider-object`, `read-provider-object` |
 | Provider setup | required `zoom-contact-center-account`, `zoom-contact-center-api-access`; optional `zoom-contact-center-routing` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Zoom's official Contact Center REST OpenAPI spec: all 312 operations across 176 paths.
+Coverage: @zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.
 
-Boundary: Zoom queues, channels, campaign setup, contact eligibility, and outbound policy are SDK-user configuration.
-
-Evidence: [Zoom Contact Center APIs](https://developers.zoom.us/docs/api/contact-center/); [Zoom Contact Center REST OpenAPI](https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json); [Zoom Contact Center Webhooks](https://developers.zoom.us/docs/api/contact-center/events/); [Zoom Contact Center Webhooks OpenAPI](https://developers.zoom.us/api-hub/contact-center/events/webhooks.json); plus 1 more.
+Evidence: [Zoom Contact Center REST OpenAPI](https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json); [Zoom Contact Center Webhooks OpenAPI](https://developers.zoom.us/api-hub/contact-center/events/webhooks.json); [Zoom Apps SDK](https://github.com/zoom/appssdk).
 
 ### Ecommerce
 
@@ -368,17 +282,17 @@ Evidence: [Zoom Contact Center APIs](https://developers.zoom.us/docs/api/contact
 | Manifest ID | `ecommerce.shopify` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `official-sdk` |
 | Documentation | [https://shopify.dev/docs/api/admin-graphql/latest](https://shopify.dev/docs/api/admin-graphql/latest) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `ecommerce.graphql` |
 | Provider setup | required `shopify-shop-domain`, `shopify-admin-access`; optional `shopify-webhook-secret` |
 
-Coverage: Official Shopify Admin GraphQL 2026-04 docs are inventoried as 792 root fields (282 QueryRoot, 510 Mutation), but this package implements only selected typed helpers plus a raw Admin GraphQL escape hatch.
+Coverage: Coverage is limited to selected Shopify Admin GraphQL support operations backed by the official Shopify Admin API client.
 
 Boundary: The SDK user chooses Admin API version, scopes, webhook topics, customer visibility, fulfillment behavior, consent rules, and retention policy.
 
-Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/admin-graphql/latest); [Shopify Admin GraphQL QueryRoot 2026-04 catalog](https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot); [Shopify Admin GraphQL Mutation 2026-04 catalog](https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation); [Shopify Admin GraphQL products query](https://shopify.dev/docs/api/admin-graphql/latest/queries/products); plus 4 more.
+Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/admin-graphql/latest); [Shopify Admin API client](https://www.npmjs.com/package/@shopify/admin-api-client); [Shopify webhook HMAC validation](https://shopify.dev/docs/apps/build/webhooks/subscribe/https#step-5-verify-the-webhook).
 
 #### Stripe
 
@@ -389,19 +303,19 @@ Evidence: [Shopify Admin GraphQL API reference](https://shopify.dev/docs/api/adm
 | Runtime import | `@cognidesk/integration-ecommerce-stripe/runtime` |
 | Workspace | `integrations/ecommerce/stripe` |
 | Manifest ID | `ecommerce.stripe` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
+| Implementation | `official-sdk` |
 | Documentation | [https://docs.stripe.com/api](https://docs.stripe.com/api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `update-provider-object`, `ecommerce.payments` |
-| Provider setup | required `stripe-secret-key`, `stripe-webhook-signing-secret`; optional `stripe-publishable-key`, `stripe-connect-mode`, `stripe-restricted-key-scopes` |
+| Provider setup | required `stripe-secret-key`, `stripe-webhook-signing-secret`; optional `stripe-connect-mode` |
 
-Coverage: Coverage includes a generated operation catalog for every operation in the official Stripe OpenAPI spec for this API version, exposed through requestOperation(operationId, ...).
+Coverage: Coverage is limited to Cognidesk-normalized Stripe commerce support operations backed by the official Stripe SDK.
 
 Boundary: The SDK user chooses Stripe account mode, restricted-key permissions, event destinations, webhook subscriptions, checkout UI, refund policy, dispute evidence policy, consent, and retention.
 
-Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe PaymentIntents API](https://docs.stripe.com/api/payment_intents); [Stripe Checkout Sessions API](https://docs.stripe.com/api/checkout/sessions); [Stripe Subscriptions update API](https://docs.stripe.com/api/subscriptions/update); plus 2 more.
+Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe Node SDK](https://github.com/stripe/stripe-node); [Stripe webhook signature verification](https://docs.stripe.com/webhooks/signature).
 
 ### Email
 
@@ -414,19 +328,19 @@ Evidence: [Stripe API reference](https://docs.stripe.com/api); [Stripe PaymentIn
 | Runtime import | `@cognidesk/integration-email-ses/runtime` |
 | Workspace | `integrations/email/ses` |
 | Manifest ID | `email.ses` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html](https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
-| Provider setup | required `aws-access-key-id`, `aws-secret-access-key`, `aws-region`; optional `ses-sender-identity`, `ses-event-ingestion` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `update-provider-object` |
+| Provider setup | required `aws-credentials`, `aws-region`; optional `ses-sns-verification` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in the official AWS SESv2 and classic SES API models.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by AWS SDK v3 SES clients.
 
-Boundary: The SDK user chooses regions, IAM policy, sender identities, suppression policy, configuration sets, templates, event routing, webhook verification, retention, and outbound approval policy.
+Boundary: SES is not a mailbox product and does not expose mailbox-style message history.
 
-Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/blob/main/models/sesv2/service/2019-09-27/sesv2-2019-09-27.json); [AWS official classic SES API model](https://github.com/aws/api-models-aws/blob/main/models/ses/service/2010-12-01/ses-2010-12-01.json); [AWS SDK SESv2 client API reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/sesv2/); [AWS SDK classic SES client API reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/ses/); plus 11 more.
+Evidence: [AWS SDK for JavaScript v3 SESv2 client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2); [AWS SDK for JavaScript v3 SES classic client](https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-ses); [Amazon SES API v2](https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html); [Amazon SES event publishing](https://docs.aws.amazon.com/ses/latest/dg/monitor-sending-activity.html); plus 1 more.
 
 #### Gmail
 
@@ -437,19 +351,19 @@ Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/b
 | Runtime import | `@cognidesk/integration-email-gmail/runtime` |
 | Workspace | `integrations/email/gmail` |
 | Manifest ID | `email.gmail` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://gmail.googleapis.com/$discovery/rest?version=v1](https://gmail.googleapis.com/$discovery/rest?version=v1) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@googleapis/gmail](https://www.npmjs.com/package/@googleapis/gmail) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object` |
+| Capabilities | `receive`, `read-provider-object`, `draft`, `send`, `update-provider-object` |
 | Provider setup | required `google-oauth-access-token` |
 
-Coverage: Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.
+Coverage: Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.
 
-Boundary: Available operations depend on the OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.
+Boundary: Available operations depend on OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.
 
-Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery/rest?version=v1); [Gmail messages list](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list); [Gmail users getProfile](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile); [Gmail drafts create](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create); plus 7 more.
+Evidence: [@googleapis/gmail package](https://www.npmjs.com/package/@googleapis/gmail); [Gmail API Node.js quickstart](https://developers.google.com/workspace/gmail/api/quickstart/nodejs); [Gmail users.threads.get](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get); [Gmail users.messages.send](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send); plus 4 more.
 
 #### IMAP Mailbox
 
@@ -460,19 +374,19 @@ Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery
 | Runtime import | `@cognidesk/integration-email-imap/runtime` |
 | Workspace | `integrations/email/imap` |
 | Manifest ID | `email.imap` |
-| Scope | `support-workflow-subset` |
+| Scope | `local-protocol` |
 | Adapter coverage | `partial` |
-| Implementation | `app-supplied-connector` |
+| Implementation | `local-protocol` |
 | Documentation | [https://datatracker.ietf.org/doc/html/rfc9051](https://datatracker.ietf.org/doc/html/rfc9051) |
 | Directions | `inbound-only` |
-| Capabilities | `read-provider-object` |
-| Provider setup | required `imap-server`, `imap-mailbox-credentials`, `imap-connector` |
+| Capabilities | `read-provider-object`, `search-provider-object` |
+| Provider setup | required `imap-server`, `imap-mailbox-credentials` |
 
-Coverage: Coverage is limited to credential status and SDK-user-injected mailbox readiness checks.
+Coverage: Coverage is a focused Cognidesk IMAP protocol adapter backed by ImapFlow.
 
-Boundary: This package does not bundle an IMAP client dependency; SDK users inject a connector that matches their runtime, TLS, auth, and proxy requirements.
+Boundary: This package does not implement full mailbox synchronization, storage, retention, MIME parsing policy, attachment handling policy, deletion policy, or outbound SMTP.
 
-Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051).
+Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051); [ImapFlow](https://imapflow.com/).
 
 #### Mailgun
 
@@ -483,19 +397,19 @@ Evidence: [RFC 9051 IMAP4rev2](https://datatracker.ietf.org/doc/html/rfc9051).
 | Runtime import | `@cognidesk/integration-email-mailgun/runtime` |
 | Workspace | `integrations/email/mailgun` |
 | Manifest ID | `email.mailgun` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://documentation.mailgun.com/docs/mailgun](https://documentation.mailgun.com/docs/mailgun) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/mailgun/mailgun.js](https://github.com/mailgun/mailgun.js) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object` |
-| Provider setup | required `mailgun-api-key`, `mailgun-domain`; optional `mailgun-webhook-signing-key`, `mailgun-region` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `search-provider-object` |
+| Provider setup | required `mailgun-api-key`, `mailgun-domain`; optional `mailgun-webhook-signing-key` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Mailgun's official public OpenAPI 3.1 API reference.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by the official Mailgun SDK.
 
-Boundary: The SDK user chooses domains, routes, templates, tracking, webhook endpoints, retention, redaction, and outbound approval policy.
+Boundary: The SDK user owns domain selection, route policy, retention, redaction, replay-cache storage, outbound approval, and rate limiting.
 
-Evidence: [Mailgun OpenAPI specification](https://documentation.mailgun.com/_spec/docs/mailgun/api-reference/send/mailgun.json?download); [Mailgun Messages API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/messages); [Mailgun Events API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/events); [Mailgun Logs API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/logs); plus 7 more.
+Evidence: [mailgun.js package](https://github.com/mailgun/mailgun.js); [Mailgun Messages API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/messages); [Mailgun Events API](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/events); [Mailgun Webhooks](https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/domain-webhooks).
 
 #### Microsoft Outlook
 
@@ -507,18 +421,18 @@ Evidence: [Mailgun OpenAPI specification](https://documentation.mailgun.com/_spe
 | Workspace | `integrations/email/outlook` |
 | Manifest ID | `email.outlook` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@microsoft/microsoft-graph-client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object`, `outlook.webhook-client-state` |
+| Capabilities | `receive`, `draft`, `send`, `read-provider-object`, `update-provider-object` |
 | Provider setup | required `microsoft-graph-oauth-access-token`; optional `microsoft-graph-mailbox-user`, `microsoft-graph-webhook-client-state` |
 
-Coverage: Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Outlook mailbox slice used by this package: /me and /users/{user-id}, messages, mailFolders, message attachments, sendMail, subscriptions, and Outlook category paths.
+Coverage: Coverage includes SDK-backed Microsoft Graph Outlook mailbox support workflows: messages, mailFolders, attachments, sendMail, subscriptions, mailbox user readiness, and change notifications.
 
 Boundary: Available operations depend on Microsoft Graph permissions, OAuth grant type, tenant admin consent, conditional access, mailbox licensing, Exchange Online policy, and delegated or application user selection.
 
-Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml); [Microsoft Graph v1.0 OpenAPI](https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml); [Microsoft Graph create message](https://learn.microsoft.com/en-us/graph/api/user-post-messages?view=graph-rest-1.0); [Microsoft Graph sendMail](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0); plus 6 more.
+Evidence: [Microsoft Graph JavaScript client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client); [Microsoft Graph create message](https://learn.microsoft.com/en-us/graph/api/user-post-messages?view=graph-rest-1.0); [Microsoft Graph sendMail](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0); [Microsoft Graph message delta](https://learn.microsoft.com/en-us/graph/api/message-delta?view=graph-rest-1.0); plus 3 more.
 
 #### Postmark
 
@@ -529,19 +443,19 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 | Runtime import | `@cognidesk/integration-email-postmark/runtime` |
 | Workspace | `integrations/email/postmark` |
 | Manifest ID | `email.postmark` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://postmarkapp.com/developer](https://postmarkapp.com/developer) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/ActiveCampaign/postmark.js](https://github.com/ActiveCampaign/postmark.js) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `draft`, `thread`, `attach`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
-| Provider setup | required `postmark-server-token`, `postmark-account-token`; optional `postmark-message-stream`, `postmark-webhook-auth` |
+| Capabilities | `receive`, `send`, `read-provider-object`, `update-provider-object` |
+| Provider setup | required `postmark-server-token`; optional `postmark-account-token` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Postmark's official server and account Swagger files.
+Coverage: Coverage is the Cognidesk normalized support-email adapter surface backed by the official Postmark Node client.
 
-Boundary: The SDK user chooses streams, sender signatures, templates, inbound domains, webhook protection, retention, redaction, and outbound approval policy.
+Boundary: The SDK user owns message stream selection, webhook auth policy, retention, redaction, outbound approval, and rate limiting.
 
-Evidence: [Postmark Server API Swagger](https://postmarkapp.com/swagger/server.yml); [Postmark Account API Swagger](https://postmarkapp.com/swagger/account.yml); [Postmark API Explorer](https://postmarkapp.com/api-explorer); [Postmark Email API](https://postmarkapp.com/developer/user-guide/send-email-with-api); plus 5 more.
+Evidence: [Postmark Node.js library](https://github.com/ActiveCampaign/postmark.js); [Postmark Email API](https://postmarkapp.com/developer/api/email-api); [Postmark Messages API](https://postmarkapp.com/developer/api/messages-api); [Postmark inbound webhooks](https://postmarkapp.com/developer/webhooks/inbound-webhook).
 
 ### Forms
 
@@ -604,19 +518,19 @@ Evidence: No provider evidence listed in the manifest.
 | Runtime import | `@cognidesk/integration-marketplace-amazon/runtime` |
 | Workspace | `integrations/marketplace/amazon` |
 | Manifest ID | `marketplace.amazon` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `full` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer-docs.amazon.com/sp-api](https://developer-docs.amazon.com/sp-api) |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/amzn/selling-partner-api-sdk](https://github.com/amzn/selling-partner-api-sdk) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |
+| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `delete-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |
 | Provider setup | required `amazon-lwa-client`, `amazon-lwa-token`, `amazon-marketplace-id`, `amazon-notification-destination`, `amazon-notification-signature`; optional `amazon-aws-role-region` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Amazon's official Selling Partner API model repository.
+Coverage: Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership.
 
 Boundary: The SDK user chooses marketplaces, roles, restricted-data-token policy, notification topics, outbound solicitation rules, operator visibility, retention, consent, and redaction.
 
-Evidence: [Amazon official SP-API model repository](https://github.com/amzn/selling-partner-api-models/tree/main/models); [Amazon SP-API Orders v0 reference](https://developer-docs.amazon.com/sp-api/reference/orders-v0); [Amazon SP-API Orders v2026-01-01 reference](https://developer-docs.amazon.com/sp-api/reference/orders-v2026-01-01); [Amazon SP-API Orders migration guide](https://developer-docs.amazon.com/sp-api/docs/orders-api-migration-guide); plus 6 more.
+Evidence: [Amazon official SP-API JavaScript SDK](https://github.com/amzn/selling-partner-api-sdk); [Amazon prebuilt JavaScript SDK tutorial](https://developer-docs.amazon.com/sp-api/docs/automate-your-sp-api-calls-using-a-prebuilt-javascript-sdk); [Amazon SP-API Orders v0 reference](https://developer-docs.amazon.com/sp-api/reference/orders-v0); [Amazon SP-API Orders v2026-01-01 reference](https://developer-docs.amazon.com/sp-api/reference/orders-v2026-01-01); plus 2 more.
 
 #### eBay Marketplace
 
@@ -629,10 +543,10 @@ Evidence: [Amazon official SP-API model repository](https://github.com/amzn/sell
 | Manifest ID | `marketplace.ebay` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-support-slice` |
 | Documentation | [https://developer.ebay.com/api-docs](https://developer.ebay.com/api-docs) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.digital-signature`, `marketplace.notification-challenge` |
+| Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `update-provider-object`, `delete-provider-object`, `create-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.digital-signature`, `marketplace.notification-challenge` |
 | Provider setup | required `ebay-oauth-access-token`, `ebay-application-access-token`, `ebay-client-id`, `ebay-client-secret`, `ebay-marketplace-id`, `ebay-notification-verification-token`; optional `ebay-digital-signature-key` |
 
 Coverage: Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.
@@ -678,7 +592,7 @@ Evidence: [discord.js package](https://www.npmjs.com/package/discord.js); [Disco
 | Manifest ID | `messaging.rcs` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create](https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `draft`, `media`, `read-provider-object`, `rcs.agent-events`, `rcs.webhook-signature` |
@@ -724,19 +638,19 @@ Evidence: [WhatsApp Cloud API get started](https://developers.facebook.com/docum
 | Runtime import | `@cognidesk/integration-review-appstore/runtime` |
 | Workspace | `integrations/review/appstore` |
 | Manifest ID | `review.appstore` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `full` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews](https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews) |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developer.apple.com/documentation/appstoreconnectapi](https://developer.apple.com/documentation/appstoreconnectapi) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `read-provider-object`, `search-provider-object`, `update-provider-object` |
+| Capabilities | `receive`, `draft`, `send`, `read-provider-object`, `search-provider-object`, `delete-provider-object` |
 | Provider setup | required `appstore-api-key`, `appstore-app-id`; optional `appstore-review-response-policy` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Apple's official App Store Connect OpenAPI specification.
+Coverage: Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.
 
 Boundary: The SDK user decides review triage, sentiment classification, public-response approval, localization, escalation, and retention policy.
 
-Evidence: [App Store Connect OpenAPI specification](https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip); [App Store Connect API overview](https://developer.apple.com/documentation/appstoreconnectapi); [List customer reviews for an app](https://developer.apple.com/documentation/appstoreconnectapi/get-v1-apps-_id_-customerreviews); [Customer review responses](https://developer.apple.com/documentation/appstoreconnectapi/customer-review-responses); plus 2 more.
+Evidence: [App Store Connect API overview](https://developer.apple.com/documentation/appstoreconnectapi); [App Store Connect OpenAPI specification (openapi.oas.json sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec)](https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip); [App Store Connect JWT tokens](https://developer.apple.com/documentation/appstoreconnectapi/generating-tokens-for-api-requests); [Apple App Store Server Node.js Library](https://github.com/apple/app-store-server-library-node).
 
 #### Google Play Reviews
 
@@ -747,19 +661,19 @@ Evidence: [App Store Connect OpenAPI specification](https://developer.apple.com/
 | Runtime import | `@cognidesk/integration-review-googleplay/runtime` |
 | Workspace | `integrations/review/googleplay` |
 | Manifest ID | `review.googleplay` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `full` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developers.google.com/android-publisher/api-ref/rest/v3/reviews](https://developers.google.com/android-publisher/api-ref/rest/v3/reviews) |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://developers.google.com/android-publisher/api-ref/rest](https://developers.google.com/android-publisher/api-ref/rest) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `read-provider-object`, `search-provider-object`, `send`, `draft` |
 | Provider setup | required `googleplay-access-token`, `googleplay-package-name`; optional `googleplay-service-account` |
 
-Coverage: Coverage includes generated per-method functions for every method in the official Google Play Android Publisher v3 Discovery document.
+Coverage: Cognidesk adapter coverage is scoped to Google Play review list/read/reply workflows.
 
 Boundary: The Google Play Reply to Reviews API exposes production app reviews with comments; rating-only feedback and non-production feedback are not exposed through this API.
 
-Evidence: [Google Play Android Publisher Discovery document](https://androidpublisher.googleapis.com/$discovery/rest?version=v3); [Google Play Android Publisher reviews resource](https://developers.google.com/android-publisher/api-ref/rest/v3/reviews); [Google Play Reply to Reviews guide](https://developers.google.com/android-publisher/reply-to-reviews); [Google service account OAuth 2.0 guide](https://developers.google.com/identity/protocols/oauth2/service-account); plus 1 more.
+Evidence: [Google Play Android Publisher API](https://developers.google.com/android-publisher/api-ref/rest); [Google Play Android Publisher reviews resource](https://developers.google.com/android-publisher/api-ref/rest/v3/reviews); [Google APIs Node.js client](https://googleapis.dev/nodejs/googleapis/latest/); [@googleapis/androidpublisher package](https://www.npmjs.com/package/@googleapis/androidpublisher).
 
 ### SMS
 
@@ -845,7 +759,7 @@ Evidence: [Instagram Messaging overview](https://developers.facebook.com/documen
 | Manifest ID | `social.tiktok` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info](https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `draft`, `thread`, `read-provider-object`, `search-provider-object`, `social.comment-reply`, `social.webhook-signature` |
@@ -870,17 +784,17 @@ Evidence: [TikTok Display API get started](https://developers.tiktok.com/doc/dis
 | Manifest ID | `ticketing.freshdesk` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://developers.freshdesk.com/api/](https://developers.freshdesk.com/api/) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `freshdesk.webhook-shared-secret` |
+| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `freshdesk-domain`, `freshdesk-api-key`; optional `freshdesk-webhook-secret` |
 
-Coverage: Coverage is limited to Freshdesk v2 support primitives for tickets, contacts, ticket conversations, replies, notes, selected handoff updates, agent/group reads, current-agent readiness, and SDK-user shared-secret webhook validation.
+Coverage: SDK decision: Freshworks has beta or very early JavaScript packages, but no verified official maintained Freshdesk ticketing backend client suitable for this adapter.
 
-Boundary: Ticket forms, required fields, statuses, priorities, products, groups, SLAs, automations, and agent permissions are owned by the SDK user's Freshdesk account.
+Boundary: Ticket forms, required fields, statuses, products, groups, SLAs, automations, and agent permissions are SDK-user configuration.
 
-Evidence: [Freshdesk API v2 reference](https://developers.freshdesk.com/api/); [Freshdesk v2 checked endpoint inventory](https://github.com/cognilabz/cognidesk/blob/main/docs/provider-coverage/freshdesk-v2-api-2026-06-18.operations.json).
+Evidence: [Freshdesk API v2 reference](https://developers.freshdesk.com/api/); [Freshworks API SDK announcement](https://community.freshworks.dev/t/freshworks-api-sdk-for-node-js/5232).
 
 #### Front
 
@@ -891,19 +805,19 @@ Evidence: [Freshdesk API v2 reference](https://developers.freshdesk.com/api/); [
 | Runtime import | `@cognidesk/integration-ticketing-front/runtime` |
 | Workspace | `integrations/ticketing/front` |
 | Manifest ID | `ticketing.front` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://github.com/frontapp/front-api-specs](https://github.com/frontapp/front-api-specs) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://dev.frontapp.com/docs/core-api-overview](https://dev.frontapp.com/docs/core-api-overview) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `front-api-access` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Front's official Core and Channel API OpenAPI files.
+Coverage: SDK decision: no viable official maintained backend JavaScript client was verified. The deprecated front-sdk package is not adopted.
 
-Boundary: Inbox IDs, channel IDs, teammate assignment, tags, and message visibility are SDK-user configuration.
+Boundary: Inbox IDs, channel IDs, teammate assignment, tags, and message visibility are SDK-user configuration. Multipart attachments are rejected by JSON helpers and require SDK-user direct multipart handling.
 
-Evidence: [Front official OpenAPI specs](https://github.com/frontapp/front-api-specs); [Front Core API OpenAPI JSON](https://raw.githubusercontent.com/frontapp/front-api-specs/main/core-api/core-api.json); [Front Channel API OpenAPI JSON](https://raw.githubusercontent.com/frontapp/front-api-specs/main/channel-api/channel-api.json); [Front Create message](https://dev.frontapp.com/reference/create-message); plus 9 more.
+Evidence: [Front Core API overview](https://dev.frontapp.com/docs/core-api-overview); [Front API overview](https://help.front.com/en/articles/2482); [Front Create message](https://dev.frontapp.com/reference/create-message); [Front Create conversation reply](https://dev.frontapp.com/reference/create-message-reply).
 
 #### Gorgias
 
@@ -914,19 +828,19 @@ Evidence: [Front official OpenAPI specs](https://github.com/frontapp/front-api-s
 | Runtime import | `@cognidesk/integration-ticketing-gorgias/runtime` |
 | Workspace | `integrations/ticketing/gorgias` |
 | Manifest ID | `ticketing.gorgias` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developers.gorgias.com/llms.txt](https://developers.gorgias.com/llms.txt) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developers.gorgias.com/](https://developers.gorgias.com/) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `gorgias-api-base`, `gorgias-api-access` |
 
-Coverage: Coverage includes generated per-operation functions for every operation found in Gorgias' official endpoint markdown pages with embedded OpenAPI blocks.
+Coverage: SDK decision: no official maintained backend JavaScript REST client was verified for Gorgias.
 
 Boundary: Domain URL, ticket channels, message channels, macros, Shopify context, automations, and visibility are SDK-user configuration.
 
-Evidence: [Gorgias developer llms.txt](https://developers.gorgias.com/llms.txt); [Gorgias Create ticket](https://developers.gorgias.com/reference/create-ticket); [Gorgias Retrieve ticket](https://developers.gorgias.com/reference/get-ticket); [Gorgias Update ticket](https://developers.gorgias.com/reference/update-ticket); plus 5 more.
+Evidence: [Gorgias developer docs](https://developers.gorgias.com/); [Gorgias Create ticket](https://developers.gorgias.com/reference/create-ticket); [Gorgias Create ticket message](https://developers.gorgias.com/reference/create-ticket-message); [Gorgias OAuth2 Scopes](https://developers.gorgias.com/docs/oauth2-scopes).
 
 #### Help Scout
 
@@ -939,17 +853,17 @@ Evidence: [Gorgias developer llms.txt](https://developers.gorgias.com/llms.txt);
 | Manifest ID | `ticketing.help-scout` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
-| Documentation | [https://developer.helpscout.com/llms.txt](https://developer.helpscout.com/llms.txt) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developer.helpscout.com/apps/javascript-sdk/](https://developer.helpscout.com/apps/javascript-sdk/) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `help-scout-api-access` |
 
-Coverage: Coverage is limited to Help Scout conversation create/read/list, raw conversation JSONPatch update, thread list, reply/note thread creation, and mailbox-list readiness for Cognidesk support workflows.
+Coverage: SDK decision: Help Scout's official JavaScript SDK is for Apps UI context, not a backend Inbox API client.
 
 Boundary: Mailbox IDs, thread types, assignment, workflow rules, and customer visibility are SDK-user configuration.
 
-Evidence: [Help Scout developer llms.txt](https://developer.helpscout.com/llms.txt); [Help Scout OAuth authentication](https://developer.helpscout.com/mailbox-api/overview/authentication); [Help Scout Create Conversation](https://developer.helpscout.com/mailbox-api/endpoints/conversations/create/); [Help Scout Get Conversation](https://developer.helpscout.com/mailbox-api/endpoints/conversations/get/); plus 7 more.
+Evidence: [Help Scout JavaScript SDK](https://developer.helpscout.com/apps/javascript-sdk/); [Help Scout open-source clients](https://developer.helpscout.com/open-source/); [Help Scout Inbox API](https://developer.helpscout.com/mailbox-api/).
 
 #### HubSpot Service Hub
 
@@ -960,19 +874,19 @@ Evidence: [Help Scout developer llms.txt](https://developer.helpscout.com/llms.t
 | Runtime import | `@cognidesk/integration-ticketing-hubspot/runtime` |
 | Workspace | `integrations/ticketing/hubspot` |
 | Manifest ID | `ticketing.hubspot` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://api.hubapi.com/public/api/spec/v1/specs](https://api.hubapi.com/public/api/spec/v1/specs) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/HubSpot/hubspot-api-nodejs](https://github.com/HubSpot/hubspot-api-nodejs) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `hubspot.request-signature-v3` |
-| Provider setup | required `hubspot-private-app-token`, `hubspot-portal`; optional `hubspot-app`, `hubspot-webhook-secret` |
+| Capabilities | `read-provider-object`, `send`, `create-provider-object`, `update-provider-object`, `search-provider-object`, `draft`, `link-provider-object` |
+| Provider setup | required `hubspot-private-app-token` |
 
-Coverage: Coverage includes generated per-operation functions for every selected current API entry in HubSpot's official public spec index.
+Coverage: Coverage is scoped to normalized ticketing support operations implemented by typed handlers.
 
-Boundary: Ticket pipelines, pipeline stages, priorities, owners, custom properties, association labels, webhook subscriptions, private app scopes, and Service Hub entitlements are owned by the SDK user's HubSpot portal.
+Boundary: Ticket pipelines, stages, owners, custom properties, association labels, scopes, and portal-specific workflow policy are SDK-user configuration.
 
-Evidence: [HubSpot public OpenAPI spec index](https://api.hubapi.com/public/api/spec/v1/specs); [HubSpot CRM Tickets API guide](https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/tickets/guide); [HubSpot CRM Notes API guide](https://developers.hubspot.com/docs/api-reference/legacy/crm/activities/notes/guide); [HubSpot CRM search guide](https://developers.hubspot.com/docs/api-reference/latest/crm/search-the-crm); plus 5 more.
+Evidence: [HubSpot Node client](https://github.com/HubSpot/hubspot-api-nodejs); [HubSpot CRM Tickets API guide](https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/tickets/guide); [HubSpot CRM Notes API guide](https://developers.hubspot.com/docs/api-reference/legacy/crm/activities/notes/guide); [HubSpot CRM search guide](https://developers.hubspot.com/docs/api-reference/latest/crm/search-the-crm).
 
 #### Intercom
 
@@ -983,19 +897,19 @@ Evidence: [HubSpot public OpenAPI spec index](https://api.hubapi.com/public/api/
 | Runtime import | `@cognidesk/integration-ticketing-intercom/runtime` |
 | Workspace | `integrations/ticketing/intercom` |
 | Manifest ID | `ticketing.intercom` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://github.com/intercom/Intercom-OpenAPI](https://github.com/intercom/Intercom-OpenAPI) |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/intercom/intercom-node](https://github.com/intercom/intercom-node) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `intercom.request-signature` |
-| Provider setup | required `intercom-access-token`; optional `intercom-webhook-secret` |
+| Capabilities | `read-provider-object`, `send`, `create-provider-object`, `update-provider-object`, `search-provider-object`, `draft` |
+| Provider setup | required `intercom-access-token` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Intercom's official stable REST API 2.15 OpenAPI file.
+Coverage: Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.
 
-Boundary: Ticket types, ticket attributes, ticket states, conversation search fields, Inbox assignment targets, teammate availability, and API scopes are owned by the SDK user's Intercom workspace.
+Boundary: Ticket types, attributes, states, assignment targets, teammate availability, scopes, and public/private reply policy are SDK-user configuration.
 
-Evidence: [Intercom official OpenAPI specs](https://github.com/intercom/Intercom-OpenAPI); [Intercom REST API 2.15 OpenAPI YAML](https://raw.githubusercontent.com/intercom/Intercom-OpenAPI/main/descriptions/2.15/api.intercom.io.yaml); [Intercom REST API reference](https://developers.intercom.com/docs/references/rest-api/api.intercom.io); [Intercom Conversations API](https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations); plus 3 more.
+Evidence: [Intercom Node client](https://github.com/intercom/intercom-node); [Intercom Tickets API](https://developers.intercom.com/docs/references/rest-api/api.intercom.io/tickets); [Intercom Conversations API](https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations).
 
 #### Kustomer
 
@@ -1006,19 +920,19 @@ Evidence: [Intercom official OpenAPI specs](https://github.com/intercom/Intercom
 | Runtime import | `@cognidesk/integration-ticketing-kustomer/runtime` |
 | Workspace | `integrations/ticketing/kustomer` |
 | Manifest ID | `ticketing.kustomer` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer.kustomer.com/kustomer-api-docs/reference](https://developer.kustomer.com/kustomer-api-docs/reference) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developer.kustomer.com/](https://developer.kustomer.com/) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `kustomer-api-access` |
 
-Coverage: Coverage includes generated per-operation functions for every operation found in Kustomer's official ReadMe API registry OpenAPI documents.
+Coverage: SDK decision: Kustomer app/chat SDKs target Apps or Chat runtimes, not backend REST ticketing operations.
 
 Boundary: Conversation model, queues, teams, custom objects, and message visibility are SDK-user configuration.
 
-Evidence: [Kustomer REST APIs portal](https://developer.kustomer.com/kustomer-api-docs/reference); [Kustomer ReadMe API registry - Core Resources](https://dash.readme.com/api/v1/api-registry/a9esg22kmox9ylt0); [Kustomer API introduction](https://help.kustomer.com/api-introduction-BkwVN42zM); [Kustomer API keys](https://help.kustomer.com/api-keys-SJs5YTIWX); plus 6 more.
+Evidence: [Kustomer developer portal](https://developer.kustomer.com/); [Kustomer REST APIs portal](https://developer.kustomer.com/kustomer-api-docs/reference); [Kustomer API keys](https://help.kustomer.com/api-keys-SJs5YTIWX); [Kustomer create message](https://developer.kustomer.com/kustomer-api-docs/reference/createmessage).
 
 #### Microsoft Dynamics 365 Customer Service
 
@@ -1031,7 +945,7 @@ Evidence: [Kustomer REST APIs portal](https://developer.kustomer.com/kustomer-ap
 | Manifest ID | `ticketing.dynamics365` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1054,7 +968,7 @@ Evidence: [Microsoft Dataverse Web API overview](https://learn.microsoft.com/en-
 | Manifest ID | `ticketing.oracle-service` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html](https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1077,7 +991,7 @@ Evidence: [Oracle Fusion Service serviceRequests overview](https://docs.oracle.c
 | Manifest ID | `ticketing.pega-customer-service` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html](https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1100,17 +1014,17 @@ Evidence: [Pega DX API overview](https://docs.pega.com/bundle/dx-api/page/platfo
 | Manifest ID | `ticketing.salesforce` |
 | Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm) |
+| Implementation | `maintained-library` |
+| Documentation | [https://github.com/jsforce/jsforce](https://github.com/jsforce/jsforce) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff`, `salesforce.webhook-verifier` |
-| Provider setup | required `salesforce-instance`, `salesforce-oauth-access`; optional `salesforce-webhook-secret` |
+| Capabilities | `read-provider-object`, `send`, `create-provider-object`, `update-provider-object`, `search-provider-object`, `draft` |
+| Provider setup | required `salesforce-instance`, `salesforce-oauth-access` |
 
-Coverage: Coverage is limited to selected Salesforce REST API and Service Cloud support primitives: Case create/read/update/search, sObject describe, assignment-rule header opt-in, CaseComment, FeedItem, Contact/Account SOQL search, user/org readiness, and SDK-user inbound event relay parsing.
+Coverage: Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.
 
-Boundary: Salesforce Case record types, required fields, queues, owners, entitlements, assignment rules, triggers, Flow automation, field-level security, and Service Cloud licenses are owned by the SDK user's org.
+Boundary: Record types, required fields, queues, owners, assignment rules, Flow automation, field-level security, and Service Cloud licenses are SDK-user configuration.
 
-Evidence: [Salesforce REST API resources](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm); [Salesforce sObject Describe](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_describe.htm); [Salesforce Assignment Rule header](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/headers_autoassign.htm); [Salesforce Case object reference](https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_case.htm); plus 9 more.
+Evidence: [JSforce](https://github.com/jsforce/jsforce); [Salesforce REST API resources](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm); [Salesforce Case object reference](https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_case.htm); [Salesforce CaseComment object reference](https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_casecomment.htm); plus 1 more.
 
 #### SAP Service Cloud
 
@@ -1123,7 +1037,7 @@ Evidence: [Salesforce REST API resources](https://developer.salesforce.com/docs/
 | Manifest ID | `ticketing.sap-service-cloud` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api](https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api) |
 | Directions | `bidirectional` |
 | Capabilities | `handoff`, `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object` |
@@ -1146,7 +1060,7 @@ Evidence: [SAP Cloud for Customer OData API](https://help.sap.com/docs/sap-cloud
 | Manifest ID | `ticketing.servicenow` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://www.servicenow.com/docs/r/washingtondc/api-reference/rest-apis/c_TableAPI.html](https://www.servicenow.com/docs/r/washingtondc/api-reference/rest-apis/c_TableAPI.html) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1167,19 +1081,19 @@ Evidence: [ServiceNow Table API](https://www.servicenow.com/docs/r/washingtondc/
 | Runtime import | `@cognidesk/integration-ticketing-zendesk/runtime` |
 | Workspace | `integrations/ticketing/zendesk` |
 | Manifest ID | `ticketing.zendesk` |
-| Scope | `full-provider-api` |
+| Scope | `provider-api-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://developer.zendesk.com/zendesk/oas.yaml](https://developer.zendesk.com/zendesk/oas.yaml) |
+| Implementation | `direct-http-support-slice` |
+| Documentation | [https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/](https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
 | Provider setup | required `zendesk-instance`, `zendesk-api-access` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Zendesk's official Support API OpenAPI file.
+Coverage: SDK decision: Zendesk documents node-zendesk but marks it not officially supported, so this package keeps a constrained Zendesk Support API slice instead of adopting it as an official SDK.
 
-Boundary: Available fields, brands, forms, triggers, automations, macros, and permissions are owned by the SDK user's Zendesk account.
+Boundary: Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration.
 
-Evidence: [Zendesk Support API OpenAPI](https://developer.zendesk.com/zendesk/oas.yaml); [Zendesk Support Tickets API](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/); [Zendesk Ticket Comments API](https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/); [Zendesk Ticket Attachments API](https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-attachments/); plus 3 more.
+Evidence: [Zendesk Node.js API client docs](https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/); [Zendesk Support API OpenAPI](https://developer.zendesk.com/zendesk/oas.yaml); [Zendesk Support Tickets API](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/); [Zendesk Ticket Comments API](https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/); plus 1 more.
 
 #### Zoho Desk
 
@@ -1192,7 +1106,7 @@ Evidence: [Zendesk Support API OpenAPI](https://developer.zendesk.com/zendesk/oa
 | Manifest ID | `ticketing.zoho-desk` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `support-workflow-adapter` |
+| Implementation | `direct-http-support-slice` |
 | Documentation | [https://desk.zoho.com/DeskAPIDocument](https://desk.zoho.com/DeskAPIDocument) |
 | Directions | `bidirectional` |
 | Capabilities | `create-provider-object`, `read-provider-object`, `update-provider-object`, `search-provider-object`, `handoff` |
@@ -1477,18 +1391,18 @@ Evidence: [Vonage Voice API v1 OpenAPI](https://developer.vonage.com/api/v1/deve
 | Workspace | `integrations/workplace/teams` |
 | Manifest ID | `workplace.teams` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@microsoft/microsoft-graph-client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `notify`, `thread`, `read-provider-object`, `create-provider-object`, `update-provider-object`, `teams.change-notification-client-state` |
+| Capabilities | `receive`, `send`, `notify`, `thread`, `read-provider-object`, `create-provider-object`, `update-provider-object` |
 | Provider setup | required `microsoft-graph-oauth-access-token`, `microsoft-graph-tenant`, `microsoft-graph-app-registration`; optional `microsoft-graph-change-notification-client-state` |
 
-Coverage: Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Teams/workplace collaboration slice used by this package: Teams app catalog, chats, communications/calls, group team, joinedTeams, onlineMeetings, presence, teams/channels, teamwork, user teamwork, and subscriptions.
+Coverage: Coverage includes SDK-backed Microsoft Graph Teams support workflows: channel and chat messages, channel replies, message updates, subscriptions, current-user readiness, and change notifications.
 
 Boundary: Available operations depend on the SDK user's Microsoft Entra tenant, Teams licensing, Graph OAuth scopes, delegated versus application permission mode, resource-specific consent, tenant/admin consent, channel membership, and Teams policy.
 
-Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml); [Microsoft Graph v1.0 OpenAPI](https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml); [Microsoft Graph send channel message](https://learn.microsoft.com/en-us/graph/api/channel-post-messages?view=graph-rest-1.0); [Microsoft Graph send chat message](https://learn.microsoft.com/en-us/graph/api/chat-post-messages?view=graph-rest-1.0); plus 9 more.
+Evidence: [Microsoft Graph JavaScript client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client); [Microsoft Graph send channel message](https://learn.microsoft.com/en-us/graph/api/channel-post-messages?view=graph-rest-1.0); [Microsoft Graph send chat message](https://learn.microsoft.com/en-us/graph/api/chat-post-messages?view=graph-rest-1.0); [Microsoft Graph send channel reply](https://learn.microsoft.com/en-us/graph/api/chatmessage-post-replies?view=graph-rest-1.0); plus 6 more.
 
 #### Slack
 
@@ -1499,16 +1413,87 @@ Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/m
 | Runtime import | `@cognidesk/integration-workplace-slack/runtime` |
 | Workspace | `integrations/workplace/slack` |
 | Manifest ID | `workplace.slack` |
-| Scope | `provider-api-subset` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json) |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.npmjs.com/package/@slack/web-api](https://www.npmjs.com/package/@slack/web-api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `notify`, `thread`, `media`, `read-provider-object`, `update-provider-object`, `slack.request-signature` |
 | Provider setup | required `slack-bot-token`, `slack-signing-secret` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.
+Coverage: Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.
 
 Boundary: Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.
 
-Evidence: [Slack archived official Web API Swagger](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json); [Slack official API specs repository](https://github.com/slackapi/slack-api-specs); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); plus 9 more.
+Evidence: [Slack Web API package](https://www.npmjs.com/package/@slack/web-api); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); [Slack chat.update](https://docs.slack.dev/reference/methods/chat.update/); plus 6 more.
+
+### Contact Center
+
+#### Amazon Connect
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-amazon-connect` |
+| Manifest import | `@cognidesk/integration-contact-center-amazon-connect/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-amazon-connect/runtime` |
+| Workspace | `integrations/contact-center/amazon-connect` |
+| Manifest ID | `contactCenter.amazon-connect` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/aws/aws-sdk-js-v3](https://github.com/aws/aws-sdk-js-v3) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `send`, `transfer`, `read-provider-object` |
+| Provider setup | required `amazon-connect-instance`, `amazon-connect-api-access` |
+
+Coverage: Runtime uses AWS SDK v3 clients for normalized Amazon Connect support workflows.
+
+Boundary: Contact flows, queue/quick-connect routing, outbound consent, IAM policy, participant token custody, and WebSocket subscription behavior remain application/AWS configuration.
+
+Evidence: [AWS SDK for JavaScript v3](https://github.com/aws/aws-sdk-js-v3); [Amazon Connect API Reference](https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html); [Amazon Connect Participant Service](https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Participant_Service.html).
+
+#### Genesys Cloud CX
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-genesys-cloud` |
+| Manifest import | `@cognidesk/integration-contact-center-genesys-cloud/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-genesys-cloud/runtime` |
+| Workspace | `integrations/contact-center/genesys-cloud` |
+| Manifest ID | `contactCenter.genesys-cloud` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/MyPureCloud/platform-client-sdk-javascript](https://github.com/MyPureCloud/platform-client-sdk-javascript) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `contact-center.open-messaging-ingress`, `schedule`, `read-provider-object` |
+| Provider setup | required `genesys-cloud-region`, `genesys-cloud-api-access`; optional `genesys-cloud-open-messaging`, `genesys-cloud-routing` |
+
+Coverage: Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.
+
+Boundary: Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.
+
+Evidence: [Genesys Cloud JavaScript SDK](https://github.com/MyPureCloud/platform-client-sdk-javascript); [Genesys Cloud Developer Center](https://developer.genesys.cloud/); [Genesys Cloud Open Messaging](https://help.genesys.cloud/articles/configure-an-open-messaging-integration/).
+
+#### RingCentral RingCX
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-ringcentral` |
+| Manifest import | `@cognidesk/integration-contact-center-ringcentral/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-ringcentral/runtime` |
+| Workspace | `integrations/contact-center/ringcentral` |
+| Manifest ID | `contactCenter.ringcentral` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/ringcentral/ringcentral-js](https://github.com/ringcentral/ringcentral-js) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `read-provider-object` |
+| Provider setup | required `ringcentral-api-base`, `ringcentral-api-access`; optional `ringcentral-ringcx-routing` |
+
+Coverage: Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.
+
+Boundary: RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.
+
+Evidence: [RingCentral JavaScript SDK](https://github.com/ringcentral/ringcentral-js); [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-api); [RingCX Digital APIs](https://developers.ringcentral.com/engage-digital-api).
