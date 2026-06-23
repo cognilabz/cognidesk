@@ -37,6 +37,8 @@ const providerSdkPackages = new Set([
   "@googleapis/gmail",
   "@hubspot/api-client",
   "@microsoft/microsoft-graph-client",
+  "@shopify/admin-api-client",
+  "@shopify/shopify-api",
   "@slack/web-api",
   "@vonage/server-sdk",
   "discord.js",

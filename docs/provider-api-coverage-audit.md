@@ -1,14 +1,13 @@
 # Provider API Coverage Audit
 
-Date: 2026-06-17
+Date: 2026-06-21
 
 This audit tracks whether each Provider Integration is a full provider API implementation or a scoped Cognidesk support-channel adapter.
 
 ## Current Finding
 
-Only packages with generated operation and function catalogs from official provider documentation should be treated as "full provider API covered". As of 2026-06-17, that proof exists for:
+Only packages with generated operation and function catalogs from official provider documentation should be treated as "full provider API covered". As of 2026-06-21, that proof exists for:
 
-- `@cognidesk/integrations/ecommerce/stripe`: generated from Stripe's official OpenAPI spec `2026-05-27.dahlia`, 619 documented operations, 619 generated functions.
 - `@cognidesk/integrations/sms/twilio`: generated from Twilio's official `twilio-oai` specs for the Messaging-domain surface, 309 documented domain operations, 309 generated functions.
 - `@cognidesk/integrations/voice/twilio`: generated from Twilio's official `twilio-oai` specs for the Voice-domain surface, 178 documented domain operations, 178 generated functions.
 - `@cognidesk/integrations/contact-center/genesys-cloud`: generated from the current Genesys Cloud Platform API Swagger, 3,147 documented operations, 3,147 generated functions.
@@ -33,7 +32,10 @@ Only packages with generated operation and function catalogs from official provi
 - `@cognidesk/integrations/voice/vonage`: generated from official Vonage Voice v1, Voice v2, Application v2, Conversation v1, and Numbers OpenAPI specs, 27 documented paths, 47 documented operations, 47 generated functions. This full-provider claim is limited to the package's Vonage voice REST bundle; broader Vonage platform products remain separate surfaces.
 - `@cognidesk/integrations/marketplace/ebay`: generated selected-slice catalogs from official eBay OpenAPI 3 JSON URLs for Sell Fulfillment `v1.20.7`, Commerce Message `1.0.0`, Commerce Notification `v1.6.7`, Developer Key Management `v1.0.0`, and Commerce Identity `v2.0.0`: 34 documented selected paths, 45 documented selected operations, and 45 typed wrapper functions. This is a provider API subset, not full eBay platform coverage.
 
-`@cognidesk/integrations/ecommerce/shopify` now has a generated Admin GraphQL `2026-04` root-field catalog from Shopify's official versioned docs: 282 `QueryRoot` fields, 510 `Mutation` fields, 792 total root fields. The module still remains `support-workflow-subset`: it has 9 selected typed Admin GraphQL helpers covering 8 distinct root fields, 14 helper catalog entries including the raw `graphql()` escape hatch and webhook helpers, and 0 generated per-root-field wrappers. Storefront, Functions, Payments, REST Admin, app/platform APIs, full webhook subscription catalogs, Checkout, Fulfillment, Inventory, Markets, Billing, and Online Store surfaces remain explicit gaps.
+Ecommerce was migrated out of the monolith after this audit's original generated-provider pass:
+
+- `@cognidesk/integration-ecommerce-stripe` is now an official `stripe` SDK-backed `support-workflow-subset` package. It exposes normalized support operations, Stripe webhook validation through the SDK, readiness helpers, and an explicit raw `Stripe` client escape hatch. It no longer ships the generated `full-api-*` clone and no longer claims Cognidesk full-provider API coverage.
+- `@cognidesk/integration-ecommerce-shopify` is now an official `@shopify/admin-api-client` backed `support-workflow-subset` package. It exposes selected Admin GraphQL support operations, Shopify webhook HMAC validation, readiness helpers, and an explicit raw Admin GraphQL client escape hatch. It no longer ships the generated Admin GraphQL inventory or generated per-root-field wrappers. Storefront, Functions, Payments, REST Admin, app/platform APIs, full webhook subscription catalogs, Checkout, Fulfillment, Inventory, Markets, Billing, and Online Store surfaces remain explicit gaps.
 
 `@cognidesk/integration-email-gmail` is now a scoped reference package for normalized Gmail support workflows implemented with the official `@googleapis/gmail` SDK. It no longer claims generated full-provider API coverage; broader Gmail methods remain available through the exposed official raw client.
 
@@ -41,20 +43,20 @@ Only packages with generated operation and function catalogs from official provi
 
 Date: 2026-06-18
 
-This bounded recheck covered only `@cognidesk/integrations/ecommerce/stripe`, `@cognidesk/integrations/marketplace/amazon`, `@cognidesk/integrations/review/appstore`, `@cognidesk/integrations/review/googleplay`, `@cognidesk/integrations/ecommerce/shopify`, and `@cognidesk/integrations/marketplace/ebay`.
+This historical bounded recheck covered only the then-current monolith ecommerce packages, `@cognidesk/integrations/marketplace/amazon`, `@cognidesk/integrations/review/appstore`, `@cognidesk/integrations/review/googleplay`, and `@cognidesk/integrations/marketplace/ebay`. The ecommerce rows below are retained as historical evidence and no longer describe the current package shape after the SDK-first migration to `@cognidesk/integration-ecommerce-stripe` and `@cognidesk/integration-ecommerce-shopify`.
 
 Official machine-readable sources and results:
 
 | Provider Integration | Official source | Claimed scope checked | Official count | Generated/local count | Missing generated functions |
 | --- | --- | --- | ---: | ---: | ---: |
-| `ecommerce-stripe` | `https://raw.githubusercontent.com/stripe/openapi/master/latest/openapi.spec3.json` | Full Stripe OpenAPI `2026-05-27.dahlia` | 619 operations | 619 functions | 0 |
+| `ecommerce-stripe` | `https://raw.githubusercontent.com/stripe/openapi/master/latest/openapi.spec3.json` | Historical full Stripe OpenAPI `2026-05-27.dahlia` monolith clone; current package is SDK-backed support subset | 619 operations | 619 functions in removed monolith clone | 0 at the time of the historical clone |
 | `marketplace-amazon` | `https://github.com/amzn/selling-partner-api-models/tree/main/models` | Full Amazon SP-API public model repository snapshot | 63 model files / 353 operations | 353 functions | 0 |
 | `reviews-appstore` | `https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip` | Full App Store Connect OpenAPI `4.4` | 929 paths / 1,216 operations | 1,216 functions | 0 |
 | `reviews-googleplay` | `https://androidpublisher.googleapis.com/$discovery/rest?version=v3` | Full Android Publisher v3 Discovery revision `20260617` | 137 methods | 137 functions | 0 |
-| `ecommerce-shopify` | `https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot` and `https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation` | Selected Admin GraphQL helper surface plus root-field inventory | 282 query fields / 510 mutation fields | 14 helper catalog entries, 9 typed helpers, 0 per-root-field wrappers | Not applicable; selected slice is explicit |
+| `ecommerce-shopify` | `https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot` and `https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation` | Historical selected Admin GraphQL helper surface plus root-field inventory; current package is SDK-backed support subset | 282 query fields / 510 mutation fields | 14 helper catalog entries, 9 typed helpers, 0 per-root-field wrappers in the removed monolith inventory | Not applicable; selected slice is explicit |
 | `marketplace-ebay` | Selected official eBay OpenAPI 3 JSON contracts listed in `docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json` | Selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity REST slice | 34 paths / 45 operations | 45 typed wrapper functions | 0 within selected slice |
 
-No official machine-readable source exposed an endpoint/method in the package's claimed full scope that was missing from generated functions. The Shopify and eBay packages remain selected slices, and their manifests/tests/docs explicitly name the included surfaces plus excluded broader platform surfaces. Direct terminal fetches to eBay's JSON contracts returned `403`, but the same official URLs were browser-accessible during the audit and are pinned in the selected-slice coverage artifacts.
+No official machine-readable source exposed an endpoint/method in the package's then-claimed full scope that was missing from generated functions. The current Shopify ecommerce package and eBay marketplace package remain selected slices, and their manifests/tests/docs explicitly name the included surfaces plus excluded broader platform surfaces. Direct terminal fetches to eBay's JSON contracts returned `403`, but the same official URLs were browser-accessible during the audit and are pinned in the selected-slice coverage artifacts.
 
 The messaging/social channel modules now have checked selected-surface catalogs, but they are explicitly not full provider/platform API coverage:
 
@@ -615,7 +617,7 @@ Hardened in this pass:
 
 Date: 2026-06-17
 
-This historical follow-up rechecked only `packages/integrations/src/ecommerce/shopify`, `packages/integrations/src/ecommerce/stripe`, `packages/integrations/src/marketplace/amazon`, `packages/integrations/src/marketplace/ebay`, `packages/integrations/src/review/appstore`, `packages/integrations/src/review/googleplay`, `packages/integrations/src/video/whereby`, `packages/integrations/src/video/zoom`, and `packages/integrations/src/cobrowsing/cognidesk` against official provider documentation and local client surfaces. At that time, none of these packages proved or claimed `full-provider-api` coverage. Current state differs for packages later converted to generated coverage, including `video-whereby` for the official Whereby REST OpenAPI surface.
+This historical follow-up rechecked only the then-current `packages/integrations/src/ecommerce/shopify`, `packages/integrations/src/ecommerce/stripe`, `packages/integrations/src/marketplace/amazon`, `packages/integrations/src/marketplace/ebay`, `packages/integrations/src/review/appstore`, `packages/integrations/src/review/googleplay`, `packages/integrations/src/video/whereby`, `packages/integrations/src/video/zoom`, and `packages/integrations/src/cobrowsing/cognidesk` against official provider documentation and local client surfaces. At that time, none of these packages proved or claimed `full-provider-api` coverage. Current state differs for packages later converted to generated coverage, including `video-whereby` for the official Whereby REST OpenAPI surface, and for ecommerce packages later migrated to SDK-backed support subsets.
 
 Marketplace `handoff` claims were later rechecked against the implemented client methods. Amazon and eBay now expose their concrete marketplace primitives (`send` for supported solicitations/messages, provider-object reads/searches, notification lifecycle/verification) without a side-effecting `handoff` capability, because neither package has a provider-specific or package-local `attachHandoff` operation.
 

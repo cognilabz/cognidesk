@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { cobrowsingProviderReferences } from "../src/provider-catalog/categories/cobrowsing.js";
 import { communityProviderReferences } from "../src/provider-catalog/categories/community.js";
 import { contactCenterProviderReferences } from "../src/provider-catalog/categories/contact-center.js";
-import { ecommerceProviderReferences } from "../src/provider-catalog/categories/ecommerce.js";
 import { emailProviderReferences } from "../src/provider-catalog/categories/email.js";
 import { formProviderReferences } from "../src/provider-catalog/categories/form.js";
 import { helpCenterProviderReferences } from "../src/provider-catalog/categories/help-center.js";
@@ -27,10 +26,6 @@ const publicProviderCatalogs = [
   {
     categoryName: "contact-center",
     references: contactCenterProviderReferences,
-  },
-  {
-    categoryName: "ecommerce",
-    references: ecommerceProviderReferences,
   },
   {
     categoryName: "email",

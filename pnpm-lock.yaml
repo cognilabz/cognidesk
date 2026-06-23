@@ -523,6 +523,51 @@ importers:
         specifier: ^4.0.14
         version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
 
+  integrations/ecommerce/shopify:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+      '@shopify/admin-api-client':
+        specifier: ^1.1.2
+        version: 1.1.2
+    devDependencies:
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
+
+  integrations/ecommerce/stripe:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+      stripe:
+        specifier: ^22.2.2
+        version: 22.2.2(@types/node@24.13.2)
+    devDependencies:
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
   packages/connections:
     dependencies:
       '@cognidesk/core':
@@ -3476,6 +3521,13 @@ packages:
     resolution: {integrity: sha512-jejr34a8B4L5AS713wOAx1LAqNkW16HVMDEa6sYBvFDc/llUBl8hXaiI4BwF+Al+Sug19Vn2O7iokTVIhVvZ1Q==}
     engines: {node: '>= 18', npm: '>= 8.6.0'}
 
+  '@shopify/admin-api-client@1.1.2':
+    resolution: {integrity: sha512-sV5gS8x4kj0KLULlOJkoBzm+tu6tn+1PCK9a6inySv5qtzmf/JxDWtLgaW9vRXeXHo/Sl/p3mBWhY3//fKA8iw==}
+
+
+  '@shopify/graphql-client@1.4.2':
+    resolution: {integrity: sha512-C/fEyx6BZmTGeJv0HSsduhfn5ZbkXk0nePkyo0+xXxorP1I+uvx9pobdFxTfiPnOrh+P6QiKzBgIviksnSo4YA==}
+
   '@smithy/core@3.25.1':
     resolution: {integrity: sha512-zpDbpXBCBsxfLtG2GEUyfgvHvSFrw5CwDZSNzL0v52gx/c3oPlPbm+7W7num8xs6vyiUBn+bvYPHcQDOXZynCQ==}
     engines: {node: '>=18.0.0'}
@@ -5984,6 +6036,15 @@ packages:
   strip-ansi@7.2.0:
     resolution: {integrity: sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==}
     engines: {node: '>=12'}
+
+  stripe@22.2.2:
+    resolution: {integrity: sha512-lRXLiarjW/I2QVa6QuFfz1Ma7Dc2yBQ7vlYH6NEmp5htMJNQGfiWExmOv0McfqY5wMCGV8DLuCvsyVRIPJlUUQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/node': '>=18'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
 
   strnum@2.4.1:
     resolution: {integrity: sha512-M9eUSMT2dCB2cTNPG7UYj6KuK7RJR2SN2+yCV/fTW3xzTCS6EaGZ5pSMgDIjB7r8zSfTGk+dvvn9rTjpVS9Mwg==}
@@ -8850,6 +8911,13 @@ snapshots:
     transitivePeerDependencies:
       - debug
       - supports-color
+
+  '@shopify/admin-api-client@1.1.2':
+    dependencies:
+      '@shopify/graphql-client': 1.4.2
+
+
+  '@shopify/graphql-client@1.4.2': {}
 
   '@smithy/core@3.25.1':
     dependencies:
@@ -11835,6 +11903,10 @@ snapshots:
   strip-ansi@7.2.0:
     dependencies:
       ansi-regex: 6.2.2
+
+  stripe@22.2.2(@types/node@24.13.2):
+    optionalDependencies:
+      '@types/node': 24.13.2
 
   strnum@2.4.1:
     dependencies:
