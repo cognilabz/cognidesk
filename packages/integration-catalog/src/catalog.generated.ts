@@ -5023,11 +5023,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.gmail",
     "category": "email",
     "provider": "gmail",
-    "importPath": "@cognidesk/integrations/email/gmail",
-    "modulePath": "./email/gmail/index.js",
+    "importPath": "@cognidesk/integration-email-gmail/manifest",
+    "modulePath": "integrations/email/gmail/src/manifest.js",
     "manifestExport": "gmailEmailProviderManifest",
     "name": "Gmail",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-gmail",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -5036,35 +5036,70 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "channelAudiences": [
       "customer-facing",
+      "internal-support",
       "mixed"
     ],
     "display": {
       "label": "Gmail",
-      "summary": "Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.",
+      "summary": "Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.",
       "tags": [
         "email",
         "gmail",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Read Gmail messages",
-        "description": "Lists and reads Gmail message metadata, payloads, raw messages, or thread context.",
+        "label": "Receive Gmail mailbox changes",
+        "description": "Parses Gmail Pub/Sub notifications and reads Gmail watch/history cursors.",
         "audiences": [
           "customer-facing",
+          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "mailbox",
+            "label": "Gmail Mailbox"
           },
           {
-            "kind": "gmailThread",
-            "label": "Gmail Thread"
+            "kind": "gmailHistory",
+            "label": "Gmail History"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Read Gmail threads and attachments",
+        "description": "Reads Gmail threads, messages, labels, and attachment bodies through the official SDK.",
+        "audiences": [
+          "customer-facing",
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "emailThread",
+            "label": "Email Thread"
+          },
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
+          {
+            "kind": "attachment",
+            "label": "Attachment"
+          },
+          {
+            "kind": "mailLabel",
+            "label": "Mail Label"
           }
         ],
         "requiresCredential": true,
@@ -5079,12 +5114,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "description": "Creates Gmail draft messages for SDK-user-configured approval workflows.",
         "audiences": [
           "customer-facing",
-          "internal-support"
+          "internal-support",
+          "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailDraft",
-            "label": "Gmail Draft"
+            "kind": "emailDraft",
+            "label": "Email Draft"
           }
         ],
         "requiresCredential": true,
@@ -5096,159 +5132,113 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Gmail messages",
-        "description": "Sends Gmail messages or existing drafts when SDK-user policy permits outbound contact.",
+        "description": "Sends Gmail replies, new messages, or existing drafts when SDK-user policy permits outbound contact.",
         "audiences": [
-          "customer-facing"
+          "customer-facing",
+          "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
+          {
+            "kind": "emailDraft",
+            "label": "Email Draft"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use Gmail threads",
-        "description": "Associates messages and drafts with Gmail thread IDs selected by SDK configuration.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "gmailThread",
-            "label": "Gmail Thread"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Read Gmail attachment content",
-        "description": "Reads Gmail message payload parts and attachment bodies for SDK-user-governed attachment handling.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "gmailAttachment",
-            "label": "Gmail Attachment"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Modify Gmail labels",
-        "description": "Adds or removes Gmail labels, such as marking a message read, when SDK-user policy permits mutation.",
+        "label": "Archive Gmail threads",
+        "description": "Removes active inbox labels from Gmail threads when SDK-user policy permits mutation.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "emailThread",
+            "label": "Email Thread"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": false,
+        "exposesSensitiveData": true,
         "changesWorkflow": true,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.",
-        "The package keeps typed helpers for selected Gmail support workflows: message list/get, draft creation, message send, label modify, profile readiness, watch/history sync foundations, attachment fetch, and label listing.",
-        "Gmail OAuth permissions are operation-specific alternatives, not one required bundle; SDK users may choose narrower scopes such as gmail.metadata where the selected Gmail method supports it.",
-        "Receive coverage is Gmail API read/watch/history foundation only; Google Cloud Pub/Sub push notification parsing, Pub/Sub authentication, and webhook hosting are SDK-user integration responsibilities."
+        "Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.",
+        "Implementation uses the official service-specific @googleapis/gmail SDK. Broader Gmail methods remain accessible through GmailEmailClient.rawClient instead of generated Cognidesk-owned full API functions.",
+        "Operation handlers are bound through @cognidesk/integration-kit so manifest operations and executable handlers must stay in exact parity.",
+        "Receive coverage is Gmail watch/history foundation plus Google Cloud Pub/Sub push notification parsing; Pub/Sub topic/subscription hosting, authentication, retry, and history synchronization policy are SDK-user responsibilities."
       ],
       "evidence": [
         {
-          "label": "Gmail API Discovery document",
-          "url": "https://gmail.googleapis.com/$discovery/rest?version=v1"
+          "label": "@googleapis/gmail package",
+          "url": "https://www.npmjs.com/package/@googleapis/gmail"
         },
         {
-          "label": "Gmail messages list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list"
+          "label": "Gmail API Node.js quickstart",
+          "url": "https://developers.google.com/workspace/gmail/api/quickstart/nodejs"
         },
         {
-          "label": "Gmail users getProfile",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile"
+          "label": "Gmail users.threads.get",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get"
         },
         {
-          "label": "Gmail drafts create",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create"
-        },
-        {
-          "label": "Gmail messages send",
+          "label": "Gmail users.messages.send",
           "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send"
         },
         {
-          "label": "Gmail messages modify",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify"
+          "label": "Gmail users.drafts.create",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create"
         },
         {
-          "label": "Gmail watch",
+          "label": "Gmail users.threads.modify",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/modify"
+        },
+        {
+          "label": "Gmail users.watch",
           "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch"
-        },
-        {
-          "label": "Gmail history list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list"
         },
         {
           "label": "Gmail push notifications",
           "url": "https://developers.google.com/workspace/gmail/api/guides/push"
-        },
-        {
-          "label": "Gmail attachment get",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments/get"
-        },
-        {
-          "label": "Gmail labels list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/list"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "email.receive",
           "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
+          "email.reply.send",
           "email.send",
           "email.draft.create",
-          "email.draft.update",
           "email.draft.send",
-          "email.thread.search",
           "email.archive",
+          "mailbox.watch"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "email.draft.update",
+          "email.thread.search",
           "email.label.apply"
         ],
         "missingOptionalOperations": [
@@ -5258,21 +5248,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
-          "email.move",
-          "mailbox.watch"
+          "email.move"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "gmail.history.list",
+          "gmail.attachment.get",
+          "gmail.labels.list"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/gmail",
-      "providerModule": "./email/gmail/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@googleapis/gmail",
+      "runtimePackage": "@cognidesk/integration-email-gmail",
+      "providerModule": "integrations/email/gmail/src/manifest.js",
       "manifestExport": "gmailEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/gmail/manifest.ts",
+      "manifestSource": "integrations/email/gmail/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://gmail.googleapis.com/$discovery/rest?version=v1"
+      "documentationPath": "https://www.npmjs.com/package/@googleapis/gmail"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -5285,7 +5278,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "google-oauth-access-token",
           "label": "Google OAuth access token",
-          "description": "Server-side OAuth access token for the Gmail API.",
+          "description": "Server-side OAuth access token or injected official Gmail SDK auth client.",
           "scopes": [
             "https://www.googleapis.com/auth/gmail.readonly",
             "https://www.googleapis.com/auth/gmail.compose",
@@ -5305,9 +5298,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "OAuth tokens stay server-side and are represented in Studio only as credential readiness."
     ],
     "limitations": [
-      "Available operations depend on the OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.",
+      "Available operations depend on OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.",
       "Gmail watch notifications require an SDK-user-managed Google Cloud Pub/Sub topic, subscription, webhook/worker, and history synchronization strategy.",
-      "Draft approval, auto-send, retention, redaction, and outbound-contact policy are SDK-user configuration."
+      "Draft approval, auto-send, retention, redaction, and outbound-contact policy are SDK-user configuration.",
+      "This package does not claim full Gmail API coverage; use rawClient for advanced official SDK methods."
     ],
     "maintainers": [
       {
@@ -5316,28 +5310,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullGmailRestApiMethods": "generated-per-operation-functions",
-        "gmailMessages": "typed-list-get-send-modify-and-generated-full-surface",
-        "gmailDrafts": "typed-create-send-and-generated-full-surface",
-        "gmailThreads": "typed-reference-read-and-generated-full-surface",
-        "gmailAttachments": "typed-read-and-generated-full-surface",
-        "gmailLabels": "typed-list-modify-on-message-and-generated-full-surface",
-        "gmailSettingsFiltersDelegatesSendAsSmime": "generated-full-surface",
-        "gmailWatchHistory": "typed-watch-history-foundation-and-generated-full-surface",
-        "pubSubPushDelivery": "sdk-owned-not-covered"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@googleapis/gmail",
+        "sdkVersionRange": "^17.0.0",
+        "rawClientEscapeHatch": "GmailEmailClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
       },
-      "fullProviderApiVerification": {
-        "provider": "gmail",
-        "apiVersion": "gmail-20260615-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 79,
-        "implementedOperationCount": 79,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 79
+      "channelCoverage": {
+        "gmailThreads": "typed-read-and-archive",
+        "gmailMessages": "typed-send-and-reply",
+        "gmailDrafts": "typed-create-and-send",
+        "gmailAttachments": "typed-read-body",
+        "gmailLabels": "typed-list",
+        "gmailWatchHistory": "typed-watch-history-foundation",
+        "pubSubPushDelivery": "typed-parse-only-sdk-owned-hosting",
+        "broaderGmailApi": "provider-supported-raw-client"
       },
       "scopeAlternatives": {
         "profile": [
@@ -5359,27 +5348,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "https://www.googleapis.com/auth/gmail.compose",
           "https://www.googleapis.com/auth/gmail.send"
         ],
-        "metadataOnlyCaveat": "Gmail metadata-only scopes support profile/watch/read metadata surfaces, but SDK users must avoid query-dependent message listing where the Gmail API disallows q with gmail.metadata."
+        "metadataOnlyCaveat": "Gmail metadata-only scopes support profile/watch/read metadata surfaces, but SDK users must avoid query-dependent listing where the Gmail API disallows q with gmail.metadata."
       },
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "email.receive",
           "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
+          "email.reply.send",
           "email.send",
           "email.draft.create",
-          "email.draft.update",
           "email.draft.send",
-          "email.thread.search",
           "email.archive",
+          "mailbox.watch"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "email.draft.update",
+          "email.thread.search",
           "email.label.apply"
         ],
         "missingOptionalOperations": [
@@ -5389,10 +5379,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
-          "email.move",
-          "mailbox.watch"
+          "email.move"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "gmail.history.list",
+          "gmail.attachment.get",
+          "gmail.labels.list"
+        ]
       }
     }
   },
@@ -5951,11 +5944,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.outlook",
     "category": "email",
     "provider": "outlook",
-    "importPath": "@cognidesk/integrations/email/outlook",
-    "modulePath": "./email/outlook/index.js",
-    "manifestExport": "outlookEmailProviderManifest",
+    "importPath": "@cognidesk/integration-email-outlook/manifest",
+    "modulePath": "integrations/email/outlook/src/manifest.js",
+    "manifestExport": "outlookEmailManifestInput",
     "name": "Microsoft Outlook",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-outlook",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -5969,7 +5962,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Microsoft Outlook",
-      "summary": "Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Outlook mailbox slice used by this package: /me and /users/{user-id}, messages, mailFolders, message attachments, sendMail, subscriptions, and Outlook category paths.",
+      "summary": "Coverage includes SDK-backed Microsoft Graph Outlook mailbox support workflows: messages, mailFolders, attachments, sendMail, subscriptions, mailbox user readiness, and change notifications.",
       "tags": [
         "email",
         "outlook",
@@ -5980,8 +5973,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Read Outlook messages",
-        "description": "Lists and reads Microsoft Graph message resources from the configured Outlook mailbox.",
+        "label": "Read Outlook messages and notifications",
+        "description": "Reads Microsoft Graph message resources and validates Outlook change notifications.",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -5995,6 +5988,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "outlookMessage",
             "label": "Outlook Message"
+          },
+          {
+            "kind": "outlookChangeNotification",
+            "label": "Outlook Change Notification"
           }
         ],
         "requiresCredential": true,
@@ -6045,9 +6042,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "thread",
-        "label": "Use Outlook conversations",
-        "description": "Associates messages with Microsoft Graph conversation IDs and internet message headers.",
+        "capability": "read-provider-object",
+        "label": "Read Outlook mailbox objects",
+        "description": "Reads messages, attachments, mailbox users, and raw Graph resources needed by support workflows.",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -6055,29 +6052,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "outlookConversation",
-            "label": "Outlook Conversation"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Read Outlook attachment content",
-        "description": "Reads Microsoft Graph attachment metadata and raw attachment contents for SDK-user-governed attachment handling.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
+            "kind": "outlookMessage",
+            "label": "Outlook Message"
+          },
           {
             "kind": "outlookAttachment",
             "label": "Outlook Attachment"
+          },
+          {
+            "kind": "outlookMailboxUser",
+            "label": "Outlook Mailbox User"
           }
         ],
         "requiresCredential": true,
@@ -6089,7 +6073,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "update-provider-object",
         "label": "Update Outlook messages",
-        "description": "Updates Microsoft Graph message fields such as categories, importance, read state, or draft content when SDK-user policy permits mutation.",
+        "description": "Updates Microsoft Graph message fields such as categories, importance, read state, or draft content.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -6105,42 +6089,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": true,
         "extension": false
-      },
-      {
-        "capability": "outlook.webhook-client-state",
-        "label": "Validate Outlook webhook clientState",
-        "description": "Validates Microsoft Graph change notification clientState values with the SDK user's configured secret.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "outlookChangeNotification",
-            "label": "Outlook Change Notification"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
       }
     ],
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Outlook mailbox slice used by this package: /me and /users/{user-id}, messages, mailFolders, message attachments, sendMail, subscriptions, and Outlook category paths.",
-        "Typed convenience helpers remain available for selected Microsoft Graph Outlook mail workflows: message list/get, draft creation, sendMail, message update, folder delta sync, attachment list/get/raw-value reads, mailbox-user readiness, webhook clientState validation, and subscription creation.",
-        "This is not full Microsoft Graph coverage; the complete Graph v1.0 OpenAPI currently has tens of thousands of operations across many Microsoft 365 services. Calendar, contacts, Teams, files/Drive, identity, admin, security, and broader Graph resources remain outside this Outlook adapter unless represented in the mailbox slice."
+        "Coverage includes SDK-backed Microsoft Graph Outlook mailbox support workflows: messages, mailFolders, attachments, sendMail, subscriptions, mailbox user readiness, and change notifications.",
+        "The package uses @microsoft/microsoft-graph-client for Graph calls and keeps Cognidesk-normalized helper methods and operation handlers.",
+        "This is not full Microsoft Graph coverage. Calendar, contacts, files/Drive, identity, admin, security, and broader Graph resources remain outside this Outlook adapter."
       ],
       "evidence": [
         {
-          "label": "Microsoft Graph OpenAPI registry",
-          "url": "https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml"
-        },
-        {
-          "label": "Microsoft Graph v1.0 OpenAPI",
-          "url": "https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml"
+          "label": "Microsoft Graph JavaScript client",
+          "url": "https://www.npmjs.com/package/@microsoft/microsoft-graph-client"
         },
         {
           "label": "Microsoft Graph create message",
@@ -6151,20 +6112,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0"
         },
         {
-          "label": "Microsoft Graph update message",
-          "url": "https://learn.microsoft.com/en-us/graph/api/message-update?view=graph-rest-1.0"
-        },
-        {
           "label": "Microsoft Graph message delta",
           "url": "https://learn.microsoft.com/en-us/graph/api/message-delta?view=graph-rest-1.0"
         },
         {
           "label": "Microsoft Graph list attachments",
           "url": "https://learn.microsoft.com/en-us/graph/api/message-list-attachments?view=graph-rest-1.0"
-        },
-        {
-          "label": "Microsoft Graph get attachment",
-          "url": "https://learn.microsoft.com/en-us/graph/api/attachment-get?view=graph-rest-1.0"
         },
         {
           "label": "Microsoft Graph create subscription",
@@ -6178,49 +6131,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "email",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "email.receive",
-          "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
-          "email.send",
-          "email.draft.create",
-          "email.draft.update",
-          "email.draft.send",
-          "email.thread.search",
-          "email.archive",
-          "email.label.apply"
-        ],
-        "missingOptionalOperations": [
-          "email.forward",
-          "email.draft.delete",
-          "email.attachments.read",
-          "email.deliveryStatus.read",
-          "email.markRead",
-          "email.markUnread",
-          "email.move",
-          "mailbox.watch"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/outlook",
-      "providerModule": "./email/outlook/index.js",
-      "manifestExport": "outlookEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/outlook/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@microsoft/microsoft-graph-client",
+      "runtimePackage": "@cognidesk/integration-email-outlook",
+      "providerModule": "integrations/email/outlook/src/manifest.js",
+      "manifestExport": "outlookEmailManifestInput",
+      "manifestSource": "integrations/email/outlook/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml"
+      "documentationPath": "https://www.npmjs.com/package/@microsoft/microsoft-graph-client"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -6236,7 +6158,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "microsoft-graph-oauth-access-token",
           "label": "Microsoft Graph OAuth access token",
-          "description": "Server-side OAuth access token for Microsoft Graph mail APIs. Required permissions are operation-specific; sendMail can use Mail.Send while delta/subscription reads can use read permissions.",
+          "description": "Server-side OAuth access token for Microsoft Graph mail APIs. Required permissions are operation-specific.",
           "scopes": [
             "Mail.Read",
             "Mail.ReadWrite",
@@ -6265,14 +6187,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "privacyNotes": [
-      "Outlook messages can contain customer content, attachments, addresses, recipients, categories, internet headers, calendar-style metadata, and conversation history.",
+      "Outlook messages can contain customer content, attachments, addresses, recipients, categories, internet headers, and conversation history.",
       "Microsoft Graph OAuth access tokens and webhook clientState secrets stay server-side and are represented in Studio only as credential readiness.",
       "SDK users own outbound approval, auto-send controls, contact consent, tenant/admin policy review, retention, redaction, attachment retrieval, and deletion behavior."
     ],
     "limitations": [
       "Available operations depend on Microsoft Graph permissions, OAuth grant type, tenant admin consent, conditional access, mailbox licensing, Exchange Online policy, and delegated or application user selection.",
-      "This package provides transport and webhook foundations; it does not choose default automation, retention, consent, promotional messaging, tenant-wide access, retry, or rate-limit policies.",
-      "Webhook validation is based on Microsoft Graph clientState matching. The generated mailbox slice exposes subscription renewal/delete/reauthorize operations, while encrypted resource data decryption, expiration monitoring policy, retry, and reauthorization timing are SDK-user integration responsibilities."
+      "This package provides transport and webhook foundations; it does not choose default automation, retention, consent, retry, or rate-limit policies.",
+      "Webhook validation is based on Microsoft Graph clientState matching. Subscription renewal/delete/reauthorize policy remains SDK-user-owned."
     ],
     "maintainers": [
       {
@@ -6281,93 +6203,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@microsoft/microsoft-graph-client",
+        "rawClientEscapeHatch": "rawClient",
+        "manifestOnlyExport": "@cognidesk/integration-email-outlook/manifest"
+      },
       "channelCoverage": {
-        "messages": "typed-list-get-delta-update",
-        "drafts": "typed-create",
-        "sendMail": "typed-send",
-        "attachments": "typed-list-get-download",
-        "subscriptions": "typed-create",
+        "messages": "sdk-owned-list-get-delta-update",
+        "drafts": "sdk-owned-create",
+        "sendMail": "sdk-owned-send",
+        "attachments": "sdk-owned-list-get-download",
+        "subscriptions": "sdk-owned-create",
         "webhookClientState": "typed-validate",
-        "mailboxUser": "typed-read",
-        "graphMailboxSlice": "generated-per-operation-functions",
-        "subscriptionRenewDelete": "generated-full-slice",
-        "mailFolderRulesCategoriesUploadSessions": "generated-full-slice"
-      },
-      "generatedProviderApiVerification": {
-        "provider": "microsoft-graph-outlook-mailbox-slice",
-        "apiVersion": "v1.0",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/outlook-graph-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/outlook-graph-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/outlook-graph-api-2026-06-17.functions.json",
-        "documentedPathCount": 193,
-        "documentedOperationCount": 289,
-        "implementedOperationCount": 289,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 289,
-        "slice": "Microsoft Graph v1.0 Outlook mailbox paths only; not full Microsoft Graph."
-      },
-      "permissionAlternatives": {
-        "sendMail": {
-          "delegated": [
-            "Mail.Send"
-          ],
-          "application": [
-            "Mail.Send"
-          ]
-        },
-        "messageDelta": {
-          "delegatedLeastPrivileged": [
-            "Mail.ReadBasic"
-          ],
-          "delegatedHigherPrivileged": [
-            "Mail.Read",
-            "Mail.ReadWrite"
-          ],
-          "applicationLeastPrivileged": [
-            "Mail.ReadBasic.All"
-          ],
-          "applicationHigherPrivileged": [
-            "Mail.Read",
-            "Mail.ReadWrite"
-          ]
-        },
-        "subscriptionCreate": {
-          "rule": "Microsoft Graph requires read permission for the subscribed resource; typed helpers create subscriptions while the generated mailbox slice also exposes subscription update/delete/reauthorize operations."
-        }
-      },
-      "categoryProfileId": "email",
-      "integrationCategoryProfileId": "email",
-      "categoryProfile": {
-        "id": "email",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "email.receive",
-          "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
-          "email.send",
-          "email.draft.create",
-          "email.draft.update",
-          "email.draft.send",
-          "email.thread.search",
-          "email.archive",
-          "email.label.apply"
-        ],
-        "missingOptionalOperations": [
-          "email.forward",
-          "email.draft.delete",
-          "email.attachments.read",
-          "email.deliveryStatus.read",
-          "email.markRead",
-          "email.markUnread",
-          "email.move",
-          "mailbox.watch"
-        ],
-        "extensionOperations": []
+        "mailboxUser": "sdk-owned-read"
       }
     }
   },
@@ -20361,11 +20210,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "workplace.slack",
     "category": "workplace",
     "provider": "slack",
-    "importPath": "@cognidesk/integrations/workplace/slack",
-    "modulePath": "./workplace/slack/index.js",
-    "manifestExport": "slackWorkplaceProviderManifest",
+    "importPath": "@cognidesk/integration-workplace-slack/manifest",
+    "modulePath": "integrations/workplace/slack/src/manifest.js",
+    "manifestExport": "slackWorkplaceManifestInput",
     "name": "Slack",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-workplace-slack",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -20378,12 +20227,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Slack",
-      "summary": "Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.",
+      "summary": "Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.",
       "tags": [
         "workplace",
         "slack",
         "official",
-        "provider-api-subset"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -20401,8 +20250,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Slack Event"
           },
           {
-            "kind": "slackInteraction",
-            "label": "Slack Interaction"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20414,15 +20263,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Post Slack messages",
-        "description": "Posts customer-visible or channel-visible support messages through Slack chat.postMessage.",
+        "description": "Posts channel-visible support messages through @slack/web-api chat.postMessage.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20433,15 +20282,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "notify",
-        "label": "Post agent-assist messages",
+        "label": "Post Slack agent-assist notifications",
         "description": "Posts Slack ephemeral messages for internal agent-assist workflows when Slack provides a target user.",
         "audiences": [
           "internal-support"
         ],
         "providerObjects": [
           {
-            "kind": "slackEphemeralMessage",
-            "label": "Slack Ephemeral Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20453,19 +20302,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "thread",
         "label": "Use Slack threads",
-        "description": "Associates messages with Slack thread timestamps and reads channel history for thread-aware support.",
+        "description": "Associates messages with Slack thread timestamps and reads thread replies.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           },
           {
-            "kind": "slackThread",
-            "label": "Slack Thread"
+            "kind": "workplaceThread",
+            "label": "Workplace Thread"
           }
         ],
         "requiresCredential": true,
@@ -20484,8 +20333,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "slackFile",
-            "label": "Slack File"
+            "kind": "workplaceFile",
+            "label": "Workplace File"
           }
         ],
         "requiresCredential": true,
@@ -20497,15 +20346,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Slack conversation history",
-        "description": "Reads Slack conversations.history for SDK-user-selected channels and history windows.",
+        "description": "Reads Slack conversation history or thread replies for SDK-user-selected channels and windows.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackConversationHistory",
-            "label": "Slack Conversation History"
+            "kind": "workplaceThread",
+            "label": "Workplace Thread"
           }
         ],
         "requiresCredential": true,
@@ -20524,8 +20373,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20537,7 +20386,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "slack.request-signature",
         "label": "Validate Slack request signatures",
-        "description": "Validates Slack X-Slack-Signature and X-Slack-Request-Timestamp values for Events API and interactivity.",
+        "description": "Validates Slack X-Slack-Signature and X-Slack-Request-Timestamp values.",
         "audiences": [
           "internal-support"
         ],
@@ -20555,21 +20404,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.",
-        "Typed convenience helpers remain available for selected Slack workplace support workflows: chat.postMessage, chat.postEphemeral, chat.update, conversations.history, conversations.replies, the current external file upload sequence, auth.test readiness, Events API/interactivity parsing, and signed request validation.",
-        "Receive coverage is HTTP Events API/interactivity parsing only; this package does not configure Slack app subscriptions, apps.connections.open, xapp tokens, WebSocket reconnects, Socket Mode ingestion, or Socket Mode payload acknowledgements.",
-        "This is not full current Slack platform coverage; Slack's official specs repository was archived on 2024-03-27, and Events subscriptions, Socket Mode protocol, SCIM, Audit Logs, Legal Holds, Status API, workflow runtime behavior, and current docs-only methods remain separate surfaces."
+        "Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.",
+        "Typed operations cover Slack Events API/interactivity request parsing, signed request validation, chat.postMessage, chat.postEphemeral, chat.update, conversations.replies, the external file upload sequence, and auth.test readiness.",
+        "This package intentionally does not clone Slack's archived generated Web API spec and does not claim full Slack platform coverage.",
+        "Slack Socket Mode, OAuth installation flows, incoming webhook delivery, SCIM, Audit Logs, Legal Holds, workflow runtime behavior, and broad admin APIs are separate extension surfaces or future packages."
       ],
       "evidence": [
         {
-          "label": "Slack archived official Web API Swagger",
-          "url": "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json"
-        },
-        {
-          "label": "Slack official API specs repository",
-          "url": "https://github.com/slackapi/slack-api-specs"
+          "label": "Slack Web API package",
+          "url": "https://www.npmjs.com/package/@slack/web-api"
         },
         {
           "label": "Slack Web API methods",
@@ -20582,10 +20427,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Slack chat.update",
           "url": "https://docs.slack.dev/reference/methods/chat.update/"
-        },
-        {
-          "label": "Slack conversations.history",
-          "url": "https://docs.slack.dev/reference/methods/conversations.history/"
         },
         {
           "label": "Slack conversations.replies",
@@ -20610,53 +20451,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Slack Web API rate limits",
           "url": "https://docs.slack.dev/apis/web-api/rate-limits"
-        },
-        {
-          "label": "Slack conversations.history/replies rate-limit changes",
-          "url": "https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
-      }
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/workplace/slack",
-      "providerModule": "./workplace/slack/index.js",
-      "manifestExport": "slackWorkplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/workplace/slack/manifest.ts",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-workplace-slack",
+      "runtimePackage": "@cognidesk/integration-workplace-slack",
+      "providerModule": "integrations/workplace/slack/src/manifest.js",
+      "manifestExport": "slackWorkplaceManifestInput",
+      "manifestSource": "integrations/workplace/slack/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json"
+      "documentationPath": "https://www.npmjs.com/package/@slack/web-api"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -20670,7 +20481,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "slack-bot-token",
           "label": "Slack bot token",
-          "description": "Server-side bot token used for Slack Web API calls such as chat.postMessage and auth.test.",
+          "description": "Server-side bot token used by @slack/web-api for Web API calls.",
           "scopes": [
             "chat:write",
             "chat:write.public",
@@ -20695,12 +20506,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "privacyNotes": [
-      "Slack messages, channel identifiers, user identifiers, event payloads, interaction payloads, and workspace metadata can contain internal support context and customer data.",
+      "Slack messages, channel identifiers, user identifiers, event payloads, interaction payloads, files, and workspace metadata can contain internal support context and customer data.",
       "Slack bot tokens and signing secrets stay server-side and are represented in Studio only as credential readiness."
     ],
     "limitations": [
       "Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.",
-      "Slack conversations.history and conversations.replies rate limits vary by Marketplace approval, commercial distribution, and install date; SDK users own pagination, Retry-After handling, retry, and backoff policy. Slack recommends designing message posting around roughly one request per second per channel.",
+      "Slack rate limits vary by method, workspace, Marketplace approval, commercial distribution, and install date; SDK users own pagination, Retry-After handling, retry, and backoff policy.",
       "Customer visibility, agent-assist routing, approval, retention, redaction, and escalation behavior remain SDK-user configuration."
     ],
     "maintainers": [
@@ -20711,56 +20522,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "channelCoverage": {
-        "archivedWebApi": "generated-per-operation-functions",
-        "chatMessages": "typed-post-update",
-        "ephemeralMessages": "typed-post",
-        "conversationsHistoryReplies": "typed-read",
-        "externalFileUpload": "typed-upload",
-        "authReadiness": "typed-read",
+        "chatMessages": "sdk-owned-post-update",
+        "ephemeralMessages": "sdk-owned-post",
+        "threadReplies": "sdk-owned-read",
+        "externalFileUpload": "sdk-owned-upload",
+        "authReadiness": "sdk-owned-read",
         "eventsInteractivity": "typed-parse-verify",
-        "socketMode": "provider-supported-not-typed",
-        "viewsWorkflowsAdminAudit": "provider-supported-not-typed"
+        "socketMode": "not-covered",
+        "oauth": "not-covered",
+        "incomingWebhooks": "not-covered"
       },
-      "generatedProviderSliceVerification": {
-        "provider": "slack-web-api-archived-swagger",
-        "apiVersion": "1.7.0",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.functions.json",
-        "documentedPathCount": 174,
-        "documentedOperationCount": 174,
-        "implementedOperationCount": 174,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 174
-      },
-      "categoryProfileId": "workplace",
-      "integrationCategoryProfileId": "workplace",
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
+      "providerClient": {
+        "package": "@slack/web-api",
+        "versionRange": "^7.17.0",
+        "importPolicy": "runtime-entrypoint-only"
       }
     }
   },
@@ -20768,11 +20543,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "workplace.teams",
     "category": "workplace",
     "provider": "teams",
-    "importPath": "@cognidesk/integrations/workplace/teams",
-    "modulePath": "./workplace/teams/index.js",
-    "manifestExport": "teamsWorkplaceProviderManifest",
+    "importPath": "@cognidesk/integration-workplace-teams/manifest",
+    "modulePath": "integrations/workplace/teams/src/manifest.js",
+    "manifestExport": "teamsWorkplaceManifestInput",
     "name": "Microsoft Teams",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-workplace-teams",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -20785,7 +20560,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Microsoft Teams",
-      "summary": "Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Teams/workplace collaboration slice used by this package: Teams app catalog, chats, communications/calls, group team, joinedTeams, onlineMeetings, presence, teams/channels, teamwork, user teamwork, and subscriptions.",
+      "summary": "Coverage includes SDK-backed Microsoft Graph Teams support workflows: channel and chat messages, channel replies, message updates, subscriptions, current-user readiness, and change notifications.",
       "tags": [
         "workplace",
         "teams",
@@ -20893,6 +20668,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "teamsChatMessage",
             "label": "Teams Chat Message"
+          },
+          {
+            "kind": "teamsUser",
+            "label": "Microsoft Graph User"
           }
         ],
         "requiresCredential": true,
@@ -20939,43 +20718,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": true,
         "extension": false
-      },
-      {
-        "capability": "teams.change-notification-client-state",
-        "label": "Validate Graph clientState",
-        "description": "Validates Microsoft Graph change notification clientState secrets and notification URL validation tokens.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "teamsChangeNotification",
-            "label": "Teams Change Notification"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
       }
     ],
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Teams/workplace collaboration slice used by this package: Teams app catalog, chats, communications/calls, group team, joinedTeams, onlineMeetings, presence, teams/channels, teamwork, user teamwork, and subscriptions.",
-        "Typed convenience helpers remain available for selected Microsoft Graph Teams support workflows: delegated channel/chat message send, delegated channel replies, channel/chat message list/get/update helpers, delegated current user readiness, change notification clientState validation, and subscription creation.",
-        "Normal Teams channel/chat sends require delegated Microsoft Graph permissions; application permissions are reserved by Microsoft for migration/import flows that this package does not implement.",
-        "This is not full Microsoft Graph coverage; the complete Graph v1.0 OpenAPI covers many Microsoft 365 services. Mail, files/Drive, calendar, identity, admin, security, and broader Graph resources remain outside this Teams/workplace adapter unless represented in this slice."
+        "Coverage includes SDK-backed Microsoft Graph Teams support workflows: channel and chat messages, channel replies, message updates, subscriptions, current-user readiness, and change notifications.",
+        "The package uses @microsoft/microsoft-graph-client for Graph calls and keeps Cognidesk-normalized helper methods and operation handlers.",
+        "This is not full Microsoft Graph coverage. Files/Drive, calendar, identity/admin, security, calls, meetings, app catalog breadth, and broader Graph resources remain outside this Teams adapter."
       ],
       "evidence": [
         {
-          "label": "Microsoft Graph OpenAPI registry",
-          "url": "https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml"
-        },
-        {
-          "label": "Microsoft Graph v1.0 OpenAPI",
-          "url": "https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml"
+          "label": "Microsoft Graph JavaScript client",
+          "url": "https://www.npmjs.com/package/@microsoft/microsoft-graph-client"
         },
         {
           "label": "Microsoft Graph send channel message",
@@ -21012,57 +20767,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Microsoft Graph webhook subscription lifecycle",
           "url": "https://learn.microsoft.com/en-us/graph/change-notifications-delivery-webhooks"
-        },
-        {
-          "label": "Microsoft Graph cloud communications calls",
-          "url": "https://learn.microsoft.com/en-us/graph/api/resources/call?view=graph-rest-1.0"
-        },
-        {
-          "label": "Microsoft Graph online meetings",
-          "url": "https://learn.microsoft.com/en-us/graph/api/resources/onlinemeeting?view=graph-rest-1.0"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/workplace/teams",
-      "providerModule": "./workplace/teams/index.js",
-      "manifestExport": "teamsWorkplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/workplace/teams/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@microsoft/microsoft-graph-client",
+      "runtimePackage": "@cognidesk/integration-workplace-teams",
+      "providerModule": "integrations/workplace/teams/src/manifest.js",
+      "manifestExport": "teamsWorkplaceManifestInput",
+      "manifestSource": "integrations/workplace/teams/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml"
+      "documentationPath": "https://www.npmjs.com/package/@microsoft/microsoft-graph-client"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -21130,8 +20851,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Normal channel/chat message sends reject application permission mode; Microsoft documents application send permissions for migration/import scenarios, which this package does not implement.",
       "Microsoft Graph channel and chat message APIs are intended for messages people will read; this package does not use Teams as an application log or choose automation volume policy.",
       "This package provides transport, parsing, and readiness helpers only; customer/internal visibility, agent assist, approval, retention, redaction, escalation, and human handoff are SDK-user policy.",
-      "Some read and update operations have Graph permission, tenant, national cloud, DLP, federation, and licensing constraints and may be unavailable for a given Teams resource.",
-      "The generated Teams/workplace slice exposes Graph subscription renewal/delete/reauthorize operations, while expiration monitoring, encrypted resource data decryption, retry, and reauthorization timing remain SDK-user integration responsibilities."
+      "Subscription renewal, deletion, reauthorization timing, encrypted resource data decryption, and retry policy remain SDK-user integration responsibilities."
     ],
     "maintainers": [
       {
@@ -21140,59 +20860,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@microsoft/microsoft-graph-client",
+        "rawClientEscapeHatch": "rawClient",
+        "manifestOnlyExport": "@cognidesk/integration-workplace-teams/manifest"
+      },
       "channelCoverage": {
-        "channelMessages": "typed-send-list-get-update",
-        "channelReplies": "typed-send-list",
-        "chatMessages": "typed-send-list-get-update",
-        "graphSubscriptions": "typed-create",
+        "channelMessages": "sdk-owned-send-list-get-update",
+        "channelReplies": "sdk-owned-send-list",
+        "chatMessages": "sdk-owned-send-list-get-update",
+        "graphSubscriptions": "sdk-owned-create",
         "changeNotifications": "typed-validate-parse",
-        "currentUser": "typed-read",
-        "graphTeamsWorkplaceSlice": "generated-per-operation-functions",
-        "subscriptionRenewDelete": "generated-full-slice",
-        "teamsChatsChannelsAppsCallsMeetingsPresence": "generated-full-slice",
+        "currentUser": "sdk-owned-read",
         "applicationMigrationSend": "provider-supported-not-typed"
-      },
-      "generatedProviderApiVerification": {
-        "provider": "microsoft-graph-teams-workplace-slice",
-        "apiVersion": "v1.0",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/teams-graph-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/teams-graph-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/teams-graph-api-2026-06-17.functions.json",
-        "documentedPathCount": 1415,
-        "documentedOperationCount": 2293,
-        "implementedOperationCount": 2293,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 2293,
-        "slice": "Microsoft Graph v1.0 Teams/workplace collaboration paths only; not full Microsoft Graph."
-      },
-      "categoryProfileId": "workplace",
-      "integrationCategoryProfileId": "workplace",
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
       }
     }
   }

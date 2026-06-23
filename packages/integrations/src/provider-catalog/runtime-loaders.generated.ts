@@ -18,8 +18,6 @@ export const integrationProviderRuntimeLoaders = [
   { id: "contactCenter.zoom", load: () => import("../contact-center/zoom/index.js") },
   { id: "ecommerce.shopify", load: () => import("../ecommerce/shopify/index.js") },
   { id: "ecommerce.stripe", load: () => import("../ecommerce/stripe/index.js") },
-  { id: "email.gmail", load: () => import("../email/gmail/index.js") },
-  { id: "email.outlook", load: () => import("../email/outlook/index.js") },
   { id: "form.cognidesk", load: () => import("../form/cognidesk/index.js") },
   { id: "helpcenter.cognidesk", load: () => import("../help-center/cognidesk/index.js") },
   { id: "marketplace.amazon", load: () => import("../marketplace/amazon/index.js") },
@@ -58,6 +56,4 @@ export const integrationProviderRuntimeLoaders = [
   { id: "voice.sip", load: () => import("../voice/sip/index.js") },
   { id: "voice.twilio", load: () => import("../voice/twilio/index.js") },
   { id: "voice.vonage", load: () => import("../voice/vonage/index.js") },
-  { id: "workplace.slack", load: () => import("../workplace/slack/index.js") },
-  { id: "workplace.teams", load: () => import("../workplace/teams/index.js") },
 ] as const satisfies readonly IntegrationProviderRuntimeLoaderRegistration[];

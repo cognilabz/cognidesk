@@ -39,6 +39,7 @@ const providerSdkPackages = new Set([
   "@microsoft/microsoft-graph-client",
   "@slack/web-api",
   "@vonage/server-sdk",
+  "discord.js",
   "googleapis",
   "mailgun.js",
   "openai",
