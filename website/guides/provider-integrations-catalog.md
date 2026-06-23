@@ -437,19 +437,19 @@ Evidence: [AWS official SESv2 API model](https://github.com/aws/api-models-aws/b
 | Runtime import | `@cognidesk/integration-email-gmail/runtime` |
 | Workspace | `integrations/email/gmail` |
 | Manifest ID | `email.gmail` |
-| Scope | `full-provider-api` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `generated-full-provider-api` |
-| Documentation | [https://gmail.googleapis.com/$discovery/rest?version=v1](https://gmail.googleapis.com/$discovery/rest?version=v1) |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@googleapis/gmail](https://www.npmjs.com/package/@googleapis/gmail) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object` |
+| Capabilities | `receive`, `read-provider-object`, `draft`, `send`, `update-provider-object` |
 | Provider setup | required `google-oauth-access-token` |
 
-Coverage: Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.
+Coverage: Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.
 
-Boundary: Available operations depend on the OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.
+Boundary: Available operations depend on OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.
 
-Evidence: [Gmail API Discovery document](https://gmail.googleapis.com/$discovery/rest?version=v1); [Gmail messages list](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list); [Gmail users getProfile](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile); [Gmail drafts create](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create); plus 7 more.
+Evidence: [@googleapis/gmail package](https://www.npmjs.com/package/@googleapis/gmail); [Gmail API Node.js quickstart](https://developers.google.com/workspace/gmail/api/quickstart/nodejs); [Gmail users.threads.get](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get); [Gmail users.messages.send](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send); plus 4 more.
 
 #### IMAP Mailbox
 
@@ -507,18 +507,18 @@ Evidence: [Mailgun OpenAPI specification](https://documentation.mailgun.com/_spe
 | Workspace | `integrations/email/outlook` |
 | Manifest ID | `email.outlook` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@microsoft/microsoft-graph-client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `draft`, `send`, `thread`, `attach`, `update-provider-object`, `outlook.webhook-client-state` |
+| Capabilities | `receive`, `draft`, `send`, `read-provider-object`, `update-provider-object` |
 | Provider setup | required `microsoft-graph-oauth-access-token`; optional `microsoft-graph-mailbox-user`, `microsoft-graph-webhook-client-state` |
 
-Coverage: Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Outlook mailbox slice used by this package: /me and /users/{user-id}, messages, mailFolders, message attachments, sendMail, subscriptions, and Outlook category paths.
+Coverage: Coverage includes SDK-backed Microsoft Graph Outlook mailbox support workflows: messages, mailFolders, attachments, sendMail, subscriptions, mailbox user readiness, and change notifications.
 
 Boundary: Available operations depend on Microsoft Graph permissions, OAuth grant type, tenant admin consent, conditional access, mailbox licensing, Exchange Online policy, and delegated or application user selection.
 
-Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml); [Microsoft Graph v1.0 OpenAPI](https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml); [Microsoft Graph create message](https://learn.microsoft.com/en-us/graph/api/user-post-messages?view=graph-rest-1.0); [Microsoft Graph sendMail](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0); plus 6 more.
+Evidence: [Microsoft Graph JavaScript client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client); [Microsoft Graph create message](https://learn.microsoft.com/en-us/graph/api/user-post-messages?view=graph-rest-1.0); [Microsoft Graph sendMail](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0); [Microsoft Graph message delta](https://learn.microsoft.com/en-us/graph/api/message-delta?view=graph-rest-1.0); plus 3 more.
 
 #### Postmark
 
@@ -1473,18 +1473,18 @@ Evidence: [Vonage Voice API v1 OpenAPI](https://developer.vonage.com/api/v1/deve
 | Workspace | `integrations/workplace/teams` |
 | Manifest ID | `workplace.teams` |
 | Scope | `provider-api-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml) |
+| Adapter coverage | `standard` |
+| Implementation | `official-sdk` |
+| Documentation | [https://www.npmjs.com/package/@microsoft/microsoft-graph-client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
-| Capabilities | `receive`, `send`, `notify`, `thread`, `read-provider-object`, `create-provider-object`, `update-provider-object`, `teams.change-notification-client-state` |
+| Capabilities | `receive`, `send`, `notify`, `thread`, `read-provider-object`, `create-provider-object`, `update-provider-object` |
 | Provider setup | required `microsoft-graph-oauth-access-token`, `microsoft-graph-tenant`, `microsoft-graph-app-registration`; optional `microsoft-graph-change-notification-client-state` |
 
-Coverage: Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Teams/workplace collaboration slice used by this package: Teams app catalog, chats, communications/calls, group team, joinedTeams, onlineMeetings, presence, teams/channels, teamwork, user teamwork, and subscriptions.
+Coverage: Coverage includes SDK-backed Microsoft Graph Teams support workflows: channel and chat messages, channel replies, message updates, subscriptions, current-user readiness, and change notifications.
 
 Boundary: Available operations depend on the SDK user's Microsoft Entra tenant, Teams licensing, Graph OAuth scopes, delegated versus application permission mode, resource-specific consent, tenant/admin consent, channel membership, and Teams policy.
 
-Evidence: [Microsoft Graph OpenAPI registry](https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml); [Microsoft Graph v1.0 OpenAPI](https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml); [Microsoft Graph send channel message](https://learn.microsoft.com/en-us/graph/api/channel-post-messages?view=graph-rest-1.0); [Microsoft Graph send chat message](https://learn.microsoft.com/en-us/graph/api/chat-post-messages?view=graph-rest-1.0); plus 9 more.
+Evidence: [Microsoft Graph JavaScript client](https://www.npmjs.com/package/@microsoft/microsoft-graph-client); [Microsoft Graph send channel message](https://learn.microsoft.com/en-us/graph/api/channel-post-messages?view=graph-rest-1.0); [Microsoft Graph send chat message](https://learn.microsoft.com/en-us/graph/api/chat-post-messages?view=graph-rest-1.0); [Microsoft Graph send channel reply](https://learn.microsoft.com/en-us/graph/api/chatmessage-post-replies?view=graph-rest-1.0); plus 6 more.
 
 #### Slack
 

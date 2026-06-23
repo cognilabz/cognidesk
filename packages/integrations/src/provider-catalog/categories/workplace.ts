@@ -5,8 +5,8 @@ export const workplaceProviderReferences = [
     "id": "workplace.teams",
     "category": "workplace",
     "provider": "teams",
-    "importPath": "@cognidesk/integrations/workplace/teams",
-    "modulePath": "./workplace/teams/index.js",
+    "importPath": "@cognidesk/integration-workplace-teams/manifest",
+    "modulePath": "./workplace/teams/manifest.js",
     "manifestExport": "teamsWorkplaceProviderManifest"
   }
 ] as const satisfies readonly IntegrationProviderReference[];

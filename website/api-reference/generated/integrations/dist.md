@@ -567,13 +567,6 @@ const integrationProviderReferences: readonly [{
   provider: "stripe";
 }, {
   category: "email";
-  id: "email.gmail";
-  importPath: "@cognidesk/integrations/email/gmail";
-  manifestExport: "gmailEmailProviderManifest";
-  modulePath: "./email/gmail/index.js";
-  provider: "gmail";
-}, {
-  category: "email";
   id: "email.imap";
   importPath: "@cognidesk/integrations/email/imap";
   manifestExport: "imapEmailProviderManifest";
@@ -589,9 +582,9 @@ const integrationProviderReferences: readonly [{
 }, {
   category: "email";
   id: "email.outlook";
-  importPath: "@cognidesk/integrations/email/outlook";
+  importPath: "@cognidesk/integration-email-outlook/manifest";
   manifestExport: "outlookEmailProviderManifest";
-  modulePath: "./email/outlook/index.js";
+  modulePath: "./email/outlook/manifest.js";
   provider: "outlook";
 }, {
   category: "email";
@@ -876,9 +869,9 @@ const integrationProviderReferences: readonly [{
 }, {
   category: "workplace";
   id: "workplace.teams";
-  importPath: "@cognidesk/integrations/workplace/teams";
+  importPath: "@cognidesk/integration-workplace-teams/manifest";
   manifestExport: "teamsWorkplaceProviderManifest";
-  modulePath: "./workplace/teams/index.js";
+  modulePath: "./workplace/teams/manifest.js";
   provider: "teams";
 }];
 ```
