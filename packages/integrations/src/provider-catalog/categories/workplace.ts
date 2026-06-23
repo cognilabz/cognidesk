@@ -2,14 +2,6 @@ import type { IntegrationProviderReference } from "../types.js";
 
 export const workplaceProviderReferences = [
   {
-    "id": "workplace.slack",
-    "category": "workplace",
-    "provider": "slack",
-    "importPath": "@cognidesk/integrations/workplace/slack",
-    "modulePath": "./workplace/slack/index.js",
-    "manifestExport": "slackWorkplaceProviderManifest"
-  },
-  {
     "id": "workplace.teams",
     "category": "workplace",
     "provider": "teams",

@@ -647,6 +647,7 @@ Evidence: [eBay Sell Fulfillment API](https://developer.ebay.com/develop/api/sel
 
 | Field | Value |
 |-------|-------|
+| Integration | Discord Integration |
 | Package | `@cognidesk/integration-messaging-discord` |
 | Manifest import | `@cognidesk/integration-messaging-discord/manifest` |
 | Runtime import | `@cognidesk/integration-messaging-discord/runtime` |
@@ -1494,16 +1495,16 @@ Evidence: [Microsoft Graph JavaScript client](https://www.npmjs.com/package/@mic
 | Runtime import | `@cognidesk/integration-workplace-slack/runtime` |
 | Workspace | `integrations/workplace/slack` |
 | Manifest ID | `workplace.slack` |
-| Scope | `provider-api-subset` |
+| Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `provider-api-subset` |
-| Documentation | [https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json) |
+| Implementation | `support-workflow-adapter` |
+| Documentation | [https://www.npmjs.com/package/@slack/web-api](https://www.npmjs.com/package/@slack/web-api) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `notify`, `thread`, `media`, `read-provider-object`, `update-provider-object`, `slack.request-signature` |
 | Provider setup | required `slack-bot-token`, `slack-signing-secret` |
 
-Coverage: Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.
+Coverage: Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.
 
 Boundary: Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.
 
-Evidence: [Slack archived official Web API Swagger](https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json); [Slack official API specs repository](https://github.com/slackapi/slack-api-specs); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); plus 9 more.
+Evidence: [Slack Web API package](https://www.npmjs.com/package/@slack/web-api); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); [Slack chat.update](https://docs.slack.dev/reference/methods/chat.update/); plus 6 more.

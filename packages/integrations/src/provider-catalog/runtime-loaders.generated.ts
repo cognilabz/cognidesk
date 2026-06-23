@@ -60,5 +60,4 @@ export const integrationProviderRuntimeLoaders = [
   { id: "voice.sip", load: () => import("../voice/sip/index.js") },
   { id: "voice.twilio", load: () => import("../voice/twilio/index.js") },
   { id: "voice.vonage", load: () => import("../voice/vonage/index.js") },
-  { id: "workplace.slack", load: () => import("../workplace/slack/index.js") },
 ] as const satisfies readonly IntegrationProviderRuntimeLoaderRegistration[];

@@ -462,13 +462,6 @@ const integrationProviderReferences: readonly [{
   provider: "cognidesk";
 }, {
   category: "community";
-  id: "messaging.discord";
-  importPath: "@cognidesk/integrations/messaging/discord";
-  manifestExport: "discordMessagingProviderManifest";
-  modulePath: "./messaging/discord/index.js";
-  provider: "discord";
-}, {
-  category: "community";
   id: "community.forum";
   importPath: "@cognidesk/integrations/community/forum";
   manifestExport: "forumCommunityProviderManifest";
@@ -873,13 +866,6 @@ const integrationProviderReferences: readonly [{
   manifestExport: "vonageVoiceProviderManifest";
   modulePath: "./voice/vonage/index.js";
   provider: "vonage";
-}, {
-  category: "workplace";
-  id: "workplace.slack";
-  importPath: "@cognidesk/integrations/workplace/slack";
-  manifestExport: "slackWorkplaceProviderManifest";
-  modulePath: "./workplace/slack/index.js";
-  provider: "slack";
 }, {
   category: "workplace";
   id: "workplace.teams";

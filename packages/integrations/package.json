@@ -249,15 +249,11 @@
     "./voice/vonage": {
       "types": "./dist/voice/vonage/index.d.ts",
       "import": "./dist/voice/vonage/index.js"
-    },
-    "./workplace/slack": {
-      "types": "./dist/workplace/slack/index.d.ts",
-      "import": "./dist/workplace/slack/index.js"
     }
   },
   "scripts": {
     "build:deps": "pnpm --filter @cognidesk/core --filter @cognidesk/integration-kit --filter @cognidesk/voice-websocket --filter @cognidesk/test-harness build",
-    "build": "pnpm run build:deps && pnpm run build:entries:voice && pnpm run build:entries:contact-center-a && pnpm run build:entries:contact-center-b && pnpm run build:entries:community && pnpm run build:entries:ecommerce-marketplace && pnpm run build:entries:form-help-center && pnpm run build:entries:messaging-sms-social && pnpm run build:entries:review && pnpm run build:entries:video && pnpm run build:entries:email && pnpm run build:entries:ticketing-a && pnpm run build:entries:ticketing-b && pnpm run build:entries:ticketing-c && pnpm run build:entries:workplace",
+    "build": "pnpm run build:deps && pnpm run build:entries:voice && pnpm run build:entries:contact-center-a && pnpm run build:entries:contact-center-b && pnpm run build:entries:community && pnpm run build:entries:ecommerce-marketplace && pnpm run build:entries:form-help-center && pnpm run build:entries:messaging-sms-social && pnpm run build:entries:review && pnpm run build:entries:video && pnpm run build:entries:email && pnpm run build:entries:ticketing-a && pnpm run build:entries:ticketing-b && pnpm run build:entries:ticketing-c",
     "build:entries:voice": "tsup src/index.ts src/category-profiles.ts src/provider-manifest.ts src/voice/aws-speech/index.ts src/voice/azure-speech/index.ts src/voice/deepgram/index.ts src/voice/elevenlabs/index.ts src/voice/google-speech/index.ts src/voice/openai/index.ts src/voice/sip/index.ts src/voice/twilio/index.ts src/voice/vonage/index.ts --format esm --dts --clean --external openai",
     "build:entries:contact-center-a": "tsup src/contact-center/8x8/index.ts src/contact-center/aircall/index.ts src/contact-center/amazon-connect/index.ts src/contact-center/five9/index.ts src/contact-center/genesys-cloud/index.ts src/contact-center/genesys-engage/index.ts --format esm --dts --outDir dist/contact-center --external openai",
     "build:entries:contact-center-b": "tsup src/contact-center/genesys-pureconnect/index.ts src/contact-center/nextiva/index.ts src/contact-center/nice-cxone/index.ts src/contact-center/ringcentral/index.ts src/contact-center/talkdesk/index.ts src/contact-center/zoom/index.ts --format esm --dts --outDir dist/contact-center --external openai",
@@ -271,7 +267,6 @@
     "build:entries:ticketing-a": "tsup src/ticketing/dynamics365/index.ts src/ticketing/freshdesk/index.ts src/ticketing/front/index.ts src/ticketing/gorgias/index.ts src/ticketing/help-scout/index.ts --format esm --dts --outDir dist/ticketing --external openai",
     "build:entries:ticketing-b": "tsup src/ticketing/hubspot/index.ts src/ticketing/intercom/index.ts src/ticketing/kustomer/index.ts src/ticketing/oracle-service/index.ts src/ticketing/pega-customer-service/index.ts --format esm --dts --outDir dist/ticketing --external openai",
     "build:entries:ticketing-c": "tsup src/ticketing/salesforce/index.ts src/ticketing/sap-service-cloud/index.ts src/ticketing/servicenow/index.ts src/ticketing/zendesk/index.ts src/ticketing/zoho-desk/index.ts --format esm --dts --outDir dist/ticketing --external openai",
-    "build:entries:workplace": "tsup src/workplace/slack/index.ts --format esm --dts --outDir dist/workplace/slack --external openai",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run build && vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"

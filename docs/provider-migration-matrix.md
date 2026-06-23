@@ -17,7 +17,7 @@ The Gmail reference package is landed and unblocks SDK-backed provider migration
 | #22 metadata catalog | `packages/integration-catalog` exists and catalog docs are generated from metadata. | Landed | Catalog generation stays metadata-only and must not import runtime provider modules. |
 | #23 Gmail reference | `integrations/email/gmail` publishes `@cognidesk/integration-email-gmail`; the old aggregate Gmail runtime and generated full API files are removed. | Landed | Use Gmail as the first SDK-backed reference pattern for manifest-only imports, raw official clients, and adapter coverage. |
 | #24 Microsoft Graph reference | Outlook and Teams still use local `graph-api.generated` surfaces. | Open | Treat Graph auth, pagination, and subscription handling as unresolved. |
-| #25 Slack and Discord reference | Slack still uses `web-api.generated`; Discord still has generated HTTP API code inside the monolith. | Open | Treat workplace/community event and package split patterns as unresolved. |
+| #25 Slack and Discord reference | `integrations/workplace/slack` uses `@slack/web-api`; `integrations/messaging/discord` uses `discord.js`; old generated monolith runtime code is removed for both providers. | Landed | Treat workplace/messaging event, signed request, readiness, and manifest-only package split patterns as the chat-provider reference. |
 
 Additional local evidence:
 
@@ -108,14 +108,13 @@ The SDK checks do not unblock migration. They only establish first-pass package 
 | `voice/deepgram` | Generated Deepgram OpenAPI surface; minimal handwritten layer. | official-sdk | `@cognidesk/integration-voice-deepgram` | Use `@deepgram/sdk`; keep generated support metadata only for SDK gaps and speech-pipeline adapters. |
 | `voice/elevenlabs` | Generated ElevenLabs OpenAPI surface plus direct speech provider helpers. | official-sdk | `@cognidesk/integration-voice-elevenlabs` | Use `@elevenlabs/elevenlabs-js`; keep generated support metadata only for reviewed gaps. |
 | `voice/google-speech` | Generated Google Speech root files plus direct credentials/request helpers. | official-sdk | `@cognidesk/integration-voice-google-speech` | Use official Google Cloud Speech/Text-to-Speech clients after verifying runtime package split. Keep Cognidesk speech-pipeline code handwritten. |
-| `voice/openai` | Monolith wrapper duplicates the existing `packages/voice-openai` package that already uses the official `openai` SDK. | delete-not-migrated | `@cognidesk/integration-voice-openai` | Rename/rehome the existing package as the canonical Provider Integration instead of creating a second OpenAI voice package. Remove the monolith duplicate once imports and docs converge. |
+| `voice/openai` | Monolith wrapper duplicates the existing `packages/voice-openai` package that already uses the official `openai` SDK. | delete-not-migrated | `@cognidesk/integration-voice-openai` | Do not create a new provider package. Remove the monolith duplicate once imports and docs converge on the existing package. |
 | `voice/sip` | Cognidesk SIP gateway contract, readiness, request, and webhook helpers. | local-protocol | `@cognidesk/integration-voice-sip` | Keep as BYOC/local protocol package. Do not implement a SIP stack in the provider migration. |
 | `voice/twilio` | Generated Twilio Voice-domain API surface plus direct request/readiness/webhook helpers. | official-sdk | `@cognidesk/integration-voice-twilio` | Cohort A. Use `twilio`; split from `sms/twilio`. Retain voice webhook validation and Cognidesk telephony semantics as support code. |
 | `voice/vonage` | Generated Vonage Voice/Application/Conversation/Numbers slices plus direct credentials/webhooks. | official-sdk | `@cognidesk/integration-voice-vonage` | Use `@vonage/server-sdk`; keep generated/direct support slices only for SDK gaps with allowlist metadata. |
-| `workplace/slack` | Generated Slack Web API surface plus client, readiness, request, events, and signed-request tests. | official-sdk | `@cognidesk/integration-workplace-slack` | Reference issue #25. Use `@slack/web-api`; treat Socket Mode, OAuth, and incoming webhooks as separate extensions or future packages. |
 | `workplace/teams` | Generated Microsoft Graph Teams slice plus request/notification helpers. | official-sdk | `@cognidesk/integration-workplace-teams` | Reference issue #24. Use `@microsoft/microsoft-graph-client`; share Graph helper internals only after Outlook/Teams contract shape is agreed. |
 <!-- provider-migration-matrix:end -->
 
 ## Stop Point
 
-Because the reference package gate remains open, stop here for issue #26. Broad provider-family migrations should start only after at least one of #23, #24, or #25 provides a reference package pattern with contract tests.
+Because the Gmail and Microsoft Graph reference package gates remain open, stop here for issue #26. Broad provider-family migrations should start only after enough reference package patterns have landed with contract tests.
