@@ -1,0 +1,64 @@
+{
+  "name": "@cognidesk/integration-workplace-teams",
+  "version": "0.0.2",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    },
+    "./manifest": {
+      "types": "./dist/manifest.d.ts",
+      "import": "./dist/manifest.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/runtime.ts src/manifest.ts --format esm --dts --clean --external @microsoft/microsoft-graph-client",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@cognidesk/core": "workspace:*",
+    "@cognidesk/integration-kit": "workspace:*",
+    "@microsoft/microsoft-graph-client": "^3.0.7"
+  },
+  "devDependencies": {
+    "@cognidesk/test-harness": "workspace:*",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  },
+  "cognidesk": {
+    "kind": "provider-package",
+    "providerPackage": true,
+    "providerSdkDependencies": [
+      "@microsoft/microsoft-graph-client"
+    ],
+    "packageSizeBudgetBytes": {
+      "packedSizeBytes": 12582912,
+      "unpackedSizeBytes": 41943040,
+      "declarationFileBytes": 4194304
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cognilabz/cognidesk",
+    "directory": "integrations/workplace/teams"
+  }
+}
