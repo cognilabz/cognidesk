@@ -87,7 +87,7 @@ export function createFive9Integration(options: Five9ClientOptions) {
   return defineIntegration({
     manifest: five9ProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
     },
   });
 }

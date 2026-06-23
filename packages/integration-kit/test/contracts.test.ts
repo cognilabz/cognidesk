@@ -38,7 +38,7 @@ describe("integration kit contracts", () => {
     expect(ecommerceOperationAliasMap["ecommerce.order.read"]).toBe("ecommerce.order.read");
     expect(smsOperationAliasMap["sms.message.send"]).toBe("sms.message.send");
     expect(voiceOperationAliasMap["voice.call.start"]).toBe("voice.call.start");
-    expect(contactCenterOperationAliasMap["contactCenter.transfer.request"]).toBe("contactCenter.transfer.request");
+    expect(contactCenterOperationAliasMap["contact-center.transfer.request"]).toBe("contact-center.transfer.request");
 
     expectTypeOf(emailOperationAliasMap["email.receive"]).toEqualTypeOf<"email.receive">();
     expectTypeOf(ecommerceOperationAliasMap["ecommerce.refund.create"]).toEqualTypeOf<"ecommerce.refund.create">();
@@ -51,8 +51,8 @@ describe("integration kit contracts", () => {
       "voice",
       "contact-center",
     ]));
-    expect(getIntegrationCategoryProfile("contactCenter")?.id).toBe("contact-center");
-    expect(getIntegrationCategoryProfile("contact-center")?.category).toBe("contactCenter");
+    expect(getIntegrationCategoryProfile("contact_center")).toBeUndefined();
+    expect(getIntegrationCategoryProfile("contact-center")?.category).toBe("contact-center");
   });
 
   it("binds manifest operation declarations to executable handlers", async () => {

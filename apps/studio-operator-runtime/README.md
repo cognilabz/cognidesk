@@ -36,6 +36,7 @@ compose runs.
 | `HOST` | `127.0.0.1` | Bind host. Compose sets `0.0.0.0`. |
 | `PORT` | `4099` | WebSocket port. |
 | `STUDIO_API_BASE_URL` | `http://127.0.0.1:3000` | Studio API used for session coordination. |
+| `STUDIO_OPERATOR_RUNTIME_SECRET` | local development secret | Shared secret required before the runtime trusts Studio proxy claim headers. Set a real secret outside local dev. |
 | `STUDIO_DEFAULT_TARGET_ID` | unset | Optional default Studio target id. |
 | `STUDIO_OPERATOR_SANDBOX_ROOT` | `/tmp/cognidesk-studio-sandboxes` | Parent directory for disposable source workspaces. |
 | `STUDIO_SOURCE_REPO_URL` | unset | Repository URL used by compose-backed sandboxes. |
@@ -57,3 +58,5 @@ Review these controls before exposing the service beyond local development:
 - Target manifest `operator.allowedCredentialGrants`.
 - Sandbox root isolation and cleanup policy.
 - GitHub and model credential scope.
+- `STUDIO_OPERATOR_RUNTIME_SECRET` rotation and transport security between
+  Studio and this runtime.

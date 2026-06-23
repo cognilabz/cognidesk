@@ -9,7 +9,7 @@ import {
 
 export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
   id: "contact-center",
-  category: "contactCenter",
+  category: "contact-center",
   label: "Contact Center",
   description: "Provider-neutral contact-center operations for queues, agents, routing, transfers, contacts, tasks, callbacks, monitoring, and artifacts.",
   providerObjects: [
@@ -17,7 +17,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
     { kind: "queue", label: "Queue" },
     { kind: "agent", label: "Agent" },
     { kind: "routingProfile", label: "Routing Profile" },
-    { kind: "contactCenterTask", label: "Contact Center Task" },
+    { kind: "contact-center-task", label: "Contact Center Task" },
     { kind: "contactTransfer", label: "Contact Transfer" },
     { kind: "callback", label: "Callback" },
     { kind: "contactTranscript", label: "Contact Transcript" },
@@ -26,7 +26,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
   ],
   operations: [
     operation({
-      alias: "contactCenter.contact.read",
+      alias: "contact-center.contact.read",
       label: "Read contact",
       description: "Fetch contact/session state, participant metadata, routing context, and provider IDs.",
       level: "required",
@@ -36,7 +36,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.queue.list",
+      alias: "contact-center.queue.list",
       label: "List queues",
       description: "List available queues or routing destinations.",
       level: "required",
@@ -45,7 +45,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       audiences: internalAudiences,
     }),
     operation({
-      alias: "contactCenter.transfer.request",
+      alias: "contact-center.transfer.request",
       label: "Request transfer",
       description: "Transfer a contact to an agent, queue, flow, quick connect, or provider routing target.",
       level: "required",
@@ -59,7 +59,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.handoff.request",
+      alias: "contact-center.handoff.request",
       label: "Request contact-center handoff",
       description: "Create or route a human handoff request through the contact-center provider.",
       level: "recommended",
@@ -73,7 +73,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.contact.start",
+      alias: "contact-center.contact.start",
       label: "Start contact",
       description: "Start a provider chat, task, email, voice, or outbound contact.",
       level: "recommended",
@@ -87,7 +87,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.contact.end",
+      alias: "contact-center.contact.end",
       label: "End contact",
       description: "End or stop an active provider contact.",
       level: "recommended",
@@ -100,7 +100,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       changesWorkflow: true,
     }),
     operation({
-      alias: "contactCenter.queue.status.read",
+      alias: "contact-center.queue.status.read",
       label: "Read queue status",
       description: "Read queue availability, wait time, backlog, or provider queue state.",
       level: "recommended",
@@ -109,7 +109,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       audiences: internalAudiences,
     }),
     operation({
-      alias: "contactCenter.agent.list",
+      alias: "contact-center.agent.list",
       label: "List agents",
       description: "List agents or routable users.",
       level: "recommended",
@@ -118,7 +118,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       audiences: internalAudiences,
     }),
     operation({
-      alias: "contactCenter.agent.status.update",
+      alias: "contact-center.agent.status.update",
       label: "Update agent status",
       description: "Update agent presence, readiness, or availability state.",
       level: "recommended",
@@ -129,30 +129,30 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       changesWorkflow: true,
     }),
     operation({
-      alias: "contactCenter.task.create",
+      alias: "contact-center.task.create",
       label: "Create task",
       description: "Create a task/work item for an agent, queue, or routing flow.",
       level: "recommended",
       capability: "create-provider-object",
-      providerObject: "contactCenterTask",
+      providerObject: "contact-center-task",
       audiences: internalAudiences,
       sideEffect: true,
       changesWorkflow: true,
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.task.update",
+      alias: "contact-center.task.update",
       label: "Update task",
       description: "Update task attributes, routing target, status, or assignment.",
       level: "recommended",
       capability: "update-provider-object",
-      providerObject: "contactCenterTask",
+      providerObject: "contact-center-task",
       audiences: internalAudiences,
       sideEffect: true,
       changesWorkflow: true,
     }),
     operation({
-      alias: "contactCenter.callback.schedule",
+      alias: "contact-center.callback.schedule",
       label: "Schedule callback",
       description: "Schedule or request a contact-center callback.",
       level: "recommended",
@@ -166,7 +166,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.handoff.status.read",
+      alias: "contact-center.handoff.status.read",
       label: "Read contact-center handoff status",
       description: "Read status for a human handoff, callback, or routed support contact.",
       level: "optional",
@@ -176,7 +176,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.transcript.read",
+      alias: "contact-center.transcript.read",
       label: "Read transcript",
       description: "Fetch transcript or interaction transcript context.",
       level: "recommended",
@@ -186,7 +186,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.recording.read",
+      alias: "contact-center.recording.read",
       label: "Read recording",
       description: "Read recording metadata or artifact references.",
       level: "optional",
@@ -196,7 +196,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.routingProfile.read",
+      alias: "contact-center.routingProfile.read",
       label: "Read routing profile",
       description: "Fetch routing profile or skill routing configuration.",
       level: "optional",
@@ -205,7 +205,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       audiences: internalAudiences,
     }),
     operation({
-      alias: "contactCenter.conversation.monitor",
+      alias: "contact-center.conversation.monitor",
       label: "Monitor conversation",
       description: "Start supervisor monitoring where supported.",
       level: "optional",
@@ -216,7 +216,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.conversation.whisper",
+      alias: "contact-center.conversation.whisper",
       label: "Whisper to agent",
       description: "Send supervisor whisper/coaching media to an agent.",
       level: "optional",
@@ -227,7 +227,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       externallyVisible: false,
     }),
     operation({
-      alias: "contactCenter.conversation.barge",
+      alias: "contact-center.conversation.barge",
       label: "Barge into conversation",
       description: "Join a live conversation as a supervisor participant.",
       level: "optional",
@@ -240,7 +240,7 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
       exposesSensitiveData: true,
     }),
     operation({
-      alias: "contactCenter.analytics.queueMetrics.read",
+      alias: "contact-center.analytics.queueMetrics.read",
       label: "Read queue metrics",
       description: "Read queue metrics, staffing, SLA, or wait-time data.",
       level: "optional",
@@ -250,24 +250,24 @@ export const contactCenterCategoryProfile = defineIntegrationCategoryProfile({
     }),
   ],
   events: [
-    { kind: "contactCenter.contact.started", label: "Contact started", description: "A contact started.", direction: "inbound", capability: "receive", providerObject: "contact", operationAlias: "contactCenter.contact.read" },
-    { kind: "contactCenter.contact.ended", label: "Contact ended", description: "A contact ended.", direction: "inbound", capability: "receive", providerObject: "contact", operationAlias: "contactCenter.contact.end" },
-    { kind: "contactCenter.transfer.requested", label: "Transfer requested", description: "A transfer was requested.", direction: "internal", capability: "transfer", providerObject: "contactTransfer", operationAlias: "contactCenter.transfer.request" },
-    { kind: "contactCenter.queue.updated", label: "Queue updated", description: "Queue availability or metrics changed.", direction: "inbound", capability: "receive", providerObject: "queue", operationAlias: "contactCenter.queue.status.read" },
-    { kind: "contactCenter.agent.status.updated", label: "Agent status updated", description: "Agent presence/status changed.", direction: "inbound", capability: "receive", providerObject: "agent", operationAlias: "contactCenter.agent.status.update" },
+    { kind: "contact-center.contact.started", label: "Contact started", description: "A contact started.", direction: "inbound", capability: "receive", providerObject: "contact", operationAlias: "contact-center.contact.read" },
+    { kind: "contact-center.contact.ended", label: "Contact ended", description: "A contact ended.", direction: "inbound", capability: "receive", providerObject: "contact", operationAlias: "contact-center.contact.end" },
+    { kind: "contact-center.transfer.requested", label: "Transfer requested", description: "A transfer was requested.", direction: "internal", capability: "transfer", providerObject: "contactTransfer", operationAlias: "contact-center.transfer.request" },
+    { kind: "contact-center.queue.updated", label: "Queue updated", description: "Queue availability or metrics changed.", direction: "inbound", capability: "receive", providerObject: "queue", operationAlias: "contact-center.queue.status.read" },
+    { kind: "contact-center.agent.status.updated", label: "Agent status updated", description: "Agent presence/status changed.", direction: "inbound", capability: "receive", providerObject: "agent", operationAlias: "contact-center.agent.status.update" },
   ],
   outputs: [
-    { intent: "contactCenter.transfer", label: "Contact transfer", description: "Transfer a contact to another destination.", capability: "transfer", operationAlias: "contactCenter.transfer.request", providerObject: "contactTransfer", externallyVisible: true, requiresApproval: true, changesWorkflow: true },
-    { intent: "contactCenter.task", label: "Contact-center task", description: "Create a task/work item.", capability: "create-provider-object", operationAlias: "contactCenter.task.create", providerObject: "contactCenterTask", changesWorkflow: true },
-    { intent: "contactCenter.callback", label: "Callback", description: "Schedule a callback.", capability: "schedule", operationAlias: "contactCenter.callback.schedule", providerObject: "callback", externallyVisible: true, requiresApproval: true, changesWorkflow: true },
-    { intent: "channel.handoff.requested", label: "Contact-center handoff", description: "Request a contact-center handoff.", capability: "handoff", operationAlias: "contactCenter.transfer.request", providerObject: "contactTransfer", changesWorkflow: true },
+    { intent: "contact-center.transfer", label: "Contact transfer", description: "Transfer a contact to another destination.", capability: "transfer", operationAlias: "contact-center.transfer.request", providerObject: "contactTransfer", externallyVisible: true, requiresApproval: true, changesWorkflow: true },
+    { intent: "contact-center.task", label: "Contact-center task", description: "Create a task/work item.", capability: "create-provider-object", operationAlias: "contact-center.task.create", providerObject: "contact-center-task", changesWorkflow: true },
+    { intent: "contact-center.callback", label: "Callback", description: "Schedule a callback.", capability: "schedule", operationAlias: "contact-center.callback.schedule", providerObject: "callback", externallyVisible: true, requiresApproval: true, changesWorkflow: true },
+    { intent: "channel.handoff.requested", label: "Contact-center handoff", description: "Request a contact-center handoff.", capability: "handoff", operationAlias: "contact-center.transfer.request", providerObject: "contactTransfer", changesWorkflow: true },
   ],
   dataSources: [
-    { id: "contactCenter.contact", label: "Contact", description: "Fetch contact/session context.", capability: "read-provider-object", operationAlias: "contactCenter.contact.read", providerObjects: ["contact"], exposesSensitiveData: true },
-    { id: "contactCenter.queues", label: "Queues", description: "Fetch available queues and status.", capability: "read-provider-object", operationAlias: "contactCenter.queue.list", providerObjects: ["queue"] },
-    { id: "contactCenter.agents", label: "Agents", description: "Fetch available agents and status.", capability: "read-provider-object", operationAlias: "contactCenter.agent.list", providerObjects: ["agent"] },
-    { id: "contactCenter.transcript", label: "Transcript", description: "Fetch contact transcripts.", capability: "read-provider-object", operationAlias: "contactCenter.transcript.read", providerObjects: ["contactTranscript"], exposesSensitiveData: true },
-    { id: "contactCenter.queueMetrics", label: "Queue metrics", description: "Fetch queue metrics for routing decisions.", capability: "read-provider-object", operationAlias: "contactCenter.analytics.queueMetrics.read", providerObjects: ["queueMetric"] },
+    { id: "contact-center.contact", label: "Contact", description: "Fetch contact/session context.", capability: "read-provider-object", operationAlias: "contact-center.contact.read", providerObjects: ["contact"], exposesSensitiveData: true },
+    { id: "contact-center.queues", label: "Queues", description: "Fetch available queues and status.", capability: "read-provider-object", operationAlias: "contact-center.queue.list", providerObjects: ["queue"] },
+    { id: "contact-center.agents", label: "Agents", description: "Fetch available agents and status.", capability: "read-provider-object", operationAlias: "contact-center.agent.list", providerObjects: ["agent"] },
+    { id: "contact-center.transcript", label: "Transcript", description: "Fetch contact transcripts.", capability: "read-provider-object", operationAlias: "contact-center.transcript.read", providerObjects: ["contactTranscript"], exposesSensitiveData: true },
+    { id: "contact-center.queueMetrics", label: "Queue metrics", description: "Fetch queue metrics for routing decisions.", capability: "read-provider-object", operationAlias: "contact-center.analytics.queueMetrics.read", providerObjects: ["queueMetric"] },
   ],
   notes: [categoryProfilesCoreIntegrationNote],
 });

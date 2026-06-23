@@ -12,7 +12,7 @@ There are two different layers:
 |-------|--------|------|
 | Voice provider | `@cognidesk/integration-voice-openai` | OpenAI Realtime voice session adapter used by the provider catalog. |
 | Speech providers | `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-azure-speech`, `@cognidesk/integration-voice-aws-speech`, `@cognidesk/integration-voice-google-speech`, `@cognidesk/integration-voice-deepgram` | STT/TTS-backed `VoiceProvider`s where Cognidesk runs the background Agent Model Set. |
-| Voice provider APIs | `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-twilio`, `@cognidesk/integration-voice-vonage`, `@cognidesk/integration-voice-sip` | Provider voice APIs, telephony objects, SIP/provider operations, and outbound-capable surfaces where supported. |
+| Voice provider APIs | `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-twilio`, `@cognidesk/integration-voice-vonage`, `@cognidesk/integration-voice-sip` | Provider voice APIs, telephony objects, SIP/provider operations, and outbound-capable surfaces where supported. ElevenLabs appears in both rows because it exposes STT/TTS pipeline helpers and provider voice API helpers. |
 | Browser transport | `@cognidesk/voice-websocket` | Cognidesk-owned WebSocket protocol between browser and server. |
 
 The OpenAI adapter supports `gpt-realtime-2` for realtime voice. Speech Provider-backed adapters use the provider for speech-to-text and text-to-speech only; the background LLM is the normal Cognidesk Agent Model Set configured through `@cognidesk/model`. None of these adapters provide full provider API coverage, browser credential issuance, telephony, recording storage, consent, or retention policy.
@@ -64,7 +64,7 @@ The HTTP handler creates voice socket metadata. The WebSocket adapter owns the b
 ```typescript
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createOpenAIVoiceProvider } from "@cognidesk/integration-voice-openai/runtime";
-import { createDeepgramSpeechVoiceProvider } from "@cognidesk/integration-voice-deepgram/runtime";
+import { createDeepgramVoiceProvider } from "@cognidesk/integration-voice-deepgram/runtime";
 import { createAzureSpeechVoiceProvider } from "@cognidesk/integration-voice-azure-speech/runtime";
 import {
   attachNodeVoiceWebSocketAdapter,
@@ -83,7 +83,7 @@ const azureSpeechProvider = createAzureSpeechVoiceProvider({
   voiceName: "en-US-AvaMultilingualNeural",
 });
 
-const deepgramSpeechProvider = createDeepgramSpeechVoiceProvider({
+const deepgramSpeechProvider = createDeepgramVoiceProvider({
   apiKey: process.env.DEEPGRAM_API_KEY,
   textToSpeechModel: "aura-2-thalia-en",
   speechToTextModel: "nova-3",
@@ -138,13 +138,15 @@ Voice conversations can either:
 - commit provider transcripts into the runtime and let `handleVoiceUserMessage` run the normal Cognidesk turn pipeline; or
 - use a provider control surface that projects selected Cognidesk voice tools into the realtime provider session.
 
-In both modes, the runtime remains the source of truth for conversations, channel segments, voice transcript events, interruptions, handoff, and snapshots. Speech Provider-backed adapters such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram always use the first mode: STT creates the user transcript, Cognidesk runs the agent turn with the configured Model Provider, and TTS speaks the assistant response.
+In both modes, the runtime remains the source of truth for conversations, channel segments, voice transcript events, interruptions, handoff, and snapshots. Speech Provider-backed adapters such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram always use the first mode: STT creates the user transcript, Cognidesk runs the agent turn with the configured Model Provider, and TTS speaks the assistant response. Their current runtime exports are `createElevenLabsVoiceProvider`, `createAzureSpeechVoiceProvider`, `createAwsSpeechVoiceProvider`, `createGoogleSpeechVoiceProvider`, and `createDeepgramVoiceProvider` from each package's `/runtime` entry point.
 
 ## Enterprise speech providers
 
 | Provider | Import | Notes |
 |----------|--------|-------|
+| ElevenLabs | `@cognidesk/integration-voice-elevenlabs` | Uses ElevenLabs STT/TTS pipeline helpers, and also exposes selected ElevenLabs voice API helper surfaces. |
 | Amazon Transcribe + Amazon Polly | `@cognidesk/integration-voice-aws-speech` | Uses injected AWS SDK v3 clients so the application owns IAM, region, temporary credentials, and private-network policy. |
+| Azure AI Speech | `@cognidesk/integration-voice-azure-speech` | Uses Azure Speech services for STT/TTS with application-owned subscription, region, and voice configuration. |
 | Google Cloud Speech-to-Text + Text-to-Speech | `@cognidesk/integration-voice-google-speech` | Uses Google Cloud REST with a server-side OAuth access token or token provider. |
 | Deepgram | `@cognidesk/integration-voice-deepgram` | Uses Deepgram REST STT/TTS and does not invoke Deepgram Voice Agent. |
 

@@ -110,11 +110,11 @@ function isKnownChannelCoverageStatus(status: string) {
 const channelCoverageRequiredCategories = new Set([
   "cobrowsing",
   "community",
-  "contactCenter",
+  "contact-center",
   "ecommerce",
   "email",
   "form",
-  "helpCenter",
+  "help-center",
   "marketplace",
   "messaging",
   "review",

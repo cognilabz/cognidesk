@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -51,12 +51,18 @@ async function integrationIndexFiles() {
     ? (await walk(splitIntegrationsRoot))
         .filter((file) => path.basename(file) === "index.ts")
         .filter((file) => file.includes(`${path.sep}src${path.sep}`))
+        .filter(hasGeneratedClientSibling)
         .sort((a, b) => a.localeCompare(b))
     : [];
   return {
     files: [...topLevelFiles, ...integrationModuleFiles],
     includesSplitIntegrations: existsSync(splitIntegrationsRoot),
   };
+}
+
+function hasGeneratedClientSibling(indexFile: string) {
+  const srcDir = path.dirname(indexFile);
+  return readdirSync(srcDir).some((entry) => entry.endsWith("-client.generated.ts"));
 }
 
 async function walk(dir: string): Promise<string[]> {

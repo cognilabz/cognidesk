@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-inventory",
+  "provider": "pega-customer-service",
+  "verifiedAt": "2026-06-18",
+  "scope": "checked-dx-api",
+  "source": "Pega Customer Service DX API metadata recorded in integrations/ticketing/pega-customer-service/src/manifest.ts",
+  "inventory": [
+    "selected case support surface",
+    "selected customer-service interaction metadata",
+    "SDK-user-owned environment and authorization setup"
+  ]
+}

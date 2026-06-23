@@ -10,7 +10,7 @@
     "ingest:knowledge": "tsx server/ingest-knowledge.ts",
     "build": "vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests --exclude test/voice-user-simulator.integration.test.ts",
+    "test": "vitest run --exclude test/voice-user-simulator.integration.test.ts",
     "test:voice": "vitest run test/voice-user-simulator.integration.test.ts --testTimeout 300000",
     "lint": "tsc -p tsconfig.json --noEmit"
   },

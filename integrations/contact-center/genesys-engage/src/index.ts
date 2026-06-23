@@ -97,9 +97,9 @@ export function createGenesysEngageIntegration(options: GenesysEngageClientOptio
   return defineIntegration({
     manifest: genesysEngageProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
-      "contactCenter.callback.schedule": async (input: unknown) => client.scheduleCallback(input as GenesysEngageOperationInput),
-      "contactCenter.contact.start": async (input: unknown) => client.startContact(input as GenesysEngageOperationInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.callback.schedule": async (input: unknown) => client.scheduleCallback(input as GenesysEngageOperationInput),
+      "contact-center.contact.start": async (input: unknown) => client.startContact(input as GenesysEngageOperationInput),
       "genesys-engage.chat.send": async (input: unknown) => client.sendChatMessage(input as GenesysEngageOperationInput),
     },
   });

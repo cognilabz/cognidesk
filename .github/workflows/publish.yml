@@ -1,4 +1,4 @@
-name: Publish SDK
+name: Publish SDK and Provider Packages
 
 on:
   push:

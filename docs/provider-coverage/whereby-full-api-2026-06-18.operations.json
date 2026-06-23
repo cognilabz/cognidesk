@@ -1,0 +1,9 @@
+{
+  "artifactKind": "provider-coverage-operations",
+  "provider": "whereby",
+  "verifiedAt": "2026-06-18",
+  "scope": "whereby-rest-generated-support-slice",
+  "source": "Generated Whereby REST operation metadata in integrations/video/whereby/src/full-api-operations.generated.ts",
+  "documentedOperationCount": 21,
+  "documentedPathCount": 17
+}

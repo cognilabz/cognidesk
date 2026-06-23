@@ -97,10 +97,10 @@ export function createEightByEightIntegration(options: EightByEightClientOptions
   return defineIntegration({
     manifest: eightByEightProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
-      "contactCenter.contact.start": async (input: unknown) => client.startContact(input as EightByEightOperationInput),
-      "contactCenter.contact.end": async (input: unknown) => client.endContact(input as EightByEightOperationInput),
-      "contactCenter.agent.status.update": async (input: unknown) => client.updateAgentStatus(input as EightByEightOperationInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.contact.start": async (input: unknown) => client.startContact(input as EightByEightOperationInput),
+      "contact-center.contact.end": async (input: unknown) => client.endContact(input as EightByEightOperationInput),
+      "contact-center.agent.status.update": async (input: unknown) => client.updateAgentStatus(input as EightByEightOperationInput),
     },
   });
 }

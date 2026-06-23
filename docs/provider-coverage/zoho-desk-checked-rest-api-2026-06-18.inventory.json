@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-inventory",
+  "provider": "zoho-desk",
+  "verifiedAt": "2026-06-18",
+  "scope": "checked-rest-api",
+  "source": "Zoho Desk REST metadata recorded in integrations/ticketing/zoho-desk/src/manifest.ts",
+  "inventory": [
+    "selected ticket support surface",
+    "selected contact/account metadata",
+    "SDK-user-owned organization, auth, and policy setup"
+  ]
+}

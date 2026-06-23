@@ -9,11 +9,11 @@ const integrationCatalogIndexPath = path.join(repoRoot, "packages/integration-ca
 const categoryLabels = new Map([
   ["cobrowsing", "Cobrowsing"],
   ["community", "Community"],
-  ["contactCenter", "Contact Center"],
+  ["contact-center", "Contact Center"],
   ["ecommerce", "Ecommerce"],
   ["email", "Email"],
   ["form", "Forms"],
-  ["helpCenter", "Help Center"],
+  ["help-center", "Help Center"],
   ["marketplace", "Marketplace"],
   ["messaging", "Messaging"],
   ["review", "Reviews"],
@@ -26,19 +26,13 @@ const categoryLabels = new Map([
 ]);
 
 const categoryOrder = [...categoryLabels.keys()];
-const categoryAliases = new Map([
-  ["contact-center", "contactCenter"],
-  ["contact_center", "contactCenter"],
-  ["help-center", "helpCenter"],
-  ["help_center", "helpCenter"],
-]);
 
 function compareText(left, right) {
   return left.localeCompare(right, "en", { sensitivity: "base", numeric: true });
 }
 
 function canonicalCategory(category) {
-  return categoryAliases.get(category) ?? category;
+  return category;
 }
 
 function displayCategory(category) {

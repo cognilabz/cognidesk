@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-operations",
+  "provider": "instagram",
+  "verifiedAt": "2026-06-18",
+  "scope": "selected-api",
+  "source": "Instagram Graph messaging metadata recorded in integrations/social/instagram/src/manifest.ts",
+  "operations": [
+    "selected messaging webhook parsing",
+    "selected comment and conversation support metadata",
+    "SDK-user-owned app review and Page access setup"
+  ]
+}

@@ -204,15 +204,6 @@ async function generatedProviderIndexFiles() {
   return indexFiles;
 }
 
-async function hasWorkspaceGeneratedProviderFiles() {
-  const generatedFileGroups = await Promise.all([
-    ...generatedProviderSearchRoots().map((root) => findGeneratedFiles(root, "client", { excludeFixtures: true })),
-    ...generatedProviderSearchRoots().map((root) => findGeneratedFiles(root, "operations", { excludeFixtures: true })),
-    ...generatedProviderSearchRoots().map((root) => findGeneratedFiles(root, "schema", { excludeFixtures: true })),
-  ]);
-  return generatedFileGroups.some((files) => files.length > 0);
-}
-
 function generatedProviderSearchRoots() {
   return [
     path.join(repoRoot, "integrations"),
@@ -233,17 +224,6 @@ async function findGeneratedFiles(
   const files = await walk(root);
   return files
     .filter((file) => file.endsWith(suffix) && (!options.excludeFixtures || !isFixturePath(file)))
-    .sort((a, b) => a.localeCompare(b));
-}
-
-async function integrationIndexFiles(root: string, options: { excludeFixtures?: boolean } = {}) {
-  const files = await walk(root);
-  return files
-    .filter((file) =>
-      path.basename(file) === "index.ts"
-      && file.includes(`${path.sep}src${path.sep}`)
-      && (!options.excludeFixtures || !isFixturePath(file))
-    )
     .sort((a, b) => a.localeCompare(b));
 }
 

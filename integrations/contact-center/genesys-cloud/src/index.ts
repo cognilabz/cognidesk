@@ -83,10 +83,10 @@ export async function createGenesysCloudContactCenterIntegration(options: Genesy
   const integration = defineIntegration({
     manifest: genesysCloudContactCenterManifestInput,
     operations: {
-      "contactCenter.handoff.request": client.createHandoff,
-      "contactCenter.callback.schedule": client.createCallback,
-      "contactCenter.contact.read": client.getConversation,
-      "contactCenter.queue.list": client.listQueues,
+      "contact-center.handoff.request": client.createHandoff,
+      "contact-center.callback.schedule": client.createCallback,
+      "contact-center.contact.read": client.getConversation,
+      "contact-center.queue.list": client.listQueues,
       "genesys-cloud.openMessaging.message.create": client.createOpenMessage,
     },
   });

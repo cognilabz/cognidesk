@@ -102,7 +102,7 @@ export function createGenesysPureConnectIntegration(options: GenesysPureConnectC
   return defineIntegration({
     manifest: genesysPureConnectProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
       "genesys-pureconnect.icws.connect": async (input: unknown) => client.createConnection(input as GenesysPureConnectOperationInput),
       "genesys-pureconnect.icws.request": async (input: unknown) => client.request(input as ProviderExtensionRequestInput),
     },

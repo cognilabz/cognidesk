@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-inventory",
+  "provider": "oracle-service",
+  "verifiedAt": "2026-06-18",
+  "scope": "checked-service-requests",
+  "source": "Oracle Service request metadata recorded in integrations/ticketing/oracle-service/src/manifest.ts",
+  "inventory": [
+    "selected service request support surface",
+    "selected customer/contact metadata",
+    "SDK-user-owned environment and permission setup"
+  ]
+}

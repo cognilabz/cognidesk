@@ -1,11 +1,9 @@
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import {
   clientFileSuffix,
   integrationsDir,
   operationsFileSuffix,
-  packagesDir,
   schemaFileSuffix,
 } from "./harden-generated-client-types/constants.mjs";
 import { walk } from "./harden-generated-client-types/filesystem.mjs";
@@ -19,7 +17,6 @@ import {
 
 const generatedSurfaceRoots = [
   integrationsDir,
-  path.join(packagesDir, "integrations", "src"),
 ].filter((root) => existsSync(root));
 const files = (await Promise.all(generatedSurfaceRoots.map((root) => walk(root))))
   .flat()

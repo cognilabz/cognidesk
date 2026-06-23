@@ -25,11 +25,11 @@ export const genesysPureConnectSupportSlice = {
 } as const;
 
 export const genesysPureConnectProviderManifestInput = {
-  id: "contactCenter.genesys-pureconnect",
+  id: "contact-center.genesys-pureconnect",
   name: "Genesys PureConnect / ICWS",
   packageName: "@cognidesk/integration-contact-center-genesys-pureconnect",
   provider: "genesys-pureconnect",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -52,7 +52,7 @@ export const genesysPureConnectProviderManifestInput = {
     { capability: "read-provider-object", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: false, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
     { alias: "genesys-pureconnect.icws.connect", capability: "create-provider-object", providerObject: "contact", extension: true },
     { alias: "genesys-pureconnect.icws.request", capability: "read-provider-object", providerObject: "contact", extension: true },
   ],

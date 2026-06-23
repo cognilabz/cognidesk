@@ -163,6 +163,27 @@ describe("@cognidesk/connections", () => {
       },
     });
   });
+
+  it("rejects incomplete connection definitions at runtime", () => {
+    expect(() => defineOpenApiConnection({
+      id: "",
+      provider: "front",
+      source: openApiDocument,
+      reviewedContract: { source: "inline" },
+      operations: {
+        replyToConversation: {
+          providerOperation: "",
+        },
+      },
+    })).toThrow("Invalid openapi connection definition");
+
+    expect(() => defineMcpConnection({
+      id: "internal.support",
+      provider: "internal",
+      source: "",
+      operations: {},
+    })).toThrow("source is required");
+  });
 });
 
 function fakeTelemetry() {

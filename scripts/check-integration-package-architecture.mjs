@@ -501,6 +501,56 @@ async function checkSdkBackedGeneratedClones(packages) {
   }
 }
 
+function checkProviderSdkDependencyMetadata(packages) {
+  for (const pkg of packages) {
+    for (const failure of providerSdkDependencyMetadataFailuresForPackage(pkg)) {
+      failures.push(failure);
+    }
+  }
+}
+
+export function providerSdkDependencyMetadataFailuresForPackage(pkg) {
+  const failures = [];
+  const declaredRaw = pkg.packageJson.cognidesk?.providerSdkDependencies;
+  const declared = Array.isArray(declaredRaw)
+    ? declaredRaw.filter((value) => typeof value === "string" && value.length > 0)
+    : [];
+  const invalidDeclared = Array.isArray(declaredRaw)
+    ? declaredRaw.filter((value) => typeof value !== "string" || value.length === 0)
+    : declaredRaw === undefined
+      ? []
+      : [declaredRaw];
+  const dependencyNames = runtimeDependencyNames(pkg.packageJson);
+  const knownSdkDependencies = [...dependencyNames]
+    .filter((dependencyName) => providerSdkPackages.has(dependencyName))
+    .sort((left, right) => left.localeCompare(right));
+  const missingMetadata = knownSdkDependencies.filter((dependencyName) => !declared.includes(dependencyName));
+  const unknownMetadata = declared.filter((dependencyName) => !dependencyNames.has(dependencyName));
+  const packageJsonPath = pkg.packageJsonPath
+    ? path.relative(repoRoot, pkg.packageJsonPath)
+    : `${pkg.name}/package.json`;
+
+  if (invalidDeclared.length > 0) {
+    failures.push(
+      `${packageJsonPath}: cognidesk.providerSdkDependencies must be an array of package names`,
+    );
+  }
+
+  if (missingMetadata.length > 0) {
+    failures.push(
+      `${packageJsonPath}: SDK-backed provider package must list runtime SDK dependencies in cognidesk.providerSdkDependencies (${missingMetadata.join(", ")})`,
+    );
+  }
+
+  if (unknownMetadata.length > 0) {
+    failures.push(
+      `${packageJsonPath}: cognidesk.providerSdkDependencies references packages that are not runtime dependencies (${unknownMetadata.join(", ")})`,
+    );
+  }
+
+  return failures;
+}
+
 export function isGeneratedFullProviderApiClone(file) {
   const normalized = file.replaceAll(path.sep, "/");
   const basename = path.posix.basename(normalized);
@@ -542,24 +592,75 @@ async function checkFullProviderApiClaimsUseAdapterVerification(packages) {
   }
 }
 
+async function checkProviderCoverageArtifactReferences(packages) {
+  for (const pkg of packages) {
+    const sourceFiles = await sourceFilesForPackage(pkg);
+    for (const file of sourceFiles) {
+      const source = await readFile(file, "utf8");
+      for (const failure of providerCoverageArtifactReferenceFailuresForSource(source, file)) {
+        failures.push(failure);
+      }
+    }
+  }
+}
+
+export function providerCoverageArtifactReferenceFailuresForSource(
+  source,
+  file,
+  options = {},
+) {
+  const artifactExists = options.artifactExists ?? ((artifactPath) => existsSync(path.join(repoRoot, artifactPath)));
+  const failures = [];
+  const relativeFile = path.relative(repoRoot, file);
+
+  for (const { key, artifactPath } of providerCoverageArtifactReferencesForSource(source)) {
+    if (path.isAbsolute(artifactPath) || artifactPath.includes("..") || !artifactPath.startsWith("docs/provider-coverage/")) {
+      failures.push(
+        `${relativeFile}: ${key} must reference a repo-relative docs/provider-coverage artifact (${artifactPath})`,
+      );
+      continue;
+    }
+
+    if (!artifactExists(artifactPath)) {
+      failures.push(
+        `${relativeFile}: ${key} references missing provider coverage artifact ${artifactPath}`,
+      );
+    }
+  }
+
+  return failures;
+}
+
+function providerCoverageArtifactReferencesForSource(source) {
+  const references = [];
+  const pattern = /\b(coverageArtifact|operationCatalogArtifact|functionCatalogArtifact):\s*["']([^"']+)["']/g;
+  let match;
+  while ((match = pattern.exec(source))) {
+    references.push({ key: match[1], artifactPath: match[2] });
+  }
+  return references;
+}
+
 async function sourceFilesForPackage(pkg) {
   const srcDir = path.join(pkg.dir, "src");
   if (!existsSync(srcDir)) return [];
   return (await walk(srcDir)).filter((file) => file.endsWith(".ts"));
 }
 
-function isSdkBackedPackage(packageJson) {
+export function isSdkBackedPackage(packageJson) {
   const declared = packageJson.cognidesk?.providerSdkDependencies;
   if (Array.isArray(declared) && declared.length > 0) return true;
 
+  return [...runtimeDependencyNames(packageJson)].some((dependencyName) => providerSdkPackages.has(dependencyName));
+}
+
+function runtimeDependencyNames(packageJson) {
+  const dependencyNames = new Set();
   for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]) {
     const dependencies = packageJson[field] ?? {};
-    for (const dependencyName of Object.keys(dependencies)) {
-      if (providerSdkPackages.has(dependencyName)) return true;
-    }
+    for (const dependencyName of Object.keys(dependencies)) dependencyNames.add(dependencyName);
   }
-
-  return false;
+  return dependencyNames;
 }
 
 async function walk(root) {

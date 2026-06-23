@@ -64,8 +64,8 @@ export async function createRingCentralContactCenterIntegration(options: RingCen
   const integration = defineIntegration({
     manifest: ringCentralContactCenterManifestInput,
     operations: {
-      "contactCenter.handoff.request": client.createHandoff,
-      "contactCenter.handoff.status.read": client.readiness,
+      "contact-center.handoff.request": client.createHandoff,
+      "contact-center.handoff.status.read": client.readiness,
     },
   });
   return {

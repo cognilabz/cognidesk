@@ -1,0 +1,7 @@
+{
+  "artifactKind": "provider-coverage-summary",
+  "provider": "zendesk",
+  "verifiedAt": "2026-06-17",
+  "scope": "fixture-full-provider-api-verification",
+  "source": "Provider conformance fixture in packages/test-harness/test/provider-conformance/metadata.test.ts"
+}

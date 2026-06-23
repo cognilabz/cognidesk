@@ -6,6 +6,7 @@ export interface JsonObject {
 
 export type IntegrationImplementationStrategy =
   | "official-sdk"
+  | "official-sdk-plus-support-slice"
   | "maintained-library"
   | "generated-support-slice"
   | "direct-http-support-slice"

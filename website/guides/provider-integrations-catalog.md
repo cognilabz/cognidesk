@@ -87,7 +87,7 @@ Evidence: [Discourse API docs](https://docs.discourse.org/); [Discourse webhook 
 | Manifest import | `@cognidesk/integration-contact-center-8x8/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-8x8/runtime` |
 | Workspace | `integrations/contact-center/8x8` |
-| Manifest ID | `contactCenter.8x8` |
+| Manifest ID | `contact-center.8x8` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -108,7 +108,7 @@ Evidence: [8x8 Contact Center Call API OpenAPI](https://raw.githubusercontent.co
 | Manifest import | `@cognidesk/integration-contact-center-aircall/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-aircall/runtime` |
 | Workspace | `integrations/contact-center/aircall` |
-| Manifest ID | `contactCenter.aircall` |
+| Manifest ID | `contact-center.aircall` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -129,7 +129,7 @@ Evidence: [Aircall API References](https://developer.aircall.io/api-references/)
 | Manifest import | `@cognidesk/integration-contact-center-amazon-connect/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-amazon-connect/runtime` |
 | Workspace | `integrations/contact-center/amazon-connect` |
-| Manifest ID | `contactCenter.amazon-connect` |
+| Manifest ID | `contact-center.amazon-connect` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `official-sdk` |
@@ -152,7 +152,7 @@ Evidence: [AWS SDK for JavaScript v3](https://github.com/aws/aws-sdk-js-v3); [Am
 | Manifest import | `@cognidesk/integration-contact-center-five9/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-five9/runtime` |
 | Workspace | `integrations/contact-center/five9` |
-| Manifest ID | `contactCenter.five9` |
+| Manifest ID | `contact-center.five9` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -173,7 +173,7 @@ Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/ca
 | Manifest import | `@cognidesk/integration-contact-center-genesys-cloud/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-genesys-cloud/runtime` |
 | Workspace | `integrations/contact-center/genesys-cloud` |
-| Manifest ID | `contactCenter.genesys-cloud` |
+| Manifest ID | `contact-center.genesys-cloud` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `official-sdk` |
@@ -196,7 +196,7 @@ Evidence: [Genesys Cloud JavaScript SDK](https://github.com/MyPureCloud/platform
 | Manifest import | `@cognidesk/integration-contact-center-genesys-engage/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-genesys-engage/runtime` |
 | Workspace | `integrations/contact-center/genesys-engage` |
-| Manifest ID | `contactCenter.genesys-engage` |
+| Manifest ID | `contact-center.genesys-engage` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -217,7 +217,7 @@ Evidence: [Genesys GMS Callback Services API](https://docs.genesys.com/Documenta
 | Manifest import | `@cognidesk/integration-contact-center-genesys-pureconnect/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-genesys-pureconnect/runtime` |
 | Workspace | `integrations/contact-center/genesys-pureconnect` |
-| Manifest ID | `contactCenter.genesys-pureconnect` |
+| Manifest ID | `contact-center.genesys-pureconnect` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -238,7 +238,7 @@ Evidence: [PureConnect ICWS connection](https://help.genesys.com/developer/cic/d
 | Manifest import | `@cognidesk/integration-contact-center-nextiva/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-nextiva/runtime` |
 | Workspace | `integrations/contact-center/nextiva` |
-| Manifest ID | `contactCenter.nextiva` |
+| Manifest ID | `contact-center.nextiva` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -259,7 +259,7 @@ Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/l
 | Manifest import | `@cognidesk/integration-contact-center-nice-cxone/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-nice-cxone/runtime` |
 | Workspace | `integrations/contact-center/nice-cxone` |
-| Manifest ID | `contactCenter.nice-cxone` |
+| Manifest ID | `contact-center.nice-cxone` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -280,7 +280,7 @@ Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE
 | Manifest import | `@cognidesk/integration-contact-center-ringcentral/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-ringcentral/runtime` |
 | Workspace | `integrations/contact-center/ringcentral` |
-| Manifest ID | `contactCenter.ringcentral` |
+| Manifest ID | `contact-center.ringcentral` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `official-sdk` |
@@ -303,7 +303,7 @@ Evidence: [RingCentral JavaScript SDK](https://github.com/ringcentral/ringcentra
 | Manifest import | `@cognidesk/integration-contact-center-talkdesk/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-talkdesk/runtime` |
 | Workspace | `integrations/contact-center/talkdesk` |
-| Manifest ID | `contactCenter.talkdesk` |
+| Manifest ID | `contact-center.talkdesk` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -324,7 +324,7 @@ Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/publ
 | Manifest import | `@cognidesk/integration-contact-center-zoom/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-zoom/runtime` |
 | Workspace | `integrations/contact-center/zoom` |
-| Manifest ID | `contactCenter.zoom` |
+| Manifest ID | `contact-center.zoom` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -560,14 +560,14 @@ Evidence: No provider evidence listed in the manifest.
 | Manifest import | `@cognidesk/integration-help-center-cognidesk/manifest` |
 | Runtime import | `@cognidesk/integration-help-center-cognidesk/runtime` |
 | Workspace | `integrations/help-center/cognidesk` |
-| Manifest ID | `helpcenter.cognidesk` |
+| Manifest ID | `help-center.cognidesk` |
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
-| Documentation | website/guides/provider-integrations-catalog.md#helpcenter-cognidesk |
+| Documentation | website/guides/provider-integrations-catalog.md#help-center-cognidesk |
 | Directions | `receive-only`, `inbound-only` |
-| Capabilities | `read-provider-object`, `search-provider-object`, `receive`, `helpCenter.webhook-signature` |
-| Provider setup | required `helpcenter-source`; optional `helpcenter-webhook-secret` |
+| Capabilities | `read-provider-object`, `search-provider-object`, `receive`, `help-center.webhook-signature` |
+| Provider setup | required `help-center-source`; optional `help-center-webhook-secret` |
 
 Coverage: Coverage is limited to Cognidesk local or generic HTTP help-center source search/fetch/readiness plus Cognidesk HMAC webhook normalization.
 
@@ -588,7 +588,7 @@ Evidence: No provider evidence listed in the manifest.
 | Manifest ID | `marketplace.amazon` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `official-sdk` |
+| Implementation | `official-sdk-plus-support-slice` |
 | Documentation | [https://github.com/amzn/selling-partner-api-sdk](https://github.com/amzn/selling-partner-api-sdk) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `delete-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |

@@ -22493,7 +22493,7 @@ const coreChannelOutputIntentKinds: readonly ["message.reply", "message.draft", 
 ### coreConversationChannels
 
 ```ts
-const coreConversationChannels: readonly ["chat", "voice", "email", "ticketing", "contactCenter", "messaging", "sms", "workplace", "social", "form", "helpCenter", "community", "ecommerce", "marketplace", "review", "video", "cobrowsing", "rcs"];
+const coreConversationChannels: readonly ["chat", "voice", "email", "ticketing", "contact-center", "messaging", "sms", "workplace", "social", "form", "help-center", "community", "ecommerce", "marketplace", "review", "video", "cobrowsing", "rcs"];
 ```
 
 ***
@@ -22501,7 +22501,7 @@ const coreConversationChannels: readonly ["chat", "voice", "email", "ticketing",
 ### coreProviderCategories
 
 ```ts
-const coreProviderCategories: readonly ["model", "storage", "chat", "voice", "email", "ticketing", "contactCenter", "handoff", "studio", "messaging", "sms", "workplace", "social", "form", "helpCenter", "community", "ecommerce", "marketplace", "review", "video", "cobrowsing", "rcs"];
+const coreProviderCategories: readonly ["model", "storage", "chat", "voice", "email", "ticketing", "contact-center", "handoff", "studio", "messaging", "sms", "workplace", "social", "form", "help-center", "community", "ecommerce", "marketplace", "review", "video", "cobrowsing", "rcs"];
 ```
 
 ***

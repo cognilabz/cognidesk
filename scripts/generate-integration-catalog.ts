@@ -50,6 +50,7 @@ const catalogDataPath = path.join(repoRoot, "packages/integration-catalog/src/ca
 const providerPackagePrefix = "@cognidesk/integration-";
 const knownImplementationStrategies = new Set<IntegrationImplementationStrategy>([
   "official-sdk",
+  "official-sdk-plus-support-slice",
   "maintained-library",
   "generated-support-slice",
   "direct-http-support-slice",
@@ -59,12 +60,6 @@ const knownImplementationStrategies = new Set<IntegrationImplementationStrategy>
   "generated-full-provider-api",
   "app-supplied-connector",
   "local-protocol",
-]);
-const categoryAliases = new Map([
-  ["contactCenter", "contact-center"],
-  ["contact_center", "contact-center"],
-  ["helpCenter", "help-center"],
-  ["help_center", "help-center"],
 ]);
 
 const entries = await discoverSplitProviderEntries();
@@ -162,7 +157,7 @@ function splitProviderPackageName(category: string, provider: string): string {
 }
 
 function canonicalCategory(category: string): string {
-  return categoryAliases.get(category) ?? category;
+  return category;
 }
 
 function isProviderManifest(value: unknown): value is ProviderManifest {

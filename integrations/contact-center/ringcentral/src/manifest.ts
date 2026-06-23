@@ -4,7 +4,7 @@ import {
 } from "@cognidesk/integration-kit";
 
 export const ringCentralContactCenterManifestInput = {
-  id: "contactCenter.ringcentral",
+  id: "contact-center.ringcentral",
   name: "RingCentral RingCX",
   packageName: "@cognidesk/integration-contact-center-ringcentral",
   provider: "ringcentral",
@@ -60,7 +60,7 @@ export const ringCentralContactCenterManifestInput = {
   ],
   operations: [
     {
-      alias: "contactCenter.handoff.request",
+      alias: "contact-center.handoff.request",
       capability: "handoff",
       providerOperation: "sdk-configured-request",
       providerObject: "contactTransfer",
@@ -69,7 +69,7 @@ export const ringCentralContactCenterManifestInput = {
       changesWorkflow: true,
     },
     {
-      alias: "contactCenter.handoff.status.read",
+      alias: "contact-center.handoff.status.read",
       capability: "handoff",
       providerOperation: "sdk-configured-readiness-request",
       providerObject: "contactTransfer",

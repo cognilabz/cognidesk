@@ -106,14 +106,14 @@ describe("provider conformance policy and package checks", () => {
       });
     });
 
-    it("kebab-cases camel category names when checking official package names", async () => {
+    it("validates hyphenated category names when checking official package names", async () => {
       const result = await runProviderConformance({
         manifest: {
-          id: "contactCenter.genesys-cloud",
+          id: "contact-center.genesys-cloud",
           name: "Genesys Cloud CX",
           packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
-          category: "contactCenter",
+          category: "contact-center",
           trustLevel: "official",
           directions: ["bidirectional"],
           channelAudiences: ["mixed"],

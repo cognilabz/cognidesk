@@ -44,13 +44,14 @@ Important local environment variables:
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `STUDIO_APP_URL` | `http://127.0.0.1:3000` | Better Auth base URL and trusted origin. |
-| `STUDIO_DATABASE_PROVIDER` | `sqlite` | `sqlite` or `postgres`. |
-| `STUDIO_DATABASE_URL` | `file:./data/studio.sqlite` | SQLite filename or database URL. |
+| `STUDIO_DATABASE_PROVIDER` | `sqlite` | SQLite only. `postgres` fails closed with an explicit unsupported-storage error. |
+| `STUDIO_DATABASE_URL` | `file:./data/studio.sqlite` | SQLite filename, `:memory:`, or `file:` URL. |
 | `BETTER_AUTH_SECRET` | local development secret | Auth signing secret. Set a real secret outside local dev. |
 | `STUDIO_TARGET_MANIFEST` | `../../cognidesk.studio.json` | Target manifest to inspect. |
 | `STUDIO_TARGET_OVERLAY` | unset | Optional manifest overlay, used by Docker compose. |
 | `COGNIDESK_STUDIO_TARGET_TOKEN` | `dev-studio-token` | Bearer token Studio uses for target adapter calls. |
 | `STUDIO_OPERATOR_RUNTIME_WS_URL` | `ws://127.0.0.1:4099/ws` | Operator runtime WebSocket endpoint. |
+| `STUDIO_OPERATOR_RUNTIME_SECRET` | local development secret | Shared secret Studio uses to authenticate to the operator runtime. Set a real secret outside local dev. |
 | `STUDIO_S3_ENDPOINT` | `http://127.0.0.1:9000` | Artifact object-store endpoint. |
 | `STUDIO_S3_REGION` | `us-east-1` | Artifact object-store region. |
 | `STUDIO_S3_ACCESS_KEY_ID` | `minioadmin` | Local MinIO access key. |
@@ -68,17 +69,19 @@ names when Studio runs under compose.
 
 ## Database
 
-SQLite is the default for local development. Migrations run through:
+SQLite is the only supported Studio database provider today. `postgres` settings
+fail closed with an explicit unsupported-storage error instead of silently using
+the wrong client. Migrations run through:
 
 ```bash
 pnpm --filter @cognidesk/studio db:migrate
 ```
 
-Use the `postgres` compose profile when you want the local Postgres service.
-
 ## Production cautions
 
 - Set a strong `BETTER_AUTH_SECRET`.
+- Set a strong `STUDIO_OPERATOR_RUNTIME_SECRET` on both Studio and the operator
+  runtime.
 - Set explicit bootstrap admin credentials or create users through your own
   provisioning flow.
 - Replace local MinIO credentials and endpoint defaults.

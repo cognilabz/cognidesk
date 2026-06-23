@@ -582,7 +582,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.8x8",
+    "id": "contact-center.8x8",
     "category": "contact-center",
     "provider": "8x8",
     "importPath": "@cognidesk/integration-contact-center-8x8/manifest",
@@ -698,32 +698,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.agent.status.update"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.agent.status.update"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
@@ -785,7 +785,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "placePhoneCall",
-            "alias": "contactCenter.contact.start",
+            "alias": "contact-center.contact.start",
             "method": "POST",
             "path": "/tenants/{tenantId}/calls",
             "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
@@ -793,7 +793,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "deletePhoneInteraction",
-            "alias": "contactCenter.contact.end",
+            "alias": "contact-center.contact.end",
             "method": "DELETE",
             "path": "/tenants/{tenantId}/calls/{interactionId}",
             "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
@@ -801,7 +801,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "setagentstatus",
-            "alias": "contactCenter.agent.status.update",
+            "alias": "contact-center.agent.status.update",
             "method": "PUT",
             "path": "/tenants/{tenantId}/agentstatus/agents/{agentId}",
             "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json",
@@ -817,39 +817,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.agent.status.update"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.agent.status.update"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
     }
   },
   {
-    "id": "contactCenter.aircall",
+    "id": "contact-center.aircall",
     "category": "contact-center",
     "provider": "aircall",
     "importPath": "@cognidesk/integration-contact-center-aircall/manifest",
@@ -920,32 +920,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
@@ -1007,7 +1007,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "configuredHandoff",
-            "alias": "contactCenter.handoff.request",
+            "alias": "contact-center.handoff.request",
             "method": "POST",
             "path": "host-configured",
             "source": "host-configured",
@@ -1023,39 +1023,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
     }
   },
   {
-    "id": "contactCenter.amazon-connect",
+    "id": "contact-center.amazon-connect",
     "category": "contact-center",
     "provider": "amazon-connect",
     "importPath": "@cognidesk/integration-contact-center-amazon-connect/manifest",
@@ -1190,32 +1190,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.transfer.request",
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.task.create",
-          "contactCenter.transcript.read"
+          "contact-center.transfer.request",
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.task.create",
+          "contact-center.transcript.read"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list"
+          "contact-center.contact.read",
+          "contact-center.queue.list"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.update",
+          "contact-center.callback.schedule"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
@@ -1303,39 +1303,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.transfer.request",
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.task.create",
-          "contactCenter.transcript.read"
+          "contact-center.transfer.request",
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.task.create",
+          "contact-center.transcript.read"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list"
+          "contact-center.contact.read",
+          "contact-center.queue.list"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.update",
+          "contact-center.callback.schedule"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
     }
   },
   {
-    "id": "contactCenter.five9",
+    "id": "contact-center.five9",
     "category": "contact-center",
     "provider": "five9",
     "importPath": "@cognidesk/integration-contact-center-five9/manifest",
@@ -1406,32 +1406,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
@@ -1493,7 +1493,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "configuredHandoff",
-            "alias": "contactCenter.handoff.request",
+            "alias": "contact-center.handoff.request",
             "method": "POST",
             "path": "host-configured",
             "source": "host-configured",
@@ -1509,39 +1509,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
     }
   },
   {
-    "id": "contactCenter.genesys-cloud",
+    "id": "contact-center.genesys-cloud",
     "category": "contact-center",
     "provider": "genesys-cloud",
     "importPath": "@cognidesk/integration-contact-center-genesys-cloud/manifest",
@@ -1676,32 +1676,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.handoff.request",
-          "contactCenter.callback.schedule"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.handoff.request",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.transfer.request"
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-cloud.openMessaging.message.create"
@@ -1807,32 +1807,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.handoff.request",
-          "contactCenter.callback.schedule"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.handoff.request",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.transfer.request"
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-cloud.openMessaging.message.create"
@@ -1841,7 +1841,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.genesys-engage",
+    "id": "contact-center.genesys-engage",
     "category": "contact-center",
     "provider": "genesys-engage",
     "importPath": "@cognidesk/integration-contact-center-genesys-engage/manifest",
@@ -1957,32 +1957,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-engage.chat.send"
@@ -2046,7 +2046,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "createCallback",
-            "alias": "contactCenter.callback.schedule",
+            "alias": "contact-center.callback.schedule",
             "method": "POST",
             "path": "/genesys/1/service/callback/{serviceName}",
             "source": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI",
@@ -2054,7 +2054,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "requestChat",
-            "alias": "contactCenter.contact.start",
+            "alias": "contact-center.contact.start",
             "method": "POST",
             "path": "/genesys/2/chat/{serviceName}",
             "source": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
@@ -2078,32 +2078,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-engage.chat.send"
@@ -2112,7 +2112,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.genesys-pureconnect",
+    "id": "contact-center.genesys-pureconnect",
     "category": "contact-center",
     "provider": "genesys-pureconnect",
     "importPath": "@cognidesk/integration-contact-center-genesys-pureconnect/manifest",
@@ -2213,32 +2213,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-pureconnect.icws.connect",
@@ -2327,32 +2327,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-pureconnect.icws.connect",
@@ -2362,7 +2362,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.nextiva",
+    "id": "contact-center.nextiva",
     "category": "contact-center",
     "provider": "nextiva",
     "importPath": "@cognidesk/integration-contact-center-nextiva/manifest",
@@ -2452,32 +2452,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "nextiva.request"
@@ -2541,7 +2541,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "configuredHandoff",
-            "alias": "contactCenter.handoff.request",
+            "alias": "contact-center.handoff.request",
             "method": "POST",
             "path": "host-configured",
             "source": "host-configured",
@@ -2557,32 +2557,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "nextiva.request"
@@ -2591,7 +2591,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.nice-cxone",
+    "id": "contact-center.nice-cxone",
     "category": "contact-center",
     "provider": "nice-cxone",
     "importPath": "@cognidesk/integration-contact-center-nice-cxone/manifest",
@@ -2722,32 +2722,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "nice-cxone.request"
@@ -2811,7 +2811,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "scheduleACallback",
-            "alias": "contactCenter.callback.schedule",
+            "alias": "contact-center.callback.schedule",
             "method": "POST",
             "path": "/promise",
             "source": "https://developer.niceincontact.com/content/apis/patron/patron-callback-api-docs",
@@ -2819,7 +2819,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "startChatSession",
-            "alias": "contactCenter.contact.start",
+            "alias": "contact-center.contact.start",
             "method": "POST",
             "path": "/contacts/chats",
             "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
@@ -2827,7 +2827,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "endChat",
-            "alias": "contactCenter.contact.end",
+            "alias": "contact-center.contact.end",
             "method": "DELETE",
             "path": "/contacts/chats/{chatSession}",
             "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
@@ -2843,32 +2843,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "nice-cxone.request"
@@ -2877,7 +2877,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.ringcentral",
+    "id": "contact-center.ringcentral",
     "category": "contact-center",
     "provider": "ringcentral",
     "importPath": "@cognidesk/integration-contact-center-ringcentral/manifest",
@@ -2972,32 +2972,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.handoff.status.read"
+          "contact-center.handoff.request",
+          "contact-center.handoff.status.read"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
@@ -3085,39 +3085,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.handoff.status.read"
+          "contact-center.handoff.request",
+          "contact-center.handoff.status.read"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
     }
   },
   {
-    "id": "contactCenter.talkdesk",
+    "id": "contact-center.talkdesk",
     "category": "contact-center",
     "provider": "talkdesk",
     "importPath": "@cognidesk/integration-contact-center-talkdesk/manifest",
@@ -3182,8 +3182,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "audiences": [],
         "providerObjects": [
           {
-            "kind": "contactCenterTask",
-            "label": "contactCenterTask"
+            "kind": "contact-center-task",
+            "label": "Contact Center Task"
           }
         ],
         "requiresCredential": true,
@@ -3218,32 +3218,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.task.create",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.task.create",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
@@ -3305,7 +3305,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "calls-callback-post",
-            "alias": "contactCenter.callback.schedule",
+            "alias": "contact-center.callback.schedule",
             "method": "POST",
             "path": "/calls/callback",
             "source": "https://api-docs.talkdeskapp.com/public-api",
@@ -3313,7 +3313,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "CreatingACase",
-            "alias": "contactCenter.task.create",
+            "alias": "contact-center.task.create",
             "method": "POST",
             "path": "/cm/core/va/cases",
             "source": "https://api-docs.talkdeskapp.com/public-api",
@@ -3329,39 +3329,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.task.create",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.task.create",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
     }
   },
   {
-    "id": "contactCenter.zoom",
+    "id": "contact-center.zoom",
     "category": "contact-center",
     "provider": "zoom",
     "importPath": "@cognidesk/integration-contact-center-zoom/manifest",
@@ -3481,32 +3481,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start"
+          "contact-center.contact.read",
+          "contact-center.handoff.request",
+          "contact-center.contact.start"
         ],
         "missingRequiredOperations": [
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "zoom.request"
@@ -3570,7 +3570,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "Startworkitemengagement",
-            "alias": "contactCenter.contact.start",
+            "alias": "contact-center.contact.start",
             "method": "POST",
             "path": "/contact_center/engagement",
             "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
@@ -3578,7 +3578,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "getEngagement",
-            "alias": "contactCenter.contact.read",
+            "alias": "contact-center.contact.read",
             "method": "GET",
             "path": "/contact_center/engagements/{engagementId}",
             "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
@@ -3594,32 +3594,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start"
+          "contact-center.contact.read",
+          "contact-center.handoff.request",
+          "contact-center.contact.start"
         ],
         "missingRequiredOperations": [
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "zoom.request"
@@ -6325,7 +6325,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "helpcenter.cognidesk",
+    "id": "help-center.cognidesk",
     "category": "help-center",
     "provider": "cognidesk",
     "importPath": "@cognidesk/integration-help-center-cognidesk/manifest",
@@ -6365,7 +6365,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "helpCenterArticle",
+            "kind": "help-center-article",
             "label": "Help Center Article"
           }
         ],
@@ -6386,7 +6386,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "helpCenterArticle",
+            "kind": "help-center-article",
             "label": "Help Center Article"
           }
         ],
@@ -6406,7 +6406,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "helpCenterWebhook",
+            "kind": "help-center-webhook",
             "label": "Help Center Webhook"
           }
         ],
@@ -6417,7 +6417,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "helpCenter.webhook-signature",
+        "capability": "help-center.webhook-signature",
         "label": "Validate help center webhook signatures",
         "description": "Validates HMAC-SHA256 signatures for generic help center content webhooks.",
         "audiences": [
@@ -6425,7 +6425,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "signedHelpCenterWebhook",
+            "kind": "signed-help-center-webhook",
             "label": "Signed Help Center Webhook"
           }
         ],
@@ -6457,27 +6457,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestExport": "cognideskHelpCenterProviderManifest",
       "manifestSource": "integrations/help-center/cognidesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "website/guides/provider-integrations-catalog.md#helpcenter-cognidesk"
+      "documentationPath": "website/guides/provider-integrations-catalog.md#help-center-cognidesk"
     },
     "readiness": {
       "mode": "credential-and-live-check",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "helpcenter-source"
+        "help-center-source"
       ],
       "optionalCredentialIds": [
-        "helpcenter-webhook-secret"
+        "help-center-webhook-secret"
       ],
       "credentialRequirements": [
         {
-          "id": "helpcenter-source",
+          "id": "help-center-source",
           "label": "Help center source",
           "description": "SDK-user-configured local or HTTP help center content source.",
           "scopes": [],
           "required": true
         },
         {
-          "id": "helpcenter-webhook-secret",
+          "id": "help-center-webhook-secret",
           "label": "Help center webhook secret",
           "description": "Shared HMAC secret used to verify help center content webhooks.",
           "scopes": [],
@@ -6766,7 +6766,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "official-sdk",
+      "strategy": "official-sdk-plus-support-slice",
       "sdkPackage": "@amazon-sp-api-release/amazon-sp-api-sdk-js",
       "runtimePackage": "@cognidesk/integration-marketplace-amazon",
       "providerModule": "integrations/marketplace/amazon/dist/manifest.js",

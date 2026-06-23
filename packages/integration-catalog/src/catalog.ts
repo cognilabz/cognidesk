@@ -14,15 +14,8 @@ export interface IntegrationCatalogQuery {
   strategies?: readonly string[];
 }
 
-const categoryAliases = new Map([
-  ["contactCenter", "contact-center"],
-  ["contact_center", "contact-center"],
-  ["helpCenter", "help-center"],
-  ["help_center", "help-center"],
-]);
-
 export function normalizeIntegrationCatalogCategory(category: string): string {
-  return categoryAliases.get(category) ?? category;
+  return category;
 }
 
 export const integrationProviderReferences = integrationCatalog.map((entry) => ({
@@ -59,7 +52,7 @@ export function isIntegrationCatalogEntryAvailable(id: string): boolean {
 }
 
 function matchesCatalogQuery(entry: IntegrationCatalogEntry, query: IntegrationCatalogQuery) {
-  if (query.category && normalizeIntegrationCatalogCategory(entry.category) !== normalizeIntegrationCatalogCategory(query.category)) return false;
+  if (query.category && entry.category !== query.category) return false;
   if (query.provider && entry.provider !== query.provider) return false;
   if (query.packageName && entry.packageName !== query.packageName) return false;
   if (query.trustLevels?.length && !query.trustLevels.includes(entry.trustLevel)) return false;

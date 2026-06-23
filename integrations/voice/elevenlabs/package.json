@@ -37,7 +37,10 @@
   },
   "cognidesk": {
     "kind": "provider-package",
-    "providerPackage": true
+    "providerPackage": true,
+    "providerSdkDependencies": [
+      "@elevenlabs/elevenlabs-js"
+    ]
   },
   "publishConfig": {
     "access": "public",

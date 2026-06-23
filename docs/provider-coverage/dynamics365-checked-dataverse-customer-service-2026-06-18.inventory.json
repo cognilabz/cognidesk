@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-inventory",
+  "provider": "dynamics365",
+  "verifiedAt": "2026-06-18",
+  "scope": "checked-dataverse-customer-service",
+  "source": "Microsoft Dataverse Customer Service metadata recorded in integrations/ticketing/dynamics365/src/manifest.ts",
+  "inventory": [
+    "case/customer-service support objects",
+    "Dataverse readiness and selected table metadata",
+    "SDK-user-owned environment, permissions, and retention policy"
+  ]
+}

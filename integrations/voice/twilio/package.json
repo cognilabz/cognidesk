@@ -36,7 +36,10 @@
   },
   "cognidesk": {
     "kind": "provider-package",
-    "providerPackage": true
+    "providerPackage": true,
+    "providerSdkDependencies": [
+      "twilio"
+    ]
   },
   "publishConfig": {
     "access": "public",

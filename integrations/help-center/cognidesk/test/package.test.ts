@@ -30,7 +30,7 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
       missingHandlerAliases: [],
       extraHandlerAliases: [],
     });
-    await expect((integration.run as unknown as OperationRunner)("cognidesk.helpCenter.article.search", {
+    await expect((integration.run as unknown as OperationRunner)("cognidesk.help-center.article.search", {
       query: "settings",
     })).resolves.toMatchObject({ articles: [{ id: "reset" }] });
   });
@@ -40,9 +40,9 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
       operationAliases(cognideskHelpCenterProviderManifest),
     );
     expect(operationAliases(cognideskHelpCenterProviderManifestFromRoot)).toEqual([
-      "cognidesk.helpCenter.article.search",
-      "cognidesk.helpCenter.article.fetch",
-      "cognidesk.helpCenter.webhook.parse",
+      "cognidesk.help-center.article.search",
+      "cognidesk.help-center.article.fetch",
+      "cognidesk.help-center.webhook.parse",
     ]);
   });
 

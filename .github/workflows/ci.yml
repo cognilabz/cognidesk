@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -28,8 +30,21 @@ jobs:
       - name: Check
         run: pnpm check
 
+      - name: Detect provider package surface changes
+        id: provider-changes
+        shell: bash
+        run: |
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > changed-files.txt
+          if grep -Eq '^(integrations/|packages/(integration-catalog|integration-kit|test-harness)/|scripts/(check-integration-package-architecture|verify-provider-package-conformance|generate-integration-catalog|harden-generated-client-types)|package.json|pnpm-lock.yaml|pnpm-workspace.yaml)' changed-files.txt; then
+            echo "run_provider_checks=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "run_provider_checks=false" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Verify integration package architecture
+        if: steps.provider-changes.outputs.run_provider_checks == 'true'
         run: pnpm providers:architecture
 
       - name: Verify provider package conformance
+        if: steps.provider-changes.outputs.run_provider_checks == 'true'
         run: pnpm provider-packages:check

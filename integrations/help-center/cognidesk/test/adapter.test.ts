@@ -15,9 +15,9 @@ import {
 describe("@cognidesk/integration-help-center-cognidesk", () => {
   it("exports an official generic help center provider manifest", () => {
     expect(cognideskHelpCenterProviderManifest).toMatchObject({
-      id: "helpcenter.cognidesk",
+      id: "help-center.cognidesk",
       packageName: "@cognidesk/integration-help-center-cognidesk",
-      category: "helpCenter",
+      category: "help-center",
       provider: "cognidesk",
       trustLevel: "official",
     });
@@ -26,7 +26,7 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
         "read-provider-object",
         "search-provider-object",
         "receive",
-        "helpCenter.webhook-signature",
+        "help-center.webhook-signature",
       ]));
     expect(cognideskHelpCenterProviderManifest.coverage).toMatchObject({
       scope: "local-protocol",
@@ -99,14 +99,14 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
     });
 
     expect(ingestion).toMatchObject({
-      type: "channel.helpCenter.article.ingested",
-      channel: { kind: "helpCenter", provider: "cognidesk" },
+      type: "channel.help-center.article.ingested",
+      channel: { kind: "help-center", provider: "cognidesk" },
       sourceId: "local-docs",
     });
     expect(search).toMatchObject({
-      type: "channel.helpCenter.search.performed",
+      type: "channel.help-center.search.performed",
       resultCount: 1,
-      channel: { kind: "helpCenter" },
+      channel: { kind: "help-center" },
     });
   });
 
@@ -120,7 +120,7 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
     const signature = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
     const request = new Request("https://example.test/helpcenter", {
       method: "POST",
-      headers: { "x-cognidesk-helpcenter-signature": signature },
+      headers: { "x-cognidesk-help-center-signature": signature },
       body: rawBody,
     });
 
@@ -141,13 +141,13 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
       expectedPackageName: "@cognidesk/integration-help-center-cognidesk",
       channels: [{
         id: "helpcenter",
-        channel: "helpCenter",
+        channel: "help-center",
         providerPackageIds: [cognideskHelpCenterProviderManifest.id],
         enabledCapabilities: [
           "read-provider-object",
           "search-provider-object",
           "receive",
-          "helpCenter.webhook-signature",
+          "help-center.webhook-signature",
         ],
       }],
       credentialStatuses: helpCenterCredentialStatuses({

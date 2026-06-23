@@ -4,7 +4,7 @@ import {
 } from "@cognidesk/integration-kit";
 
 export const genesysCloudContactCenterManifestInput = {
-  id: "contactCenter.genesys-cloud",
+  id: "contact-center.genesys-cloud",
   name: "Genesys Cloud CX",
   packageName: "@cognidesk/integration-contact-center-genesys-cloud",
   provider: "genesys-cloud",
@@ -98,7 +98,7 @@ export const genesysCloudContactCenterManifestInput = {
   ],
   operations: [
     {
-      alias: "contactCenter.handoff.request",
+      alias: "contact-center.handoff.request",
       capability: "handoff",
       providerOperation: "sdk-configured-request",
       providerObject: "contactTransfer",
@@ -107,7 +107,7 @@ export const genesysCloudContactCenterManifestInput = {
       changesWorkflow: true,
     },
     {
-      alias: "contactCenter.callback.schedule",
+      alias: "contact-center.callback.schedule",
       capability: "schedule",
       providerOperation: "POST /api/v2/conversations/callbacks",
       providerObject: "callback",
@@ -116,14 +116,14 @@ export const genesysCloudContactCenterManifestInput = {
       changesWorkflow: true,
     },
     {
-      alias: "contactCenter.contact.read",
+      alias: "contact-center.contact.read",
       capability: "read-provider-object",
       providerOperation: "GET /api/v2/conversations/{conversationId}",
       providerObject: "contact",
       exposesSensitiveData: true,
     },
     {
-      alias: "contactCenter.queue.list",
+      alias: "contact-center.queue.list",
       capability: "read-provider-object",
       providerOperation: "GET /api/v2/routing/queues",
       providerObject: "queue",

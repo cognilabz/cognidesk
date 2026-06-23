@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-operations",
+  "provider": "ebay",
+  "verifiedAt": "2026-06-18",
+  "scope": "selected-api",
+  "source": "eBay selected API catalog metadata recorded in integrations/marketplace/ebay/src/catalog.ts",
+  "operations": [
+    "selected marketplace order support",
+    "selected fulfillment support",
+    "selected buyer and notification support surfaces"
+  ]
+}

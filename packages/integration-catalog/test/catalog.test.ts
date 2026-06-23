@@ -20,11 +20,11 @@ describe("integration catalog", () => {
     expect(listIntegrationCatalogEntries({ category: "voice" }).length).toBeGreaterThan(0);
   });
 
-  it("normalizes provider category aliases in catalog queries", () => {
+  it("uses current hyphenated provider categories in catalog queries", () => {
     const contactCenterEntries = listIntegrationCatalogEntries({ category: "contact-center" });
 
     expect(contactCenterEntries).toHaveLength(12);
-    expect(listIntegrationCatalogEntries({ category: "contactCenter" })).toHaveLength(contactCenterEntries.length);
+    expect(listIntegrationCatalogEntries({ category: "contact_center" })).toHaveLength(0);
     expect(contactCenterEntries.every((entry) => entry.packageName.startsWith("@cognidesk/integration-contact-center-"))).toBe(true);
   });
 

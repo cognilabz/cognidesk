@@ -5,11 +5,11 @@ describe("provider metadata and evidence conformance", () => {
   it("fails channelCoverage metadata with unknown coverage status words", async () => {
       const result = await runProviderConformance({
         manifest: {
-          id: "contactCenter.genesys-cloud",
+          id: "contact-center.genesys-cloud",
           name: "Genesys Cloud CX",
           packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
-          category: "contactCenter",
+          category: "contact-center",
           trustLevel: "official",
           directions: ["bidirectional"],
           coverage: {
@@ -70,11 +70,11 @@ describe("provider metadata and evidence conformance", () => {
     it("fails provider-supported channelCoverage claims without URL evidence", async () => {
       const result = await runProviderConformance({
         manifest: {
-          id: "contactCenter.genesys-cloud",
+          id: "contact-center.genesys-cloud",
           name: "Genesys Cloud CX",
           packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
-          category: "contactCenter",
+          category: "contact-center",
           trustLevel: "community",
           directions: ["bidirectional"],
           coverage: {
@@ -336,11 +336,11 @@ describe("provider metadata and evidence conformance", () => {
     it("fails generic provider capabilities without provider-object evidence", async () => {
       const result = await runProviderConformance({
         manifest: {
-          id: "contactCenter.genesys-cloud",
+          id: "contact-center.genesys-cloud",
           name: "Genesys Cloud CX",
           packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
-          category: "contactCenter",
+          category: "contact-center",
           trustLevel: "official",
           directions: ["bidirectional"],
           capabilities: [{

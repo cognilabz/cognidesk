@@ -34,6 +34,32 @@ pnpm docs:generate
 Run `pnpm providers:catalog:data` before `pnpm docs:generate` when provider
 metadata changed.
 
+`typedoc.json` includes generated reference coverage for every provider package
+under `integrations/{category}/{provider}` by reading each built
+`dist/index.d.ts` and `dist/manifest.d.ts`, plus `dist/runtime.d.ts` when a
+runtime subpath exists. New provider packages must be built before docs
+generation so those declaration files exist.
+
+## Reproducible MkDocs build
+
+Use the checked-in Python requirements instead of a globally installed MkDocs.
+The requirements file pins MkDocs Material and the imaging dependencies used by
+the `social` plugin.
+
+```bash
+python3 -m venv /tmp/cognidesk-docs-venv
+. /tmp/cognidesk-docs-venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements-docs.txt
+pnpm build
+pnpm docs:generate
+pnpm docs:build
+```
+
+If a docs build changes generated API pages unexpectedly, rebuild the package
+declarations first with `pnpm build`, then rerun `pnpm docs:generate`. Do not
+edit `website/api-reference/generated/**` by hand.
+
 ## Verification
 
 Before publishing provider metadata or generated docs, run:
@@ -45,6 +71,5 @@ pnpm providers:architecture
 pnpm provider-packages:check
 pnpm build
 pnpm docs:generate
+pnpm docs:build
 ```
-
-Run `pnpm docs:build` when MkDocs is installed in the environment.

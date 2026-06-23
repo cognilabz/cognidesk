@@ -3,7 +3,10 @@ import { describe, it } from "node:test";
 
 import {
   isGeneratedFullProviderApiClone,
+  isSdkBackedPackage,
   manifestOnlyRuntimeImportViolationsForSource,
+  providerCoverageArtifactReferenceFailuresForSource,
+  providerSdkDependencyMetadataFailuresForPackage,
 } from "./check-integration-package-architecture.mjs";
 
 describe("isGeneratedFullProviderApiClone", () => {
@@ -74,5 +77,72 @@ describe("manifestOnlyRuntimeImportViolationsForSource", () => {
     ].join("\n");
 
     assert.deepEqual(manifestOnlyRuntimeImportViolationsForSource(source, manifestFile), []);
+  });
+});
+
+describe("provider SDK dependency metadata", () => {
+  it("detects current SDK-backed provider dependencies even before metadata is declared", () => {
+    const sdkDependencies = [
+      "@amazon-sp-api-release/amazon-sp-api-sdk-js",
+      "@deepgram/sdk",
+      "@elevenlabs/elevenlabs-js",
+      "twilio",
+      "@vonage/server-sdk",
+    ];
+
+    for (const dependencyName of sdkDependencies) {
+      assert.equal(
+        isSdkBackedPackage({ dependencies: { [dependencyName]: "^1.0.0" } }),
+        true,
+        dependencyName,
+      );
+    }
+  });
+
+  it("requires provider SDK metadata to match runtime SDK dependencies", () => {
+    const pkg = {
+      name: "@cognidesk/integration-voice-deepgram",
+      packageJsonPath: "/repo/integrations/voice/deepgram/package.json",
+      packageJson: {
+        dependencies: {
+          "@cognidesk/integration-kit": "workspace:*",
+          "@deepgram/sdk": "^5.4.0",
+        },
+        cognidesk: {
+          providerPackage: true,
+          providerSdkDependencies: ["@missing/sdk"],
+        },
+      },
+    };
+
+    assert.deepEqual(
+      providerSdkDependencyMetadataFailuresForPackage(pkg).map((failure) => failure.replace(/^.*package.json: /, "")),
+      [
+        "SDK-backed provider package must list runtime SDK dependencies in cognidesk.providerSdkDependencies (@deepgram/sdk)",
+        "cognidesk.providerSdkDependencies references packages that are not runtime dependencies (@missing/sdk)",
+      ],
+    );
+  });
+});
+
+describe("providerCoverageArtifactReferenceFailuresForSource", () => {
+  it("requires coverage artifact references to resolve under docs/provider-coverage", () => {
+    const source = [
+      "export const metadata = {",
+      "  coverageArtifact: \"docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json\",",
+      "  operationCatalogArtifact: \"docs/provider-coverage/zoom-meetings-api-2026-06-18.functions.json\",",
+      "  functionCatalogArtifact: \"tmp/functions.json\",",
+      "};",
+    ].join("\n");
+
+    assert.deepEqual(
+      providerCoverageArtifactReferenceFailuresForSource(source, "/repo/integrations/video/zoom/src/manifest.ts", {
+        artifactExists: (artifactPath) => artifactPath === "docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json",
+      }).map((failure) => failure.replace(/^.*manifest.ts: /, "")),
+      [
+        "operationCatalogArtifact references missing provider coverage artifact docs/provider-coverage/zoom-meetings-api-2026-06-18.functions.json",
+        "functionCatalogArtifact must reference a repo-relative docs/provider-coverage artifact (tmp/functions.json)",
+      ],
+    );
   });
 });

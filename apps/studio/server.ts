@@ -1,3 +1,4 @@
+import { createHmac, randomUUID } from "node:crypto";
 import { createServer, type IncomingMessage } from "node:http";
 import next from "next";
 import { WebSocket, WebSocketServer } from "ws";
@@ -58,13 +59,18 @@ server.on("upgrade", (request, socket, head) => {
 
 function handleStudioSocket(client: WebSocket, claims: StudioSocketClaims) {
   const env = studioEnv();
+  if (!env.operatorRuntimeSecret) {
+    client.send(JSON.stringify({
+      type: "error",
+      message: "Studio Operator Runtime authentication is not configured.",
+    }));
+    client.close(1011, "Runtime authentication is not configured");
+    return;
+  }
+
   const queuedClientMessages: string[] = [];
   const upstream = new WebSocket(env.operatorRuntimeWsUrl, {
-    headers: {
-      "x-studio-user-id": claims.userId,
-      "x-studio-user-role": claims.role,
-      "x-studio-session-token": claims.sessionToken,
-    },
+    headers: signedStudioRuntimeHeaders(claims, env.operatorRuntimeSecret),
   });
 
   upstream.on("open", () => {
@@ -146,4 +152,19 @@ function toHeaders(request: IncomingMessage) {
     }
   }
   return headers;
+}
+
+function signedStudioRuntimeHeaders(claims: StudioSocketClaims, secret: string): Record<string, string> {
+  const encodedClaims = Buffer.from(JSON.stringify({
+    userId: claims.userId,
+    role: claims.role,
+    permissions: claims.permissions,
+    sessionToken: claims.sessionToken,
+    expiresAt: Date.now() + 60_000,
+    nonce: randomUUID(),
+  }), "utf8").toString("base64url");
+  return {
+    "x-studio-runtime-claims": encodedClaims,
+    "x-studio-runtime-signature": createHmac("sha256", secret).update(encodedClaims).digest("base64url"),
+  };
 }

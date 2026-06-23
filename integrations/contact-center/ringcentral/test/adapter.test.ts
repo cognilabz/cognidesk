@@ -64,8 +64,8 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
     expect(ringCentralContactCenterManifest.metadata?.categoryProfile).toMatchObject({
       id: "contact-center",
       matchedOperations: expect.arrayContaining([
-        "contactCenter.handoff.request",
-        "contactCenter.handoff.status.read",
+        "contact-center.handoff.request",
+        "contact-center.handoff.status.read",
       ]),
     });
     expect(ringCentralContactCenterManifest.capabilities.flatMap((capability) =>
