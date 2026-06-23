@@ -16,13 +16,13 @@ import {
   ZOOM_MEETINGS_API_PATH_COUNT,
   zoomVideoCredentialStatuses,
   zoomVideoProviderManifest,
-} from "../../../src/video/zoom/index.js";
+} from "../src/index.js";
 
-describe("@cognidesk/integrations", () => {
+describe("@cognidesk/integration-video-zoom", () => {
   it("exports an official provider manifest for Zoom video meetings", () => {
     expect(zoomVideoProviderManifest).toMatchObject({
       id: "video.zoom",
-      packageName: "@cognidesk/integrations",
+      packageName: "@cognidesk/integration-video-zoom",
       category: "video",
       provider: "zoom",
       trustLevel: "official",
@@ -380,6 +380,7 @@ describe("@cognidesk/integrations", () => {
 
   it("reports live conformance as credential-blocked until Zoom OAuth credentials are configured", async () => {
     const result = await runProviderConformance({
+      expectedPackageName: "@cognidesk/integration-video-zoom",
       manifest: zoomVideoProviderManifest,
       channels: [{
         id: "video",
@@ -409,6 +410,7 @@ describe("@cognidesk/integrations", () => {
 
   it("passes conformance when Zoom current-user live check and credentials are configured", async () => {
     const result = await runProviderConformance({
+      expectedPackageName: "@cognidesk/integration-video-zoom",
       manifest: zoomVideoProviderManifest,
       channels: [{
         id: "video",

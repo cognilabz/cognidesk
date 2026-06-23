@@ -1,5 +1,5 @@
 // Generated from the Whereby REST OpenAPI spec (https://raw.githubusercontent.com/whereby/docs/main/.gitbook/assets/_api-reference-docs-openapi.json).
-// Do not edit by hand; run scripts/generate-whereby-full-api.mjs after checking upstream docs.
+// Do not edit by hand; regenerate from the Whereby REST OpenAPI source after checking upstream docs.
 
 import type { WherebyOperationRequestInput } from "./index.js";
 import type {

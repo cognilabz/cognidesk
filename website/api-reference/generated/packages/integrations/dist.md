@@ -381,7 +381,6 @@ const integrationProviderCategories: (
   | "form"
   | "helpCenter"
   | "marketplace"
-  | "video"
   | "voice"
   | "workplace")[];
 ```
@@ -433,20 +432,6 @@ const integrationProviderReferences: readonly [{
   manifestExport: "ebayMarketplaceProviderManifest";
   modulePath: "integrations/marketplace/ebay/src/manifest.js";
   provider: "ebay";
-}, {
-  category: "video";
-  id: "video.whereby";
-  importPath: "@cognidesk/integrations/video/whereby";
-  manifestExport: "wherebyVideoProviderManifest";
-  modulePath: "./video/whereby/index.js";
-  provider: "whereby";
-}, {
-  category: "video";
-  id: "video.zoom";
-  importPath: "@cognidesk/integrations/video/zoom";
-  manifestExport: "zoomVideoProviderManifest";
-  modulePath: "./video/zoom/index.js";
-  provider: "zoom";
 }, {
   category: "voice";
   id: "voice.azure-speech";

@@ -1,5 +1,5 @@
 // Generated from the Zoom Meetings API Hub OpenAPI spec (https://developers.zoom.us/api-hub/meetings/methods/endpoints.json).
-// Do not edit by hand; run scripts/generate-zoom-meetings-api.mjs after checking upstream docs.
+// Do not edit by hand; regenerate from the Zoom Meetings API Hub OpenAPI source after checking upstream docs.
 
 import type { ZoomOperationRequestInput } from "./index.js";
 import type {

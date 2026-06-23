@@ -11,7 +11,7 @@ export function registerWherebyManifestTests() {
   it("exports an official provider manifest for Whereby video", () => {
     expect(wherebyVideoProviderManifest).toMatchObject({
       id: "video.whereby",
-      packageName: "@cognidesk/integrations",
+      packageName: "@cognidesk/integration-video-whereby",
       category: "video",
       provider: "whereby",
       trustLevel: "official",
@@ -31,7 +31,7 @@ export function registerWherebyManifestTests() {
     expect(wherebyVideoProviderManifest.limitations.join(" ")).toContain("SDK user");
     expect(wherebyVideoProviderManifest.privacyNotes.join(" ")).toContain("recording");
     expect(wherebyVideoProviderManifest.coverage).toMatchObject({
-      scope: "full-provider-api",
+      scope: "provider-api-subset",
     });
     expect(wherebyVideoProviderManifest.coverage.notes.join(" "))
       .toContain("every operation in Whereby's official public REST OpenAPI spec");
@@ -42,7 +42,7 @@ export function registerWherebyManifestTests() {
         "https://docs.whereby.com/reference/whereby-rest-api-reference/recordings",
         "https://docs.whereby.com/reference/whereby-rest-api-reference/summaries",
       ]));
-    expect(wherebyVideoProviderManifest.metadata?.fullProviderApiVerification).toMatchObject({
+    expect(wherebyVideoProviderManifest.metadata?.generatedSupportSliceVerification).toMatchObject({
       documentedPathCount: 20,
       documentedOperationCount: 27,
       implementedOperationCount: 27,

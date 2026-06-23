@@ -17,7 +17,7 @@ export {
   WHEREBY_FULL_API_PATH_COUNT,
   wherebyVideoCredentialStatuses,
   wherebyVideoProviderManifest,
-} from "../../../../src/video/whereby/index.js";
+} from "../../src/index.js";
 
 type WherebySignatureInput = {
   webhookSigningSecret: string;

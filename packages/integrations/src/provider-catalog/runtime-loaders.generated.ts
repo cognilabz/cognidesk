@@ -6,7 +6,5 @@ export const integrationProviderRuntimeLoaders = [
   { id: "community.forum", load: () => import("../community/forum/index.js") },
   { id: "form.cognidesk", load: () => import("../form/cognidesk/index.js") },
   { id: "helpcenter.cognidesk", load: () => import("../help-center/cognidesk/index.js") },
-  { id: "video.whereby", load: () => import("../video/whereby/index.js") },
-  { id: "video.zoom", load: () => import("../video/zoom/index.js") },
   { id: "voice.sip", load: () => import("../voice/sip/index.js") },
 ] as const satisfies readonly IntegrationProviderRuntimeLoaderRegistration[];

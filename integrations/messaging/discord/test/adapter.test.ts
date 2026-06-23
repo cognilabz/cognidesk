@@ -1,4 +1,4 @@
-import { generateKeyPairSync, sign } from "node:crypto";
+import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -196,7 +196,6 @@ describe("@cognidesk/integration-messaging-discord", () => {
     expect(event).toMatchObject({
       nature: "message",
       channel: {
-        channelId: "channel_123",
         kind: "community",
         provider: "discord",
         externalThreadId: "channel_123",
@@ -215,24 +214,9 @@ describe("@cognidesk/integration-messaging-discord", () => {
       source: {
         provider: "discord",
         providerPackageId: "messaging.discord",
-        eventId: "interaction_123",
         verified: true,
       },
     });
-
-    const missingIdEvent = normalizeDiscordInteractionChannelEvent({
-      interaction: {
-        rawBody: "large-raw-body-that-must-not-become-an-event-id",
-        payload: {
-          type: 2,
-          channel_id: "channel_123",
-          data: { name: "help" },
-        },
-      },
-    });
-    expect(missingIdEvent.identity).toEqual({ streamId: "channel_123" });
-    expect(missingIdEvent.identity).not.toHaveProperty("dedupeKey");
-    expect(missingIdEvent.source).not.toHaveProperty("eventId");
 
     const invalidRequest = new Request("https://example.test/discord/interactions", {
       method: "POST",
@@ -246,6 +230,38 @@ describe("@cognidesk/integration-messaging-discord", () => {
       publicKey: publicKeyHex,
       requireSignature: true,
     })).rejects.toThrow("signature validation failed");
+  });
+
+  it("uses a bounded raw-body hash when Discord omits interaction and message ids", () => {
+    const rawBody = JSON.stringify({
+      type: 2,
+      guild_id: "guild_123",
+      channel_id: "channel_123",
+      user: { id: "user_123", username: "customer" },
+      data: { name: "support" },
+      message: { content: "Need help ".repeat(500) },
+    });
+    const eventId = `raw-body-sha256:${createHash("sha256").update(rawBody).digest("hex").slice(0, 32)}`;
+    const event = normalizeDiscordInteractionChannelEvent({
+      interaction: {
+        rawBody,
+        payload: JSON.parse(rawBody) as Record<string, unknown>,
+        validSignature: true,
+      },
+    });
+
+    expect(event).toMatchObject({
+      identity: {
+        dedupeKey: `discord:${eventId}`,
+        streamId: "guild_123:channel_123",
+      },
+      source: {
+        eventId,
+        verified: true,
+      },
+    });
+    expect(event.identity.dedupeKey.length).toBeLessThan(80);
+    expect(event.identity.dedupeKey).not.toContain("Need help");
   });
 
   it("passes readiness and provider conformance without importing provider SDKs from /manifest", async () => {

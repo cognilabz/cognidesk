@@ -11,7 +11,6 @@ import { reviewProviderReferences } from "../src/provider-catalog/categories/rev
 import { smsProviderReferences } from "../src/provider-catalog/categories/sms.js";
 import { socialProviderReferences } from "../src/provider-catalog/categories/social.js";
 import { ticketingProviderReferences } from "../src/provider-catalog/categories/ticketing.js";
-import { videoProviderReferences } from "../src/provider-catalog/categories/video.js";
 import { workplaceProviderReferences } from "../src/provider-catalog/categories/workplace.js";
 
 const publicProviderCatalogs = [
@@ -62,10 +61,6 @@ const publicProviderCatalogs = [
   {
     categoryName: "ticketing",
     references: ticketingProviderReferences,
-  },
-  {
-    categoryName: "video",
-    references: videoProviderReferences,
   },
   {
     categoryName: "workplace",

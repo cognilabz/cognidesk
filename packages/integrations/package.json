@@ -42,14 +42,6 @@
       "types": "./dist/marketplace/ebay/index.d.ts",
       "import": "./dist/marketplace/ebay/index.js"
     },
-    "./video/whereby": {
-      "types": "./dist/video/whereby/index.d.ts",
-      "import": "./dist/video/whereby/index.js"
-    },
-    "./video/zoom": {
-      "types": "./dist/video/zoom/index.d.ts",
-      "import": "./dist/video/zoom/index.js"
-    },
     "./voice/aws-speech": {
       "types": "./dist/voice/aws-speech/index.d.ts",
       "import": "./dist/voice/aws-speech/index.js"
@@ -73,12 +65,11 @@
   },
   "scripts": {
     "build:deps": "pnpm --filter @cognidesk/core --filter @cognidesk/integration-kit --filter @cognidesk/voice-websocket --filter @cognidesk/test-harness build",
-    "build": "pnpm run build:deps && pnpm run build:entries:voice && pnpm run build:entries:community && pnpm run build:entries:marketplace && pnpm run build:entries:form-help-center && pnpm run build:entries:video",
+    "build": "pnpm run build:deps && pnpm run build:entries:voice && pnpm run build:entries:community && pnpm run build:entries:marketplace && pnpm run build:entries:form-help-center",
     "build:entries:voice": "tsup src/index.ts src/category-profiles.ts src/provider-manifest.ts src/voice/aws-speech/index.ts src/voice/azure-speech/index.ts src/voice/google-speech/index.ts src/voice/openai/index.ts src/voice/sip/index.ts --format esm --dts --clean --external openai",
     "build:entries:community": "tsup src/cobrowsing/cognidesk/index.ts src/community/forum/index.ts --format esm --dts --external openai",
     "build:entries:marketplace": "tsup src/marketplace/amazon/index.ts src/marketplace/ebay/index.ts --format esm --dts --outDir dist/marketplace --external openai",
     "build:entries:form-help-center": "tsup src/form/cognidesk/index.ts src/help-center/cognidesk/index.ts --format esm --dts --external openai",
-    "build:entries:video": "tsup src/video/whereby/index.ts src/video/zoom/index.ts --format esm --dts --outDir dist/video --external openai",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run build && vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"

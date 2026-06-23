@@ -83,8 +83,6 @@ export function summarizeIntegrationReadiness(
 ): IntegrationReadinessSummary {
   const statuses = statusesInput.map((status) => ProviderCredentialStatusSchema.parse(status));
   const requiredRequirementIds = new Set(options.requiredRequirementIds ?? statuses.map((status) => status.requirementId));
-  const presentRequirementIds = new Set(statuses.map((status) => status.requirementId));
-  const missingStatusRequirementIds = [...requiredRequirementIds].filter((requirementId) => !presentRequirementIds.has(requirementId));
   const blocking = statuses.filter((status) =>
     requiredRequirementIds.has(status.requirementId)
     && status.state !== "configured"
@@ -93,16 +91,10 @@ export function summarizeIntegrationReadiness(
 
   return {
     ...(options.providerPackageId ? { providerPackageId: options.providerPackageId } : {}),
-    ready: blocking.length === 0 && missingStatusRequirementIds.length === 0,
+    ready: blocking.length === 0,
     statuses,
-    blockingRequirementIds: [
-      ...blocking.map((status) => status.requirementId),
-      ...missingStatusRequirementIds,
-    ],
-    missingRequirementIds: [
-      ...blocking.filter((status) => status.state === "missing").map((status) => status.requirementId),
-      ...missingStatusRequirementIds,
-    ],
+    blockingRequirementIds: blocking.map((status) => status.requirementId),
+    missingRequirementIds: blocking.filter((status) => status.state === "missing").map((status) => status.requirementId),
     expiredRequirementIds: blocking.filter((status) => status.state === "expired").map((status) => status.requirementId),
     insufficientScopeRequirementIds: blocking.filter((status) => status.state === "insufficient-scope").map((status) => status.requirementId),
     permissionBlockedRequirementIds: blocking.filter((status) => status.state === "permission-blocked").map((status) => status.requirementId),

@@ -1129,9 +1129,9 @@ Evidence: [Zoho Desk API documentation](https://desk.zoho.com/DeskAPIDocument); 
 | Runtime import | `@cognidesk/integration-video-whereby/runtime` |
 | Workspace | `integrations/video/whereby` |
 | Manifest ID | `video.whereby` |
-| Scope | `full-provider-api` |
-| Adapter coverage | `full` |
-| Implementation | `generated-full-provider-api` |
+| Scope | `provider-api-subset` |
+| Adapter coverage | `standard` |
+| Implementation | `provider-api-subset` |
 | Documentation | [https://docs.whereby.com/reference/whereby-rest-api-reference/meetings](https://docs.whereby.com/reference/whereby-rest-api-reference/meetings) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `schedule`, `create-provider-object`, `read-provider-object`, `delete-provider-object`, `update-provider-object`, `receive`, `whereby.request-signature` |

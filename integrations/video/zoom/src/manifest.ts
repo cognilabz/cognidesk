@@ -1,17 +1,14 @@
-import { defineIntegrationProviderPackage as defineProviderPackage } from "../../provider-manifest.js";
-import {
-  ZOOM_MEETINGS_API_GENERATED_FUNCTION_COUNT,
-} from "./meetings-api-client.generated.js";
-import {
-  ZOOM_MEETINGS_API_OPERATION_COUNT,
-  ZOOM_MEETINGS_API_PATH_COUNT,
-  ZOOM_MEETINGS_API_SPEC_VERSION,
-} from "./meetings-api-operations.generated.js";
+import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
+
+const ZOOM_MEETINGS_API_SPEC_VERSION = "2";
+const ZOOM_MEETINGS_API_PATH_COUNT = 129;
+const ZOOM_MEETINGS_API_OPERATION_COUNT = 184;
+const ZOOM_MEETINGS_API_GENERATED_FUNCTION_COUNT = 184;
 
 export const zoomVideoProviderManifest = defineProviderPackage({
   id: "video.zoom",
   name: "Zoom Meetings",
-  packageName: "@cognidesk/integrations",
+  packageName: "@cognidesk/integration-video-zoom",
   provider: "zoom",
   category: "video",
   trustLevel: "official",
@@ -135,6 +132,64 @@ export const zoomVideoProviderManifest = defineProviderPackage({
       extension: true,
     },
   ],
+  operations: [
+    {
+      alias: "video.meeting.create",
+      capability: "create-provider-object",
+      providerObject: "zoomMeeting",
+      sideEffect: true,
+      exposesSensitiveData: true,
+      changesWorkflow: true,
+    },
+    {
+      alias: "video.meeting.list",
+      capability: "read-provider-object",
+      providerObject: "zoomMeeting",
+      exposesSensitiveData: true,
+    },
+    {
+      alias: "video.meeting.read",
+      capability: "read-provider-object",
+      providerObject: "zoomMeeting",
+      exposesSensitiveData: true,
+    },
+    {
+      alias: "video.meeting.update",
+      capability: "update-provider-object",
+      providerObject: "zoomMeeting",
+      sideEffect: true,
+      exposesSensitiveData: true,
+      changesWorkflow: true,
+    },
+    {
+      alias: "video.meeting.delete",
+      capability: "delete-provider-object",
+      providerObject: "zoomMeeting",
+      sideEffect: true,
+      exposesSensitiveData: true,
+      changesWorkflow: true,
+    },
+    {
+      alias: "video.user.current.read",
+      capability: "read-provider-object",
+      providerObject: "zoomUser",
+      exposesSensitiveData: true,
+    },
+    {
+      alias: "zoom.meetings.request",
+      capability: "read-provider-object",
+      providerObject: "zoomMeetingsApiOperation",
+      extension: true,
+      metadata: { supportSliceEscapeHatch: true },
+    },
+    {
+      alias: "zoom.webhook.parse",
+      capability: "receive",
+      providerObject: "zoomWebhookEvent",
+      extension: true,
+      exposesSensitiveData: true,
+    },
+  ],
   privacyNotes: [
     "Zoom meetings and webhooks can contain participant identifiers, host details, invite links, meeting metadata, chat-capable workflow context, and recording-related event metadata.",
     "Zoom OAuth access tokens and webhook secret tokens stay server-side and are represented in Studio only as credential readiness.",
@@ -148,7 +203,7 @@ export const zoomVideoProviderManifest = defineProviderPackage({
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     channelCoverage: {
-      meetingsApiHub: "generated-per-operation-functions",
+      meetingsApiHub: "generated-constrained-support-slice",
       meetings: "typed-create-list-read-update-delete",
       meetingsRecordingsRegistrantsReportsDevicesTspWebinars: "generated-full-surface-where-present-in-meetings-api-hub",
       currentUser: "typed-read",
@@ -159,15 +214,57 @@ export const zoomVideoProviderManifest = defineProviderPackage({
     generatedProviderSliceVerification: {
       provider: "zoom-meetings-api-hub",
       apiVersion: ZOOM_MEETINGS_API_SPEC_VERSION,
-      verifiedAt: "2026-06-18",
+      verifiedAt: "2026-06-21",
+      sourceChecksumSha256: "07acb50f2a3f070b161ed57fbd9ca9ae83db42a6c1fa538f36b7e1c8300b6b06",
       coverageArtifact: "docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json",
       operationCatalogArtifact: "docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json",
       functionCatalogArtifact: "docs/provider-coverage/zoom-meetings-api-2026-06-18.functions.json",
+      operationCatalogChecksumSha256: "d32cdc0636126fef0491cfd13f95219359be167d339a57b4b4322f7be1146392",
+      functionCatalogChecksumSha256: "8934aa5f43e3a15d5a087dcf663854d41bb013d38aee8d65171b967bcc43202b",
       documentedPathCount: ZOOM_MEETINGS_API_PATH_COUNT,
       documentedOperationCount: ZOOM_MEETINGS_API_OPERATION_COUNT,
       implementedOperationCount: ZOOM_MEETINGS_API_OPERATION_COUNT,
       unimplementedOperationCount: 0,
       generatedFunctionCount: ZOOM_MEETINGS_API_GENERATED_FUNCTION_COUNT,
+      allowlist: [
+        "Archiving",
+        "Cloud Recording",
+        "Devices",
+        "H323 Devices",
+        "In-Meeting Apps",
+        "In-Meeting Features",
+        "Invitation & Registration",
+        "Live streaming",
+        "Meetings",
+        "PAC",
+        "Polls",
+        "Reports",
+        "SIP Phone",
+        "Summaries",
+        "Surveys",
+        "Templates",
+        "Tracking Field",
+        "TSP",
+        "Webinars",
+      ],
+    },
+    sdkViability: {
+      decision: "no-official-maintained-server-rest-sdk-found",
+      checkedAt: "2026-06-21",
+      rejectedSdkPackages: [
+        {
+          packageName: "@zoom/meetingsdk",
+          reason: "Official browser Meeting SDK for embedding/joining meetings, not a server REST API client.",
+        },
+        {
+          packageName: "@zoom/videosdk",
+          reason: "Official browser Video SDK for custom video experiences, not the Zoom Meetings REST API.",
+        },
+        {
+          packageName: "@zoom/rtms",
+          reason: "Official Node real-time media streams SDK, not scheduling/resource REST management.",
+        },
+      ],
     },
   },
 });

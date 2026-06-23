@@ -193,11 +193,7 @@ export function defineIntegration<
           providerPackageId: manifest.id,
           provider: manifest.provider,
           operationAlias: alias,
-          ...(context.credentials !== undefined
-            ? { credentials: context.credentials }
-            : input.credentials !== undefined
-              ? { credentials: input.credentials }
-              : {}),
+          ...(input.credentials !== undefined ? { credentials: input.credentials } : {}),
           ...(context.abortSignal ? { abortSignal: context.abortSignal } : {}),
           ...(context.metadata ? { metadata: context.metadata } : {}),
         });

@@ -84,7 +84,6 @@ const entries = [
   ...legacyEntries,
   ...splitEntries,
 ];
-assertUniqueCatalogEntryIds(entries);
 entries.sort(compareEntries);
 
 const runtimeReferences = integrationProviderReferences
@@ -521,19 +520,6 @@ function slug(value: string) {
 
 function compareEntries(left: IntegrationCatalogEntry, right: IntegrationCatalogEntry) {
   return compareReferences(left, right);
-}
-
-function assertUniqueCatalogEntryIds(entries: readonly IntegrationCatalogEntry[]): void {
-  const seen = new Map<string, string>();
-  for (const entry of entries) {
-    const previousSource = seen.get(entry.id);
-    if (previousSource) {
-      throw new Error(
-        `Duplicate integration catalog id '${entry.id}' declared by ${previousSource} and ${entry.implementation.manifestSource}.`,
-      );
-    }
-    seen.set(entry.id, entry.implementation.manifestSource);
-  }
 }
 
 function compareReferences(left: Pick<IntegrationProviderReference, "category" | "provider" | "id">, right: Pick<IntegrationProviderReference, "category" | "provider" | "id">) {

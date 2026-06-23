@@ -10,6 +10,7 @@ import {
 export function registerWherebyConformanceTests() {
   it("reports live conformance as credential-blocked until Whereby API credentials are configured", async () => {
     const result = await runProviderConformance({
+      expectedPackageName: "@cognidesk/integration-video-whereby",
       manifest: wherebyVideoProviderManifest,
       channels: [{
         id: "video",
@@ -39,6 +40,7 @@ export function registerWherebyConformanceTests() {
 
   it("passes conformance when Whereby readiness and live checks are configured", async () => {
     const result = await runProviderConformance({
+      expectedPackageName: "@cognidesk/integration-video-whereby",
       manifest: wherebyVideoProviderManifest,
       channels: [{
         id: "video",
