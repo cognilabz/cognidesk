@@ -1,0 +1,72 @@
+import type { ProviderOperationDeclarationInput } from "@cognidesk/core";
+
+export const hubSpotTicketingProviderOperations: ProviderOperationDeclarationInput[] = [
+  {
+    alias: "ticket.read",
+    providerOperation: "crm.tickets.basicApi.getById",
+    capability: "read-provider-object",
+    label: "Read HubSpot ticket",
+    providerObject: "ticket",
+    exposesSensitiveData: true,
+  },
+  {
+    alias: "ticket.comment.create",
+    providerOperation: "crm.objects.notes.basicApi.create",
+    capability: "send",
+    label: "Create HubSpot public ticket comment",
+    providerObject: "ticketComment",
+    sideEffect: true,
+    externallyVisible: true,
+    requiresApproval: true,
+    exposesSensitiveData: true,
+  },
+  {
+    alias: "ticket.create",
+    providerOperation: "crm.tickets.basicApi.create",
+    capability: "create-provider-object",
+    label: "Create HubSpot ticket",
+    providerObject: "ticket",
+    sideEffect: true,
+    changesWorkflow: true,
+    exposesSensitiveData: true,
+  },
+  {
+    alias: "ticket.update",
+    providerOperation: "crm.tickets.basicApi.update",
+    capability: "update-provider-object",
+    label: "Update HubSpot ticket",
+    providerObject: "ticket",
+    sideEffect: true,
+    changesWorkflow: true,
+    exposesSensitiveData: true,
+  },
+  {
+    alias: "ticket.search",
+    providerOperation: "crm.tickets.searchApi.doSearch",
+    capability: "search-provider-object",
+    label: "Search HubSpot tickets",
+    providerObject: "ticket",
+    exposesSensitiveData: true,
+  },
+  {
+    alias: "ticket.internalNote.create",
+    providerOperation: "crm.objects.notes.basicApi.create",
+    capability: "draft",
+    label: "Create HubSpot internal note",
+    providerObject: "internalNote",
+    sideEffect: true,
+    exposesSensitiveData: true,
+  },
+  {
+    alias: "hubspot.association.create",
+    providerOperation: "crm.associations.v4.basicApi.create",
+    capability: "link-provider-object",
+    label: "Create HubSpot association",
+    providerObject: "conversationLink",
+    sideEffect: true,
+    changesWorkflow: true,
+    extension: true,
+  },
+] satisfies ProviderOperationDeclarationInput[];
+
+export type HubSpotTicketingOperationAlias = string;

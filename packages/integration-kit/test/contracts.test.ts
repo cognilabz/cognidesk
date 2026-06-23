@@ -10,6 +10,7 @@ import {
   defineIntegrationProviderPackage,
   ecommerceOperationAliasMap,
   emailOperationAliasMap,
+  getIntegrationCategoryProfile,
   integrationCategoryProfiles,
   IntegrationError,
   integrationErrorToJSON,
@@ -50,6 +51,8 @@ describe("integration kit contracts", () => {
       "voice",
       "contact-center",
     ]));
+    expect(getIntegrationCategoryProfile("contactCenter")?.id).toBe("contact-center");
+    expect(getIntegrationCategoryProfile("contact-center")?.category).toBe("contactCenter");
   });
 
   it("binds manifest operation declarations to executable handlers", async () => {
@@ -57,7 +60,7 @@ describe("integration kit contracts", () => {
       manifest: {
         id: "email.acme",
         name: "Acme Mail",
-        packageName: "@cognidesk/integration-acme-mail",
+        packageName: "@cognidesk/integration-email-acme-mail",
         provider: "acme",
         category: "email",
         directions: ["bidirectional"],
@@ -93,7 +96,7 @@ describe("integration kit contracts", () => {
     const manifest = defineIntegrationProviderPackage({
       id: "sms.acme",
       name: "Acme SMS",
-      packageName: "@cognidesk/integration-acme-sms",
+      packageName: "@cognidesk/integration-sms-acme",
       provider: "acme",
       category: "sms",
       directions: ["bidirectional"],
@@ -130,7 +133,7 @@ describe("integration kit contracts", () => {
       manifest: {
         id: "email.acme",
         name: "Acme Mail",
-        packageName: "@cognidesk/integration-acme-mail",
+        packageName: "@cognidesk/integration-email-acme-mail",
         provider: "acme",
         category: "email",
         directions: ["bidirectional"],
@@ -154,7 +157,7 @@ describe("integration kit contracts", () => {
       manifest: {
         id: "email.acme",
         name: "Acme Mail",
-        packageName: "@cognidesk/integration-acme-mail",
+        packageName: "@cognidesk/integration-email-acme-mail",
         provider: "acme",
         category: "email",
         directions: ["bidirectional"],
@@ -227,7 +230,7 @@ describe("integration kit contracts", () => {
     const manifest = defineIntegrationProviderPackage({
       id: "sms.acme",
       name: "Acme SMS",
-      packageName: "@cognidesk/integration-acme-sms",
+      packageName: "@cognidesk/integration-sms-acme",
       provider: "acme",
       category: "sms",
       directions: ["bidirectional"],
@@ -283,7 +286,7 @@ describe("integration kit contracts", () => {
         }
       }
     }
-    expect([...externalImports].sort()).toEqual(["@cognidesk/core"]);
+    expect([...externalImports].sort()).toEqual(["@cognidesk/core", "@cognidesk/voice-websocket"]);
   });
 });
 
@@ -292,7 +295,7 @@ function typecheckOnly() {
     manifest: {
       id: "email.types",
       name: "Type Mail",
-      packageName: "@cognidesk/integration-type-mail",
+      packageName: "@cognidesk/integration-email-type-mail",
       provider: "typemail",
       category: "email",
       directions: ["bidirectional"],
@@ -315,7 +318,7 @@ function typecheckOnly() {
     manifest: {
       id: "email.types",
       name: "Type Mail",
-      packageName: "@cognidesk/integration-type-mail",
+      packageName: "@cognidesk/integration-email-type-mail",
       provider: "typemail",
       category: "email",
       directions: ["bidirectional"],

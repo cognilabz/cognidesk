@@ -582,14 +582,834 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
+    "id": "contactCenter.amazon-connect",
+    "category": "contact-center",
+    "provider": "amazon-connect",
+    "importPath": "@cognidesk/integration-contact-center-amazon-connect/manifest",
+    "modulePath": "integrations/contact-center/amazon-connect/dist/manifest.js",
+    "manifestExport": "amazonConnectContactCenterManifest",
+    "name": "Amazon Connect",
+    "packageName": "@cognidesk/integration-contact-center-amazon-connect",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "Amazon Connect",
+      "summary": "Runtime uses AWS SDK v3 clients for normalized Amazon Connect support workflows.",
+      "tags": [
+        "contact-center",
+        "amazon-connect",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "label": "Create Amazon Connect task handoffs",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "amazonConnectTaskContact",
+            "label": "Amazon Connect Task Contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "label": "Start Amazon Connect chat contacts and send participant messages",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "amazonConnectChatContact",
+            "label": "Amazon Connect Chat Contact"
+          },
+          {
+            "kind": "amazonConnectChatMessage",
+            "label": "Amazon Connect Chat Message"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "transfer",
+        "label": "Transfer Amazon Connect task or email contacts",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "amazonConnectContactTransfer",
+            "label": "Amazon Connect Contact Transfer"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Read Amazon Connect instance and transcript state",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "amazonConnectInstance",
+            "label": "Amazon Connect Instance"
+          },
+          {
+            "kind": "amazonConnectChatTranscript",
+            "label": "Amazon Connect Chat Transcript"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "Runtime uses AWS SDK v3 clients for normalized Amazon Connect support workflows.",
+        "Raw AWS SDK clients are exposed as escape hatches for provider-specific operations.",
+        "The previous generated Connect-family full-provider clone is not carried forward as a Cognidesk-owned API; broader Connect-family SDK clients should be added only when normalized support workflows need them.",
+        "Connect Health was present in the old generated model bundle, but no @aws-sdk/client-connect-health npm package was found during the 2026-06-21 SDK check."
+      ],
+      "evidence": [
+        {
+          "label": "AWS SDK for JavaScript v3",
+          "url": "https://github.com/aws/aws-sdk-js-v3"
+        },
+        {
+          "label": "Amazon Connect API Reference",
+          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html"
+        },
+        {
+          "label": "Amazon Connect Participant Service",
+          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Participant_Service.html"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.transfer.request",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.task.create",
+          "contactCenter.transcript.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    },
+    "implementation": {
+      "strategy": "official-sdk",
+      "sdkPackage": "@aws-sdk/client-connect, @aws-sdk/client-connectparticipant",
+      "runtimePackage": "@cognidesk/integration-contact-center-amazon-connect",
+      "providerModule": "integrations/contact-center/amazon-connect/dist/manifest.js",
+      "manifestExport": "amazonConnectContactCenterManifest",
+      "manifestSource": "integrations/contact-center/amazon-connect/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/aws/aws-sdk-js-v3"
+    },
+    "readiness": {
+      "mode": "credential-configuration",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "amazon-connect-instance",
+        "amazon-connect-api-access"
+      ],
+      "optionalCredentialIds": [],
+      "credentialRequirements": [
+        {
+          "id": "amazon-connect-instance",
+          "label": "Amazon Connect instance",
+          "description": "Amazon Connect instance ID and AWS region.",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "amazon-connect-api-access",
+          "label": "Amazon Connect API access",
+          "description": "AWS SDK v3 credentials with the required Amazon Connect and Connect Participant permissions.",
+          "scopes": [
+            "connect:StartTaskContact",
+            "connect:StartChatContact",
+            "connect:TransferContact",
+            "connect:DescribeInstance"
+          ],
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission-labels",
+            "privilegeGuidance": "These are AWS IAM action names, not OAuth scopes."
+          }
+        }
+      ]
+    },
+    "privacyNotes": [
+      "Task, chat, transfer, and transcript operations can include customer identifiers, routing attributes, messages, summaries, and participant tokens.",
+      "AWS credentials remain inside the SDK user's runtime configuration."
+    ],
+    "limitations": [
+      "Contact flows, queue/quick-connect routing, outbound consent, IAM policy, participant token custody, and WebSocket subscription behavior remain application/AWS configuration.",
+      "Raw AWS SDK clients are available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."
+    ],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@aws-sdk/client-connect, @aws-sdk/client-connectparticipant",
+        "sdkPackages": [
+          "@aws-sdk/client-connect",
+          "@aws-sdk/client-connectparticipant"
+        ]
+      },
+      "channelCoverage": {
+        "taskContact": "sdk-normalized",
+        "chatContact": "sdk-normalized",
+        "participantMessages": "sdk-normalized",
+        "participantTranscript": "sdk-normalized",
+        "taskEmailTransfer": "sdk-normalized",
+        "rawAwsSdkClients": "escape-hatch",
+        "connectHealth": "sdk-gap"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.transfer.request",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.task.create",
+          "contactCenter.transcript.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    }
+  },
+  {
+    "id": "contactCenter.genesys-cloud",
+    "category": "contact-center",
+    "provider": "genesys-cloud",
+    "importPath": "@cognidesk/integration-contact-center-genesys-cloud/manifest",
+    "modulePath": "integrations/contact-center/genesys-cloud/dist/manifest.js",
+    "manifestExport": "genesysCloudContactCenterManifest",
+    "name": "Genesys Cloud CX",
+    "packageName": "@cognidesk/integration-contact-center-genesys-cloud",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "Genesys Cloud CX",
+      "summary": "Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.",
+      "tags": [
+        "contact-center",
+        "genesys-cloud",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "label": "Create Genesys Cloud callback or Open Messaging ingress",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "genesysCloudCallback",
+            "label": "Genesys Cloud Callback"
+          },
+          {
+            "kind": "genesysCloudOpenMessage",
+            "label": "Genesys Cloud Open Messaging inbound message/event/receipt"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "contact-center.open-messaging-ingress",
+        "label": "Deliver Genesys Cloud Open Messaging ingress",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "genesysCloudOpenMessage",
+            "label": "Genesys Cloud Open Messaging inbound message/event/receipt"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": true
+      },
+      {
+        "capability": "schedule",
+        "label": "Create Genesys Cloud callbacks",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "genesysCloudCallback",
+            "label": "Genesys Cloud Callback"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Read Genesys Cloud conversations and queues",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "genesysCloudConversation",
+            "label": "Genesys Cloud Conversation"
+          },
+          {
+            "kind": "genesysCloudQueue",
+            "label": "Genesys Cloud Queue"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.",
+        "The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations.",
+        "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.",
+        "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface."
+      ],
+      "evidence": [
+        {
+          "label": "Genesys Cloud JavaScript SDK",
+          "url": "https://github.com/MyPureCloud/platform-client-sdk-javascript"
+        },
+        {
+          "label": "Genesys Cloud Developer Center",
+          "url": "https://developer.genesys.cloud/"
+        },
+        {
+          "label": "Genesys Cloud Open Messaging",
+          "url": "https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.handoff.request",
+          "contactCenter.callback.schedule"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": [
+          "genesys-cloud.openMessaging.message.create"
+        ]
+      }
+    },
+    "implementation": {
+      "strategy": "official-sdk",
+      "sdkPackage": "purecloud-platform-client-v2",
+      "runtimePackage": "@cognidesk/integration-contact-center-genesys-cloud",
+      "providerModule": "integrations/contact-center/genesys-cloud/dist/manifest.js",
+      "manifestExport": "genesysCloudContactCenterManifest",
+      "manifestSource": "integrations/contact-center/genesys-cloud/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/MyPureCloud/platform-client-sdk-javascript"
+    },
+    "readiness": {
+      "mode": "credential-configuration",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "genesys-cloud-region",
+        "genesys-cloud-api-access"
+      ],
+      "optionalCredentialIds": [
+        "genesys-cloud-open-messaging",
+        "genesys-cloud-routing"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "genesys-cloud-region",
+          "label": "Genesys Cloud API region/base URL",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "genesys-cloud-api-access",
+          "label": "Genesys Cloud OAuth access",
+          "scopes": [
+            "conversation:callback:create",
+            "routing:queue:view",
+            "user:me:view"
+          ],
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission-labels",
+            "privilegeGuidance": "Genesys Cloud permissions are configured through OAuth clients and org roles."
+          }
+        },
+        {
+          "id": "genesys-cloud-open-messaging",
+          "label": "Genesys Cloud Open Messaging integration and webhook secret",
+          "scopes": [
+            "Messaging > Integration > All"
+          ],
+          "required": false,
+          "metadata": {
+            "scopeKind": "provider-permission-labels"
+          }
+        },
+        {
+          "id": "genesys-cloud-routing",
+          "label": "Genesys Cloud queue, callback, or digital messaging routing configuration",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [
+      "Callbacks and Open Messaging ingress can include customer phone numbers, identity, channel metadata, message content, and routing data.",
+      "OAuth tokens stay inside the SDK user's runtime configuration."
+    ],
+    "limitations": [
+      "Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.",
+      "Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage."
+    ],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "purecloud-platform-client-v2",
+        "sdkPackages": [
+          "purecloud-platform-client-v2"
+        ]
+      },
+      "channelCoverage": {
+        "callback": "sdk-normalized",
+        "openMessagingInboundApi": "sdk-normalized",
+        "openMessagingOutboundWebhookSignature": "typed-verify-only",
+        "conversations": "sdk-normalized",
+        "queues": "sdk-normalized",
+        "rawGenesysCloudSdkClient": "escape-hatch",
+        "messengerJavascriptSdk": "provider-supported-customer-site-not-typed"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.handoff.request",
+          "contactCenter.callback.schedule"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.handoff.status.read",
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": [
+          "genesys-cloud.openMessaging.message.create"
+        ]
+      }
+    }
+  },
+  {
+    "id": "contactCenter.ringcentral",
+    "category": "contact-center",
+    "provider": "ringcentral",
+    "importPath": "@cognidesk/integration-contact-center-ringcentral/manifest",
+    "modulePath": "integrations/contact-center/ringcentral/dist/manifest.js",
+    "manifestExport": "ringCentralContactCenterManifest",
+    "name": "RingCentral RingCX",
+    "packageName": "@cognidesk/integration-contact-center-ringcentral",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "RingCentral RingCX",
+      "summary": "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
+      "tags": [
+        "contact-center",
+        "ringcentral",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "label": "Create RingCX handoff",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "ringcxHandoff",
+            "label": "RingCX Handoff"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Check RingCentral readiness",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "ringcentralReadiness",
+            "label": "RingCentral Readiness"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
+        "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation that the old monolith generated.",
+        "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness plus raw SDK request escape hatches.",
+        "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk."
+      ],
+      "evidence": [
+        {
+          "label": "RingCentral JavaScript SDK",
+          "url": "https://github.com/ringcentral/ringcentral-js"
+        },
+        {
+          "label": "RingCX Voice APIs",
+          "url": "https://developers.ringcentral.com/engage-voice-api"
+        },
+        {
+          "label": "RingCX Digital APIs",
+          "url": "https://developers.ringcentral.com/engage-digital-api"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.handoff.status.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    },
+    "implementation": {
+      "strategy": "official-sdk",
+      "sdkPackage": "@ringcentral/sdk",
+      "runtimePackage": "@cognidesk/integration-contact-center-ringcentral",
+      "providerModule": "integrations/contact-center/ringcentral/dist/manifest.js",
+      "manifestExport": "ringCentralContactCenterManifest",
+      "manifestSource": "integrations/contact-center/ringcentral/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/ringcentral/ringcentral-js"
+    },
+    "readiness": {
+      "mode": "credential-and-live-check",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "ringcentral-api-base",
+        "ringcentral-api-access"
+      ],
+      "optionalCredentialIds": [
+        "ringcentral-ringcx-routing"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "ringcentral-api-base",
+          "label": "RingCentral API base URL",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "ringcentral-api-access",
+          "label": "RingCentral API access",
+          "description": "RingCentral SDK OAuth access or an injected SDK platform client.",
+          "scopes": [],
+          "required": true,
+          "metadata": {
+            "scopeKind": "mixed-auth-mode",
+            "privilegeGuidance": "RingCX deployments may still require product-specific permissions beyond RingCentral OAuth token possession."
+          }
+        },
+        {
+          "id": "ringcentral-ringcx-routing",
+          "label": "RingCX handoff/readiness routing configuration",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [
+      "RingCX handoffs can include customer identifiers, queue/campaign metadata, and conversation summaries.",
+      "RingCentral OAuth credentials stay inside the SDK user's runtime configuration."
+    ],
+    "limitations": [
+      "RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.",
+      "Legacy RingCX Voice APIs, product-private endpoints, Channel SDK runtime, web/mobile widgets, and broader RingCentral platform APIs remain separate surfaces."
+    ],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "strategy": "official-sdk-plus-reviewed-slices",
+        "sdkPackage": "@ringcentral/sdk",
+        "sdkPackages": [
+          "@ringcentral/sdk"
+        ]
+      },
+      "channelCoverage": {
+        "configuredHttpHandoff": "sdk-dispatched",
+        "configuredReadiness": "sdk-dispatched",
+        "rawRingCentralSdkPlatform": "escape-hatch",
+        "currentVoiceRestApiOperations": "provider-supported-not-typed",
+        "digitalRestApiOperations": "provider-supported-not-typed",
+        "channelSdkMessaging": "provider-supported-sdk-runtime-not-typed"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.handoff.status.read"
+        ],
+        "missingRequiredOperations": [
+          "contactCenter.contact.read",
+          "contactCenter.queue.list",
+          "contactCenter.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.queue.status.read",
+          "contactCenter.agent.list",
+          "contactCenter.agent.status.update",
+          "contactCenter.task.create",
+          "contactCenter.task.update",
+          "contactCenter.callback.schedule",
+          "contactCenter.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contactCenter.recording.read",
+          "contactCenter.routingProfile.read",
+          "contactCenter.conversation.monitor",
+          "contactCenter.conversation.whisper",
+          "contactCenter.conversation.barge",
+          "contactCenter.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    }
+  },
+  {
     "id": "contactCenter.8x8",
     "category": "contactCenter",
     "provider": "8x8",
-    "importPath": "@cognidesk/integrations/contact-center/8x8",
-    "modulePath": "./contact-center/8x8/index.js",
-    "manifestExport": "eightByEightContactCenterProviderManifest",
+    "importPath": "@cognidesk/integration-contact-center-8x8/manifest",
+    "modulePath": "integrations/contact-center/8x8/dist/manifest.js",
+    "manifestExport": "eightByEightProviderManifest",
     "name": "8x8 Contact Center",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-8x8",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -603,250 +1423,114 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "8x8 Contact Center",
-      "summary": "Coverage includes generated per-operation functions for 11 official machine-readable 8x8 OpenAPI specs covering Contact Center Actions/Events, Chat Gateway, public Chat API variants, campaigns, Contact Center analytics, and QMSA.",
+      "summary": "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.",
       "tags": [
         "contactCenter",
         "8x8",
         "official",
-        "provider-api-subset"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create 8x8 handoff",
-        "description": "Creates SDK-configured 8x8 Contact Center support-workflow requests without implying typed case, queue, chat, or transfer coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "eightByEightConfiguredHandoff",
-            "label": "8x8 configured handoff request"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "send",
-        "label": "Create 8x8 outbound phone interaction",
-        "description": "Creates an agent-assigned outbound phone interaction with the documented 8x8 Call API.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "eightByEightCall",
-            "label": "8x8 Call Interaction"
+            "kind": "contact",
+            "label": "contact"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "contact-center.call-control",
-        "label": "Control 8x8 call interaction",
-        "description": "Ends or hangs up documented 8x8 call interactions and releases agent lines; this does not claim native transfer coverage.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "capability": "update-provider-object",
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "eightByEightCall",
-            "label": "8x8 Call Interaction"
+            "kind": "contact",
+            "label": "contact"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": true
+        "changesWorkflow": false,
+        "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Update 8x8 call metadata and agent status",
-        "description": "Updates documented transaction codes and selected agent status through 8x8 Contact Center APIs.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "eightByEightCall",
-            "label": "8x8 Call Interaction"
-          },
-          {
-            "kind": "eightByEightAgentStatus",
-            "label": "8x8 Agent Status"
+            "kind": "agent",
+            "label": "agent"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for 11 official machine-readable 8x8 OpenAPI specs covering Contact Center Actions/Events, Chat Gateway, public Chat API variants, campaigns, Contact Center analytics, and QMSA.",
-        "The generated slice covers 135 operations across 106 documented paths from the verified official specs; duplicate public Chat API variants are represented with spec-qualified operation UIDs.",
-        "This is not full 8x8 product coverage and does not claim CRM, legacy recordings/transcripts, event streaming, PDF-only, gated, support-portal-only, or prose-only surfaces without public machine-readable OpenAPI specs.",
-        "The generic handoff capability describes Cognidesk escalation intent only; native outbound/call-control behavior is exposed through separate typed provider-specific methods."
+        "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone."
       ],
       "evidence": [
-        {
-          "label": "8x8 Contact Center Chat API V2 OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json"
-        },
-        {
-          "label": "8x8 Contact Center Dynamic Campaigns OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_dynamic_campaigns.json"
-        },
-        {
-          "label": "8x8 Contact Center Campaigns API OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_new_campaigns.json"
-        },
-        {
-          "label": "8x8 Chapi Chat API OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/chapi_-_chat_api.json"
-        },
-        {
-          "label": "8x8 Contact Center Chat Gateway OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact-center-chat-gateway-v1.oas.yml"
-        },
         {
           "label": "8x8 Contact Center Call API OpenAPI",
           "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json"
         },
         {
-          "label": "8x8 Contact Center Agent Status API OpenAPI",
+          "label": "8x8 Contact Center Agent Status OpenAPI",
           "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json"
-        },
-        {
-          "label": "8x8 Analytics for Contact Center Historical Metrics OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/analytics/8x8_analytics_for_contact_center_historical_metrics_api.json"
-        },
-        {
-          "label": "8x8 Analytics for Contact Center Real-time Metrics OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/analytics/8x8_analytics_for_contact_center_real-time_metrics_api.json"
-        },
-        {
-          "label": "8x8 Quality Management and Speech Analytics OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/analytics/quality_management_and_speech_analytics_api.json"
-        },
-        {
-          "label": "8x8 Contact Center Chat API OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/contactcenter/8x8_contact_center_chat_api.json"
-        },
-        {
-          "label": "8x8 Contact Center Chat API V2 Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/8-x-8-contact-center-chat-api-v-2/"
-        },
-        {
-          "label": "8x8 Contact Center Dynamic Campaigns Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/8-x-8-contact-center-dynamic-campaigns/"
-        },
-        {
-          "label": "8x8 Contact Center Campaigns API Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/contact-center-campaigns-api/"
-        },
-        {
-          "label": "8x8 Contact Center Chat Gateway Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/contact-center-chat-gateway/"
-        },
-        {
-          "label": "8x8 Contact Center Call API Reference",
-          "url": "https://developer.8x8.com/actions-events/reference/8-x-8-contact-center-call-api-reference/"
-        },
-        {
-          "label": "8x8 place phone call",
-          "url": "https://developer.8x8.com/actions-events/reference/place-phone-call/"
-        },
-        {
-          "label": "8x8 add transaction codes",
-          "url": "https://developer.8x8.com/actions-events/reference/add-transaction-codes/"
-        },
-        {
-          "label": "8x8 delete phone interaction",
-          "url": "https://developer.8x8.com/actions-events/reference/delete-phone-interaction/"
-        },
-        {
-          "label": "8x8 hang up agent handling interaction",
-          "url": "https://developer.8x8.com/actions-events/reference/hangup-agent-handling-interaction/"
-        },
-        {
-          "label": "8x8 hang up agent line",
-          "url": "https://developer.8x8.com/actions-events/reference/hangup-agent-line/"
-        },
-        {
-          "label": "8x8 hang up agent lines",
-          "url": "https://developer.8x8.com/actions-events/reference/hangup-agent-lines/"
-        },
-        {
-          "label": "8x8 set agent status",
-          "url": "https://developer.8x8.com/actions-events/reference/setagentstatus/"
-        },
-        {
-          "label": "8x8 Analytics for Contact Center Real-time Metrics API",
-          "url": "https://developer.8x8.com/analytics/reference/8-x-8-analytics-for-contact-center-real-time-metrics-api/"
-        },
-        {
-          "label": "8x8 Analytics for Contact Center Historical Metrics API",
-          "url": "https://developer.8x8.com/analytics/reference/8-x-8-analytics-for-contact-center-historical-metrics-api/"
-        },
-        {
-          "label": "8x8 Quality Management and Speech Analytics API",
-          "url": "https://developer.8x8.com/analytics/reference/quality-management-and-speech-analytics-api/"
-        },
-        {
-          "label": "8x8 Contact Center Chat API",
-          "url": "https://developer.8x8.com/contactcenter/docs/contact-center-chat/"
-        },
-        {
-          "label": "8x8 Contact Center Chat Gateway",
-          "url": "https://developer.8x8.com/actions-events/docs/chat-gateway/"
-        },
-        {
-          "label": "8x8 Contact Center API overview",
-          "url": "https://support-portal.8x8.com/helpcenter/viewArticle.html?c=1_40_53_58_7561_&d=7237bf9a-1600-4eb5-8dc4-f3a5fa5533f3&hl=en"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.agent.status.update"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
           "contactCenter.callback.schedule",
@@ -865,14 +1549,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/8x8",
-      "providerModule": "./contact-center/8x8/index.js",
-      "manifestExport": "eightByEightContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/8x8/manifest.ts",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-contact-center-8x8",
+      "runtimePackage": "@cognidesk/integration-contact-center-8x8",
+      "providerModule": "integrations/contact-center/8x8/dist/manifest.js",
+      "manifestExport": "eightByEightProviderManifest",
+      "manifestSource": "integrations/contact-center/8x8/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/8x8_contact_center_chat_api_v2.json"
+      "documentationPath": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -894,13 +1578,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "8x8-contact-center-api-access",
           "label": "8x8 Contact Center API access",
-          "description": "Endpoint-specific 8x8 API access configured by the SDK app; this package does not assume an OAuth scope for generic configured paths.",
           "scopes": [],
-          "required": true,
-          "metadata": {
-            "scopeKind": "mixed-auth-mode",
-            "privilegeGuidance": "8x8 APIs include OAuth-based Contact Center Chat/analytics access and bearer/API-key style access for other configured Contact Center endpoints."
-          }
+          "required": true
         },
         {
           "id": "8x8-contact-center-routing",
@@ -910,13 +1589,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "8x8 handoffs can include customer identifiers, queue context, call/message metadata, and summaries.",
-      "8x8 API credentials stay server-side and Studio only receives readiness."
-    ],
-    "limitations": [
-      "8x8 regional endpoints, queue/campaign IDs, contact flows, and outbound eligibility are SDK-user configuration."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -924,63 +1598,58 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "generatedVerifiedOpenApiOperations": "generated-per-operation-functions",
-        "generatedCallAndAgentStatusApiOperations": "generated-per-operation-functions",
-        "configuredHttpHandoff": "supported",
-        "outboundPhoneInteraction": "generated-slice-and-typed-helper",
-        "callControl": "generated-slice-and-typed-helpers",
-        "agentStatus": "generated-slice-and-typed-helpers",
-        "chat": "generated-per-operation-functions",
-        "chatGateway": "generated-per-operation-functions",
-        "chatHandoff": "generated-per-operation-functions",
-        "callback": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed",
-        "email": "not-covered",
-        "smsSocialDigital": "provider-supported-not-typed",
-        "campaigns": "generated-per-operation-functions",
-        "crm": "not-covered",
-        "recordings": "not-covered",
-        "webhooks": "generated-per-operation-functions",
-        "eventStreaming": "not-covered",
-        "realtimeMetrics": "generated-per-operation-functions",
-        "historicalMetrics": "generated-per-operation-functions",
-        "qualityManagementSpeechAnalytics": "generated-per-operation-functions",
-        "reporting": "generated-per-operation-functions"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "placePhoneCall",
+            "alias": "contactCenter.contact.start",
+            "method": "POST",
+            "path": "/tenants/{tenantId}/calls",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
+            "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
+          },
+          {
+            "id": "deletePhoneInteraction",
+            "alias": "contactCenter.contact.end",
+            "method": "DELETE",
+            "path": "/tenants/{tenantId}/calls/{interactionId}",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
+            "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
+          },
+          {
+            "id": "setagentstatus",
+            "alias": "contactCenter.agent.status.update",
+            "method": "PUT",
+            "path": "/tenants/{tenantId}/agentstatus/agents/{agentId}",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json",
+            "checksum": "sha256:89ba77f48f7a471fb21c34dfb0c7170c1a90b7ea08da8de65981049ade09c2ae"
+          }
+        ]
       },
-      "generatedProviderApiSlices": {
-        "verifiedOfficialOpenApi": {
-          "provider": "8x8-contact-center-actions-events-analytics-qmsa",
-          "verifiedAt": "2026-06-18",
-          "coverageArtifact": "docs/provider-coverage/8x8-contact-center-api-2026-06-18.operations.json",
-          "operationCatalogArtifact": "docs/provider-coverage/8x8-contact-center-api-2026-06-18.operations.json",
-          "functionCatalogArtifact": "docs/provider-coverage/8x8-contact-center-api-2026-06-18.functions.json",
-          "documentedSpecCount": 11,
-          "documentedPathCount": 106,
-          "documentedOperationCount": 135,
-          "implementedOperationCount": 135,
-          "generatedFunctionCount": 135
-        }
-      },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.agent.status.update"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
           "contactCenter.callback.schedule",
@@ -1003,11 +1672,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.aircall",
     "category": "contactCenter",
     "provider": "aircall",
-    "importPath": "@cognidesk/integrations/contact-center/aircall",
-    "modulePath": "./contact-center/aircall/index.js",
-    "manifestExport": "aircallContactCenterProviderManifest",
+    "importPath": "@cognidesk/integration-contact-center-aircall/manifest",
+    "modulePath": "integrations/contact-center/aircall/dist/manifest.js",
+    "manifestExport": "aircallProviderManifest",
     "name": "Aircall",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-aircall",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -1021,7 +1690,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Aircall",
-      "summary": "Coverage is limited to a constructor-configured SDK-owned Aircall workflow path and the documented Aircall `/v1/ping` readiness check; this is not typed outbound callback/call, message, webhook, or transfer coverage.",
+      "summary": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
       "tags": [
         "contactCenter",
         "aircall",
@@ -1032,32 +1701,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Aircall handoff context",
-        "description": "POSTs SDK-configured human-handoff context to the SDK-owned Aircall workflow path chosen by the SDK app without claiming a native Aircall handoff endpoint or typed Aircall object coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "aircallConfiguredRequest",
-            "label": "Aircall Configured Request"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is limited to a constructor-configured SDK-owned Aircall workflow path and the documented Aircall `/v1/ping` readiness check; this is not typed outbound callback/call, message, webhook, or transfer coverage.",
-        "No official public OpenAPI/Swagger specification was found during the 2026-06-18 Aircall audit; the checked inventory is `docs/provider-coverage/aircall-public-api-2026-06-18.checked-inventory.json`, and the public HTML API reference is treated as official evidence but not as a generated full-provider proof.",
-        "The package does not implement the broader Aircall Public API for OAuth token exchange, users v1/v2, teams, calls, transfers, comments, tags, archive/unarchive, recording pause/resume/delete, dialer campaigns, numbers, SMS/MMS, WhatsApp, group messaging, contacts, company/integration resources, webhooks and webhook events, analytics exports, conversation intelligence, realtime transcription, call evaluations, or AI Voice Agent outbound calls."
+        "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls."
       ],
       "evidence": [
         {
@@ -1065,12 +1726,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer.aircall.io/api-references/"
         },
         {
-          "label": "Aircall Webhooks Guide",
-          "url": "https://developer.aircall.io/tutorials/webhooks-guide/"
-        },
-        {
-          "label": "Aircall SMS webhook tutorial",
-          "url": "https://developer.aircall.io/tutorials/logging-sms-events-with-aircall-webhooks"
+          "label": "Aircall Everywhere SDK",
+          "url": "https://github.com/aircall/aircall-everywhere"
         }
       ]
     },
@@ -1082,14 +1739,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -1114,12 +1772,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/aircall",
-      "providerModule": "./contact-center/aircall/index.js",
-      "manifestExport": "aircallContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/aircall/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "sdkPackage": "@cognidesk/integration-contact-center-aircall",
+      "runtimePackage": "@cognidesk/integration-contact-center-aircall",
+      "providerModule": "integrations/contact-center/aircall/dist/manifest.js",
+      "manifestExport": "aircallProviderManifest",
+      "manifestSource": "integrations/contact-center/aircall/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developer.aircall.io/api-references/"
     },
     "readiness": {
@@ -1142,14 +1800,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "aircall-api-access",
           "label": "Aircall API access",
-          "scopes": [
-            "public_api"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "mixed-auth-mode",
-            "privilegeGuidance": "OAuth apps use the Aircall public_api scope; API ID/token credentials are governed by the Aircall account/API key permissions rather than OAuth scopes."
-          }
+          "scopes": [],
+          "required": true
         },
         {
           "id": "aircall-routing",
@@ -1159,14 +1811,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Aircall records can include phone numbers, contacts, call metadata, tags, comments, and routing context.",
-      "Aircall API credentials stay server-side and Studio only sees readiness."
-    ],
-    "limitations": [
-      "Aircall number ownership, callback workflows, routing, recording, transfer, messaging, webhook, and outbound consent remain SDK-user configuration.",
-      "Per-conversation handoff calls cannot override the configured Aircall path; implement typed methods before enabling consequential Aircall actions such as transfer, outbound call, recording deletion, or message send."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -1174,442 +1820,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedInventoryArtifact": "docs/provider-coverage/aircall-public-api-2026-06-18.checked-inventory.json",
-      "checkedProviderSupportedNotTypedFamilies": 25,
-      "officialPublicOpenApiSpec": "not-found",
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "publicOpenApiSpec": "not-covered",
-        "publicHtmlApiReference": "provider-supported-not-typed",
-        "oauthTokenExchange": "provider-supported-not-typed",
-        "nativeInboundVoice": "provider-supported-not-typed",
-        "outboundCall": "provider-supported-not-typed",
-        "aiVoiceAgentOutboundCall": "provider-supported-not-typed",
-        "callback": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed",
-        "callComments": "provider-supported-not-typed",
-        "callTags": "provider-supported-not-typed",
-        "callArchive": "provider-supported-not-typed",
-        "callRecordingControls": "provider-supported-not-typed",
-        "messaging": "provider-supported-not-typed",
-        "smsAgentConversation": "provider-supported-not-typed",
-        "groupMessaging": "provider-supported-not-typed",
-        "whatsappAgentConversation": "provider-supported-not-typed",
-        "messageWebhooks": "provider-supported-not-typed",
-        "contacts": "provider-supported-not-typed",
-        "usersV1": "provider-supported-not-typed",
-        "usersV2": "provider-supported-not-typed",
-        "teams": "provider-supported-not-typed",
-        "numbers": "provider-supported-not-typed",
-        "dialerCampaigns": "provider-supported-not-typed",
-        "tags": "provider-supported-not-typed",
-        "companyAndIntegration": "provider-supported-not-typed",
-        "recordings": "provider-supported-not-typed",
-        "webhooks": "provider-supported-not-typed",
-        "webhookEvents": "provider-supported-not-typed",
-        "analyticsExports": "provider-supported-not-typed",
-        "conversationIntelligence": "provider-supported-not-typed",
-        "realtimeTranscription": "provider-supported-not-typed",
-        "callEvaluations": "provider-supported-not-typed"
+      "implementation": {
+        "implementationStrategy": "direct-http-support-slice",
+        "sdkDecision": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contactCenter.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.amazon-connect",
-    "category": "contactCenter",
-    "provider": "amazon-connect",
-    "importPath": "@cognidesk/integrations/contact-center/amazon-connect",
-    "modulePath": "./contact-center/amazon-connect/index.js",
-    "manifestExport": "amazonConnectContactCenterProviderManifest",
-    "name": "Amazon Connect",
-    "packageName": "@cognidesk/integrations",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "Amazon Connect",
-      "summary": "Coverage includes generated per-operation functions for every operation in the selected official AWS Connect-family API models bundled in aws/api-models-aws.",
-      "tags": [
-        "contactCenter",
-        "amazon-connect",
-        "official",
-        "full-provider-api"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "label": "Create Amazon Connect task handoffs",
-        "description": "Starts Amazon Connect task contacts for SDK-user-configured human handoff queues or flows; this is not broad bidirectional voice/chat transfer.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "amazonConnectTaskContact",
-            "label": "Amazon Connect Task Contact"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "send",
-        "label": "Send Amazon Connect chat messages",
-        "description": "Starts Amazon Connect chat contacts and sends participant-service messages only with SDK-user-managed ParticipantToken/ConnectionToken flow.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "amazonConnectChatContact",
-            "label": "Amazon Connect Chat Contact"
-          },
-          {
-            "kind": "amazonConnectChatMessage",
-            "label": "Amazon Connect Chat Message"
-          },
-          {
-            "kind": "amazonConnectParticipantEvent",
-            "label": "Amazon Connect Participant Event"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "transfer",
-        "label": "Transfer Amazon Connect task or email contacts",
-        "description": "Transfers active TASK or EMAIL contacts through TransferContact when SDK configuration supplies a transfer flow and exactly one queue or user target.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "amazonConnectContactTransfer",
-            "label": "Amazon Connect Contact Transfer"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "read-provider-object",
-        "label": "Check Amazon Connect API readiness",
-        "description": "Uses the configured client to verify Amazon Connect API access without exposing credentials.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "amazonConnectInstance",
-            "label": "Amazon Connect Instance"
-          },
-          {
-            "kind": "amazonConnectChatTranscript",
-            "label": "Amazon Connect Chat Transcript"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "full-provider-api",
-      "notes": [
-        "Coverage includes generated per-operation functions for every operation in the selected official AWS Connect-family API models bundled in aws/api-models-aws.",
-        "Typed helpers remain available for Amazon Connect StartTaskContact handoffs, StartChatContact chat initiation, selected Connect Participant Service chat operations, TransferContact for documented TASK/EMAIL transfer, and DescribeInstance readiness.",
-        "StartTaskContact can select a routing target such as ContactFlowId, QuickConnectId, or TaskTemplateId and can include documented task attachments by S3 URL. StartChatContact returns a ParticipantToken that must be exchanged through CreateParticipantConnection before participant SendMessage/SendEvent/GetTranscript calls.",
-        "Generated functions cover StartEmailContact, StartOutboundChatContact, StartOutboundEmailContact, StartOutboundVoiceContact, StartWebRTCContact, queues, users, flows, analytics, campaigns, cases, Contact Lens, Connect Health, AppIntegrations, Customer Profiles, Q Connect, Wisdom, and full Connect Participant Service operations present in the official models.",
-        "SDK users still own IAM permissions, SigV4 signing, participant bearer-token custody, regional endpoint policy, contact-flow design, outbound consent, and feature entitlement checks."
-      ],
-      "evidence": [
-        {
-          "label": "AWS official API models for Amazon Connect family",
-          "url": "https://github.com/aws/api-models-aws/tree/main/models"
-        },
-        {
-          "label": "AWS API models announcement",
-          "url": "https://aws.amazon.com/blogs/aws/introducing-aws-api-models-and-publicly-available-resources-for-aws-api-definitions/"
-        },
-        {
-          "label": "Amazon Connect StartTaskContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StartTaskContact.html"
-        },
-        {
-          "label": "Amazon Connect StartChatContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StartChatContact.html"
-        },
-        {
-          "label": "Amazon Connect API operations",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Service.html"
-        },
-        {
-          "label": "Amazon Connect StartOutboundVoiceContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundVoiceContact.html"
-        },
-        {
-          "label": "Amazon Connect StartOutboundChatContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StartOutboundChatContact.html"
-        },
-        {
-          "label": "Amazon Connect StopContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_StopContact.html"
-        },
-        {
-          "label": "Amazon Connect Participant Service",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Participant_Service.html"
-        },
-        {
-          "label": "Amazon Connect Participant SendEvent",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_connect-participant_SendEvent.html"
-        },
-        {
-          "label": "Amazon Connect Participant GetTranscript",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_connect-participant_GetTranscript.html"
-        },
-        {
-          "label": "Amazon Connect Participant StartAttachmentUpload",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_connect-participant_StartAttachmentUpload.html"
-        },
-        {
-          "label": "Amazon Connect TransferContact",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_TransferContact.html"
-        },
-        {
-          "label": "Amazon Connect DescribeInstance",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/API_DescribeInstance.html"
-        },
-        {
-          "label": "Amazon Connect API Reference",
-          "url": "https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html"
-        },
-        {
-          "label": "Amazon AppIntegrations API Reference",
-          "url": "https://docs.aws.amazon.com/appintegrations/latest/APIReference/Welcome.html"
-        },
-        {
-          "label": "Amazon Connect Customer Profiles API Reference",
-          "url": "https://docs.aws.amazon.com/customerprofiles/latest/APIReference/Welcome.html"
-        },
-        {
-          "label": "Amazon Q in Connect API Reference",
-          "url": "https://docs.aws.amazon.com/amazon-q-connect/latest/APIReference/Welcome.html"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/amazon-connect",
-      "providerModule": "./contact-center/amazon-connect/index.js",
-      "manifestExport": "amazonConnectContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/amazon-connect/manifest.ts",
-      "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/aws/api-models-aws/tree/main/models"
-    },
-    "readiness": {
-      "mode": "credential-and-live-check",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "amazon-connect-instance",
-        "amazon-connect-api-access"
-      ],
-      "optionalCredentialIds": [],
-      "credentialRequirements": [
-        {
-          "id": "amazon-connect-instance",
-          "label": "Amazon Connect instance",
-          "description": "The SDK user's Amazon Connect instance ID and AWS region.",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "amazon-connect-api-access",
-          "label": "Amazon Connect API access",
-          "description": "Server-side AWS SigV4-signed access for Amazon Connect APIs.",
-          "scopes": [
-            "connect:StartTaskContact",
-            "connect:StartChatContact",
-            "connect:TransferContact",
-            "connect:DescribeInstance"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "These strings are AWS IAM action names, not OAuth scopes."
-          }
-        }
-      ]
-    },
-    "privacyNotes": [
-      "Task contacts can contain customer identifiers, transcript summaries, references, and routing attributes.",
-      "Chat contacts and participant-service calls can contain customer display names, initial messages, message content, events, connection tokens, participant tokens, and transcript records.",
-      "AWS credentials or SigV4 signing material stay server-side and are represented in Studio only as readiness."
-    ],
-    "limitations": [
-      "Exactly one of contactFlowId, quickConnectId, or taskTemplateId should be supplied unless the task template has its own flow.",
-      "StartChatContact requires contactFlowId and participantDetails; clients must create the participant connection within Amazon Connect's documented timing and own WebSocket subscription behavior.",
-      "TransferContact is documented for TASK and EMAIL contacts only; this package does not claim broad voice-call or chat transfer coverage.",
-      "Queue selection, contact-flow design, assignment, outbound consent, participant token custody, chat transcript retention, and handoff timing remain SDK-user configuration."
-    ],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "channelCoverage": {
-        "taskContact": "typed-create",
-        "chatContact": "typed-start",
-        "participantMessages": "typed-selected",
-        "participantEvents": "typed-selected",
-        "participantTranscript": "typed-read",
-        "participantAttachments": "generated-full-surface",
-        "taskEmailTransfer": "typed-transfer",
-        "fullConnectFamilyApiOperations": "generated-per-operation-functions",
-        "emailContact": "generated-full-surface",
-        "outboundChatContact": "generated-full-surface",
-        "outboundEmailContact": "generated-full-surface",
-        "outboundSmsWhatsappContact": "generated-full-surface-where-present-in-official-models",
-        "chatStreaming": "generated-full-surface",
-        "queuedCallbackStop": "generated-full-surface",
-        "voiceCallTransfer": "generated-full-surface-where-present-in-official-models",
-        "outboundVoiceContact": "generated-full-surface",
-        "callback": "generated-full-surface-where-present-in-official-models",
-        "outboundCampaigns": "generated-full-surface",
-        "webRtcContactLifecycle": "generated-full-surface",
-        "chatTransfer": "generated-full-surface-where-present-in-official-models",
-        "appIntegrations": "generated-full-surface",
-        "customerProfiles": "generated-full-surface",
-        "qConnect": "generated-full-surface",
-        "wisdom": "generated-full-surface"
-      },
-      "fullProviderApiVerification": {
-        "provider": "amazon-connect-family",
-        "apiVersion": "main",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/amazon-connect-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/amazon-connect-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/amazon-connect-full-api-2026-06-17.functions.json",
-        "officialModelCount": 11,
-        "documentedOperationCount": 765,
-        "implementedOperationCount": 765,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 765
-      },
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -1637,11 +1878,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.five9",
     "category": "contactCenter",
     "provider": "five9",
-    "importPath": "@cognidesk/integrations/contact-center/five9",
-    "modulePath": "./contact-center/five9/index.js",
-    "manifestExport": "five9ContactCenterProviderManifest",
+    "importPath": "@cognidesk/integration-contact-center-five9/manifest",
+    "modulePath": "integrations/contact-center/five9/dist/manifest.js",
+    "manifestExport": "five9ProviderManifest",
     "name": "Five9",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-five9",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -1655,7 +1896,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Five9",
-      "summary": "Coverage is limited to SDK-configured handoff and readiness request paths; this is not typed outbound dialing or transfer coverage.",
+      "summary": "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
       "tags": [
         "contactCenter",
         "five9",
@@ -1666,32 +1907,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Five9 handoff",
-        "description": "POSTs to an SDK-configured Five9 support-workflow path without claiming typed contact, callback, CRM, campaign, outbound, or transfer coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "five9ConfiguredRequest",
-            "label": "Five9 Configured Request"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is limited to SDK-configured handoff and readiness request paths; this is not typed outbound dialing or transfer coverage.",
-        "No official public OpenAPI/Swagger inventory was found during the 2026-06-18 Five9 audit; the checked inventory is `docs/provider-coverage/five9-contact-center-api-2026-06-18.checked-inventory.json`, and detailed endpoint documentation appears to require Five9 developer-program or customer-doc access.",
-        "The package does not implement Five9's broader APIs for CTI Web Services, Configuration Web Services, Reporting Web Services, Statistics Web Services, Web2Campaign, CRM SDK, Web Connectors, agent, supervisor, administrator, campaigns, lists, recordings, skills, digital engagement, chat, email, SMS, social, video, or CRM objects."
+        "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented."
       ],
       "evidence": [
         {
@@ -1701,10 +1934,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Five9 development program",
           "url": "https://www.five9.com/development"
-        },
-        {
-          "label": "Five9 campaigns documentation",
-          "url": "https://documentation.five9.com/bundle/studio-combo/page/studio-build/campaigns/_ch-studio-campaigns.htm"
         }
       ]
     },
@@ -1716,14 +1945,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -1748,12 +1978,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/five9",
-      "providerModule": "./contact-center/five9/index.js",
-      "manifestExport": "five9ContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/five9/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "sdkPackage": "@cognidesk/integration-contact-center-five9",
+      "runtimePackage": "@cognidesk/integration-contact-center-five9",
+      "providerModule": "integrations/contact-center/five9/dist/manifest.js",
+      "manifestExport": "five9ProviderManifest",
+      "manifestSource": "integrations/contact-center/five9/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://www.five9.com/products/capabilities/call-center-apis-and-sdks"
     },
     "readiness": {
@@ -1776,7 +2006,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "five9-api-access",
           "label": "Five9 API access",
-          "description": "Endpoint-specific Five9 API access configured by the SDK app; this package does not assume OAuth-style scope names for generic configured paths.",
           "scopes": [],
           "required": true
         },
@@ -1788,14 +2017,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Five9 handoffs can include phone numbers, CRM context, campaign membership, queue/skill metadata, and summaries.",
-      "Five9 credentials stay server-side and Studio receives only readiness."
-    ],
-    "limitations": [
-      "Five9 domain, API product, skills, campaigns, CRM object mapping, and outbound eligibility are SDK-user configuration.",
-      "Per-conversation handoff calls cannot override the configured Five9 path; implement typed methods before enabling consequential Five9 campaign, outbound, transfer, recording, or CRM actions."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -1803,386 +2026,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedInventoryArtifact": "docs/provider-coverage/five9-contact-center-api-2026-06-18.checked-inventory.json",
-      "checkedProviderSupportedNotTypedFamilies": 17,
-      "officialPublicOpenApiSpec": "not-found",
-      "officialPublicWebhookCatalog": "not-found",
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "publicOpenApiSpec": "not-covered",
-        "developerProgramDocs": "provider-supported-not-typed",
-        "ctiWebServices": "provider-supported-not-typed",
-        "configurationWebServices": "provider-supported-not-typed",
-        "reportingWebServices": "provider-supported-not-typed",
-        "statisticsWebServices": "provider-supported-not-typed",
-        "web2Campaign": "provider-supported-not-typed",
-        "crmSdk": "provider-supported-not-typed",
-        "webConnectors": "provider-supported-not-typed",
-        "nativeInboundVoice": "provider-supported-not-typed",
-        "outboundDialing": "provider-supported-not-typed",
-        "callback": "provider-supported-not-typed",
-        "chat": "provider-supported-not-typed",
-        "digitalEngagement": "provider-supported-not-typed",
-        "email": "provider-supported-not-typed",
-        "sms": "provider-supported-not-typed",
-        "socialMessaging": "provider-supported-not-typed",
-        "video": "provider-supported-not-typed",
-        "campaignActions": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed",
-        "crmObjects": "provider-supported-not-typed",
-        "recordings": "provider-supported-not-typed"
+      "implementation": {
+        "implementationStrategy": "direct-http-support-slice",
+        "sdkDecision": "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contactCenter.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.genesys-cloud",
-    "category": "contactCenter",
-    "provider": "genesys-cloud",
-    "importPath": "@cognidesk/integrations/contact-center/genesys-cloud",
-    "modulePath": "./contact-center/genesys-cloud/index.js",
-    "manifestExport": "genesysCloudContactCenterProviderManifest",
-    "name": "Genesys Cloud CX",
-    "packageName": "@cognidesk/integrations",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "Genesys Cloud CX",
-      "summary": "Coverage includes generated per-operation functions for every operation in the current official Genesys Cloud Platform API Swagger exposed at /api/v2/docs/swagger.",
-      "tags": [
-        "contactCenter",
-        "genesys-cloud",
-        "official",
-        "full-provider-api"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "label": "Create Genesys Cloud callback or Open Messaging ingress",
-        "description": "Creates SDK-configured Genesys Cloud support-workflow requests and typed callback/Open Messaging deliveries; native transfer, chat, Web Messaging, and Messenger REST operations are available through generated fullApi functions rather than this generic handoff capability.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "genesysCloudCallback",
-            "label": "Genesys Cloud Callback"
-          },
-          {
-            "kind": "genesysCloudOpenMessage",
-            "label": "Genesys Cloud Open Messaging inbound message/event/receipt"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "contact-center.open-messaging-ingress",
-        "label": "Deliver Genesys Cloud Open Messaging ingress",
-        "description": "Delivers customer-originated messages, events, and receipts into a configured Genesys Cloud Open Messaging integration; this is not native Web Messaging, Messenger, or human-transfer coverage.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "genesysCloudOpenMessage",
-            "label": "Genesys Cloud Open Messaging inbound message/event/receipt"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": true
-      },
-      {
-        "capability": "send",
-        "label": "Create outbound callback",
-        "description": "Supports outbound callback creation only when the SDK configuration enables it and the Genesys org supports it.",
-        "audiences": [
-          "customer-facing"
-        ],
-        "providerObjects": [
-          {
-            "kind": "genesysCloudCallback",
-            "label": "Genesys Cloud Callback"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "full-provider-api",
-      "notes": [
-        "Coverage includes generated per-operation functions for every operation in the current official Genesys Cloud Platform API Swagger exposed at /api/v2/docs/swagger.",
-        "The package keeps typed support helpers for callback creation, Open Messaging inbound API message/event/receipt requests, Open Messaging outbound webhook signature validation, conversation read, queue listing, and current-user readiness.",
-        "Genesys Cloud handoff is not limited to voice or callback: this package types Open Messaging digital ingress for chat-like third-party messaging handoff into Genesys ACD.",
-        "Native Genesys Cloud Messenger customer-site JavaScript behavior is not a server-side REST endpoint, but all REST configuration/deployment endpoints in the Swagger are exposed through generated functions."
-      ],
-      "evidence": [
-        {
-          "label": "Genesys Cloud Platform API Swagger",
-          "url": "https://api.mypurecloud.com/api/v2/docs/swagger"
-        },
-        {
-          "label": "Genesys APIs by Service",
-          "url": "https://all.docs.genesys.com/Developer/APIbyService"
-        },
-        {
-          "label": "Genesys Cloud Developer Center",
-          "url": "https://developer.genesys.cloud/"
-        },
-        {
-          "label": "Genesys Cloud API Explorer Create Callback",
-          "url": "https://developer.genesys.cloud/devapps/api-explorer#post-api-v2-conversations-callbacks"
-        },
-        {
-          "label": "Genesys Cloud Open Messaging inbound endpoint deprecation",
-          "url": "https://help.genesys.cloud/announcements/deprecation-current-open-messaging-inbound-endpoint/"
-        },
-        {
-          "label": "Genesys Cloud Configure Open Messaging",
-          "url": "https://help.genesys.cloud/articles/configure-an-open-messaging-integration/"
-        },
-        {
-          "label": "Genesys Cloud Web Chat widgets",
-          "url": "https://help.genesys.cloud/articles/about-widgets-for-web-chat/"
-        },
-        {
-          "label": "Genesys Cloud Web Messaging overview",
-          "url": "https://help.genesys.cloud/articles/web-messaging-overview/"
-        },
-        {
-          "label": "Genesys Cloud Conversations API overview",
-          "url": "https://developer.genesys.cloud/api/rest/v2/conversations/overview.html"
-        },
-        {
-          "label": "Genesys Cloud Routing APIs",
-          "url": "https://developer.genesys.cloud/api/rest/v2/routing/"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/genesys-cloud",
-      "providerModule": "./contact-center/genesys-cloud/index.js",
-      "manifestExport": "genesysCloudContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/genesys-cloud/manifest.ts",
-      "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://api.mypurecloud.com/api/v2/docs/swagger"
-    },
-    "readiness": {
-      "mode": "credential-configuration",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "genesys-cloud-region",
-        "genesys-cloud-api-access"
-      ],
-      "optionalCredentialIds": [
-        "genesys-cloud-routing",
-        "genesys-cloud-open-messaging"
-      ],
-      "credentialRequirements": [
-        {
-          "id": "genesys-cloud-region",
-          "label": "Genesys Cloud API region/base URL",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "genesys-cloud-api-access",
-          "label": "Genesys Cloud OAuth access",
-          "scopes": [
-            "conversation:callback:create",
-            "routing:queue:view",
-            "user:me:view"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "Genesys Cloud OAuth clients require roles/permissions such as conversation:callback:create, routing:queue:view, and user:me:view; these are permission labels for the org configuration."
-          }
-        },
-        {
-          "id": "genesys-cloud-routing",
-          "label": "Genesys Cloud queue, callback, or digital messaging routing configuration",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "genesys-cloud-open-messaging",
-          "label": "Genesys Cloud Open Messaging integration and webhook secret",
-          "description": "Requires an Open Messaging integration, Messaging > Integration > All permission, and the optional webhook signature secret when outbound webhooks are enabled.",
-          "scopes": [
-            "Messaging > Integration > All"
-          ],
-          "required": false,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "This is a Genesys Cloud permission label, not an OAuth scope string."
-          }
-        }
-      ]
-    },
-    "privacyNotes": [
-      "Genesys handoffs can include customer phone numbers, callback windows, summaries, and queue/agent routing metadata.",
-      "Open Messaging ingress can include customer identity, message content, channel metadata, and third-party conversation identifiers.",
-      "OAuth credentials stay server-side and Studio only receives readiness status."
-    ],
-    "limitations": [
-      "Genesys regions, OAuth scopes/permissions, queues, callback eligibility, Architect flows, digital integrations, and outbound policy are SDK-user configuration.",
-      "Generated fullApi/requestOperation functions expose documented Genesys Cloud REST operations; configured handoff paths remain limited to SDK-owned workflow wiring.",
-      "Genesys Cloud Messenger JavaScript SDK usage is a separate customer-site implementation surface; REST web chat, Web Messaging, Messenger deployment, transfer, routing, conversation, and messaging operations are exposed through generated fullApi functions."
-    ],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "channelCoverage": {
-        "fullPlatformRestApiOperations": "generated-per-operation-functions",
-        "voiceCall": "generated-full-surface",
-        "callback": "typed-create-and-generated-full-surface",
-        "callbackHandoff": "typed-create-and-generated-full-surface",
-        "nativeVoiceHandoff": "generated-full-surface",
-        "nativeChatHandoff": "generated-full-surface",
-        "webMessagingGuestApi": "generated-full-platform-admin-surface",
-        "messengerJavascriptSdk": "provider-supported-customer-site-not-typed",
-        "openMessagingAcdHandoff": "typed-digital-ingress-message-event-receipt-and-generated-full-surface",
-        "openMessagingInboundApi": "typed-digital-ingress-message-event-receipt-and-generated-full-surface",
-        "openMessagingOutboundWebhookSignature": "typed-verify-only",
-        "openMessagingWebhookParser": "not-covered",
-        "nativeWebMessaging": "generated-full-platform-admin-surface",
-        "webMessagingMessenger": "generated-full-platform-admin-surface",
-        "webChatWidget": "legacy-provider-supported-customer-site-not-typed",
-        "transfer": "generated-full-surface"
-      },
-      "fullProviderApiVerification": {
-        "provider": "genesys-cloud",
-        "apiVersion": "genesys-cloud-v2-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/genesys-cloud-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/genesys-cloud-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/genesys-cloud-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 3147,
-        "implementedOperationCount": 3147,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 3147
-      },
-      "deploymentModes": {
-        "cloud": "supported",
-        "engageOnPremises": "separate-package-supported",
-        "pureConnectOnPremises": "separate-package-supported"
-      },
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -2210,11 +2084,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.genesys-engage",
     "category": "contactCenter",
     "provider": "genesys-engage",
-    "importPath": "@cognidesk/integrations/contact-center/genesys-engage",
-    "modulePath": "./contact-center/genesys-engage/index.js",
-    "manifestExport": "genesysEngageContactCenterProviderManifest",
+    "importPath": "@cognidesk/integration-contact-center-genesys-engage/manifest",
+    "modulePath": "integrations/contact-center/genesys-engage/dist/manifest.js",
+    "manifestExport": "genesysEngageProviderManifest",
     "name": "Genesys Engage / GMS",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-genesys-engage",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -2228,7 +2102,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Genesys Engage / GMS",
-      "summary": "Coverage includes typed Genesys Mobile Services callback creation only, typed GMS Chat API v2 customer chat lifecycle/file operations, and SDK-configured REST handoff paths for deployment-specific Genesys Engage on-premises services.",
+      "summary": "No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.",
       "tags": [
         "contactCenter",
         "genesys-engage",
@@ -2239,81 +2113,56 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Genesys Engage handoff",
-        "description": "Creates SDK-configured Genesys Engage/GMS callback, chat, or on-premises handoff requests.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "genesysEngageCallback",
-            "label": "Genesys Engage/GMS Callback"
-          },
-          {
-            "kind": "genesysEngageGmsChatV2",
-            "label": "Genesys Engage GMS Chat API v2 session"
-          },
-          {
-            "kind": "genesysEngageConfiguredChatHandoff",
-            "label": "Genesys Engage configured chat handoff"
-          },
-          {
-            "kind": "genesysEngageConfiguredCallbackHandoff",
-            "label": "Genesys Engage configured callback handoff"
-          },
-          {
-            "kind": "genesysEngageConfiguredHandoff",
-            "label": "Genesys Engage configured HTTP handoff"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "contact-center.on-prem-configured-handoff",
-        "label": "Create Genesys Engage configured on-prem handoff",
-        "description": "Creates SDK-configured Genesys Engage/GMS chat-adjacent, WebChatService-adjacent, or deployment-specific handoff requests without claiming typed chat session lifecycle coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "capability": "schedule",
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "genesysEngageConfiguredChatHandoff",
-            "label": "Genesys Engage configured chat handoff"
-          },
-          {
-            "kind": "genesysEngageConfiguredCallbackHandoff",
-            "label": "Genesys Engage configured callback handoff"
-          },
-          {
-            "kind": "genesysEngageConfiguredHandoff",
-            "label": "Genesys Engage configured HTTP handoff"
+            "kind": "callback",
+            "label": "callback"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": true
+        "changesWorkflow": false,
+        "extension": false
       },
       {
         "capability": "send",
-        "label": "Create on-prem callback request",
-        "description": "Submits a callback creation request to a configured Genesys Mobile Services callback service; broader callback lifecycle operations are not typed in this package.",
-        "audiences": [
-          "customer-facing"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "genesysEngageCallback",
-            "label": "Genesys Engage/GMS Callback"
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
           }
         ],
         "requiresCredential": true,
@@ -2326,17 +2175,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes typed Genesys Mobile Services callback creation only, typed GMS Chat API v2 customer chat lifecycle/file operations, and SDK-configured REST handoff paths for deployment-specific Genesys Engage on-premises services.",
-        "The package does not type the broader GMS Callback Services cancel, delete, reschedule, availability, query, queue-position, watermark, export, or callback-record operations.",
-        "GMS Chat API v2 methods cover the documented customer-facing request/send/typing/refresh/disconnect/push URL/nickname/custom notice/update data/read receipt/file endpoints. WebChatService, CometD, agent desktop participation, widget behavior, and broader on-premises APIs remain outside this typed surface.",
-        "The checked endpoint inventory is `docs/provider-coverage/genesys-engage-gms-api-2026-06-18.checked-inventory.json`; transfer and event delivery are provider-supported but not typed, while no GMS/WebChatService webhook subscription endpoint catalog was found in the checked official docs.",
-        "Genesys Engage on-premises exposes separate GMS Callback, Chat API, WebChatService, WebRTC, Interaction SDK, and Web Services surfaces; this package does not claim full on-prem API coverage."
+        "No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations."
       ],
       "evidence": [
-        {
-          "label": "Genesys APIs by Service",
-          "url": "https://all.docs.genesys.com/Developer/APIbyService"
-        },
         {
           "label": "Genesys GMS Callback Services API",
           "url": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI"
@@ -2344,10 +2185,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Genesys GMS Chat API v2",
           "url": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2"
-        },
-        {
-          "label": "Genesys WebChatService",
-          "url": "https://all.docs.genesys.com/WID/Current/GCAPI/WebChatService"
         }
       ]
     },
@@ -2359,22 +2196,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -2386,18 +2224,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "genesys-engage.chat.send"
+        ]
       }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/genesys-engage",
-      "providerModule": "./contact-center/genesys-engage/index.js",
-      "manifestExport": "genesysEngageContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/genesys-engage/manifest.ts",
+      "sdkPackage": "@cognidesk/integration-contact-center-genesys-engage",
+      "runtimePackage": "@cognidesk/integration-contact-center-genesys-engage",
+      "providerModule": "integrations/contact-center/genesys-engage/dist/manifest.js",
+      "manifestExport": "genesysEngageProviderManifest",
+      "manifestSource": "integrations/contact-center/genesys-engage/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://all.docs.genesys.com/Developer/APIbyService"
+      "documentationPath": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -2430,15 +2270,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Genesys Engage handoffs can include phone numbers, chat-adjacent context or transcripts, routing targets, callback times, and user data configured by the SDK app.",
-      "On-premises credentials and network details stay server-side; Studio receives only configuration/readiness state."
-    ],
-    "limitations": [
-      "Genesys Engage deployment topology, service names, chat version, routing targets, and authentication are SDK-user configuration.",
-      "The generic handoff helper requires an explicit configured path because on-premises deployments commonly expose different GMS, Web Services, and widget integration endpoints.",
-      "WebChatService start/end/transcript/polling, GMS CometD, agent desktop participation, and widget behavior require deployment-specific typed support beyond the GMS Chat API v2 customer HTTP lifecycle exposed here."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -2446,50 +2279,61 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "deploymentMode": "genesys-engage-on-premises",
-      "checkedInventoryArtifact": "docs/provider-coverage/genesys-engage-gms-api-2026-06-18.checked-inventory.json",
-      "checkedEndpointEntries": 27,
-      "officialMachineReadableSpec": "not-found",
-      "checkedWebhookCatalog": "not-found-in-checked-gms-webchatservice-docs",
-      "channelCoverage": {
-        "callback": "typed-create-only",
-        "callbackLifecycle": "provider-supported-not-typed",
-        "configuredHttpHandoff": "supported",
-        "gmsChatV2": "typed-customer-lifecycle",
-        "gmsChatV2CometD": "provider-supported-not-typed",
-        "gmsChatV2Lifecycle": "typed-request-send-refresh-disconnect-read-receipt",
-        "gmsChatV2FileManagement": "typed-limits-upload-download-delete",
-        "webChatService": "provider-supported-configured-http-only",
-        "webChatServiceLifecycle": "provider-supported-not-typed",
-        "webChatServiceEvents": "provider-supported-not-typed",
-        "events": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed",
-        "webhooks": "not-covered",
-        "webRtc": "not-covered",
-        "interactionSdk": "not-covered"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "createCallback",
+            "alias": "contactCenter.callback.schedule",
+            "method": "POST",
+            "path": "/genesys/1/service/callback/{serviceName}",
+            "source": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI",
+            "checksum": "not-available-html-doc"
+          },
+          {
+            "id": "requestChat",
+            "alias": "contactCenter.contact.start",
+            "method": "POST",
+            "path": "/genesys/2/chat/{serviceName}",
+            "source": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
+            "checksum": "not-available-html-doc"
+          },
+          {
+            "id": "sendChatMessage",
+            "alias": "genesys-engage.chat.send",
+            "method": "POST",
+            "path": "/genesys/2/chat/{serviceName}/{chatId}/send",
+            "source": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
+            "checksum": "not-available-html-doc"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -2501,7 +2345,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "genesys-engage.chat.send"
+        ]
       }
     }
   },
@@ -2509,11 +2355,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.genesys-pureconnect",
     "category": "contactCenter",
     "provider": "genesys-pureconnect",
-    "importPath": "@cognidesk/integrations/contact-center/genesys-pureconnect",
-    "modulePath": "./contact-center/genesys-pureconnect/index.js",
-    "manifestExport": "genesysPureConnectContactCenterProviderManifest",
+    "importPath": "@cognidesk/integration-contact-center-genesys-pureconnect/manifest",
+    "modulePath": "integrations/contact-center/genesys-pureconnect/dist/manifest.js",
+    "manifestExport": "genesysPureConnectProviderManifest",
     "name": "Genesys PureConnect / ICWS",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-genesys-pureconnect",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -2527,7 +2373,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Genesys PureConnect / ICWS",
-      "summary": "Coverage introduces Genesys PureConnect as a separate deployment/provider mode from Genesys Cloud and Genesys Engage/GMS.",
+      "summary": "No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations.",
       "tags": [
         "contactCenter",
         "genesys-pureconnect",
@@ -2538,80 +2384,56 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create PureConnect configured handoff",
-        "description": "Creates SDK-configured PureConnect/ICWS or Interaction Web Tools handoff requests without claiming typed web chat, callback, or interaction-control lifecycle coverage.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "genesysPureConnectConfiguredWebChatHandoff",
-            "label": "PureConnect configured web chat handoff"
-          },
-          {
-            "kind": "genesysPureConnectConfiguredCallbackHandoff",
-            "label": "PureConnect configured callback handoff"
-          },
-          {
-            "kind": "genesysPureConnectConfiguredHandoff",
-            "label": "PureConnect configured handoff"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "contact-center.pureconnect-session",
-        "label": "Create PureConnect ICWS session",
-        "description": "Creates a documented ICWS connection/session representation against `/icws/connection` and exposes session-scoped ICWS request helpers.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "genesysPureConnectIcwsConnection",
-            "label": "PureConnect ICWS connection"
-          },
-          {
-            "kind": "genesysPureConnectIcwsInteraction",
-            "label": "PureConnect ICWS interaction"
-          },
-          {
-            "kind": "genesysPureConnectIcwsMessagingSubscription",
-            "label": "PureConnect ICWS messaging subscription"
-          },
-          {
-            "kind": "genesysPureConnectIcwsRecording",
-            "label": "PureConnect ICWS recording"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
         "changesWorkflow": false,
-        "extension": true
+        "extension": false
+      },
+      {
+        "capability": "create-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage introduces Genesys PureConnect as a separate deployment/provider mode from Genesys Cloud and Genesys Engage/GMS.",
-        "Coverage includes a typed ICWS connection creation helper, session-aware ICWS request helpers, typed wrappers for selected documented interaction create/read/update/conference/consult endpoints, messaging message polling and interaction subscriptions, recording export URI, and configuration-user read endpoints, plus SDK-configured PureConnect handoff/readiness paths for deployment-specific Interaction Web Tools, web chat, or callback plumbing.",
-        "Readiness requires an SDK-configured GET path such as a deployment health endpoint or documented ICWS metadata endpoint; the package does not assume `GET /icws/connection` because the documented connection endpoint creates sessions with POST.",
-        "The checked endpoint inventory is `docs/provider-coverage/genesys-pureconnect-icws-api-2026-06-18.checked-inventory.json`; ICWS events are represented by message polling/EventSource and selected subscriptions, while no official webhook subscription endpoint catalog was found in the checked ICWS/Interaction Web Tools docs.",
-        "The package does not claim the full PureConnect ICWS API or Interaction Web Tools chat/callback lifecycle. Broader queue control, recordings beyond export URI, statistics beyond subscription transport, directory, status, and administration APIs remain outside this scoped surface unless called through the generic request helper."
+        "No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations."
       ],
       "evidence": [
-        {
-          "label": "Genesys APIs by Service",
-          "url": "https://all.docs.genesys.com/Developer/APIbyService"
-        },
         {
           "label": "PureConnect ICWS connection",
           "url": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm"
@@ -2619,22 +2441,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "PureConnect ICWS interactions",
           "url": "https://help.genesys.com/staging/developer/root/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm"
-        },
-        {
-          "label": "PureConnect ICWS messages",
-          "url": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/%28sessionId%29/messaging/messages/index.htm"
-        },
-        {
-          "label": "PureConnect ICWS recording export URI",
-          "url": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/%28sessionId%29/recordings/%28recordingId%29/export-uri/index.htm"
-        },
-        {
-          "label": "PureConnect Interaction Web Tools",
-          "url": "https://help.genesys.com/pureconnect/mergedprojects/wh_tr/mergedprojects/wh_tr_installation_and_configuration/desktop/interaction_web_tools.htm"
-        },
-        {
-          "label": "PureConnect chat features",
-          "url": "https://help.genesys.com/pureconnect/desktop/chat_features_landing.htm"
         }
       ]
     },
@@ -2646,14 +2452,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -2673,18 +2480,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "genesys-pureconnect.icws.connect",
+          "genesys-pureconnect.icws.request"
+        ]
       }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/genesys-pureconnect",
-      "providerModule": "./contact-center/genesys-pureconnect/index.js",
-      "manifestExport": "genesysPureConnectContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/genesys-pureconnect/manifest.ts",
+      "sdkPackage": "@cognidesk/integration-contact-center-genesys-pureconnect",
+      "runtimePackage": "@cognidesk/integration-contact-center-genesys-pureconnect",
+      "providerModule": "integrations/contact-center/genesys-pureconnect/dist/manifest.js",
+      "manifestExport": "genesysPureConnectProviderManifest",
+      "manifestSource": "integrations/contact-center/genesys-pureconnect/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://all.docs.genesys.com/Developer/APIbyService"
+      "documentationPath": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -2717,15 +2527,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "PureConnect handoffs can include caller identifiers, callback/chat context, queue targets, transcript references, and deployment-specific user data.",
-      "PureConnect ICWS credentials, session IDs, and on-premises network details stay server-side; Studio receives only configuration/readiness state."
-    ],
-    "limitations": [
-      "PureConnect CIC topology, ICWS version, reverse proxy/base path, authentication, Interaction Web Tools handlers, chat forms, callback forms, and routing targets are SDK-user configuration.",
-      "Interaction Web Tools web chat and callback require deployment-specific web-server plumbing and routing configuration before they can be exposed to Cognidesk.",
-      "Interaction Web Tools web chat/callback widget lifecycle and high-level transfer policy remain deployment-specific; low-level ICWS paths can be called through the typed request helpers when the SDK user supplies the session, CSRF token, cookie, permissions, and payload."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -2733,48 +2536,45 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "deploymentMode": "genesys-pureconnect-icws",
-      "checkedInventoryArtifact": "docs/provider-coverage/genesys-pureconnect-icws-api-2026-06-18.checked-inventory.json",
-      "checkedEndpointEntries": 22,
-      "officialMachineReadableSpec": "not-found",
-      "checkedWebhookCatalog": "not-found-in-checked-icws-interaction-web-tools-docs",
-      "channelCoverage": {
-        "icwsConnection": "typed-create",
-        "icwsSessionRequest": "typed-generic-request",
-        "icwsInteractionSelectedActions": "typed-create-get-update-conference-consult",
-        "icwsInteractionSubscriptions": "typed-subscribe-unsubscribe",
-        "icwsMessagingMessages": "typed-poll-messages",
-        "icwsRecordingExportUri": "typed-read",
-        "icwsConfigurationUserRead": "typed-read",
-        "icwsDirectory": "provider-supported-not-typed",
-        "icwsStatistics": "provider-supported-not-typed",
-        "icwsStatus": "provider-supported-not-typed",
-        "icwsAdministration": "provider-supported-not-typed",
-        "configuredHttpHandoff": "supported",
-        "interactionWebToolsWebChat": "provider-supported-configured-http-only",
-        "interactionWebToolsCallback": "provider-supported-configured-http-only",
-        "interactionWebToolsChatLifecycle": "provider-supported-not-typed",
-        "interactionWebToolsCallbackLifecycle": "provider-supported-not-typed",
-        "pureConnectChatTransfer": "provider-supported-not-typed",
-        "interactionControl": "provider-supported-low-level-icws-request",
-        "typedTransfer": "not-covered",
-        "events": "provider-supported-not-typed",
-        "webhooks": "not-covered"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "createConnection",
+            "alias": "genesys-pureconnect.icws.connect",
+            "method": "POST",
+            "path": "/icws/connection",
+            "source": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm",
+            "checksum": "not-available-html-doc"
+          },
+          {
+            "id": "sessionRequest",
+            "alias": "genesys-pureconnect.icws.request",
+            "method": "GET",
+            "path": "host-configured-icws-session-path",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -2794,7 +2594,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "genesys-pureconnect.icws.connect",
+          "genesys-pureconnect.icws.request"
+        ]
       }
     }
   },
@@ -2802,11 +2605,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.nextiva",
     "category": "contactCenter",
     "provider": "nextiva",
-    "importPath": "@cognidesk/integrations/contact-center/nextiva",
-    "modulePath": "./contact-center/nextiva/index.js",
-    "manifestExport": "nextivaContactCenterProviderManifest",
+    "importPath": "@cognidesk/integration-contact-center-nextiva/manifest",
+    "modulePath": "integrations/contact-center/nextiva/dist/manifest.js",
+    "manifestExport": "nextivaProviderManifest",
     "name": "Nextiva Contact Center",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-nextiva",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -2820,7 +2623,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Nextiva Contact Center",
-      "summary": "Coverage is limited to SDK-configured handoff/readiness requests plus a generic authenticated request helper for SDK-user-owned Nextiva endpoints; this is not typed outbound or transfer coverage.",
+      "summary": "ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request.",
       "tags": [
         "contactCenter",
         "nextiva",
@@ -2831,53 +2634,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Nextiva handoff",
-        "description": "Creates SDK-configured Nextiva contact-center handoff requests.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "nextivaHandoff",
-            "label": "Nextiva Handoff"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "nextiva.request",
-        "label": "Call SDK-configured Nextiva endpoint",
-        "description": "Executes an SDK-user-configured authenticated Nextiva request helper without implying typed endpoint coverage; the host app must classify and gate mutating Nextiva actions.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "capability": "read-provider-object",
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "nextivaConfiguredRequest",
-            "label": "Nextiva Configured Request"
+            "kind": "contact",
+            "label": "contact"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": true,
+        "sideEffect": false,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": true
+        "changesWorkflow": false,
+        "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is limited to SDK-configured handoff/readiness requests plus a generic authenticated request helper for SDK-user-owned Nextiva endpoints; this is not typed outbound or transfer coverage.",
-        "No official public OpenAPI/Swagger inventory was found during the 2026-06-18 Nextiva audit; the checked inventory is `docs/provider-coverage/nextiva-contact-center-api-2026-06-18.checked-inventory.json`, and public docs describe service families and SDK methods rather than a complete generated operation catalog.",
-        "The generic request helper is not evidence of full Nextiva Contact Center API coverage; typed user/session/ACD services, queues, campaigns, users, workitems, call control, transfers to agent/inbox/external destinations, callbacks/callback administration, reports, recordings, conversations, email response, conference, DTMF, surveys, tenant authority/entity permissions, and channel APIs are not implemented here.",
-        "Configured Nextiva paths may perform arbitrary Nextiva-side mutations and must be classified, permission-gated, and policy-gated by the host SDK app before operators can trigger them."
+        "ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request."
       ],
       "evidence": [
         {
@@ -2885,24 +2674,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://www.nextiva.com/resources/learn/rest-apis"
         },
         {
-          "label": "Nextiva User Service",
-          "url": "https://developer.nextiva.com/nextiva/docs/user-service"
-        },
-        {
-          "label": "Nextiva ACD Service",
-          "url": "https://developer.nextiva.com/nextiva/docs/acd-service"
-        },
-        {
           "label": "Nextiva WorkItem Service",
           "url": "https://developer.nextiva.com/nextiva/docs/workitem-service"
         },
         {
-          "label": "Nextiva Conversation Service",
-          "url": "https://developer.nextiva.com/nextiva/docs/conversation-service"
-        },
-        {
-          "label": "Nextiva Contact Center Admin Guide",
-          "url": "https://www.nextiva.com/support/wp-content/uploads/sites/3/2024/06/NCC-Admin-Guide_v1.2.pdf"
+          "label": "Nextiva ncx-sdk",
+          "url": "https://github.com/Nextiva/ncx-sdk"
         }
       ]
     },
@@ -2914,14 +2691,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -2941,17 +2719,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "nextiva.request"
+        ]
       }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/nextiva",
-      "providerModule": "./contact-center/nextiva/index.js",
-      "manifestExport": "nextivaContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/nextiva/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "sdkPackage": "@cognidesk/integration-contact-center-nextiva",
+      "runtimePackage": "@cognidesk/integration-contact-center-nextiva",
+      "providerModule": "integrations/contact-center/nextiva/dist/manifest.js",
+      "manifestExport": "nextivaProviderManifest",
+      "manifestSource": "integrations/contact-center/nextiva/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://www.nextiva.com/resources/learn/rest-apis"
     },
     "readiness": {
@@ -2962,7 +2742,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "nextiva-contact-center-api-access"
       ],
       "optionalCredentialIds": [
-        "nextiva-contact-center-authorities",
         "nextiva-contact-center-routing"
       ],
       "credentialRequirements": [
@@ -2975,20 +2754,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "nextiva-contact-center-api-access",
           "label": "Nextiva Contact Center API access",
-          "description": "Endpoint-specific Nextiva API access configured by the SDK app; this package does not assume an OAuth scope for generic configured paths.",
           "scopes": [],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-role-or-privilege-guidance",
-            "privilegeGuidance": "Nextiva Contact Center access is governed by tenant/API/SDK authority and configured entity/action permissions rather than a universal OAuth scope list."
-          }
-        },
-        {
-          "id": "nextiva-contact-center-authorities",
-          "label": "Nextiva action/entity permissions for configured paths",
-          "description": "Host-owned Nextiva permissions for configured workitem, callback, campaign, outbound, and transfer actions.",
-          "scopes": [],
-          "required": false
+          "required": true
         },
         {
           "id": "nextiva-contact-center-routing",
@@ -2998,16 +2765,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Nextiva handoffs can include customer identifiers, phone numbers, active workitems, queue metadata, and conversation summaries.",
-      "Nextiva API credentials stay server-side and Studio receives only readiness."
-    ],
-    "limitations": [
-      "Nextiva tenant endpoint, queue/campaign IDs, custom API object paths, and outbound eligibility are SDK-user configuration.",
-      "The generic request helper is an escape hatch for SDK-user-owned endpoints and does not satisfy typed handoff, send, or transfer coverage.",
-      "Per-conversation handoff calls cannot override the configured Nextiva handoff path; use the explicit `request()` helper for SDK-owned custom endpoints.",
-      "Nextiva callbacks/callback administration, workitem mutations, outbound dialing/messaging, campaign operations, call-control transfer, and authority/entity permissions are host-owned configuration and are not typed by this package."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -3015,45 +2774,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedInventoryArtifact": "docs/provider-coverage/nextiva-contact-center-api-2026-06-18.checked-inventory.json",
-      "checkedProviderSupportedNotTypedFamilies": 12,
-      "officialPublicOpenApiSpec": "not-found",
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "genericRequest": "sdk-owned-classified-endpoint",
-        "publicOpenApiSpec": "not-covered",
-        "publicServiceDocs": "provider-supported-not-typed",
-        "userSessionAcdService": "provider-supported-not-typed",
-        "acdOfferLifecycle": "provider-supported-not-typed",
-        "workItems": "provider-supported-not-typed",
-        "voiceWorkitems": "provider-supported-not-typed",
-        "chatWorkitems": "provider-supported-not-typed",
-        "emailWorkitems": "provider-supported-not-typed",
-        "workitemCallControl": "provider-supported-not-typed",
-        "workitemTransferAgentInboxExternal": "provider-supported-not-typed",
-        "workitemEmailResponse": "provider-supported-not-typed",
-        "conferenceRecordingDtmf": "provider-supported-not-typed",
-        "conversationFetchCreateSend": "provider-supported-not-typed",
-        "surveys": "provider-supported-not-typed",
-        "callbacks": "provider-supported-not-typed",
-        "outboundDialingMessaging": "provider-supported-not-typed",
-        "campaigns": "provider-supported-not-typed",
-        "transfer": "provider-supported-not-typed"
+      "implementation": {
+        "implementationStrategy": "direct-http-support-slice",
+        "sdkDecision": "ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contactCenter.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
       },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
@@ -3073,7 +2824,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "nextiva.request"
+        ]
       }
     }
   },
@@ -3081,11 +2834,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.nice-cxone",
     "category": "contactCenter",
     "provider": "nice-cxone",
-    "importPath": "@cognidesk/integrations/contact-center/nice-cxone",
-    "modulePath": "./contact-center/nice-cxone/index.js",
-    "manifestExport": "niceCxoneContactCenterProviderManifest",
+    "importPath": "@cognidesk/integration-contact-center-nice-cxone/manifest",
+    "modulePath": "integrations/contact-center/nice-cxone/dist/manifest.js",
+    "manifestExport": "niceCxoneProviderManifest",
     "name": "NICE CXone",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-nice-cxone",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -3099,43 +2852,95 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "NICE CXone",
-      "summary": "Coverage includes generated per-operation functions for every operation in NICE CXone's public OpenAPI catalog reachable from the official API documentation pages.",
+      "summary": "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.",
       "tags": [
         "contactCenter",
         "nice-cxone",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create NICE CXone handoff",
-        "description": "Creates SDK-configured NICE CXone support-workflow requests; generated public OpenAPI functions are available separately for provider-native Patron, Agent, Digital Engagement, and administrative actions.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "niceCxoneConfiguredRequest",
-            "label": "NICE CXone configured request"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "schedule",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "callback",
+            "label": "callback"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "update-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in NICE CXone's public OpenAPI catalog reachable from the official API documentation pages.",
-        "Generated functions cover Admin, Agent, Patron, Real-Time Data, Reporting, Data Extraction, Media Playback, Digital Engagement, Business Data, WFM, Recording, Interaction Analytics, Privacy, Data Policy, Authentication, and UserHub/CXone APIs.",
-        "Typed convenience helpers remain available for SDK-configured handoff and readiness paths; SDK users still own business unit routing, OAuth/token permissions, product entitlements, regional API roots, and payload policy."
+        "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice."
       ],
       "evidence": [
         {
@@ -3143,59 +2948,36 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer.niceincontact.com/API"
         },
         {
-          "label": "NICE CXone Patron API",
-          "url": "https://developer.niceincontact.com/API/PatronAPI"
-        },
-        {
-          "label": "NICE CXone Agent API",
-          "url": "https://developer.niceincontact.com/API/AgentAPI"
-        },
-        {
-          "label": "NICE CXone Digital Engagement API",
-          "url": "https://developer.niceincontact.com/API/DigitalEngagementAPI"
-        },
-        {
-          "label": "NICE CXone Admin API",
-          "url": "https://developer.niceincontact.com/API/AdminAPI"
-        },
-        {
-          "label": "NICE CXone Reporting API",
-          "url": "https://developer.niceincontact.com/API/ReportingAPI"
-        },
-        {
-          "label": "NICE CXone Media Playback API",
-          "url": "https://developer.niceincontact.com/API/MediaPlaybackAPI"
-        },
-        {
-          "label": "NICE CXone Recording API",
-          "url": "https://developer.niceincontact.com/API/RecordingAPI"
+          "label": "NICE CXone Agent SDK",
+          "url": "https://github.com/nice-devone/nice-cxone-agent-sdk"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -3207,17 +2989,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "nice-cxone.request"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/nice-cxone",
-      "providerModule": "./contact-center/nice-cxone/index.js",
-      "manifestExport": "niceCxoneContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/nice-cxone/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-contact-center-nice-cxone",
+      "runtimePackage": "@cognidesk/integration-contact-center-nice-cxone",
+      "providerModule": "integrations/contact-center/nice-cxone/dist/manifest.js",
+      "manifestExport": "niceCxoneProviderManifest",
+      "manifestSource": "integrations/contact-center/nice-cxone/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developer.niceincontact.com/API"
     },
     "readiness": {
@@ -3240,7 +3024,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "nice-cxone-api-access",
           "label": "NICE CXone API access",
-          "description": "Endpoint-specific NICE CXone API token/permissions configured by the SDK app; generated functions expose the public OpenAPI catalog, while entitlements remain tenant/configuration-specific.",
           "scopes": [],
           "required": true
         },
@@ -3252,15 +3035,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "NICE CXone handoffs can include customer identifiers, phone numbers, skill routing, summaries, and analytics metadata.",
-      "CXone credentials stay server-side and Studio receives only readiness."
-    ],
-    "limitations": [
-      "CXone API domains, business units, skills, points of contact, WFM/QM access, and outbound eligibility are SDK-user configuration.",
-      "Generated functions expose NICE CXone's public OpenAPI catalog, but API availability still depends on the SDK user's region, tenant, products, business unit, skills, security profile, scopes, and feature entitlements.",
-      "Per-conversation handoff calls cannot override the configured NICE CXone path; use the generated public OpenAPI functions for consequential Patron, Agent, Digital Engagement, outbound, transfer, recording, or analytics actions."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -3268,350 +3044,61 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "fullPublicApiOperations": "generated-per-operation-functions",
-        "patronCallback": "generated-full-surface",
-        "patronLiveChat": "generated-full-surface",
-        "patronWorkItem": "generated-full-surface",
-        "digitalEngagement": "generated-full-surface",
-        "agentPhoneChatEmailSmsWorkItems": "generated-full-surface",
-        "agentStatus": "generated-full-surface",
-        "email": "generated-full-surface",
-        "sms": "generated-full-surface",
-        "outboundDialing": "generated-full-surface",
-        "transfer": "generated-full-surface-where-present-in-public-openapi",
-        "recordingMediaPlayback": "generated-full-surface",
-        "recordings": "generated-full-surface",
-        "realtimeReportingDataExtraction": "generated-full-surface",
-        "realtimeMetrics": "generated-full-surface",
-        "reporting": "generated-full-surface",
-        "dataExtraction": "generated-full-surface",
-        "adminSkillAgentObjects": "generated-full-surface",
-        "events": "generated-full-surface-where-present-in-public-openapi"
-      },
-      "fullProviderApiVerification": {
-        "provider": "nice-cxone-public-openapi",
-        "apiVersion": "nice-cxone-public-openapi-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/nice-cxone-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/nice-cxone-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/nice-cxone-full-api-2026-06-18.functions.json",
-        "documentedSpecCount": 68,
-        "documentedPathCount": 484,
-        "documentedOperationCount": 618,
-        "implementedOperationCount": 618,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 618
-      },
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.ringcentral",
-    "category": "contactCenter",
-    "provider": "ringcentral",
-    "importPath": "@cognidesk/integrations/contact-center/ringcentral",
-    "modulePath": "./contact-center/ringcentral/index.js",
-    "manifestExport": "ringCentralContactCenterProviderManifest",
-    "name": "RingCentral RingCX",
-    "packageName": "@cognidesk/integrations",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "RingCentral RingCX",
-      "summary": "Coverage includes generated per-operation functions for the current official RingCentral RingCX Voice OpenAPI spec and the official RingCentral Engage Digital OpenAPI spec.",
-      "tags": [
-        "contactCenter",
-        "ringcentral",
-        "official",
-        "provider-api-subset"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "label": "Create RingCX handoff",
-        "description": "Creates SDK-configured RingCX support-workflow requests; current RingCX Voice and Engage Digital REST operations are exposed separately through generated voiceApi and digitalApi functions.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
           {
-            "kind": "ringcxHandoff",
-            "label": "RingCX Handoff"
+            "id": "scheduleACallback",
+            "alias": "contactCenter.callback.schedule",
+            "method": "POST",
+            "path": "/promise",
+            "source": "https://developer.niceincontact.com/content/apis/patron/patron-callback-api-docs",
+            "checksum": "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+          },
+          {
+            "id": "startChatSession",
+            "alias": "contactCenter.contact.start",
+            "method": "POST",
+            "path": "/contacts/chats",
+            "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
+            "checksum": "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+          },
+          {
+            "id": "endChat",
+            "alias": "contactCenter.contact.end",
+            "method": "DELETE",
+            "path": "/contacts/chats/{chatSession}",
+            "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
+            "checksum": "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
           }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "provider-api-subset",
-      "notes": [
-        "Coverage includes generated per-operation functions for the current official RingCentral RingCX Voice OpenAPI spec and the official RingCentral Engage Digital OpenAPI spec.",
-        "Generated current Voice functions cover active calls, agents, agent groups, campaigns, dial groups, leads, lists, recordings, reports, requeue shortcuts, skills, teams, web services, and related current RingCX Voice REST operations.",
-        "Generated Digital functions cover events/webhooks, attachments, bots, content, identities, interventions, threads, sources, tasks, users, user capacities, teams, channels, topologies, and provisioning/routing resources from the Engage Digital REST spec.",
-        "Existing SDK-configured handoff and readiness helpers remain available, but the package still does not claim legacy RingCX Voice, broader RingCentral platform, Channel SDK runtime, or customer-site widget coverage."
-      ],
-      "evidence": [
-        {
-          "label": "RingCX Voice APIs",
-          "url": "https://developers.ringcentral.com/engage-voice-api"
-        },
-        {
-          "label": "RingCX Voice OpenAPI",
-          "url": "https://raw.githubusercontent.com/ringcentral/engage-voice-api-docs/main/specs/engage-voice_openapi3.json"
-        },
-        {
-          "label": "RingCX Voice API docs repository",
-          "url": "https://github.com/ringcentral/engage-voice-api-docs"
-        },
-        {
-          "label": "RingCX Digital APIs",
-          "url": "https://developers.ringcentral.com/engage-digital-api"
-        },
-        {
-          "label": "RingCX Digital OpenAPI",
-          "url": "https://raw.githubusercontent.com/ringcentral/engage-digital-api-docs/master/specs/engage-digital_openapi3.yaml"
-        },
-        {
-          "label": "RingCX Digital API docs repository",
-          "url": "https://github.com/ringcentral/engage-digital-api-docs"
-        },
-        {
-          "label": "RingCX authentication modes",
-          "url": "https://developers.ringcentral.com/engage/voice/guide/authentication"
-        },
-        {
-          "label": "RingCX Digital messaging source permissions",
-          "url": "https://developers.ringcentral.com/engage/digital/guide/interactions/web-messaging/source"
-        },
-        {
-          "label": "RingCX Channel SDK quick start",
-          "url": "https://developers.ringcentral.com/engage/digital/guide/sdks/source-sdk/quick-start"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/ringcentral",
-      "providerModule": "./contact-center/ringcentral/index.js",
-      "manifestExport": "ringCentralContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/ringcentral/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developers.ringcentral.com/engage-voice-api"
-    },
-    "readiness": {
-      "mode": "credential-configuration",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "ringcentral-ringcx-api-base",
-        "ringcentral-ringcx-api-access"
-      ],
-      "optionalCredentialIds": [
-        "ringcentral-ringcx-routing"
-      ],
-      "credentialRequirements": [
-        {
-          "id": "ringcentral-ringcx-api-base",
-          "label": "RingCX API base URL",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "ringcentral-ringcx-api-access",
-          "label": "RingCX API access",
-          "description": "RingCX access token or RingCentral OAuth token plus user/platform permissions configured by the SDK app; this package does not invent a generic `ringcx` OAuth scope.",
-          "scopes": [],
-          "required": true,
-          "metadata": {
-            "scopeKind": "mixed-auth-mode",
-            "privilegeGuidance": "RingCX deployments can use RingCentral OAuth scopes plus RingCX product permissions, or product-specific bearer/token modes for legacy/current APIs."
-          }
-        },
-        {
-          "id": "ringcentral-ringcx-routing",
-          "label": "RingCX queue/campaign routing configuration",
-          "scopes": [],
-          "required": false
-        }
-      ]
-    },
-    "privacyNotes": [
-      "RingCX handoffs can include customer identifiers, leads, active calls, queue metadata, and conversation summaries.",
-      "RingCentral credentials stay server-side and Studio receives only readiness."
-    ],
-    "limitations": [
-      "RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.",
-      "Generated functions expose the current RingCX Voice and Engage Digital REST specs, but SDK users still own account/region host selection, permissions, entitlement, safe mutating-operation policy, and payload validation.",
-      "Legacy RingCX Voice OpenAPI specs, product-specific private endpoints, the Engage Digital Channel SDK runtime, web/mobile widgets, and broader RingCentral platform APIs remain separate surfaces.",
-      "Per-conversation handoff calls cannot override the configured RingCX path; use generated voiceApi or digitalApi functions for consequential lead, campaign, active-call, digital, outbound, transfer, recording, bot, or task actions."
-    ],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "authModes": {
-        "currentRingCx": "authorization-bearer",
-        "legacyEngageVoice": "x-auth-token",
-        "explicitAuthorizationHeader": "supported"
+        ]
       },
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "currentVoiceRestApiOperations": "generated-per-operation-functions",
-        "currentVoiceLeadCampaignActiveCall": "generated-current-openapi-surface",
-        "currentVoiceOutboundDialing": "generated-current-openapi-surface",
-        "currentVoiceRecording": "generated-current-openapi-surface",
-        "currentVoiceTransfer": "generated-current-openapi-surface-where-present-in-current-openapi",
-        "digitalRestApiOperations": "generated-per-operation-functions",
-        "digitalCasesMessaging": "generated-digital-openapi-surface",
-        "digitalTasksThreadsInterventions": "generated-digital-openapi-surface",
-        "digitalWebhooksEvents": "generated-digital-openapi-surface",
-        "liveWebChat": "provider-supported-customer-site-not-typed",
-        "mobileMessaging": "provider-supported-customer-site-not-typed",
-        "channelSdkMessaging": "provider-supported-sdk-runtime-not-typed",
-        "smsEmailSocial": "generated-digital-openapi-surface-where-present",
-        "legacyVoiceRestApiOperations": "provider-supported-not-typed"
-      },
-      "generatedProviderApiSlices": {
-        "ringCxVoiceCurrent": {
-          "provider": "ringcentral-ringcx-voice-current",
-          "apiVersion": "1.0.0",
-          "verifiedAt": "2026-06-18",
-          "coverageArtifact": "docs/provider-coverage/ringcentral-voice-api-2026-06-18.operations.json",
-          "operationCatalogArtifact": "docs/provider-coverage/ringcentral-voice-api-2026-06-18.operations.json",
-          "functionCatalogArtifact": "docs/provider-coverage/ringcentral-voice-api-2026-06-18.functions.json",
-          "documentedPathCount": 87,
-          "documentedOperationCount": 138,
-          "implementedOperationCount": 138,
-          "generatedFunctionCount": 138
-        },
-        "engageDigital": {
-          "provider": "ringcentral-engage-digital",
-          "apiVersion": "1.0.1",
-          "verifiedAt": "2026-06-18",
-          "coverageArtifact": "docs/provider-coverage/ringcentral-digital-api-2026-06-18.operations.json",
-          "operationCatalogArtifact": "docs/provider-coverage/ringcentral-digital-api-2026-06-18.operations.json",
-          "functionCatalogArtifact": "docs/provider-coverage/ringcentral-digital-api-2026-06-18.functions.json",
-          "documentedPathCount": 90,
-          "documentedOperationCount": 149,
-          "implementedOperationCount": 149,
-          "generatedFunctionCount": 149
-        }
-      },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start",
+          "contactCenter.contact.end",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
           "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -3623,7 +3110,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "nice-cxone.request"
+        ]
       }
     }
   },
@@ -3631,11 +3120,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.talkdesk",
     "category": "contactCenter",
     "provider": "talkdesk",
-    "importPath": "@cognidesk/integrations/contact-center/talkdesk",
-    "modulePath": "./contact-center/talkdesk/index.js",
-    "manifestExport": "talkdeskContactCenterProviderManifest",
+    "importPath": "@cognidesk/integration-contact-center-talkdesk/manifest",
+    "modulePath": "integrations/contact-center/talkdesk/dist/manifest.js",
+    "manifestExport": "talkdeskProviderManifest",
     "name": "Talkdesk",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-talkdesk",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -3649,47 +3138,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Talkdesk",
-      "summary": "Coverage includes generated per-operation functions for every operation in Talkdesk's official public OpenAPI bundle.",
+      "summary": "No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation.",
       "tags": [
         "contactCenter",
         "talkdesk",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Talkdesk handoff",
-        "description": "Creates SDK-configured Talkdesk support-workflow requests, typed direct-callback requests, or caller-supplied case creation requests without implying Digital Connect conversation or transfer support.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "talkdeskHandoff",
-            "label": "Talkdesk Handoff"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "send",
-        "label": "Request outbound callback",
-        "description": "Creates documented Talkdesk direct callback requests only when the configured Talkdesk account and SDK policy allow it.",
-        "audiences": [
-          "customer-facing"
-        ],
+        "capability": "schedule",
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "talkdeskCallback",
-            "label": "Talkdesk Callback"
+            "kind": "callback",
+            "label": "callback"
           }
         ],
         "requiresCredential": true,
@@ -3700,32 +3179,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "create-provider-object",
-        "label": "Create Talkdesk cases",
-        "description": "Creates Talkdesk Case API cases through the documented `/cm/core/va/cases` endpoint with SDK-user-supplied payloads.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "talkdeskCase",
-            "label": "Talkdesk Case"
+            "kind": "contactCenterTask",
+            "label": "contactCenterTask"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Talkdesk's official public OpenAPI bundle.",
-        "Typed convenience helpers remain available for the documented Talkdesk direct callback endpoint, a case creation request helper with caller-supplied payload, SDK-configured handoff/readiness paths, and OAuth bearer authentication.",
-        "Generated functions cover Talkdesk's broader APIs for Digital Connect conversations/messages, users, contacts, calls, recordings, reports, attributes, campaigns, queues, flows, record lists, prompts, WFM, advanced dialer objects, and FSI surfaces; SDK users still own OAuth scopes, regional API roots, feature entitlements, and payload policy."
+        "No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation."
       ],
       "evidence": [
         {
@@ -3733,55 +3204,36 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://api-docs.talkdeskapp.com/public-api"
         },
         {
-          "label": "Talkdesk API Endpoints",
-          "url": "https://docs.talkdesk.com/reference/api-reference"
-        },
-        {
-          "label": "Talkdesk Contact Center API Overview",
-          "url": "https://docs.talkdesk.com/docs/contact-center-overview"
-        },
-        {
           "label": "Talkdesk Callback API",
           "url": "https://docs.talkdesk.com/docs/callback-api"
-        },
-        {
-          "label": "Talkdesk New Direct Callback",
-          "url": "https://docs.talkdesk.com/reference/callscallback"
-        },
-        {
-          "label": "Talkdesk Create a New Case",
-          "url": "https://docs.talkdesk.com/reference/create-a-new-case"
-        },
-        {
-          "label": "Talkdesk Digital Connect API",
-          "url": "https://docs.talkdesk.com/docs/digital-connect-api"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.task.create",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
-          "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -3797,13 +3249,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/talkdesk",
-      "providerModule": "./contact-center/talkdesk/index.js",
-      "manifestExport": "talkdeskContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/talkdesk/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-contact-center-talkdesk",
+      "runtimePackage": "@cognidesk/integration-contact-center-talkdesk",
+      "providerModule": "integrations/contact-center/talkdesk/dist/manifest.js",
+      "manifestExport": "talkdeskProviderManifest",
+      "manifestSource": "integrations/contact-center/talkdesk/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://api-docs.talkdeskapp.com/public-api"
     },
     "readiness": {
@@ -3826,14 +3278,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "talkdesk-api-access",
           "label": "Talkdesk OAuth access",
-          "scopes": [
-            "callback:write",
-            "cases-public:write"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-oauth-scopes"
-          }
+          "scopes": [],
+          "required": true
         },
         {
           "id": "talkdesk-routing",
@@ -3843,16 +3289,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Talkdesk handoffs can include caller identity, phone numbers, notes, cases, and queue assignment metadata.",
-      "Talkdesk OAuth credentials stay server-side and Studio receives readiness only."
-    ],
-    "limitations": [
-      "Talkdesk API access, scopes, localized API root, callback availability, and destination mapping are SDK-user configuration.",
-      "The package accepts SDK-supplied paths so customers can target the Talkdesk API surface enabled for their account.",
-      "Generated functions expose Talkdesk Digital Connect, Contacts, FSI, and transfer operations where present in the public OpenAPI bundle; SDK users still own scopes, entitlement, and payload policy.",
-      "Typed convenience helpers are intentionally limited to direct callback, case creation, configured handoff, and readiness."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -3860,51 +3298,53 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "configuredHttpHandoff": "supported",
-        "directCallback": "typed-create",
-        "caseCreation": "typed-helper",
-        "fullPublicApiOperations": "generated-per-operation-functions",
-        "digitalConnectConversations": "generated-full-surface",
-        "digitalConnectMessages": "generated-full-surface",
-        "transfer": "generated-full-surface-where-present-in-public-openapi",
-        "smsSocialDigital": "generated-full-surface-where-present-in-public-openapi"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "calls-callback-post",
+            "alias": "contactCenter.callback.schedule",
+            "method": "POST",
+            "path": "/calls/callback",
+            "source": "https://api-docs.talkdeskapp.com/public-api",
+            "checksum": "sha256:aa27c72eff1b281fdebab70da85cb4cd30f98c37dd0465207f7bab00438be491"
+          },
+          {
+            "id": "CreatingACase",
+            "alias": "contactCenter.task.create",
+            "method": "POST",
+            "path": "/cm/core/va/cases",
+            "source": "https://api-docs.talkdeskapp.com/public-api",
+            "checksum": "sha256:aa27c72eff1b281fdebab70da85cb4cd30f98c37dd0465207f7bab00438be491"
+          }
+        ]
       },
-      "fullProviderApiVerification": {
-        "provider": "talkdesk",
-        "apiVersion": "1.0.0",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/talkdesk-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/talkdesk-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/talkdesk-full-api-2026-06-17.functions.json",
-        "documentedPathCount": 416,
-        "documentedOperationCount": 515,
-        "implementedOperationCount": 515,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 515
-      },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "contactCenter.handoff.request",
+          "contactCenter.task.create",
+          "contactCenter.callback.schedule"
+        ],
         "missingRequiredOperations": [
           "contactCenter.contact.read",
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
           "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
           "contactCenter.agent.status.update",
-          "contactCenter.task.create",
           "contactCenter.task.update",
-          "contactCenter.callback.schedule",
           "contactCenter.transcript.read"
         ],
         "missingOptionalOperations": [
@@ -3924,14 +3364,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "contactCenter.zoom",
     "category": "contactCenter",
     "provider": "zoom",
-    "importPath": "@cognidesk/integrations/contact-center/zoom",
-    "modulePath": "./contact-center/zoom/index.js",
+    "importPath": "@cognidesk/integration-contact-center-zoom/manifest",
+    "modulePath": "integrations/contact-center/zoom/dist/manifest.js",
     "manifestExport": "zoomContactCenterProviderManifest",
     "name": "Zoom Contact Center",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-contact-center-zoom",
     "trustLevel": "official",
     "directions": [
-      "inbound-only"
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
     ],
     "channelAudiences": [
       "customer-facing",
@@ -3940,85 +3382,114 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Zoom Contact Center",
-      "summary": "Coverage includes generated per-operation functions for every operation in Zoom's official Contact Center REST OpenAPI spec: all 312 operations across 176 paths.",
+      "summary": "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.",
       "tags": [
         "contactCenter",
         "zoom",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "handoff",
-        "label": "Create Zoom Contact Center handoff",
-        "description": "Creates SDK-configured Zoom Contact Center support-workflow requests without implying typed engagement transfer, scheduled callback, or outbound campaign support.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
-            "kind": "zoomContactCenterHandoff",
-            "label": "Zoom Contact Center Handoff"
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Zoom's official Contact Center REST OpenAPI spec: all 312 operations across 176 paths.",
-        "Coverage also includes a generated catalog for all 124 Zoom Contact Center webhook event entries in the official Contact Center webhook OpenAPI spec.",
-        "Typed configured-handoff and readiness helpers remain available, but native Zoom scheduled callback, engagement transfer, campaigns, messaging/SMS, queues, users, recordings, reports, settings, and other Contact Center families are now callable through generated fullApi functions.",
-        "Zoom Contact Center documents granular OAuth scopes per endpoint; SDK users still own app scope selection, tenant entitlement, routing policy, outbound policy, event subscription setup, and webhook verification/ingestion infrastructure."
+        "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations."
       ],
       "evidence": [
         {
-          "label": "Zoom Contact Center APIs",
-          "url": "https://developers.zoom.us/docs/api/contact-center/"
-        },
-        {
           "label": "Zoom Contact Center REST OpenAPI",
           "url": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json"
-        },
-        {
-          "label": "Zoom Contact Center Webhooks",
-          "url": "https://developers.zoom.us/docs/api/contact-center/events/"
         },
         {
           "label": "Zoom Contact Center Webhooks OpenAPI",
           "url": "https://developers.zoom.us/api-hub/contact-center/events/webhooks.json"
         },
         {
-          "label": "Zoom API Reference",
-          "url": "https://developers.zoom.us/docs/api/"
+          "label": "Zoom Apps SDK",
+          "url": "https://github.com/zoom/appssdk"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "contactCenter.contact.read",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start"
+        ],
+        "missingRequiredOperations": [
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
@@ -4037,18 +3508,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "zoom.request"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/contact-center/zoom",
-      "providerModule": "./contact-center/zoom/index.js",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-contact-center-zoom",
+      "runtimePackage": "@cognidesk/integration-contact-center-zoom",
+      "providerModule": "integrations/contact-center/zoom/dist/manifest.js",
       "manifestExport": "zoomContactCenterProviderManifest",
-      "manifestSource": "packages/integrations/src/contact-center/zoom/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developers.zoom.us/docs/api/contact-center/"
+      "manifestSource": "integrations/contact-center/zoom/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -4070,14 +3543,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "zoom-contact-center-api-access",
           "label": "Zoom OAuth access",
-          "description": "OAuth access for the configured Zoom Contact Center endpoints; default readiness uses the queue-read scope.",
-          "scopes": [
-            "contact_center_queue:read:admin"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-oauth-scopes"
-          }
+          "scopes": [],
+          "required": true
         },
         {
           "id": "zoom-contact-center-routing",
@@ -4087,15 +3554,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         }
       ]
     },
-    "privacyNotes": [
-      "Zoom Contact Center handoffs can include customer identity, phone/email/message metadata, summaries, and queue routing context.",
-      "Zoom OAuth credentials stay server-side and Studio only receives readiness."
-    ],
-    "limitations": [
-      "Zoom queues, channels, campaign setup, contact eligibility, and outbound policy are SDK-user configuration.",
-      "Generated functions expose the documented REST endpoints but do not decide which mutating operations are safe for a given tenant, channel, queue, or operator role.",
-      "The generated webhook catalog names documented event entries; event subscription lifecycle, endpoint verification, replay handling, and signature policy remain SDK-user infrastructure."
-    ],
+    "privacyNotes": [],
+    "limitations": [],
     "maintainers": [
       {
         "name": "Cognidesk",
@@ -4103,53 +3563,46 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullRestApiOperations": "generated-per-operation-functions",
-        "webhookEventCatalog": "generated-per-operation-functions",
-        "configuredHttpHandoff": "supported",
-        "scheduledCallback": "generated-per-operation-functions",
-        "engagementTransfer": "generated-per-operation-functions",
-        "outboundCampaigns": "generated-per-operation-functions",
-        "taskCoverage": "generated-per-operation-functions",
-        "nativeVoice": "generated-per-operation-functions",
-        "nativeVideo": "generated-per-operation-functions",
-        "nativeMessaging": "generated-per-operation-functions",
-        "nativeChat": "generated-per-operation-functions",
-        "nativeSms": "generated-per-operation-functions",
-        "nativeInAppChat": "generated-per-operation-functions",
-        "nativeEmail": "generated-per-operation-functions",
-        "nativeWorkItem": "generated-per-operation-functions",
-        "webhooksEvents": "generated-per-operation-functions"
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "Startworkitemengagement",
+            "alias": "contactCenter.contact.start",
+            "method": "POST",
+            "path": "/contact_center/engagement",
+            "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
+            "checksum": "sha256:56456cf010ca13ab7edefa0212372d191e10192dfd4cd8f0c5ffb50fa5d2c1c7"
+          },
+          {
+            "id": "getEngagement",
+            "alias": "contactCenter.contact.read",
+            "method": "GET",
+            "path": "/contact_center/engagements/{engagementId}",
+            "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
+            "checksum": "sha256:56456cf010ca13ab7edefa0212372d191e10192dfd4cd8f0c5ffb50fa5d2c1c7"
+          }
+        ]
       },
-      "fullProviderApiVerification": {
-        "provider": "zoom-contact-center-rest",
-        "apiVersion": "2",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/zoom-contact-center-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/zoom-contact-center-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/zoom-contact-center-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 176,
-        "documentedOperationCount": 312,
-        "implementedOperationCount": 312,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 312,
-        "webhookEventCount": 124
-      },
+      "manifestOnlySafe": true,
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
       "categoryProfile": {
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "contactCenter.contact.read",
+          "contactCenter.handoff.request",
+          "contactCenter.contact.start"
+        ],
+        "missingRequiredOperations": [
           "contactCenter.queue.list",
           "contactCenter.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
           "contactCenter.contact.end",
           "contactCenter.queue.status.read",
           "contactCenter.agent.list",
@@ -4168,7 +3621,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contactCenter.conversation.barge",
           "contactCenter.analytics.queueMetrics.read"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "zoom.request"
+        ]
       }
     }
   },
@@ -4176,11 +3631,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ecommerce.shopify",
     "category": "ecommerce",
     "provider": "shopify",
-    "importPath": "@cognidesk/integrations/ecommerce/shopify",
-    "modulePath": "./ecommerce/shopify/index.js",
+    "importPath": "@cognidesk/integration-ecommerce-shopify/manifest",
+    "modulePath": "integrations/ecommerce/shopify/dist/manifest.js",
     "manifestExport": "shopifyEcommerceProviderManifest",
     "name": "Shopify",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ecommerce-shopify",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -4194,7 +3649,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Shopify",
-      "summary": "Official Shopify Admin GraphQL 2026-04 docs are inventoried as 792 root fields (282 QueryRoot, 510 Mutation), but this package implements only selected typed helpers plus a raw Admin GraphQL escape hatch.",
+      "summary": "Coverage is limited to selected Shopify Admin GraphQL support operations backed by the official Shopify Admin API client.",
       "tags": [
         "ecommerce",
         "shopify",
@@ -4308,7 +3763,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "ecommerce.graphql",
         "label": "Run Shopify Admin GraphQL",
-        "description": "Runs SDK-user-selected raw Admin GraphQL operations against the configured Shopify shop as an explicit escape hatch; this does not imply full-provider API coverage.",
+        "description": "Runs SDK-user-selected raw Admin GraphQL operations against the configured Shopify shop as an explicit escape hatch.",
         "audiences": [
           "internal-support"
         ],
@@ -4328,10 +3783,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Official Shopify Admin GraphQL 2026-04 docs are inventoried as 792 root fields (282 QueryRoot, 510 Mutation), but this package implements only selected typed helpers plus a raw Admin GraphQL escape hatch.",
-        "Coverage is limited to selected Shopify Admin GraphQL support primitives: shop, order, customer, and product reads/searches; draft order creation; explicit raw Admin GraphQL escape-hatch execution; and webhook HMAC parsing.",
-        "The package does not implement generated per-root-field Admin GraphQL wrappers, full Shopify Admin API coverage, Storefront, Functions, Payments, Markets, Fulfillment, Inventory, Billing, Checkout, Online Store, REST Admin, or app-management API coverage.",
-        "The SDK user owns Admin API version selection, app scopes, webhook topic registration, commerce mutation policy, privacy, consent, and retention decisions."
+        "Coverage is limited to selected Shopify Admin GraphQL support operations backed by the official Shopify Admin API client.",
+        "The raw Admin GraphQL client remains available as an explicit escape hatch; Storefront, Functions, Payments, REST Admin, and app lifecycle coverage are not implied.",
+        "Generated Shopify per-root-field Admin GraphQL wrappers are intentionally not part of this package."
       ],
       "evidence": [
         {
@@ -4339,32 +3793,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://shopify.dev/docs/api/admin-graphql/latest"
         },
         {
-          "label": "Shopify Admin GraphQL QueryRoot 2026-04 catalog",
-          "url": "https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot"
-        },
-        {
-          "label": "Shopify Admin GraphQL Mutation 2026-04 catalog",
-          "url": "https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation"
-        },
-        {
-          "label": "Shopify Admin GraphQL products query",
-          "url": "https://shopify.dev/docs/api/admin-graphql/latest/queries/products"
+          "label": "Shopify Admin API client",
+          "url": "https://www.npmjs.com/package/@shopify/admin-api-client"
         },
         {
           "label": "Shopify webhook HMAC validation",
           "url": "https://shopify.dev/docs/apps/build/webhooks/subscribe/https#step-5-verify-the-webhook"
-        },
-        {
-          "label": "Shopify Storefront API reference",
-          "url": "https://shopify.dev/docs/api/storefront/latest"
-        },
-        {
-          "label": "Shopify Functions API reference",
-          "url": "https://shopify.dev/docs/api/functions/latest"
-        },
-        {
-          "label": "Shopify payments extensions",
-          "url": "https://shopify.dev/docs/apps/build/payments"
         }
       ]
     },
@@ -4399,16 +3833,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ecommerce.subscription.update",
           "ecommerce.webhookEndpoint.manage"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "shopify.adminGraphql"
+        ]
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ecommerce/shopify",
-      "providerModule": "./ecommerce/shopify/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@shopify/admin-api-client",
+      "runtimePackage": "@cognidesk/integration-ecommerce-shopify",
+      "providerModule": "integrations/ecommerce/shopify/dist/manifest.js",
       "manifestExport": "shopifyEcommerceProviderManifest",
-      "manifestSource": "packages/integrations/src/ecommerce/shopify/manifest.ts",
+      "manifestSource": "integrations/ecommerce/shopify/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://shopify.dev/docs/api/admin-graphql/latest"
     },
@@ -4460,9 +3896,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "limitations": [
       "The SDK user chooses Admin API version, scopes, webhook topics, customer visibility, fulfillment behavior, consent rules, and retention policy.",
-      "This package provides API foundations and signature checks; it does not decide when to create draft orders, contact customers, issue discounts, refund orders, or expose commerce data.",
-      "Available fields and mutations depend on the SDK user's Shopify plan, app scopes, shop settings, installed apps, and selected Admin API version.",
-      "The generated Admin GraphQL inventory is a root-field catalog from official docs, not a public static introspection schema and not generated callable coverage for every root field."
+      "This package provides normalized Admin GraphQL support operations and signature checks; it does not decide when to create draft orders, contact customers, issue discounts, refund orders, or expose commerce data."
     ],
     "maintainers": [
       {
@@ -4473,74 +3907,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "defaultGraphqlAdminApiVersion": "2026-04",
       "docs": "https://shopify.dev/docs/api/admin-graphql/latest",
-      "channelCoverage": {
-        "shop": "typed-read",
-        "orders": "typed-read-search",
-        "customers": "typed-read-search",
-        "products": "typed-read-search",
-        "draftOrders": "typed-read-create",
-        "webhooks": "typed-validate-parse",
-        "adminGraphqlEscapeHatch": "typed-raw-graphql-escape-hatch",
-        "adminGraphqlRootFieldCatalog": "generated-inventory-not-generated-wrappers",
-        "storefrontFunctionsPaymentsRestAdminAppSurfaces": "provider-supported-not-implemented",
-        "checkoutFulfillmentInventoryMarketsBillingOnlineStore": "provider-supported-not-typed"
-      },
-      "adminGraphqlSchemaCatalog": {
-        "apiVersion": "2026-04",
-        "generatedAt": "2026-06-18",
-        "docs": "https://shopify.dev/docs/api/admin-graphql/latest",
-        "versionedDocs": "https://shopify.dev/docs/api/admin-graphql/2026-04",
-        "queryRoot": "https://shopify.dev/docs/api/admin-graphql/2026-04/objects/QueryRoot",
-        "mutation": "https://shopify.dev/docs/api/admin-graphql/2026-04/objects/Mutation",
-        "rootFieldCatalogArtifact": "docs/provider-coverage/shopify-admin-graphql-2026-04-2026-06-18.root-fields.json",
-        "functionCatalogArtifact": "docs/provider-coverage/shopify-admin-graphql-2026-04-2026-06-18.functions.json",
-        "queryRootFieldCount": 282,
-        "mutationFieldCount": 510,
-        "rootFieldCount": 792,
-        "selectedTypedHelperCount": 9,
-        "helperCatalogEntryCount": 14,
-        "selectedTypedRootFieldCount": 8,
-        "generatedPerRootFieldWrapperCount": 0,
-        "rawAdminGraphqlEscapeHatch": true,
-        "fullShopifyPlatformCoverage": false,
-        "publicStaticSchemaAvailability": "no-public-static-schema-json-found-at-checked-official-docs-urls",
-        "platformGaps": [
-          {
-            "surface": "Storefront GraphQL API",
-            "url": "https://shopify.dev/docs/api/storefront/latest",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "Shopify Functions APIs",
-            "url": "https://shopify.dev/docs/api/functions/latest",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "Payments extensions and Payments Apps API",
-            "url": "https://shopify.dev/docs/apps/build/payments",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "Payments app request reference",
-            "url": "https://shopify.dev/docs/apps/build/payments/request-reference",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "REST Admin API",
-            "url": "https://shopify.dev/docs/api/admin-rest",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "App platform surfaces and UI extensions",
-            "url": "https://shopify.dev/docs/apps/build/app-surfaces",
-            "status": "not-implemented"
-          },
-          {
-            "surface": "Webhook subscription management/catalog",
-            "url": "https://shopify.dev/docs/apps/build/webhooks",
-            "status": "signature-parse-only"
-          }
-        ]
+      "sdkPackage": "@shopify/admin-api-client",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@shopify/admin-api-client",
+        "optionalBroaderSdkPackage": "@shopify/shopify-api",
+        "generatedFullProviderApiClone": false,
+        "rawClientEscapeHatch": true
       },
       "rawProviderRequest": {
         "capability": "ecommerce.graphql",
@@ -4576,7 +3949,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ecommerce.subscription.update",
           "ecommerce.webhookEndpoint.manage"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "shopify.adminGraphql"
+        ]
       }
     }
   },
@@ -4584,11 +3959,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ecommerce.stripe",
     "category": "ecommerce",
     "provider": "stripe",
-    "importPath": "@cognidesk/integrations/ecommerce/stripe",
-    "modulePath": "./ecommerce/stripe/index.js",
+    "importPath": "@cognidesk/integration-ecommerce-stripe/manifest",
+    "modulePath": "integrations/ecommerce/stripe/dist/manifest.js",
     "manifestExport": "stripeEcommerceProviderManifest",
     "name": "Stripe",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ecommerce-stripe",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -4602,12 +3977,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Stripe",
-      "summary": "Coverage includes a generated operation catalog for every operation in the official Stripe OpenAPI spec for this API version, exposed through requestOperation(operationId, ...).",
+      "summary": "Coverage is limited to Cognidesk-normalized Stripe commerce support operations backed by the official Stripe SDK.",
       "tags": [
         "ecommerce",
         "stripe",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -4635,7 +4010,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Stripe commerce records",
-        "description": "Reads Stripe customers, payment intents, Checkout Sessions, subscriptions, invoices, refunds, disputes, and account details.",
+        "description": "Reads customers, Checkout Sessions, PaymentIntents, subscriptions, invoices, refunds, and disputes.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -4646,12 +4021,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Stripe Customer"
           },
           {
-            "kind": "stripePaymentIntent",
-            "label": "Stripe PaymentIntent"
-          },
-          {
             "kind": "stripeCheckoutSession",
             "label": "Stripe Checkout Session"
+          },
+          {
+            "kind": "stripePaymentIntent",
+            "label": "Stripe PaymentIntent"
           },
           {
             "kind": "stripeSubscription",
@@ -4668,10 +4043,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "stripeDispute",
             "label": "Stripe Dispute"
-          },
-          {
-            "kind": "stripeWebhookEndpoint",
-            "label": "Stripe Webhook Endpoint"
           }
         ],
         "requiresCredential": true,
@@ -4694,24 +4065,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Stripe Customer"
           },
           {
-            "kind": "stripePaymentIntent",
-            "label": "Stripe PaymentIntent"
-          },
-          {
             "kind": "stripeCheckoutSession",
             "label": "Stripe Checkout Session"
           },
           {
-            "kind": "stripeInvoice",
-            "label": "Stripe Invoice"
-          },
-          {
-            "kind": "stripeDispute",
-            "label": "Stripe Dispute"
-          },
-          {
-            "kind": "stripeWebhookEndpoint",
-            "label": "Stripe Webhook Endpoint"
+            "kind": "stripePaymentIntent",
+            "label": "Stripe PaymentIntent"
           }
         ],
         "requiresCredential": true,
@@ -4723,7 +4082,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "create-provider-object",
         "label": "Create Stripe payment support actions",
-        "description": "Creates Checkout Sessions, PaymentIntents, and refunds only when SDK-user policy permits externally visible commerce mutations.",
+        "description": "Creates Checkout Sessions, PaymentIntents, and refunds when SDK-user policy permits.",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -4752,7 +4111,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "update-provider-object",
         "label": "Update Stripe support records",
-        "description": "Updates subscriptions, disputes, and webhook endpoints, and closes disputes or cancels subscriptions when SDK-user policy permits regulated payment support actions.",
+        "description": "Updates subscriptions and manages webhook endpoints when SDK-user policy permits.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -4761,10 +4120,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "stripeSubscription",
             "label": "Stripe Subscription"
-          },
-          {
-            "kind": "stripeDispute",
-            "label": "Stripe Dispute"
           },
           {
             "kind": "stripeWebhookEndpoint",
@@ -4779,15 +4134,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "ecommerce.payments",
-        "label": "Stripe payment API foundation",
-        "description": "Exposes Stripe support-workflow primitives without deciding checkout, refund, dispute, retention, or consent policy.",
+        "label": "Stripe raw SDK escape hatch",
+        "description": "Exposes the configured official Stripe SDK client for SDK-user-owned advanced operations.",
         "audiences": [
           "internal-support"
         ],
         "providerObjects": [
           {
-            "kind": "stripeApiResult",
-            "label": "Stripe API Result"
+            "kind": "stripeRawClient",
+            "label": "Stripe SDK Client"
           }
         ],
         "requiresCredential": true,
@@ -4798,11 +4153,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes a generated operation catalog for every operation in the official Stripe OpenAPI spec for this API version, exposed through requestOperation(operationId, ...).",
-        "The package also keeps typed convenience helpers for selected commerce support primitives: account, customer, PaymentIntent, Checkout Session, subscription, invoice, refund, dispute, webhook endpoint, Connect account header, and webhook-signature helpers.",
-        "The SDK user owns restricted-key scope selection, checkout and refund policy, dispute evidence policy, Connect account routing, webhook subscriptions, consent, and retention decisions."
+        "Coverage is limited to Cognidesk-normalized Stripe commerce support operations backed by the official Stripe SDK.",
+        "The official Stripe SDK remains available as an explicit raw-client escape hatch; raw SDK coverage is not Cognidesk adapter coverage.",
+        "Generated Stripe full-provider API clones are intentionally not part of this package."
       ],
       "evidence": [
         {
@@ -4810,20 +4165,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://docs.stripe.com/api"
         },
         {
-          "label": "Stripe PaymentIntents API",
-          "url": "https://docs.stripe.com/api/payment_intents"
-        },
-        {
-          "label": "Stripe Checkout Sessions API",
-          "url": "https://docs.stripe.com/api/checkout/sessions"
-        },
-        {
-          "label": "Stripe Subscriptions update API",
-          "url": "https://docs.stripe.com/api/subscriptions/update"
-        },
-        {
-          "label": "Stripe Webhook Endpoints API",
-          "url": "https://docs.stripe.com/api/webhook_endpoints"
+          "label": "Stripe Node SDK",
+          "url": "https://github.com/stripe/stripe-node"
         },
         {
           "label": "Stripe webhook signature verification",
@@ -4832,7 +4175,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -4862,16 +4205,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ecommerce.subscription.update",
           "ecommerce.webhookEndpoint.manage"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "stripe.rawClient"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ecommerce/stripe",
-      "providerModule": "./ecommerce/stripe/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "stripe",
+      "runtimePackage": "@cognidesk/integration-ecommerce-stripe",
+      "providerModule": "integrations/ecommerce/stripe/dist/manifest.js",
       "manifestExport": "stripeEcommerceProviderManifest",
-      "manifestSource": "packages/integrations/src/ecommerce/stripe/manifest.ts",
+      "manifestSource": "integrations/ecommerce/stripe/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.stripe.com/api"
     },
@@ -4883,15 +4228,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "stripe-webhook-signing-secret"
       ],
       "optionalCredentialIds": [
-        "stripe-publishable-key",
-        "stripe-connect-mode",
-        "stripe-restricted-key-scopes"
+        "stripe-connect-mode"
       ],
       "credentialRequirements": [
         {
           "id": "stripe-secret-key",
           "label": "Stripe secret key",
-          "description": "Server-side Stripe secret key or restricted key selected and owned by the SDK user.",
+          "description": "Server-side Stripe secret or restricted key selected and owned by the SDK user.",
           "scopes": [
             "customers:read",
             "payment_intents:read",
@@ -4906,16 +4249,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           ],
           "required": true,
           "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "These strings represent Stripe restricted-key permission families for Studio review, not OAuth scopes."
+            "scopeKind": "provider-permission-labels"
           }
-        },
-        {
-          "id": "stripe-publishable-key",
-          "label": "Stripe publishable key",
-          "description": "Optional publishable key surfaced only when the SDK user exposes Stripe-hosted or embedded payment UI.",
-          "scopes": [],
-          "required": false
         },
         {
           "id": "stripe-webhook-signing-secret",
@@ -4927,14 +4262,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "stripe-connect-mode",
           "label": "Stripe Connect mode",
-          "description": "SDK-user-selected account context for platform, connected-account, or organization event handling.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "stripe-restricted-key-scopes",
-          "label": "Stripe restricted key scopes",
-          "description": "SDK-user-declared restricted-key permissions used for Studio readiness and policy review.",
+          "description": "SDK-user-selected account context for platform or connected-account routing.",
           "scopes": [],
           "required": false
         }
@@ -4942,12 +4270,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "privacyNotes": [
       "Stripe records can include customer contact data, billing/shipping addresses, payment state, subscription terms, invoice history, refund reasons, dispute evidence, and account metadata.",
-      "Secret keys, restricted keys, Connect account routing, and webhook signing secrets stay server-side; Studio receives only readiness state and policy-visible metadata."
+      "Secret keys, Connect account routing, and webhook signing secrets stay server-side; Studio receives only readiness state and policy-visible metadata."
     ],
     "limitations": [
       "The SDK user chooses Stripe account mode, restricted-key permissions, event destinations, webhook subscriptions, checkout UI, refund policy, dispute evidence policy, consent, and retention.",
-      "This package provides API foundations and raw-body signature verification; it does not decide when to charge, refund, cancel, submit evidence, or expose payment data to an operator.",
-      "Available records and mutations depend on the SDK user's Stripe account, restricted key, Connect configuration, API version, product access, and provider-side permissions."
+      "This package provides normalized support-operation foundations and raw-client access; it does not decide when to charge, refund, cancel, submit evidence, or expose payment data to an operator."
     ],
     "maintainers": [
       {
@@ -4958,33 +4285,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "defaultApiVersion": "2026-05-27.dahlia",
       "docs": "https://docs.stripe.com/api",
-      "fullProviderApiVerification": {
-        "provider": "stripe",
-        "apiVersion": "2026-05-27.dahlia",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/stripe-2026-05-27.dahlia.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/stripe-2026-05-27.dahlia.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/stripe-2026-05-27.dahlia.functions.json",
-        "documentedOperationCount": 619,
-        "implementedOperationCount": 619,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 619
+      "sdkPackage": "stripe",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "stripe",
+        "generatedFullProviderApiClone": false,
+        "rawClientEscapeHatch": true
       },
-      "channelCoverage": {
-        "fullRestApiOperations": "typed-operation-catalog",
-        "account": "typed-read",
-        "customers": "typed-read-list-search",
-        "paymentIntents": "typed-create-read-list",
-        "checkoutSessions": "typed-create-read-list",
-        "checkoutSessionLineItems": "typed-list",
-        "subscriptions": "typed-read-list-update-cancel",
-        "invoices": "typed-read-list",
-        "refunds": "typed-create-read-list",
-        "disputes": "typed-read-list-update-close",
-        "webhookEndpoints": "typed-create-read-list-update-delete",
-        "webhooks": "typed-validate-parse",
-        "connectAccountHeader": "typed-request-context",
-        "taxTerminalTreasuryIssuingIdentityFilesReporting": "provider-supported-not-typed"
+      "rawProviderRequest": {
+        "capability": "ecommerce.payments",
+        "acknowledgementRequired": true,
+        "coverage": "escape-hatch-not-full-provider-api"
       },
       "categoryProfileId": "ecommerce",
       "integrationCategoryProfileId": "ecommerce",
@@ -5015,7 +4326,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ecommerce.subscription.update",
           "ecommerce.webhookEndpoint.manage"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "stripe.rawClient"
+        ]
       }
     }
   },
@@ -5023,11 +4336,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.gmail",
     "category": "email",
     "provider": "gmail",
-    "importPath": "@cognidesk/integrations/email/gmail",
-    "modulePath": "./email/gmail/index.js",
+    "importPath": "@cognidesk/integration-email-gmail/manifest",
+    "modulePath": "integrations/email/gmail/dist/manifest.js",
     "manifestExport": "gmailEmailProviderManifest",
     "name": "Gmail",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-gmail",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -5036,35 +4349,70 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "channelAudiences": [
       "customer-facing",
+      "internal-support",
       "mixed"
     ],
     "display": {
       "label": "Gmail",
-      "summary": "Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.",
+      "summary": "Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.",
       "tags": [
         "email",
         "gmail",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Read Gmail messages",
-        "description": "Lists and reads Gmail message metadata, payloads, raw messages, or thread context.",
+        "label": "Receive Gmail mailbox changes",
+        "description": "Parses Gmail Pub/Sub notifications and reads Gmail watch/history cursors.",
         "audiences": [
           "customer-facing",
+          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "mailbox",
+            "label": "Gmail Mailbox"
           },
           {
-            "kind": "gmailThread",
-            "label": "Gmail Thread"
+            "kind": "gmailHistory",
+            "label": "Gmail History"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Read Gmail threads and attachments",
+        "description": "Reads Gmail threads, messages, labels, and attachment bodies through the official SDK.",
+        "audiences": [
+          "customer-facing",
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "emailThread",
+            "label": "Email Thread"
+          },
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
+          {
+            "kind": "attachment",
+            "label": "Attachment"
+          },
+          {
+            "kind": "mailLabel",
+            "label": "Mail Label"
           }
         ],
         "requiresCredential": true,
@@ -5079,12 +4427,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "description": "Creates Gmail draft messages for SDK-user-configured approval workflows.",
         "audiences": [
           "customer-facing",
-          "internal-support"
+          "internal-support",
+          "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailDraft",
-            "label": "Gmail Draft"
+            "kind": "emailDraft",
+            "label": "Email Draft"
           }
         ],
         "requiresCredential": true,
@@ -5096,159 +4445,113 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Gmail messages",
-        "description": "Sends Gmail messages or existing drafts when SDK-user policy permits outbound contact.",
+        "description": "Sends Gmail replies, new messages, or existing drafts when SDK-user policy permits outbound contact.",
         "audiences": [
-          "customer-facing"
+          "customer-facing",
+          "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
+          {
+            "kind": "emailDraft",
+            "label": "Email Draft"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use Gmail threads",
-        "description": "Associates messages and drafts with Gmail thread IDs selected by SDK configuration.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "gmailThread",
-            "label": "Gmail Thread"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Read Gmail attachment content",
-        "description": "Reads Gmail message payload parts and attachment bodies for SDK-user-governed attachment handling.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "gmailAttachment",
-            "label": "Gmail Attachment"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Modify Gmail labels",
-        "description": "Adds or removes Gmail labels, such as marking a message read, when SDK-user policy permits mutation.",
+        "label": "Archive Gmail threads",
+        "description": "Removes active inbox labels from Gmail threads when SDK-user policy permits mutation.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "emailThread",
+            "label": "Email Thread"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": false,
+        "exposesSensitiveData": true,
         "changesWorkflow": true,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.",
-        "The package keeps typed helpers for selected Gmail support workflows: message list/get, draft creation, message send, label modify, profile readiness, watch/history sync foundations, attachment fetch, and label listing.",
-        "Gmail OAuth permissions are operation-specific alternatives, not one required bundle; SDK users may choose narrower scopes such as gmail.metadata where the selected Gmail method supports it.",
-        "Receive coverage is Gmail API read/watch/history foundation only; Google Cloud Pub/Sub push notification parsing, Pub/Sub authentication, and webhook hosting are SDK-user integration responsibilities."
+        "Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.",
+        "Implementation uses the official service-specific @googleapis/gmail SDK. Broader Gmail methods remain accessible through GmailEmailClient.rawClient instead of generated Cognidesk-owned full API functions.",
+        "Operation handlers are bound through @cognidesk/integration-kit so manifest operations and executable handlers must stay in exact parity.",
+        "Receive coverage is Gmail watch/history foundation plus Google Cloud Pub/Sub push notification parsing; Pub/Sub topic/subscription hosting, authentication, retry, and history synchronization policy are SDK-user responsibilities."
       ],
       "evidence": [
         {
-          "label": "Gmail API Discovery document",
-          "url": "https://gmail.googleapis.com/$discovery/rest?version=v1"
+          "label": "@googleapis/gmail package",
+          "url": "https://www.npmjs.com/package/@googleapis/gmail"
         },
         {
-          "label": "Gmail messages list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list"
+          "label": "Gmail API Node.js quickstart",
+          "url": "https://developers.google.com/workspace/gmail/api/quickstart/nodejs"
         },
         {
-          "label": "Gmail users getProfile",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile"
+          "label": "Gmail users.threads.get",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get"
         },
         {
-          "label": "Gmail drafts create",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create"
-        },
-        {
-          "label": "Gmail messages send",
+          "label": "Gmail users.messages.send",
           "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send"
         },
         {
-          "label": "Gmail messages modify",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify"
+          "label": "Gmail users.drafts.create",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create"
         },
         {
-          "label": "Gmail watch",
+          "label": "Gmail users.threads.modify",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/modify"
+        },
+        {
+          "label": "Gmail users.watch",
           "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch"
-        },
-        {
-          "label": "Gmail history list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list"
         },
         {
           "label": "Gmail push notifications",
           "url": "https://developers.google.com/workspace/gmail/api/guides/push"
-        },
-        {
-          "label": "Gmail attachment get",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments/get"
-        },
-        {
-          "label": "Gmail labels list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/list"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "email.receive",
           "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
+          "email.reply.send",
           "email.send",
           "email.draft.create",
-          "email.draft.update",
           "email.draft.send",
-          "email.thread.search",
           "email.archive",
+          "mailbox.watch"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "email.draft.update",
+          "email.thread.search",
           "email.label.apply"
         ],
         "missingOptionalOperations": [
@@ -5258,21 +4561,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
-          "email.move",
-          "mailbox.watch"
+          "email.move"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "gmail.history.list",
+          "gmail.attachment.get",
+          "gmail.labels.list"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/gmail",
-      "providerModule": "./email/gmail/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@googleapis/gmail",
+      "runtimePackage": "@cognidesk/integration-email-gmail",
+      "providerModule": "integrations/email/gmail/dist/manifest.js",
       "manifestExport": "gmailEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/gmail/manifest.ts",
+      "manifestSource": "integrations/email/gmail/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://gmail.googleapis.com/$discovery/rest?version=v1"
+      "documentationPath": "https://www.npmjs.com/package/@googleapis/gmail"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -5285,7 +4591,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "google-oauth-access-token",
           "label": "Google OAuth access token",
-          "description": "Server-side OAuth access token for the Gmail API.",
+          "description": "Server-side OAuth access token or injected official Gmail SDK auth client.",
           "scopes": [
             "https://www.googleapis.com/auth/gmail.readonly",
             "https://www.googleapis.com/auth/gmail.compose",
@@ -5305,9 +4611,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "OAuth tokens stay server-side and are represented in Studio only as credential readiness."
     ],
     "limitations": [
-      "Available operations depend on the OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.",
+      "Available operations depend on OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.",
       "Gmail watch notifications require an SDK-user-managed Google Cloud Pub/Sub topic, subscription, webhook/worker, and history synchronization strategy.",
-      "Draft approval, auto-send, retention, redaction, and outbound-contact policy are SDK-user configuration."
+      "Draft approval, auto-send, retention, redaction, and outbound-contact policy are SDK-user configuration.",
+      "This package does not claim full Gmail API coverage; use rawClient for advanced official SDK methods."
     ],
     "maintainers": [
       {
@@ -5316,28 +4623,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullGmailRestApiMethods": "generated-per-operation-functions",
-        "gmailMessages": "typed-list-get-send-modify-and-generated-full-surface",
-        "gmailDrafts": "typed-create-send-and-generated-full-surface",
-        "gmailThreads": "typed-reference-read-and-generated-full-surface",
-        "gmailAttachments": "typed-read-and-generated-full-surface",
-        "gmailLabels": "typed-list-modify-on-message-and-generated-full-surface",
-        "gmailSettingsFiltersDelegatesSendAsSmime": "generated-full-surface",
-        "gmailWatchHistory": "typed-watch-history-foundation-and-generated-full-surface",
-        "pubSubPushDelivery": "sdk-owned-not-covered"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@googleapis/gmail",
+        "sdkVersionRange": "^17.0.0",
+        "rawClientEscapeHatch": "GmailEmailClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
       },
-      "fullProviderApiVerification": {
-        "provider": "gmail",
-        "apiVersion": "gmail-20260615-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 79,
-        "implementedOperationCount": 79,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 79
+      "channelCoverage": {
+        "gmailThreads": "typed-read-and-archive",
+        "gmailMessages": "typed-send-and-reply",
+        "gmailDrafts": "typed-create-and-send",
+        "gmailAttachments": "typed-read-body",
+        "gmailLabels": "typed-list",
+        "gmailWatchHistory": "typed-watch-history-foundation",
+        "pubSubPushDelivery": "typed-parse-only-sdk-owned-hosting",
+        "broaderGmailApi": "provider-supported-raw-client"
       },
       "scopeAlternatives": {
         "profile": [
@@ -5359,27 +4661,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "https://www.googleapis.com/auth/gmail.compose",
           "https://www.googleapis.com/auth/gmail.send"
         ],
-        "metadataOnlyCaveat": "Gmail metadata-only scopes support profile/watch/read metadata surfaces, but SDK users must avoid query-dependent message listing where the Gmail API disallows q with gmail.metadata."
+        "metadataOnlyCaveat": "Gmail metadata-only scopes support profile/watch/read metadata surfaces, but SDK users must avoid query-dependent listing where the Gmail API disallows q with gmail.metadata."
       },
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "email.receive",
           "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
+          "email.reply.send",
           "email.send",
           "email.draft.create",
-          "email.draft.update",
           "email.draft.send",
-          "email.thread.search",
           "email.archive",
+          "mailbox.watch"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "email.draft.update",
+          "email.thread.search",
           "email.label.apply"
         ],
         "missingOptionalOperations": [
@@ -5389,10 +4692,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
-          "email.move",
-          "mailbox.watch"
+          "email.move"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "gmail.history.list",
+          "gmail.attachment.get",
+          "gmail.labels.list"
+        ]
       }
     }
   },
@@ -5400,11 +4706,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.imap",
     "category": "email",
     "provider": "imap",
-    "importPath": "@cognidesk/integrations/email/imap",
-    "modulePath": "./email/imap/index.js",
+    "importPath": "@cognidesk/integration-email-imap/manifest",
+    "modulePath": "integrations/email/imap/dist/manifest.js",
     "manifestExport": "imapEmailProviderManifest",
     "name": "IMAP Mailbox",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-imap",
     "trustLevel": "official",
     "directions": [
       "inbound-only"
@@ -5415,27 +4721,51 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "IMAP Mailbox",
-      "summary": "Coverage is limited to credential status and SDK-user-injected mailbox readiness checks.",
+      "summary": "Coverage is a focused Cognidesk IMAP protocol adapter backed by ImapFlow.",
       "tags": [
         "email",
         "imap",
         "official",
-        "support-workflow-subset"
+        "local-protocol"
       ]
     },
     "capabilities": [
       {
         "capability": "read-provider-object",
-        "label": "Check IMAP mailbox readiness",
-        "description": "Runs an SDK-user-injected readiness check for an IMAP mailbox without implementing IMAP message operations.",
+        "label": "Read IMAP mailbox data",
+        "description": "Checks mailbox readiness and fetches explicitly requested message data through ImapFlow.",
         "audiences": [
-          "internal-support",
+          "customer-facing",
           "mixed"
         ],
         "providerObjects": [
           {
             "kind": "imapMailbox",
             "label": "IMAP Mailbox"
+          },
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "search-provider-object",
+        "label": "Search IMAP mailbox",
+        "description": "Runs SDK-user supplied IMAP searches through ImapFlow.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
           }
         ],
         "requiresCredential": true,
@@ -5446,20 +4776,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "support-workflow-subset",
+      "scope": "local-protocol",
       "notes": [
-        "Coverage is limited to credential status and SDK-user-injected mailbox readiness checks.",
-        "This package does not implement IMAP SEARCH, FETCH, STORE/flag mutation, mailbox management, attachment retrieval, IDLE, UID sync, or MIME parsing; those remain the responsibility of an SDK-user-provided IMAP client."
+        "Coverage is a focused Cognidesk IMAP protocol adapter backed by ImapFlow.",
+        "This package does not claim full mailbox synchronization, MIME parsing, retention policy, attachment policy, or outbound SMTP support."
       ],
       "evidence": [
         {
           "label": "RFC 9051 IMAP4rev2",
           "url": "https://datatracker.ietf.org/doc/html/rfc9051"
+        },
+        {
+          "label": "ImapFlow",
+          "url": "https://imapflow.com/"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "support-workflow-subset",
+      "scope": "local-protocol",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -5491,47 +4825,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "imap.mailbox.check"
+        ]
       }
     },
     "implementation": {
-      "strategy": "app-supplied-connector",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/imap",
-      "providerModule": "./email/imap/index.js",
+      "strategy": "local-protocol",
+      "sdkPackage": "@cognidesk/integration-email-imap",
+      "runtimePackage": "@cognidesk/integration-email-imap",
+      "providerModule": "integrations/email/imap/dist/manifest.js",
       "manifestExport": "imapEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/imap/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/email/imap/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://datatracker.ietf.org/doc/html/rfc9051"
     },
     "readiness": {
-      "mode": "app-supplied-connector",
+      "mode": "credential-and-live-check",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "imap-server",
-        "imap-mailbox-credentials",
-        "imap-connector"
+        "imap-mailbox-credentials"
       ],
       "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "imap-server",
           "label": "IMAP server settings",
-          "description": "Server-side mailbox host, port, TLS mode, and mailbox folder configuration.",
+          "description": "Mailbox host, port, TLS mode, and mailbox folder configuration.",
           "scopes": [],
           "required": true
         },
         {
           "id": "imap-mailbox-credentials",
           "label": "IMAP mailbox credentials",
-          "description": "Server-side mailbox authentication material such as app password, OAuth bearer token, or external auth.",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "imap-connector",
-          "label": "Injected IMAP connector",
-          "description": "An SDK-user-provided connector implementation that performs IMAP network operations.",
+          "description": "Mailbox username with password, OAuth2 access token, or externally supplied auth.",
           "scopes": [],
           "required": true
         }
@@ -5539,11 +4867,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "privacyNotes": [
       "IMAP messages can contain customer content, addresses, headers, attachments, and mailbox folder metadata.",
-      "Mailbox credentials stay server-side; this package reports readiness only and requires an injected connector for network access."
+      "Mailbox credentials stay server-side and are represented only as readiness state."
     ],
     "limitations": [
-      "This package does not bundle an IMAP client dependency; SDK users inject a connector that matches their runtime, TLS, auth, and proxy requirements.",
-      "Mailbox search, fetch, retention, folder selection, message deletion, flag mutation, attachment retrieval, and outbound email policy remain SDK-user implementation/configuration."
+      "This package does not implement full mailbox synchronization, storage, retention, MIME parsing policy, attachment handling policy, deletion policy, or outbound SMTP.",
+      "SDK users own mailbox selection, search scope, flag mutation policy, retention, redaction, and concurrency limits."
     ],
     "maintainers": [
       {
@@ -5552,11 +4880,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "mailboxReadiness": "typed-readiness-via-injected-connector",
-        "imapSearchFetchStoreIdle": "not-covered",
-        "mimeParsingAttachments": "not-covered"
+      "implementation": {
+        "strategy": "protocol-library",
+        "libraryPackage": "imapflow",
+        "libraryVersionRange": "^1.4.2",
+        "verifiedPackageVersion": "1.4.2",
+        "verifiedAt": "2026-06-21",
+        "protocolSource": "RFC 9051",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
       },
+      "channelCoverage": {
+        "mailboxReadiness": "provider-supported-via-protocol-library",
+        "messageSearch": "provider-supported-via-protocol-library",
+        "messageFetch": "provider-supported-via-protocol-library",
+        "mimeParsingAttachments": "not-covered",
+        "outboundSmtp": "not-covered",
+        "fullMailboxSync": "not-covered"
+      },
+      "directSliceMetadata": {
+        "source": "RFC 9051 plus ImapFlow 1.4.2 declarations",
+        "allowlist": [
+          "connect",
+          "logout",
+          "mailboxOpen",
+          "status",
+          "search",
+          "fetch"
+        ],
+        "checksum": "npm:imapflow@1.4.2"
+      },
+      "rawClientEscapeHatch": "ImapFlow client exposed from createImapEmailClient().rawClient",
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
@@ -5588,7 +4942,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "imap.mailbox.check"
+        ]
       }
     }
   },
@@ -5596,11 +4952,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.mailgun",
     "category": "email",
     "provider": "mailgun",
-    "importPath": "@cognidesk/integrations/email/mailgun",
-    "modulePath": "./email/mailgun/index.js",
+    "importPath": "@cognidesk/integration-email-mailgun/manifest",
+    "modulePath": "integrations/email/mailgun/dist/manifest.js",
     "manifestExport": "mailgunEmailProviderManifest",
     "name": "Mailgun",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-mailgun",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -5613,19 +4969,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Mailgun",
-      "summary": "Coverage includes generated per-operation functions for every operation in Mailgun's official public OpenAPI 3.1 API reference.",
+      "summary": "Coverage is the Cognidesk normalized support-email adapter surface backed by the official Mailgun SDK.",
       "tags": [
         "email",
         "mailgun",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Receive Mailgun webhooks",
-        "description": "Parses and verifies Mailgun inbound, delivery, engagement, and failure event callbacks.",
+        "label": "Receive Mailgun events",
+        "description": "Parses and verifies Mailgun inbound, delivery, engagement, and failure callbacks.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -5634,10 +4990,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "mailgunEvent",
             "label": "Mailgun Event"
-          },
-          {
-            "kind": "mailgunInboundMessage",
-            "label": "Mailgun Inbound Message"
           }
         ],
         "requiresCredential": true,
@@ -5649,7 +5001,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Mailgun email",
-        "description": "Sends email through Mailgun's HTTP Sending API when SDK-user policy permits outbound contact.",
+        "description": "Sends support email through the official Mailgun SDK.",
         "audiences": [
           "customer-facing"
         ],
@@ -5666,69 +5018,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "draft",
-        "label": "Build Mailgun outbound payloads",
-        "description": "Builds Mailgun form, MIME, template, and variable payloads for SDK-user approval workflows.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "mailgunEmailDraft",
-            "label": "Mailgun Email Draft"
-          }
-        ],
-        "requiresCredential": false,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use Mailgun message metadata",
-        "description": "Associates support replies using Mailgun message IDs, headers, tags, variables, and event metadata.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "mailgunThreadReference",
-            "label": "Mailgun Thread Reference"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Send Mailgun attachments",
-        "description": "Supports attachment metadata and MIME sending surfaces governed by the SDK user's channel policy.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "mailgunAttachment",
-            "label": "Mailgun Attachment"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
         "capability": "read-provider-object",
-        "label": "Read Mailgun messages and domains",
-        "description": "Reads stored messages, domain metadata, and webhook configuration through Mailgun APIs.",
+        "label": "Read Mailgun message and domain resources",
+        "description": "Reads support-scoped stored messages, domain state, webhooks, and event delivery status.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -5743,20 +5035,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Mailgun Domain"
           },
           {
-            "kind": "mailgunRoute",
-            "label": "Mailgun Route"
-          },
-          {
-            "kind": "mailgunDomainTemplate",
-            "label": "Mailgun Domain Template"
-          },
-          {
             "kind": "mailgunWebhook",
-            "label": "Mailgun Domain Webhook"
+            "label": "Mailgun Webhook"
           },
           {
-            "kind": "mailgunSuppressionRecord",
-            "label": "Mailgun Suppression Record"
+            "kind": "deliveryStatus",
+            "label": "Delivery Status"
           }
         ],
         "requiresCredential": true,
@@ -5768,7 +5052,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "search-provider-object",
         "label": "Search Mailgun events",
-        "description": "Searches Mailgun Events API with SDK-user-supplied retention-aware filters.",
+        "description": "Searches Mailgun event history through mailgun.js for retention-aware support workflows.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -5777,22 +5061,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "mailgunEvent",
             "label": "Mailgun Event"
-          },
-          {
-            "kind": "mailgunRoute",
-            "label": "Mailgun Route"
-          },
-          {
-            "kind": "mailgunDomainTemplate",
-            "label": "Mailgun Domain Template"
-          },
-          {
-            "kind": "mailgunWebhook",
-            "label": "Mailgun Domain Webhook"
-          },
-          {
-            "kind": "mailgunSuppressionRecord",
-            "label": "Mailgun Suppression Record"
           }
         ],
         "requiresCredential": true,
@@ -5803,17 +5071,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Mailgun's official public OpenAPI 3.1 API reference.",
-        "Typed convenience helpers remain available for support email workflows: sending, MIME sending, inbound route parsing, stored-message reads, legacy Events API searches, domain readiness, domain webhooks, account routes, domain templates, and suppression lookups.",
-        "The generated full API surface covers Mailgun Logs, Metrics, account and domain webhooks, broad domain management, IPs/IP pools/warmup, mailing lists, tags, subaccounts, users, keys, alerts, allowlist, and suppression mutation/import endpoints from the official OpenAPI artifact.",
-        "The SDK user still owns domain selection, region selection, route/webhook policy, retention, redaction, outbound approval, rate limiting, pagination, retry/backoff, and which generated operations are exposed to operators."
+        "Coverage is the Cognidesk normalized support-email adapter surface backed by the official Mailgun SDK.",
+        "The raw mailgun.js client is exposed for SDK-user controlled advanced provider operations; Cognidesk does not re-export a generated full Mailgun API clone."
       ],
       "evidence": [
         {
-          "label": "Mailgun OpenAPI specification",
-          "url": "https://documentation.mailgun.com/_spec/docs/mailgun/api-reference/send/mailgun.json?download"
+          "label": "mailgun.js package",
+          "url": "https://github.com/mailgun/mailgun.js"
         },
         {
           "label": "Mailgun Messages API",
@@ -5824,55 +5090,29 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/events"
         },
         {
-          "label": "Mailgun Logs API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/logs"
-        },
-        {
-          "label": "Mailgun Metrics API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/metrics"
-        },
-        {
-          "label": "Mailgun Routes API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/routes"
-        },
-        {
-          "label": "Mailgun Domain Webhooks API",
+          "label": "Mailgun Webhooks",
           "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/domain-webhooks"
-        },
-        {
-          "label": "Mailgun Account Webhooks API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/account-webhooks"
-        },
-        {
-          "label": "Mailgun Domains API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/domains"
-        },
-        {
-          "label": "Mailgun Bounces API",
-          "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/bounces"
-        },
-        {
-          "label": "Mailgun Receiving Messages via HTTP",
-          "url": "https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/receive-http"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "email.receive",
-          "email.thread.read",
-          "email.reply.send"
+          "email.reply.send",
+          "email.send",
+          "email.deliveryStatus.read"
+        ],
+        "missingRequiredOperations": [
+          "email.thread.read"
         ],
         "missingRecommendedOperations": [
-          "email.send",
           "email.draft.create",
           "email.draft.update",
           "email.draft.send",
@@ -5884,24 +5124,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "mailgun.storedMessage.read",
+          "mailgun.domain.read",
+          "mailgun.webhooks.list"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/mailgun",
-      "providerModule": "./email/mailgun/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "mailgun.js",
+      "runtimePackage": "@cognidesk/integration-email-mailgun",
+      "providerModule": "integrations/email/mailgun/dist/manifest.js",
       "manifestExport": "mailgunEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/mailgun/manifest.ts",
+      "manifestSource": "integrations/email/mailgun/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://documentation.mailgun.com/docs/mailgun"
+      "documentationPath": "https://github.com/mailgun/mailgun.js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -5911,49 +5154,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "mailgun-domain"
       ],
       "optionalCredentialIds": [
-        "mailgun-webhook-signing-key",
-        "mailgun-region"
+        "mailgun-webhook-signing-key"
       ],
       "credentialRequirements": [
         {
           "id": "mailgun-api-key",
           "label": "Mailgun API key",
-          "description": "Server-side Mailgun API key used for Sending, Events, Domains, and Webhooks API calls.",
+          "description": "Server-side Mailgun API key used by the official mailgun.js client.",
           "scopes": [],
           "required": true
         },
         {
           "id": "mailgun-domain",
           "label": "Mailgun sending domain",
-          "description": "SDK-user-selected Mailgun domain used for outbound email, inbound routes, and event searches.",
+          "description": "Mailgun domain selected by the SDK user for outbound, event, and stored-message operations.",
           "scopes": [],
           "required": true
         },
         {
           "id": "mailgun-webhook-signing-key",
           "label": "Mailgun webhook signing key",
-          "description": "Webhook signing key used to verify Mailgun event callbacks with HMAC-SHA256.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "mailgun-region",
-          "label": "Mailgun region",
-          "description": "Mailgun API region selected by the SDK user, usually US or EU.",
+          "description": "Signing key used to verify Mailgun event callbacks.",
           "scopes": [],
           "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Mailgun email bodies, recipients, sender addresses, headers, tags, variables, event payloads, routes, and attachments can contain customer data.",
-      "Mailgun API keys and webhook signing keys stay server-side and are represented in Studio only as readiness state."
+      "Mailgun message bodies, recipients, sender addresses, headers, tags, variables, event payloads, routes, and attachments can contain customer data.",
+      "Mailgun API keys and webhook signing keys stay server-side and are represented only as readiness state."
     ],
     "limitations": [
-      "The SDK user chooses domains, routes, templates, tracking, webhook endpoints, retention, redaction, and outbound approval policy.",
-      "Mailgun stored message and event availability depends on the SDK user's plan, region, and retention settings.",
-      "This package does not provide replay-cache storage for webhook deduplication; SDK users must configure storage and retention policy.",
-      "This package does not decide when to send, auto-reply, attach files, track engagement, or expose inbound content to operators."
+      "The SDK user owns domain selection, route policy, retention, redaction, replay-cache storage, outbound approval, and rate limiting.",
+      "Advanced provider operations remain available through the raw mailgun.js client, not as Cognidesk-owned generated operations."
     ],
     "maintainers": [
       {
@@ -5962,54 +5195,40 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://documentation.mailgun.com/docs/mailgun",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "mailgun.js",
+        "sdkVersionRange": "^13.2.0",
+        "verifiedPackageVersion": "13.2.0",
+        "verifiedAt": "2026-06-21",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
+      },
       "channelCoverage": {
-        "sendEmail": "typed-send",
-        "sendMime": "typed-send",
-        "inboundRouteParsing": "typed-parse",
-        "storedMessages": "typed-read",
-        "eventsApi": "typed-search-legacy",
-        "domains": "typed-read",
-        "domainWebhooks": "typed-list",
-        "routes": "typed-list",
-        "suppressions": "typed-read",
-        "domainTemplates": "typed-list",
-        "logsApi": "generated-per-operation-functions",
-        "metricsApi": "generated-per-operation-functions",
-        "webhooksMutation": "generated-per-operation-functions",
-        "mailingLists": "generated-per-operation-functions",
-        "ipPoolsAndWarmup": "generated-per-operation-functions",
-        "subaccountsUsersKeysAlerts": "generated-per-operation-functions",
-        "suppressionsMutationImport": "generated-per-operation-functions",
-        "fullApiOperations": "generated-per-operation-functions"
+        "sendEmail": "provider-supported-via-official-sdk",
+        "sendReply": "provider-supported-via-official-sdk",
+        "eventSearch": "provider-supported-via-official-sdk",
+        "storedMessageRead": "provider-supported-via-official-sdk",
+        "webhooks": "provider-supported-via-official-sdk",
+        "fullProviderApiClone": "not-covered"
       },
-      "fullProviderApiVerification": {
-        "provider": "mailgun",
-        "apiVersion": "3.0.0",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/mailgun-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/mailgun-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/mailgun-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 169,
-        "documentedOperationCount": 265,
-        "implementedOperationCount": 265,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 265
-      },
+      "rawClientEscapeHatch": "mailgun.js IMailgunClient exposed from createMailgunEmailClient().rawClient",
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "email.receive",
-          "email.thread.read",
-          "email.reply.send"
+          "email.reply.send",
+          "email.send",
+          "email.deliveryStatus.read"
+        ],
+        "missingRequiredOperations": [
+          "email.thread.read"
         ],
         "missingRecommendedOperations": [
-          "email.send",
           "email.draft.create",
           "email.draft.update",
           "email.draft.send",
@@ -6021,13 +5240,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "mailgun.storedMessage.read",
+          "mailgun.domain.read",
+          "mailgun.webhooks.list"
+        ]
       }
     }
   },
@@ -6035,11 +5257,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.outlook",
     "category": "email",
     "provider": "outlook",
-    "importPath": "@cognidesk/integrations/email/outlook",
-    "modulePath": "./email/outlook/index.js",
-    "manifestExport": "outlookEmailProviderManifest",
+    "importPath": "@cognidesk/integration-email-outlook/manifest",
+    "modulePath": "integrations/email/outlook/dist/manifest.js",
+    "manifestExport": "outlookEmailManifestInput",
     "name": "Microsoft Outlook",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-outlook",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -6053,7 +5275,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Microsoft Outlook",
-      "summary": "Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Outlook mailbox slice used by this package: /me and /users/{user-id}, messages, mailFolders, message attachments, sendMail, subscriptions, and Outlook category paths.",
+      "summary": "Coverage includes SDK-backed Microsoft Graph Outlook mailbox support workflows: messages, mailFolders, attachments, sendMail, subscriptions, mailbox user readiness, and change notifications.",
       "tags": [
         "email",
         "outlook",
@@ -6064,8 +5286,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Read Outlook messages",
-        "description": "Lists and reads Microsoft Graph message resources from the configured Outlook mailbox.",
+        "label": "Read Outlook messages and notifications",
+        "description": "Reads Microsoft Graph message resources and validates Outlook change notifications.",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -6079,6 +5301,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "outlookMessage",
             "label": "Outlook Message"
+          },
+          {
+            "kind": "outlookChangeNotification",
+            "label": "Outlook Change Notification"
           }
         ],
         "requiresCredential": true,
@@ -6129,9 +5355,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "thread",
-        "label": "Use Outlook conversations",
-        "description": "Associates messages with Microsoft Graph conversation IDs and internet message headers.",
+        "capability": "read-provider-object",
+        "label": "Read Outlook mailbox objects",
+        "description": "Reads messages, attachments, mailbox users, and raw Graph resources needed by support workflows.",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -6139,29 +5365,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "outlookConversation",
-            "label": "Outlook Conversation"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Read Outlook attachment content",
-        "description": "Reads Microsoft Graph attachment metadata and raw attachment contents for SDK-user-governed attachment handling.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
+            "kind": "outlookMessage",
+            "label": "Outlook Message"
+          },
           {
             "kind": "outlookAttachment",
             "label": "Outlook Attachment"
+          },
+          {
+            "kind": "outlookMailboxUser",
+            "label": "Outlook Mailbox User"
           }
         ],
         "requiresCredential": true,
@@ -6173,7 +5386,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "update-provider-object",
         "label": "Update Outlook messages",
-        "description": "Updates Microsoft Graph message fields such as categories, importance, read state, or draft content when SDK-user policy permits mutation.",
+        "description": "Updates Microsoft Graph message fields such as categories, importance, read state, or draft content.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -6189,42 +5402,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": true,
         "extension": false
-      },
-      {
-        "capability": "outlook.webhook-client-state",
-        "label": "Validate Outlook webhook clientState",
-        "description": "Validates Microsoft Graph change notification clientState values with the SDK user's configured secret.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "outlookChangeNotification",
-            "label": "Outlook Change Notification"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
       }
     ],
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Outlook mailbox slice used by this package: /me and /users/{user-id}, messages, mailFolders, message attachments, sendMail, subscriptions, and Outlook category paths.",
-        "Typed convenience helpers remain available for selected Microsoft Graph Outlook mail workflows: message list/get, draft creation, sendMail, message update, folder delta sync, attachment list/get/raw-value reads, mailbox-user readiness, webhook clientState validation, and subscription creation.",
-        "This is not full Microsoft Graph coverage; the complete Graph v1.0 OpenAPI currently has tens of thousands of operations across many Microsoft 365 services. Calendar, contacts, Teams, files/Drive, identity, admin, security, and broader Graph resources remain outside this Outlook adapter unless represented in the mailbox slice."
+        "Coverage includes SDK-backed Microsoft Graph Outlook mailbox support workflows: messages, mailFolders, attachments, sendMail, subscriptions, mailbox user readiness, and change notifications.",
+        "The package uses @microsoft/microsoft-graph-client for Graph calls and keeps Cognidesk-normalized helper methods and operation handlers.",
+        "This is not full Microsoft Graph coverage. Calendar, contacts, files/Drive, identity, admin, security, and broader Graph resources remain outside this Outlook adapter."
       ],
       "evidence": [
         {
-          "label": "Microsoft Graph OpenAPI registry",
-          "url": "https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml"
-        },
-        {
-          "label": "Microsoft Graph v1.0 OpenAPI",
-          "url": "https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml"
+          "label": "Microsoft Graph JavaScript client",
+          "url": "https://www.npmjs.com/package/@microsoft/microsoft-graph-client"
         },
         {
           "label": "Microsoft Graph create message",
@@ -6235,20 +5425,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0"
         },
         {
-          "label": "Microsoft Graph update message",
-          "url": "https://learn.microsoft.com/en-us/graph/api/message-update?view=graph-rest-1.0"
-        },
-        {
           "label": "Microsoft Graph message delta",
           "url": "https://learn.microsoft.com/en-us/graph/api/message-delta?view=graph-rest-1.0"
         },
         {
           "label": "Microsoft Graph list attachments",
           "url": "https://learn.microsoft.com/en-us/graph/api/message-list-attachments?view=graph-rest-1.0"
-        },
-        {
-          "label": "Microsoft Graph get attachment",
-          "url": "https://learn.microsoft.com/en-us/graph/api/attachment-get?view=graph-rest-1.0"
         },
         {
           "label": "Microsoft Graph create subscription",
@@ -6262,49 +5444,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "email",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "email.receive",
-          "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
-          "email.send",
-          "email.draft.create",
-          "email.draft.update",
-          "email.draft.send",
-          "email.thread.search",
-          "email.archive",
-          "email.label.apply"
-        ],
-        "missingOptionalOperations": [
-          "email.forward",
-          "email.draft.delete",
-          "email.attachments.read",
-          "email.deliveryStatus.read",
-          "email.markRead",
-          "email.markUnread",
-          "email.move",
-          "mailbox.watch"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/outlook",
-      "providerModule": "./email/outlook/index.js",
-      "manifestExport": "outlookEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/outlook/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@microsoft/microsoft-graph-client",
+      "runtimePackage": "@cognidesk/integration-email-outlook",
+      "providerModule": "integrations/email/outlook/dist/manifest.js",
+      "manifestExport": "outlookEmailManifestInput",
+      "manifestSource": "integrations/email/outlook/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml"
+      "documentationPath": "https://www.npmjs.com/package/@microsoft/microsoft-graph-client"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -6320,7 +5471,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "microsoft-graph-oauth-access-token",
           "label": "Microsoft Graph OAuth access token",
-          "description": "Server-side OAuth access token for Microsoft Graph mail APIs. Required permissions are operation-specific; sendMail can use Mail.Send while delta/subscription reads can use read permissions.",
+          "description": "Server-side OAuth access token for Microsoft Graph mail APIs. Required permissions are operation-specific.",
           "scopes": [
             "Mail.Read",
             "Mail.ReadWrite",
@@ -6349,14 +5500,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "privacyNotes": [
-      "Outlook messages can contain customer content, attachments, addresses, recipients, categories, internet headers, calendar-style metadata, and conversation history.",
+      "Outlook messages can contain customer content, attachments, addresses, recipients, categories, internet headers, and conversation history.",
       "Microsoft Graph OAuth access tokens and webhook clientState secrets stay server-side and are represented in Studio only as credential readiness.",
       "SDK users own outbound approval, auto-send controls, contact consent, tenant/admin policy review, retention, redaction, attachment retrieval, and deletion behavior."
     ],
     "limitations": [
       "Available operations depend on Microsoft Graph permissions, OAuth grant type, tenant admin consent, conditional access, mailbox licensing, Exchange Online policy, and delegated or application user selection.",
-      "This package provides transport and webhook foundations; it does not choose default automation, retention, consent, promotional messaging, tenant-wide access, retry, or rate-limit policies.",
-      "Webhook validation is based on Microsoft Graph clientState matching. The generated mailbox slice exposes subscription renewal/delete/reauthorize operations, while encrypted resource data decryption, expiration monitoring policy, retry, and reauthorization timing are SDK-user integration responsibilities."
+      "This package provides transport and webhook foundations; it does not choose default automation, retention, consent, retry, or rate-limit policies.",
+      "Webhook validation is based on Microsoft Graph clientState matching. Subscription renewal/delete/reauthorize policy remains SDK-user-owned."
     ],
     "maintainers": [
       {
@@ -6365,93 +5516,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@microsoft/microsoft-graph-client",
+        "rawClientEscapeHatch": "rawClient",
+        "manifestOnlyExport": "@cognidesk/integration-email-outlook/manifest"
+      },
       "channelCoverage": {
-        "messages": "typed-list-get-delta-update",
-        "drafts": "typed-create",
-        "sendMail": "typed-send",
-        "attachments": "typed-list-get-download",
-        "subscriptions": "typed-create",
+        "messages": "sdk-owned-list-get-delta-update",
+        "drafts": "sdk-owned-create",
+        "sendMail": "sdk-owned-send",
+        "attachments": "sdk-owned-list-get-download",
+        "subscriptions": "sdk-owned-create",
         "webhookClientState": "typed-validate",
-        "mailboxUser": "typed-read",
-        "graphMailboxSlice": "generated-per-operation-functions",
-        "subscriptionRenewDelete": "generated-full-slice",
-        "mailFolderRulesCategoriesUploadSessions": "generated-full-slice"
-      },
-      "generatedProviderApiVerification": {
-        "provider": "microsoft-graph-outlook-mailbox-slice",
-        "apiVersion": "v1.0",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/outlook-graph-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/outlook-graph-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/outlook-graph-api-2026-06-17.functions.json",
-        "documentedPathCount": 193,
-        "documentedOperationCount": 289,
-        "implementedOperationCount": 289,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 289,
-        "slice": "Microsoft Graph v1.0 Outlook mailbox paths only; not full Microsoft Graph."
-      },
-      "permissionAlternatives": {
-        "sendMail": {
-          "delegated": [
-            "Mail.Send"
-          ],
-          "application": [
-            "Mail.Send"
-          ]
-        },
-        "messageDelta": {
-          "delegatedLeastPrivileged": [
-            "Mail.ReadBasic"
-          ],
-          "delegatedHigherPrivileged": [
-            "Mail.Read",
-            "Mail.ReadWrite"
-          ],
-          "applicationLeastPrivileged": [
-            "Mail.ReadBasic.All"
-          ],
-          "applicationHigherPrivileged": [
-            "Mail.Read",
-            "Mail.ReadWrite"
-          ]
-        },
-        "subscriptionCreate": {
-          "rule": "Microsoft Graph requires read permission for the subscribed resource; typed helpers create subscriptions while the generated mailbox slice also exposes subscription update/delete/reauthorize operations."
-        }
-      },
-      "categoryProfileId": "email",
-      "integrationCategoryProfileId": "email",
-      "categoryProfile": {
-        "id": "email",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "email.receive",
-          "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
-          "email.send",
-          "email.draft.create",
-          "email.draft.update",
-          "email.draft.send",
-          "email.thread.search",
-          "email.archive",
-          "email.label.apply"
-        ],
-        "missingOptionalOperations": [
-          "email.forward",
-          "email.draft.delete",
-          "email.attachments.read",
-          "email.deliveryStatus.read",
-          "email.markRead",
-          "email.markUnread",
-          "email.move",
-          "mailbox.watch"
-        ],
-        "extensionOperations": []
+        "mailboxUser": "sdk-owned-read"
       }
     }
   },
@@ -6459,11 +5537,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.postmark",
     "category": "email",
     "provider": "postmark",
-    "importPath": "@cognidesk/integrations/email/postmark",
-    "modulePath": "./email/postmark/index.js",
+    "importPath": "@cognidesk/integration-email-postmark/manifest",
+    "modulePath": "integrations/email/postmark/dist/manifest.js",
     "manifestExport": "postmarkEmailProviderManifest",
     "name": "Postmark",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-postmark",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -6476,31 +5554,31 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Postmark",
-      "summary": "Coverage includes generated per-operation functions for every operation in Postmark's official server and account Swagger files.",
+      "summary": "Coverage is the Cognidesk normalized support-email adapter surface backed by the official Postmark Node client.",
       "tags": [
         "email",
         "postmark",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
         "label": "Receive Postmark inbound webhooks",
-        "description": "Parses Postmark inbound email JSON webhooks for SDK-user-owned email flows; delivery, bounce, open, click, spam, and subscription event parsers are outside this adapter.",
+        "description": "Parses inbound email webhooks into support email events.",
         "audiences": [
           "customer-facing",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "postmarkInboundMessage",
-            "label": "Postmark Inbound Message"
+            "kind": "emailMessage",
+            "label": "Email Message"
           },
           {
-            "kind": "postmarkWebhook",
-            "label": "Postmark Webhook"
+            "kind": "postmarkInboundMessage",
+            "label": "Postmark Inbound Message"
           }
         ],
         "requiresCredential": true,
@@ -6512,74 +5590,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Postmark email",
-        "description": "Sends transactional email through Postmark Email API when SDK-user policy permits outbound contact.",
+        "description": "Sends support email through the official Postmark ServerClient.",
         "audiences": [
           "customer-facing"
         ],
         "providerObjects": [
           {
-            "kind": "postmarkOutboundMessage",
-            "label": "Postmark Outbound Message"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "draft",
-        "label": "Build Postmark outbound payloads",
-        "description": "Builds Postmark email or template payloads for SDK-user-configured approval workflows.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "postmarkEmailDraft",
-            "label": "Postmark Email Draft"
-          }
-        ],
-        "requiresCredential": false,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use Postmark message metadata",
-        "description": "Associates inbound replies and outbound messages using Postmark message IDs, tags, headers, and metadata.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
           {
             "kind": "postmarkMessage",
             "label": "Postmark Message"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Use Postmark attachments",
-        "description": "Accepts outbound attachments and exposes inbound attachment metadata for SDK-user-governed handling.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "postmarkAttachment",
-            "label": "Postmark Attachment"
           }
         ],
         "requiresCredential": true,
@@ -6590,8 +5612,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read Postmark messages, streams, and suppressions",
-        "description": "Reads Postmark outbound or inbound message details, message streams, and suppression records through Postmark APIs.",
+        "label": "Read Postmark messages and streams",
+        "description": "Reads message details, delivery status, message streams, webhooks, and suppression state.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -6608,34 +5630,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "postmarkSuppression",
             "label": "Postmark Suppression"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "search-provider-object",
-        "label": "Search Postmark messages",
-        "description": "Searches Postmark message history with SDK-user-supplied filters and retention-aware limits.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "postmarkMessage",
-            "label": "Postmark Message"
           },
           {
-            "kind": "postmarkMessageStream",
-            "label": "Postmark Message Stream"
-          },
-          {
-            "kind": "postmarkSuppression",
-            "label": "Postmark Suppression"
+            "kind": "deliveryStatus",
+            "label": "Delivery Status"
           }
         ],
         "requiresCredential": true,
@@ -6647,7 +5645,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "update-provider-object",
         "label": "Manage Postmark suppressions",
-        "description": "Creates or deletes Postmark suppression records for SDK-user-governed suppression lifecycle workflows.",
+        "description": "Adds or deletes suppressions when SDK-user policy permits.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -6660,74 +5658,54 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": true,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Postmark's official server and account Swagger files.",
-        "Typed convenience helpers remain available for support email workflows: single email send, template send, inbound/outbound message detail and search, webhook listing, message-stream listing, inbound webhook parsing, and suppression dump/create/delete.",
-        "The generated full API surface covers Postmark send/batch/template, bounces, stats, opens/clicks, inbound rules, server configuration, account servers, domains, sender signatures, and template push operations from the official Swagger artifacts.",
-        "The SDK user still owns stream/sender/template selection, inbound domain and webhook hosting, webhook authentication, retention, redaction, outbound approval, rate limiting, pagination, and which generated operations are exposed to operators."
+        "Coverage is the Cognidesk normalized support-email adapter surface backed by the official Postmark Node client.",
+        "The raw Postmark clients are exposed for SDK-user controlled advanced provider operations; Cognidesk does not re-export a generated full Postmark API clone."
       ],
       "evidence": [
         {
-          "label": "Postmark Server API Swagger",
-          "url": "https://postmarkapp.com/swagger/server.yml"
-        },
-        {
-          "label": "Postmark Account API Swagger",
-          "url": "https://postmarkapp.com/swagger/account.yml"
-        },
-        {
-          "label": "Postmark API Explorer",
-          "url": "https://postmarkapp.com/api-explorer"
+          "label": "Postmark Node.js library",
+          "url": "https://github.com/ActiveCampaign/postmark.js"
         },
         {
           "label": "Postmark Email API",
-          "url": "https://postmarkapp.com/developer/user-guide/send-email-with-api"
+          "url": "https://postmarkapp.com/developer/api/email-api"
         },
         {
           "label": "Postmark Messages API",
           "url": "https://postmarkapp.com/developer/api/messages-api"
         },
         {
-          "label": "Postmark inbound webhook",
+          "label": "Postmark inbound webhooks",
           "url": "https://postmarkapp.com/developer/webhooks/inbound-webhook"
-        },
-        {
-          "label": "Postmark Webhooks API",
-          "url": "https://postmarkapp.com/developer/api/webhooks-api"
-        },
-        {
-          "label": "Postmark Message Streams API",
-          "url": "https://postmarkapp.com/developer/api/message-streams-api"
-        },
-        {
-          "label": "Postmark Suppressions API",
-          "url": "https://postmarkapp.com/developer/api/suppressions-api"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "email.receive",
-          "email.thread.read",
-          "email.reply.send"
+          "email.reply.send",
+          "email.send",
+          "email.deliveryStatus.read"
+        ],
+        "missingRequiredOperations": [
+          "email.thread.read"
         ],
         "missingRecommendedOperations": [
-          "email.send",
           "email.draft.create",
           "email.draft.update",
           "email.draft.send",
@@ -6739,87 +5717,61 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "postmark.messageStreams.list",
+          "postmark.suppressions.create",
+          "postmark.suppressions.delete"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/postmark",
-      "providerModule": "./email/postmark/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "postmark",
+      "runtimePackage": "@cognidesk/integration-email-postmark",
+      "providerModule": "integrations/email/postmark/dist/manifest.js",
       "manifestExport": "postmarkEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/postmark/manifest.ts",
+      "manifestSource": "integrations/email/postmark/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://postmarkapp.com/developer"
+      "documentationPath": "https://github.com/ActiveCampaign/postmark.js"
     },
     "readiness": {
       "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "postmark-server-token",
-        "postmark-account-token"
+        "postmark-server-token"
       ],
       "optionalCredentialIds": [
-        "postmark-message-stream",
-        "postmark-webhook-auth"
+        "postmark-account-token"
       ],
       "credentialRequirements": [
         {
           "id": "postmark-server-token",
           "label": "Postmark server token",
-          "description": "Server-side Postmark Server API token used for server-level generated operations and typed Email, Messages, Webhooks, Streams, and Suppressions API calls.",
-          "scopes": [
-            "Postmark Server API"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "Postmark uses token classes rather than OAuth scopes; this label identifies the Server API token authority."
-          }
+          "description": "Server token used by the official Postmark ServerClient.",
+          "scopes": [],
+          "required": true
         },
         {
           "id": "postmark-account-token",
           "label": "Postmark account token",
-          "description": "Server-side Postmark Account API token used for generated account-level server, domain, sender-signature, and template-push operations.",
-          "scopes": [
-            "Postmark Account API"
-          ],
-          "required": true,
-          "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "Postmark uses token classes rather than OAuth scopes; this label identifies the Account API token authority."
-          }
-        },
-        {
-          "id": "postmark-message-stream",
-          "label": "Postmark message stream",
-          "description": "SDK-user-selected Postmark message stream for outbound or inbound processing.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "postmark-webhook-auth",
-          "label": "Postmark webhook authentication",
-          "description": "SDK-user-configured webhook protection such as Basic Auth, private URL routing, or gateway verification.",
+          "description": "Optional account token for explicitly retained account-scoped support operations.",
           "scopes": [],
           "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Postmark email bodies, recipients, sender addresses, headers, tags, metadata, delivery events, and attachments can contain customer data.",
-      "Postmark server tokens and webhook authentication material stay server-side and are represented in Studio only as readiness state."
+      "Postmark email bodies, recipients, sender addresses, headers, attachments, metadata, and webhook payloads can contain customer data.",
+      "Postmark tokens stay server-side and are represented only as readiness state."
     ],
     "limitations": [
-      "The SDK user chooses streams, sender signatures, templates, inbound domains, webhook protection, retention, redaction, and outbound approval policy.",
-      "Postmark message history is retention-bound; API reads may not prove historical completeness beyond the SDK user's Postmark retention settings.",
-      "This package does not decide when to send, auto-reply, attach files, track opens/clicks, or expose inbound content to operators."
+      "The SDK user owns message stream selection, webhook auth policy, retention, redaction, outbound approval, and rate limiting.",
+      "Advanced provider operations remain available through raw Postmark clients, not as Cognidesk-owned generated operations."
     ],
     "maintainers": [
       {
@@ -6828,50 +5780,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://postmarkapp.com/developer",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "postmark",
+        "sdkVersionRange": "^4.0.7",
+        "verifiedPackageVersion": "4.0.7",
+        "verifiedAt": "2026-06-21",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
+      },
       "channelCoverage": {
-        "fullPostmarkSwaggerApi": "generated-per-operation-functions",
-        "singleEmailSend": "typed-send-and-generated-full-surface",
-        "templateEmailSend": "typed-send-and-generated-full-surface",
-        "batchEmailSend": "generated-per-operation-functions",
-        "inboundWebhookParsing": "typed-parse",
-        "outboundMessages": "typed-read-search",
-        "inboundMessages": "typed-read-search",
-        "webhooks": "typed-list",
-        "messageStreams": "typed-list",
-        "suppressions": "typed-list-create-delete",
-        "bouncesStatsOpensClicks": "generated-per-operation-functions",
-        "inboundRulesServerConfiguration": "generated-per-operation-functions",
-        "accountServersDomainsSenderSignatures": "generated-per-operation-functions",
-        "accountTemplatePush": "generated-per-operation-functions"
+        "inboundWebhook": "typed-parse",
+        "sendEmail": "provider-supported-via-official-sdk",
+        "templateSend": "provider-supported-via-official-sdk",
+        "messageDetails": "provider-supported-via-official-sdk",
+        "messageStreams": "provider-supported-via-official-sdk",
+        "suppressions": "provider-supported-via-official-sdk",
+        "fullProviderApiClone": "not-covered"
       },
-      "fullProviderApiVerification": {
-        "provider": "postmark",
-        "apiVersion": "postmark-swagger-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/postmark-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/postmark-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/postmark-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 52,
-        "documentedOperationCount": 66,
-        "implementedOperationCount": 66,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 66
-      },
+      "rawClientEscapeHatch": "Postmark ServerClient and optional AccountClient exposed from createPostmarkEmailClient().rawClients",
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "email.receive",
-          "email.thread.read",
-          "email.reply.send"
+          "email.reply.send",
+          "email.send",
+          "email.deliveryStatus.read"
+        ],
+        "missingRequiredOperations": [
+          "email.thread.read"
         ],
         "missingRecommendedOperations": [
-          "email.send",
           "email.draft.create",
           "email.draft.update",
           "email.draft.send",
@@ -6883,13 +5826,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "postmark.messageStreams.list",
+          "postmark.suppressions.create",
+          "postmark.suppressions.delete"
+        ]
       }
     }
   },
@@ -6897,11 +5843,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.ses",
     "category": "email",
     "provider": "ses",
-    "importPath": "@cognidesk/integrations/email/ses",
-    "modulePath": "./email/ses/index.js",
+    "importPath": "@cognidesk/integration-email-ses/manifest",
+    "modulePath": "integrations/email/ses/dist/manifest.js",
     "manifestExport": "sesEmailProviderManifest",
     "name": "Amazon SES",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-ses",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -6914,19 +5860,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Amazon SES",
-      "summary": "Coverage includes generated per-operation functions for every operation in the official AWS SESv2 and classic SES API models.",
+      "summary": "Coverage is the Cognidesk normalized support-email adapter surface backed by AWS SDK v3 SES clients.",
       "tags": [
         "email",
         "ses",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Parse SES/SNS email notifications",
-        "description": "Parses SES sending and receiving notifications delivered to an SDK-user-operated SNS/SQS/HTTP ingestion path; does not fetch mailbox contents or S3-stored raw messages.",
+        "label": "Parse SES/SNS events",
+        "description": "Parses SES delivery, bounce, complaint, and receiving notifications from SNS/SQS payloads.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -6935,10 +5881,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "sesEvent",
             "label": "SES Event"
-          },
-          {
-            "kind": "snsNotification",
-            "label": "SNS Notification"
           }
         ],
         "requiresCredential": true,
@@ -6949,75 +5891,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "send",
-        "label": "Send Amazon SES email",
-        "description": "Sends simple, templated, or raw email through the Amazon SES v2 SendEmail API when SDK-user policy allows outbound contact.",
+        "label": "Send SES email",
+        "description": "Sends support email through AWS SDK v3 SESv2.",
         "audiences": [
           "customer-facing"
         ],
         "providerObjects": [
           {
-            "kind": "sesOutboundEmail",
-            "label": "SES Outbound Email"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "draft",
-        "label": "Build Amazon SES outbound payloads",
-        "description": "Builds simple, templated, or raw SES email payloads for SDK-user-owned approval and channel workflows.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "sesEmailDraft",
-            "label": "SES Email Draft"
-          }
-        ],
-        "requiresCredential": false,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use SES message metadata",
-        "description": "Associates outbound messages and SES events using message IDs, headers, tags, configuration sets, and SDK-user metadata.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
             "kind": "sesMessage",
             "label": "SES Message"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Use raw MIME attachments",
-        "description": "Supports raw MIME sending for SDK-user-governed attachments and advanced email composition.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "sesRawMessage",
-            "label": "SES Raw Message"
           }
         ],
         "requiresCredential": true,
@@ -7028,8 +5910,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read SES account and identities",
-        "description": "Reads Amazon SES account readiness, verified identities, configuration sets, and templates for Studio-visible provider readiness.",
+        "label": "Read SES account resources",
+        "description": "Reads SES account readiness, identities, templates, configuration sets, and suppression state.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -7044,48 +5926,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "SES Identity"
           },
           {
-            "kind": "sesConfigurationSet",
-            "label": "SES Configuration Set"
-          },
-          {
-            "kind": "sesTemplate",
-            "label": "SES Template"
-          },
-          {
             "kind": "sesSuppressedDestination",
             "label": "SES Suppressed Destination"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "search-provider-object",
-        "label": "List SES provider resources",
-        "description": "Lists SES identities, configuration sets, and templates with SDK-user-supplied pagination.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "sesIdentity",
-            "label": "SES Identity"
           },
           {
-            "kind": "sesConfigurationSet",
-            "label": "SES Configuration Set"
-          },
-          {
-            "kind": "sesTemplate",
-            "label": "SES Template"
-          },
-          {
-            "kind": "sesSuppressedDestination",
-            "label": "SES Suppressed Destination"
+            "kind": "deliveryStatus",
+            "label": "Delivery Status"
           }
         ],
         "requiresCredential": true,
@@ -7096,8 +5942,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "update-provider-object",
-        "label": "Delete SES suppressed destinations",
-        "description": "Deletes Amazon SES suppression-list entries when SDK-user policy permits suppression lifecycle changes.",
+        "label": "Manage SES suppressions",
+        "description": "Deletes suppression-list entries when SDK-user policy permits.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -7110,75 +5956,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": true,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in the official AWS SESv2 and classic SES API models.",
-        "Typed convenience helpers remain available for support email workflows: SESv2 SendEmail/raw MIME send, account readiness, identities, templates, configuration sets, event destinations, suppression list reads, suppression removal, and SES/SNS notification parsing.",
-        "The generated full API surface covers SESv2 identities/DKIM, contact lists, import/export jobs, reputation entities, tenants, dedicated IP pools, configuration-set mutation, plus classic SES receiving/control-plane actions such as receipt rules/rule sets/filters and custom verification templates.",
-        "SNS/SQS topics, queues, subscriptions, S3 buckets, Lambda actions, HTTP webhook hosting, certificate fetching, retry/backoff, and event replay storage are separate AWS infrastructure surfaces owned by the SDK user."
+        "Coverage is the Cognidesk normalized support-email adapter surface backed by AWS SDK v3 SES clients.",
+        "The raw AWS SDK clients are exposed for SDK-user controlled advanced provider operations; Cognidesk does not re-export a generated full SES API clone."
       ],
       "evidence": [
         {
-          "label": "AWS official SESv2 API model",
-          "url": "https://github.com/aws/api-models-aws/blob/main/models/sesv2/service/2019-09-27/sesv2-2019-09-27.json"
+          "label": "AWS SDK for JavaScript v3 SESv2 client",
+          "url": "https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2"
         },
         {
-          "label": "AWS official classic SES API model",
-          "url": "https://github.com/aws/api-models-aws/blob/main/models/ses/service/2010-12-01/ses-2010-12-01.json"
+          "label": "AWS SDK for JavaScript v3 SES classic client",
+          "url": "https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-ses"
         },
         {
-          "label": "AWS SDK SESv2 client API reference",
-          "url": "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/sesv2/"
+          "label": "Amazon SES API v2",
+          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html"
         },
         {
-          "label": "AWS SDK classic SES client API reference",
-          "url": "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/ses/"
-        },
-        {
-          "label": "Amazon SES v2 SendEmail",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_SendEmail.html"
-        },
-        {
-          "label": "Amazon SES v2 GetAccount",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetAccount.html"
-        },
-        {
-          "label": "Amazon SES v2 ListEmailIdentities",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListEmailIdentities.html"
-        },
-        {
-          "label": "Amazon SES v2 ListEmailTemplates",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListEmailTemplates.html"
-        },
-        {
-          "label": "Amazon SES v2 ListConfigurationSets",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListConfigurationSets.html"
-        },
-        {
-          "label": "Amazon SES v2 ListSuppressedDestinations",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListSuppressedDestinations.html"
-        },
-        {
-          "label": "Amazon SES v2 DeleteSuppressedDestination",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_DeleteSuppressedDestination.html"
-        },
-        {
-          "label": "Amazon SES v2 GetConfigurationSetEventDestinations",
-          "url": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetConfigurationSetEventDestinations.html"
-        },
-        {
-          "label": "Amazon SES email receiving",
-          "url": "https://docs.aws.amazon.com/ses/latest/dg/receiving-email.html"
-        },
-        {
-          "label": "Amazon SES receiving notification contents",
-          "url": "https://docs.aws.amazon.com/ses/latest/dg/receiving-email-notifications-contents.html"
+          "label": "Amazon SES event publishing",
+          "url": "https://docs.aws.amazon.com/ses/latest/dg/monitor-sending-activity.html"
         },
         {
           "label": "Amazon SNS signature verification",
@@ -7187,14 +5991,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "email.deliveryStatus.read"
+        ],
         "missingRequiredOperations": [
           "email.receive",
           "email.thread.read",
@@ -7213,87 +6019,66 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "ses.snsNotification.receive",
+          "ses.account.read",
+          "ses.identities.list",
+          "ses.suppressedDestination.delete"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/ses",
-      "providerModule": "./email/ses/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-email-ses",
+      "runtimePackage": "@cognidesk/integration-email-ses",
+      "providerModule": "integrations/email/ses/dist/manifest.js",
       "manifestExport": "sesEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/ses/manifest.ts",
+      "manifestSource": "integrations/email/ses/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html"
+      "documentationPath": "https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-sesv2"
     },
     "readiness": {
       "mode": "credential-and-live-check",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "aws-access-key-id",
-        "aws-secret-access-key",
+        "aws-credentials",
         "aws-region"
       ],
       "optionalCredentialIds": [
-        "ses-sender-identity",
-        "ses-event-ingestion"
+        "ses-sns-verification"
       ],
       "credentialRequirements": [
         {
-          "id": "aws-access-key-id",
-          "label": "AWS access key ID",
-          "description": "Server-side AWS access key ID scoped by the SDK user for Amazon SES v2 API calls.",
+          "id": "aws-credentials",
+          "label": "AWS credentials",
+          "description": "AWS credentials resolved by the AWS SDK default chain or explicitly supplied by the SDK user.",
           "scopes": [
             "ses:SendEmail",
             "ses:GetAccount",
             "ses:ListEmailIdentities",
-            "ses:ListEmailTemplates",
-            "ses:ListConfigurationSets",
-            "ses:GetConfigurationSetEventDestinations",
-            "ses:ListSuppressedDestinations",
-            "ses:GetSuppressedDestination",
-            "ses:DeleteSuppressedDestination",
-            "ses:CreateReceiptRule",
-            "ses:DescribeReceiptRuleSet",
-            "ses:SetActiveReceiptRuleSet"
+            "ses:DeleteSuppressedDestination"
           ],
           "required": true,
           "metadata": {
-            "scopeKind": "provider-permission-labels",
-            "privilegeGuidance": "These strings are AWS IAM action names for SES v2, not OAuth scopes."
+            "scopeKind": "provider-permission-labels"
           }
         },
         {
-          "id": "aws-secret-access-key",
-          "label": "AWS secret access key",
-          "description": "Server-side AWS secret access key used only for AWS Signature Version 4 request signing.",
-          "scopes": [],
-          "required": true
-        },
-        {
           "id": "aws-region",
-          "label": "AWS Region",
-          "description": "SDK-user-selected AWS Region where Amazon SES identities, templates, and configuration sets live.",
+          "label": "AWS region",
+          "description": "AWS Region for SES operations.",
           "scopes": [],
           "required": true
         },
         {
-          "id": "ses-sender-identity",
-          "label": "SES sender identity",
-          "description": "Verified SES sender email address or domain selected by the SDK user for outbound email.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "ses-event-ingestion",
-          "label": "SES event ingestion",
-          "description": "SDK-user-configured SNS/SQS/HTTP path and signature verification policy for SES delivery events.",
+          "id": "ses-sns-verification",
+          "label": "SNS signature verification",
+          "description": "Verifier used when fail-closed SNS notification verification is required.",
           "scopes": [],
           "required": false
         }
@@ -7301,12 +6086,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "privacyNotes": [
       "SES email bodies, recipients, sender identities, headers, tags, templates, configuration sets, delivery events, and raw MIME content can contain customer data.",
-      "AWS access keys, secret keys, session tokens, webhook secrets, SNS certificates, and SQS credentials stay server-side and are represented in Studio only as readiness state."
+      "AWS credentials, SNS certificates, and SQS credentials stay server-side and are represented only as readiness state."
     ],
     "limitations": [
-      "The SDK user chooses regions, IAM policy, sender identities, suppression policy, configuration sets, templates, event routing, webhook verification, retention, and outbound approval policy.",
-      "Amazon SES does not expose a mailbox-style read/search API for sent message bodies; this package reads provider resources and parses delivery events rather than reconstructing complete message history.",
-      "SNS X.509 signature validation requires a verifier hook or AWS SDK/user infrastructure; requiring verification without a verifier fails closed."
+      "SES is not a mailbox product and does not expose mailbox-style message history.",
+      "The SDK user owns regions, IAM policy, sender identities, suppression policy, configuration sets, event routing, SNS verification, retention, and outbound approval."
     ],
     "maintainers": [
       {
@@ -7315,59 +6099,38 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://docs.aws.amazon.com/ses/latest/APIReference-V2/Welcome.html",
-      "snsSignatureDocs": "https://docs.aws.amazon.com/sns/latest/dg/sns-verify-signature-of-message.html",
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "@aws-sdk/client-sesv2",
+          "@aws-sdk/client-ses"
+        ],
+        "sdkVersionRange": "^3.1073.0",
+        "verifiedPackageVersion": "3.1073.0",
+        "verifiedAt": "2026-06-21",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
+      },
       "channelCoverage": {
-        "fullSesV2AndClassicApiModels": "generated-per-operation-functions",
-        "sendEmail": "typed-send-and-generated-full-surface",
-        "rawMimeSend": "typed-send-and-generated-full-surface",
-        "sesSnsNotifications": "typed-parse",
-        "accountReadiness": "typed-read",
-        "identities": "typed-list",
-        "templates": "typed-list",
-        "configurationSets": "typed-list-read",
-        "suppressions": "typed-list-read-delete",
-        "identityLifecycleDkimPolicies": "generated-per-operation-functions",
-        "contactListsImportExportJobs": "generated-per-operation-functions",
-        "reputationTenantsDedicatedIpPools": "generated-per-operation-functions",
-        "classicReceivingReceiptRules": "generated-per-operation-functions",
-        "classicCustomVerificationAndNotificationAttributes": "generated-per-operation-functions",
-        "mailboxStyleMessageRead": "not-covered"
+        "sendEmail": "provider-supported-via-official-sdk",
+        "rawMimeSend": "provider-supported-via-official-sdk",
+        "accountReadiness": "provider-supported-via-official-sdk",
+        "identities": "provider-supported-via-official-sdk",
+        "suppressions": "provider-supported-via-official-sdk",
+        "snsEvents": "typed-parse",
+        "mailboxStyleRead": "not-covered",
+        "fullProviderApiClone": "not-covered"
       },
-      "iamActions": [
-        "ses:SendEmail",
-        "ses:GetAccount",
-        "ses:ListEmailIdentities",
-        "ses:ListEmailTemplates",
-        "ses:ListConfigurationSets",
-        "ses:GetConfigurationSetEventDestinations",
-        "ses:ListSuppressedDestinations",
-        "ses:GetSuppressedDestination",
-        "ses:DeleteSuppressedDestination",
-        "ses:CreateReceiptRule",
-        "ses:DescribeReceiptRuleSet",
-        "ses:SetActiveReceiptRuleSet"
-      ],
-      "fullProviderApiVerification": {
-        "provider": "ses",
-        "apiVersion": "aws-api-models-main-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/ses-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/ses-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/ses-full-api-2026-06-18.functions.json",
-        "documentedModelCount": 2,
-        "documentedOperationCount": 182,
-        "implementedOperationCount": 182,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 182
-      },
+      "rawClientEscapeHatch": "AWS SDK SESv2Client and optional SESClient exposed from createSesEmailClient().rawClients",
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
+        "matchedOperations": [
+          "email.deliveryStatus.read"
+        ],
         "missingRequiredOperations": [
           "email.receive",
           "email.thread.read",
@@ -7386,13 +6149,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.forward",
           "email.draft.delete",
           "email.attachments.read",
-          "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
           "email.move",
           "mailbox.watch"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "ses.snsNotification.receive",
+          "ses.account.read",
+          "ses.identities.list",
+          "ses.suppressedDestination.delete"
+        ]
       }
     }
   },
@@ -7745,11 +6512,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "marketplace.amazon",
     "category": "marketplace",
     "provider": "amazon",
-    "importPath": "@cognidesk/integrations/marketplace/amazon",
-    "modulePath": "./marketplace/amazon/index.js",
+    "importPath": "@cognidesk/integration-marketplace-amazon/manifest",
+    "modulePath": "integrations/marketplace/amazon/dist/manifest.js",
     "manifestExport": "amazonMarketplaceProviderManifest",
     "name": "Amazon Marketplace",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-marketplace-amazon",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -7763,12 +6530,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Amazon Marketplace",
-      "summary": "Coverage includes generated per-operation functions for every operation in Amazon's official Selling Partner API model repository.",
+      "summary": "Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership.",
       "tags": [
         "marketplace",
         "amazon",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -7880,6 +6647,26 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
+        "capability": "delete-provider-object",
+        "label": "Delete Amazon support resources",
+        "description": "Deletes Amazon notification subscriptions only when the SDK user's marketplace policy allows subscription lifecycle changes.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "amazonNotificationSubscription",
+            "label": "Amazon Notification Subscription"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
         "capability": "send",
         "label": "Send Amazon buyer solicitations",
         "description": "Sends supported Solicitations API review/feedback requests chosen by the SDK user's workflow.",
@@ -7939,19 +6726,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Amazon's official Selling Partner API model repository.",
-        "Typed helpers remain available for selected Amazon SP-API marketplace support primitives: LWA token refresh, optional SigV4 signing, Orders v0 order/item/buyer-info reads with RDT handling, Solicitations requests, Sellers marketplace participation, Notifications destination reads, subscription creation/read/deletion, and verified notification ingress.",
-        "Orders API v2026-01-01 migration coverage includes typed searchOrders/getOrder helpers with includedData; v0 buyer-info methods still use Restricted Data Tokens because that is the legacy authorization model.",
-        "Amazon deprecated Orders API v0 operations on January 28, 2026 and lists March 27, 2027 as the removal date for getOrders, getOrder, getOrderBuyerInfo, getOrderAddress, getOrderItems, and getOrderItemsBuyerInfo.",
-        "Generated functions cover catalog, listings, feeds, reports, finances, FBA inventory/inbound/outbound, merchant fulfillment, pricing, product fees, services, vendor, data kiosk, transfers, application-management, and other SP-API model surfaces; SDK users still own provider roles, grantless tokens, RDT use, and regional endpoint selection.",
-        "The SDK user owns SP-API roles, marketplace selection, RDT policy, notification transport, destination provisioning, grantless authorization, seller eligibility, consent, redaction, and retention decisions."
+        "Coverage is limited to Cognidesk marketplace support primitives, not full Amazon SP-API ownership.",
+        "The official Amazon JavaScript SDK is the preferred raw-client escape hatch, but this package keeps local helpers for RDT and normalized support operations because the SDK README notes RDT requires an extra step.",
+        "Manifest/runtime exports do not expose Cognidesk-generated full-provider SP-API clones.",
+        "Orders v0 remains available for existing SDK callers while Amazon's removal window remains relevant; v2026 order helpers are exposed for migration flows."
       ],
       "evidence": [
         {
-          "label": "Amazon official SP-API model repository",
-          "url": "https://github.com/amzn/selling-partner-api-models/tree/main/models"
+          "label": "Amazon official SP-API JavaScript SDK",
+          "url": "https://github.com/amzn/selling-partner-api-sdk"
+        },
+        {
+          "label": "Amazon prebuilt JavaScript SDK tutorial",
+          "url": "https://developer-docs.amazon.com/sp-api/docs/automate-your-sp-api-calls-using-a-prebuilt-javascript-sdk"
         },
         {
           "label": "Amazon SP-API Orders v0 reference",
@@ -7962,28 +6751,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer-docs.amazon.com/sp-api/reference/orders-v2026-01-01"
         },
         {
-          "label": "Amazon SP-API Orders migration guide",
-          "url": "https://developer-docs.amazon.com/sp-api/docs/orders-api-migration-guide"
-        },
-        {
-          "label": "Amazon Orders API v2026 announcement",
-          "url": "https://developer-docs.amazon.com/sp-api/changelog/new-introducing-the-orders-api-v2026-01-01"
-        },
-        {
-          "label": "Amazon SP-API deprecation schedule",
-          "url": "https://developer-docs.amazon.com/sp-api/docs/sp-api-deprecations"
-        },
-        {
           "label": "Amazon SP-API Restricted Data Token",
           "url": "https://developer-docs.amazon.com/sp-api/reference/createrestricteddatatoken"
-        },
-        {
-          "label": "Amazon SP-API RDT authorization guide",
-          "url": "https://developer-docs.amazon.com/sp-api/docs/authorization-with-the-restricted-data-token"
-        },
-        {
-          "label": "Amazon SP-API Solicitations API",
-          "url": "https://developer-docs.amazon.com/sp-api/docs/solicitations-api"
         },
         {
           "label": "Amazon SP-API Notifications API",
@@ -7992,19 +6761,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "full",
+      "scope": "support-workflow-subset",
+      "level": "partial",
       "conformant": null
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/marketplace/amazon",
-      "providerModule": "./marketplace/amazon/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@amazon-sp-api-release/amazon-sp-api-sdk-js",
+      "runtimePackage": "@cognidesk/integration-marketplace-amazon",
+      "providerModule": "integrations/marketplace/amazon/dist/manifest.js",
       "manifestExport": "amazonMarketplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/marketplace/amazon/manifest.ts",
+      "manifestSource": "integrations/marketplace/amazon/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer-docs.amazon.com/sp-api"
+      "documentationPath": "https://github.com/amzn/selling-partner-api-sdk"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -8070,8 +6839,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "limitations": [
       "The SDK user chooses marketplaces, roles, restricted-data-token policy, notification topics, outbound solicitation rules, operator visibility, retention, consent, and redaction.",
-      "Some SP-API operations require role approval, restricted data tokens, marketplace availability, or grantless authorization; this package exposes typed REST foundations and does not decide seller eligibility.",
-      "Orders v0 remains available for existing SDK callers but Amazon lists March 27, 2027 as the removal date; SDK users should migrate order sync/read flows to the v2026-01-01 helpers and includedData where their roles support it.",
+      "Some SP-API operations require role approval, restricted data tokens, marketplace availability, or grantless authorization; this package exposes typed support foundations and does not decide seller eligibility.",
       "Amazon notification transports vary by destination; this package fails closed unless the SDK user configures a verifier, gateway signature, or shared-secret check appropriate to their ingress path."
     ],
     "maintainers": [
@@ -8081,10 +6849,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://developer-docs.amazon.com/sp-api",
-      "ordersDocs": "https://developer-docs.amazon.com/sp-api/reference/orders-v0",
-      "notificationsDocs": "https://developer-docs.amazon.com/sp-api/docs/notifications-api",
-      "solicitationsDocs": "https://developer-docs.amazon.com/sp-api/docs/solicitations-api",
+      "implementation": {
+        "strategy": "official-sdk-plus-support-slice",
+        "sdkPackage": "@amazon-sp-api-release/amazon-sp-api-sdk-js",
+        "sdkVersionChecked": "1.9.0",
+        "sdkModifiedAt": "2026-05-29T13:03:51.597Z",
+        "sdkRepository": "https://github.com/amzn/selling-partner-api-sdk",
+        "caveats": [
+          "The npm package has no root types metadata; this package uses a local typed facade for raw SDK loading.",
+          "RDT support remains local because the SDK README says some APIs need an extra RDT step."
+        ]
+      },
+      "supportSlice": {
+        "source": "local-reviewed-support-operations",
+        "verifiedAt": "2026-06-21",
+        "allowlist": [
+          "amazon.refreshAccessToken",
+          "amazon.createRestrictedDataToken",
+          "amazon.getOrders",
+          "amazon.getOrder",
+          "amazon.getOrderBuyerInfo",
+          "amazon.getOrderItems",
+          "amazon.getOrderItemsBuyerInfo",
+          "amazon.searchOrdersV2026",
+          "amazon.getOrderV2026",
+          "amazon.getSolicitationActionsForOrder",
+          "amazon.createProductReviewAndSellerFeedbackSolicitation",
+          "amazon.getMarketplaceParticipations",
+          "amazon.getDestinations",
+          "amazon.getDestination",
+          "amazon.createSubscription",
+          "amazon.getSubscription",
+          "amazon.deleteSubscription",
+          "amazon.parseNotificationWebhook"
+        ]
+      },
       "channelCoverage": {
         "lwaTokenRefresh": "typed-token-refresh",
         "restrictedDataTokens": "typed-create",
@@ -8098,21 +6897,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "notificationSubscriptions": "typed-create-read-delete",
         "notificationIngress": "typed-verify-parse",
         "sigv4Signing": "typed-sign",
-        "catalogListingsFeedsReportsFinancesFba": "generated-full-surface",
-        "fullSellingPartnerApiOperations": "generated-per-operation-functions"
-      },
-      "fullProviderApiVerification": {
-        "provider": "amazon-spapi",
-        "apiVersion": "main",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/amazon-spapi-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/amazon-spapi-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/amazon-spapi-full-api-2026-06-18.functions.json",
-        "officialModelCount": 63,
-        "documentedOperationCount": 353,
-        "implementedOperationCount": 353,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 353
+        "rawSellingPartnerApi": "official-sdk-escape-hatch"
       }
     }
   },
@@ -8120,11 +6905,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "marketplace.ebay",
     "category": "marketplace",
     "provider": "ebay",
-    "importPath": "@cognidesk/integrations/marketplace/ebay",
-    "modulePath": "./marketplace/ebay/index.js",
+    "importPath": "@cognidesk/integration-marketplace-ebay/manifest",
+    "modulePath": "integrations/marketplace/ebay/dist/manifest.js",
     "manifestExport": "ebayMarketplaceProviderManifest",
     "name": "eBay Marketplace",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-marketplace-ebay",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -8270,6 +7055,30 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "delete-provider-object",
+        "label": "Delete eBay marketplace resources",
+        "description": "Deletes notification destinations, subscriptions, and filters only when the SDK user's marketplace policy allows lifecycle changes.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "ebayNotificationDestination",
+            "label": "eBay Notification Destination"
+          },
+          {
+            "kind": "ebayNotificationSubscription",
+            "label": "eBay Notification Subscription"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": true,
         "extension": false
       },
@@ -8461,13 +7270,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/marketplace/ebay",
-      "providerModule": "./marketplace/ebay/index.js",
+      "strategy": "direct-support-slice",
+      "sdkPackage": "@cognidesk/integration-marketplace-ebay",
+      "runtimePackage": "@cognidesk/integration-marketplace-ebay",
+      "providerModule": "integrations/marketplace/ebay/dist/manifest.js",
       "manifestExport": "ebayMarketplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/marketplace/ebay/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/marketplace/ebay/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developer.ebay.com/api-docs"
     },
     "readiness": {
@@ -8568,6 +7377,391 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "docs": "https://developer.ebay.com/api-docs",
+      "implementation": {
+        "strategy": "direct-support-slice",
+        "selectedApiCount": 5,
+        "checkedAt": "2026-06-18",
+        "officialUtilityPackagesChecked": [
+          {
+            "package": "digital-signature-nodejs-sdk",
+            "version": "3.0.1",
+            "repository": "https://github.com/eBay/digital-signature-nodejs-sdk",
+            "decision": "not-adopted-current-local-signer-is-smaller"
+          },
+          {
+            "package": "event-notification-nodejs-sdk",
+            "version": "1.0.3",
+            "repository": "https://github.com/eBay/event-notification-nodejs-sdk",
+            "decision": "not-adopted-current-local-verifier-is-smaller"
+          }
+        ],
+        "communityPackagesChecked": [
+          {
+            "package": "ebay-api",
+            "version": "9.5.2",
+            "repository": "https://github.com/hendt/ebay-api",
+            "decision": "not-adopted-community-client-not-official-default"
+          }
+        ]
+      },
+      "supportSlice": {
+        "source": "official-ebay-openapi-selected-rest-contracts",
+        "verifiedAt": "2026-06-18",
+        "specs": [
+          {
+            "api": "sell.fulfillment",
+            "version": "v1.20.7",
+            "specUrl": "https://developer.ebay.com/api-docs/master/sell/fulfillment/openapi/3/sell_fulfillment_v1_oas3.json",
+            "operationCount": 15,
+            "pathCount": 14
+          },
+          {
+            "api": "commerce.message",
+            "version": "1.0.0",
+            "specUrl": "https://developer.ebay.com/api-docs/master/commerce/message/openapi/3/commerce_message_v1_oas3.json",
+            "operationCount": 5,
+            "pathCount": 5
+          },
+          {
+            "api": "commerce.notification",
+            "version": "v1.6.7",
+            "specUrl": "https://developer.ebay.com/api-docs/master/commerce/notification/openapi/3/commerce_notification_v1_oas3.json",
+            "operationCount": 21,
+            "pathCount": 12
+          },
+          {
+            "api": "developer.key-management",
+            "version": "v1.0.0",
+            "specUrl": "https://developer.ebay.com/api-docs/master/developer/key-management/openapi/3/developer_key_management_v1_oas3.json",
+            "operationCount": 3,
+            "pathCount": 2
+          },
+          {
+            "api": "commerce.identity",
+            "version": "v2.0.0",
+            "specUrl": "https://developer.ebay.com/api-docs/master/commerce/identity/openapi/3/commerce_identity_v1_oas3.json",
+            "operationCount": 1,
+            "pathCount": 1
+          }
+        ],
+        "allowlist": [
+          {
+            "alias": "ebay.getOrder",
+            "api": "sell.fulfillment",
+            "operationId": "getOrder",
+            "method": "GET",
+            "path": "/order/{orderId}"
+          },
+          {
+            "alias": "ebay.searchOrders",
+            "api": "sell.fulfillment",
+            "operationId": "getOrders",
+            "method": "GET",
+            "path": "/order"
+          },
+          {
+            "alias": "ebay.issueRefund",
+            "api": "sell.fulfillment",
+            "operationId": "issueRefund",
+            "method": "POST",
+            "path": "/order/{order_id}/issue_refund"
+          },
+          {
+            "alias": "ebay.createShippingFulfillment",
+            "api": "sell.fulfillment",
+            "operationId": "createShippingFulfillment",
+            "method": "POST",
+            "path": "/order/{orderId}/shipping_fulfillment"
+          },
+          {
+            "alias": "ebay.getShippingFulfillment",
+            "api": "sell.fulfillment",
+            "operationId": "getShippingFulfillment",
+            "method": "GET",
+            "path": "/order/{orderId}/shipping_fulfillment/{fulfillmentId}"
+          },
+          {
+            "alias": "ebay.getShippingFulfillments",
+            "api": "sell.fulfillment",
+            "operationId": "getShippingFulfillments",
+            "method": "GET",
+            "path": "/order/{orderId}/shipping_fulfillment"
+          },
+          {
+            "alias": "ebay.getPaymentDispute",
+            "api": "sell.fulfillment",
+            "operationId": "getPaymentDispute",
+            "method": "GET",
+            "path": "/payment_dispute/{payment_dispute_id}"
+          },
+          {
+            "alias": "ebay.fetchPaymentDisputeEvidenceContent",
+            "api": "sell.fulfillment",
+            "operationId": "fetchEvidenceContent",
+            "method": "GET",
+            "path": "/payment_dispute/{payment_dispute_id}/fetch_evidence_content"
+          },
+          {
+            "alias": "ebay.getPaymentDisputeActivities",
+            "api": "sell.fulfillment",
+            "operationId": "getActivities",
+            "method": "GET",
+            "path": "/payment_dispute/{payment_dispute_id}/activity"
+          },
+          {
+            "alias": "ebay.searchPaymentDisputes",
+            "api": "sell.fulfillment",
+            "operationId": "getPaymentDisputeSummaries",
+            "method": "GET",
+            "path": "/payment_dispute_summary"
+          },
+          {
+            "alias": "ebay.contestPaymentDispute",
+            "api": "sell.fulfillment",
+            "operationId": "contestPaymentDispute",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/contest"
+          },
+          {
+            "alias": "ebay.acceptPaymentDispute",
+            "api": "sell.fulfillment",
+            "operationId": "acceptPaymentDispute",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/accept"
+          },
+          {
+            "alias": "ebay.uploadPaymentDisputeEvidenceFile",
+            "api": "sell.fulfillment",
+            "operationId": "uploadEvidenceFile",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/upload_evidence_file"
+          },
+          {
+            "alias": "ebay.addPaymentDisputeEvidence",
+            "api": "sell.fulfillment",
+            "operationId": "addEvidence",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/add_evidence"
+          },
+          {
+            "alias": "ebay.updatePaymentDisputeEvidence",
+            "api": "sell.fulfillment",
+            "operationId": "updateEvidence",
+            "method": "POST",
+            "path": "/payment_dispute/{payment_dispute_id}/update_evidence"
+          },
+          {
+            "alias": "ebay.bulkUpdateConversations",
+            "api": "commerce.message",
+            "operationId": "bulkUpdateConversation",
+            "method": "POST",
+            "path": "/bulk_update_conversation"
+          },
+          {
+            "alias": "ebay.getConversation",
+            "api": "commerce.message",
+            "operationId": "getConversation",
+            "method": "GET",
+            "path": "/conversation/{conversation_id}"
+          },
+          {
+            "alias": "ebay.getConversations",
+            "api": "commerce.message",
+            "operationId": "getConversations",
+            "method": "GET",
+            "path": "/conversation"
+          },
+          {
+            "alias": "ebay.sendMessage",
+            "api": "commerce.message",
+            "operationId": "sendMessage",
+            "method": "POST",
+            "path": "/send_message"
+          },
+          {
+            "alias": "ebay.updateConversation",
+            "api": "commerce.message",
+            "operationId": "updateConversation",
+            "method": "POST",
+            "path": "/update_conversation"
+          },
+          {
+            "alias": "ebay.getNotificationConfig",
+            "api": "commerce.notification",
+            "operationId": "getConfig",
+            "method": "GET",
+            "path": "/config"
+          },
+          {
+            "alias": "ebay.updateNotificationConfig",
+            "api": "commerce.notification",
+            "operationId": "updateConfig",
+            "method": "PUT",
+            "path": "/config"
+          },
+          {
+            "alias": "ebay.createNotificationDestination",
+            "api": "commerce.notification",
+            "operationId": "createDestination",
+            "method": "POST",
+            "path": "/destination"
+          },
+          {
+            "alias": "ebay.deleteNotificationDestination",
+            "api": "commerce.notification",
+            "operationId": "deleteDestination",
+            "method": "DELETE",
+            "path": "/destination/{destination_id}"
+          },
+          {
+            "alias": "ebay.getNotificationDestination",
+            "api": "commerce.notification",
+            "operationId": "getDestination",
+            "method": "GET",
+            "path": "/destination/{destination_id}"
+          },
+          {
+            "alias": "ebay.getNotificationDestinations",
+            "api": "commerce.notification",
+            "operationId": "getDestinations",
+            "method": "GET",
+            "path": "/destination"
+          },
+          {
+            "alias": "ebay.updateNotificationDestination",
+            "api": "commerce.notification",
+            "operationId": "updateDestination",
+            "method": "PUT",
+            "path": "/destination/{destination_id}"
+          },
+          {
+            "alias": "ebay.getNotificationPublicKey",
+            "api": "commerce.notification",
+            "operationId": "getPublicKey",
+            "method": "GET",
+            "path": "/public_key/{public_key_id}"
+          },
+          {
+            "alias": "ebay.createNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "createSubscription",
+            "method": "POST",
+            "path": "/subscription"
+          },
+          {
+            "alias": "ebay.createNotificationSubscriptionFilter",
+            "api": "commerce.notification",
+            "operationId": "createSubscriptionFilter",
+            "method": "POST",
+            "path": "/subscription/{subscription_id}/filter"
+          },
+          {
+            "alias": "ebay.deleteNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "deleteSubscription",
+            "method": "DELETE",
+            "path": "/subscription/{subscription_id}"
+          },
+          {
+            "alias": "ebay.deleteNotificationSubscriptionFilter",
+            "api": "commerce.notification",
+            "operationId": "deleteSubscriptionFilter",
+            "method": "DELETE",
+            "path": "/subscription/{subscription_id}/filter/{filter_id}"
+          },
+          {
+            "alias": "ebay.disableNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "disableSubscription",
+            "method": "POST",
+            "path": "/subscription/{subscription_id}/disable"
+          },
+          {
+            "alias": "ebay.enableNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "enableSubscription",
+            "method": "POST",
+            "path": "/subscription/{subscription_id}/enable"
+          },
+          {
+            "alias": "ebay.getNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "getSubscription",
+            "method": "GET",
+            "path": "/subscription/{subscription_id}"
+          },
+          {
+            "alias": "ebay.getNotificationSubscriptionFilter",
+            "api": "commerce.notification",
+            "operationId": "getSubscriptionFilter",
+            "method": "GET",
+            "path": "/subscription/{subscription_id}/filter/{filter_id}"
+          },
+          {
+            "alias": "ebay.getNotificationSubscriptions",
+            "api": "commerce.notification",
+            "operationId": "getSubscriptions",
+            "method": "GET",
+            "path": "/subscription"
+          },
+          {
+            "alias": "ebay.testNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "testSubscription",
+            "method": "POST",
+            "path": "/subscription/{subscription_id}/test"
+          },
+          {
+            "alias": "ebay.updateNotificationSubscription",
+            "api": "commerce.notification",
+            "operationId": "updateSubscription",
+            "method": "PUT",
+            "path": "/subscription/{subscription_id}"
+          },
+          {
+            "alias": "ebay.getNotificationTopic",
+            "api": "commerce.notification",
+            "operationId": "getTopic",
+            "method": "GET",
+            "path": "/topic/{topic_id}"
+          },
+          {
+            "alias": "ebay.getNotificationTopics",
+            "api": "commerce.notification",
+            "operationId": "getTopics",
+            "method": "GET",
+            "path": "/topic"
+          },
+          {
+            "alias": "ebay.createSigningKey",
+            "api": "developer.key-management",
+            "operationId": "createSigningKey",
+            "method": "POST",
+            "path": "/signing_key"
+          },
+          {
+            "alias": "ebay.getSigningKey",
+            "api": "developer.key-management",
+            "operationId": "getSigningKey",
+            "method": "GET",
+            "path": "/signing_key/{signing_key_id}"
+          },
+          {
+            "alias": "ebay.getSigningKeys",
+            "api": "developer.key-management",
+            "operationId": "getSigningKeys",
+            "method": "GET",
+            "path": "/signing_key"
+          },
+          {
+            "alias": "ebay.getUser",
+            "api": "commerce.identity",
+            "operationId": "getUser",
+            "method": "GET",
+            "path": "/user/"
+          }
+        ]
+      },
       "fulfillmentDocs": "https://developer.ebay.com/api-docs/sell/fulfillment/overview.html",
       "notificationDocs": "https://developer.ebay.com/api-docs/commerce/notification/overview.html",
       "channelCoverage": {
@@ -8611,7 +7805,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "messaging",
     "provider": "discord",
     "importPath": "@cognidesk/integration-messaging-discord/manifest",
-    "modulePath": "integrations/messaging/discord/src/manifest.js",
+    "modulePath": "integrations/messaging/discord/dist/manifest.js",
     "manifestExport": "discordMessagingManifestInput",
     "name": "Discord Messaging Support",
     "packageName": "@cognidesk/integration-messaging-discord",
@@ -8845,7 +8039,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-messaging-discord",
       "runtimePackage": "@cognidesk/integration-messaging-discord",
-      "providerModule": "integrations/messaging/discord/src/manifest.js",
+      "providerModule": "integrations/messaging/discord/dist/manifest.js",
       "manifestExport": "discordMessagingManifestInput",
       "manifestSource": "integrations/messaging/discord/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -8972,11 +8166,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "messaging.rcs",
     "category": "messaging",
     "provider": "rcs",
-    "importPath": "@cognidesk/integrations/messaging/rcs",
-    "modulePath": "./messaging/rcs/index.js",
+    "importPath": "@cognidesk/integration-messaging-rcs/manifest",
+    "modulePath": "integrations/messaging/rcs/dist/manifest.js",
     "manifestExport": "rcsMessagingProviderManifest",
     "name": "Google RCS for Business",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-messaging-rcs",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -9226,12 +8420,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/messaging/rcs",
-      "providerModule": "./messaging/rcs/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-messaging-rcs",
+      "runtimePackage": "@cognidesk/integration-messaging-rcs",
+      "providerModule": "integrations/messaging/rcs/dist/manifest.js",
       "manifestExport": "rcsMessagingProviderManifest",
-      "manifestSource": "packages/integrations/src/messaging/rcs/manifest.ts",
+      "manifestSource": "integrations/messaging/rcs/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create"
     },
@@ -9303,14 +8497,100 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "brandAgentLifecycle": "provider-supported-not-typed"
       },
       "apiCoverage": {
-        "checkedAt": "2026-06-18",
-        "operationCatalog": "docs/provider-coverage/rcs-selected-api-2026-06-18.operations.json",
+        "checkedAt": "2026-06-21",
+        "operationCatalog": "package:src/selected-operations.ts",
         "generatedFromOfficialSpec": false,
         "machineReadableSpecStatus": "Google documents Discovery URLs for rcsbusinessmessaging.v1 and businesscommunications.v1, but anonymous fetches returned 403 during this audit.",
         "documentedOperationCount": 38,
         "selectedOperationCount": 8,
         "implementedOperationCount": 8,
         "fullProviderApi": false
+      },
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "checkedAt": "2026-06-21",
+        "source": "official Google RCS for Business REST reference plus documented Discovery URLs",
+        "sourceVersion": "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-21",
+        "allowlistChecksumAlgorithm": "sha256",
+        "allowlistChecksum": "7900131140a8ced55b584bb3216d637e21c1e35fee9e86de265cab0d55c97ce3",
+        "selectedOperations": [
+          {
+            "uid": "rcsbusinessmessaging:files.create.metadata",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "POST",
+            "path": "/v1/files",
+            "functionName": "createFile",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/files/create"
+          },
+          {
+            "uid": "rcsbusinessmessaging:files.create.upload",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "POST",
+            "path": "/upload/v1/files",
+            "functionName": "uploadFile",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/files/create",
+            "notes": "Google documents upload as an alternate HTTP binding for files.create; the package exposes it as a separate helper."
+          },
+          {
+            "uid": "rcsbusinessmessaging:phones.getCapabilities",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "GET",
+            "path": "/v1/{name=phones/*}/capabilities",
+            "functionName": "getCapabilities",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones/getCapabilities"
+          },
+          {
+            "uid": "rcsbusinessmessaging:phones.agentEvents.create",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "POST",
+            "path": "/v1/{parent=phones/*}/agentEvents",
+            "functionName": "sendAgentEvent",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentEvents/create"
+          },
+          {
+            "uid": "rcsbusinessmessaging:phones.agentMessages.create",
+            "api": "rcsbusinessmessaging.v1",
+            "method": "POST",
+            "path": "/v1/{parent=phones/*}/agentMessages",
+            "functionName": "sendMessage",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create"
+          },
+          {
+            "uid": "businesscommunications:brands.agents.get",
+            "api": "businesscommunications.v1",
+            "method": "GET",
+            "path": "/v1/{name=brands/*/agents/*}",
+            "functionName": "getAgent",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/business-communications/rest/v1/brands.agents/get"
+          },
+          {
+            "uid": "businesscommunications:brands.agents.getLaunch",
+            "api": "businesscommunications.v1",
+            "method": "GET",
+            "path": "/v1/{name=brands/*/agents/*/launch}",
+            "functionName": "getAgentLaunch",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/business-communications/rest/v1/brands.agents/getLaunch"
+          },
+          {
+            "uid": "businesscommunications:brands.agents.getVerification",
+            "api": "businesscommunications.v1",
+            "method": "GET",
+            "path": "/v1/{name=brands/*/agents/*/verification}",
+            "functionName": "getAgentVerification",
+            "sourceUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/business-communications/rest/v1/brands.agents/getVerification"
+          }
+        ],
+        "apiCoverage": {
+          "checkedAt": "2026-06-21",
+          "operationCatalog": "package:src/selected-operations.ts"
+        },
+        "sdkDecision": {
+          "viableOfficialSdk": false,
+          "notes": [
+            "googleapis@173.0.0 does not expose rcsbusinessmessaging or businesscommunications at runtime.",
+            "@google/rcsbusinessmessaging@1.0.10 covers RBM messaging resources but not Business Communications readiness resources and its helper API uses module-level singleton initialization."
+          ]
+        }
       },
       "categoryProfileId": "messaging",
       "integrationCategoryProfileId": "messaging",
@@ -9351,11 +8631,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "messaging.whatsapp",
     "category": "messaging",
     "provider": "whatsapp",
-    "importPath": "@cognidesk/integrations/messaging/whatsapp",
-    "modulePath": "./messaging/whatsapp/index.js",
+    "importPath": "@cognidesk/integration-messaging-whatsapp/manifest",
+    "modulePath": "integrations/messaging/whatsapp/dist/manifest.js",
     "manifestExport": "whatsappMessagingProviderManifest",
     "name": "WhatsApp Business Platform",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-messaging-whatsapp",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -9596,20 +8876,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "messaging",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "messaging.message.receive",
           "messaging.message.send",
+          "messaging.draft.create",
+          "messaging.template.send",
+          "messaging.media.send"
+        ],
+        "missingRequiredOperations": [
           "messaging.thread.read"
         ],
         "missingRecommendedOperations": [
           "messaging.message.reply",
-          "messaging.draft.create",
           "messaging.thread.search",
           "messaging.thread.create",
           "messaging.template.list",
-          "messaging.template.send",
-          "messaging.media.send",
           "messaging.deliveryStatus.read"
         ],
         "missingOptionalOperations": [
@@ -9621,16 +8902,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "messaging.optIn.status.update",
           "messaging.thread.assign"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "whatsapp.phoneNumber.read",
+          "whatsapp.businessProfile.read",
+          "whatsapp.businessProfile.update",
+          "whatsapp.webhook-signature"
+        ]
       }
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/messaging/whatsapp",
-      "providerModule": "./messaging/whatsapp/index.js",
+      "sdkPackage": "@cognidesk/integration-messaging-whatsapp",
+      "runtimePackage": "@cognidesk/integration-messaging-whatsapp",
+      "providerModule": "integrations/messaging/whatsapp/dist/manifest.js",
       "manifestExport": "whatsappMessagingProviderManifest",
-      "manifestSource": "packages/integrations/src/messaging/whatsapp/manifest.ts",
+      "manifestSource": "integrations/messaging/whatsapp/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.facebook.com/documentation/business-messaging/whatsapp/get-started"
     },
@@ -9735,20 +9021,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "messaging",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "matchedOperations": [
           "messaging.message.receive",
           "messaging.message.send",
+          "messaging.draft.create",
+          "messaging.template.send",
+          "messaging.media.send"
+        ],
+        "missingRequiredOperations": [
           "messaging.thread.read"
         ],
         "missingRecommendedOperations": [
           "messaging.message.reply",
-          "messaging.draft.create",
           "messaging.thread.search",
           "messaging.thread.create",
           "messaging.template.list",
-          "messaging.template.send",
-          "messaging.media.send",
           "messaging.deliveryStatus.read"
         ],
         "missingOptionalOperations": [
@@ -9760,7 +9047,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "messaging.optIn.status.update",
           "messaging.thread.assign"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "whatsapp.phoneNumber.read",
+          "whatsapp.businessProfile.read",
+          "whatsapp.businessProfile.update",
+          "whatsapp.webhook-signature"
+        ]
       }
     }
   },
@@ -9768,11 +9060,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "review.appstore",
     "category": "review",
     "provider": "appstore",
-    "importPath": "@cognidesk/integrations/review/appstore",
-    "modulePath": "./review/appstore/index.js",
+    "importPath": "@cognidesk/integration-review-appstore/manifest",
+    "modulePath": "integrations/review/appstore/dist/manifest.js",
     "manifestExport": "appStoreReviewsProviderManifest",
     "name": "App Store Reviews",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-review-appstore",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -9785,12 +9077,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "App Store Reviews",
-      "summary": "Coverage includes generated per-operation functions for every operation in Apple's official App Store Connect OpenAPI specification.",
+      "summary": "Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.",
       "tags": [
         "review",
         "appstore",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -9894,9 +9186,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "update-provider-object",
-        "label": "Update review responses",
-        "description": "Updates or deletes existing App Store customer review responses according to SDK-user approval policy.",
+        "capability": "delete-provider-object",
+        "label": "Delete review responses",
+        "description": "Deletes existing App Store customer review responses according to SDK-user approval policy.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -9915,56 +9207,48 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Apple's official App Store Connect OpenAPI specification.",
-        "The package keeps typed support helpers for customer review support primitives: app review list/read pagination, customer review response create-or-update/delete, app readiness reads, and ES256 JWT creation.",
-        "The SDK user owns App Store Connect roles, app scoping, localization, public-response approval, moderation, consent, redaction, and retention decisions."
+        "Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.",
+        "No official Apple JavaScript or TypeScript SDK for App Store Connect customer reviews was found on 2026-06-21; this package uses a constrained direct REST support slice with ES256 JWT auth.",
+        "Apple's official @apple/app-store-server-library Node package targets App Store Server APIs, not App Store Connect customer review resources."
       ],
       "evidence": [
-        {
-          "label": "App Store Connect OpenAPI specification",
-          "url": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip"
-        },
         {
           "label": "App Store Connect API overview",
           "url": "https://developer.apple.com/documentation/appstoreconnectapi"
         },
         {
-          "label": "List customer reviews for an app",
-          "url": "https://developer.apple.com/documentation/appstoreconnectapi/get-v1-apps-_id_-customerreviews"
+          "label": "App Store Connect OpenAPI specification (openapi.oas.json sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec)",
+          "url": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip"
         },
         {
-          "label": "Customer review responses",
-          "url": "https://developer.apple.com/documentation/appstoreconnectapi/customer-review-responses"
+          "label": "App Store Connect JWT tokens",
+          "url": "https://developer.apple.com/documentation/appstoreconnectapi/generating-tokens-for-api-requests"
         },
         {
-          "label": "Create or update customer review response",
-          "url": "https://developer.apple.com/documentation/appstoreconnectapi/post-v1-customerreviewresponses"
-        },
-        {
-          "label": "Creating API keys for App Store Connect API",
-          "url": "https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api"
+          "label": "Apple App Store Server Node.js Library",
+          "url": "https://github.com/apple/app-store-server-library-node"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "full",
+      "scope": "support-workflow-subset",
+      "level": "partial",
       "conformant": null
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/review/appstore",
-      "providerModule": "./review/appstore/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-review-appstore",
+      "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
+      "providerModule": "integrations/review/appstore/dist/manifest.js",
       "manifestExport": "appStoreReviewsProviderManifest",
-      "manifestSource": "packages/integrations/src/review/appstore/manifest.ts",
+      "manifestSource": "integrations/review/appstore/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews"
+      "documentationPath": "https://developer.apple.com/documentation/appstoreconnectapi"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "appstore-api-key",
@@ -10003,7 +9287,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "limitations": [
       "The SDK user decides review triage, sentiment classification, public-response approval, localization, escalation, and retention policy.",
-      "Customer review listing is paged by App Store Connect response links; callers should follow `links.next` through the bounded `listReviewsPage` helper rather than assuming cursor shape.",
+      "Customer review listing is paged by App Store Connect response links; callers should follow `links.next` through the bounded `listReviewsPage` helper.",
       "Creating a customer review response uses Apple's create-or-update endpoint; SDK-user policy must treat the first public reply and later edits as externally visible actions.",
       "App Store Connect API availability, rate limits, review visibility, and response moderation are controlled by Apple and the SDK user's account permissions."
     ],
@@ -10014,26 +9298,100 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews",
-      "channelCoverage": {
-        "fullAppStoreConnectApiOperations": "generated-per-operation-functions",
-        "customerReviews": "typed-list-read-page-and-generated-full-surface",
-        "reviewResponses": "typed-create-delete-and-generated-full-surface",
-        "appsReadiness": "typed-read-and-generated-full-surface",
-        "jwt": "typed-token-mint",
-        "buildsBetaIapAnalyticsSalesReportsSubmission": "generated-full-surface"
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "officialJsSdkAvailable": false,
+        "verifiedAt": "2026-06-21",
+        "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
+        "rawClientExport": "AppStoreReviewsClient.rawClient.request"
       },
-      "fullProviderApiVerification": {
-        "provider": "appstore",
-        "apiVersion": "app-store-connect-4.4-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/appstore-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/appstore-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/appstore-full-api-2026-06-18.functions.json",
-        "documentedOperationCount": 1216,
-        "implementedOperationCount": 1216,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 1216
+      "reviewedSource": {
+        "source": "Apple App Store Connect OpenAPI specification",
+        "sourceUrl": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip",
+        "version": "4.4",
+        "artifact": "openapi.oas.json",
+        "checksum": "sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec",
+        "archiveChecksum": "sha256:18d2e448db9ebac9f6fb183e786342f67dfaa0c515995d782694a776e26c2dfd",
+        "reviewedAt": "2026-06-21",
+        "operationAllowlist": [
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}/customerReviews",
+            "aliases": [
+              "appstore.reviews.list"
+            ],
+            "clientMethods": [
+              "listReviews"
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}/customerReviews",
+            "aliases": [
+              "appstore.reviews.page"
+            ],
+            "clientMethods": [
+              "listReviewsPage"
+            ],
+            "source": "links.next for the configured app customerReviews collection"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/customerReviews/{id}",
+            "aliases": [
+              "appstore.reviews.get"
+            ],
+            "clientMethods": [
+              "getReview"
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customerReviewResponses",
+            "aliases": [
+              "appstore.reviewResponses.createOrUpdate"
+            ],
+            "clientMethods": [
+              "createOrUpdateReviewResponse"
+            ]
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customerReviewResponses/{id}",
+            "aliases": [
+              "appstore.reviewResponses.delete"
+            ],
+            "clientMethods": [
+              "deleteReviewResponse"
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}",
+            "aliases": [],
+            "clientMethods": [
+              "getApp",
+              "rawClient.request"
+            ],
+            "purpose": "configured app check and reviewed raw-client escape hatch"
+          }
+        ],
+        "selectedOperations": [
+          "GET /v1/apps/{id}/customerReviews",
+          "GET /v1/customerReviews/{id}",
+          "POST /v1/customerReviewResponses",
+          "DELETE /v1/customerReviewResponses/{id}",
+          "GET /v1/apps/{id}"
+        ]
+      },
+      "adapterCoverage": {
+        "normalizedOperations": [
+          "appstore.reviews.list",
+          "appstore.reviews.page",
+          "appstore.reviews.get",
+          "appstore.reviewResponses.createOrUpdate",
+          "appstore.reviewResponses.delete"
+        ]
       }
     }
   },
@@ -10041,11 +9399,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "review.googleplay",
     "category": "review",
     "provider": "googleplay",
-    "importPath": "@cognidesk/integrations/review/googleplay",
-    "modulePath": "./review/googleplay/index.js",
+    "importPath": "@cognidesk/integration-review-googleplay/manifest",
+    "modulePath": "integrations/review/googleplay/dist/manifest.js",
     "manifestExport": "googlePlayReviewsProviderManifest",
     "name": "Google Play Reviews",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-review-googleplay",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -10059,19 +9417,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Google Play Reviews",
-      "summary": "Coverage includes generated per-method functions for every method in the official Google Play Android Publisher v3 Discovery document.",
+      "summary": "Cognidesk adapter coverage is scoped to Google Play review list/read/reply workflows.",
       "tags": [
         "review",
         "googleplay",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "read-provider-object",
         "label": "Read Google Play reviews",
-        "description": "Lists recent reviews and reads individual Android app reviews through the Android Publisher API.",
+        "description": "Lists recent reviews and reads individual Android app reviews through the official Android Publisher client.",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -10081,7 +9439,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "googlePlayReview",
             "label": "Google Play Review",
-            "schemaName": "reviews"
+            "schemaName": "Review"
           }
         ],
         "requiresCredential": true,
@@ -10103,7 +9461,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "googlePlayReview",
             "label": "Google Play Review",
-            "schemaName": "reviews"
+            "schemaName": "Review"
           }
         ],
         "requiresCredential": true,
@@ -10123,11 +9481,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "googlePlayReview",
             "label": "Google Play Review",
-            "schemaName": "reviews"
+            "schemaName": "Review"
           },
           {
             "kind": "googlePlayDeveloperReply",
-            "label": "Google Play Developer Reply"
+            "label": "Google Play Developer Reply",
+            "schemaName": "ReviewsReplyResponse"
           }
         ],
         "requiresCredential": true,
@@ -10159,49 +9518,45 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-method functions for every method in the official Google Play Android Publisher v3 Discovery document.",
-        "The package keeps typed support helpers for review primitives: Android Publisher reviews list/get/reply and OAuth access-token or service-account JWT bearer token minting.",
+        "Cognidesk adapter coverage is scoped to Google Play review list/read/reply workflows.",
+        "Provider-client coverage is supplied by the official @googleapis/androidpublisher Android Publisher v3 client exposed as a raw-client escape hatch.",
         "The SDK user owns Play Console permissions, package ownership, review polling policy, review reply approval, localization, consent, redaction, and retention decisions."
       ],
       "evidence": [
         {
-          "label": "Google Play Android Publisher Discovery document",
-          "url": "https://androidpublisher.googleapis.com/$discovery/rest?version=v3"
+          "label": "Google Play Android Publisher API",
+          "url": "https://developers.google.com/android-publisher/api-ref/rest"
         },
         {
           "label": "Google Play Android Publisher reviews resource",
           "url": "https://developers.google.com/android-publisher/api-ref/rest/v3/reviews"
         },
         {
-          "label": "Google Play Reply to Reviews guide",
-          "url": "https://developers.google.com/android-publisher/reply-to-reviews"
+          "label": "Google APIs Node.js client",
+          "url": "https://googleapis.dev/nodejs/googleapis/latest/"
         },
         {
-          "label": "Google service account OAuth 2.0 guide",
-          "url": "https://developers.google.com/identity/protocols/oauth2/service-account"
-        },
-        {
-          "label": "Google Play real-time developer notifications",
-          "url": "https://developer.android.com/google/play/billing/rtdn-reference"
+          "label": "@googleapis/androidpublisher package",
+          "url": "https://www.npmjs.com/package/@googleapis/androidpublisher"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "full",
+      "scope": "support-workflow-subset",
+      "level": "partial",
       "conformant": null
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/review/googleplay",
-      "providerModule": "./review/googleplay/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@googleapis/androidpublisher",
+      "runtimePackage": "@cognidesk/integration-review-googleplay/runtime",
+      "providerModule": "integrations/review/googleplay/dist/manifest.js",
       "manifestExport": "googlePlayReviewsProviderManifest",
-      "manifestSource": "packages/integrations/src/review/googleplay/manifest.ts",
+      "manifestSource": "integrations/review/googleplay/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developers.google.com/android-publisher/api-ref/rest/v3/reviews"
+      "documentationPath": "https://developers.google.com/android-publisher/api-ref/rest"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -10229,7 +9584,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "googleplay-access-token",
           "label": "Google Play API auth",
-          "description": "Server-side OAuth access token, token supplier, or service-account token minting for Android Publisher API requests.",
+          "description": "Server-side Google auth client, OAuth access token, token supplier, or service-account auth for Android Publisher API requests.",
           "scopes": [
             "https://www.googleapis.com/auth/androidpublisher"
           ],
@@ -10254,9 +9609,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "limitations": [
       "The Google Play Reply to Reviews API exposes production app reviews with comments; rating-only feedback and non-production feedback are not exposed through this API.",
       "Developer replies are limited to 350 characters by the Android Publisher Reply to Reviews API.",
-      "Google Play review API quotas, Reply to reviews permission, package ownership, translation behavior, reply moderation, and reply timing are owned by the SDK user's Play Console setup.",
-      "Google Play Real-time developer notifications are purchase-state notifications for subscriptions, one-time products, voided purchases, and test notifications; they are not a review-ingestion surface for this package.",
-      "SDK users own consent, retention, redaction, language policy, outbound reply approval, escalation, and operator visibility before review data or replies are used."
+      "Google Play review API quotas, Reply to reviews permission, package ownership, translation behavior, reply moderation, and reply timing are owned by the SDK user's Play Console setup."
     ],
     "maintainers": [
       {
@@ -10265,27 +9618,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://developers.google.com/android-publisher/api-ref/rest/v3/reviews",
-      "channelCoverage": {
-        "fullAndroidPublisherApiMethods": "generated-per-operation-functions",
-        "reviews": "typed-list-read-and-generated-full-surface",
-        "developerReplies": "typed-send-update-and-generated-full-surface",
-        "replyDrafts": "sdk-owned",
-        "serviceAccountJwt": "typed-token-mint",
-        "realTimeDeveloperNotifications": "provider-supported-not-review-surface",
-        "editsTracksPurchasesMonetizationReports": "generated-full-surface"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@googleapis/androidpublisher",
+        "sdkVersionRange": "^36.0.0",
+        "runtimePackage": "@cognidesk/integration-review-googleplay/runtime",
+        "rawClientExport": "GooglePlayReviewsClient.rawClient"
       },
-      "fullProviderApiVerification": {
-        "provider": "googleplay",
-        "apiVersion": "androidpublisher-20260617-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/googleplay-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/googleplay-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/googleplay-full-api-2026-06-18.functions.json",
-        "documentedOperationCount": 137,
-        "implementedOperationCount": 137,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 137
+      "adapterCoverage": {
+        "normalizedOperations": [
+          "googleplay.reviews.list",
+          "googleplay.reviews.get",
+          "googleplay.reviews.reply"
+        ]
+      },
+      "providerClientCoverage": {
+        "strategy": "official-sdk-raw-client",
+        "notes": "Advanced Android Publisher API access is available through the official SDK raw client, not re-exported as Cognidesk-owned full API functions."
       }
     }
   },
@@ -10293,11 +9642,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "sms.twilio",
     "category": "sms",
     "provider": "twilio",
-    "importPath": "@cognidesk/integrations/sms/twilio",
-    "modulePath": "./sms/twilio/index.js",
+    "importPath": "@cognidesk/integration-sms-twilio/manifest",
+    "modulePath": "integrations/sms/twilio/dist/manifest.js",
     "manifestExport": "twilioSmsProviderManifest",
     "name": "Twilio Programmable Messaging",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-sms-twilio",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -10310,12 +9659,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Twilio Programmable Messaging",
-      "summary": "Coverage includes generated per-operation functions for Twilio's official Messaging-domain OpenAPI surfaces: core Message/Media/Feedback/ShortCode resources, Messaging Services v1-v3, Conversations v1-v2, Content v1-v2, Verify v2-v3, and Studio v1-v2.",
+      "summary": "Implements normalized SMS/MMS send, read, list, cancel, readiness, webhook, and raw Twilio helper-client access with the official Twilio Node helper library.",
       "tags": [
         "sms",
         "twilio",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
@@ -10341,7 +9690,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send SMS/MMS messages",
-        "description": "Creates outbound SMS or MMS messages through the Twilio Messages REST resource; mediaUrl creates media messages where the sender, destination, and region support them.",
+        "description": "Creates outbound SMS or MMS messages through the Twilio helper library.",
         "audiences": [
           "customer-facing"
         ],
@@ -10399,7 +9748,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "search-provider-object",
         "label": "List Twilio messages",
-        "description": "Lists Twilio Message resources with SDK-user-supplied filters such as sender, recipient, or sent date.",
+        "description": "Lists Twilio Message resources with SDK-user-supplied filters.",
         "audiences": [
           "customer-facing",
           "internal-support"
@@ -10414,25 +9763,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "sideEffect": false,
         "exposesSensitiveData": true,
         "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "update-provider-object",
-        "label": "Update Twilio message status",
-        "description": "Updates supported Twilio Message status fields, such as cancelling queued messages when Twilio permits it.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "twilioMessage",
-            "label": "Twilio Message"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
         "extension": false
       },
       {
@@ -10456,13 +9786,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for Twilio's official Messaging-domain OpenAPI surfaces: core Message/Media/Feedback/ShortCode resources, Messaging Services v1-v3, Conversations v1-v2, Content v1-v2, Verify v2-v3, and Studio v1-v2.",
-        "The package keeps typed convenience helpers for common SMS/MMS support workflows, webhook signature validation, account readiness, and SMS-capable incoming-number readiness.",
-        "The SDK user owns consent, opt-in/opt-out, quiet hours, campaign registration, template policy, retention, and provider-side permission design."
+        "Implements normalized SMS/MMS send, read, list, cancel, readiness, webhook, and raw Twilio helper-client access with the official Twilio Node helper library.",
+        "Twilio SMS and Twilio Voice are separate Cognidesk category packages even though they use the same upstream helper library.",
+        "Messaging Services administration, Verify, Conversations, Content, Studio, toll-free/A2P compliance, pricing, and carrier policy remain available only through raw Twilio client access or future normalized operations."
       ],
       "evidence": [
+        {
+          "label": "Twilio Node helper library",
+          "url": "https://www.npmjs.com/package/twilio"
+        },
         {
           "label": "Twilio Messaging API overview",
           "url": "https://www.twilio.com/docs/messaging/api"
@@ -10472,25 +9806,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://www.twilio.com/docs/messaging/api/message-resource"
         },
         {
-          "label": "Twilio Message Scheduling",
-          "url": "https://www.twilio.com/docs/messaging/features/message-scheduling"
-        },
-        {
-          "label": "Twilio Link Shortening",
-          "url": "https://www.twilio.com/docs/messaging/features/link-shortening"
-        },
-        {
           "label": "Twilio webhook security",
           "url": "https://www.twilio.com/docs/usage/webhooks/webhooks-security"
-        },
-        {
-          "label": "Twilio IncomingPhoneNumber resource",
-          "url": "https://www.twilio.com/docs/phone-numbers/api/incomingphonenumber-resource"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
       "conformant": true,
       "categoryProfile": {
@@ -10500,19 +9822,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "matchedOperations": [
           "sms.message.receive",
           "sms.message.send",
-          "sms.message.schedule",
           "sms.message.read",
-          "sms.message.search",
-          "sms.message.cancel"
+          "sms.message.search"
         ],
         "missingRequiredOperations": [],
         "missingRecommendedOperations": [
           "sms.message.reply",
+          "sms.message.schedule",
           "sms.deliveryStatus.read"
         ],
         "missingOptionalOperations": [
           "sms.media.send",
           "sms.template.send",
+          "sms.message.cancel",
           "sms.sender.read",
           "sms.sender.search"
         ],
@@ -10520,17 +9842,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/sms/twilio",
-      "providerModule": "./sms/twilio/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "twilio",
+      "runtimePackage": "@cognidesk/integration-sms-twilio",
+      "providerModule": "integrations/sms/twilio/dist/manifest.js",
       "manifestExport": "twilioSmsProviderManifest",
-      "manifestSource": "packages/integrations/src/sms/twilio/manifest.ts",
+      "manifestSource": "integrations/sms/twilio/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://www.twilio.com/docs/messaging/api"
+      "documentationPath": "https://www.npmjs.com/package/twilio"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "twilio-account",
@@ -10543,14 +9865,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "label": "Twilio Account SID and Auth Token",
           "description": "Server-side Twilio account credentials used for Messaging REST API calls and webhook signature validation.",
           "scopes": [],
-          "required": true
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         },
         {
           "id": "twilio-sms-sender",
           "label": "Twilio SMS/MMS-capable sender",
           "description": "A Twilio SMS/MMS-capable phone number or Messaging Service configured by the SDK user.",
           "scopes": [],
-          "required": true
+          "required": true,
+          "metadata": {
+            "scopeKind": "internal-capability"
+          }
         }
       ]
     },
@@ -10560,8 +9888,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Outbound SMS consent, opt-in/opt-out handling, quiet hours, campaign registration, content policy, retention, and regional compliance are SDK-user-owned responsibilities."
     ],
     "limitations": [
-      "Live SMS readiness depends on the SDK user's Twilio account, SMS-capable sender, Messaging Service configuration, phone-number capabilities, regions, carrier registration, webhooks, and account permissions.",
-      "This package does not provide product defaults for outbound-contact policy, consent enforcement, message templates, retry behavior, suppression lists, or compliance workflows."
+      "Live SMS readiness depends on the SDK user's Twilio account, SMS-capable sender, Messaging Service configuration, phone-number capabilities, regions, carrier registration, webhooks, and account permissions."
     ],
     "maintainers": [
       {
@@ -10570,30 +9897,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullMessagingDomainApiOperations": "generated-per-operation-functions",
-        "smsMmsMessages": "typed-create-fetch-list-update-status-and-generated-full-core-surface",
-        "messagingWebhooks": "typed-parse-verify",
-        "accountReadiness": "typed-read",
-        "incomingPhoneNumbers": "typed-list",
-        "messagingServices": "generated-full-surface",
-        "mediaLifecycle": "generated-full-surface",
-        "conversations": "generated-full-surface",
-        "contentTemplates": "generated-full-surface",
-        "verify": "generated-full-surface",
-        "studio": "generated-full-surface"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "twilio",
+        "verifiedVersion": "6.0.2",
+        "verifiedAt": "2026-06-21"
       },
-      "fullProviderApiVerification": {
-        "provider": "twilio-messaging-domain",
-        "apiVersion": "twilio-oai-main-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/twilio-sms-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/twilio-sms-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/twilio-sms-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 309,
-        "implementedOperationCount": 309,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 309
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "sms",
       "integrationCategoryProfileId": "sms",
@@ -10604,19 +9916,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "matchedOperations": [
           "sms.message.receive",
           "sms.message.send",
-          "sms.message.schedule",
           "sms.message.read",
-          "sms.message.search",
-          "sms.message.cancel"
+          "sms.message.search"
         ],
         "missingRequiredOperations": [],
         "missingRecommendedOperations": [
           "sms.message.reply",
+          "sms.message.schedule",
           "sms.deliveryStatus.read"
         ],
         "missingOptionalOperations": [
           "sms.media.send",
           "sms.template.send",
+          "sms.message.cancel",
           "sms.sender.read",
           "sms.sender.search"
         ],
@@ -10628,11 +9940,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "social.instagram",
     "category": "social",
     "provider": "instagram",
-    "importPath": "@cognidesk/integrations/social/instagram",
-    "modulePath": "./social/instagram/index.js",
+    "importPath": "@cognidesk/integration-social-instagram/manifest",
+    "modulePath": "integrations/social/instagram/dist/manifest.js",
     "manifestExport": "instagramSocialProviderManifest",
     "name": "Instagram Direct Messages",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-social-instagram",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -10850,11 +10162,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/social/instagram",
-      "providerModule": "./social/instagram/index.js",
+      "sdkPackage": "@cognidesk/integration-social-instagram",
+      "runtimePackage": "@cognidesk/integration-social-instagram",
+      "providerModule": "integrations/social/instagram/dist/manifest.js",
       "manifestExport": "instagramSocialProviderManifest",
-      "manifestSource": "packages/integrations/src/social/instagram/manifest.ts",
+      "manifestSource": "integrations/social/instagram/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/features/send-message"
     },
@@ -10990,11 +10302,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "social.messenger",
     "category": "social",
     "provider": "messenger",
-    "importPath": "@cognidesk/integrations/social/messenger",
-    "modulePath": "./social/messenger/index.js",
+    "importPath": "@cognidesk/integration-social-messenger/manifest",
+    "modulePath": "integrations/social/messenger/dist/manifest.js",
     "manifestExport": "messengerSocialProviderManifest",
     "name": "Facebook Messenger",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-social-messenger",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -11095,6 +10407,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "messengerMessage",
             "label": "Messenger Message"
+          },
+          {
+            "kind": "messengerPage",
+            "label": "Messenger Page"
           }
         ],
         "requiresCredential": true,
@@ -11228,11 +10544,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/social/messenger",
-      "providerModule": "./social/messenger/index.js",
+      "sdkPackage": "@cognidesk/integration-social-messenger",
+      "runtimePackage": "@cognidesk/integration-social-messenger",
+      "providerModule": "integrations/social/messenger/dist/manifest.js",
       "manifestExport": "messengerSocialProviderManifest",
-      "manifestSource": "packages/integrations/src/social/messenger/manifest.ts",
+      "manifestSource": "integrations/social/messenger/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.facebook.com/docs/messenger-platform"
     },
@@ -11338,11 +10654,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "social.tiktok",
     "category": "social",
     "provider": "tiktok",
-    "importPath": "@cognidesk/integrations/social/tiktok",
-    "modulePath": "./social/tiktok/index.js",
+    "importPath": "@cognidesk/integration-social-tiktok/manifest",
+    "modulePath": "integrations/social/tiktok/dist/manifest.js",
     "manifestExport": "tiktokSocialProviderManifest",
     "name": "TikTok Social",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-social-tiktok",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -11566,12 +10882,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/social/tiktok",
-      "providerModule": "./social/tiktok/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-social-tiktok",
+      "runtimePackage": "@cognidesk/integration-social-tiktok",
+      "providerModule": "integrations/social/tiktok/dist/manifest.js",
       "manifestExport": "tiktokSocialProviderManifest",
-      "manifestSource": "packages/integrations/src/social/tiktok/manifest.ts",
+      "manifestSource": "integrations/social/tiktok/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info"
     },
@@ -11701,14 +11017,99 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "https://business-api.tiktok.com/portal/docs/reply-to-a-comment/v1.3"
       ],
       "apiCoverage": {
-        "checkedAt": "2026-06-18",
-        "operationCatalog": "docs/provider-coverage/tiktok-selected-api-2026-06-18.operations.json",
+        "checkedAt": "2026-06-21",
+        "operationCatalog": "package:src/selected-operations.ts",
         "generatedFromOfficialSpec": false,
         "machineReadableSpecStatus": "No official public complete TikTok Developers/Business OpenAPI spec was found for this mixed selected surface during this audit.",
         "selectedOperationCount": 8,
         "implementedOperationCount": 8,
         "fullProviderApi": false,
         "fullTikTokPlatformCoverage": false
+      },
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "checkedAt": "2026-06-21",
+        "source": "official TikTok Developers and TikTok Business API docs",
+        "sourceVersion": "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-21",
+        "allowlistChecksumAlgorithm": "sha256",
+        "allowlistChecksum": "ed6fc3a9b917c05ee57f96f42fd3643a6a5ca334c84bdbfa3f757e1bf62cd841",
+        "selectedOperations": [
+          {
+            "uid": "tiktok-open:user.info.get",
+            "api": "tiktok-open.v2.display",
+            "method": "GET",
+            "path": "/v2/user/info/",
+            "functionName": "getUserInfo",
+            "sourceUrl": "https://developers.tiktok.com/doc/tiktok-api-v2-get-user-info"
+          },
+          {
+            "uid": "tiktok-open:video.list",
+            "api": "tiktok-open.v2.display",
+            "method": "POST",
+            "path": "/v2/video/list/",
+            "functionName": "listVideos",
+            "sourceUrl": "https://developers.tiktok.com/doc/tiktok-api-v2-video-list"
+          },
+          {
+            "uid": "tiktok-open:post.publish.status.fetch",
+            "api": "tiktok-open.v2.content-posting",
+            "method": "POST",
+            "path": "/v2/post/publish/status/fetch/",
+            "functionName": "fetchPostStatus",
+            "sourceUrl": "https://developers.tiktok.com/doc/content-posting-api-reference-get-video-status"
+          },
+          {
+            "uid": "tiktok-open:research.video.comment.list",
+            "api": "tiktok-open.v2.research",
+            "method": "POST",
+            "path": "/v2/research/video/comment/list/",
+            "functionName": "queryResearchVideoComments",
+            "sourceUrl": "https://developers.tiktok.com/doc/research-api-specs-query-video-comments"
+          },
+          {
+            "uid": "tiktok-business:business.video.list",
+            "api": "tiktok-business.v1.3",
+            "method": "GET",
+            "path": "/open_api/v1.3/business/video/list/",
+            "functionName": "listBusinessVideos",
+            "sourceUrl": "https://business-api.tiktok.com/portal/docs"
+          },
+          {
+            "uid": "tiktok-business:business.comment.list",
+            "api": "tiktok-business.v1.3",
+            "method": "GET",
+            "path": "/open_api/v1.3/business/comment/list/",
+            "functionName": "listBusinessComments",
+            "sourceUrl": "https://business-api.tiktok.com/portal/docs"
+          },
+          {
+            "uid": "tiktok-business:business.comment.reply.create",
+            "api": "tiktok-business.v1.3",
+            "method": "POST",
+            "path": "/open_api/v1.3/business/comment/reply/create/",
+            "functionName": "replyToBusinessComment",
+            "sourceUrl": "https://business-api.tiktok.com/portal/docs/reply-to-a-comment/v1.3"
+          },
+          {
+            "uid": "tiktok-business:business.comment.create",
+            "api": "tiktok-business.v1.3",
+            "method": "POST",
+            "path": "/open_api/v1.3/business/comment/create/",
+            "functionName": "createBusinessComment",
+            "sourceUrl": "https://business-api.tiktok.com/portal/docs"
+          }
+        ],
+        "apiCoverage": {
+          "checkedAt": "2026-06-21",
+          "operationCatalog": "package:src/selected-operations.ts"
+        },
+        "sdkDecision": {
+          "viableOfficialSdk": false,
+          "notes": [
+            "No official maintained JavaScript/TypeScript SDK was found for the mixed Display API, Research API, Content Posting status, webhook, and Business comment surface.",
+            "tiktok-business-api-sdk-official@1.1.3 is a broad Swagger Codegen Business API bundle; it does not cover TikTok Developers Open API, Research API, Content Posting status, or webhooks, and its comment endpoints do not match this adapter's selected /business/comment/* paths."
+          ]
+        }
       }
     }
   },
@@ -11716,11 +11117,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.dynamics365",
     "category": "ticketing",
     "provider": "dynamics365",
-    "importPath": "@cognidesk/integrations/ticketing/dynamics365",
-    "modulePath": "./ticketing/dynamics365/index.js",
+    "importPath": "@cognidesk/integration-ticketing-dynamics365/manifest",
+    "modulePath": "integrations/ticketing/dynamics365/dist/manifest.js",
     "manifestExport": "dynamics365TicketingProviderManifest",
     "name": "Microsoft Dynamics 365 Customer Service",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-dynamics365",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -11988,13 +11389,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/dynamics365",
-      "providerModule": "./ticketing/dynamics365/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-dynamics365",
+      "runtimePackage": "@cognidesk/integration-ticketing-dynamics365",
+      "providerModule": "integrations/ticketing/dynamics365/dist/manifest.js",
       "manifestExport": "dynamics365TicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/dynamics365/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/dynamics365/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview"
     },
     "readiness": {
@@ -12041,6 +11442,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "runtimePackage": "@cognidesk/integration-ticketing-dynamics365",
+        "manifestImport": "no-sdk-client-initialization"
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -12113,11 +11519,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.freshdesk",
     "category": "ticketing",
     "provider": "freshdesk",
-    "importPath": "@cognidesk/integrations/ticketing/freshdesk",
-    "modulePath": "./ticketing/freshdesk/index.js",
+    "importPath": "@cognidesk/integration-ticketing-freshdesk/manifest",
+    "modulePath": "integrations/ticketing/freshdesk/dist/manifest.js",
     "manifestExport": "freshdeskTicketingProviderManifest",
     "name": "Freshdesk Ticketing",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-freshdesk",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -12131,7 +11537,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Freshdesk Ticketing",
-      "summary": "Coverage is limited to Freshdesk v2 support primitives for tickets, contacts, ticket conversations, replies, notes, selected handoff updates, agent/group reads, current-agent readiness, and SDK-user shared-secret webhook validation.",
+      "summary": "SDK decision: Freshworks has beta or very early JavaScript packages, but no verified official maintained Freshdesk ticketing backend client suitable for this adapter.",
       "tags": [
         "ticketing",
         "freshdesk",
@@ -12142,13 +11548,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Receive Freshdesk automation webhooks",
-        "description": "Validates SDK-user-configured Freshdesk automation webhook headers and parses JSON ticket payloads.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "freshdeskWebhookEvent",
@@ -12163,13 +11563,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "create-provider-object",
-        "label": "Create Freshdesk tickets and contacts",
-        "description": "Creates Freshdesk tickets or contacts from SDK-user-selected support and handoff workflows.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "freshdeskTicket",
@@ -12192,13 +11586,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read Freshdesk tickets and contacts",
-        "description": "Reads Freshdesk tickets, conversations, contacts, and the currently authenticated agent.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "freshdeskTicket",
@@ -12207,10 +11595,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "freshdeskContact",
             "label": "Freshdesk Contact"
-          },
-          {
-            "kind": "freshdeskConversation",
-            "label": "Freshdesk Ticket Conversation"
           },
           {
             "kind": "freshdeskAgent",
@@ -12229,12 +11613,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Freshdesk tickets and contacts",
-        "description": "Updates Freshdesk ticket fields, assignment, status, priority, tags, custom fields, or contact profile fields.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "freshdeskTicket",
@@ -12253,13 +11632,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search Freshdesk tickets and contacts",
-        "description": "Searches Freshdesk tickets and contacts with SDK-user-supplied Freshdesk query expressions and pagination.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "freshdeskTicket",
@@ -12278,13 +11651,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "handoff",
-        "label": "Attach support handoff to Freshdesk",
-        "description": "Provides Freshdesk ticket reply, private note, assignment, and status operations for SDK-user-configured human handoff workflows.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "freshdeskTicket",
@@ -12293,14 +11660,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "freshdeskConversation",
             "label": "Freshdesk Ticket Conversation"
-          },
-          {
-            "kind": "freshdeskAgent",
-            "label": "Freshdesk Agent"
-          },
-          {
-            "kind": "freshdeskGroup",
-            "label": "Freshdesk Group"
           }
         ],
         "requiresCredential": true,
@@ -12308,33 +11667,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": true,
         "extension": false
-      },
-      {
-        "capability": "freshdesk.webhook-shared-secret",
-        "label": "Validate Freshdesk webhook shared secret",
-        "description": "Checks a configured Freshdesk automation custom header against the SDK user's shared secret before parsing request JSON.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "freshdeskWebhookRequest",
-            "label": "Freshdesk Webhook Request"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
       }
     ],
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Coverage is limited to Freshdesk v2 support primitives for tickets, contacts, ticket conversations, replies, notes, selected handoff updates, agent/group reads, current-agent readiness, and SDK-user shared-secret webhook validation.",
-        "The official Freshdesk v2 HTML reference has no official public OpenAPI located in the checked docs; docs/provider-coverage/freshdesk-v2-api-2026-06-18.operations.json records 240 documented entries, 19 implemented entries, and 221 explicit gaps.",
-        "This is not full Freshdesk API coverage for ticket bulk/merge/forward/archive/delete/restore flows, multipart attachments, companies, roles, SLAs, automations, skills, availability/load settings, custom objects, forums/solutions, customer satisfaction, mailboxes, canned responses, business hours, analytics, or broader admin mutation."
+        "SDK decision: Freshworks has beta or very early JavaScript packages, but no verified official maintained Freshdesk ticketing backend client suitable for this adapter.",
+        "Coverage is limited to Freshdesk v2 tickets, contacts, conversations, replies, notes, handoff updates, agents, groups, current-agent readiness, and SDK-user shared-secret webhook validation."
       ],
       "evidence": [
         {
@@ -12342,30 +11681,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developers.freshdesk.com/api/"
         },
         {
-          "label": "Freshdesk v2 checked endpoint inventory",
-          "url": "https://github.com/cognilabz/cognidesk/blob/main/docs/provider-coverage/freshdesk-v2-api-2026-06-18.operations.json"
+          "label": "Freshworks API SDK announcement",
+          "url": "https://community.freshworks.dev/t/freshworks-api-sdk-for-node-js/5232"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
-          "ticket.listByCustomer",
           "ticket.internalNote.create",
+          "customer.read",
+          "customer.search"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "ticket.listByCustomer",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -12379,25 +11720,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ticket.attachments.list",
           "ticket.merge",
           "ticket.macro.list",
-          "ticket.macro.apply",
-          "customer.read",
-          "customer.search"
+          "ticket.macro.apply"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "freshdesk.agent.read",
+          "freshdesk.group.read",
+          "freshdesk.readiness",
+          "freshdesk.webhook.parse"
+        ]
       }
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/freshdesk",
-      "providerModule": "./ticketing/freshdesk/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-freshdesk",
+      "runtimePackage": "@cognidesk/integration-ticketing-freshdesk",
+      "providerModule": "integrations/ticketing/freshdesk/dist/manifest.js",
       "manifestExport": "freshdeskTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/freshdesk/manifest.ts",
+      "manifestSource": "integrations/ticketing/freshdesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.freshdesk.com/api/"
     },
     "readiness": {
-      "mode": "credential-configuration",
+      "mode": "credential-and-live-check",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "freshdesk-domain",
@@ -12410,14 +11754,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "freshdesk-domain",
           "label": "Freshdesk domain",
-          "description": "The SDK user's Freshdesk support portal URL, for example https://example.freshdesk.com.",
           "scopes": [],
           "required": true
         },
         {
           "id": "freshdesk-api-key",
           "label": "Freshdesk API key",
-          "description": "Server-side Freshdesk API key used with Freshdesk v2 API Basic authentication; effective access is governed by the authenticated agent's Freshdesk role and ticket permissions.",
           "scopes": [
             "read",
             "write"
@@ -12425,26 +11767,22 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "required": true,
           "metadata": {
             "scopeKind": "internal-capability-labels",
-            "privilegeGuidance": "Freshdesk API keys are not OAuth-scoped by these strings; read/write are Cognidesk capability labels for Studio display."
+            "privilegeGuidance": "Freshdesk API keys are governed by the authenticated agent's Freshdesk role and ticket permissions."
           }
         },
         {
           "id": "freshdesk-webhook-secret",
           "label": "Freshdesk webhook shared secret",
-          "description": "SDK-user-configured secret expected in a Freshdesk automation custom header before webhook payloads are accepted.",
           "scopes": [],
           "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Freshdesk tickets, conversations, private notes, contacts, assignments, tags, custom fields, and automation webhook payloads can contain customer data and internal support context.",
-      "Freshdesk API keys and webhook shared secrets stay server-side and are represented in Studio only as readiness and scope status."
+      "Freshdesk tickets, conversations, notes, contacts, assignments, tags, custom fields, and automation webhook payloads can contain customer data."
     ],
     "limitations": [
-      "Ticket forms, required fields, statuses, priorities, products, groups, SLAs, automations, and agent permissions are owned by the SDK user's Freshdesk account.",
-      "Freshdesk automation webhooks support configurable custom headers; this package validates an SDK-user-provided shared secret header rather than assuming a universal Freshdesk HMAC signature.",
-      "SDK users own human handoff timing, field mapping, requester identity, assignment rules, reply visibility, customer consent, notification policy, and data retention before calling Freshdesk APIs."
+      "Ticket forms, required fields, statuses, products, groups, SLAs, automations, and agent permissions are SDK-user configuration."
     ],
     "maintainers": [
       {
@@ -12453,48 +11791,53 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "tickets": "typed-crud-list-search",
-        "contacts": "typed-crud-search",
-        "conversations": "typed-list",
-        "replies": "typed-create",
-        "privateNotes": "typed-create",
-        "agents": "typed-read-list",
-        "groups": "typed-read-list",
-        "webhookParsing": "typed-verify-parse",
-        "publicOpenApiSpec": "not-covered",
-        "freshdeskV2Inventory": "typed-selected",
-        "multipartAttachments": "provider-supported-not-typed",
-        "ticketBulkMergeForwardDeleteRestore": "provider-supported-not-typed",
-        "companiesFieldsFormsForumsSolutionsMailboxes": "provider-supported-not-typed",
-        "slasAutomationsRolesSkills": "not-covered",
-        "customObjectsAnalytics": "not-covered"
+      "issue": 35,
+      "implementationStrategy": "direct-http-support-slice",
+      "sdkDecision": {
+        "candidates": [
+          "@freshworks/api-sdk",
+          "@freshworks/freshdesk"
+        ],
+        "verdict": "not-adopted",
+        "reason": "No verified official maintained Freshdesk ticketing backend SDK was found.",
+        "checkedAt": "2026-06-21"
       },
-      "coverageArtifacts": {
-        "freshdeskV2Inventory": {
-          "artifact": "docs/provider-coverage/freshdesk-v2-api-2026-06-18.operations.json",
-          "documentedEntries": 240,
-          "implementedEntries": 19,
-          "gapEntries": 221
-        }
+      "supportSlice": {
+        "source": "Freshdesk API v2",
+        "allowlistedOperations": [
+          "tickets.create",
+          "tickets.read",
+          "tickets.update",
+          "tickets.search",
+          "reply.create",
+          "note.create",
+          "contacts.read",
+          "contacts.search",
+          "agents.read",
+          "groups.read",
+          "agents.me",
+          "automation_webhook.parse"
+        ]
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
-          "ticket.listByCustomer",
           "ticket.internalNote.create",
+          "customer.read",
+          "customer.search"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "ticket.listByCustomer",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -12508,11 +11851,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ticket.attachments.list",
           "ticket.merge",
           "ticket.macro.list",
-          "ticket.macro.apply",
-          "customer.read",
-          "customer.search"
+          "ticket.macro.apply"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "freshdesk.agent.read",
+          "freshdesk.group.read",
+          "freshdesk.readiness",
+          "freshdesk.webhook.parse"
+        ]
       }
     }
   },
@@ -12520,11 +11866,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.front",
     "category": "ticketing",
     "provider": "front",
-    "importPath": "@cognidesk/integrations/ticketing/front",
-    "modulePath": "./ticketing/front/index.js",
+    "importPath": "@cognidesk/integration-ticketing-front/manifest",
+    "modulePath": "integrations/ticketing/front/dist/manifest.js",
     "manifestExport": "frontTicketingProviderManifest",
     "name": "Front",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-front",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -12536,22 +11882,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Front",
-      "summary": "Coverage includes generated per-operation functions for every operation in Front's official Core and Channel API OpenAPI files.",
+      "summary": "SDK decision: no viable official maintained backend JavaScript client was verified. The deprecated front-sdk package is not adopted.",
       "tags": [
         "ticketing",
         "front",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "create-provider-object",
-        "label": "Create Front messages/conversations",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "frontConversation",
@@ -12574,11 +11916,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read Front conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "frontConversation",
@@ -12601,11 +11939,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Front conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "frontConversation",
@@ -12620,11 +11954,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search Front conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "frontConversation",
@@ -12639,12 +11969,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "handoff",
-        "label": "Attach handoff to Front",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "frontConversation",
@@ -12667,24 +11992,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Front's official Core and Channel API OpenAPI files.",
-        "Typed convenience helpers remain limited to Front channel message creation, conversation replies, conversation messages, conversation comments, conversation read/update, conversation search, and teammate-list readiness for Cognidesk support workflows.",
-        "SDK users still own Front app scopes, workspace feature availability, channel configuration, webhook handling, multipart attachment bodies, and account-specific policy."
+        "SDK decision: no viable official maintained backend JavaScript client was verified. The deprecated front-sdk package is not adopted.",
+        "Coverage is limited to selected Front Core/Channel API conversation, message, comment, search, update, and teammate readiness operations for support workflows.",
+        "This package intentionally does not copy the old generated full Front Core/Channel API clone."
       ],
       "evidence": [
         {
-          "label": "Front official OpenAPI specs",
-          "url": "https://github.com/frontapp/front-api-specs"
+          "label": "Front Core API overview",
+          "url": "https://dev.frontapp.com/docs/core-api-overview"
         },
         {
-          "label": "Front Core API OpenAPI JSON",
-          "url": "https://raw.githubusercontent.com/frontapp/front-api-specs/main/core-api/core-api.json"
-        },
-        {
-          "label": "Front Channel API OpenAPI JSON",
-          "url": "https://raw.githubusercontent.com/frontapp/front-api-specs/main/channel-api/channel-api.json"
+          "label": "Front API overview",
+          "url": "https://help.front.com/en/articles/2482"
         },
         {
           "label": "Front Create message",
@@ -12693,60 +12014,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Front Create conversation reply",
           "url": "https://dev.frontapp.com/reference/create-message-reply"
-        },
-        {
-          "label": "Front List conversation messages",
-          "url": "https://dev.frontapp.com/reference/list-conversation-messages"
-        },
-        {
-          "label": "Front Add comment",
-          "url": "https://dev.frontapp.com/reference/add-comment"
-        },
-        {
-          "label": "Front List conversation comments",
-          "url": "https://dev.frontapp.com/reference/list-conversation-comments"
-        },
-        {
-          "label": "Front Get conversation",
-          "url": "https://dev.frontapp.com/reference/get-conversation-by-id"
-        },
-        {
-          "label": "Front Update conversation",
-          "url": "https://dev.frontapp.com/reference/update-conversation"
-        },
-        {
-          "label": "Front Search conversations",
-          "url": "https://dev.frontapp.com/docs/search-1"
-        },
-        {
-          "label": "Front List teammates",
-          "url": "https://dev.frontapp.com/reference/list-teammates"
-        },
-        {
-          "label": "Front Core API overview",
-          "url": "https://dev.frontapp.com/docs/core-api-overview"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -12764,21 +12053,25 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "front.message.list",
+          "front.comment.list",
+          "front.readiness"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/front",
-      "providerModule": "./ticketing/front/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-front",
+      "runtimePackage": "@cognidesk/integration-ticketing-front",
+      "providerModule": "integrations/ticketing/front/dist/manifest.js",
       "manifestExport": "frontTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/front/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://github.com/frontapp/front-api-specs"
+      "manifestSource": "integrations/ticketing/front/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://dev.frontapp.com/docs/core-api-overview"
     },
     "readiness": {
-      "mode": "credential-configuration",
+      "mode": "credential-and-live-check",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "front-api-access"
@@ -12808,7 +12101,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Front conversations can contain customer messages, teammate comments, inbox routing, tags, links, and assignment context."
     ],
     "limitations": [
-      "Inbox IDs, channel IDs, teammate assignment, tags, and message visibility are SDK-user configuration."
+      "Inbox IDs, channel IDs, teammate assignment, tags, and message visibility are SDK-user configuration. Multipart attachments are rejected by JSON helpers and require SDK-user direct multipart handling."
     ],
     "maintainers": [
       {
@@ -12817,43 +12110,48 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "fullProviderApiVerification": {
-        "provider": "front",
-        "apiVersion": "front-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/front-core-and-channel-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/front-core-and-channel-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/front-core-and-channel-api-2026-06-18.functions.json",
-        "documentedOperationCount": 255,
-        "implementedOperationCount": 255,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 255
+      "issue": 35,
+      "implementationStrategy": "direct-http-support-slice",
+      "sdkDecision": {
+        "candidates": [
+          "front-sdk",
+          "Front Plugin SDK"
+        ],
+        "verdict": "not-adopted",
+        "reason": "front-sdk is deprecated and the official Plugin SDK is not a backend Core API client.",
+        "checkedAt": "2026-06-21"
       },
-      "channelCoverage": {
-        "fullFrontCoreAndChannelApiOperations": "generated-per-operation-functions",
-        "messages": "typed-json-create-reply-read-and-generated-full-surface",
-        "comments": "typed-json-create-read-and-generated-full-surface",
-        "conversations": "typed-read-update-search-and-generated-full-surface",
-        "multipartAttachments": "generated-full-surface",
-        "webhooks": "generated-full-surface"
+      "supportSlice": {
+        "source": "Front Core and Channel APIs",
+        "allowlistedOperations": [
+          "messages.create",
+          "conversations.reply",
+          "conversations.read",
+          "conversations.update",
+          "conversations.search",
+          "conversation_messages.list",
+          "comments.create",
+          "comments.list",
+          "teammates.list"
+        ]
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -12871,7 +12169,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "front.message.list",
+          "front.comment.list",
+          "front.readiness"
+        ]
       }
     }
   },
@@ -12879,11 +12181,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.gorgias",
     "category": "ticketing",
     "provider": "gorgias",
-    "importPath": "@cognidesk/integrations/ticketing/gorgias",
-    "modulePath": "./ticketing/gorgias/index.js",
+    "importPath": "@cognidesk/integration-ticketing-gorgias/manifest",
+    "modulePath": "integrations/ticketing/gorgias/dist/manifest.js",
     "manifestExport": "gorgiasTicketingProviderManifest",
     "name": "Gorgias",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-gorgias",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -12895,22 +12197,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Gorgias",
-      "summary": "Coverage includes generated per-operation functions for every operation found in Gorgias' official endpoint markdown pages with embedded OpenAPI blocks.",
+      "summary": "SDK decision: no official maintained backend JavaScript REST client was verified for Gorgias.",
       "tags": [
         "ticketing",
         "gorgias",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "create-provider-object",
-        "label": "Create Gorgias tickets and messages",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "gorgiasTicket",
@@ -12929,11 +12227,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read Gorgias tickets and messages",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "gorgiasTicket",
@@ -12952,11 +12246,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Gorgias tickets",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "gorgiasTicket",
@@ -12971,11 +12261,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "List Gorgias tickets and messages",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "gorgiasTicket",
@@ -12994,12 +12280,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "handoff",
-        "label": "Attach handoff to Gorgias",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "gorgiasTicket",
@@ -13018,44 +12299,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation found in Gorgias' official endpoint markdown pages with embedded OpenAPI blocks.",
-        "Typed convenience helpers remain limited to Gorgias ticket create/read/update/list operations, ticket-message create/list operations, and account readiness for Cognidesk support workflows.",
-        "SDK users still own Gorgias domain URLs, OAuth/private-app scopes, ecommerce context, macros, visibility, and account-specific policy."
+        "SDK decision: no official maintained backend JavaScript REST client was verified for Gorgias.",
+        "Coverage is limited to Gorgias ticket create/read/update/list operations, ticket-message create/list operations, and account readiness for Cognidesk support workflows.",
+        "This package intentionally does not copy the old generated full Gorgias public API clone."
       ],
       "evidence": [
         {
-          "label": "Gorgias developer llms.txt",
-          "url": "https://developers.gorgias.com/llms.txt"
+          "label": "Gorgias developer docs",
+          "url": "https://developers.gorgias.com/"
         },
         {
           "label": "Gorgias Create ticket",
           "url": "https://developers.gorgias.com/reference/create-ticket"
         },
         {
-          "label": "Gorgias Retrieve ticket",
-          "url": "https://developers.gorgias.com/reference/get-ticket"
-        },
-        {
-          "label": "Gorgias Update ticket",
-          "url": "https://developers.gorgias.com/reference/update-ticket"
-        },
-        {
-          "label": "Gorgias List tickets",
-          "url": "https://developers.gorgias.com/reference/list-tickets"
-        },
-        {
           "label": "Gorgias Create ticket message",
           "url": "https://developers.gorgias.com/reference/create-ticket-message"
-        },
-        {
-          "label": "Gorgias List messages",
-          "url": "https://developers.gorgias.com/reference/list-messages"
-        },
-        {
-          "label": "Gorgias Retrieve account",
-          "url": "https://developers.gorgias.com/reference/get-account"
         },
         {
           "label": "Gorgias OAuth2 Scopes",
@@ -13064,22 +12325,22 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
-          "ticket.search",
+          "ticket.search"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
           "ticket.internalNote.create",
           "ticket.status.update",
@@ -13099,18 +12360,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "gorgias.message.list",
+          "gorgias.readiness"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/gorgias",
-      "providerModule": "./ticketing/gorgias/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-gorgias",
+      "runtimePackage": "@cognidesk/integration-ticketing-gorgias",
+      "providerModule": "integrations/ticketing/gorgias/dist/manifest.js",
       "manifestExport": "gorgiasTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/gorgias/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developers.gorgias.com/llms.txt"
+      "manifestSource": "integrations/ticketing/gorgias/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://developers.gorgias.com/"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -13155,42 +12419,45 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "fullProviderApiVerification": {
-        "provider": "gorgias",
-        "apiVersion": "gorgias-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/gorgias-public-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/gorgias-public-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/gorgias-public-api-2026-06-18.functions.json",
-        "documentedOperationCount": 113,
-        "implementedOperationCount": 113,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 113
+      "issue": 35,
+      "implementationStrategy": "direct-http-support-slice",
+      "sdkDecision": {
+        "candidates": [
+          "gorgias-client",
+          "@friggframework/api-module-gorgias",
+          "Gorgias REST docs"
+        ],
+        "verdict": "not-adopted",
+        "reason": "No official maintained backend JavaScript REST client was verified.",
+        "checkedAt": "2026-06-21"
       },
-      "channelCoverage": {
-        "fullGorgiasPublicApiOperations": "generated-per-operation-functions",
-        "tickets": "typed-crud-list-and-generated-full-surface",
-        "ticketMessages": "typed-create-list-and-generated-full-surface",
-        "accountReadiness": "typed-read-and-generated-full-surface",
-        "customersUsersTeamsTags": "generated-full-surface",
-        "filesEcommerceEventsMacros": "generated-full-surface",
-        "webhooks": "generated-full-surface"
+      "supportSlice": {
+        "source": "Gorgias public REST API",
+        "allowlistedOperations": [
+          "tickets.create",
+          "tickets.read",
+          "tickets.update",
+          "tickets.list",
+          "ticket_messages.create",
+          "messages.list",
+          "account.read"
+        ]
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
-          "ticket.search",
+          "ticket.search"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
           "ticket.internalNote.create",
           "ticket.status.update",
@@ -13210,7 +12477,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "gorgias.message.list",
+          "gorgias.readiness"
+        ]
       }
     }
   },
@@ -13218,11 +12488,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.help-scout",
     "category": "ticketing",
     "provider": "help-scout",
-    "importPath": "@cognidesk/integrations/ticketing/help-scout",
-    "modulePath": "./ticketing/help-scout/index.js",
+    "importPath": "@cognidesk/integration-ticketing-help-scout/manifest",
+    "modulePath": "integrations/ticketing/help-scout/dist/manifest.js",
     "manifestExport": "helpScoutTicketingProviderManifest",
     "name": "Help Scout",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-help-scout",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -13234,7 +12504,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Help Scout",
-      "summary": "Coverage is limited to Help Scout conversation create/read/list, raw conversation JSONPatch update, thread list, reply/note thread creation, and mailbox-list readiness for Cognidesk support workflows.",
+      "summary": "SDK decision: Help Scout's official JavaScript SDK is for Apps UI context, not a backend Inbox API client.",
       "tags": [
         "ticketing",
         "help-scout",
@@ -13245,11 +12515,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "capabilities": [
       {
         "capability": "create-provider-object",
-        "label": "Create Help Scout conversations and threads",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "helpScoutConversation",
@@ -13272,11 +12538,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read Help Scout conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "helpScoutConversation",
@@ -13291,11 +12553,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Help Scout conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "helpScoutConversation",
@@ -13310,11 +12568,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "List Help Scout conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "helpScoutConversation",
@@ -13329,12 +12583,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "handoff",
-        "label": "Attach handoff to Help Scout",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "helpScoutConversation",
@@ -13359,49 +12608,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is limited to Help Scout conversation create/read/list, raw conversation JSONPatch update, thread list, reply/note thread creation, and mailbox-list readiness for Cognidesk support workflows.",
-        "The package does not implement the broader Help Scout Inbox API for customers, attachment lifecycle beyond inline thread payloads, custom fields, snooze, tags, inbox routing, saved replies, organizations, reports, teams, users, webhooks, or workflows."
+        "SDK decision: Help Scout's official JavaScript SDK is for Apps UI context, not a backend Inbox API client.",
+        "Coverage is limited to Help Scout Inbox API conversation create/read/list/update, thread list, reply/note thread creation, and mailbox-list readiness."
       ],
       "evidence": [
         {
-          "label": "Help Scout developer llms.txt",
-          "url": "https://developer.helpscout.com/llms.txt"
+          "label": "Help Scout JavaScript SDK",
+          "url": "https://developer.helpscout.com/apps/javascript-sdk/"
         },
         {
-          "label": "Help Scout OAuth authentication",
-          "url": "https://developer.helpscout.com/mailbox-api/overview/authentication"
-        },
-        {
-          "label": "Help Scout Create Conversation",
-          "url": "https://developer.helpscout.com/mailbox-api/endpoints/conversations/create/"
-        },
-        {
-          "label": "Help Scout Get Conversation",
-          "url": "https://developer.helpscout.com/mailbox-api/endpoints/conversations/get/"
-        },
-        {
-          "label": "Help Scout List Conversations",
-          "url": "https://developer.helpscout.com/mailbox-api/endpoints/conversations/list/"
-        },
-        {
-          "label": "Help Scout Update Conversation",
-          "url": "https://developer.helpscout.com/mailbox-api/endpoints/conversations/update/"
-        },
-        {
-          "label": "Help Scout List Threads",
-          "url": "https://developer.helpscout.com/mailbox-api/endpoints/conversations/threads/list/"
-        },
-        {
-          "label": "Help Scout Create Reply Thread",
-          "url": "https://developer.helpscout.com/mailbox-api/endpoints/conversations/threads/reply/"
-        },
-        {
-          "label": "Help Scout Create Note",
-          "url": "https://developer.helpscout.com/mailbox-api/endpoints/conversations/threads/note/"
-        },
-        {
-          "label": "Help Scout List Inboxes",
-          "url": "https://developer.helpscout.com/mailbox-api/endpoints/inboxes/list/"
+          "label": "Help Scout open-source clients",
+          "url": "https://developer.helpscout.com/open-source/"
         },
         {
           "label": "Help Scout Inbox API",
@@ -13412,22 +12629,22 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "adapterCoverage": {
       "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -13445,18 +12662,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "help-scout.thread.list",
+          "help-scout.readiness"
+        ]
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/help-scout",
-      "providerModule": "./ticketing/help-scout/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-help-scout",
+      "runtimePackage": "@cognidesk/integration-ticketing-help-scout",
+      "providerModule": "integrations/ticketing/help-scout/dist/manifest.js",
       "manifestExport": "helpScoutTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/help-scout/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developer.helpscout.com/llms.txt"
+      "manifestSource": "integrations/ticketing/help-scout/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://developer.helpscout.com/apps/javascript-sdk/"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -13469,7 +12689,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "help-scout-api-access",
           "label": "Help Scout OAuth access",
-          "description": "Bearer access is governed by the SDK user's Help Scout app/user permissions.",
           "scopes": [],
           "required": true
         }
@@ -13488,42 +12707,46 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedProviderApiCoverage": {
-        "verifiedAt": "2026-06-18",
-        "sourceKind": "checked-endpoint-family-inventory",
-        "coverageArtifact": "docs/provider-coverage/help-scout-checked-inbox-api-2026-06-18.inventory.json",
-        "checkedFamilyCount": 5,
-        "implementedFamilyCount": 3,
-        "gapFamilyCount": 2,
-        "implementedOperationCount": 8
+      "issue": 35,
+      "implementationStrategy": "direct-http-support-slice",
+      "sdkDecision": {
+        "candidates": [
+          "@helpscout/javascript-sdk"
+        ],
+        "verdict": "not-adopted",
+        "reason": "The official JavaScript SDK targets Help Scout Apps UI, not backend Inbox API operations.",
+        "checkedAt": "2026-06-21"
       },
-      "channelCoverage": {
-        "conversations": "typed-create-read-update-list",
-        "threads": "typed-list",
-        "replies": "typed-create",
-        "notes": "typed-create",
-        "mailboxesReadiness": "typed-list",
-        "customersTagsTeamsUsers": "provider-supported-not-typed",
-        "attachments": "provider-supported-not-typed",
-        "webhooksWorkflowsReports": "not-covered"
+      "supportSlice": {
+        "source": "Help Scout Inbox API",
+        "allowlistedOperations": [
+          "conversations.create",
+          "conversations.read",
+          "conversations.update",
+          "conversations.list",
+          "threads.list",
+          "reply.create",
+          "note.create",
+          "mailboxes.list"
+        ]
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -13541,7 +12764,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "help-scout.thread.list",
+          "help-scout.readiness"
+        ]
       }
     }
   },
@@ -13549,11 +12775,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.hubspot",
     "category": "ticketing",
     "provider": "hubspot",
-    "importPath": "@cognidesk/integrations/ticketing/hubspot",
-    "modulePath": "./ticketing/hubspot/index.js",
+    "importPath": "@cognidesk/integration-ticketing-hubspot/manifest",
+    "modulePath": "integrations/ticketing/hubspot/dist/manifest.js",
     "manifestExport": "hubSpotTicketingProviderManifest",
     "name": "HubSpot Service Hub",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-hubspot",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -13567,19 +12793,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "HubSpot Service Hub",
-      "summary": "Coverage includes generated per-operation functions for every selected current API entry in HubSpot's official public spec index.",
+      "summary": "Coverage is scoped to normalized ticketing support operations implemented by typed handlers.",
       "tags": [
         "ticketing",
         "hubspot",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
-        "capability": "receive",
-        "label": "Receive HubSpot webhooks",
-        "description": "Validates and parses HubSpot CRM webhook events for SDK-user-owned ticketing workflows.",
+        "capability": "read-provider-object",
+        "label": "Read HubSpot tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13587,8 +12812,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "hubspotWebhookEvent",
-            "label": "HubSpot Webhook Event"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -13598,39 +12823,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "create-provider-object",
-        "label": "Create HubSpot CRM records",
-        "description": "Creates HubSpot tickets, contacts, companies, notes, and SDK-user-selected associations.",
+        "capability": "send",
+        "label": "Create HubSpot ticket comments",
         "audiences": [
           "customer-facing",
-          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotContact",
-            "label": "HubSpot Contact",
-            "schemaName": "contacts"
-          },
-          {
-            "kind": "hubspotCompany",
-            "label": "HubSpot Company",
-            "schemaName": "companies"
-          },
-          {
-            "kind": "hubspotNote",
-            "label": "HubSpot Note",
-            "schemaName": "notes"
-          },
-          {
-            "kind": "hubspotAssociation",
-            "label": "HubSpot Association",
-            "schemaName": "associations"
+            "kind": "ticketComment",
+            "label": "Ticket Comment"
           }
         ],
         "requiresCredential": true,
@@ -13640,9 +12842,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "read-provider-object",
-        "label": "Read HubSpot CRM records",
-        "description": "Reads HubSpot tickets, contacts, companies, association labels, and account readiness details.",
+        "capability": "create-provider-object",
+        "label": "Create HubSpot tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13650,60 +12851,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotContact",
-            "label": "HubSpot Contact",
-            "schemaName": "contacts"
-          },
-          {
-            "kind": "hubspotCompany",
-            "label": "HubSpot Company",
-            "schemaName": "companies"
-          },
-          {
-            "kind": "hubspotAssociationLabel",
-            "label": "HubSpot Association Label",
-            "schemaName": "associations/labels"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": false,
+        "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": false,
+        "changesWorkflow": true,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Update HubSpot CRM records",
-        "description": "Updates HubSpot ticket, contact, company, note, pinned activity, assignment, pipeline, and custom fields when SDK-user policy permits.",
+        "label": "Update HubSpot tickets",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotContact",
-            "label": "HubSpot Contact",
-            "schemaName": "contacts"
-          },
-          {
-            "kind": "hubspotCompany",
-            "label": "HubSpot Company",
-            "schemaName": "companies"
-          },
-          {
-            "kind": "hubspotNote",
-            "label": "HubSpot Note",
-            "schemaName": "notes"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -13714,8 +12882,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search HubSpot CRM records",
-        "description": "Searches HubSpot tickets, contacts, and companies using SDK-user-supplied CRM Search API filters, sorts, properties, and pagination.",
+        "label": "Search HubSpot tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -13723,19 +12890,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotContact",
-            "label": "HubSpot Contact",
-            "schemaName": "contacts"
-          },
-          {
-            "kind": "hubspotCompany",
-            "label": "HubSpot Company",
-            "schemaName": "companies"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -13745,68 +12901,55 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "handoff",
-        "label": "Attach support handoff to HubSpot",
-        "description": "Provides ticket creation/update, contact/company lookup, and configurable internal handoff notes that can associate existing HubSpot file IDs.",
+        "capability": "draft",
+        "label": "Create HubSpot internal notes",
         "audiences": [
-          "customer-facing",
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "hubspotTicket",
-            "label": "HubSpot Ticket",
-            "schemaName": "tickets"
-          },
-          {
-            "kind": "hubspotNote",
-            "label": "HubSpot Note",
-            "schemaName": "notes"
-          },
-          {
-            "kind": "hubspotAssociation",
-            "label": "HubSpot Association",
-            "schemaName": "associations"
+            "kind": "internalNote",
+            "label": "Internal Note"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
+        "changesWorkflow": false,
         "extension": false
       },
       {
-        "capability": "hubspot.request-signature-v3",
-        "label": "Validate HubSpot v3 request signatures",
-        "description": "Validates X-HubSpot-Signature-v3 using method, URI, raw body, timestamp, and app client secret before parsing webhook JSON.",
+        "capability": "link-provider-object",
+        "label": "Create HubSpot associations",
         "audiences": [
-          "internal-support"
+          "internal-support",
+          "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "hubspotSignedRequest",
-            "label": "HubSpot Signed Request"
+            "kind": "conversationLink",
+            "label": "Conversation Link"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
+        "sideEffect": true,
+        "exposesSensitiveData": false,
+        "changesWorkflow": true,
         "extension": true
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every selected current API entry in HubSpot's official public spec index.",
-        "Typed convenience helpers remain available for HubSpot CRM v3 ticket/contact/company read-write records, note create/update records, selected associations, CRM search, properties, owners, ticket pipelines, account readiness, webhook payload parsing, and v3 request-signature validation used by Cognidesk support workflows.",
-        "Generated functions cover HubSpot's date-versioned 2026-03 surfaces where they are the current public spec, including broader CRM objects, pipeline/stage mutation, owner reads, properties CRUD, conversations and custom channels, files, timeline events, webhooks, CMS, marketing, automation, and account APIs. SDK users still own HubSpot app scopes, entitlements, portal-specific configuration, and private-app/OAuth credential policy."
+        "Coverage is scoped to normalized ticketing support operations implemented by typed handlers.",
+        "Implementation uses the maintained official @hubspot/api-client package; broader HubSpot APIs remain available through the rawClient escape hatch.",
+        "Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."
       ],
       "evidence": [
         {
-          "label": "HubSpot public OpenAPI spec index",
-          "url": "https://api.hubapi.com/public/api/spec/v1/specs"
+          "label": "HubSpot Node client",
+          "url": "https://github.com/HubSpot/hubspot-api-nodejs"
         },
         {
           "label": "HubSpot CRM Tickets API guide",
@@ -13819,48 +12962,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "HubSpot CRM search guide",
           "url": "https://developers.hubspot.com/docs/api-reference/latest/crm/search-the-crm"
-        },
-        {
-          "label": "HubSpot CRM properties guide",
-          "url": "https://developers.hubspot.com/docs/api-reference/legacy/crm/properties/guide"
-        },
-        {
-          "label": "HubSpot CRM owners guide",
-          "url": "https://developers.hubspot.com/docs/api-reference/legacy/crm/owners/guide"
-        },
-        {
-          "label": "HubSpot CRM pipelines guide",
-          "url": "https://developers.hubspot.com/docs/api-reference/legacy/crm/pipelines/guide"
-        },
-        {
-          "label": "HubSpot account information details",
-          "url": "https://developers.hubspot.com/docs/api-reference/legacy/account/account-information/get-account-details"
-        },
-        {
-          "label": "HubSpot request validation",
-          "url": "https://developers.hubspot.com/docs/apps/legacy-apps/authentication/validating-requests"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -13878,79 +13001,52 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "hubspot.association.create"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/hubspot",
-      "providerModule": "./ticketing/hubspot/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@hubspot/api-client",
+      "runtimePackage": "@cognidesk/integration-ticketing-hubspot",
+      "providerModule": "integrations/ticketing/hubspot/dist/manifest.js",
       "manifestExport": "hubSpotTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/hubspot/manifest.ts",
+      "manifestSource": "integrations/ticketing/hubspot/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://api.hubapi.com/public/api/spec/v1/specs"
+      "documentationPath": "https://github.com/HubSpot/hubspot-api-nodejs"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "hubspot-private-app-token",
-        "hubspot-portal"
+        "hubspot-private-app-token"
       ],
-      "optionalCredentialIds": [
-        "hubspot-app",
-        "hubspot-webhook-secret"
-      ],
+      "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "hubspot-private-app-token",
           "label": "HubSpot private app token",
-          "description": "Server-side private app access token for HubSpot CRM and Service Hub APIs.",
+          "description": "Server-side private app access token or OAuth bearer token for HubSpot CRM APIs.",
           "scopes": [
             "tickets",
             "crm.objects.contacts.read",
             "crm.objects.contacts.write",
-            "crm.objects.companies.read",
-            "crm.objects.companies.write",
             "crm.objects.owners.read"
           ],
           "required": true,
           "metadata": {
             "scopeKind": "provider-oauth-scopes"
           }
-        },
-        {
-          "id": "hubspot-portal",
-          "label": "HubSpot portal",
-          "description": "The SDK user's HubSpot portal ID, used for readiness, routing, and webhook ownership checks.",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "hubspot-app",
-          "label": "HubSpot app",
-          "description": "The HubSpot app or private app identifier that owns webhook subscriptions and API credentials.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "hubspot-webhook-secret",
-          "label": "HubSpot webhook client secret",
-          "description": "Server-side app client secret used to validate X-HubSpot-Signature-v3 webhook requests.",
-          "scopes": [],
-          "required": false
         }
       ]
     },
     "privacyNotes": [
-      "HubSpot tickets, notes, contacts, companies, webhook events, owners, associations, and custom properties can contain customer data and internal support context.",
-      "HubSpot access tokens and webhook secrets stay server-side and are represented in Studio only as readiness and scope status."
+      "HubSpot tickets, notes, contacts, companies, associations, owners, and custom properties can contain customer data and internal support context."
     ],
     "limitations": [
-      "Ticket pipelines, pipeline stages, priorities, owners, custom properties, association labels, webhook subscriptions, private app scopes, and Service Hub entitlements are owned by the SDK user's HubSpot portal.",
-      "HubSpot association labels are directional; SDK users must configure the correct associationTypeId values for their portal and handoff flow.",
-      "SDK-user-owned configuration controls handoff timing, contact/company matching, portal routing, note visibility, consent, retention, redaction, and outbound notification policy before calling HubSpot APIs."
+      "Ticket pipelines, stages, owners, custom properties, association labels, scopes, and portal-specific workflow policy are SDK-user configuration.",
+      "This package does not claim full HubSpot API coverage; use rawClient for advanced official SDK methods."
     ],
     "maintainers": [
       {
@@ -13959,51 +13055,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@hubspot/api-client",
+        "sdkVersionRange": "^13.5.0",
+        "rawClientEscapeHatch": "HubSpotTicketingClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization"
+      },
       "channelCoverage": {
         "tickets": "typed-create-read-update-search",
-        "contacts": "typed-create-read-update-search",
-        "companies": "typed-create-read-update-search",
-        "notes": "typed-create-update-handoff",
-        "associations": "typed-create-read-labels",
-        "propertiesOwnersPipelines": "typed-read",
-        "webhooks": "typed-verify-parse-only",
-        "accountReadiness": "typed-read",
-        "fullHubSpotPublicApiOperations": "generated-per-operation-functions",
-        "conversationsInbox": "generated-full-surface",
-        "filesTimelineEvents": "generated-full-surface",
-        "webhookSubscriptionLifecycle": "generated-full-surface",
-        "dateVersioned2026Api": "generated-full-surface"
-      },
-      "fullProviderApiVerification": {
-        "provider": "hubspot",
-        "apiVersion": "2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/hubspot-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/hubspot-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/hubspot-full-api-2026-06-17.functions.json",
-        "documentedSpecCount": 101,
-        "documentedOperationCount": 1182,
-        "implementedOperationCount": 1182,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 1182
+        "comments": "typed-note-create",
+        "internalNotes": "typed-note-create",
+        "associations": "typed-extension",
+        "broaderHubSpotApi": "provider-supported-raw-client"
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -14021,7 +13103,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "hubspot.association.create"
+        ]
       }
     }
   },
@@ -14029,11 +13113,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.intercom",
     "category": "ticketing",
     "provider": "intercom",
-    "importPath": "@cognidesk/integrations/ticketing/intercom",
-    "modulePath": "./ticketing/intercom/index.js",
+    "importPath": "@cognidesk/integration-ticketing-intercom/manifest",
+    "modulePath": "integrations/ticketing/intercom/dist/manifest.js",
     "manifestExport": "intercomTicketingProviderManifest",
     "name": "Intercom",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-intercom",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -14047,19 +13131,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Intercom",
-      "summary": "Coverage includes generated per-operation functions for every operation in Intercom's official stable REST API 2.15 OpenAPI file.",
+      "summary": "Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.",
       "tags": [
         "ticketing",
         "intercom",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
-        "capability": "receive",
-        "label": "Receive Intercom webhooks",
-        "description": "Validates and parses Intercom webhook notifications for SDK-user-owned support workflows.",
+        "capability": "read-provider-object",
+        "label": "Read Intercom tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -14067,8 +13150,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "intercomWebhookNotification",
-            "label": "Intercom Webhook Notification"
+            "kind": "ticket",
+            "label": "Ticket"
+          },
+          {
+            "kind": "conversationLink",
+            "label": "Conversation"
           }
         ],
         "requiresCredential": true,
@@ -14078,22 +13165,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "create-provider-object",
-        "label": "Create Intercom conversations and tickets",
-        "description": "Creates Intercom contact-initiated conversations or tickets from SDK-user-selected support workflows.",
+        "capability": "send",
+        "label": "Create Intercom replies",
         "audiences": [
           "customer-facing",
-          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "ticketComment",
+            "label": "Ticket Comment"
           }
         ],
         "requiresCredential": true,
@@ -14103,9 +13184,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "read-provider-object",
-        "label": "Read Intercom conversations and tickets",
-        "description": "Reads Intercom conversations or tickets by API id.",
+        "capability": "create-provider-object",
+        "label": "Create Intercom tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -14113,36 +13193,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": false,
+        "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": false,
+        "changesWorkflow": true,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Intercom conversations and tickets",
-        "description": "Updates Intercom conversation metadata, read state, ticket attributes, sharing, snooze, assignment, and state fields when SDK-user policy permits.",
+        "label": "Update Intercom tickets",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -14153,8 +13224,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search Intercom conversations and tickets",
-        "description": "Searches Intercom conversations or tickets with SDK-user-supplied Intercom query objects and pagination.",
+        "label": "Search Intercom tickets",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -14162,12 +13232,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "ticket",
+            "label": "Ticket"
           }
         ],
         "requiresCredential": true,
@@ -14177,107 +13243,66 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "handoff",
-        "label": "Attach support handoff to Intercom",
-        "description": "Provides conversation and ticket operations for SDK-user-configured human handoff workflows.",
+        "capability": "draft",
+        "label": "Create Intercom internal notes",
         "audiences": [
-          "customer-facing",
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "intercomConversation",
-            "label": "Intercom Conversation"
-          },
-          {
-            "kind": "intercomTicket",
-            "label": "Intercom Ticket"
+            "kind": "internalNote",
+            "label": "Internal Note"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "intercom.request-signature",
-        "label": "Validate Intercom request signatures",
-        "description": "Validates Intercom X-Hub-Signature values before parsing webhook notification JSON.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "intercomSignedRequest",
-            "label": "Intercom Signed Request"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
         "changesWorkflow": false,
-        "extension": true
+        "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Intercom's official stable REST API 2.15 OpenAPI file.",
-        "Typed convenience helpers remain limited to selected Intercom conversation, ticket, /me identity, and X-Hub-Signature webhook primitives for Cognidesk support workflows.",
-        "SDK users still own Intercom app scopes, workspace ticket schemas, teammate/team assignment policy, webhook subscriptions, and API version rollout policy."
+        "Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.",
+        "Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient.",
+        "Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."
       ],
       "evidence": [
         {
-          "label": "Intercom official OpenAPI specs",
-          "url": "https://github.com/intercom/Intercom-OpenAPI"
-        },
-        {
-          "label": "Intercom REST API 2.15 OpenAPI YAML",
-          "url": "https://raw.githubusercontent.com/intercom/Intercom-OpenAPI/main/descriptions/2.15/api.intercom.io.yaml"
-        },
-        {
-          "label": "Intercom REST API reference",
-          "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io"
-        },
-        {
-          "label": "Intercom Conversations API",
-          "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations"
+          "label": "Intercom Node client",
+          "url": "https://github.com/intercom/intercom-node"
         },
         {
           "label": "Intercom Tickets API",
           "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/tickets"
         },
         {
-          "label": "Intercom identify admin",
-          "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/admins/identifyadmin"
-        },
-        {
-          "label": "Intercom Webhook Topics and signed notifications",
-          "url": "https://developers.intercom.com/docs/references/webhooks/webhook-models"
+          "label": "Intercom Conversations API",
+          "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -14295,33 +13320,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "intercom.conversation.read"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/intercom",
-      "providerModule": "./ticketing/intercom/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "intercom-client",
+      "runtimePackage": "@cognidesk/integration-ticketing-intercom",
+      "providerModule": "integrations/ticketing/intercom/dist/manifest.js",
       "manifestExport": "intercomTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/intercom/manifest.ts",
+      "manifestSource": "integrations/ticketing/intercom/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/intercom/Intercom-OpenAPI"
+      "documentationPath": "https://github.com/intercom/intercom-node"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "intercom-access-token"
       ],
-      "optionalCredentialIds": [
-        "intercom-webhook-secret"
-      ],
+      "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "intercom-access-token",
           "label": "Intercom access token",
-          "description": "Server-side Intercom access token or OAuth bearer token for REST API calls.",
+          "description": "Server-side Intercom access token or OAuth bearer token.",
           "scopes": [
             "read_conversations",
             "write_conversations",
@@ -14332,24 +13357,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "metadata": {
             "scopeKind": "provider-oauth-scopes"
           }
-        },
-        {
-          "id": "intercom-webhook-secret",
-          "label": "Intercom webhook secret",
-          "description": "Server-side app client secret used to validate Intercom X-Hub-Signature webhooks.",
-          "scopes": [],
-          "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Intercom conversations, conversation parts, tickets, ticket parts, contacts, admins, teams, tags, custom attributes, webhook payloads, and assignment metadata can contain customer data and internal support context.",
-      "Intercom access tokens and webhook secrets stay server-side and are represented in Studio only as readiness and scope status."
+      "Intercom conversations, tickets, contacts, admins, teams, custom attributes, and assignment metadata can contain customer data and internal support context."
     ],
     "limitations": [
-      "Ticket types, ticket attributes, ticket states, conversation search fields, Inbox assignment targets, teammate availability, and API scopes are owned by the SDK user's Intercom workspace.",
-      "SDK users own human handoff timing, assignment rules, reply visibility, customer consent, notification suppression, data retention, redaction, and workspace policy decisions before calling Intercom APIs.",
-      "Public replies, internal notes, shared ticket visibility, and customer-facing ticket state labels must be mapped by the SDK user to their Intercom workspace policy."
+      "Ticket types, attributes, states, assignment targets, teammate availability, scopes, and public/private reply policy are SDK-user configuration.",
+      "This package does not claim full Intercom REST API coverage; use rawClient for advanced official SDK methods."
     ],
     "maintainers": [
       {
@@ -14358,45 +13374,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "fullProviderApiVerification": {
-        "provider": "intercom",
-        "apiVersion": "intercom-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/intercom-rest-api-2.15-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/intercom-rest-api-2.15-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/intercom-rest-api-2.15-2026-06-18.functions.json",
-        "documentedOperationCount": 160,
-        "implementedOperationCount": 160,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 160
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "intercom-client",
+        "sdkVersionRange": "7.0.3",
+        "rawClientEscapeHatch": "IntercomTicketingClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization",
+        "supplyChainNote": "7.0.3 is pinned; do not allow compromised 7.0.4."
       },
       "channelCoverage": {
-        "fullIntercomRestApi215Operations": "generated-per-operation-functions",
-        "conversations": "typed-create-read-update-reply-search-and-generated-full-surface",
-        "tickets": "typed-create-read-update-search-and-generated-full-surface",
-        "webhooks": "typed-verify-parse-only",
-        "adminIdentity": "typed-readiness-read-and-generated-full-surface",
-        "contactsCompaniesAdminsTeamsTags": "generated-full-surface",
-        "helpCenterArticlesFinWhatsApp": "generated-full-surface",
-        "webhookSubscriptionManagement": "generated-full-surface"
+        "tickets": "typed-create-read-update-search",
+        "conversations": "typed-reply-read-extension",
+        "internalNotes": "typed-conversation-note",
+        "broaderIntercomApi": "provider-supported-raw-client"
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -14414,7 +13422,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "intercom.conversation.read"
+        ]
       }
     }
   },
@@ -14422,11 +13432,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.kustomer",
     "category": "ticketing",
     "provider": "kustomer",
-    "importPath": "@cognidesk/integrations/ticketing/kustomer",
-    "modulePath": "./ticketing/kustomer/index.js",
+    "importPath": "@cognidesk/integration-ticketing-kustomer/manifest",
+    "modulePath": "integrations/ticketing/kustomer/dist/manifest.js",
     "manifestExport": "kustomerTicketingProviderManifest",
     "name": "Kustomer",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-kustomer",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -14438,22 +13448,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Kustomer",
-      "summary": "Coverage includes generated per-operation functions for every operation found in Kustomer's official ReadMe API registry OpenAPI documents.",
+      "summary": "SDK decision: Kustomer app/chat SDKs target Apps or Chat runtimes, not backend REST ticketing operations.",
       "tags": [
         "ticketing",
         "kustomer",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "create-provider-object",
-        "label": "Create Kustomer conversations, messages, and drafts",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "kustomerConversation",
@@ -14476,15 +13482,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read Kustomer conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "kustomerConversation",
             "label": "Kustomer Conversation"
+          },
+          {
+            "kind": "kustomerMessage",
+            "label": "Kustomer Message"
           }
         ],
         "requiresCredential": true,
@@ -14495,11 +13501,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Kustomer conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "kustomerConversation",
@@ -14514,11 +13516,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "List Kustomer conversations",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "kustomerConversation",
@@ -14533,12 +13531,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "handoff",
-        "label": "Attach handoff to Kustomer",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "kustomerConversation",
@@ -14561,72 +13554,48 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation found in Kustomer's official ReadMe API registry OpenAPI documents.",
-        "Typed convenience helpers remain limited to Kustomer conversation create/read/update/list operations, message list/create operations, customer draft creation, and org readiness for Cognidesk support workflows.",
-        "SDK users still own Kustomer API-key roles, org permissions, queue/team behavior, custom object schemas, webhook configuration, and account-specific policy."
+        "SDK decision: Kustomer app/chat SDKs target Apps or Chat runtimes, not backend REST ticketing operations.",
+        "Coverage is limited to Kustomer conversation create/read/update/list, message list/create, customer draft creation, and org readiness for support workflows.",
+        "This package intentionally does not copy the old generated full Kustomer public API clone."
       ],
       "evidence": [
         {
+          "label": "Kustomer developer portal",
+          "url": "https://developer.kustomer.com/"
+        },
+        {
           "label": "Kustomer REST APIs portal",
           "url": "https://developer.kustomer.com/kustomer-api-docs/reference"
-        },
-        {
-          "label": "Kustomer ReadMe API registry - Core Resources",
-          "url": "https://dash.readme.com/api/v1/api-registry/a9esg22kmox9ylt0"
-        },
-        {
-          "label": "Kustomer API introduction",
-          "url": "https://help.kustomer.com/api-introduction-BkwVN42zM"
         },
         {
           "label": "Kustomer API keys",
           "url": "https://help.kustomer.com/api-keys-SJs5YTIWX"
         },
         {
-          "label": "Kustomer common API permissions",
-          "url": "https://help.kustomer.com/permissions-for-common-api-requests-HkltTBZbN"
-        },
-        {
-          "label": "Kustomer Develop portal",
-          "url": "https://developer.kustomer.com/"
-        },
-        {
-          "label": "Kustomer conversations reference",
-          "url": "https://developer.kustomer.com/kustomer-api-docs/reference/getconversations"
-        },
-        {
-          "label": "Kustomer get messages",
-          "url": "https://developer.kustomer.com/kustomer-api-docs/reference/getmessages"
-        },
-        {
           "label": "Kustomer create message",
           "url": "https://developer.kustomer.com/kustomer-api-docs/reference/createmessage"
-        },
-        {
-          "label": "Kustomer create draft for customer",
-          "url": "https://developer.kustomer.com/kustomer-api-docs/reference/createadraftbycustomer"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
-          "ticket.search",
+          "ticket.search"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
           "ticket.internalNote.create",
           "ticket.status.update",
@@ -14646,18 +13615,22 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "kustomer.message.list",
+          "kustomer.customerDraft.create",
+          "kustomer.readiness"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/kustomer",
-      "providerModule": "./ticketing/kustomer/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-kustomer",
+      "runtimePackage": "@cognidesk/integration-ticketing-kustomer",
+      "providerModule": "integrations/ticketing/kustomer/dist/manifest.js",
       "manifestExport": "kustomerTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/kustomer/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developer.kustomer.com/kustomer-api-docs/reference"
+      "manifestSource": "integrations/ticketing/kustomer/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://developer.kustomer.com/"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -14700,43 +13673,45 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "fullProviderApiVerification": {
-        "provider": "kustomer",
-        "apiVersion": "kustomer-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/kustomer-public-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/kustomer-public-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/kustomer-public-api-2026-06-18.functions.json",
-        "documentedOperationCount": 410,
-        "implementedOperationCount": 410,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 410
+      "issue": 35,
+      "implementationStrategy": "direct-http-support-slice",
+      "sdkDecision": {
+        "candidates": [
+          "@kustomer/apps-client",
+          "@kustomer/apps-server-sdk",
+          "@kustomer/chat-react-native"
+        ],
+        "verdict": "not-adopted",
+        "reason": "Kustomer SDK packages target app/chat runtimes rather than backend REST ticketing operations.",
+        "checkedAt": "2026-06-21"
       },
-      "channelCoverage": {
-        "fullKustomerPublicApiOperations": "generated-per-operation-functions",
-        "conversations": "typed-create-read-update-list-and-generated-full-surface",
-        "messages": "typed-create-list-and-generated-full-surface",
-        "customerDrafts": "typed-create-and-generated-full-surface",
-        "orgReadiness": "typed-readiness-via-generated-message-list",
-        "customersQueuesTeamsTags": "generated-full-surface",
-        "attachmentsCustomObjectsTimeline": "generated-full-surface",
-        "webhooksSearchAnalytics": "generated-full-surface"
+      "supportSlice": {
+        "source": "Kustomer REST API",
+        "allowlistedOperations": [
+          "conversations.create",
+          "conversations.read",
+          "conversations.update",
+          "conversations.list",
+          "messages.list",
+          "messages.create",
+          "customer_drafts.create"
+        ]
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
-          "ticket.search",
+          "ticket.search"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
           "ticket.internalNote.create",
           "ticket.status.update",
@@ -14756,7 +13731,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "kustomer.message.list",
+          "kustomer.customerDraft.create",
+          "kustomer.readiness"
+        ]
       }
     }
   },
@@ -14764,11 +13743,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.oracle-service",
     "category": "ticketing",
     "provider": "oracle-service",
-    "importPath": "@cognidesk/integrations/ticketing/oracle-service",
-    "modulePath": "./ticketing/oracle-service/index.js",
+    "importPath": "@cognidesk/integration-ticketing-oracle-service/manifest",
+    "modulePath": "integrations/ticketing/oracle-service/dist/manifest.js",
     "manifestExport": "oracleServiceTicketingProviderManifest",
     "name": "Oracle Service",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-oracle-service",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -14978,17 +13957,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "oracle-service.serviceRequestMessage.create"
+        ]
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/oracle-service",
-      "providerModule": "./ticketing/oracle-service/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-oracle-service",
+      "runtimePackage": "@cognidesk/integration-ticketing-oracle-service",
+      "providerModule": "integrations/ticketing/oracle-service/dist/manifest.js",
       "manifestExport": "oracleServiceTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/oracle-service/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/oracle-service/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.oracle.com/en/cloud/saas/sales/faaps/api-internal-service-requests.html"
     },
     "readiness": {
@@ -15038,6 +14019,55 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice"
+      },
+      "implementationStrategy": {
+        "strategy": "direct-support-slice",
+        "reason": "No suitable official JavaScript SDK was found for Oracle Fusion Service serviceRequests; oci-fusionapps targets OCI Fusion Apps Service resource management, not this REST surface.",
+        "checkedAt": "2026-06-21",
+        "rejectedLibraries": [
+          {
+            "packageName": "oci-fusionapps",
+            "version": "2.135.0",
+            "integrity": "sha512-L0mF2w4tYeVBM1DXEDVuufuKysTQqhvS65GCN7meubjWzxUNMRDO9P/EM1ouSguyjJio7NeCr4hQWSP5AEe46Q==",
+            "reason": "Official Oracle-maintained OCI SDK package, but not a Fusion Service service request client."
+          }
+        ]
+      },
+      "supportOperationSlice": {
+        "sourceKind": "official-docs-reviewed-slice",
+        "sourceVersion": "11.13.18.05",
+        "checkedAt": "2026-06-21",
+        "allowlistSha256": "5f3ff8ea4febec8a1f5e4c9d881124c9f215a7b97ebb3ae7a92d7e3f98b370f5",
+        "operations": [
+          {
+            "alias": "ticket.create",
+            "method": "POST",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests"
+          },
+          {
+            "alias": "ticket.read",
+            "method": "GET",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}"
+          },
+          {
+            "alias": "ticket.update",
+            "method": "PATCH",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}"
+          },
+          {
+            "alias": "ticket.search",
+            "method": "GET",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests"
+          },
+          {
+            "alias": "oracle-service.serviceRequestMessage.create",
+            "method": "POST",
+            "path": "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}/child/messages"
+          }
+        ]
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -15089,7 +14119,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "oracle-service.serviceRequestMessage.create"
+        ]
       }
     }
   },
@@ -15097,11 +14129,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.pega-customer-service",
     "category": "ticketing",
     "provider": "pega-customer-service",
-    "importPath": "@cognidesk/integrations/ticketing/pega-customer-service",
-    "modulePath": "./ticketing/pega-customer-service/index.js",
+    "importPath": "@cognidesk/integration-ticketing-pega-customer-service/manifest",
+    "modulePath": "integrations/ticketing/pega-customer-service/dist/manifest.js",
     "manifestExport": "pegaCustomerServiceTicketingProviderManifest",
     "name": "Pega Customer Service",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-pega-customer-service",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -15319,17 +14351,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "pega-customer-service.caseTypes.list",
+          "pega-customer-service.assignmentAction.submit"
+        ]
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/pega-customer-service",
-      "providerModule": "./ticketing/pega-customer-service/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-pega-customer-service",
+      "runtimePackage": "@cognidesk/integration-ticketing-pega-customer-service",
+      "providerModule": "integrations/ticketing/pega-customer-service/dist/manifest.js",
       "manifestExport": "pegaCustomerServiceTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/pega-customer-service/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/pega-customer-service/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/dx-api-overview.html"
     },
     "readiness": {
@@ -15380,6 +14415,60 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice"
+      },
+      "implementationStrategy": {
+        "strategy": "direct-support-slice",
+        "reason": "No suitable maintained server-side JavaScript SDK was found for Pega Customer Service/DX API case operations; current Pega JavaScript packages are Constellation UI/client orchestration assets.",
+        "checkedAt": "2026-06-21",
+        "rejectedLibraries": [
+          {
+            "packageName": "@pega/constellationjs",
+            "version": "25.1.3",
+            "integrity": "sha512-dPPo+e/ADjMwabHfQ5s9DX2P8IeJiSg6NPXFRLFkFZm1OFbkDevf3YoSpf5/XzWD3IqcBo0dx8NzV7tLjp4EJw==",
+            "reason": "Pega-maintained package, but it provides ConstellationJS engine files rather than a server-side DX API case client."
+          }
+        ]
+      },
+      "supportOperationSlice": {
+        "sourceKind": "official-docs-reviewed-slice",
+        "sourceVersion": "/api/v1",
+        "checkedAt": "2026-06-21",
+        "allowlistSha256": "6b4e3eb1f0a9b371002d8a3be22827c473680c7ce1335a0faf9d990e94cd32fd",
+        "operations": [
+          {
+            "alias": "ticket.create",
+            "method": "POST",
+            "path": "{apiBasePath}/cases"
+          },
+          {
+            "alias": "ticket.read",
+            "method": "GET",
+            "path": "{apiBasePath}/cases/{ID}"
+          },
+          {
+            "alias": "ticket.update",
+            "method": "PUT",
+            "path": "{apiBasePath}/cases/{ID}"
+          },
+          {
+            "alias": "ticket.search",
+            "method": "GET",
+            "path": "{apiBasePath}/cases"
+          },
+          {
+            "alias": "pega-customer-service.caseTypes.list",
+            "method": "GET",
+            "path": "{apiBasePath}/casetypes"
+          },
+          {
+            "alias": "pega-customer-service.assignmentAction.submit",
+            "method": "PATCH",
+            "path": "{apiBasePath}/assignments/{assignmentID}/actions/{actionID}"
+          }
+        ]
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -15432,7 +14521,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "pega-customer-service.caseTypes.list",
+          "pega-customer-service.assignmentAction.submit"
+        ]
       }
     }
   },
@@ -15440,11 +14532,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.salesforce",
     "category": "ticketing",
     "provider": "salesforce",
-    "importPath": "@cognidesk/integrations/ticketing/salesforce",
-    "modulePath": "./ticketing/salesforce/index.js",
+    "importPath": "@cognidesk/integration-ticketing-salesforce/manifest",
+    "modulePath": "integrations/ticketing/salesforce/dist/manifest.js",
     "manifestExport": "salesforceTicketingProviderManifest",
     "name": "Salesforce Service Cloud",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-salesforce",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -15458,7 +14550,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Salesforce Service Cloud",
-      "summary": "Coverage is limited to selected Salesforce REST API and Service Cloud support primitives: Case create/read/update/search, sObject describe, assignment-rule header opt-in, CaseComment, FeedItem, Contact/Account SOQL search, user/org readiness, and SDK-user inbound event relay parsing.",
+      "summary": "Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.",
       "tags": [
         "ticketing",
         "salesforce",
@@ -15468,9 +14560,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "capabilities": [
       {
-        "capability": "receive",
-        "label": "Parse Salesforce event relay payloads",
-        "description": "Validates and parses SDK-user-configured Salesforce Platform Event, Outbound Message, or webhook relay HTTP payloads; it does not subscribe to Pub/Sub, Streaming API, or SOAP outbound messages.",
+        "capability": "read-provider-object",
+        "label": "Read Salesforce Cases",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -15478,8 +14569,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "salesforceEvent",
-            "label": "Salesforce Event"
+            "kind": "ticket",
+            "label": "Case",
+            "schemaName": "Case"
           }
         ],
         "requiresCredential": true,
@@ -15489,29 +14581,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "create-provider-object",
-        "label": "Create Salesforce cases and comments",
-        "description": "Creates Salesforce Service Cloud Case, CaseComment, and FeedItem records when SDK-user policy permits.",
+        "capability": "send",
+        "label": "Create Salesforce CaseComments",
         "audiences": [
           "customer-facing",
-          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
-            "schemaName": "Case"
-          },
-          {
-            "kind": "salesforceCaseComment",
-            "label": "Salesforce Case Comment",
+            "kind": "ticketComment",
+            "label": "CaseComment",
             "schemaName": "CaseComment"
-          },
-          {
-            "kind": "salesforceFeedItem",
-            "label": "Salesforce Feed Item",
-            "schemaName": "FeedItem"
           }
         ],
         "requiresCredential": true,
@@ -15521,9 +14601,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "read-provider-object",
-        "label": "Read Salesforce cases and org identity",
-        "description": "Reads Salesforce cases, comments, feed items, contacts, accounts, current user info, and organization readiness details.",
+        "capability": "create-provider-object",
+        "label": "Create Salesforce Cases",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -15531,54 +14610,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
+            "kind": "ticket",
+            "label": "Case",
             "schemaName": "Case"
-          },
-          {
-            "kind": "salesforceCaseComment",
-            "label": "Salesforce Case Comment",
-            "schemaName": "CaseComment"
-          },
-          {
-            "kind": "salesforceFeedItem",
-            "label": "Salesforce Feed Item",
-            "schemaName": "FeedItem"
-          },
-          {
-            "kind": "salesforceContact",
-            "label": "Salesforce Contact",
-            "schemaName": "Contact"
-          },
-          {
-            "kind": "salesforceAccount",
-            "label": "Salesforce Account",
-            "schemaName": "Account"
-          },
-          {
-            "kind": "salesforceOrganization",
-            "label": "Salesforce Organization",
-            "schemaName": "Organization"
           }
         ],
         "requiresCredential": true,
-        "sideEffect": false,
+        "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": false,
+        "changesWorkflow": true,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Salesforce cases",
-        "description": "Updates Salesforce Case fields such as status, priority, owner, contact, account, or SDK-user-configured custom fields.",
+        "label": "Update Salesforce Cases",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
+            "kind": "ticket",
+            "label": "Case",
             "schemaName": "Case"
           }
         ],
@@ -15590,8 +14643,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search Salesforce records",
-        "description": "Searches Salesforce cases, contacts, and accounts with bounded helpers; the generic SOQL query helper is an SDK-user-owned escape hatch and not generated broader Salesforce object coverage.",
+        "label": "Search Salesforce Cases",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -15599,19 +14651,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
+            "kind": "ticket",
+            "label": "Case",
             "schemaName": "Case"
-          },
-          {
-            "kind": "salesforceContact",
-            "label": "Salesforce Contact",
-            "schemaName": "Contact"
-          },
-          {
-            "kind": "salesforceAccount",
-            "label": "Salesforce Account",
-            "schemaName": "Account"
           }
         ],
         "requiresCredential": true,
@@ -15621,76 +14663,41 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "handoff",
-        "label": "Attach case handoff to Salesforce",
-        "description": "Provides Case creation/update plus configurable comment and feed-item foundations for SDK-user-owned record handoff workflows; this is not native Enhanced Chat, Live Agent, Messaging, or Voice transfer coverage.",
+        "capability": "draft",
+        "label": "Create Salesforce internal feed items",
         "audiences": [
-          "customer-facing",
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "salesforceCase",
-            "label": "Salesforce Case",
-            "schemaName": "Case"
-          },
-          {
-            "kind": "salesforceCaseComment",
-            "label": "Salesforce Case Comment",
-            "schemaName": "CaseComment"
-          },
-          {
-            "kind": "salesforceFeedItem",
-            "label": "Salesforce Feed Item",
+            "kind": "internalNote",
+            "label": "FeedItem",
             "schemaName": "FeedItem"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
         "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "salesforce.webhook-verifier",
-        "label": "Validate Salesforce webhook payloads",
-        "description": "Requires a configured shared secret or verifier before parsing Salesforce event relay, Platform Event, or Outbound Message payloads.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "salesforceWebhookRequest",
-            "label": "Salesforce Webhook Request"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
         "changesWorkflow": false,
-        "extension": true
+        "extension": false
       }
     ],
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Coverage is limited to selected Salesforce REST API and Service Cloud support primitives: Case create/read/update/search, sObject describe, assignment-rule header opt-in, CaseComment, FeedItem, Contact/Account SOQL search, user/org readiness, and SDK-user inbound event relay parsing.",
-        "The generic SOQL `query()` helper is SDK-user-owned endpoint plumbing and does not prove generated broader sObject, custom-object, relationship, or Service Cloud coverage.",
-        "This is not full Salesforce REST, Service Cloud, metadata, composite, Bulk, Pub/Sub, Streaming, Platform Event, EmailMessage, ContentVersion/file, assignment-rule discovery, or broader sObject API coverage."
+        "Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.",
+        "Implementation uses maintained jsforce v3. Broader Salesforce APIs and org-specific sObjects remain accessible through rawClient, but are not Cognidesk adapter coverage.",
+        "Generated or direct monolith code should be removed only after this package's replacement tests pass."
       ],
       "evidence": [
         {
+          "label": "JSforce",
+          "url": "https://github.com/jsforce/jsforce"
+        },
+        {
           "label": "Salesforce REST API resources",
           "url": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm"
-        },
-        {
-          "label": "Salesforce sObject Describe",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_sobject_describe.htm"
-        },
-        {
-          "label": "Salesforce Assignment Rule header",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/headers_autoassign.htm"
         },
         {
           "label": "Salesforce Case object reference",
@@ -15703,56 +14710,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Salesforce FeedItem object reference",
           "url": "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_feeditem.htm"
-        },
-        {
-          "label": "Salesforce Platform Events Developer Guide",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.platform_events.meta/platform_events/platform_events_intro.htm"
-        },
-        {
-          "label": "Salesforce Streaming API overview",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/intro_stream.htm"
-        },
-        {
-          "label": "Salesforce Outbound Messaging setup",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_om_outboundmessaging_setting_up.htm"
-        },
-        {
-          "label": "Salesforce Enhanced Chat API",
-          "url": "https://developer.salesforce.com/docs/service/messaging-api/overview"
-        },
-        {
-          "label": "Salesforce Conversation Entries Connect REST API",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_conversation_entries.htm"
-        },
-        {
-          "label": "Salesforce MessagingSession object reference",
-          "url": "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_messagingsession.htm"
-        },
-        {
-          "label": "Salesforce Conversation Toolkit API",
-          "url": "https://developer.salesforce.com/docs/platform/lightning-component-reference/guide/lightning-conversation-toolkit-api.html"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -15770,41 +14749,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "salesforce.soql.query"
+        ]
       }
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/salesforce",
-      "providerModule": "./ticketing/salesforce/index.js",
+      "strategy": "maintained-library",
+      "sdkPackage": "jsforce",
+      "runtimePackage": "@cognidesk/integration-ticketing-salesforce",
+      "providerModule": "integrations/ticketing/salesforce/dist/manifest.js",
       "manifestExport": "salesforceTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/salesforce/manifest.ts",
+      "manifestSource": "integrations/ticketing/salesforce/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm"
+      "documentationPath": "https://github.com/jsforce/jsforce"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "salesforce-instance",
         "salesforce-oauth-access"
       ],
-      "optionalCredentialIds": [
-        "salesforce-webhook-secret"
-      ],
+      "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "salesforce-instance",
           "label": "Salesforce instance URL",
-          "description": "The SDK user's Salesforce org instance URL, for example https://example.my.salesforce.com.",
           "scopes": [],
           "required": true
         },
         {
           "id": "salesforce-oauth-access",
           "label": "Salesforce OAuth access token",
-          "description": "Server-side OAuth bearer token with SDK-user-selected Salesforce REST API access.",
           "scopes": [
             "api",
             "refresh_token",
@@ -15814,24 +14791,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "metadata": {
             "scopeKind": "provider-oauth-scopes"
           }
-        },
-        {
-          "id": "salesforce-webhook-secret",
-          "label": "Salesforce webhook shared secret or verifier",
-          "description": "SDK-user-configured secret or verifier used before accepting Platform Event, Outbound Message, or webhook relay payloads.",
-          "scopes": [],
-          "required": false
         }
       ]
     },
     "privacyNotes": [
-      "Salesforce cases, comments, feed items, contacts, accounts, platform events, and outbound messages can contain customer data and internal support context.",
-      "Salesforce OAuth tokens and webhook secrets stay server-side and are represented in Studio only as readiness and scope status."
+      "Salesforce cases, comments, feed items, contacts, accounts, platform events, and custom fields can contain customer data and internal support context."
     ],
     "limitations": [
-      "Salesforce Case record types, required fields, queues, owners, entitlements, assignment rules, triggers, Flow automation, field-level security, and Service Cloud licenses are owned by the SDK user's org.",
-      "SOQL filters, field mappings, webhook relay shape, Platform Event schema, Outbound Message configuration, and event subscription delivery are SDK-user configuration.",
-      "SDK users own handoff timing, customer identity matching, case visibility, comment/feed visibility, consent, retention, redaction, and outbound notification policy before calling Salesforce APIs."
+      "Record types, required fields, queues, owners, assignment rules, Flow automation, field-level security, and Service Cloud licenses are SDK-user configuration.",
+      "Generic SOQL remains an SDK-user-owned escape hatch and does not imply full Salesforce, metadata, Bulk, Pub/Sub, Streaming, or org-specific sObject coverage."
     ],
     "maintainers": [
       {
@@ -15840,55 +14808,37 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "checkedProviderApiCoverage": {
-        "verifiedAt": "2026-06-18",
-        "sourceKind": "checked-endpoint-family-inventory",
-        "coverageArtifact": "docs/provider-coverage/salesforce-checked-rest-service-cloud-2026-06-18.inventory.json",
-        "familyCount": 5,
-        "implementedFamilyCount": 4,
-        "gapFamilyCount": 1,
-        "implementedOperationCount": 16,
-        "fullCoverageExportRequirement": "Full org-specific Salesforce coverage requires sObject describe/metadata exports, enabled Service Cloud product evidence, event schemas, connected-app scopes, permission sets, and object/field-level security evidence from the SDK user's org."
+      "implementation": {
+        "strategy": "maintained-library",
+        "sdkPackage": "jsforce",
+        "sdkVersionRange": "^3.10.16",
+        "rawClientEscapeHatch": "SalesforceTicketingClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization"
       },
       "channelCoverage": {
         "cases": "typed-create-read-update-search",
-        "caseComments": "typed-create-read",
-        "feedItems": "typed-create-read",
-        "contactsAccounts": "typed-read-search",
-        "genericSoqlQuery": "sdk-owned-classified-endpoint",
-        "organizationReadiness": "typed-read",
-        "sObjectDescribe": "typed-read",
-        "eventRelay": "typed-verify-parse-only",
-        "platformEventsOutboundMessages": "typed-parse-relay-only",
-        "enhancedChatApi": "provider-supported-not-typed",
-        "messagingSessions": "provider-supported-not-typed",
-        "conversationDataGetApi": "provider-supported-not-typed",
-        "conversationEntriesConnectRest": "provider-supported-not-typed",
-        "liveAgentChatRestApi": "provider-supported-not-typed",
-        "tasks": "provider-supported-not-typed",
-        "voiceCallsTranscripts": "provider-supported-not-typed",
-        "emailMessage": "provider-supported-not-implemented",
-        "filesContentVersion": "provider-supported-not-implemented",
-        "streamingPubSubSubscriptions": "provider-supported-not-implemented",
-        "compositeBulkMetadataCrud": "not-covered"
+        "caseComments": "typed-create",
+        "feedItems": "typed-internal-note-create",
+        "soql": "sdk-owned-extension",
+        "broaderSalesforceApi": "provider-supported-raw-client"
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
+          "ticket.internalNote.create"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
           "ticket.listByCustomer",
-          "ticket.internalNote.create",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -15906,7 +14856,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "salesforce.soql.query"
+        ]
       }
     }
   },
@@ -15914,11 +14866,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.sap-service-cloud",
     "category": "ticketing",
     "provider": "sap-service-cloud",
-    "importPath": "@cognidesk/integrations/ticketing/sap-service-cloud",
-    "modulePath": "./ticketing/sap-service-cloud/index.js",
+    "importPath": "@cognidesk/integration-ticketing-sap-service-cloud/manifest",
+    "modulePath": "integrations/ticketing/sap-service-cloud/dist/manifest.js",
     "manifestExport": "sapServiceCloudTicketingProviderManifest",
     "name": "SAP Service Cloud",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-sap-service-cloud",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -16114,13 +15066,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/sap-service-cloud",
-      "providerModule": "./ticketing/sap-service-cloud/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-sap-service-cloud",
+      "runtimePackage": "@cognidesk/integration-ticketing-sap-service-cloud",
+      "providerModule": "integrations/ticketing/sap-service-cloud/dist/manifest.js",
       "manifestExport": "sapServiceCloudTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/sap-service-cloud/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/sap-service-cloud/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api"
     },
     "readiness": {
@@ -16170,6 +15122,59 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice"
+      },
+      "implementationStrategy": {
+        "strategy": "sdk-viable-reviewed-support-slice",
+        "reason": "SAP Cloud SDK for JavaScript is maintained and viable for OData v2/generator/HTTP transport, but this package keeps the reviewed ServiceRequestCollection slice until a redistributable EDMX/source artifact can be pinned.",
+        "checkedAt": "2026-06-21",
+        "viableLibraries": [
+          {
+            "packageName": "@sap-cloud-sdk/odata-v2",
+            "version": "4.7.0",
+            "integrity": "sha512-/t1ncLEnm3yTzHRkIgpNcUMGHk7jvQ1nSHrb7YgvgU+/Q2P5Au8llPEH/zudXZ8Bd3k9Qdrfdq/hl+w+YWkBIg=="
+          },
+          {
+            "packageName": "@sap-cloud-sdk/generator",
+            "version": "4.7.0",
+            "integrity": "sha512-aW17rUVIZl5RA3WoTTErBwwWCX5A3AresM13Vs7fKEc3Z52919KTlH+7Cpf/9qJrNDQUZU6RzCw+bHd5gs8wHA=="
+          },
+          {
+            "packageName": "@sap-cloud-sdk/http-client",
+            "version": "4.7.0",
+            "integrity": "sha512-7+S6ru7SrnyKA2MGimX09oix0EVwmPGcCAz0TRwFZVnglU+VTRmZ8QdcwcVTR26E9YhkR4OVl6EK7jb2Z0OxfQ=="
+          }
+        ]
+      },
+      "supportOperationSlice": {
+        "sourceKind": "official-docs-reviewed-slice",
+        "sourceVersion": "/sap/c4c/odata/v1/c4codataapi",
+        "checkedAt": "2026-06-21",
+        "allowlistSha256": "0878a63145c55ce016d71a56643a963adc9fe945c7d0a029286d567e5027f30f",
+        "operations": [
+          {
+            "alias": "ticket.create",
+            "method": "POST",
+            "path": "{odataPath}/ServiceRequestCollection"
+          },
+          {
+            "alias": "ticket.read",
+            "method": "GET",
+            "path": "{odataPath}/ServiceRequestCollection('{ObjectID}')"
+          },
+          {
+            "alias": "ticket.update",
+            "method": "PATCH",
+            "path": "{odataPath}/ServiceRequestCollection('{ObjectID}')"
+          },
+          {
+            "alias": "ticket.search",
+            "method": "GET",
+            "path": "{odataPath}/ServiceRequestCollection"
+          }
+        ]
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -16229,11 +15234,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.servicenow",
     "category": "ticketing",
     "provider": "servicenow",
-    "importPath": "@cognidesk/integrations/ticketing/servicenow",
-    "modulePath": "./ticketing/servicenow/index.js",
+    "importPath": "@cognidesk/integration-ticketing-servicenow/manifest",
+    "modulePath": "integrations/ticketing/servicenow/dist/manifest.js",
     "manifestExport": "serviceNowTicketingProviderManifest",
     "name": "ServiceNow Ticketing",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-servicenow",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -16463,13 +15468,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/servicenow",
-      "providerModule": "./ticketing/servicenow/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-servicenow",
+      "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
+      "providerModule": "integrations/ticketing/servicenow/dist/manifest.js",
       "manifestExport": "serviceNowTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/servicenow/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/servicenow/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://www.servicenow.com/docs/r/washingtondc/api-reference/rest-apis/c_TableAPI.html"
     },
     "readiness": {
@@ -16518,6 +15523,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
+        "manifestImport": "no-sdk-client-initialization"
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -16588,11 +15598,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.zendesk",
     "category": "ticketing",
     "provider": "zendesk",
-    "importPath": "@cognidesk/integrations/ticketing/zendesk",
-    "modulePath": "./ticketing/zendesk/index.js",
+    "importPath": "@cognidesk/integration-ticketing-zendesk/manifest",
+    "modulePath": "integrations/ticketing/zendesk/dist/manifest.js",
     "manifestExport": "zendeskTicketingProviderManifest",
     "name": "Zendesk Support",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-zendesk",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -16604,24 +15614,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Zendesk Support",
-      "summary": "Coverage includes generated per-operation functions for every operation in Zendesk's official Support API OpenAPI file.",
+      "summary": "SDK decision: Zendesk documents node-zendesk but marks it not officially supported, so this package keeps a constrained Zendesk Support API slice instead of adopting it as an official SDK.",
       "tags": [
         "ticketing",
         "zendesk",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "create-provider-object",
-        "label": "Create Zendesk tickets",
-        "description": "Creates Zendesk Support tickets from SDK-user-selected handoff or ticketing workflows.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "zendeskTicket",
@@ -16630,10 +15634,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "zendeskTicketComment",
             "label": "Zendesk Ticket Comment"
-          },
-          {
-            "kind": "zendeskUpload",
-            "label": "Zendesk Upload"
           }
         ],
         "requiresCredential": true,
@@ -16644,21 +15644,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "read-provider-object",
-        "label": "Read Zendesk tickets",
-        "description": "Reads Zendesk Support tickets by ticket ID.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "zendeskTicket",
             "label": "Zendesk Ticket"
-          },
-          {
-            "kind": "zendeskTicketComment",
-            "label": "Zendesk Ticket Comment"
           },
           {
             "kind": "zendeskUser",
@@ -16681,20 +15671,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "update-provider-object",
-        "label": "Update Zendesk tickets",
-        "description": "Updates Zendesk Support ticket fields, comments, priority, status, assignee, or custom fields.",
-        "audiences": [
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "zendeskTicket",
             "label": "Zendesk Ticket"
-          },
-          {
-            "kind": "zendeskTicketComment",
-            "label": "Zendesk Ticket Comment"
           }
         ],
         "requiresCredential": true,
@@ -16705,21 +15686,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "search-provider-object",
-        "label": "Search Zendesk tickets and list webhooks",
-        "description": "Searches Zendesk Support tickets using SDK-user-supplied Support API search queries and lists configured Zendesk webhooks.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "zendeskTicket",
             "label": "Zendesk Ticket"
-          },
-          {
-            "kind": "zendeskWebhook",
-            "label": "Zendesk Webhook"
           }
         ],
         "requiresCredential": true,
@@ -16730,13 +15701,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "handoff",
-        "label": "Attach support handoff to Zendesk",
-        "description": "Provides Zendesk ticket operations used by SDK-user-configured human handoff workflows.",
-        "audiences": [
-          "customer-facing",
-          "internal-support",
-          "mixed"
-        ],
+        "audiences": [],
         "providerObjects": [
           {
             "kind": "zendeskTicket",
@@ -16745,10 +15710,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "zendeskTicketComment",
             "label": "Zendesk Ticket Comment"
-          },
-          {
-            "kind": "zendeskUpload",
-            "label": "Zendesk Upload"
           }
         ],
         "requiresCredential": true,
@@ -16759,12 +15720,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Zendesk's official Support API OpenAPI file.",
-        "The package keeps typed support helpers for ticket create/read/update/search, ticket comments through ticket create/update/list flows, Upload Files, user and organization reads, webhook listing, current-user readiness, and Cognidesk handoff support workflows."
+        "SDK decision: Zendesk documents node-zendesk but marks it not officially supported, so this package keeps a constrained Zendesk Support API slice instead of adopting it as an official SDK.",
+        "Coverage is limited to ticket create/read/update/search, comments, uploads, users, organizations, webhooks list, current-user readiness, and raw request escape hatch operations used by Cognidesk support workflows.",
+        "This package intentionally does not copy the old generated full Zendesk Support OpenAPI clone."
       ],
       "evidence": [
+        {
+          "label": "Zendesk Node.js API client docs",
+          "url": "https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/"
+        },
         {
           "label": "Zendesk Support API OpenAPI",
           "url": "https://developer.zendesk.com/zendesk/oas.yaml"
@@ -16778,42 +15744,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer.zendesk.com/api-reference/ticketing/tickets/ticket_comments/"
         },
         {
-          "label": "Zendesk Ticket Attachments API",
+          "label": "Zendesk Upload Files API",
           "url": "https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-attachments/"
-        },
-        {
-          "label": "Zendesk Users API",
-          "url": "https://developer.zendesk.com/api-reference/ticketing/users/users/"
-        },
-        {
-          "label": "Zendesk Organizations API",
-          "url": "https://developer.zendesk.com/api-reference/ticketing/organizations/organizations/"
-        },
-        {
-          "label": "Zendesk Webhooks API",
-          "url": "https://developer.zendesk.com/api-reference/webhooks/webhooks-api/webhooks/"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
-          "ticket.listByCustomer",
           "ticket.internalNote.create",
+          "ticket.attachments.add",
+          "customer.read"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "ticket.listByCustomer",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -16823,26 +15779,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ticket.close",
           "ticket.reopen",
           "ticket.tags.update",
-          "ticket.attachments.add",
           "ticket.attachments.list",
           "ticket.merge",
           "ticket.macro.list",
           "ticket.macro.apply",
-          "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "zendesk.organization.read",
+          "zendesk.webhook.list",
+          "zendesk.readiness"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/zendesk",
-      "providerModule": "./ticketing/zendesk/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-zendesk",
+      "runtimePackage": "@cognidesk/integration-ticketing-zendesk",
+      "providerModule": "integrations/ticketing/zendesk/dist/manifest.js",
       "manifestExport": "zendeskTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/zendesk/manifest.ts",
+      "manifestSource": "integrations/ticketing/zendesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.zendesk.com/zendesk/oas.yaml"
+      "documentationPath": "https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -16856,14 +15814,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "zendesk-instance",
           "label": "Zendesk Support instance URL",
-          "description": "The SDK user's Zendesk Support URL, for example https://example.zendesk.com.",
           "scopes": [],
           "required": true
         },
         {
           "id": "zendesk-api-access",
           "label": "Zendesk Support API access",
-          "description": "Server-side OAuth bearer access or API token credentials for the Zendesk Support API. OAuth tokens use read/write scopes; API-token credentials inherit the Zendesk user/admin permissions and are not OAuth-scoped.",
           "scopes": [
             "read",
             "write"
@@ -16871,22 +15827,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "required": true,
           "metadata": {
             "scopeKind": "mixed-auth-mode",
-            "oauthScopes": [
-              "read",
-              "write"
-            ],
-            "privilegeGuidance": "OAuth access tokens use Zendesk read/write scopes. API token credentials are governed by the Zendesk user's role, admin settings, and Support permissions."
+            "privilegeGuidance": "OAuth tokens use Zendesk read/write scopes. API-token credentials inherit the Zendesk user's role and Support permissions."
           }
         }
       ]
     },
     "privacyNotes": [
-      "Zendesk tickets can contain customer messages, requester details, internal comments, tags, and workflow metadata.",
-      "Zendesk API credentials stay server-side and are represented in Studio only as credential readiness."
+      "Zendesk tickets can contain customer messages, requester details, internal comments, tags, and workflow metadata."
     ],
     "limitations": [
-      "Available fields, brands, forms, triggers, automations, macros, and permissions are owned by the SDK user's Zendesk account.",
-      "Ticket routing, requester identity, comment visibility, handoff timing, retention, and outbound-contact policy are SDK-user configuration."
+      "Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration."
     ],
     "maintainers": [
       {
@@ -16895,48 +15845,48 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullZendeskSupportApiOperations": "generated-per-operation-functions",
-        "tickets": "typed-create-read-update-search-and-generated-full-surface",
-        "ticketComments": "typed-list-and-generated-full-surface",
-        "uploads": "typed-create-and-generated-full-surface",
-        "users": "typed-read-and-generated-full-surface",
-        "organizations": "typed-read-and-generated-full-surface",
-        "webhooks": "typed-list-and-generated-full-surface",
-        "currentUserReadiness": "typed-read-and-generated-full-surface",
-        "attachmentLifecycle": "generated-full-surface",
-        "sideConversationsMacrosViewsTriggers": "generated-full-surface",
-        "webhookMutationSigningSecrets": "generated-full-surface"
+      "issue": 35,
+      "implementationStrategy": "direct-http-support-slice",
+      "sdkDecision": {
+        "candidate": "node-zendesk",
+        "verdict": "not-adopted",
+        "reason": "Zendesk's own docs mark node-zendesk as not officially supported.",
+        "checkedAt": "2026-06-21"
       },
-      "fullProviderApiVerification": {
-        "provider": "zendesk",
-        "apiVersion": "zendesk-support-2.0.0-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/zendesk-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/zendesk-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/zendesk-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 610,
-        "implementedOperationCount": 610,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 610
+      "supportSlice": {
+        "source": "Zendesk Support API",
+        "allowlistedOperations": [
+          "tickets.create",
+          "tickets.read",
+          "tickets.update",
+          "search",
+          "ticket_comments.create",
+          "uploads.create",
+          "users.read",
+          "organizations.read",
+          "webhooks.list",
+          "users.me"
+        ]
       },
       "categoryProfileId": "ticketing",
       "integrationCategoryProfileId": "ticketing",
       "categoryProfile": {
         "id": "ticketing",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "ticket.read",
-          "ticket.comment.create"
-        ],
-        "missingRecommendedOperations": [
+          "ticket.comment.create",
           "ticket.create",
           "ticket.update",
           "ticket.search",
-          "ticket.listByCustomer",
           "ticket.internalNote.create",
+          "ticket.attachments.add",
+          "customer.read"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "ticket.listByCustomer",
           "ticket.status.update",
           "ticket.priority.update",
           "ticket.assign",
@@ -16946,15 +15896,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "ticket.close",
           "ticket.reopen",
           "ticket.tags.update",
-          "ticket.attachments.add",
           "ticket.attachments.list",
           "ticket.merge",
           "ticket.macro.list",
           "ticket.macro.apply",
-          "customer.read",
           "customer.search"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "zendesk.organization.read",
+          "zendesk.webhook.list",
+          "zendesk.readiness"
+        ]
       }
     }
   },
@@ -16962,11 +15914,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "ticketing.zoho-desk",
     "category": "ticketing",
     "provider": "zoho-desk",
-    "importPath": "@cognidesk/integrations/ticketing/zoho-desk",
-    "modulePath": "./ticketing/zoho-desk/index.js",
+    "importPath": "@cognidesk/integration-ticketing-zoho-desk/manifest",
+    "modulePath": "integrations/ticketing/zoho-desk/dist/manifest.js",
     "manifestExport": "zohoDeskTicketingProviderManifest",
     "name": "Zoho Desk",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-ticketing-zoho-desk",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -17189,13 +16141,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/ticketing/zoho-desk",
-      "providerModule": "./ticketing/zoho-desk/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-ticketing-zoho-desk",
+      "runtimePackage": "@cognidesk/integration-ticketing-zoho-desk",
+      "providerModule": "integrations/ticketing/zoho-desk/dist/manifest.js",
       "manifestExport": "zohoDeskTicketingProviderManifest",
-      "manifestSource": "packages/integrations/src/ticketing/zoho-desk/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
+      "manifestSource": "integrations/ticketing/zoho-desk/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
       "documentationPath": "https://desk.zoho.com/DeskAPIDocument"
     },
     "readiness": {
@@ -17242,6 +16194,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "runtimePackage": "@cognidesk/integration-ticketing-zoho-desk",
+        "manifestImport": "no-sdk-client-initialization"
+      },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
         "sourceKind": "checked-endpoint-family-inventory",
@@ -17304,7 +16261,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "video",
     "provider": "whereby",
     "importPath": "@cognidesk/integration-video-whereby/manifest",
-    "modulePath": "integrations/video/whereby/src/manifest.js",
+    "modulePath": "integrations/video/whereby/dist/manifest.js",
     "manifestExport": "wherebyVideoProviderManifest",
     "name": "Whereby Embedded",
     "packageName": "@cognidesk/integration-video-whereby",
@@ -17554,7 +16511,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "provider-api-subset",
       "sdkPackage": "@cognidesk/integration-video-whereby",
       "runtimePackage": "@cognidesk/integration-video-whereby",
-      "providerModule": "integrations/video/whereby/src/manifest.js",
+      "providerModule": "integrations/video/whereby/dist/manifest.js",
       "manifestExport": "wherebyVideoProviderManifest",
       "manifestSource": "integrations/video/whereby/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -17701,7 +16658,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "category": "video",
     "provider": "zoom",
     "importPath": "@cognidesk/integration-video-zoom/manifest",
-    "modulePath": "integrations/video/zoom/src/manifest.js",
+    "modulePath": "integrations/video/zoom/dist/manifest.js",
     "manifestExport": "zoomVideoProviderManifest",
     "name": "Zoom Meetings",
     "packageName": "@cognidesk/integration-video-zoom",
@@ -17911,7 +16868,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "strategy": "provider-api-subset",
       "sdkPackage": "@cognidesk/integration-video-zoom",
       "runtimePackage": "@cognidesk/integration-video-zoom",
-      "providerModule": "integrations/video/zoom/src/manifest.js",
+      "providerModule": "integrations/video/zoom/dist/manifest.js",
       "manifestExport": "zoomVideoProviderManifest",
       "manifestSource": "integrations/video/zoom/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
@@ -18043,11 +17000,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.aws-speech",
     "category": "voice",
     "provider": "aws-speech",
-    "importPath": "@cognidesk/integrations/voice/aws-speech",
-    "modulePath": "./voice/aws-speech/index.js",
-    "manifestExport": "awsSpeechProviderManifest",
+    "importPath": "@cognidesk/integration-voice-aws-speech/manifest",
+    "modulePath": "integrations/voice/aws-speech/dist/manifest.js",
+    "manifestExport": "awsSpeechManifestInput",
     "name": "AWS Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-aws-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18136,9 +17093,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Amazon Transcribe Streaming speech-to-text and Amazon Polly SynthesizeSpeech text-to-speech for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover the official AWS Transcribe Streaming, Transcribe, and Polly Smithy API models for SDK-user-owned execution.",
+        "Uses official AWS SDK for JavaScript v3 clients for Amazon Transcribe Streaming and Amazon Polly.",
         "AWS supplies transcripts and synthesized audio only; Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, response generation, and durable transcript boundary.",
-        "The built-in Cognidesk speech adapter executes only Transcribe Streaming and Polly SynthesizeSpeech through injected AWS SDK clients; broader generated operations require an SDK-user-owned caller and AWS account policy."
+        "The Cognidesk adapter executes only Transcribe Streaming and Polly SynthesizeSpeech. Broader AWS SDK operations remain available through SDK-user-owned raw clients and AWS account policy."
       ],
       "evidence": [
         {
@@ -18169,48 +17126,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/aws-speech",
-      "providerModule": "./voice/aws-speech/index.js",
-      "manifestExport": "awsSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/aws-speech/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-voice-aws-speech",
+      "runtimePackage": "@cognidesk/integration-voice-aws-speech",
+      "providerModule": "integrations/voice/aws-speech/dist/manifest.js",
+      "manifestExport": "awsSpeechManifestInput",
+      "manifestSource": "integrations/voice/aws-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_StartStreamTranscription.html"
     },
@@ -18280,6 +17205,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "AWS Speech Integration",
+      "integrationPackageName": "@cognidesk/integration-voice-aws-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-voice-aws-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-aws-speech/runtime"
+      },
       "channelCoverage": {
         "speechToText": "typed-transcribe-streaming-sdk-adapter",
         "textToSpeech": "typed-polly-synthesize-speech-sdk-adapter",
@@ -18289,44 +17220,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "fullAmazonPollyApi": "not-covered",
         "telephony": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 58,
-        "functionCount": 58,
-        "apiVersion": "aws-api-models-main-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "@aws-sdk/client-transcribe-streaming",
+          "@aws-sdk/client-polly"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "StartStreamTranscription",
+          "SynthesizeSpeech"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -18334,11 +17238,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.azure-speech",
     "category": "voice",
     "provider": "azure-speech",
-    "importPath": "@cognidesk/integrations/voice/azure-speech",
-    "modulePath": "./voice/azure-speech/index.js",
-    "manifestExport": "azureSpeechProviderManifest",
+    "importPath": "@cognidesk/integration-voice-azure-speech/manifest",
+    "modulePath": "integrations/voice/azure-speech/dist/manifest.js",
+    "manifestExport": "azureSpeechManifestInput",
     "name": "Azure AI Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-azure-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18363,7 +17267,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "receive",
         "label": "Transcribe speech",
-        "description": "Transcribes customer PCM voice input with Azure AI Speech to text.",
+        "description": "Transcribes customer PCM voice input with Azure AI Speech.",
         "audiences": [
           "customer-facing"
         ],
@@ -18382,7 +17286,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Synthesize speech",
-        "description": "Synthesizes Cognidesk assistant text with Azure AI Text to speech.",
+        "description": "Synthesizes Cognidesk assistant text with Azure AI Speech.",
         "audiences": [
           "customer-facing"
         ],
@@ -18427,72 +17331,35 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Azure AI Speech speech-to-text and text-to-speech for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover Microsoft azure-rest-api-specs Speech data-plane files for Speech-to-Text management, custom voice, batch synthesis, and transcription surfaces.",
-        "Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
-        "The short-audio STT and realtime TTS endpoints used by the built-in adapter are documented in Microsoft REST docs but are not represented in the generated azure-rest-api-specs files, so that adapter code remains handwritten.",
+        "Uses the official Microsoft Cognitive Services Speech SDK for JavaScript.",
+        "Azure Speech supplies transcripts and synthesized PCM audio while Cognidesk owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
         "Does not implement the full Azure AI Speech SDK, avatar/video APIs, telephony carrier setup, or Azure account policy."
       ],
       "evidence": [
         {
-          "label": "Azure AI Speech to text REST API",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short"
+          "label": "Azure Speech SDK for JavaScript",
+          "url": "https://github.com/microsoft/cognitive-services-speech-sdk-js"
         },
         {
-          "label": "Azure AI Text to speech REST API",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech"
-        },
-        {
-          "label": "Azure Speech audio output formats",
-          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech#audio-outputs"
+          "label": "Azure AI Speech SDK documentation",
+          "url": "https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/azure-speech",
-      "providerModule": "./voice/azure-speech/index.js",
-      "manifestExport": "azureSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/azure-speech/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://learn.microsoft.com/azure/ai-services/speech-service/rest-speech-to-text-short"
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-voice-azure-speech",
+      "runtimePackage": "@cognidesk/integration-voice-azure-speech",
+      "providerModule": "integrations/voice/azure-speech/dist/manifest.js",
+      "manifestExport": "azureSpeechManifestInput",
+      "manifestSource": "integrations/voice/azure-speech/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/microsoft/cognitive-services-speech-sdk-js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -18506,7 +17373,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "azure-speech-key",
           "label": "Azure Speech resource key",
-          "description": "Server-side Azure AI Speech resource key used for speech-to-text and text-to-speech REST calls.",
+          "description": "Server-side Azure AI Speech resource key used for speech-to-text and text-to-speech SDK calls.",
           "scopes": [],
           "required": true
         },
@@ -18524,7 +17391,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Azure Speech credentials remain server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "This package implements short-audio REST STT and REST TTS for Cognidesk speech pipelines, not full streaming Azure Speech SDK sessions.",
+      "This package adapts buffered Cognidesk voice turns through the Speech SDK; it does not expose continuous recognizer sessions as Cognidesk operations.",
       "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Azure Speech.",
       "Consent, recording, retention, region selection, private networking, and Azure account policy remain SDK-user configuration."
     ],
@@ -18535,52 +17402,30 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "Azure AI Speech Integration",
+      "integrationPackageName": "@cognidesk/integration-voice-azure-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-voice-azure-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-azure-speech/runtime"
+      },
       "channelCoverage": {
-        "speechToText": "typed-short-audio-rest",
-        "textToSpeech": "typed-rest",
+        "speechToText": "typed-speech-sdk-recognize-once",
+        "textToSpeech": "typed-speech-sdk-speak-text",
         "browserVoiceProtocol": "sdk-owned-cognidesk-voice-websocket",
         "backgroundModelProvider": "sdk-owned-agent-model-set",
-        "fullAzureSpeechSdk": "not-covered",
+        "fullAzureSpeechSdk": "raw-client-only",
         "telephony": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 105,
-        "functionCount": 105,
-        "apiVersion": "azure-speech-rest-api-specs-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "microsoft-cognitiveservices-speech-sdk"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "SpeechRecognizer.recognizeOnceAsync",
+          "SpeechSynthesizer.speakTextAsync"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -18588,11 +17433,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.deepgram",
     "category": "voice",
     "provider": "deepgram",
-    "importPath": "@cognidesk/integrations/voice/deepgram",
-    "modulePath": "./voice/deepgram/index.js",
-    "manifestExport": "deepgramSpeechProviderManifest",
-    "name": "Deepgram Speech",
-    "packageName": "@cognidesk/integrations",
+    "importPath": "@cognidesk/integration-voice-deepgram/manifest",
+    "modulePath": "integrations/voice/deepgram/dist/manifest.js",
+    "manifestExport": "deepgramVoiceProviderManifest",
+    "name": "Deepgram Voice",
+    "packageName": "@cognidesk/integration-voice-deepgram",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -18604,8 +17449,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "mixed"
     ],
     "display": {
-      "label": "Deepgram Speech",
-      "summary": "Implements Deepgram prerecorded speech-to-text and Aura text-to-speech REST requests for Cognidesk STT/TTS voice pipelines.",
+      "label": "Deepgram Voice",
+      "summary": "Implements normalized Cognidesk speech-to-text and text-to-speech operations with the official Deepgram SDK.",
       "tags": [
         "voice",
         "deepgram",
@@ -18617,7 +17462,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "receive",
         "label": "Transcribe speech",
-        "description": "Transcribes customer PCM voice input with Deepgram speech-to-text.",
+        "description": "Transcribes customer PCM/WAV voice input with Deepgram speech-to-text.",
         "audiences": [
           "customer-facing"
         ],
@@ -18636,7 +17481,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Synthesize speech",
-        "description": "Synthesizes Cognidesk assistant text with Deepgram Aura text-to-speech.",
+        "description": "Synthesizes Cognidesk assistant text with Deepgram text-to-speech.",
         "audiences": [
           "customer-facing"
         ],
@@ -18655,7 +17500,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "media",
         "label": "Speech audio media",
-        "description": "Exchanges buffered PCM input and synthesized 24 kHz linear16 output for Cognidesk voice sessions.",
+        "description": "Exchanges buffered PCM input and synthesized audio for Cognidesk voice sessions.",
         "audiences": [
           "customer-facing",
           "internal-support"
@@ -18680,12 +17525,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Implements Deepgram prerecorded speech-to-text and Aura text-to-speech REST requests for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover Deepgram's official REST OpenAPI document, including /v1/listen and /v1/speak.",
-        "Deepgram supplies transcripts and synthesized speech audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
-        "Does not implement Deepgram Voice Agent, Flux websocket sessions, live streaming STT, custom model administration, self-hosted deployment management, telephony carrier setup, or Deepgram account policy."
+        "Implements normalized Cognidesk speech-to-text and text-to-speech operations with the official Deepgram SDK.",
+        "Raw Deepgram SDK access is exposed as an escape hatch, but Cognidesk does not claim ownership of the full Deepgram provider API.",
+        "Deepgram Voice Agent, Flux streaming sessions, account administration, telephony setup, self-hosted deployment management, and custom model administration remain outside this normalized adapter."
       ],
       "evidence": [
+        {
+          "label": "Deepgram SDK package",
+          "url": "https://www.npmjs.com/package/@deepgram/sdk"
+        },
         {
           "label": "Deepgram prerecorded audio STT",
           "url": "https://developers.deepgram.com/docs/pre-recorded-audio"
@@ -18693,10 +17541,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Deepgram Text-to-Speech REST",
           "url": "https://developers.deepgram.com/docs/text-to-speech"
-        },
-        {
-          "label": "Deepgram TTS media output settings",
-          "url": "https://developers.deepgram.com/docs/tts-media-output-settings"
         }
       ]
     },
@@ -18738,14 +17582,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/deepgram",
-      "providerModule": "./voice/deepgram/index.js",
-      "manifestExport": "deepgramSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/deepgram/index.ts",
-      "manifestSourceKind": "runtime-module-fallback",
-      "documentationPath": "https://developers.deepgram.com/docs/pre-recorded-audio"
+      "strategy": "official-sdk",
+      "sdkPackage": "@deepgram/sdk",
+      "runtimePackage": "@cognidesk/integration-voice-deepgram",
+      "providerModule": "integrations/voice/deepgram/dist/manifest.js",
+      "manifestExport": "deepgramVoiceProviderManifest",
+      "manifestSource": "integrations/voice/deepgram/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://www.npmjs.com/package/@deepgram/sdk"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -18758,18 +17602,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "deepgram-api-key",
           "label": "Deepgram API key",
-          "description": "Server-side Deepgram API key sent through the Authorization Token header for speech API requests.",
+          "description": "Server-side Deepgram API key used by the official SDK for speech API requests.",
           "scopes": [],
           "required": true,
           "metadata": {
+            "scopeKind": "provider-permission",
             "minimumAccess": [
               "speech-to-text",
               "text-to-speech"
-            ],
-            "enterpriseControls": [
-              "project-retention-policy",
-              "region-routing",
-              "self-hosted-or-private-deployment"
             ]
           }
         }
@@ -18780,9 +17620,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Deepgram API keys remain server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "This package implements REST STT/TTS for Cognidesk speech pipelines, not Deepgram Voice Agent or full streaming websocket sessions.",
-      "The background LLM is the Cognidesk Agent Model Set configured through @cognidesk/model, not Deepgram.",
-      "Consent, recording, retention, project region, model-improvement settings, self-hosting, and Deepgram enterprise account policy remain SDK-user/provider configuration."
+      "This package implements SDK-backed STT/TTS for Cognidesk speech pipelines, not Deepgram Voice Agent or Flux websocket sessions.",
+      "The background LLM is the Cognidesk Agent Model Set, not Deepgram."
     ],
     "maintainers": [
       {
@@ -18791,19 +17630,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "speechToText": "typed-prerecorded-audio-rest",
-        "textToSpeech": "typed-rest",
-        "browserVoiceProtocol": "sdk-owned-cognidesk-voice-websocket",
-        "backgroundModelProvider": "sdk-owned-agent-model-set",
-        "deepgramVoiceAgent": "not-covered",
-        "fluxStreaming": "not-covered",
-        "telephony": "not-covered"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@deepgram/sdk",
+        "verifiedVersion": "5.4.0",
+        "verifiedAt": "2026-06-21"
       },
-      "generatedSpeechApi": {
-        "operationCount": 49,
-        "functionCount": 49,
-        "apiVersion": "deepgram-1.0.0"
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",
@@ -18845,11 +17680,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.elevenlabs",
     "category": "voice",
     "provider": "elevenlabs",
-    "importPath": "@cognidesk/integrations/voice/elevenlabs",
-    "modulePath": "./voice/elevenlabs/index.js",
+    "importPath": "@cognidesk/integration-voice-elevenlabs/manifest",
+    "modulePath": "integrations/voice/elevenlabs/dist/manifest.js",
     "manifestExport": "elevenLabsVoiceProviderManifest",
     "name": "ElevenLabs Voice",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-elevenlabs",
     "trustLevel": "official",
     "directions": [
       "send-only",
@@ -18862,12 +17697,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "ElevenLabs Voice",
-      "summary": "Coverage includes generated per-operation functions for every operation in ElevenLabs' official public REST OpenAPI 3.1 specification.",
+      "summary": "Implements normalized Cognidesk speech, transcription, and conversational session helpers with the official ElevenLabs JavaScript SDK.",
       "tags": [
         "voice",
         "elevenlabs",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
@@ -18936,133 +17771,36 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
-      },
-      {
-        "capability": "elevenlabs.conversation-signed-url",
-        "label": "Create conversation signed URL",
-        "description": "Creates a signed URL for an authorized ElevenLabs Conversational AI agent session.",
-        "audiences": [
-          "customer-facing"
-        ],
-        "providerObjects": [
-          {
-            "kind": "elevenlabsConversation",
-            "label": "ElevenLabs Conversation"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
-      },
-      {
-        "capability": "elevenlabs.speech-to-text",
-        "label": "Transcribe audio",
-        "description": "Creates and retrieves ElevenLabs Speech to Text transcript resources.",
-        "audiences": [
-          "customer-facing",
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "elevenlabsTranscript",
-            "label": "ElevenLabs Transcript"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in ElevenLabs' official public REST OpenAPI 3.1 specification.",
-        "Typed convenience helpers remain available for Cognidesk support workflows: Text to Speech create/stream/timing, Speech to Text create/get, voice/model lookup, Conversational AI signed URLs, conversation list/detail/audio retrieval, history, user/subscription, single-use tokens, selected media transforms, and WebSocket URL builders.",
-        "The generated REST surface covers agents, phone numbers, SIP trunk outbound call, Twilio/Exotel/WhatsApp outbound calls, batch calling, knowledge base, tools, workspace webhooks, service-account API keys, audit logs, voices, models, history, dubbing, studio, music, sound generation, audio isolation, and pronunciation dictionaries from the official OpenAPI artifact.",
-        "The generic send and media capabilities mean ElevenLabs speech/audio generation, transcription, and conversation media objects only; they do not mean telephony carrier ownership, call-center routing, Studio configuration, workspace administration, or provider setup policy.",
-        "Realtime WebSocket protocol behavior is not represented as REST OpenAPI operations; this package keeps WebSocket URL builders and single-use token helpers, while SDK users own browser/session transport behavior."
+        "Implements normalized Cognidesk speech, transcription, and conversational session helpers with the official ElevenLabs JavaScript SDK.",
+        "Raw ElevenLabs SDK access is exposed as an escape hatch; this package does not re-export the whole SDK as Cognidesk-owned API coverage.",
+        "Realtime WebSocket transport behavior, telephony carrier setup, workspace administration, retention, and live agent routing remain SDK-user/provider configuration."
       ],
       "evidence": [
         {
-          "label": "ElevenLabs REST OpenAPI specification",
-          "url": "https://api.elevenlabs.io/openapi.json"
+          "label": "ElevenLabs JavaScript SDK package",
+          "url": "https://www.npmjs.com/package/@elevenlabs/elevenlabs-js"
         },
         {
           "label": "ElevenLabs API reference",
           "url": "https://elevenlabs.io/docs/api-reference"
         },
         {
-          "label": "ElevenLabs API authentication",
-          "url": "https://elevenlabs.io/docs/api-reference/authentication"
-        },
-        {
-          "label": "ElevenLabs Text to Speech create speech",
-          "url": "https://elevenlabs.io/docs/api-reference/text-to-speech/convert"
-        },
-        {
-          "label": "ElevenLabs Text to Speech stream speech",
-          "url": "https://elevenlabs.io/docs/api-reference/text-to-speech/stream"
-        },
-        {
-          "label": "ElevenLabs Text to Speech WebSocket",
-          "url": "https://elevenlabs.io/docs/api-reference/text-to-speech/v-1-text-to-speech-voice-id-stream-input"
-        },
-        {
-          "label": "ElevenLabs Speech to Text create transcript",
+          "label": "ElevenLabs Speech to Text",
           "url": "https://elevenlabs.io/docs/api-reference/speech-to-text/convert"
         },
         {
-          "label": "ElevenLabs Speech to Text get transcript",
-          "url": "https://elevenlabs.io/docs/api-reference/speech-to-text/get"
-        },
-        {
-          "label": "ElevenLabs Speech to Text webhooks",
-          "url": "https://elevenlabs.io/docs/eleven-api/guides/how-to/speech-to-text/batch/webhooks"
-        },
-        {
-          "label": "ElevenLabs Conversations signed URL",
-          "url": "https://elevenlabs.io/docs/api-reference/conversations/get-signed-url"
-        },
-        {
-          "label": "ElevenLabs Conversations list",
-          "url": "https://elevenlabs.io/docs/api-reference/conversations/list"
-        },
-        {
-          "label": "ElevenLabs Conversations get details",
-          "url": "https://elevenlabs.io/docs/api-reference/conversations/get"
-        },
-        {
-          "label": "ElevenLabs Conversations get audio",
-          "url": "https://elevenlabs.io/docs/api-reference/conversations/get-audio"
-        },
-        {
-          "label": "ElevenLabs Voices list",
-          "url": "https://elevenlabs.io/docs/api-reference/voices/search"
-        },
-        {
-          "label": "ElevenLabs Models list",
-          "url": "https://elevenlabs.io/docs/api-reference/models/list"
-        },
-        {
-          "label": "ElevenLabs Phone Numbers API",
-          "url": "https://elevenlabs.io/docs/api-reference/phone-numbers"
-        },
-        {
-          "label": "ElevenLabs Batch Calling API",
-          "url": "https://elevenlabs.io/docs/api-reference/batch-calling"
-        },
-        {
-          "label": "ElevenLabs Workspace Webhooks API",
-          "url": "https://elevenlabs.io/docs/api-reference/workspace/webhooks"
+          "label": "ElevenLabs Text to Speech",
+          "url": "https://elevenlabs.io/docs/api-reference/text-to-speech/convert"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -19095,18 +17833,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "voice.conference.addParticipant",
           "voice.mediaStream.start"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "elevenlabs.conversation.authorize"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/elevenlabs",
-      "providerModule": "./voice/elevenlabs/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@elevenlabs/elevenlabs-js",
+      "runtimePackage": "@cognidesk/integration-voice-elevenlabs",
+      "providerModule": "integrations/voice/elevenlabs/dist/manifest.js",
       "manifestExport": "elevenLabsVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/elevenlabs/manifest.ts",
+      "manifestSource": "integrations/voice/elevenlabs/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://api.elevenlabs.io/openapi.json"
+      "documentationPath": "https://www.npmjs.com/package/@elevenlabs/elevenlabs-js"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -19119,19 +17859,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "elevenlabs-api-key",
           "label": "ElevenLabs API key",
-          "description": "Server-side ElevenLabs credential sent through the xi-api-key header for voice API requests.",
+          "description": "Server-side ElevenLabs credential used by the official SDK for voice API requests.",
           "scopes": [],
           "required": true,
           "metadata": {
-            "scopeModel": "elevenlabs-api-key-permissions",
+            "scopeKind": "provider-permission",
             "minimumAccess": [
               "text-to-speech",
               "speech-to-text",
-              "conversations",
+              "conversational-ai",
               "voices:read",
               "models:read"
-            ],
-            "supportsEndpointRestrictions": true
+            ]
           }
         }
       ]
@@ -19141,9 +17880,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "ElevenLabs API keys must remain server-side. Use signed URLs or single-use tokens for browser/client conversation startup instead of exposing the API key."
     ],
     "limitations": [
-      "The generated full-provider claim is limited to ElevenLabs REST OpenAPI operations verified on 2026-06-18; realtime WebSocket transport behavior remains a separate protocol surface.",
-      "Telephony numbers, SIP trunking, WhatsApp setup, batch calling, call recording policy, consent, retention, and live agent routing remain SDK-user/provider configuration even when the underlying REST operations are callable.",
-      "Zero-retention and tier-gated output formats depend on the SDK user's ElevenLabs plan and API-key permissions."
+      "Realtime WebSocket transport behavior, telephony setup, batch calling, call recording policy, consent, retention, and live agent routing remain SDK-user/provider configuration."
     ],
     "maintainers": [
       {
@@ -19152,34 +17889,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullRestApiOperations": "generated-per-operation-functions",
-        "textToSpeech": "typed-create-stream",
-        "speechToText": "typed-create-read",
-        "conversationalAiSignedUrl": "typed-create",
-        "conversationReadAudio": "typed-read",
-        "phoneNumbers": "generated-per-operation-functions",
-        "sipTrunk": "generated-per-operation-functions",
-        "twilioIntegration": "generated-per-operation-functions",
-        "exotelIntegration": "generated-per-operation-functions",
-        "whatsapp": "generated-per-operation-functions",
-        "batchCalling": "generated-per-operation-functions",
-        "agentsKnowledgeToolsWorkspace": "generated-per-operation-functions",
-        "realtimeWebSocketProtocol": "typed-url-builder",
-        "liveAgentTransfer": "provider-supported-not-typed"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@elevenlabs/elevenlabs-js",
+        "verifiedVersion": "2.53.1",
+        "verifiedAt": "2026-06-21"
       },
-      "fullProviderApiVerification": {
-        "provider": "elevenlabs-rest-openapi",
-        "apiVersion": "1.0",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/elevenlabs-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/elevenlabs-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 253,
-        "documentedOperationCount": 317,
-        "implementedOperationCount": 317,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 317
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",
@@ -19213,7 +17931,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "voice.conference.addParticipant",
           "voice.mediaStream.start"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "elevenlabs.conversation.authorize"
+        ]
       }
     }
   },
@@ -19221,11 +17941,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.google-speech",
     "category": "voice",
     "provider": "google-speech",
-    "importPath": "@cognidesk/integrations/voice/google-speech",
-    "modulePath": "./voice/google-speech/index.js",
-    "manifestExport": "googleSpeechProviderManifest",
+    "importPath": "@cognidesk/integration-voice-google-speech/manifest",
+    "modulePath": "integrations/voice/google-speech/dist/manifest.js",
+    "manifestExport": "googleSpeechManifestInput",
     "name": "Google Cloud Speech",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-google-speech",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -19314,7 +18034,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implements Google Cloud Speech-to-Text synchronous recognize and Cloud Text-to-Speech synchronous synthesize for Cognidesk STT/TTS voice pipelines.",
-        "Generated operation inventory and caller interfaces cover the official Google Cloud Speech-to-Text and Text-to-Speech v1 Discovery documents.",
+        "Uses official Google Cloud Node.js clients for Speech-to-Text and Text-to-Speech.",
         "Google Cloud supplies transcripts and synthesized audio while Cognidesk still owns the Agent Model Set, Journeys, Tools, Knowledge, and durable transcript boundary.",
         "Does not implement the full Google Cloud Speech SDKs, streaming recognizer sessions, long-running transcription, long audio synthesis, voice catalog administration, or Google Cloud IAM/project policy."
       ],
@@ -19343,48 +18063,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/google-speech",
-      "providerModule": "./voice/google-speech/index.js",
-      "manifestExport": "googleSpeechProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/google-speech/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-voice-google-speech",
+      "runtimePackage": "@cognidesk/integration-voice-google-speech",
+      "providerModule": "integrations/voice/google-speech/dist/manifest.js",
+      "manifestExport": "googleSpeechManifestInput",
+      "manifestSource": "integrations/voice/google-speech/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://docs.cloud.google.com/speech-to-text/docs/reference/rest/v1/speech/recognize"
     },
@@ -19421,54 +18109,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "Google Cloud Speech Integration",
+      "integrationPackageName": "@cognidesk/integration-voice-google-speech",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-voice-google-speech/manifest",
+        "runtime": "@cognidesk/integration-voice-google-speech/runtime"
+      },
       "channelCoverage": {
         "speechToText": "typed-synchronous-recognize-rest",
         "textToSpeech": "typed-synchronous-synthesize-rest",
         "browserVoiceProtocol": "sdk-owned-cognidesk-voice-websocket",
         "backgroundModelProvider": "sdk-owned-agent-model-set",
-        "fullGoogleCloudSpeechSdk": "not-covered",
+        "fullGoogleCloudSpeechSdk": "raw-client-only",
         "streamingRecognize": "not-covered",
         "longRunningRecognize": "not-covered",
         "longAudioSynthesis": "not-covered"
       },
-      "generatedSpeechApi": {
-        "operationCount": 21,
-        "functionCount": 21,
-        "apiVersion": "google-speech-discovery-2026-06-18"
-      },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "@google-cloud/speech",
+          "@google-cloud/text-to-speech"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "speech.recognize",
+          "text.synthesize"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -19476,11 +18143,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.openai",
     "category": "voice",
     "provider": "openai",
-    "importPath": "@cognidesk/integrations/voice/openai",
-    "modulePath": "./voice/openai/index.js",
-    "manifestExport": "openAIVoiceProviderManifest",
+    "importPath": "@cognidesk/integration-voice-openai/manifest",
+    "modulePath": "integrations/voice/openai/dist/manifest.js",
+    "manifestExport": "openAIVoiceManifestInput",
     "name": "OpenAI Realtime Voice",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-openai",
     "trustLevel": "official",
     "directions": [
       "bidirectional"
@@ -19587,8 +18254,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "notes": [
         "Implements a server-side OpenAI Realtime voice adapter for Cognidesk browser voice sessions, including session updates, audio events, speech responses, and function-tool outputs.",
         "The generic send and handoff capabilities mean OpenAI Realtime audio response events and Cognidesk-approved Realtime function tools only; they do not mean outbound telephony, carrier handoff, or full OpenAI API coverage.",
-        "Does not implement the full OpenAI API surface, client-side ephemeral session issuance, transcription-only sessions, model administration, file/vector-store APIs, Responses API breadth, or telephony provider operations.",
-        "Telephony numbers, outbound calling, consent, recording, retention, and OpenAI credential distribution remain SDK-user/provider configuration outside this package."
+        "Does not implement the full OpenAI API surface, client-side ephemeral session issuance, transcription-only sessions, model administration, file/vector-store APIs, Responses API breadth, or telephony provider operations."
       ],
       "evidence": [
         {
@@ -19602,57 +18268,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "OpenAI Realtime client events reference",
           "url": "https://developers.openai.com/api/reference/resources/realtime/client-events/"
-        },
-        {
-          "label": "OpenAI realtime models prompting guide",
-          "url": "https://developers.openai.com/api/docs/guides/realtime-models-prompting"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
-        ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
-        ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/openai",
-      "providerModule": "./voice/openai/index.js",
-      "manifestExport": "openAIVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/openai/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@cognidesk/integration-voice-openai",
+      "runtimePackage": "@cognidesk/integration-voice-openai",
+      "providerModule": "integrations/voice/openai/dist/manifest.js",
+      "manifestExport": "openAIVoiceManifestInput",
+      "manifestSource": "integrations/voice/openai/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
       "documentationPath": "https://developers.openai.com/api/docs/guides/realtime"
     },
@@ -19696,6 +18326,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "integrationName": "OpenAI Realtime Voice Integration",
+      "integrationPackageName": "@cognidesk/integration-voice-openai",
+      "integrationEntryPoints": {
+        "manifest": "@cognidesk/integration-voice-openai/manifest",
+        "runtime": "@cognidesk/integration-voice-openai/runtime"
+      },
       "channelCoverage": {
         "realtimeAudio": "typed-session-events",
         "realtimeTranscript": "typed-selected",
@@ -19705,39 +18341,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "ephemeralSessionIssuance": "not-covered",
         "transcriptionOnlySessions": "not-covered"
       },
-      "categoryProfileId": "voice",
-      "integrationCategoryProfileId": "voice",
-      "categoryProfile": {
-        "id": "voice",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "voice.session.start",
-          "voice.turn.finalize"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackages": [
+          "openai"
         ],
-        "missingRecommendedOperations": [
-          "voice.call.start",
-          "voice.call.answer",
-          "voice.call.hangup",
-          "voice.call.transfer",
-          "voice.call.hold",
-          "voice.call.resume",
-          "voice.callback.schedule",
-          "voice.callback.cancel",
-          "voice.transcript.read",
-          "voice.recording.read",
-          "voice.speak"
+        "adapterCoverage": [
+          "OpenAIRealtimeWS.create",
+          "session.update",
+          "response.create"
         ],
-        "missingOptionalOperations": [
-          "voice.dtmf.send",
-          "voice.recording.start",
-          "voice.recording.stop",
-          "voice.call.redirect",
-          "voice.conference.addParticipant",
-          "voice.mediaStream.start"
-        ],
-        "extensionOperations": []
+        "rawClientEscapeHatch": true
       }
     }
   },
@@ -20111,11 +18725,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.twilio",
     "category": "voice",
     "provider": "twilio",
-    "importPath": "@cognidesk/integrations/voice/twilio",
-    "modulePath": "./voice/twilio/index.js",
+    "importPath": "@cognidesk/integration-voice-twilio/manifest",
+    "modulePath": "integrations/voice/twilio/dist/manifest.js",
     "manifestExport": "twilioVoiceProviderManifest",
     "name": "Twilio Programmable Voice",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-voice-twilio",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -20128,19 +18742,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Twilio Programmable Voice",
-      "summary": "Coverage includes generated per-operation functions for Twilio's official Voice-domain OpenAPI surfaces: core Voice call/conference/queue/recording/transcription/stream/SIP resources, Voice v1/v3, Trunking v1, and Insights v1-v3.",
+      "summary": "Implements normalized call-control, TwiML media stream, webhook, readiness, and raw Twilio helper-client access with the official Twilio Node helper library.",
       "tags": [
         "voice",
         "twilio",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Receive inbound calls",
-        "description": "Accepts Twilio Voice webhooks and routes calls to SDK-user-owned Cognidesk voice handling.",
+        "label": "Receive voice webhooks",
+        "description": "Accepts and parses Twilio Voice webhooks for SDK-user-owned Cognidesk voice handling.",
         "audiences": [
           "customer-facing"
         ],
@@ -20158,8 +18772,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "send",
-        "label": "Place outbound calls",
-        "description": "Creates outbound calls through the Twilio Calls REST resource.",
+        "label": "Create outbound calls",
+        "description": "Creates outbound calls through the Twilio helper library.",
         "audiences": [
           "customer-facing"
         ],
@@ -20177,33 +18791,29 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "media",
-        "label": "Twilio Media Streams",
-        "description": "Builds TwiML that connects a Twilio call to a WebSocket Media Stream.",
+        "label": "Media Stream TwiML",
+        "description": "Builds TwiML for Cognidesk-owned voice websocket media streams while preserving Twilio track constraints.",
         "audiences": [
-          "customer-facing"
+          "customer-facing",
+          "internal-support"
         ],
         "providerObjects": [
-          {
-            "kind": "twilioCall",
-            "label": "Twilio Call"
-          },
           {
             "kind": "twilioMediaStream",
             "label": "Twilio Media Stream"
           }
         ],
-        "requiresCredential": true,
+        "requiresCredential": false,
         "sideEffect": false,
-        "exposesSensitiveData": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "transfer",
-        "label": "Call transfer",
-        "description": "Supports SDK-user-configured call control workflows through Twilio Voice call objects.",
+        "label": "Redirect or end calls",
+        "description": "Redirects or ends active Twilio calls through the Call resource.",
         "audiences": [
-          "customer-facing",
           "internal-support"
         ],
         "providerObjects": [
@@ -20239,45 +18849,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for Twilio's official Voice-domain OpenAPI surfaces: core Voice call/conference/queue/recording/transcription/stream/SIP resources, Voice v1/v3, Trunking v1, and Insights v1-v3.",
-        "The package keeps typed convenience helpers for common voice support workflows: outbound call create/fetch/update/redirect/end, account readiness, Media Stream TwiML generation, and form webhook signature validation.",
-        "Phone-number ownership, regions/edges, recording consent, queue/conference design, call routing policy, and live media service operation remain SDK-user/provider configuration."
+        "Implements normalized call-control, TwiML media stream, webhook, readiness, and raw Twilio helper-client access with the official Twilio Node helper library.",
+        "Twilio Voice and Twilio SMS are separate Cognidesk category packages even though they use the same upstream helper library.",
+        "Conferences, queues, recordings, transcription lifecycle, SIP trunks, Voice Insights, and ConversationRelay remain available only through raw Twilio client access or future normalized operations."
       ],
       "evidence": [
         {
-          "label": "Twilio Programmable Voice API overview",
+          "label": "Twilio Node helper library",
+          "url": "https://www.npmjs.com/package/twilio"
+        },
+        {
+          "label": "Twilio Programmable Voice API",
           "url": "https://www.twilio.com/docs/voice/api"
         },
         {
-          "label": "Twilio Call resource",
+          "label": "Twilio Call Resource",
           "url": "https://www.twilio.com/docs/voice/api/call-resource"
         },
         {
-          "label": "Twilio Stream TwiML",
-          "url": "https://www.twilio.com/docs/voice/twiml/stream"
-        },
-        {
-          "label": "Twilio request signature validation",
-          "url": "https://www.twilio.com/docs/usage/security"
-        },
-        {
-          "label": "Twilio Conferences resource",
-          "url": "https://www.twilio.com/docs/voice/api/conference-resource"
-        },
-        {
-          "label": "Twilio Recordings resource",
-          "url": "https://www.twilio.com/docs/voice/api/recording"
-        },
-        {
-          "label": "Twilio real-time Transcriptions subresource",
-          "url": "https://www.twilio.com/docs/voice/api/realtime-transcription-resource"
+          "label": "Twilio webhook security",
+          "url": "https://www.twilio.com/docs/usage/webhooks/webhooks-security"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -20314,14 +18912,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/twilio",
-      "providerModule": "./voice/twilio/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "twilio",
+      "runtimePackage": "@cognidesk/integration-voice-twilio",
+      "providerModule": "integrations/voice/twilio/dist/manifest.js",
       "manifestExport": "twilioVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/twilio/manifest.ts",
+      "manifestSource": "integrations/voice/twilio/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://www.twilio.com/docs/voice/api"
+      "documentationPath": "https://www.npmjs.com/package/twilio"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -20331,31 +18929,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "twilio-rest-api-credentials"
       ],
       "optionalCredentialIds": [
-        "twilio-webhook-auth-token",
-        "twilio-voice-number"
+        "twilio-webhook-auth-token"
       ],
       "credentialRequirements": [
         {
           "id": "twilio-account",
           "label": "Twilio Account SID",
-          "description": "Twilio Account SID used to address Voice REST API resources.",
+          "description": "Server-side Twilio Account SID used by the helper library.",
           "scopes": [],
-          "required": true
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         },
         {
           "id": "twilio-rest-api-credentials",
           "label": "Twilio REST API credentials",
-          "description": "Server-side Twilio Auth Token or API Key SID/secret used for Voice REST API calls. API keys are preferred for production REST access.",
+          "description": "Twilio Auth Token or API key credentials used for Voice REST calls.",
           "scopes": [],
           "required": true,
           "metadata": {
-            "scopeModel": "twilio-restricted-api-key-permissions",
-            "minimumPermissionArea": "Voice",
-            "requiredResources": [
-              "Calls read/create/update",
-              "Account read for readiness"
-            ],
-            "unrestrictedAuthTokenFallback": true
+            "scopeKind": "provider-permission"
           }
         },
         {
@@ -20363,14 +18957,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "label": "Twilio webhook Auth Token",
           "description": "Primary Twilio Auth Token used to validate X-Twilio-Signature webhook requests.",
           "scopes": [],
-          "required": false
-        },
-        {
-          "id": "twilio-voice-number",
-          "label": "Twilio voice-capable phone number",
-          "description": "A Twilio phone number or caller ID that supports outbound voice.",
-          "scopes": [],
-          "required": false
+          "required": false,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         }
       ]
     },
@@ -20379,8 +18969,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Twilio credentials stay server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "Live call readiness depends on the SDK user's Twilio account, voice-capable numbers, regions, webhooks, and account permissions.",
-      "Conversation routing, consent, recording, retention, and handoff behavior remain SDK-user configuration."
+      "Live call readiness depends on the SDK user's Twilio account, voice-capable numbers, regions, webhooks, and account permissions."
     ],
     "maintainers": [
       {
@@ -20389,31 +18978,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullVoiceDomainApiOperations": "generated-per-operation-functions",
-        "inboundCallWebhook": "typed-parse",
-        "outboundCall": "typed-create",
-        "callFetchUpdateRedirectEnd": "typed-selected",
-        "mediaStreamsTwiML": "typed-generate",
-        "webhookSignature": "typed-verify",
-        "conferences": "generated-full-surface",
-        "queues": "generated-full-surface",
-        "recordings": "generated-full-surface",
-        "realtimeTranscriptions": "generated-full-surface",
-        "sipDomainsTrunks": "generated-full-surface",
-        "voiceInsights": "generated-full-surface"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "twilio",
+        "verifiedVersion": "6.0.2",
+        "verifiedAt": "2026-06-21"
       },
-      "fullProviderApiVerification": {
-        "provider": "twilio-voice-domain",
-        "apiVersion": "twilio-oai-main-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/twilio-voice-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/twilio-voice-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/twilio-voice-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 178,
-        "implementedOperationCount": 178,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 178
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",
@@ -20455,11 +19028,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "voice.vonage",
     "category": "voice",
     "provider": "vonage",
-    "importPath": "@cognidesk/integrations/voice/vonage",
-    "modulePath": "./voice/vonage/index.js",
+    "importPath": "@cognidesk/integration-voice-vonage/manifest",
+    "modulePath": "integrations/voice/vonage/dist/manifest.js",
     "manifestExport": "vonageVoiceProviderManifest",
-    "name": "Vonage Voice API",
-    "packageName": "@cognidesk/integrations",
+    "name": "Vonage Voice",
+    "packageName": "@cognidesk/integration-voice-vonage",
     "trustLevel": "official",
     "directions": [
       "inbound-only",
@@ -20471,20 +19044,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "mixed"
     ],
     "display": {
-      "label": "Vonage Voice API",
-      "summary": "Coverage includes generated per-operation functions for every operation in the official Vonage Voice v1, Voice v2, Application v2, Conversation v1, and Numbers OpenAPI specs used by this voice package.",
+      "label": "Vonage Voice",
+      "summary": "Implements normalized Vonage Voice call-control, NCCO, webhook, readiness, and raw SDK access with the official Vonage server SDK.",
       "tags": [
         "voice",
         "vonage",
         "official",
-        "full-provider-api"
+        "provider-api-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Receive inbound calls",
-        "description": "Parses Vonage Voice answer, event, and fallback webhooks and returns SDK-user-defined NCCO call flow responses.",
+        "label": "Receive voice webhooks",
+        "description": "Parses Vonage answer, event, and fallback callbacks.",
         "audiences": [
           "customer-facing"
         ],
@@ -20502,8 +19075,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "send",
-        "label": "Place outbound calls",
-        "description": "Creates outbound calls through the Vonage Voice API when SDK-user policy permits outbound contact.",
+        "label": "Create outbound calls",
+        "description": "Creates outbound calls through the Vonage Voice SDK.",
         "audiences": [
           "customer-facing"
         ],
@@ -20521,11 +19094,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "media",
-        "label": "Connect calls to WebSocket media",
-        "description": "Builds NCCO connect actions for SDK-user-owned phone, SIP, or WebSocket voice bridges; generated fullApi functions expose the separate Voice v2 app/IP outbound-call endpoint.",
+        "label": "NCCO voice media",
+        "description": "Builds NCCO websocket/talk actions for Cognidesk voice sessions.",
         "audiences": [
           "customer-facing",
-          "mixed"
+          "internal-support"
         ],
         "providerObjects": [
           {
@@ -20533,18 +19106,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Vonage NCCO"
           }
         ],
-        "requiresCredential": true,
+        "requiresCredential": false,
         "sideEffect": false,
-        "exposesSensitiveData": true,
+        "exposesSensitiveData": false,
         "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "transfer",
-        "label": "Call control and transfer",
-        "description": "Transfers active calls through the documented Vonage Voice API modify-call transfer action.",
+        "label": "Transfer active calls",
+        "description": "Transfers active calls through Vonage's documented modify-call action.",
         "audiences": [
-          "customer-facing",
           "internal-support"
         ],
         "providerObjects": [
@@ -20561,8 +19133,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "voice.webhook-signature",
-        "label": "Validate Vonage signed webhooks",
-        "description": "Validates signed Vonage webhook JWTs from the Authorization header using the SDK user's signature secret.",
+        "label": "Validate Vonage webhooks",
+        "description": "Validates signed Vonage callbacks when configured by the SDK user.",
         "audiences": [
           "internal-support"
         ],
@@ -20580,79 +19152,33 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in the official Vonage Voice v1, Voice v2, Application v2, Conversation v1, and Numbers OpenAPI specs used by this voice package.",
-        "Typed convenience helpers remain available for Cognidesk support workflows: outbound calls, call fetch, documented transfer call update, NCCO helpers, and signed Voice webhook parsing.",
-        "Generated functions cover Voice v1 call list/create/get/update, stream audio, TTS, DTMF, Voice v2 outbound app/IP calls, Application CRUD, Application users, Conversation CRUD/members/events/talk/stream/record, and Numbers list/search/buy/cancel/update.",
-        "This full-provider claim is limited to this package's Vonage voice REST bundle; broader Vonage platform products outside these official specs remain separate package/surface decisions.",
-        "Application answer, event, fallback, signed-callback, phone-number ownership, regional endpoint selection, recording consent, and conversation lifecycle policy remain SDK-user/provider configuration."
+        "Implements normalized Vonage Voice call-control, NCCO, webhook, readiness, and raw SDK access with the official Vonage server SDK.",
+        "Raw Vonage SDK access is exposed as an escape hatch; this package does not re-export the whole SDK as Cognidesk-owned API coverage.",
+        "Broader Vonage platform products, Client SDK behavior, consent, retention, and telephony policy remain SDK-user/provider configuration."
       ],
       "evidence": [
         {
-          "label": "Vonage Voice API v1 OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/voice?format=json&vendorId=vonage"
-        },
-        {
-          "label": "Vonage Voice API v2 OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/voice.v2?format=json&vendorId=vonage"
-        },
-        {
-          "label": "Vonage Application API v2 OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/application.v2?format=json&vendorId=vonage"
-        },
-        {
-          "label": "Vonage Conversation API v1 OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/conversation?format=json&vendorId=vonage"
-        },
-        {
-          "label": "Vonage Numbers API OpenAPI",
-          "url": "https://developer.vonage.com/api/v1/developer/api/file/numbers?format=json&vendorId=vonage"
+          "label": "Vonage Server SDK package",
+          "url": "https://www.npmjs.com/package/@vonage/server-sdk"
         },
         {
           "label": "Vonage Voice API reference",
           "url": "https://developer.vonage.com/en/api/voice"
         },
         {
-          "label": "Vonage Voice API v2 reference",
-          "url": "https://developer.vonage.com/en/api/voice.v2"
+          "label": "Vonage Voice webhooks",
+          "url": "https://developer.vonage.com/en/voice/voice-api/webhook-reference"
         },
         {
           "label": "Vonage NCCO reference",
           "url": "https://developer.vonage.com/en/voice/voice-api/ncco-reference"
-        },
-        {
-          "label": "Vonage Voice webhooks reference",
-          "url": "https://developer.vonage.com/en/voice/voice-api/webhook-reference"
-        },
-        {
-          "label": "Vonage Application technical details",
-          "url": "https://developer.vonage.com/en/application/technical-details"
-        },
-        {
-          "label": "Vonage Voice call flow",
-          "url": "https://developer.vonage.com/en/voice/voice-api/concepts/call-flow"
-        },
-        {
-          "label": "Vonage Voice endpoints",
-          "url": "https://developer.vonage.com/en/voice/voice-api/concepts/endpoints"
-        },
-        {
-          "label": "Vonage Application API reference",
-          "url": "https://developer.vonage.com/en/api/application.v2"
-        },
-        {
-          "label": "Vonage Conversation API reference",
-          "url": "https://developer.vonage.com/en/api/conversation"
-        },
-        {
-          "label": "Vonage Numbers API reference",
-          "url": "https://developer.vonage.com/en/api/numbers"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "provider-api-subset",
       "level": "partial",
       "conformant": false,
       "categoryProfile": {
@@ -20689,88 +19215,53 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/voice/vonage",
-      "providerModule": "./voice/vonage/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@vonage/server-sdk",
+      "runtimePackage": "@cognidesk/integration-voice-vonage",
+      "providerModule": "integrations/voice/vonage/dist/manifest.js",
       "manifestExport": "vonageVoiceProviderManifest",
-      "manifestSource": "packages/integrations/src/voice/vonage/manifest.ts",
+      "manifestSource": "integrations/voice/vonage/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.vonage.com/en/voice/voice-api"
+      "documentationPath": "https://www.npmjs.com/package/@vonage/server-sdk"
     },
     "readiness": {
       "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "vonage-application",
-        "vonage-voice-application-webhooks"
+        "vonage-application"
       ],
       "optionalCredentialIds": [
-        "vonage-api-key-secret",
-        "vonage-voice-number",
-        "vonage-webhook-signature-secret",
-        "vonage-fallback-answer-url",
-        "vonage-signed-callbacks"
+        "vonage-webhook-signature"
       ],
       "credentialRequirements": [
         {
           "id": "vonage-application",
           "label": "Vonage application credentials",
-          "description": "Vonage Application ID and private key used to mint backend JWTs for Voice API calls.",
+          "description": "Vonage Application ID and private key/JWT credentials used by the official SDK.",
           "scopes": [],
-          "required": true
+          "required": true,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         },
         {
-          "id": "vonage-api-key-secret",
-          "label": "Vonage API key and secret",
-          "description": "Vonage API key/secret used for Basic-authenticated Application CRUD and Numbers API operations.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "vonage-voice-number",
-          "label": "Vonage voice-capable number",
-          "description": "SDK-user-selected Vonage number or verified caller identity used for outbound voice.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "vonage-webhook-signature-secret",
+          "id": "vonage-webhook-signature",
           "label": "Vonage webhook signature secret",
-          "description": "Signature secret used to verify signed Voice API answer and event webhooks.",
+          "description": "Optional signature secret or JWT verification setup for signed Vonage callbacks.",
           "scopes": [],
-          "required": false
-        },
-        {
-          "id": "vonage-voice-application-webhooks",
-          "label": "Vonage Voice answer and event webhooks",
-          "description": "Configured Voice application answer_url and event_url endpoints, or outbound-call URL policy, required for receiving NCCO requests and call events.",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "vonage-fallback-answer-url",
-          "label": "Vonage fallback answer URL",
-          "description": "Optional but recommended fallback_answer_url configured for Voice application webhook failures.",
-          "scopes": [],
-          "required": false
-        },
-        {
-          "id": "vonage-signed-callbacks",
-          "label": "Vonage signed callbacks",
-          "description": "Voice application signed_callbacks setting aligned with SDK webhook signature verification policy.",
-          "scopes": [],
-          "required": false
+          "required": false,
+          "metadata": {
+            "scopeKind": "provider-permission"
+          }
         }
       ]
     },
     "privacyNotes": [
-      "Phone numbers, call UUIDs, call state, recording metadata, speech callbacks, and webhook payloads can contain customer data.",
-      "Vonage private keys and webhook signature secrets stay server-side and are represented in Studio only as readiness state."
+      "Phone numbers, call metadata, webhook parameters, NCCO URLs, and conversation identifiers can contain customer data and are exchanged with Vonage.",
+      "Vonage credentials stay server-side and are never issued to browsers by this package."
     ],
     "limitations": [
-      "The SDK user configures application answer/event/fallback webhooks, signed callbacks, phone numbers, regions, recording consent, outbound eligibility, and handoff policy.",
-      "This package provides Voice API call-control and webhook primitives; it does not decide when an outbound call, recording, transfer, or callback should happen."
+      "Live call readiness depends on the SDK user's Vonage application, numbers, webhook URLs, regions, and account permissions."
     ],
     "maintainers": [
       {
@@ -20779,34 +19270,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://developer.vonage.com/en/voice/voice-api",
-      "channelCoverage": {
-        "fullVoiceRestBundleOperations": "generated-per-operation-functions",
-        "inboundAnswerEventFallbackWebhooks": "typed-parse",
-        "outboundCall": "typed-create",
-        "callFetch": "typed-read",
-        "callTransfer": "typed-transfer",
-        "ncco": "typed-generate",
-        "websocketEndpoint": "typed-ncco-connect",
-        "sipEndpoint": "typed-ncco-connect",
-        "appEndpointV2Outbound": "generated-per-operation-functions",
-        "conversationApi": "generated-per-operation-functions",
-        "applicationApi": "generated-per-operation-functions",
-        "numbersApi": "generated-per-operation-functions",
-        "recordings": "generated-per-operation-functions"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@vonage/server-sdk",
+        "verifiedVersion": "3.27.0",
+        "verifiedAt": "2026-06-21",
+        "dependencyCaveat": "The server SDK includes multiple Vonage product modules; reassess service-specific packages before tightening dependency budgets."
       },
-      "fullProviderApiVerification": {
-        "provider": "vonage-voice-rest-bundle",
-        "apiVersion": "vonage-voice-bundle-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/vonage-voice-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/vonage-voice-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/vonage-voice-full-api-2026-06-18.functions.json",
-        "documentedPathCount": 27,
-        "documentedOperationCount": 47,
-        "implementedOperationCount": 47,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 47
+      "rawClient": {
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",
@@ -20848,11 +19321,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "workplace.slack",
     "category": "workplace",
     "provider": "slack",
-    "importPath": "@cognidesk/integrations/workplace/slack",
-    "modulePath": "./workplace/slack/index.js",
-    "manifestExport": "slackWorkplaceProviderManifest",
+    "importPath": "@cognidesk/integration-workplace-slack/manifest",
+    "modulePath": "integrations/workplace/slack/dist/manifest.js",
+    "manifestExport": "slackWorkplaceManifestInput",
     "name": "Slack",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-workplace-slack",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -20865,12 +19338,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Slack",
-      "summary": "Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.",
+      "summary": "Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.",
       "tags": [
         "workplace",
         "slack",
         "official",
-        "provider-api-subset"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -20888,8 +19361,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "label": "Slack Event"
           },
           {
-            "kind": "slackInteraction",
-            "label": "Slack Interaction"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20901,15 +19374,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Post Slack messages",
-        "description": "Posts customer-visible or channel-visible support messages through Slack chat.postMessage.",
+        "description": "Posts channel-visible support messages through @slack/web-api chat.postMessage.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20920,15 +19393,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       {
         "capability": "notify",
-        "label": "Post agent-assist messages",
+        "label": "Post Slack agent-assist notifications",
         "description": "Posts Slack ephemeral messages for internal agent-assist workflows when Slack provides a target user.",
         "audiences": [
           "internal-support"
         ],
         "providerObjects": [
           {
-            "kind": "slackEphemeralMessage",
-            "label": "Slack Ephemeral Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -20940,19 +19413,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "thread",
         "label": "Use Slack threads",
-        "description": "Associates messages with Slack thread timestamps and reads channel history for thread-aware support.",
+        "description": "Associates messages with Slack thread timestamps and reads thread replies.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           },
           {
-            "kind": "slackThread",
-            "label": "Slack Thread"
+            "kind": "workplaceThread",
+            "label": "Workplace Thread"
           }
         ],
         "requiresCredential": true,
@@ -20971,8 +19444,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "slackFile",
-            "label": "Slack File"
+            "kind": "workplaceFile",
+            "label": "Workplace File"
           }
         ],
         "requiresCredential": true,
@@ -20984,15 +19457,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Slack conversation history",
-        "description": "Reads Slack conversations.history for SDK-user-selected channels and history windows.",
+        "description": "Reads Slack conversation history or thread replies for SDK-user-selected channels and windows.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "slackConversationHistory",
-            "label": "Slack Conversation History"
+            "kind": "workplaceThread",
+            "label": "Workplace Thread"
           }
         ],
         "requiresCredential": true,
@@ -21011,8 +19484,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "slackMessage",
-            "label": "Slack Message"
+            "kind": "workplaceMessage",
+            "label": "Workplace Message"
           }
         ],
         "requiresCredential": true,
@@ -21024,7 +19497,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "slack.request-signature",
         "label": "Validate Slack request signatures",
-        "description": "Validates Slack X-Slack-Signature and X-Slack-Request-Timestamp values for Events API and interactivity.",
+        "description": "Validates Slack X-Slack-Signature and X-Slack-Request-Timestamp values.",
         "audiences": [
           "internal-support"
         ],
@@ -21042,21 +19515,17 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Slack's archived official Web API Swagger 2.0 spec.",
-        "Typed convenience helpers remain available for selected Slack workplace support workflows: chat.postMessage, chat.postEphemeral, chat.update, conversations.history, conversations.replies, the current external file upload sequence, auth.test readiness, Events API/interactivity parsing, and signed request validation.",
-        "Receive coverage is HTTP Events API/interactivity parsing only; this package does not configure Slack app subscriptions, apps.connections.open, xapp tokens, WebSocket reconnects, Socket Mode ingestion, or Socket Mode payload acknowledgements.",
-        "This is not full current Slack platform coverage; Slack's official specs repository was archived on 2024-03-27, and Events subscriptions, Socket Mode protocol, SCIM, Audit Logs, Legal Holds, Status API, workflow runtime behavior, and current docs-only methods remain separate surfaces."
+        "Coverage is a Cognidesk support workflow adapter backed by Slack's official @slack/web-api package.",
+        "Typed operations cover Slack Events API/interactivity request parsing, signed request validation, chat.postMessage, chat.postEphemeral, chat.update, conversations.replies, the external file upload sequence, and auth.test readiness.",
+        "This package intentionally does not clone Slack's archived generated Web API spec and does not claim full Slack platform coverage.",
+        "Slack Socket Mode, OAuth installation flows, incoming webhook delivery, SCIM, Audit Logs, Legal Holds, workflow runtime behavior, and broad admin APIs are separate extension surfaces or future packages."
       ],
       "evidence": [
         {
-          "label": "Slack archived official Web API Swagger",
-          "url": "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json"
-        },
-        {
-          "label": "Slack official API specs repository",
-          "url": "https://github.com/slackapi/slack-api-specs"
+          "label": "Slack Web API package",
+          "url": "https://www.npmjs.com/package/@slack/web-api"
         },
         {
           "label": "Slack Web API methods",
@@ -21069,10 +19538,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Slack chat.update",
           "url": "https://docs.slack.dev/reference/methods/chat.update/"
-        },
-        {
-          "label": "Slack conversations.history",
-          "url": "https://docs.slack.dev/reference/methods/conversations.history/"
         },
         {
           "label": "Slack conversations.replies",
@@ -21097,53 +19562,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Slack Web API rate limits",
           "url": "https://docs.slack.dev/apis/web-api/rate-limits"
-        },
-        {
-          "label": "Slack conversations.history/replies rate-limit changes",
-          "url": "https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "provider-api-subset",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
-      }
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/workplace/slack",
-      "providerModule": "./workplace/slack/index.js",
-      "manifestExport": "slackWorkplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/workplace/slack/manifest.ts",
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-workplace-slack",
+      "runtimePackage": "@cognidesk/integration-workplace-slack",
+      "providerModule": "integrations/workplace/slack/dist/manifest.js",
+      "manifestExport": "slackWorkplaceManifestInput",
+      "manifestSource": "integrations/workplace/slack/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json"
+      "documentationPath": "https://www.npmjs.com/package/@slack/web-api"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -21157,7 +19592,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "slack-bot-token",
           "label": "Slack bot token",
-          "description": "Server-side bot token used for Slack Web API calls such as chat.postMessage and auth.test.",
+          "description": "Server-side bot token used by @slack/web-api for Web API calls.",
           "scopes": [
             "chat:write",
             "chat:write.public",
@@ -21182,12 +19617,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       ]
     },
     "privacyNotes": [
-      "Slack messages, channel identifiers, user identifiers, event payloads, interaction payloads, and workspace metadata can contain internal support context and customer data.",
+      "Slack messages, channel identifiers, user identifiers, event payloads, interaction payloads, files, and workspace metadata can contain internal support context and customer data.",
       "Slack bot tokens and signing secrets stay server-side and are represented in Studio only as credential readiness."
     ],
     "limitations": [
       "Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.",
-      "Slack conversations.history and conversations.replies rate limits vary by Marketplace approval, commercial distribution, and install date; SDK users own pagination, Retry-After handling, retry, and backoff policy. Slack recommends designing message posting around roughly one request per second per channel.",
+      "Slack rate limits vary by method, workspace, Marketplace approval, commercial distribution, and install date; SDK users own pagination, Retry-After handling, retry, and backoff policy.",
       "Customer visibility, agent-assist routing, approval, retention, redaction, and escalation behavior remain SDK-user configuration."
     ],
     "maintainers": [
@@ -21198,56 +19633,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "channelCoverage": {
-        "archivedWebApi": "generated-per-operation-functions",
-        "chatMessages": "typed-post-update",
-        "ephemeralMessages": "typed-post",
-        "conversationsHistoryReplies": "typed-read",
-        "externalFileUpload": "typed-upload",
-        "authReadiness": "typed-read",
+        "chatMessages": "sdk-owned-post-update",
+        "ephemeralMessages": "sdk-owned-post",
+        "threadReplies": "sdk-owned-read",
+        "externalFileUpload": "sdk-owned-upload",
+        "authReadiness": "sdk-owned-read",
         "eventsInteractivity": "typed-parse-verify",
-        "socketMode": "provider-supported-not-typed",
-        "viewsWorkflowsAdminAudit": "provider-supported-not-typed"
+        "socketMode": "not-covered",
+        "oauth": "not-covered",
+        "incomingWebhooks": "not-covered"
       },
-      "generatedProviderSliceVerification": {
-        "provider": "slack-web-api-archived-swagger",
-        "apiVersion": "1.7.0",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/slack-web-api-2026-06-18.functions.json",
-        "documentedPathCount": 174,
-        "documentedOperationCount": 174,
-        "implementedOperationCount": 174,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 174
-      },
-      "categoryProfileId": "workplace",
-      "integrationCategoryProfileId": "workplace",
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
+      "providerClient": {
+        "package": "@slack/web-api",
+        "versionRange": "^7.17.0",
+        "importPolicy": "runtime-entrypoint-only"
       }
     }
   },
@@ -21255,11 +19654,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "workplace.teams",
     "category": "workplace",
     "provider": "teams",
-    "importPath": "@cognidesk/integrations/workplace/teams",
-    "modulePath": "./workplace/teams/index.js",
-    "manifestExport": "teamsWorkplaceProviderManifest",
+    "importPath": "@cognidesk/integration-workplace-teams/manifest",
+    "modulePath": "integrations/workplace/teams/dist/manifest.js",
+    "manifestExport": "teamsWorkplaceManifestInput",
     "name": "Microsoft Teams",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-workplace-teams",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -21272,7 +19671,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Microsoft Teams",
-      "summary": "Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Teams/workplace collaboration slice used by this package: Teams app catalog, chats, communications/calls, group team, joinedTeams, onlineMeetings, presence, teams/channels, teamwork, user teamwork, and subscriptions.",
+      "summary": "Coverage includes SDK-backed Microsoft Graph Teams support workflows: channel and chat messages, channel replies, message updates, subscriptions, current-user readiness, and change notifications.",
       "tags": [
         "workplace",
         "teams",
@@ -21380,6 +19779,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "teamsChatMessage",
             "label": "Teams Chat Message"
+          },
+          {
+            "kind": "teamsUser",
+            "label": "Microsoft Graph User"
           }
         ],
         "requiresCredential": true,
@@ -21426,43 +19829,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": true,
         "extension": false
-      },
-      {
-        "capability": "teams.change-notification-client-state",
-        "label": "Validate Graph clientState",
-        "description": "Validates Microsoft Graph change notification clientState secrets and notification URL validation tokens.",
-        "audiences": [
-          "internal-support"
-        ],
-        "providerObjects": [
-          {
-            "kind": "teamsChangeNotification",
-            "label": "Teams Change Notification"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": true
       }
     ],
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for the Microsoft Graph v1.0 Teams/workplace collaboration slice used by this package: Teams app catalog, chats, communications/calls, group team, joinedTeams, onlineMeetings, presence, teams/channels, teamwork, user teamwork, and subscriptions.",
-        "Typed convenience helpers remain available for selected Microsoft Graph Teams support workflows: delegated channel/chat message send, delegated channel replies, channel/chat message list/get/update helpers, delegated current user readiness, change notification clientState validation, and subscription creation.",
-        "Normal Teams channel/chat sends require delegated Microsoft Graph permissions; application permissions are reserved by Microsoft for migration/import flows that this package does not implement.",
-        "This is not full Microsoft Graph coverage; the complete Graph v1.0 OpenAPI covers many Microsoft 365 services. Mail, files/Drive, calendar, identity, admin, security, and broader Graph resources remain outside this Teams/workplace adapter unless represented in this slice."
+        "Coverage includes SDK-backed Microsoft Graph Teams support workflows: channel and chat messages, channel replies, message updates, subscriptions, current-user readiness, and change notifications.",
+        "The package uses @microsoft/microsoft-graph-client for Graph calls and keeps Cognidesk-normalized helper methods and operation handlers.",
+        "This is not full Microsoft Graph coverage. Files/Drive, calendar, identity/admin, security, calls, meetings, app catalog breadth, and broader Graph resources remain outside this Teams adapter."
       ],
       "evidence": [
         {
-          "label": "Microsoft Graph OpenAPI registry",
-          "url": "https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml"
-        },
-        {
-          "label": "Microsoft Graph v1.0 OpenAPI",
-          "url": "https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/master/openapi/v1.0/openapi.yaml"
+          "label": "Microsoft Graph JavaScript client",
+          "url": "https://www.npmjs.com/package/@microsoft/microsoft-graph-client"
         },
         {
           "label": "Microsoft Graph send channel message",
@@ -21499,57 +19878,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Microsoft Graph webhook subscription lifecycle",
           "url": "https://learn.microsoft.com/en-us/graph/change-notifications-delivery-webhooks"
-        },
-        {
-          "label": "Microsoft Graph cloud communications calls",
-          "url": "https://learn.microsoft.com/en-us/graph/api/resources/call?view=graph-rest-1.0"
-        },
-        {
-          "label": "Microsoft Graph online meetings",
-          "url": "https://learn.microsoft.com/en-us/graph/api/resources/onlinemeeting?view=graph-rest-1.0"
         }
       ]
     },
     "adapterCoverage": {
       "scope": "provider-api-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
-      }
+      "level": "standard",
+      "conformant": null
     },
     "implementation": {
-      "strategy": "provider-api-subset",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/workplace/teams",
-      "providerModule": "./workplace/teams/index.js",
-      "manifestExport": "teamsWorkplaceProviderManifest",
-      "manifestSource": "packages/integrations/src/workplace/teams/manifest.ts",
+      "strategy": "official-sdk",
+      "sdkPackage": "@microsoft/microsoft-graph-client",
+      "runtimePackage": "@cognidesk/integration-workplace-teams",
+      "providerModule": "integrations/workplace/teams/dist/manifest.js",
+      "manifestExport": "teamsWorkplaceManifestInput",
+      "manifestSource": "integrations/workplace/teams/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/microsoftgraph/msgraph-metadata/blob/master/apis.yaml"
+      "documentationPath": "https://www.npmjs.com/package/@microsoft/microsoft-graph-client"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -21617,8 +19962,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Normal channel/chat message sends reject application permission mode; Microsoft documents application send permissions for migration/import scenarios, which this package does not implement.",
       "Microsoft Graph channel and chat message APIs are intended for messages people will read; this package does not use Teams as an application log or choose automation volume policy.",
       "This package provides transport, parsing, and readiness helpers only; customer/internal visibility, agent assist, approval, retention, redaction, escalation, and human handoff are SDK-user policy.",
-      "Some read and update operations have Graph permission, tenant, national cloud, DLP, federation, and licensing constraints and may be unavailable for a given Teams resource.",
-      "The generated Teams/workplace slice exposes Graph subscription renewal/delete/reauthorize operations, while expiration monitoring, encrypted resource data decryption, retry, and reauthorization timing remain SDK-user integration responsibilities."
+      "Subscription renewal, deletion, reauthorization timing, encrypted resource data decryption, and retry policy remain SDK-user integration responsibilities."
     ],
     "maintainers": [
       {
@@ -21627,59 +19971,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@microsoft/microsoft-graph-client",
+        "rawClientEscapeHatch": "rawClient",
+        "manifestOnlyExport": "@cognidesk/integration-workplace-teams/manifest"
+      },
       "channelCoverage": {
-        "channelMessages": "typed-send-list-get-update",
-        "channelReplies": "typed-send-list",
-        "chatMessages": "typed-send-list-get-update",
-        "graphSubscriptions": "typed-create",
+        "channelMessages": "sdk-owned-send-list-get-update",
+        "channelReplies": "sdk-owned-send-list",
+        "chatMessages": "sdk-owned-send-list-get-update",
+        "graphSubscriptions": "sdk-owned-create",
         "changeNotifications": "typed-validate-parse",
-        "currentUser": "typed-read",
-        "graphTeamsWorkplaceSlice": "generated-per-operation-functions",
-        "subscriptionRenewDelete": "generated-full-slice",
-        "teamsChatsChannelsAppsCallsMeetingsPresence": "generated-full-slice",
+        "currentUser": "sdk-owned-read",
         "applicationMigrationSend": "provider-supported-not-typed"
-      },
-      "generatedProviderApiVerification": {
-        "provider": "microsoft-graph-teams-workplace-slice",
-        "apiVersion": "v1.0",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/teams-graph-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/teams-graph-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/teams-graph-api-2026-06-17.functions.json",
-        "documentedPathCount": 1415,
-        "documentedOperationCount": 2293,
-        "implementedOperationCount": 2293,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 2293,
-        "slice": "Microsoft Graph v1.0 Teams/workplace collaboration paths only; not full Microsoft Graph."
-      },
-      "categoryProfileId": "workplace",
-      "integrationCategoryProfileId": "workplace",
-      "categoryProfile": {
-        "id": "workplace",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
-          "workplace.message.receive",
-          "workplace.thread.read",
-          "workplace.message.send"
-        ],
-        "missingRecommendedOperations": [
-          "workplace.message.reply",
-          "workplace.message.update",
-          "workplace.channel.search",
-          "workplace.user.read",
-          "workplace.file.upload",
-          "workplace.notification.send"
-        ],
-        "missingOptionalOperations": [
-          "workplace.message.delete",
-          "workplace.reaction.add",
-          "workplace.channel.join",
-          "workplace.workflow.trigger"
-        ],
-        "extensionOperations": []
       }
     }
   }
