@@ -84,9 +84,24 @@ importers:
       '@cognidesk/integration-messaging-discord':
         specifier: workspace:*
         version: link:../../integrations/messaging/discord
-      '@cognidesk/integrations':
+      '@cognidesk/integration-voice-aws-speech':
         specifier: workspace:*
-        version: link:../../packages/integrations
+        version: link:../../integrations/voice/aws-speech
+      '@cognidesk/integration-voice-azure-speech':
+        specifier: workspace:*
+        version: link:../../integrations/voice/azure-speech
+      '@cognidesk/integration-voice-deepgram':
+        specifier: workspace:*
+        version: link:../../integrations/voice/deepgram
+      '@cognidesk/integration-voice-elevenlabs':
+        specifier: workspace:*
+        version: link:../../integrations/voice/elevenlabs
+      '@cognidesk/integration-voice-google-speech':
+        specifier: workspace:*
+        version: link:../../integrations/voice/google-speech
+      '@cognidesk/integration-voice-openai':
+        specifier: workspace:*
+        version: link:../../integrations/voice/openai
       '@cognidesk/model':
         specifier: workspace:*
         version: link:../../packages/model

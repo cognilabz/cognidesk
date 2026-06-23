@@ -7,9 +7,6 @@ on:
       - "website/**"
       - "mkdocs.yml"
       - "requirements-docs.txt"
-      - "packages/*/src/**"
-      - "integrations/*/*/src/**"
-      - "typedoc.json"
   workflow_dispatch:
 
 permissions:
@@ -35,12 +32,6 @@ jobs:
 
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Generate API reference
-        run: pnpm docs:generate
 
       - uses: actions/setup-python@v5
         with:

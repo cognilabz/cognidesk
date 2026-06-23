@@ -10,7 +10,6 @@ import {
   emailCategoryProfile,
   findCategoryOperation,
   getIntegrationCategoryProfile,
-  defaultIntegrationProviderRuntimeRegistry,
   handoffCategoryProfile,
   integrationProviderReferences,
   integrationCategoryProfiles,

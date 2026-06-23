@@ -16,12 +16,12 @@ import {
   type AwsPollySynthesizeCommandInput,
   type AwsSdkCommandConstructor,
   type AwsTranscribeStreamingCommandInput,
-} from "@cognidesk/integrations/voice/aws-speech";
-import { createAzureSpeechVoiceProvider } from "@cognidesk/integrations/voice/azure-speech";
-import { createDeepgramSpeechVoiceProvider } from "@cognidesk/integrations/voice/deepgram";
-import { createElevenLabsSpeechVoiceProvider } from "@cognidesk/integrations/voice/elevenlabs";
-import { createGoogleSpeechVoiceProvider } from "@cognidesk/integrations/voice/google-speech";
-import { createOpenAIVoiceProvider } from "@cognidesk/integrations/voice/openai";
+} from "@cognidesk/integration-voice-aws-speech";
+import { createAzureSpeechVoiceProvider } from "@cognidesk/integration-voice-azure-speech";
+import { createDeepgramVoiceProvider } from "@cognidesk/integration-voice-deepgram";
+import { createElevenLabsVoiceProvider } from "@cognidesk/integration-voice-elevenlabs";
+import { createGoogleSpeechVoiceProvider } from "@cognidesk/integration-voice-google-speech";
+import { createOpenAIVoiceProvider } from "@cognidesk/integration-voice-openai";
 import {
   attachNodeVoiceWebSocketAdapter,
   createInMemoryVoiceSessionStore,
@@ -94,8 +94,9 @@ const discordService = discordIntegration
       copy: {
         supportThreadNamePrefix: "Flight support",
         sourceThreadNamePrefix: "Flight support",
-        promptFallbackMessage: ({ conversationUrl }) => `This step needs the web demo. Continue here: ${conversationUrl}`,
-        turnFailureMessage: ({ conversationUrl }) =>
+        promptFallbackMessage: ({ conversationUrl }: { conversationUrl: string }) =>
+          `This step needs the web demo. Continue here: ${conversationUrl}`,
+        turnFailureMessage: ({ conversationUrl }: { conversationUrl: string }) =>
           `The flight demo could not generate a response. Continue on web: ${conversationUrl}`,
       },
     })
@@ -269,12 +270,12 @@ function createConfiguredVoiceProvider(
       if (secrets.provider !== "elevenlabs") {
         throw new Error("ElevenLabs voice configuration received mismatched credentials.");
       }
-      return createElevenLabsSpeechVoiceProvider({
+      return createElevenLabsVoiceProvider({
         apiKey: secrets.apiKey,
         voiceId: config.voice.voiceId,
         ...(config.voice.textToSpeechModelId ? { textToSpeechModelId: config.voice.textToSpeechModelId } : {}),
         ...(config.voice.speechToTextModelId ? { speechToTextModelId: config.voice.speechToTextModelId } : {}),
-        ...(config.voice.languageCode !== undefined ? { languageCode: config.voice.languageCode } : {}),
+        ...(config.voice.languageCode != null ? { languageCode: config.voice.languageCode } : {}),
         ...(config.voice.outputFormat ? { outputFormat: config.voice.outputFormat } : {}),
       });
     }
@@ -333,7 +334,7 @@ function createConfiguredVoiceProvider(
       if (secrets.provider !== "deepgram") {
         throw new Error("Deepgram voice configuration received mismatched credentials.");
       }
-      return createDeepgramSpeechVoiceProvider({
+      return createDeepgramVoiceProvider({
         apiKey: secrets.apiKey,
         textToSpeechModel: config.voice.textToSpeechModel,
         ...(config.voice.speechToTextModel ? { speechToTextModel: config.voice.speechToTextModel } : {}),

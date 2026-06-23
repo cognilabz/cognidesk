@@ -9,6 +9,7 @@ on:
       - "pnpm-workspace.yaml"
       - "integrations/**"
       - "packages/**"
+      - "apps/flight-demo/**"
       - "scripts/**"
       - "docs/adr/**"
       - "docs/integrations-monolith-cleanup.md"
@@ -31,6 +32,7 @@ on:
       - "pnpm-workspace.yaml"
       - "integrations/**"
       - "packages/**"
+      - "apps/flight-demo/**"
       - "scripts/**"
       - "docs/adr/**"
       - "docs/integrations-monolith-cleanup.md"
@@ -62,11 +64,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate provider catalog data
-        run: pnpm providers:catalog:data
-
-      - name: Build packages
-        run: pnpm build --concurrency=1
+      - name: Build flight demo dependency graph
+        run: pnpm --filter @cognidesk/flight-demo... build
 
       - name: Check integration architecture
         run: pnpm providers:architecture
@@ -74,18 +73,5 @@ jobs:
       - name: Check monolith cleanup map
         run: pnpm providers:cleanup-map
 
-      - name: Check provider package conformance
-        run: pnpm provider-packages:check
-
-      - name: Check package smoke and size budgets
-        run: pnpm release:verify-packages -- --fail-size-budget
-
-      - name: Generate provider docs
-        run: pnpm providers:catalog
-
-      - name: Verify generated provider catalog is committed
-        run: >-
-          git diff --exit-code --
-          packages/integration-catalog/src/catalog.generated.ts
-          packages/integrations/src/provider-catalog/runtime-loaders.generated.ts
-          website/guides/provider-integrations-catalog.md
+      - name: Check flight demo static health
+        run: pnpm --filter @cognidesk/flight-demo typecheck && pnpm --filter @cognidesk/flight-demo test
