@@ -50,11 +50,15 @@ export type IntegrationOperationHandlers<Credentials = unknown> = Record<
 type AnyIntegrationOperationHandlers = Record<string, IntegrationOperationHandler<any, any, any>>;
 
 export type ManifestOperationAlias<Manifest> =
-  Manifest extends { operations?: readonly (infer Operation)[] }
-    ? Operation extends { alias: infer Alias extends string }
+  Manifest extends { readonly operations: readonly (infer Operation)[] }
+    ? Operation extends { readonly alias: infer Alias extends string }
       ? Alias
       : never
-    : never;
+    : Manifest extends { operations?: readonly (infer Operation)[] }
+      ? Operation extends { alias: infer Alias extends string }
+        ? Alias
+        : never
+      : never;
 
 type HandlerAliases<Handlers> = Extract<keyof Handlers, string>;
 
@@ -114,13 +118,13 @@ export interface DefinedIntegration<
 
 export function defineIntegrationProviderPackage<const Manifest extends ProviderManifestInput>(
   manifest: Manifest,
-): ProviderManifest {
+): ProviderManifest & Manifest {
   const profile = getIntegrationCategoryProfile(manifest.category);
   const parsed = profile
     ? defineProviderWithProfileMetadata(manifest, profile)
     : defineProviderPackage(manifest);
   assertProviderExtensionOperationAliases(parsed, profile);
-  return parsed;
+  return parsed as ProviderManifest & Manifest;
 }
 
 export function defineIntegration<
@@ -232,7 +236,7 @@ export function isProviderNamespacedOperationAlias(
 export function providerOperationAliasNamespaces(
   manifest: Pick<ProviderManifest, "id" | "provider" | "packageName">,
 ): readonly string[] {
-  const packageLeaf = manifest.packageName.split("/").pop()?.replace(/^integration-/, "");
+  const packageLeaf = manifest.packageName.split("/").pop();
   return [...new Set([
     manifest.provider,
     manifest.id,

@@ -55,7 +55,7 @@ for (const pkg of smokePackages) {
   console.log(`  ${pkg.name}: ${count} public export${count === 1 ? "" : "s"}`);
 }
 
-await reportPackageDistSizes(smokePackages);
+await reportPackageDistSizes(workspaces);
 
 if (missingTargets.length > 0) {
   console.error("\nMissing built export targets:");

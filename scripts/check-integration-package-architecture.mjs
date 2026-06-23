@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -36,10 +37,15 @@ const providerSdkPackages = new Set([
   "@azure/identity",
   "@googleapis/gmail",
   "@hubspot/api-client",
+  "intercom-client",
+  "jsforce",
   "@microsoft/microsoft-graph-client",
   "@ringcentral/sdk",
+  "@shopify/admin-api-client",
+  "@shopify/shopify-api",
   "@slack/web-api",
   "@vonage/server-sdk",
+  "discord.js",
   "googleapis",
   "mailgun.js",
   "openai",
@@ -50,6 +56,7 @@ const providerSdkPackages = new Set([
 const infrastructurePackageNames = new Set([
   "@cognidesk/voice-websocket",
 ]);
+const aggregateIntegrationsPackageName = "@cognidesk/integrations";
 const providerNeutralManifestOnlyPackageNames = new Set([
   "@cognidesk/core",
   "@cognidesk/integration-catalog",
@@ -68,6 +75,10 @@ const oldImportBridgeMetadataKeys = [
   "oldImportBridge",
   "oldImportCompatibilityPackage",
 ];
+const migratedHelpdeskProviders = ["front", "gorgias", "kustomer", "zendesk"];
+const staleHelpdeskFullCloneGenerators = new Set([
+  "generate-zendesk-full-api.mjs",
+]);
 
 const failures = [];
 const warnings = [];
@@ -86,10 +97,12 @@ async function main() {
 
   checkProviderPackageNaming(splitProviderPackages);
   await checkNoOldImportCompatibilityPackages(workspaces);
+  await checkAggregateProviderReferencesMatchPackageExports(workspaces);
   await checkNoRuntimeNodeModulesScanning(workspaces);
   await checkManifestOnlyEntrypoints();
   await checkSdkBackedGeneratedClones(splitProviderPackages);
   await checkFullProviderApiClaimsUseAdapterVerification(splitProviderPackages);
+  await checkProviderGeneratorDiscovery();
 
   if (warnings.length > 0) {
     console.log("Integration package architecture warnings:");
@@ -106,10 +119,12 @@ async function main() {
   console.log("Integration package architecture check passed:");
   console.log(`  split provider packages discovered: ${splitProviderPackages.length}`);
   console.log("  no old-import compatibility packages or provider bridges were discovered");
+  console.log("  aggregate provider references match exported @cognidesk/integrations subpaths");
   console.log("  package source does not scan node_modules at runtime");
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
+  console.log("  provider generation discovery does not expose migrated helpdesk full-clone generators");
   console.log("  provider package names use @cognidesk/integration-{category}-{provider}");
 }
 
@@ -318,6 +333,80 @@ function scopedPackageName(specifier) {
   return `${segments[0]}/${segments[1]}`;
 }
 
+async function checkAggregateProviderReferencesMatchPackageExports(packages) {
+  const aggregatePackage = packages.find((pkg) => pkg.name === aggregateIntegrationsPackageName);
+  if (!aggregatePackage) {
+    failures.push("packages/integrations/package.json: @cognidesk/integrations package was not found");
+    return;
+  }
+
+  const exportedSubpaths = packageExportSubpaths(aggregatePackage.packageJson.exports);
+  const categoriesDir = path.join(repoRoot, "packages", "integrations", "src", "provider-catalog", "categories");
+  if (!existsSync(categoriesDir)) return;
+
+  const categoryFiles = (await walk(categoriesDir))
+    .filter((file) => file.endsWith(".ts"))
+    .filter((file) => !isGeneratedSourceFile(file));
+
+  for (const file of categoryFiles) {
+    const source = await readFile(file, "utf8");
+    const relative = path.relative(repoRoot, file);
+
+    for (const reference of providerReferenceImportPaths(source)) {
+      const exportSubpath = aggregateExportSubpathForImportPath(
+        reference.importPath,
+        aggregateIntegrationsPackageName,
+      );
+      if (!exportSubpath) continue;
+      if (exportedSubpaths.has(exportSubpath)) continue;
+
+      failures.push(
+        `${relative}:${reference.line}: provider catalog importPath '${reference.importPath}' is not exported by packages/integrations/package.json as '${exportSubpath}'`,
+      );
+    }
+  }
+}
+
+export function packageExportSubpaths(exportsField) {
+  if (exportsField === undefined) return new Set();
+  if (!isObjectRecord(exportsField)) return new Set(["."]);
+
+  const keys = Object.keys(exportsField);
+  if (keys.some((key) => key === "." || key.startsWith("./"))) {
+    return new Set(keys);
+  }
+
+  return new Set(["."]);
+}
+
+export function aggregateExportSubpathForImportPath(importPath, packageName = aggregateIntegrationsPackageName) {
+  if (importPath === packageName) return ".";
+
+  const prefix = `${packageName}/`;
+  if (!importPath.startsWith(prefix)) return undefined;
+
+  return `./${importPath.slice(prefix.length)}`;
+}
+
+export function providerReferenceImportPaths(source) {
+  const references = [];
+  const importPathPattern = /["']?importPath["']?\s*:\s*["']([^"']+)["']/g;
+  let match;
+
+  while ((match = importPathPattern.exec(source))) {
+    references.push({
+      importPath: match[1],
+      line: source.slice(0, match.index).split("\n").length,
+    });
+  }
+
+  return references;
+}
+
+function isObjectRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 async function checkNoRuntimeNodeModulesScanning(packages) {
   for (const pkg of packages) {
     const srcDir = path.join(pkg.dir, "src");
@@ -462,14 +551,7 @@ function isRelativeProviderRuntimeImport(file, specifier) {
   const segments = relativeToProvider.split(path.sep).filter(Boolean).map(stripModuleExtension);
   if (segments.length === 0) return false;
 
-  const normalized = segments[0] === "src" ? segments.slice(1) : segments;
-  const [firstSegment] = normalized;
-  if (!firstSegment) return false;
-  if (firstSegment === "index") return normalized.length === 1;
-  return firstSegment === "client"
-    || firstSegment === "clients"
-    || firstSegment === "runtime"
-    || firstSegment === "runtimes";
+  return segments.some((segment) => manifestOnlyRuntimeRelativeModuleNames.has(segment));
 }
 
 function providerPackageRootForFile(file) {
@@ -554,6 +636,52 @@ async function checkFullProviderApiClaimsUseAdapterVerification(packages) {
       }
     }
   }
+}
+
+async function checkProviderGeneratorDiscovery() {
+  const listedScripts = providerGeneratorList();
+
+  for (const script of staleHelpdeskFullCloneGenerators) {
+    if (listedScripts.includes(script)) {
+      failures.push(
+        `scripts/generate-provider-surfaces.mjs: providers:generate:list must not expose stale migrated helpdesk full-clone generator ${script}`,
+      );
+    }
+  }
+
+  for (const script of listedScripts) {
+    const source = await readFile(path.join(repoRoot, "scripts", script), "utf8");
+    const provider = migratedHelpdeskProviders.find((candidate) =>
+      source.includes(`packages/integrations/src/ticketing/${candidate}`)
+    );
+    if (!provider) continue;
+
+    failures.push(
+      `${path.join("scripts", script)}: listed provider generator must not write deleted aggregate ticketing/${provider} source paths`,
+    );
+  }
+
+  for (const script of ["generate-ticketing-provider-coverage.mjs", "generate-zendesk-full-api.mjs"]) {
+    const source = await readFile(path.join(repoRoot, "scripts", script), "utf8");
+    const provider = migratedHelpdeskProviders.find((candidate) =>
+      source.includes(`packages/integrations/src/ticketing/${candidate}`)
+    );
+    if (!provider) continue;
+
+    failures.push(
+      `${path.join("scripts", script)}: migrated helpdesk coverage generator must not write deleted aggregate ticketing/${provider} source paths`,
+    );
+  }
+}
+
+function providerGeneratorList() {
+  return execFileSync(process.execPath, [path.join(repoRoot, "scripts", "generate-provider-surfaces.mjs"), "--list"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  })
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.endsWith(".mjs"));
 }
 
 async function sourceFilesForPackage(pkg) {

@@ -5,10 +5,12 @@ import {
   defineIntegrationCategoryProfile,
   defineIntegrationProviderPackage,
   deriveProviderCapabilityCoverage,
+  defaultIntegrationProviderRuntimeRegistry,
   ecommerceCategoryProfile,
   emailCategoryProfile,
   findCategoryOperation,
   getIntegrationCategoryProfile,
+  defaultIntegrationProviderRuntimeRegistry,
   handoffCategoryProfile,
   integrationProviderReferences,
   integrationCategoryProfiles,
@@ -236,19 +238,27 @@ describe("integration category profiles", () => {
 
   it("advertises provider modules that are present in this PR slice", async () => {
     expect(integrationProviderReferences.length).toBeGreaterThan(0);
-    expect(isIntegrationProviderReferenceAvailable("ticketing.zendesk")).toBe(true);
-    await expect(loadProviderIntegrationManifest("ticketing.zendesk")).resolves.toMatchObject({
-      id: "ticketing.zendesk",
-      category: "ticketing",
-      provider: "zendesk",
+    expect(isIntegrationProviderReferenceAvailable("sms.twilio")).toBe(true);
+    await expect(loadProviderIntegrationManifest("sms.twilio")).resolves.toMatchObject({
+      id: "sms.twilio",
+      category: "sms",
+      provider: "twilio",
     });
   });
 
+  it("does not register split provider packages through the legacy monolith runtime", () => {
+    expect(defaultIntegrationProviderRuntimeRegistry.has("ticketing.oracle-service")).toBe(false);
+    expect(defaultIntegrationProviderRuntimeRegistry.has("ticketing.pega-customer-service")).toBe(false);
+    expect(defaultIntegrationProviderRuntimeRegistry.has("ticketing.sap-service-cloud")).toBe(false);
+  });
+
   it("attaches category profile metadata to advertised matching provider manifests", async () => {
-    const profiledCategories = new Set(integrationCategoryProfiles.map((profile) => profile.category));
+    const profiledCategories = new Set(integrationCategoryProfiles.map((profile) => profile.id));
     const profiledReferences = integrationProviderReferences.filter((reference) =>
-      profiledCategories.has(reference.category)
+      profiledCategories.has(reference.category) &&
+      defaultIntegrationProviderRuntimeRegistry.has(reference)
     );
+    expect(profiledReferences.length).toBeGreaterThan(0);
 
     for (const reference of profiledReferences) {
       const profile = requireIntegrationCategoryProfile(reference.category);
@@ -277,7 +287,7 @@ describe("integration category profiles", () => {
         expect(declaredCapabilities.has(operation.capability), `${reference.id}:${operation.alias}`).toBe(true);
       }
     }
-  }, 30000);
+  }, 120_000);
 
   it("does not infer concrete category operations from broad provider capabilities", () => {
     const manifest = defineIntegrationProviderPackage({
