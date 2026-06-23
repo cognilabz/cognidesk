@@ -9605,11 +9605,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "review.appstore",
     "category": "review",
     "provider": "appstore",
-    "importPath": "@cognidesk/integrations/review/appstore",
-    "modulePath": "./review/appstore/index.js",
+    "importPath": "@cognidesk/integration-review-appstore/manifest",
+    "modulePath": "integrations/review/appstore/src/manifest.js",
     "manifestExport": "appStoreReviewsProviderManifest",
     "name": "App Store Reviews",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-review-appstore",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -9622,12 +9622,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "App Store Reviews",
-      "summary": "Coverage includes generated per-operation functions for every operation in Apple's official App Store Connect OpenAPI specification.",
+      "summary": "Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.",
       "tags": [
         "review",
         "appstore",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
@@ -9731,9 +9731,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "update-provider-object",
-        "label": "Update review responses",
-        "description": "Updates or deletes existing App Store customer review responses according to SDK-user approval policy.",
+        "capability": "delete-provider-object",
+        "label": "Delete review responses",
+        "description": "Deletes existing App Store customer review responses according to SDK-user approval policy.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -9752,56 +9752,48 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Apple's official App Store Connect OpenAPI specification.",
-        "The package keeps typed support helpers for customer review support primitives: app review list/read pagination, customer review response create-or-update/delete, app readiness reads, and ES256 JWT creation.",
-        "The SDK user owns App Store Connect roles, app scoping, localization, public-response approval, moderation, consent, redaction, and retention decisions."
+        "Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.",
+        "No official Apple JavaScript or TypeScript SDK for App Store Connect customer reviews was found on 2026-06-21; this package uses a constrained direct REST support slice with ES256 JWT auth.",
+        "Apple's official @apple/app-store-server-library Node package targets App Store Server APIs, not App Store Connect customer review resources."
       ],
       "evidence": [
-        {
-          "label": "App Store Connect OpenAPI specification",
-          "url": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip"
-        },
         {
           "label": "App Store Connect API overview",
           "url": "https://developer.apple.com/documentation/appstoreconnectapi"
         },
         {
-          "label": "List customer reviews for an app",
-          "url": "https://developer.apple.com/documentation/appstoreconnectapi/get-v1-apps-_id_-customerreviews"
+          "label": "App Store Connect OpenAPI specification (openapi.oas.json sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec)",
+          "url": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip"
         },
         {
-          "label": "Customer review responses",
-          "url": "https://developer.apple.com/documentation/appstoreconnectapi/customer-review-responses"
+          "label": "App Store Connect JWT tokens",
+          "url": "https://developer.apple.com/documentation/appstoreconnectapi/generating-tokens-for-api-requests"
         },
         {
-          "label": "Create or update customer review response",
-          "url": "https://developer.apple.com/documentation/appstoreconnectapi/post-v1-customerreviewresponses"
-        },
-        {
-          "label": "Creating API keys for App Store Connect API",
-          "url": "https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api"
+          "label": "Apple App Store Server Node.js Library",
+          "url": "https://github.com/apple/app-store-server-library-node"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "full",
+      "scope": "support-workflow-subset",
+      "level": "partial",
       "conformant": null
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/review/appstore",
-      "providerModule": "./review/appstore/index.js",
+      "strategy": "direct-http-support-slice",
+      "sdkPackage": "@cognidesk/integration-review-appstore",
+      "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
+      "providerModule": "integrations/review/appstore/src/manifest.js",
       "manifestExport": "appStoreReviewsProviderManifest",
-      "manifestSource": "packages/integrations/src/review/appstore/manifest.ts",
+      "manifestSource": "integrations/review/appstore/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews"
+      "documentationPath": "https://developer.apple.com/documentation/appstoreconnectapi"
     },
     "readiness": {
-      "mode": "credential-and-live-check",
+      "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
         "appstore-api-key",
@@ -9840,7 +9832,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "limitations": [
       "The SDK user decides review triage, sentiment classification, public-response approval, localization, escalation, and retention policy.",
-      "Customer review listing is paged by App Store Connect response links; callers should follow `links.next` through the bounded `listReviewsPage` helper rather than assuming cursor shape.",
+      "Customer review listing is paged by App Store Connect response links; callers should follow `links.next` through the bounded `listReviewsPage` helper.",
       "Creating a customer review response uses Apple's create-or-update endpoint; SDK-user policy must treat the first public reply and later edits as externally visible actions.",
       "App Store Connect API availability, rate limits, review visibility, and response moderation are controlled by Apple and the SDK user's account permissions."
     ],
@@ -9851,26 +9843,100 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://developer.apple.com/documentation/appstoreconnectapi/customer-reviews",
-      "channelCoverage": {
-        "fullAppStoreConnectApiOperations": "generated-per-operation-functions",
-        "customerReviews": "typed-list-read-page-and-generated-full-surface",
-        "reviewResponses": "typed-create-delete-and-generated-full-surface",
-        "appsReadiness": "typed-read-and-generated-full-surface",
-        "jwt": "typed-token-mint",
-        "buildsBetaIapAnalyticsSalesReportsSubmission": "generated-full-surface"
+      "implementation": {
+        "strategy": "direct-http-support-slice",
+        "officialJsSdkAvailable": false,
+        "verifiedAt": "2026-06-21",
+        "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
+        "rawClientExport": "AppStoreReviewsClient.rawClient.request"
       },
-      "fullProviderApiVerification": {
-        "provider": "appstore",
-        "apiVersion": "app-store-connect-4.4-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/appstore-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/appstore-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/appstore-full-api-2026-06-18.functions.json",
-        "documentedOperationCount": 1216,
-        "implementedOperationCount": 1216,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 1216
+      "reviewedSource": {
+        "source": "Apple App Store Connect OpenAPI specification",
+        "sourceUrl": "https://developer.apple.com/sample-code/app-store-connect/app-store-connect-openapi-specification.zip",
+        "version": "4.4",
+        "artifact": "openapi.oas.json",
+        "checksum": "sha256:352ccca83f6460761bc513b87ed667974afb1347649d49b7cd98cd9041236bec",
+        "archiveChecksum": "sha256:18d2e448db9ebac9f6fb183e786342f67dfaa0c515995d782694a776e26c2dfd",
+        "reviewedAt": "2026-06-21",
+        "operationAllowlist": [
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}/customerReviews",
+            "aliases": [
+              "appstore.reviews.list"
+            ],
+            "clientMethods": [
+              "listReviews"
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}/customerReviews",
+            "aliases": [
+              "appstore.reviews.page"
+            ],
+            "clientMethods": [
+              "listReviewsPage"
+            ],
+            "source": "links.next for the configured app customerReviews collection"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/customerReviews/{id}",
+            "aliases": [
+              "appstore.reviews.get"
+            ],
+            "clientMethods": [
+              "getReview"
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customerReviewResponses",
+            "aliases": [
+              "appstore.reviewResponses.createOrUpdate"
+            ],
+            "clientMethods": [
+              "createOrUpdateReviewResponse"
+            ]
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customerReviewResponses/{id}",
+            "aliases": [
+              "appstore.reviewResponses.delete"
+            ],
+            "clientMethods": [
+              "deleteReviewResponse"
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}",
+            "aliases": [],
+            "clientMethods": [
+              "getApp",
+              "rawClient.request"
+            ],
+            "purpose": "configured app check and reviewed raw-client escape hatch"
+          }
+        ],
+        "selectedOperations": [
+          "GET /v1/apps/{id}/customerReviews",
+          "GET /v1/customerReviews/{id}",
+          "POST /v1/customerReviewResponses",
+          "DELETE /v1/customerReviewResponses/{id}",
+          "GET /v1/apps/{id}"
+        ]
+      },
+      "adapterCoverage": {
+        "normalizedOperations": [
+          "appstore.reviews.list",
+          "appstore.reviews.page",
+          "appstore.reviews.get",
+          "appstore.reviewResponses.createOrUpdate",
+          "appstore.reviewResponses.delete"
+        ]
       }
     }
   },
@@ -9878,11 +9944,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "review.googleplay",
     "category": "review",
     "provider": "googleplay",
-    "importPath": "@cognidesk/integrations/review/googleplay",
-    "modulePath": "./review/googleplay/index.js",
+    "importPath": "@cognidesk/integration-review-googleplay/manifest",
+    "modulePath": "integrations/review/googleplay/src/manifest.js",
     "manifestExport": "googlePlayReviewsProviderManifest",
     "name": "Google Play Reviews",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-review-googleplay",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -9896,19 +9962,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Google Play Reviews",
-      "summary": "Coverage includes generated per-method functions for every method in the official Google Play Android Publisher v3 Discovery document.",
+      "summary": "Cognidesk adapter coverage is scoped to Google Play review list/read/reply workflows.",
       "tags": [
         "review",
         "googleplay",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "read-provider-object",
         "label": "Read Google Play reviews",
-        "description": "Lists recent reviews and reads individual Android app reviews through the Android Publisher API.",
+        "description": "Lists recent reviews and reads individual Android app reviews through the official Android Publisher client.",
         "audiences": [
           "customer-facing",
           "internal-support",
@@ -9918,7 +9984,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "googlePlayReview",
             "label": "Google Play Review",
-            "schemaName": "reviews"
+            "schemaName": "Review"
           }
         ],
         "requiresCredential": true,
@@ -9940,7 +10006,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "googlePlayReview",
             "label": "Google Play Review",
-            "schemaName": "reviews"
+            "schemaName": "Review"
           }
         ],
         "requiresCredential": true,
@@ -9960,11 +10026,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "kind": "googlePlayReview",
             "label": "Google Play Review",
-            "schemaName": "reviews"
+            "schemaName": "Review"
           },
           {
             "kind": "googlePlayDeveloperReply",
-            "label": "Google Play Developer Reply"
+            "label": "Google Play Developer Reply",
+            "schemaName": "ReviewsReplyResponse"
           }
         ],
         "requiresCredential": true,
@@ -9996,49 +10063,45 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-method functions for every method in the official Google Play Android Publisher v3 Discovery document.",
-        "The package keeps typed support helpers for review primitives: Android Publisher reviews list/get/reply and OAuth access-token or service-account JWT bearer token minting.",
+        "Cognidesk adapter coverage is scoped to Google Play review list/read/reply workflows.",
+        "Provider-client coverage is supplied by the official @googleapis/androidpublisher Android Publisher v3 client exposed as a raw-client escape hatch.",
         "The SDK user owns Play Console permissions, package ownership, review polling policy, review reply approval, localization, consent, redaction, and retention decisions."
       ],
       "evidence": [
         {
-          "label": "Google Play Android Publisher Discovery document",
-          "url": "https://androidpublisher.googleapis.com/$discovery/rest?version=v3"
+          "label": "Google Play Android Publisher API",
+          "url": "https://developers.google.com/android-publisher/api-ref/rest"
         },
         {
           "label": "Google Play Android Publisher reviews resource",
           "url": "https://developers.google.com/android-publisher/api-ref/rest/v3/reviews"
         },
         {
-          "label": "Google Play Reply to Reviews guide",
-          "url": "https://developers.google.com/android-publisher/reply-to-reviews"
+          "label": "Google APIs Node.js client",
+          "url": "https://googleapis.dev/nodejs/googleapis/latest/"
         },
         {
-          "label": "Google service account OAuth 2.0 guide",
-          "url": "https://developers.google.com/identity/protocols/oauth2/service-account"
-        },
-        {
-          "label": "Google Play real-time developer notifications",
-          "url": "https://developer.android.com/google/play/billing/rtdn-reference"
+          "label": "@googleapis/androidpublisher package",
+          "url": "https://www.npmjs.com/package/@googleapis/androidpublisher"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
-      "level": "full",
+      "scope": "support-workflow-subset",
+      "level": "partial",
       "conformant": null
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/review/googleplay",
-      "providerModule": "./review/googleplay/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@googleapis/androidpublisher",
+      "runtimePackage": "@cognidesk/integration-review-googleplay/runtime",
+      "providerModule": "integrations/review/googleplay/src/manifest.js",
       "manifestExport": "googlePlayReviewsProviderManifest",
-      "manifestSource": "packages/integrations/src/review/googleplay/manifest.ts",
+      "manifestSource": "integrations/review/googleplay/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developers.google.com/android-publisher/api-ref/rest/v3/reviews"
+      "documentationPath": "https://developers.google.com/android-publisher/api-ref/rest"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -10066,7 +10129,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "googleplay-access-token",
           "label": "Google Play API auth",
-          "description": "Server-side OAuth access token, token supplier, or service-account token minting for Android Publisher API requests.",
+          "description": "Server-side Google auth client, OAuth access token, token supplier, or service-account auth for Android Publisher API requests.",
           "scopes": [
             "https://www.googleapis.com/auth/androidpublisher"
           ],
@@ -10091,9 +10154,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "limitations": [
       "The Google Play Reply to Reviews API exposes production app reviews with comments; rating-only feedback and non-production feedback are not exposed through this API.",
       "Developer replies are limited to 350 characters by the Android Publisher Reply to Reviews API.",
-      "Google Play review API quotas, Reply to reviews permission, package ownership, translation behavior, reply moderation, and reply timing are owned by the SDK user's Play Console setup.",
-      "Google Play Real-time developer notifications are purchase-state notifications for subscriptions, one-time products, voided purchases, and test notifications; they are not a review-ingestion surface for this package.",
-      "SDK users own consent, retention, redaction, language policy, outbound reply approval, escalation, and operator visibility before review data or replies are used."
+      "Google Play review API quotas, Reply to reviews permission, package ownership, translation behavior, reply moderation, and reply timing are owned by the SDK user's Play Console setup."
     ],
     "maintainers": [
       {
@@ -10102,27 +10163,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "docs": "https://developers.google.com/android-publisher/api-ref/rest/v3/reviews",
-      "channelCoverage": {
-        "fullAndroidPublisherApiMethods": "generated-per-operation-functions",
-        "reviews": "typed-list-read-and-generated-full-surface",
-        "developerReplies": "typed-send-update-and-generated-full-surface",
-        "replyDrafts": "sdk-owned",
-        "serviceAccountJwt": "typed-token-mint",
-        "realTimeDeveloperNotifications": "provider-supported-not-review-surface",
-        "editsTracksPurchasesMonetizationReports": "generated-full-surface"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@googleapis/androidpublisher",
+        "sdkVersionRange": "^36.0.0",
+        "runtimePackage": "@cognidesk/integration-review-googleplay/runtime",
+        "rawClientExport": "GooglePlayReviewsClient.rawClient"
       },
-      "fullProviderApiVerification": {
-        "provider": "googleplay",
-        "apiVersion": "androidpublisher-20260617-2026-06-18",
-        "verifiedAt": "2026-06-18",
-        "coverageArtifact": "docs/provider-coverage/googleplay-full-api-2026-06-18.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/googleplay-full-api-2026-06-18.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/googleplay-full-api-2026-06-18.functions.json",
-        "documentedOperationCount": 137,
-        "implementedOperationCount": 137,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 137
+      "adapterCoverage": {
+        "normalizedOperations": [
+          "googleplay.reviews.list",
+          "googleplay.reviews.get",
+          "googleplay.reviews.reply"
+        ]
+      },
+      "providerClientCoverage": {
+        "strategy": "official-sdk-raw-client",
+        "notes": "Advanced Android Publisher API access is available through the official SDK raw client, not re-exported as Cognidesk-owned full API functions."
       }
     }
   },

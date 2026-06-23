@@ -708,6 +708,54 @@ importers:
         specifier: ^4.0.14
         version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
 
+  integrations/review/appstore:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.13.2
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
+
+  integrations/review/googleplay:
+    dependencies:
+      '@cognidesk/core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@cognidesk/integration-kit':
+        specifier: workspace:*
+        version: link:../../../packages/integration-kit
+      '@googleapis/androidpublisher':
+        specifier: ^36.0.0
+        version: 36.0.0
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.13.2
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.14
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.13.2)(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
   packages/connections:
     dependencies:
       '@cognidesk/core':
@@ -2174,6 +2222,10 @@ packages:
 
   '@googleapis/gmail@17.0.0':
     resolution: {integrity: sha512-pV0E+has0ZCqIJoaTmQkOyuRXDtcC8bvH+hmoqGH+J2qxEzhsLT3VX69v6Ef7bifhwokYH82rgQlMRHpFDLrmw==}
+    engines: {node: '>=12.0.0'}
+
+  '@googleapis/androidpublisher@36.0.0':
+    resolution: {integrity: sha512-Lnm4+oMK6wDYgDtF/Ydn+LrGuRGgSrJT1MRB238KajyaoNfo7m6Zl0wOO9ti485aFe5IFSMBr4Sg8SMOglrY9A==}
     engines: {node: '>=12.0.0'}
 
   '@grpc/grpc-js@1.14.4':
@@ -7762,6 +7814,12 @@ snapshots:
       '@shikijs/vscode-textmate': 10.0.2
 
   '@googleapis/gmail@17.0.0':
+    dependencies:
+      googleapis-common: 8.0.2
+    transitivePeerDependencies:
+      - supports-color
+
+  '@googleapis/androidpublisher@36.0.0':
     dependencies:
       googleapis-common: 8.0.2
     transitivePeerDependencies:
