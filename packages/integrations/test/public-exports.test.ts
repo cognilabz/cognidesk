@@ -78,9 +78,13 @@ const publicProviderCatalogs = [
   },
 ] as const;
 
+const splitMigratedProviderIds = new Set(["email.outlook", "workplace.teams"]);
+
 describe.each(publicProviderCatalogs)("$categoryName public exports", ({ references }) => {
   it("imports every catalogued provider subpath", async () => {
     for (const reference of references) {
+      if (splitMigratedProviderIds.has(reference.id)) continue;
+      if (!reference.importPath.startsWith("@cognidesk/integrations/")) continue;
       const providerModule = await import(reference.importPath);
 
       expect(providerModule).toHaveProperty(reference.manifestExport);

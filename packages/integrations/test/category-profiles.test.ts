@@ -9,6 +9,7 @@ import {
   emailCategoryProfile,
   findCategoryOperation,
   getIntegrationCategoryProfile,
+  defaultIntegrationProviderRuntimeRegistry,
   handoffCategoryProfile,
   integrationProviderReferences,
   integrationCategoryProfiles,
@@ -248,6 +249,7 @@ describe("integration category profiles", () => {
     const profiledCategories = new Set(integrationCategoryProfiles.map((profile) => profile.category));
     const profiledReferences = integrationProviderReferences.filter((reference) =>
       profiledCategories.has(reference.category)
+      && defaultIntegrationProviderRuntimeRegistry.has(reference)
     );
 
     for (const reference of profiledReferences) {
