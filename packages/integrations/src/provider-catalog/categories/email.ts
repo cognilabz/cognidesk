@@ -2,14 +2,6 @@ import type { IntegrationProviderReference } from "../types.js";
 
 export const emailProviderReferences = [
   {
-    "id": "email.gmail",
-    "category": "email",
-    "provider": "gmail",
-    "importPath": "@cognidesk/integrations/email/gmail",
-    "modulePath": "./email/gmail/index.js",
-    "manifestExport": "gmailEmailProviderManifest"
-  },
-  {
     "id": "email.imap",
     "category": "email",
     "provider": "imap",

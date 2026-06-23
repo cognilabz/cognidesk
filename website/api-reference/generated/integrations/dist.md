@@ -574,13 +574,6 @@ const integrationProviderReferences: readonly [{
   provider: "stripe";
 }, {
   category: "email";
-  id: "email.gmail";
-  importPath: "@cognidesk/integrations/email/gmail";
-  manifestExport: "gmailEmailProviderManifest";
-  modulePath: "./email/gmail/index.js";
-  provider: "gmail";
-}, {
-  category: "email";
   id: "email.imap";
   importPath: "@cognidesk/integrations/email/imap";
   manifestExport: "imapEmailProviderManifest";

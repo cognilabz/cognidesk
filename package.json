@@ -21,7 +21,7 @@
     "providers:generate": "node scripts/run-provider-generation.mjs",
     "providers:split-generated": "node scripts/split-generated-client-modules.mjs",
     "providers:codemod:imports": "node scripts/migrate-provider-imports.mjs",
-    "providers:catalog:data": "pnpm --filter @cognidesk/core build && pnpm --filter @cognidesk/integration-kit build && tsx scripts/generate-integration-catalog.ts",
+    "providers:catalog:data": "pnpm --filter @cognidesk/core build && pnpm --filter @cognidesk/voice-websocket build && pnpm --filter @cognidesk/integration-kit build && tsx scripts/generate-integration-catalog.ts",
     "providers:catalog": "pnpm --filter @cognidesk/integration-catalog build && node scripts/generate-provider-integration-catalog.mjs",
     "providers:architecture": "node scripts/check-integration-package-architecture.mjs",
     "provider-packages:check": "node scripts/verify-provider-package-conformance.mjs",

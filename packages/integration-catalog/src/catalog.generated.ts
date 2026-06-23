@@ -5023,11 +5023,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "id": "email.gmail",
     "category": "email",
     "provider": "gmail",
-    "importPath": "@cognidesk/integrations/email/gmail",
-    "modulePath": "./email/gmail/index.js",
+    "importPath": "@cognidesk/integration-email-gmail/manifest",
+    "modulePath": "integrations/email/gmail/src/manifest.js",
     "manifestExport": "gmailEmailProviderManifest",
     "name": "Gmail",
-    "packageName": "@cognidesk/integrations",
+    "packageName": "@cognidesk/integration-email-gmail",
     "trustLevel": "official",
     "directions": [
       "receive-only",
@@ -5036,35 +5036,70 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "channelAudiences": [
       "customer-facing",
+      "internal-support",
       "mixed"
     ],
     "display": {
       "label": "Gmail",
-      "summary": "Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.",
+      "summary": "Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.",
       "tags": [
         "email",
         "gmail",
         "official",
-        "full-provider-api"
+        "support-workflow-subset"
       ]
     },
     "capabilities": [
       {
         "capability": "receive",
-        "label": "Read Gmail messages",
-        "description": "Lists and reads Gmail message metadata, payloads, raw messages, or thread context.",
+        "label": "Receive Gmail mailbox changes",
+        "description": "Parses Gmail Pub/Sub notifications and reads Gmail watch/history cursors.",
         "audiences": [
           "customer-facing",
+          "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "mailbox",
+            "label": "Gmail Mailbox"
           },
           {
-            "kind": "gmailThread",
-            "label": "Gmail Thread"
+            "kind": "gmailHistory",
+            "label": "Gmail History"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Read Gmail threads and attachments",
+        "description": "Reads Gmail threads, messages, labels, and attachment bodies through the official SDK.",
+        "audiences": [
+          "customer-facing",
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "emailThread",
+            "label": "Email Thread"
+          },
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
+          {
+            "kind": "attachment",
+            "label": "Attachment"
+          },
+          {
+            "kind": "mailLabel",
+            "label": "Mail Label"
           }
         ],
         "requiresCredential": true,
@@ -5079,12 +5114,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "description": "Creates Gmail draft messages for SDK-user-configured approval workflows.",
         "audiences": [
           "customer-facing",
-          "internal-support"
+          "internal-support",
+          "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailDraft",
-            "label": "Gmail Draft"
+            "kind": "emailDraft",
+            "label": "Email Draft"
           }
         ],
         "requiresCredential": true,
@@ -5096,159 +5132,113 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Gmail messages",
-        "description": "Sends Gmail messages or existing drafts when SDK-user policy permits outbound contact.",
+        "description": "Sends Gmail replies, new messages, or existing drafts when SDK-user policy permits outbound contact.",
         "audiences": [
-          "customer-facing"
+          "customer-facing",
+          "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "emailMessage",
+            "label": "Email Message"
+          },
+          {
+            "kind": "emailDraft",
+            "label": "Email Draft"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "thread",
-        "label": "Use Gmail threads",
-        "description": "Associates messages and drafts with Gmail thread IDs selected by SDK configuration.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "gmailThread",
-            "label": "Gmail Thread"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "attach",
-        "label": "Read Gmail attachment content",
-        "description": "Reads Gmail message payload parts and attachment bodies for SDK-user-governed attachment handling.",
-        "audiences": [
-          "customer-facing",
-          "mixed"
-        ],
-        "providerObjects": [
-          {
-            "kind": "gmailAttachment",
-            "label": "Gmail Attachment"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
       },
       {
         "capability": "update-provider-object",
-        "label": "Modify Gmail labels",
-        "description": "Adds or removes Gmail labels, such as marking a message read, when SDK-user policy permits mutation.",
+        "label": "Archive Gmail threads",
+        "description": "Removes active inbox labels from Gmail threads when SDK-user policy permits mutation.",
         "audiences": [
           "internal-support",
           "mixed"
         ],
         "providerObjects": [
           {
-            "kind": "gmailMessage",
-            "label": "Gmail Message"
+            "kind": "emailThread",
+            "label": "Email Thread"
           }
         ],
         "requiresCredential": true,
         "sideEffect": true,
-        "exposesSensitiveData": false,
+        "exposesSensitiveData": true,
         "changesWorkflow": true,
         "extension": false
       }
     ],
     "coverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "notes": [
-        "Coverage includes generated per-method functions for every method in the official Gmail API Discovery document.",
-        "The package keeps typed helpers for selected Gmail support workflows: message list/get, draft creation, message send, label modify, profile readiness, watch/history sync foundations, attachment fetch, and label listing.",
-        "Gmail OAuth permissions are operation-specific alternatives, not one required bundle; SDK users may choose narrower scopes such as gmail.metadata where the selected Gmail method supports it.",
-        "Receive coverage is Gmail API read/watch/history foundation only; Google Cloud Pub/Sub push notification parsing, Pub/Sub authentication, and webhook hosting are SDK-user integration responsibilities."
+        "Coverage is intentionally scoped to normalized Cognidesk email support workflows implemented by typed handlers.",
+        "Implementation uses the official service-specific @googleapis/gmail SDK. Broader Gmail methods remain accessible through GmailEmailClient.rawClient instead of generated Cognidesk-owned full API functions.",
+        "Operation handlers are bound through @cognidesk/integration-kit so manifest operations and executable handlers must stay in exact parity.",
+        "Receive coverage is Gmail watch/history foundation plus Google Cloud Pub/Sub push notification parsing; Pub/Sub topic/subscription hosting, authentication, retry, and history synchronization policy are SDK-user responsibilities."
       ],
       "evidence": [
         {
-          "label": "Gmail API Discovery document",
-          "url": "https://gmail.googleapis.com/$discovery/rest?version=v1"
+          "label": "@googleapis/gmail package",
+          "url": "https://www.npmjs.com/package/@googleapis/gmail"
         },
         {
-          "label": "Gmail messages list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/list"
+          "label": "Gmail API Node.js quickstart",
+          "url": "https://developers.google.com/workspace/gmail/api/quickstart/nodejs"
         },
         {
-          "label": "Gmail users getProfile",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/getProfile"
+          "label": "Gmail users.threads.get",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/get"
         },
         {
-          "label": "Gmail drafts create",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create"
-        },
-        {
-          "label": "Gmail messages send",
+          "label": "Gmail users.messages.send",
           "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send"
         },
         {
-          "label": "Gmail messages modify",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/modify"
+          "label": "Gmail users.drafts.create",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.drafts/create"
         },
         {
-          "label": "Gmail watch",
+          "label": "Gmail users.threads.modify",
+          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.threads/modify"
+        },
+        {
+          "label": "Gmail users.watch",
           "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users/watch"
-        },
-        {
-          "label": "Gmail history list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.history/list"
         },
         {
           "label": "Gmail push notifications",
           "url": "https://developers.google.com/workspace/gmail/api/guides/push"
-        },
-        {
-          "label": "Gmail attachment get",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments/get"
-        },
-        {
-          "label": "Gmail labels list",
-          "url": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.labels/list"
         }
       ]
     },
     "adapterCoverage": {
-      "scope": "full-provider-api",
+      "scope": "support-workflow-subset",
       "level": "partial",
-      "conformant": false,
+      "conformant": true,
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "email.receive",
           "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
+          "email.reply.send",
           "email.send",
           "email.draft.create",
-          "email.draft.update",
           "email.draft.send",
-          "email.thread.search",
           "email.archive",
+          "mailbox.watch"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "email.draft.update",
+          "email.thread.search",
           "email.label.apply"
         ],
         "missingOptionalOperations": [
@@ -5258,21 +5248,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
-          "email.move",
-          "mailbox.watch"
+          "email.move"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "gmail.history.list",
+          "gmail.attachment.get",
+          "gmail.labels.list"
+        ]
       }
     },
     "implementation": {
-      "strategy": "generated-full-provider-api",
-      "sdkPackage": "@cognidesk/integrations",
-      "runtimePackage": "@cognidesk/integrations/email/gmail",
-      "providerModule": "./email/gmail/index.js",
+      "strategy": "official-sdk",
+      "sdkPackage": "@googleapis/gmail",
+      "runtimePackage": "@cognidesk/integration-email-gmail",
+      "providerModule": "integrations/email/gmail/src/manifest.js",
       "manifestExport": "gmailEmailProviderManifest",
-      "manifestSource": "packages/integrations/src/email/gmail/manifest.ts",
+      "manifestSource": "integrations/email/gmail/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://gmail.googleapis.com/$discovery/rest?version=v1"
+      "documentationPath": "https://www.npmjs.com/package/@googleapis/gmail"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -5285,7 +5278,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "google-oauth-access-token",
           "label": "Google OAuth access token",
-          "description": "Server-side OAuth access token for the Gmail API.",
+          "description": "Server-side OAuth access token or injected official Gmail SDK auth client.",
           "scopes": [
             "https://www.googleapis.com/auth/gmail.readonly",
             "https://www.googleapis.com/auth/gmail.compose",
@@ -5305,9 +5298,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "OAuth tokens stay server-side and are represented in Studio only as credential readiness."
     ],
     "limitations": [
-      "Available operations depend on the OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.",
+      "Available operations depend on OAuth scopes, Google Workspace policy, delegated user, and mailbox state configured by the SDK user.",
       "Gmail watch notifications require an SDK-user-managed Google Cloud Pub/Sub topic, subscription, webhook/worker, and history synchronization strategy.",
-      "Draft approval, auto-send, retention, redaction, and outbound-contact policy are SDK-user configuration."
+      "Draft approval, auto-send, retention, redaction, and outbound-contact policy are SDK-user configuration.",
+      "This package does not claim full Gmail API coverage; use rawClient for advanced official SDK methods."
     ],
     "maintainers": [
       {
@@ -5316,28 +5310,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
-      "channelCoverage": {
-        "fullGmailRestApiMethods": "generated-per-operation-functions",
-        "gmailMessages": "typed-list-get-send-modify-and-generated-full-surface",
-        "gmailDrafts": "typed-create-send-and-generated-full-surface",
-        "gmailThreads": "typed-reference-read-and-generated-full-surface",
-        "gmailAttachments": "typed-read-and-generated-full-surface",
-        "gmailLabels": "typed-list-modify-on-message-and-generated-full-surface",
-        "gmailSettingsFiltersDelegatesSendAsSmime": "generated-full-surface",
-        "gmailWatchHistory": "typed-watch-history-foundation-and-generated-full-surface",
-        "pubSubPushDelivery": "sdk-owned-not-covered"
+      "implementation": {
+        "strategy": "official-sdk",
+        "sdkPackage": "@googleapis/gmail",
+        "sdkVersionRange": "^17.0.0",
+        "rawClientEscapeHatch": "GmailEmailClient.rawClient",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
       },
-      "fullProviderApiVerification": {
-        "provider": "gmail",
-        "apiVersion": "gmail-20260615-2026-06-17",
-        "verifiedAt": "2026-06-17",
-        "coverageArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.operations.json",
-        "operationCatalogArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.operations.json",
-        "functionCatalogArtifact": "docs/provider-coverage/gmail-full-api-2026-06-17.functions.json",
-        "documentedOperationCount": 79,
-        "implementedOperationCount": 79,
-        "unimplementedOperationCount": 0,
-        "generatedFunctionCount": 79
+      "channelCoverage": {
+        "gmailThreads": "typed-read-and-archive",
+        "gmailMessages": "typed-send-and-reply",
+        "gmailDrafts": "typed-create-and-send",
+        "gmailAttachments": "typed-read-body",
+        "gmailLabels": "typed-list",
+        "gmailWatchHistory": "typed-watch-history-foundation",
+        "pubSubPushDelivery": "typed-parse-only-sdk-owned-hosting",
+        "broaderGmailApi": "provider-supported-raw-client"
       },
       "scopeAlternatives": {
         "profile": [
@@ -5359,27 +5348,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "https://www.googleapis.com/auth/gmail.compose",
           "https://www.googleapis.com/auth/gmail.send"
         ],
-        "metadataOnlyCaveat": "Gmail metadata-only scopes support profile/watch/read metadata surfaces, but SDK users must avoid query-dependent message listing where the Gmail API disallows q with gmail.metadata."
+        "metadataOnlyCaveat": "Gmail metadata-only scopes support profile/watch/read metadata surfaces, but SDK users must avoid query-dependent listing where the Gmail API disallows q with gmail.metadata."
       },
       "categoryProfileId": "email",
       "integrationCategoryProfileId": "email",
       "categoryProfile": {
         "id": "email",
         "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [],
-        "missingRequiredOperations": [
+        "conformant": true,
+        "matchedOperations": [
           "email.receive",
           "email.thread.read",
-          "email.reply.send"
-        ],
-        "missingRecommendedOperations": [
+          "email.reply.send",
           "email.send",
           "email.draft.create",
-          "email.draft.update",
           "email.draft.send",
-          "email.thread.search",
           "email.archive",
+          "mailbox.watch"
+        ],
+        "missingRequiredOperations": [],
+        "missingRecommendedOperations": [
+          "email.draft.update",
+          "email.thread.search",
           "email.label.apply"
         ],
         "missingOptionalOperations": [
@@ -5389,10 +5379,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "email.deliveryStatus.read",
           "email.markRead",
           "email.markUnread",
-          "email.move",
-          "mailbox.watch"
+          "email.move"
         ],
-        "extensionOperations": []
+        "extensionOperations": [
+          "gmail.history.list",
+          "gmail.attachment.get",
+          "gmail.labels.list"
+        ]
       }
     }
   },
