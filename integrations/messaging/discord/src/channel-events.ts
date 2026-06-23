@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type {
   DiscordChannelEvent,
   DiscordInteractionPayload,
@@ -10,7 +11,7 @@ export function normalizeDiscordInteractionChannelEvent(input: NormalizeDiscordC
   const channelId = stringField(payload, "channel_id") ?? stringField(message, "channel_id") ?? "discord";
   const guildId = stringField(payload, "guild_id") ?? stringField(message, "guild_id");
   const messageId = stringField(message, "id") ?? stringField(payload, "id");
-  const eventId = stringField(payload, "id") ?? messageId ?? input.interaction.rawBody;
+  const eventId = stringField(payload, "id") ?? messageId ?? rawBodyEventId(input.interaction.rawBody);
   const streamId = [guildId, channelId, messageId].filter(Boolean).join(":");
   const verified = input.interaction.validSignature;
 
@@ -75,6 +76,10 @@ function discordCommandSummary(payload: DiscordInteractionPayload) {
 function stringField(input: Record<string, unknown> | undefined, key: string): string | undefined {
   const value = input?.[key];
   return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function rawBodyEventId(rawBody: string): string {
+  return `raw-body-sha256:${createHash("sha256").update(rawBody).digest("hex").slice(0, 32)}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
