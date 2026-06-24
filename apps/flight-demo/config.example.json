@@ -27,6 +27,33 @@
     "threadAutoArchiveDuration": 1440,
     "mirrorPollIntervalMs": 1000
   },
+  "email": {
+    "enabled": true,
+    "provider": "smtp",
+    "hostEnv": "FLIGHT_EMAIL_SMTP_HOST",
+    "portEnv": "FLIGHT_EMAIL_SMTP_PORT",
+    "secureEnv": "FLIGHT_EMAIL_SMTP_SECURE",
+    "userEnv": "FLIGHT_EMAIL_SMTP_USER",
+    "passwordEnv": "FLIGHT_EMAIL_SMTP_PASSWORD",
+    "fromEnv": "FLIGHT_EMAIL_FROM",
+    "replyToEnv": "FLIGHT_EMAIL_REPLY_TO",
+    "recipientOverrideEnv": "FLIGHT_EMAIL_RECIPIENT_OVERRIDE",
+    "loginBaseUrl": "https://auth.cognidesk.local/flight-demo/login",
+    "loginBaseUrlEnv": "FLIGHT_EMAIL_LOGIN_BASE_URL",
+    "replyVerification": {
+      "enabled": true,
+      "hostEnv": "FLIGHT_EMAIL_IMAP_HOST",
+      "portEnv": "FLIGHT_EMAIL_IMAP_PORT",
+      "secureEnv": "FLIGHT_EMAIL_IMAP_SECURE",
+      "userEnv": "FLIGHT_EMAIL_IMAP_USER",
+      "passwordEnv": "FLIGHT_EMAIL_IMAP_PASSWORD",
+      "mailboxEnv": "FLIGHT_EMAIL_IMAP_MAILBOX",
+      "pollIntervalMsEnv": "FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS",
+      "mailbox": "INBOX",
+      "pollIntervalMs": 15000,
+      "lookbackMinutes": 60
+    }
+  },
   "storage": {
     "sqlitePath": ".data/flight-demo.sqlite",
     "knowledgeIndexPath": ".data/knowledge-index.json"

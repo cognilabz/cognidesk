@@ -129,17 +129,30 @@ function formFieldFromCollectedField(
   const resolvedInput = resolveWidgetInput(field, context);
   const input = isRecord(resolvedInput) ? resolvedInput : {};
   const widgetKind = field.widget?.kind;
+  const type = widgetKind === "date-picker"
+    ? "date"
+    : widgetKind === "choice"
+      ? "choice"
+      : isEmailField(field.path, input)
+        ? "email"
+        : "text";
   return {
     path: field.path,
     label: typeof input.label === "string" ? input.label : field.prompt ?? field.path,
     ...(typeof input.description === "string" ? { description: input.description } : {}),
-    type: widgetKind === "date-picker" ? "date" : widgetKind === "choice" ? "choice" : "text",
+    type,
     required: field.required,
     ...(typeof input.placeholder === "string" ? { placeholder: input.placeholder } : {}),
     ...(typeof input.min === "string" ? { min: input.min } : {}),
     ...(typeof input.max === "string" ? { max: input.max } : {}),
     ...(Array.isArray(input.options) ? { options: input.options } : {}),
   };
+}
+
+function isEmailField(path: string, input: Record<string, unknown>) {
+  const label = typeof input.label === "string" ? input.label : "";
+  const placeholder = typeof input.placeholder === "string" ? input.placeholder : "";
+  return [path, label, placeholder].some((value) => /\bemail\b/i.test(value));
 }
 
 export async function emitFieldConfirmationPrompts(args: {

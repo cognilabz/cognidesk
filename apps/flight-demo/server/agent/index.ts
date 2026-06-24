@@ -19,6 +19,7 @@ import {
 import { addBaggageServiceJourney } from "./journeys/baggage-service.js";
 import { addBookFlightJourney } from "./journeys/book-flight.js";
 import { addHandoffJourney } from "./journeys/handoff.js";
+import { addSecureEmailLoginJourney } from "./journeys/secure-email-login.js";
 import { addTicketStatusJourney } from "./journeys/ticket-status.js";
 import { createFlightKnowledgeSource } from "./knowledge/source.js";
 import { createAiSdkModelSet } from "./models/ai-sdk-model-set.js";
@@ -44,11 +45,20 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
   const voiceModelSet = createFlightDemoVoiceModelSet(config);
   const agent = createAgent("flight-service", {
     logLevel: "debug",
+    behavior: {
+      chatStart: {
+        type: "message",
+        text: "Hi! How can I help with flights today — search options, flight info, ticket status, or a human handoff?",
+        visibleToModel: true,
+      },
+    },
     instructions: [
       "You are a concise customer support agent for a mocked flight service.",
       "Help with booking tickets, ticket status, flight information, check-in, baggage, and handoff.",
       "Do not claim that real bookings were made; this demo uses mocked data.",
       "Supported actions are limited to searching mocked flights, creating a mocked booking after explicit confirmation, checking mocked ticket status, checking mocked flight details, answering policy questions, and requesting human handoff.",
+      "For account-protected requests such as passenger-name changes, invoices, receipts, boarding-pass delivery, refund details, profile access, or date changes on an existing booking, switch from chat to a secure email-login continuation; never ask for passwords, one-time codes, passport numbers, or payment card details in chat.",
+      "For secure email-login continuations, never repeat a full account email address in customer-facing assistant text; say 'the account email' or mask it as the first two local-part characters, three dots, and the domain.",
       "When a previous assistant message or completed journey says a mocked booking is already confirmed, acknowledge that result on casual follow-ups; do not ask the customer to confirm the same booking again.",
       "Do not offer to add, order, buy, or check eligibility for extra baggage, seats, meals, refunds, payments, or real airline account changes. For those unsupported actions, explain the limitation and offer policy information or human handoff.",
       "Do not ask for a booking reference for baggage add-ons or fare-rule eligibility; ask for a booking reference only when the customer explicitly wants ticket status or check-in status.",
@@ -95,6 +105,7 @@ export async function createFlightDemoRuntimeParts(options: CreateFlightDemoRunt
   addBaggageServiceJourney(agent, flightKnowledge);
   addBookFlightJourney(agent, flightTools);
   addTicketStatusJourney(agent, flightTools);
+  addSecureEmailLoginJourney(agent);
   addHandoffJourney(agent, flightKnowledge);
 
   const compiledAgent = agent.compile();

@@ -35,4 +35,10 @@ export const statusContext = z.object({
   }).optional(),
 });
 
+export const secureEmailLoginContext = z.object({
+  bookingReference: z.string().optional(),
+  accountEmail: z.string().email().optional(),
+  requestType: z.string().optional(),
+});
+
 export type Flight = z.infer<typeof flightSchema>;

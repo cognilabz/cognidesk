@@ -8,7 +8,7 @@ import {
 } from "@cognidesk/ui";
 import { PENDING_PROMPT_DISPLAY_OFFSET, type ChatActivity, type ChatMessage } from "./event-reducer.js";
 import { defaultWidgetRenderers } from "./default-widgets.js";
-import { collectSupportSourceLinks, formatSupportReferences, type SupportSourceLink } from "./support-references.js";
+import { collectSupportSourceLinks, type SupportSourceLink } from "./support-references.js";
 import type { ChatWidgetProps } from "./types.js";
 import { useChat } from "./use-chat.js";
 
@@ -172,8 +172,7 @@ function MessageContent(props: { message: ChatMessage; appearance: AppearanceCon
   return (
     <>
       {props.message.segments.map((segment) => {
-        const title = formatSupportReferences(segment.references);
-        if (!title) {
+        if (!segment.references?.length) {
           return (
             <Streamdown key={segment.id} isAnimating={isAnimating}>
               {segment.text}
@@ -185,7 +184,6 @@ function MessageContent(props: { message: ChatMessage; appearance: AppearanceCon
             key={segment.id}
             className={resolveElementClassName(elementKeys.messageSourceSegment, props.appearance)}
             style={resolveInlineStyle(elementKeys.messageSourceSegment, props.appearance)}
-            title={title}
           >
             <Streamdown isAnimating={isAnimating}>
               {segment.text}

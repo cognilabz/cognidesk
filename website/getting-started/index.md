@@ -20,6 +20,14 @@ Get up and running with Cognidesk in minutes. This section covers installation, 
 
     [:octicons-arrow-right-24: Quick Start](quick-start.md)
 
+-   :material-terminal:{ .lg .middle } **Local Development**
+
+    ---
+
+    Start the Flight Demo, Cognidesk Studio, Docker, and OpenTelemetry services from a local checkout.
+
+    [:octicons-arrow-right-24: Local Development](local-development.md)
+
 </div>
 
 ## Prerequisites

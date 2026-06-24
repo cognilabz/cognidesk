@@ -7,14 +7,17 @@ workflows against an allowed source workspace.
 Studio is source-available and private in this monorepo. It is not one of the
 Apache-licensed SDK packages.
 
+For the full local Flight Demo, Studio, Docker, OpenTelemetry, Discord, and
+troubleshooting workflow, see `website/getting-started/local-development.md`.
+
 ## Run locally
 
 From the repository root:
 
 ```bash
 corepack enable
-pnpm install
-pnpm demo
+corepack pnpm install --frozen-lockfile
+corepack pnpm demo
 ```
 
 `pnpm demo` starts:

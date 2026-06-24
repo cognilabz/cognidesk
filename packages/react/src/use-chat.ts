@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { reduceChatRuntimeEvent, type ChatEventReducerState } from "./event-reducer.js";
-import type { UseChatOptions } from "./types.js";
+import type { ChatStartAction, ChatStartBehavior, ChatStartInput, UseChatOptions } from "./types.js";
 
 export function useChat(options: UseChatOptions) {
   const [conversationId, setConversationId] = useState(options.conversationId ?? null);
@@ -14,6 +14,7 @@ export function useChat(options: UseChatOptions) {
   const [error, setError] = useState<Error | null>(null);
   const lastOffsetRef = useRef(0);
   const createConversationRef = useRef<Promise<string> | null>(null);
+  const autoStartRequestedRef = useRef(false);
   const stopStreamRef = useRef<(() => void) | null>(null);
   const streamConversationIdRef = useRef<string | null>(null);
   const formatActivityLabel = options.formatActivityLabel;
@@ -53,31 +54,71 @@ export function useChat(options: UseChatOptions) {
       return conversationId;
     }
     if (createConversationRef.current) return createConversationRef.current;
-    if (!options.agentId) throw new Error("agentId is required when conversationId is not provided.");
+    const agentId = options.agentId;
+    if (!agentId) throw new Error("agentId is required when conversationId is not provided.");
     setStatus("starting");
-    createConversationRef.current = options.client.createConversation({
-      agentId: options.agentId,
-      context: options.initialContext ?? {},
-      ...(options.channel !== undefined ? { channel: options.channel } : {}),
-    }).then((result) => {
+    createConversationRef.current = (async () => {
+      const context = options.initialContext ?? {};
+      const chatStart = await resolveChatStart(options.chatStart, {
+        context,
+        ...(options.channel !== undefined ? { channel: options.channel } : {}),
+        ...(options.app !== undefined ? { app: options.app } : {}),
+      });
+      const result = await options.client.createConversation({
+        agentId,
+        context,
+        ...(options.channel !== undefined ? { channel: options.channel } : {}),
+        ...(chatStart !== undefined ? { chatStart } : {}),
+        ...(options.app !== undefined ? { app: options.app } : {}),
+      });
       setConversationId(result.conversation.id);
       options.onConversationCreated?.(result.conversation.id);
+      for (const event of result.events ?? []) applyEvent(event);
       startStream(result.conversation.id);
+      setStatus("idle");
       return result.conversation.id;
-    }).finally(() => {
+    })().finally(() => {
       createConversationRef.current = null;
     });
     return createConversationRef.current;
-  }, [conversationId, options, startStream]);
+  }, [applyEvent, conversationId, options, startStream]);
 
   useEffect(() => {
     stopStream();
     setConversationId(options.conversationId ?? null);
     lastOffsetRef.current = 0;
     createConversationRef.current = null;
+    autoStartRequestedRef.current = false;
     setChatState({ messages: [], prompts: [], activities: [], lastOffset: 0 });
     setError(null);
   }, [options.conversationId, stopStream]);
+
+  useEffect(() => {
+    if (!options.autoStart || options.conversationId || conversationId || autoStartRequestedRef.current) return;
+    autoStartRequestedRef.current = true;
+    void ensureConversation().catch((caught) => {
+      const nextError = caught instanceof Error ? caught : new Error("Failed to start conversation.");
+      setError(nextError);
+      setStatus("error");
+    });
+  }, [conversationId, ensureConversation, options.autoStart, options.conversationId]);
+
+  useEffect(() => {
+    const expiringActivities = chatState.activities.filter((activity) => typeof activity.expiresAt === "number");
+    if (expiringActivities.length === 0) return undefined;
+    const now = Date.now();
+    const nextExpiration = Math.min(...expiringActivities.map((activity) => activity.expiresAt ?? Number.POSITIVE_INFINITY));
+    const timeout = window.setTimeout(() => {
+      const currentTime = Date.now();
+      setChatState((current) => ({
+        ...current,
+        activities: current.activities.filter((activity) => (
+          typeof activity.expiresAt !== "number" || activity.expiresAt > currentTime
+        )),
+      }));
+    }, Math.max(0, nextExpiration - now));
+    return () => window.clearTimeout(timeout);
+  }, [chatState.activities]);
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -162,4 +203,12 @@ export function useChat(options: UseChatOptions) {
       prompts: current.prompts.filter((prompt) => prompt.promptId !== promptId),
     })),
   }), [chatState.activities, chatState.messages, chatState.prompts, conversationId, error, sendMessage, status, submitWidget]);
+}
+
+async function resolveChatStart(
+  behavior: ChatStartBehavior | undefined,
+  input: ChatStartInput,
+): Promise<ChatStartAction> {
+  if (typeof behavior !== "function") return behavior;
+  return behavior(input);
 }

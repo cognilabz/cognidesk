@@ -152,7 +152,33 @@ export async function handleUserMessage<TTurn>(
     }
 
     const history = await listConversationMessages(args.options.storage, conversation.id);
-    const previousSnapshot = await args.options.storage.getSnapshot(conversation.id);
+    let previousSnapshot = await args.options.storage.getSnapshot(conversation.id);
+    if (isOperatorResumeTurn(args.input.turn) && previousSnapshot?.activeJourneyId) {
+      const activeJourney = agent.journeys.find((journey) => journey.id === previousSnapshot?.activeJourneyId);
+      if (activeJourney?.kind === "delegation") {
+        const delegationCompletion = {
+          journeyId: activeJourney.id,
+          reason: "operator-resume",
+        };
+        await emit({
+          conversationId: conversation.id,
+          type: "journey.completed",
+          data: delegationCompletion,
+        });
+        previousSnapshot = createNextSnapshot({
+          conversationId: conversation.id,
+          previousSnapshot,
+          selectedJourney: activeJourney,
+          stateMachineTurn: null,
+          delegationCompletion,
+          ...(args.options.journeyIndex ? { definitionHash: args.options.journeyIndex.definitionHash } : {}),
+        });
+        await args.options.storage.saveSnapshot(previousSnapshot);
+        logger.info({
+          completedJourneyId: activeJourney.id,
+        }, "Operator resume completed active delegation journey");
+      }
+    }
     logger.debug({
       historyMessages: history.length,
       previousJourneyId: previousSnapshot?.activeJourneyId,
@@ -450,4 +476,10 @@ export async function handleUserMessage<TTurn>(
   } finally {
     finishUserTurn(args.activeTurns, turn);
   }
+}
+
+function isOperatorResumeTurn(turn: unknown) {
+  if (!turn || typeof turn !== "object" || Array.isArray(turn)) return false;
+  const channelEvent = (turn as { channelEvent?: { nature?: unknown; intent?: unknown } }).channelEvent;
+  return channelEvent?.nature === "operator.resume" || channelEvent?.intent === "operator-resume";
 }

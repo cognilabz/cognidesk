@@ -87,16 +87,20 @@ Repository development uses Node.js 24 and the pinned pnpm version from
 
 ```bash
 corepack enable
-pnpm install
+corepack pnpm install --frozen-lockfile
 ```
+
+See the [local development runbook](website/getting-started/local-development.md)
+for the full Studio, Flight Demo, Docker, OpenTelemetry, Discord, and
+troubleshooting workflow.
 
 Run the flight support demo locally:
 
 ```bash
 cp apps/flight-demo/config.openrouter.example.json apps/flight-demo/config.json
 export OPENROUTER_KEY=sk-or-...
-pnpm --filter @cognidesk/flight-demo ingest:knowledge
-pnpm demo
+corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge
+corepack pnpm demo
 ```
 
 Open `http://localhost:5173` for the demo frontend,
@@ -107,14 +111,22 @@ Cognidesk Studio. The default local Studio login is
 Docker uses the same config and model credentials:
 
 ```bash
-docker compose up --build
+docker-compose up --build
 ```
 
-Use the OpenTelemetry compose file when you want Grafana, Tempo, Prometheus,
-Loki, and Promtail:
+Use the profiled root compose stack when you want Studio, the Flight Demo,
+Prometheus, and Tempo in one local dev stack:
 
 ```bash
-docker compose -f docker-compose.otel.yml up --build
+docker-compose --profile otel up --build
+```
+
+Use the OpenTelemetry compose file when you want the Grafana telemetry demo with
+Tempo, Prometheus, Loki, and Promtail. This stack does not start Studio because
+Grafana uses port `3000`:
+
+```bash
+docker-compose -f docker-compose.otel.yml up --build
 ```
 
 ## Development

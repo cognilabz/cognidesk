@@ -284,7 +284,17 @@ describe("createCognideskClient HTTP route calls", () => {
         },
       });
 
-      const created = await client.createConversation({ agentId: "flight-service", context: { locale: "en" }, channel });
+      const created = await client.createConversation({
+        agentId: "flight-service",
+        context: { locale: "en" },
+        channel,
+        chatStart: {
+          type: "message",
+          text: "Welcome aboard.",
+          visibleToModel: true,
+        },
+        app: { surface: "flight-demo", campaign: "returning-customer" },
+      });
       const listed = await client.listConversations({
         agentId: "flight-service",
         beforeUpdatedAt: "2026-05-27T00:00:00.000Z",
@@ -300,8 +310,15 @@ describe("createCognideskClient HTTP route calls", () => {
       await client.startVoiceConversation({
         agentId: "flight-service",
         context: { locale: "en" },
+        chatStart: {
+          type: "message",
+          text: "Welcome by voice.",
+          visibleToModel: true,
+        },
       });
-      await client.startVoiceSegment(created.conversation.id);
+      await client.startVoiceSegment(created.conversation.id, {
+        initialGreeting: "Welcome by voice.",
+      });
       const handled = await client.handleChannelEvent({
         conversationId: created.conversation.id,
           event: {
@@ -359,7 +376,17 @@ describe("createCognideskClient HTTP route calls", () => {
       expect(requests).toEqual([
         {
           url: "http://localhost/api/conversations",
-          body: { agentId: "flight-service", context: { locale: "en" }, channel },
+          body: {
+            agentId: "flight-service",
+            context: { locale: "en" },
+            channel,
+            chatStart: {
+              type: "message",
+              text: "Welcome aboard.",
+              visibleToModel: true,
+            },
+            app: { surface: "flight-demo", campaign: "returning-customer" },
+          },
         },
         {
           url: "http://localhost/api/conversations?agentId=flight-service&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z&limit=5",
@@ -371,11 +398,19 @@ describe("createCognideskClient HTTP route calls", () => {
         },
         {
           url: "http://localhost/api/voice/conversations",
-          body: { agentId: "flight-service", context: { locale: "en" } },
+          body: {
+            agentId: "flight-service",
+            context: { locale: "en" },
+            chatStart: {
+              type: "message",
+              text: "Welcome by voice.",
+              visibleToModel: true,
+            },
+          },
         },
         {
           url: "http://localhost/api/conversations/conversation_1/voice-segments",
-          body: {},
+          body: { initialGreeting: "Welcome by voice." },
         },
         {
           url: "http://localhost/api/channel-events",

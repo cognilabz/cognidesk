@@ -21,11 +21,11 @@ Real-world examples demonstrating Cognidesk in action.
 All examples can be run with Docker:
 
 ```bash
-docker compose up --build
+docker-compose up --build
 ```
 
 Or for local development:
 
 ```bash
-pnpm demo
+corepack pnpm demo
 ```

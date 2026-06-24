@@ -35,6 +35,7 @@ export {
   discordThreadUrl,
 } from "./gateway-service.js";
 export type {
+  ContinueConversationInDiscordOptions,
   ContinueConversationInDiscordResult,
   DiscordGatewayServiceOptions,
   DiscordGatewayStatus,

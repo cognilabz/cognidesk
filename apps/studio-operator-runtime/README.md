@@ -13,8 +13,8 @@ From the repository root:
 
 ```bash
 corepack enable
-pnpm install
-pnpm --filter @cognidesk/studio-operator-runtime dev
+corepack pnpm install --frozen-lockfile
+corepack pnpm --filter @cognidesk/studio-operator-runtime dev
 ```
 
 The service listens on `ws://127.0.0.1:4099/ws` by default.

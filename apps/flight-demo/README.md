@@ -2,6 +2,8 @@
 
 The flight demo runs Cognidesk with real runtime modules, real model calls, real embeddings, SQLite storage, and mocked flight-service APIs.
 
+For the full local Studio, Docker, OpenTelemetry, Discord, and troubleshooting workflow, see `website/getting-started/local-development.md`.
+
 ## Agent Structure
 
 The demo agent is split by authoring concern so it can be used as a reference shape:
@@ -78,7 +80,7 @@ Default voice environment variables:
 | `google-speech` | `GOOGLE_CLOUD_ACCESS_TOKEN` |
 | `deepgram` | `DEEPGRAM_API_KEY` |
 
-## Discord Continuation
+## Discord Human Handoff
 
 The flight demo can sync one conversation between web chat, web voice, and Discord threads through `@cognidesk/integration-messaging-discord`. Discord support is disabled unless `discord.enabled` is true in `config.json`.
 
@@ -102,7 +104,39 @@ The flight demo can sync one conversation between web chat, web voice, and Disco
 }
 ```
 
-Messages sent in the configured support channel create a Discord thread and start a Cognidesk conversation. Messages sent inside that thread resume the same conversation. The web app shows recent conversations in the sidebar and supports `?conversationId=...` resume links. `Continue in Discord` creates or reuses a Discord thread for the active web conversation, stops any active web voice session first, mirrors prior completed messages, and opens the Discord thread.
+Messages sent in the configured support channel create a Discord thread and start a Cognidesk conversation. Messages sent inside that thread resume the same conversation. The web app shows recent conversations in the sidebar and supports `?conversationId=...` resume links. For web conversations, Discord is prepared by the server when the `human-handoff` Journey activates; the web app shows readiness status only and does not render a customer-facing "Continue in Discord" button.
+
+## Secure Email SMTP
+
+Account-protected chat requests, such as sending a boarding pass to the account email, switch into the `secure-email-login` Journey. When booking reference and account email are known, the server sends a real SMTP verification email through `@cognidesk/integration-email-smtp`. The chat workflow is then gated until the customer replies to that email with the generated confirmation code, which is read through `@cognidesk/integration-email-imap`. There is no mock delivery fallback.
+
+SMTP and IMAP settings are configured in `config.json` under `email`; secrets stay in `.env`. For iCloud Mail, use an Apple app-specific password, not your normal Apple ID password:
+
+```sh
+FLIGHT_EMAIL_SMTP_HOST=smtp.mail.me.com
+FLIGHT_EMAIL_SMTP_PORT=587
+FLIGHT_EMAIL_SMTP_SECURE=false
+FLIGHT_EMAIL_SMTP_USER=your-address@icloud.com
+FLIGHT_EMAIL_SMTP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+FLIGHT_EMAIL_FROM=your-address@icloud.com
+FLIGHT_EMAIL_IMAP_HOST=imap.mail.me.com
+FLIGHT_EMAIL_IMAP_PORT=993
+FLIGHT_EMAIL_IMAP_SECURE=true
+FLIGHT_EMAIL_IMAP_USER=your-address@icloud.com
+FLIGHT_EMAIL_IMAP_MAILBOX=INBOX
+```
+
+Optional variables:
+
+```sh
+FLIGHT_EMAIL_REPLY_TO=your-address@icloud.com
+FLIGHT_EMAIL_IMAP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS=15000
+FLIGHT_EMAIL_RECIPIENT_OVERRIDE=demo-recipient@example.com
+FLIGHT_EMAIL_LOGIN_BASE_URL=https://auth.cognidesk.local/flight-demo/login
+```
+
+`FLIGHT_EMAIL_IMAP_PASSWORD` can be omitted when it is the same as `FLIGHT_EMAIL_SMTP_PASSWORD`. `FLIGHT_EMAIL_RECIPIENT_OVERRIDE` is only for local smoke tests. If it is unset, the email is sent to the account email provided in the demo conversation.
 
 Default text role mapping:
 
@@ -131,7 +165,7 @@ The demo still uses Cognidesk's `KnowledgeSource` contract and the configured em
 Run ingestion after creating `config.json`:
 
 ```sh
-pnpm --filter @cognidesk/flight-demo ingest:knowledge
+corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge
 ```
 
 The server fails startup if the Knowledge Index is missing or was generated with a different embedding model.
@@ -139,9 +173,9 @@ The server fails startup if the Knowledge Index is missing or was generated with
 ## Local Run
 
 ```sh
-pnpm install
-pnpm --filter @cognidesk/flight-demo ingest:knowledge
-pnpm demo
+corepack pnpm install --frozen-lockfile
+corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge
+corepack pnpm demo
 ```
 
 This starts the API and Vite frontend in Turbo's terminal UI so you can switch between each service's logs. Open `http://localhost:5173`. The React app uses `http://localhost:8787/api` by default.
@@ -149,7 +183,7 @@ This starts the API and Vite frontend in Turbo's terminal UI so you can switch b
 ## OpenTelemetry Demo
 
 ```sh
-docker compose -f docker-compose.otel.yml up --build
+docker-compose -f docker-compose.otel.yml up --build
 ```
 
 The OpenTelemetry demo starts the flight app with `COGNIDESK_OTEL=true` and `COGNIDESK_TELEMETRY_CONTENT=full`, exports traces and metrics through the OpenTelemetry Collector, collects container logs with Promtail/Loki, and provisions Grafana dashboards at `http://localhost:3000`.

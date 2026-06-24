@@ -3,6 +3,8 @@ import { z } from "zod";
 import {
   flightDemoCorsEnabled,
   flightDemoStudioServiceToken,
+  getConfiguredEmailDeliveryConfig,
+  getConfiguredEmailReplyVerificationConfig,
   getConfiguredVoiceProviderSecrets,
   parseFlightDemoConfig,
   requireConfiguredModelApiKeys,
@@ -262,6 +264,151 @@ describe("flight demo model provider config", () => {
       NODE_ENV: "development",
       COGNIDESK_CORS: "sometimes",
     })).toThrow("COGNIDESK_CORS must be a boolean-like value");
+  });
+
+  it("reports secure-email SMTP as not configured until SMTP env secrets exist", () => {
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      email: {
+        provider: "smtp",
+        hostEnv: "TEST_FLIGHT_EMAIL_SMTP_HOST",
+        userEnv: "TEST_FLIGHT_EMAIL_SMTP_USER",
+        passwordEnv: "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+      },
+    });
+
+    expect(getConfiguredEmailDeliveryConfig(config)).toMatchObject({
+      provider: "smtp",
+      configured: false,
+      missingEnv: [
+        "TEST_FLIGHT_EMAIL_SMTP_HOST",
+        "TEST_FLIGHT_EMAIL_SMTP_USER",
+        "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+      ],
+    });
+  });
+
+  it("reads secure-email SMTP delivery settings without sending mail", () => {
+    process.env.TEST_FLIGHT_EMAIL_SMTP_HOST = "smtp.example.test";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_PORT = "465";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_SECURE = "true";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_USER = "sender@example.test";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_PASSWORD = "smtp-password";
+    process.env.TEST_FLIGHT_EMAIL_FROM = "support@example.test";
+    process.env.TEST_FLIGHT_EMAIL_REPLY_TO = "help@example.test";
+    process.env.TEST_FLIGHT_EMAIL_RECIPIENT_OVERRIDE = "demo@example.test";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      email: {
+        provider: "smtp",
+        hostEnv: "TEST_FLIGHT_EMAIL_SMTP_HOST",
+        portEnv: "TEST_FLIGHT_EMAIL_SMTP_PORT",
+        secureEnv: "TEST_FLIGHT_EMAIL_SMTP_SECURE",
+        userEnv: "TEST_FLIGHT_EMAIL_SMTP_USER",
+        passwordEnv: "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+        fromEnv: "TEST_FLIGHT_EMAIL_FROM",
+        replyToEnv: "TEST_FLIGHT_EMAIL_REPLY_TO",
+        recipientOverrideEnv: "TEST_FLIGHT_EMAIL_RECIPIENT_OVERRIDE",
+        loginBaseUrl: "https://auth.example.test/flight/login",
+      },
+    });
+
+    expect(getConfiguredEmailDeliveryConfig(config)).toMatchObject({
+      provider: "smtp",
+      configured: true,
+      host: "smtp.example.test",
+      port: 465,
+      secure: true,
+      user: "sender@example.test",
+      password: "smtp-password",
+      from: "support@example.test",
+      replyTo: "help@example.test",
+      recipientOverride: "demo@example.test",
+      loginBaseUrl: "https://auth.example.test/flight/login",
+    });
+  });
+
+  it("reads secure-email reply verification from IMAP env and reuses SMTP mailbox credentials", () => {
+    process.env.TEST_FLIGHT_EMAIL_SMTP_USER = "sender@example.test";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_PASSWORD = "smtp-app-password";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_HOST = "imap.example.test";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_PORT = "993";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_SECURE = "true";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_MAILBOX = "Archive";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS = "5000";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      email: {
+        provider: "smtp",
+        userEnv: "TEST_FLIGHT_EMAIL_SMTP_USER",
+        passwordEnv: "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+        replyVerification: {
+          hostEnv: "TEST_FLIGHT_EMAIL_IMAP_HOST",
+          portEnv: "TEST_FLIGHT_EMAIL_IMAP_PORT",
+          secureEnv: "TEST_FLIGHT_EMAIL_IMAP_SECURE",
+          userEnv: "TEST_FLIGHT_EMAIL_IMAP_USER",
+          passwordEnv: "TEST_FLIGHT_EMAIL_IMAP_PASSWORD",
+          mailboxEnv: "TEST_FLIGHT_EMAIL_IMAP_MAILBOX",
+          pollIntervalMsEnv: "TEST_FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS",
+          mailbox: "INBOX",
+          pollIntervalMs: 15_000,
+          lookbackMinutes: 30,
+        },
+      },
+    });
+
+    expect(getConfiguredEmailReplyVerificationConfig(config)).toMatchObject({
+      provider: "imap",
+      configured: true,
+      enabled: true,
+      host: "imap.example.test",
+      port: 993,
+      secure: true,
+      user: "sender@example.test",
+      password: "smtp-app-password",
+      mailbox: "Archive",
+      pollIntervalMs: 5000,
+      lookbackMinutes: 30,
+    });
+  });
+
+  it("reports secure-email reply verification as not configured without an IMAP host or mailbox credentials", () => {
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      email: {
+        provider: "smtp",
+        userEnv: "TEST_FLIGHT_EMAIL_SMTP_USER",
+        passwordEnv: "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+        replyVerification: {
+          hostEnv: "TEST_FLIGHT_EMAIL_IMAP_HOST",
+          userEnv: "TEST_FLIGHT_EMAIL_IMAP_USER",
+          passwordEnv: "TEST_FLIGHT_EMAIL_IMAP_PASSWORD",
+        },
+      },
+    });
+
+    expect(getConfiguredEmailReplyVerificationConfig(config)).toMatchObject({
+      provider: "imap",
+      configured: false,
+      enabled: true,
+      missingEnv: [
+        "TEST_FLIGHT_EMAIL_IMAP_HOST",
+        "TEST_FLIGHT_EMAIL_IMAP_USER or TEST_FLIGHT_EMAIL_SMTP_USER",
+        "TEST_FLIGHT_EMAIL_IMAP_PASSWORD or TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+      ],
+    });
   });
 
   it("reads ElevenLabs voice credentials without live provider calls", () => {

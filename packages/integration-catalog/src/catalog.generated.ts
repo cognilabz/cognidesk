@@ -6134,6 +6134,247 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
+    "id": "email.smtp",
+    "category": "email",
+    "provider": "smtp",
+    "importPath": "@cognidesk/integration-email-smtp/manifest",
+    "modulePath": "integrations/email/smtp/dist/manifest.js",
+    "manifestExport": "smtpEmailProviderManifest",
+    "name": "SMTP Email",
+    "packageName": "@cognidesk/integration-email-smtp",
+    "trustLevel": "official",
+    "directions": [
+      "send-only"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "mixed"
+    ],
+    "display": {
+      "label": "SMTP Email",
+      "summary": "Coverage is a focused Cognidesk SMTP outbound adapter backed by Nodemailer.",
+      "tags": [
+        "email",
+        "smtp",
+        "official",
+        "local-protocol"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "send",
+        "label": "Send SMTP email",
+        "description": "Sends outbound support email through a configured SMTP transport.",
+        "audiences": [
+          "customer-facing",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "emailMessage",
+            "label": "Email Message"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Check SMTP transport",
+        "description": "Checks whether the configured SMTP transport can authenticate and accept mail.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "smtpTransport",
+            "label": "SMTP Transport"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": false,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "local-protocol",
+      "notes": [
+        "Coverage is a focused Cognidesk SMTP outbound adapter backed by Nodemailer.",
+        "This package sends SDK-user supplied message payloads and can verify the configured SMTP transport when the server supports it."
+      ],
+      "evidence": [
+        {
+          "label": "RFC 5321 SMTP",
+          "url": "https://datatracker.ietf.org/doc/html/rfc5321"
+        },
+        {
+          "label": "Nodemailer",
+          "url": "https://nodemailer.com/"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "local-protocol",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "email",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "email.reply.send",
+          "email.send"
+        ],
+        "missingRequiredOperations": [
+          "email.receive",
+          "email.thread.read"
+        ],
+        "missingRecommendedOperations": [
+          "email.draft.create",
+          "email.draft.update",
+          "email.draft.send",
+          "email.thread.search",
+          "email.archive",
+          "email.label.apply"
+        ],
+        "missingOptionalOperations": [
+          "email.forward",
+          "email.draft.delete",
+          "email.attachments.read",
+          "email.deliveryStatus.read",
+          "email.markRead",
+          "email.markUnread",
+          "email.move",
+          "mailbox.watch"
+        ],
+        "extensionOperations": [
+          "smtp.transport.check"
+        ]
+      }
+    },
+    "implementation": {
+      "strategy": "local-protocol",
+      "sdkPackage": "@cognidesk/integration-email-smtp",
+      "runtimePackage": "@cognidesk/integration-email-smtp",
+      "providerModule": "integrations/email/smtp/dist/manifest.js",
+      "manifestExport": "smtpEmailProviderManifest",
+      "manifestSource": "integrations/email/smtp/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://datatracker.ietf.org/doc/html/rfc5321"
+    },
+    "readiness": {
+      "mode": "credential-and-live-check",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "smtp-server",
+        "smtp-account-credentials"
+      ],
+      "optionalCredentialIds": [
+        "smtp-sender-address"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "smtp-server",
+          "label": "SMTP server settings",
+          "description": "SMTP host, port, TLS mode, and optional transport security settings.",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "smtp-account-credentials",
+          "label": "SMTP account credentials",
+          "description": "Server-side SMTP username and password or externally supplied authenticated transport.",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "smtp-sender-address",
+          "label": "Sender address",
+          "description": "Default from address used when a send call does not provide one.",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [
+      "SMTP message bodies, recipients, sender addresses, reply-to addresses, headers, attachments, and delivery responses can contain customer data.",
+      "SMTP credentials stay server-side and are represented in Studio only as credential/readiness state."
+    ],
+    "limitations": [
+      "SMTP is outbound-only; mailbox synchronization, inbound parsing, reply polling, retention, and deletion are intentionally outside this package.",
+      "SDK users own outbound approval, consent, sender identity policy, retry policy, rate limits, attachment policy, bounce handling, and retention."
+    ],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "strategy": "local-protocol",
+        "libraryPackage": "nodemailer",
+        "libraryVersionRange": "^9.0.1",
+        "verifiedPackageVersion": "9.0.1",
+        "verifiedAt": "2026-06-24",
+        "protocolSource": "RFC 5321",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented"
+      },
+      "channelCoverage": {
+        "sendEmail": "provider-supported-via-protocol-library",
+        "sendReply": "provider-supported-via-protocol-library",
+        "transportReadiness": "provider-supported-via-protocol-library",
+        "inboundMailbox": "not-covered",
+        "deliveryWebhooks": "not-covered",
+        "fullMailboxSync": "not-covered"
+      },
+      "rawClientEscapeHatch": "Nodemailer transport exposed from createSmtpEmailClient().rawTransport",
+      "categoryProfileId": "email",
+      "integrationCategoryProfileId": "email",
+      "categoryProfile": {
+        "id": "email",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "email.reply.send",
+          "email.send"
+        ],
+        "missingRequiredOperations": [
+          "email.receive",
+          "email.thread.read"
+        ],
+        "missingRecommendedOperations": [
+          "email.draft.create",
+          "email.draft.update",
+          "email.draft.send",
+          "email.thread.search",
+          "email.archive",
+          "email.label.apply"
+        ],
+        "missingOptionalOperations": [
+          "email.forward",
+          "email.draft.delete",
+          "email.attachments.read",
+          "email.deliveryStatus.read",
+          "email.markRead",
+          "email.markUnread",
+          "email.move",
+          "mailbox.watch"
+        ],
+        "extensionOperations": [
+          "smtp.transport.check"
+        ]
+      }
+    }
+  },
+  {
     "id": "form.cognidesk",
     "category": "form",
     "provider": "cognidesk",

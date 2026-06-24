@@ -442,6 +442,65 @@ describe("flight demo customer use cases", () => {
     ))).toBeDefined();
   });
 
+  it("routes account-protected requests into secure email login and collects safe contact details", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime();
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "I need to change the passenger name on my booking.",
+    });
+    const prompts = openPrompts(await runtime.listEvents(conversation.id));
+
+    expect(result.activeJourneyId).toBe("secure-email-login");
+    expect(result.snapshot.activeStateIds).toEqual(["collectSecureContact"]);
+    expect(findSuccessfulTool(await runtime.listEvents(conversation.id), "getTicketStatus")).toBeUndefined();
+    expect(prompts).toEqual([
+      expect.objectContaining({
+        promptId: "fields:secure-email-login:collectSecureContact",
+        widgetKind: "form",
+        data: expect.objectContaining({
+          input: expect.objectContaining({
+            fields: [
+              expect.objectContaining({ path: "bookingReference", label: "Booking reference", type: "text" }),
+              expect.objectContaining({ path: "accountEmail", label: "Account email", type: "email" }),
+            ],
+          }),
+        }),
+      }),
+    ]);
+  });
+
+  it("completes secure email login preparation when booking reference and account email are known", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime();
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Send my boarding pass to my email for booking CD-CL102-4821. My account email is alex@example.com.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(events.some((event) =>
+      event.type === "journey.activated" && event.data.journeyId === "secure-email-login"
+    )).toBe(true);
+    expect(events.some((event) =>
+      event.type === "journey.completed" && event.data.journeyId === "secure-email-login"
+    )).toBe(true);
+    expect(result.snapshot).toMatchObject({
+      activeStateIds: [],
+    });
+    expect(events.some((event) =>
+      event.type === "journey.extraction.accepted"
+      && event.data.journeyId === "secure-email-login"
+      && event.data.fields.includes("bookingReference")
+      && event.data.fields.includes("accountEmail")
+    )).toBe(true);
+    expect(openPrompts(events)).toEqual([]);
+    expect(findSuccessfulTool(events, "getTicketStatus")).toBeUndefined();
+    expect(result.text).toMatch(/secure email login|sign-in link|continue.*email/i);
+  });
+
   it("routes upset customers asking for a person into the handoff journey", async () => {
     const { runtime, agentId } = await setupFlightDemoRuntime();
     const conversation = await runtime.createConversation({ agentId, context: {} });

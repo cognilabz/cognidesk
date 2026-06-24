@@ -135,6 +135,13 @@ describe("studio configuration data rows", () => {
         widgetCount: 0,
         persona: { brandVoice: "calm", locale: "en-US" },
         channelPolicies: { voice: { tone: "short spoken support" } },
+        behavior: {
+          chatStart: {
+            type: "message",
+            text: "Hi! How can I help with flights today?",
+            visibleToModel: true,
+          },
+        },
         handoffPolicy: { destinations: ["priority-support"] },
       },
       journeys: [],
@@ -146,6 +153,7 @@ describe("studio configuration data rows", () => {
     expect(agentPolicyRows(introspection)).toEqual([
       ["Persona", "brandVoice, locale"],
       ["Channel policies", "voice"],
+      ["Behavior", "chatStart: message \"Hi! How can I help with flights today?\" (model-visible)"],
       ["Handoff policy", "destinations"],
     ]);
   });

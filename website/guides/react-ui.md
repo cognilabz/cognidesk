@@ -36,6 +36,27 @@ function App() {
 }
 ```
 
+Use `chatStart` when a new session should open with a real assistant message in
+the transcript. The value can be static or computed at runtime, and `autoStart`
+creates the conversation as soon as the widget mounts:
+
+```tsx
+<ChatWidget
+  client={client}
+  agentId="flight-support"
+  autoStart
+  initialContext={{ locale: navigator.language }}
+  app={{ surface: "flight-demo", returningCustomer: true }}
+  chatStart={({ app }) => ({
+    type: "message",
+    text: app && typeof app === "object" && "returningCustomer" in app
+      ? "Welcome back. How can I help with your flight today?"
+      : "Hi! How can I help with your flight today?",
+    visibleToModel: true,
+  })}
+/>
+```
+
 ## useChat hook
 
 For custom UI, use the lower-level hook:

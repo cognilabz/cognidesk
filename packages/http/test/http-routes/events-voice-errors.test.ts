@@ -81,6 +81,57 @@ describe("HTTP event, voice, and error routes", () => {
       expect(segment.socket.token).toBe("test-token");
     });
 
+    it("emits chat start messages when starting voice conversations", async () => {
+      const runtime = new FakeRuntime();
+      const handler = createCognideskHttpHandler({
+        runtime,
+        agentId: "flight-service",
+        basePath: "/api",
+        voice: {
+          async createSocket({ result }) {
+            return {
+              url: `/api/voice/connections/${result.connection.id}/socket?token=test-token`,
+              token: "test-token",
+              expiresAt: "2026-05-25T00:01:00.000Z",
+              protocol: "cognidesk.voice.v1",
+            };
+          },
+        },
+      });
+
+      const response = await handler.handle(new Request("http://localhost/api/voice/conversations", {
+        method: "POST",
+        body: JSON.stringify({
+          context: { locale: "en" },
+          chatStart: {
+            type: "message",
+            text: "Welcome by voice.",
+            visibleToModel: true,
+          },
+        }),
+      }));
+
+      expect(response.status).toBe(201);
+      const created = await response.json() as { events: RuntimeEvent[] };
+      expect(created.events).toEqual([
+        expect.objectContaining({
+          type: "voice.segment.started",
+        }),
+        expect.objectContaining({
+          type: "message.started",
+          data: { role: "assistant" },
+        }),
+        expect.objectContaining({
+          type: "message.completed",
+          data: {
+            text: "Welcome by voice.",
+            intermediate: true,
+            visibleToModel: true,
+          },
+        }),
+      ]);
+    });
+
     it("returns 400 for malformed JSON, wrong body shapes, and invalid offsets", async () => {
       const runtime = new FakeRuntime();
       const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });

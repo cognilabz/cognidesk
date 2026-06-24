@@ -9,6 +9,8 @@ export interface DiscordThreadBinding {
   parentChannelId: string;
   starterUserId?: string;
   threadName?: string;
+  discordVoiceChannelId?: string;
+  discordVoiceChannelName?: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -37,6 +39,8 @@ export interface DiscordGatewayStore {
     parentChannelId: string;
     starterUserId?: string;
     threadName?: string;
+    discordVoiceChannelId?: string;
+    discordVoiceChannelName?: string;
     active?: boolean;
   }): Promise<DiscordThreadBinding | null>;
   deactivateBinding(discordThreadId: string): Promise<void>;
@@ -97,6 +101,8 @@ export class DiscordSqliteStore implements DiscordGatewayStore {
     parentChannelId: string;
     starterUserId?: string;
     threadName?: string;
+    discordVoiceChannelId?: string;
+    discordVoiceChannelName?: string;
     active?: boolean;
   }) {
     await this.initialize();
@@ -110,17 +116,21 @@ export class DiscordSqliteStore implements DiscordGatewayStore {
           parent_channel_id,
           starter_user_id,
           thread_name,
+          voice_channel_id,
+          voice_channel_name,
           active,
           created_at,
           updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(discord_thread_id) DO UPDATE SET
           conversation_id = excluded.conversation_id,
           guild_id = excluded.guild_id,
           parent_channel_id = excluded.parent_channel_id,
           starter_user_id = COALESCE(excluded.starter_user_id, discord_thread_bindings.starter_user_id),
           thread_name = COALESCE(excluded.thread_name, discord_thread_bindings.thread_name),
+          voice_channel_id = COALESCE(excluded.voice_channel_id, discord_thread_bindings.voice_channel_id),
+          voice_channel_name = COALESCE(excluded.voice_channel_name, discord_thread_bindings.voice_channel_name),
           active = excluded.active,
           updated_at = excluded.updated_at
       `,
@@ -131,6 +141,8 @@ export class DiscordSqliteStore implements DiscordGatewayStore {
         input.parentChannelId,
         input.starterUserId ?? null,
         input.threadName ?? null,
+        input.discordVoiceChannelId ?? null,
+        input.discordVoiceChannelName ?? null,
         input.active === false ? 0 : 1,
         now,
         now,
@@ -221,6 +233,8 @@ export class DiscordSqliteStore implements DiscordGatewayStore {
           parent_channel_id TEXT NOT NULL,
           starter_user_id TEXT,
           thread_name TEXT,
+          voice_channel_id TEXT,
+          voice_channel_name TEXT,
           active INTEGER NOT NULL DEFAULT 1,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL
@@ -243,6 +257,16 @@ export class DiscordSqliteStore implements DiscordGatewayStore {
       `,
       "CREATE INDEX IF NOT EXISTS discord_mirrored_events_conversation_idx ON discord_mirrored_events(conversation_id, runtime_event_offset)",
     ], "write");
+    await this.addColumnIfMissing("discord_thread_bindings", "voice_channel_id", "TEXT");
+    await this.addColumnIfMissing("discord_thread_bindings", "voice_channel_name", "TEXT");
+  }
+
+  private async addColumnIfMissing(table: "discord_thread_bindings", column: string, definition: string) {
+    const result = await this.client.execute(`PRAGMA table_info(${table})`);
+    const columns = new Set(result.rows.map((row) => String(row.name)));
+    if (!columns.has(column)) {
+      await this.client.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    }
   }
 }
 
@@ -258,6 +282,8 @@ function bindingFromRow(row: Record<string, unknown>): DiscordThreadBinding {
     parentChannelId: String(row.parent_channel_id),
     ...(row.starter_user_id ? { starterUserId: String(row.starter_user_id) } : {}),
     ...(row.thread_name ? { threadName: String(row.thread_name) } : {}),
+    ...(row.voice_channel_id ? { discordVoiceChannelId: String(row.voice_channel_id) } : {}),
+    ...(row.voice_channel_name ? { discordVoiceChannelName: String(row.voice_channel_name) } : {}),
     active: Number(row.active) === 1,
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),

@@ -17,6 +17,12 @@ A complete customer support agent for a fictional airline. This example demonstr
 | Voice | Real-time voice conversations |
 | OpenTelemetry | Pre-built Grafana dashboards |
 
+## Local development runbook
+
+For a complete setup guide covering native development, Docker, Studio, the
+Studio operator runtime, OpenTelemetry, Grafana, Discord human handoff, smoke
+checks, and troubleshooting, use the [local development runbook](../getting-started/local-development.md).
+
 ## Running with Docker
 
 Create the demo config first. The default OpenRouter example keeps API keys in
@@ -28,7 +34,7 @@ export OPENROUTER_KEY=sk-or-...
 ```
 
 ```bash
-docker compose up --build
+docker-compose up --build
 ```
 
 Then open:
@@ -44,11 +50,11 @@ API and frontend.
 
 ```bash
 corepack enable
-pnpm install
+corepack pnpm install --frozen-lockfile
 cp apps/flight-demo/config.openrouter.example.json apps/flight-demo/config.json
 export OPENROUTER_KEY=sk-or-...
-pnpm --filter @cognidesk/flight-demo ingest:knowledge
-pnpm demo
+corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge
+corepack pnpm demo
 ```
 
 This starts the flight demo API and Vite frontend, Cognidesk Studio, and the
@@ -67,7 +73,7 @@ The default local Studio login is `admin@local.cognidesk.dev` /
 ## With OpenTelemetry
 
 ```bash
-docker compose -f docker-compose.otel.yml up --build
+docker-compose -f docker-compose.otel.yml up --build
 ```
 
 Open `http://localhost:3000` for Grafana dashboards showing:
@@ -80,7 +86,7 @@ Open `http://localhost:3000` for Grafana dashboards showing:
 For local environments that cannot create Docker bridge networks, use:
 
 ```bash
-docker compose -f docker-compose.otel.host.yml up --build
+docker-compose -f docker-compose.otel.host.yml up --build
 ```
 
 ## Configuration

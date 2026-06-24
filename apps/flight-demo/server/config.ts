@@ -219,10 +219,69 @@ const discordConfigSchema = z.object({
   }
 });
 
+const defaultEmailConfig = {
+  enabled: true,
+  provider: "smtp" as const,
+  hostEnv: "FLIGHT_EMAIL_SMTP_HOST",
+  portEnv: "FLIGHT_EMAIL_SMTP_PORT",
+  secureEnv: "FLIGHT_EMAIL_SMTP_SECURE",
+  userEnv: "FLIGHT_EMAIL_SMTP_USER",
+  passwordEnv: "FLIGHT_EMAIL_SMTP_PASSWORD",
+  fromEnv: "FLIGHT_EMAIL_FROM",
+  replyToEnv: "FLIGHT_EMAIL_REPLY_TO",
+  recipientOverrideEnv: "FLIGHT_EMAIL_RECIPIENT_OVERRIDE",
+  loginBaseUrl: "https://auth.cognidesk.local/flight-demo/login",
+  loginBaseUrlEnv: "FLIGHT_EMAIL_LOGIN_BASE_URL",
+  replyVerification: {
+    enabled: true,
+    hostEnv: "FLIGHT_EMAIL_IMAP_HOST",
+    portEnv: "FLIGHT_EMAIL_IMAP_PORT",
+    secureEnv: "FLIGHT_EMAIL_IMAP_SECURE",
+    userEnv: "FLIGHT_EMAIL_IMAP_USER",
+    passwordEnv: "FLIGHT_EMAIL_IMAP_PASSWORD",
+    mailboxEnv: "FLIGHT_EMAIL_IMAP_MAILBOX",
+    pollIntervalMsEnv: "FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS",
+    mailbox: "INBOX",
+    pollIntervalMs: 15_000,
+    lookbackMinutes: 60,
+  },
+};
+
+const emailReplyVerificationConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  hostEnv: z.string().min(1).default("FLIGHT_EMAIL_IMAP_HOST"),
+  portEnv: z.string().min(1).default("FLIGHT_EMAIL_IMAP_PORT"),
+  secureEnv: z.string().min(1).default("FLIGHT_EMAIL_IMAP_SECURE"),
+  userEnv: z.string().min(1).default("FLIGHT_EMAIL_IMAP_USER"),
+  passwordEnv: z.string().min(1).default("FLIGHT_EMAIL_IMAP_PASSWORD"),
+  mailboxEnv: z.string().min(1).default("FLIGHT_EMAIL_IMAP_MAILBOX"),
+  pollIntervalMsEnv: z.string().min(1).default("FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS"),
+  mailbox: z.string().min(1).default("INBOX"),
+  pollIntervalMs: z.number().int().positive().default(15_000),
+  lookbackMinutes: z.number().int().positive().default(60),
+}).default(defaultEmailConfig.replyVerification);
+
+const emailConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  provider: z.literal("smtp").default("smtp"),
+  hostEnv: z.string().min(1).default("FLIGHT_EMAIL_SMTP_HOST"),
+  portEnv: z.string().min(1).default("FLIGHT_EMAIL_SMTP_PORT"),
+  secureEnv: z.string().min(1).default("FLIGHT_EMAIL_SMTP_SECURE"),
+  userEnv: z.string().min(1).default("FLIGHT_EMAIL_SMTP_USER"),
+  passwordEnv: z.string().min(1).default("FLIGHT_EMAIL_SMTP_PASSWORD"),
+  fromEnv: z.string().min(1).default("FLIGHT_EMAIL_FROM"),
+  replyToEnv: z.string().min(1).default("FLIGHT_EMAIL_REPLY_TO"),
+  recipientOverrideEnv: z.string().min(1).default("FLIGHT_EMAIL_RECIPIENT_OVERRIDE"),
+  loginBaseUrl: z.string().url().default("https://auth.cognidesk.local/flight-demo/login"),
+  loginBaseUrlEnv: z.string().min(1).default("FLIGHT_EMAIL_LOGIN_BASE_URL"),
+  replyVerification: emailReplyVerificationConfigSchema,
+}).default(defaultEmailConfig);
+
 const flightDemoConfigSchema = z.object({
   models: modelProviderSchema,
   voice: voiceProviderSchema.optional(),
   discord: discordConfigSchema.optional(),
+  email: emailConfigSchema,
   storage: z.object({
     sqlitePath: z.string().min(1),
     knowledgeIndexPath: z.string().min(1),
@@ -235,6 +294,7 @@ export type FlightDemoEmbeddingConfig = z.infer<typeof embeddingProviderSchema>;
 export type FlightDemoModelProvider = FlightDemoModelConfig["provider"];
 export type FlightDemoVoiceConfig = NonNullable<FlightDemoConfig["voice"]>;
 export type FlightDemoDiscordConfig = NonNullable<FlightDemoConfig["discord"]>;
+export type FlightDemoEmailConfig = FlightDemoConfig["email"];
 export type EnabledFlightDemoDiscordConfig = FlightDemoDiscordConfig & {
   enabled: true;
   applicationId: string;
@@ -262,6 +322,51 @@ export type ConfiguredVoiceProviderSecrets =
 export type ConfiguredDiscordSecrets = {
   botToken: string;
 };
+export type ConfiguredEmailDeliveryConfig =
+  | {
+      provider: "smtp";
+      configured: true;
+      host: string;
+      port: number;
+      secure: boolean;
+      user: string;
+      password: string;
+      from: string;
+      replyTo?: string;
+      recipientOverride?: string;
+      loginBaseUrl: string;
+    }
+  | {
+      provider: "smtp";
+      configured: false;
+      reason: string;
+      missingEnv: string[];
+      loginBaseUrl: string;
+    };
+export type ConfiguredEmailReplyVerificationConfig =
+  | {
+      provider: "imap";
+      configured: true;
+      enabled: true;
+      host: string;
+      port: number;
+      secure: boolean;
+      user: string;
+      password: string;
+      mailbox: string;
+      pollIntervalMs: number;
+      lookbackMinutes: number;
+    }
+  | {
+      provider: "imap";
+      configured: false;
+      enabled: boolean;
+      reason: string;
+      missingEnv: string[];
+      mailbox: string;
+      pollIntervalMs: number;
+      lookbackMinutes: number;
+    };
 
 const textOnlyModelProviders = new Set<FlightDemoModelProvider>(["anthropic", "groq", "xai"]);
 const embeddingCapableModelProviders = new Set<FlightDemoModelProvider>([
@@ -484,6 +589,115 @@ export function getConfiguredDiscordIntegration(config: FlightDemoConfig): {
   };
 }
 
+export function getConfiguredEmailDeliveryConfig(config: FlightDemoConfig): ConfiguredEmailDeliveryConfig {
+  loadFlightDemoEnv();
+  const email = config.email;
+  const loginBaseUrl = readTrimmedEnv(email.loginBaseUrlEnv) ?? email.loginBaseUrl;
+  if (!email.enabled) {
+    return {
+      provider: "smtp",
+      configured: false,
+      reason: "Flight demo secure-email SMTP delivery is disabled in config.json.",
+      missingEnv: [],
+      loginBaseUrl,
+    };
+  }
+
+  const host = readTrimmedEnv(email.hostEnv);
+  const user = readTrimmedEnv(email.userEnv);
+  const password = readTrimmedEnv(email.passwordEnv);
+  const missingEnv: string[] = [];
+  if (!host) missingEnv.push(email.hostEnv);
+  if (!user) missingEnv.push(email.userEnv);
+  if (!password) missingEnv.push(email.passwordEnv);
+  if (missingEnv.length > 0 || !host || !user || !password) {
+    return {
+      provider: "smtp",
+      configured: false,
+      reason: `Flight demo secure-email SMTP delivery requires ${missingEnv.join(", ")}.`,
+      missingEnv,
+      loginBaseUrl,
+    };
+  }
+
+  const port = numberEnv(email.portEnv, 587);
+  const secure = booleanEnv(email.secureEnv, port === 465);
+  const from = readTrimmedEnv(email.fromEnv) ?? user;
+  const replyTo = readTrimmedEnv(email.replyToEnv);
+  const recipientOverride = readTrimmedEnv(email.recipientOverrideEnv);
+  return {
+    provider: "smtp",
+    configured: true,
+    host,
+    port,
+    secure,
+    user,
+    password,
+    from,
+    ...(replyTo ? { replyTo } : {}),
+    ...(recipientOverride ? { recipientOverride } : {}),
+    loginBaseUrl,
+  };
+}
+
+export function getConfiguredEmailReplyVerificationConfig(
+  config: FlightDemoConfig,
+): ConfiguredEmailReplyVerificationConfig {
+  loadFlightDemoEnv();
+  const email = config.email;
+  const reply = email.replyVerification;
+  const mailbox = readTrimmedEnv(reply.mailboxEnv) ?? reply.mailbox;
+  const pollIntervalMs = numberEnv(reply.pollIntervalMsEnv, reply.pollIntervalMs);
+  if (!reply.enabled) {
+    return {
+      provider: "imap",
+      configured: false,
+      enabled: false,
+      reason: "Flight demo email reply verification is disabled in config.json.",
+      missingEnv: [],
+      mailbox,
+      pollIntervalMs,
+      lookbackMinutes: reply.lookbackMinutes,
+    };
+  }
+
+  const host = readTrimmedEnv(reply.hostEnv);
+  const user = readTrimmedEnv(reply.userEnv) ?? readTrimmedEnv(email.userEnv);
+  const password = readTrimmedEnv(reply.passwordEnv) ?? readTrimmedEnv(email.passwordEnv);
+  const missingEnv: string[] = [];
+  if (!host) missingEnv.push(reply.hostEnv);
+  if (!user) missingEnv.push(`${reply.userEnv} or ${email.userEnv}`);
+  if (!password) missingEnv.push(`${reply.passwordEnv} or ${email.passwordEnv}`);
+  if (missingEnv.length > 0 || !host || !user || !password) {
+    return {
+      provider: "imap",
+      configured: false,
+      enabled: true,
+      reason: `Flight demo email reply verification requires ${missingEnv.join(", ")}.`,
+      missingEnv,
+      mailbox,
+      pollIntervalMs,
+      lookbackMinutes: reply.lookbackMinutes,
+    };
+  }
+
+  const port = numberEnv(reply.portEnv, 993);
+  const secure = booleanEnv(reply.secureEnv, port === 993);
+  return {
+    provider: "imap",
+    configured: true,
+    enabled: true,
+    host,
+    port,
+    secure,
+    user,
+    password,
+    mailbox,
+    pollIntervalMs,
+    lookbackMinutes: reply.lookbackMinutes,
+  };
+}
+
 export function getConfiguredVoiceApiKey(config: FlightDemoConfig) {
   const secrets = getConfiguredVoiceProviderSecrets(config);
   if (!secrets) return undefined;
@@ -528,4 +742,28 @@ function allowsLocalFlightDemoDefaults(env: NodeJS.ProcessEnv) {
 
 function truthyFlag(value: string | undefined) {
   return ["1", "true", "yes", "on"].includes(value?.trim().toLowerCase() ?? "");
+}
+
+function readTrimmedEnv(name: string) {
+  const value = process.env[name]?.trim();
+  return value ? value : undefined;
+}
+
+function numberEnv(name: string, defaultValue: number) {
+  const value = readTrimmedEnv(name);
+  if (!value) return defaultValue;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${name} must be a positive integer.`);
+  }
+  return parsed;
+}
+
+function booleanEnv(name: string, defaultValue: boolean) {
+  const value = readTrimmedEnv(name);
+  if (!value) return defaultValue;
+  const normalized = value.toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+  throw new Error(`${name} must be a boolean-like value.`);
 }

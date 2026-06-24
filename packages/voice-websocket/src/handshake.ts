@@ -18,9 +18,11 @@ export function createVoiceSocketHandshake(options: VoiceSocketHandshakeOptions)
       result: StartVoiceResult;
       request: Request;
       basePath: string;
+      initialGreeting?: string;
     }): Promise<VoiceSocketMetadata> {
       const created = await options.store.createSession({
         result: input.result,
+        ...(input.initialGreeting ? { initialGreeting: input.initialGreeting } : {}),
         tokenTtlMs,
       });
       return {

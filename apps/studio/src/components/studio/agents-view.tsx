@@ -15,7 +15,6 @@ import {
   channelPolicyRows,
   channelSetRows,
   integrationLifecycleRows,
-  knowledgeRows,
   providerCredentialRows,
   providerPackageRows,
   providerReadinessRows,
@@ -36,6 +35,8 @@ const agentSections: Array<[AgentSection, string]> = [
   ["knowledge", "Knowledge"],
   ["widgets", "Widgets"],
 ];
+
+type KnowledgeSourceRecord = StudioAgentIntrospection["knowledge"][number] & Record<string, unknown>;
 
 export function AgentsView(props: {
   introspection: StudioAgentIntrospection | null;
@@ -63,7 +64,7 @@ export function AgentsView(props: {
     return (
       <section>
         <PageHeader eyebrow="Agent builder" title="Configuration" />
-        <div className="p-8">
+        <div className="max-w-full overflow-hidden p-8">
           <ConfigurationSection configuration={configuration} error={props.configurationError ?? error} />
         </div>
       </section>
@@ -103,7 +104,7 @@ export function AgentsView(props: {
   } else if (section === "tools") {
     sectionContent = <Panel><PanelHeader title="Tools" /><DataTable columns={["Name", "Side effect", "Description"]} rows={toolRows(introspection)} emptyText="No tools returned." /></Panel>;
   } else if (section === "knowledge") {
-    sectionContent = <Panel><PanelHeader title="Knowledge sources" /><DataTable columns={["Name"]} rows={knowledgeRows(introspection)} emptyText="No knowledge sources returned." /></Panel>;
+    sectionContent = <KnowledgeSection introspection={introspection} />;
   } else if (section === "widgets") {
     sectionContent = <Panel><PanelHeader title="Widgets" /><DataTable columns={["Kind"]} rows={widgetRows(introspection)} emptyText="No widgets returned." /></Panel>;
   } else {
@@ -111,7 +112,7 @@ export function AgentsView(props: {
   }
 
   return (
-    <section className={`grid min-h-[calc(100vh-5rem)] ${sidebarCollapsed ? "grid-cols-[64px_minmax(0,1fr)]" : "grid-cols-[300px_minmax(0,1fr)]"} max-xl:grid-cols-1`}>
+    <section className={`grid min-h-[calc(100vh-5rem)] overflow-hidden ${sidebarCollapsed ? "grid-cols-[64px_minmax(0,1fr)]" : "grid-cols-[300px_minmax(0,1fr)]"} max-xl:grid-cols-1`}>
       <aside className="border-r border-slate-200 bg-slate-50 p-5 max-xl:border-b max-xl:border-r-0">
         <div className={`mb-5 flex items-start gap-3 ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           <div className={sidebarCollapsed ? "hidden" : ""}>
@@ -146,12 +147,12 @@ export function AgentsView(props: {
         <JourneyGroup collapsed={sidebarCollapsed} title="State Machine Journeys" icon="state-machine" journeys={stateMachines} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
         <JourneyGroup collapsed={sidebarCollapsed} title="Delegation Journeys" icon="delegation" journeys={delegations} activeJourney={activeJourney} setSection={setSection} setActiveJourneyId={setActiveJourneyId} />
       </aside>
-      <section className="min-w-0">
+      <section className="min-w-0 overflow-hidden">
         <PageHeader
           eyebrow="Agent builder"
           title={section === "journeys" ? activeJourney?.id ?? "Journeys" : titleForSection(section)}
         />
-        <div className="p-8">{sectionContent}</div>
+        <div className="max-w-full overflow-hidden p-8">{sectionContent}</div>
       </section>
     </section>
   );
@@ -171,7 +172,7 @@ function ConfigurationSection(props: {
   }
   const { configuration } = props;
   return (
-    <div className="grid gap-4">
+    <div className="grid min-w-0 gap-4">
       <Panel>
         <PanelHeader
           title="Channel sets"
@@ -226,11 +227,14 @@ function ConfigurationSection(props: {
         />
       </Panel>
       <Panel>
-        <PanelHeader title="Integration lifecycle" />
+        <PanelHeader
+          title="Integration readiness"
+          detail="Catalog coverage, target setup, credentials, and blockers."
+        />
         <DataTable
           columns={["Integration", "ID", "Category", "Catalog", "Target", "Readiness", "Status", "Credentials", "Blockers"]}
           rows={integrationLifecycleRows(configuration)}
-          emptyText="No integration catalog metadata returned."
+          emptyText="No integration readiness metadata returned."
         />
       </Panel>
       <Panel>
@@ -267,6 +271,304 @@ function ConfigurationSection(props: {
       </Panel>
     </div>
   );
+}
+
+function KnowledgeSection({ introspection }: { introspection: StudioAgentIntrospection }) {
+  const sources = useMemo(() => collectKnowledgeSources(introspection), [introspection]);
+  const [activeSourceName, setActiveSourceName] = useState("");
+  const activeSource = sources.find((source) => source.name === activeSourceName) ?? sources[0] ?? null;
+
+  if (!activeSource) {
+    return (
+      <EmptyState
+        title="Knowledge sources"
+        text={knowledgeEmptyText(introspection)}
+      />
+    );
+  }
+
+  const usageRows = knowledgeUsageRows(introspection, activeSource.name);
+  const documentRows = knowledgeDocumentRows(activeSource);
+  const detailRows = knowledgeDetailRows(activeSource);
+  const documentCount = knowledgeDocumentCount(activeSource);
+
+  return (
+    <div className="grid min-w-0 gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
+      <Panel>
+        <PanelHeader title="Knowledge sources" detail={`${sources.length} available`} />
+        <div className="grid gap-1 p-3">
+          {sources.map((source) => {
+            const usageCount = knowledgeUsageRows(introspection, source.name).length;
+            const sourceDocumentCount = knowledgeDocumentCount(source);
+            const active = activeSource.name === source.name;
+            return (
+              <button
+                className={`min-w-0 rounded-lg px-3 py-2 text-left text-sm ${active ? "bg-slate-100 text-slate-950" : "text-slate-600 hover:bg-slate-50"}`}
+                key={source.name}
+                type="button"
+                onClick={() => setActiveSourceName(source.name)}
+                title={source.name}
+              >
+                <span className="block truncate font-medium">{source.name}</span>
+                <span className="mt-1 block truncate text-xs text-slate-500">
+                  {sourceDocumentCount === null ? `${usageCount} journeys` : `${sourceDocumentCount} docs / ${usageCount} journeys`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </Panel>
+      <div className="grid min-w-0 gap-4">
+        <Panel>
+          <PanelHeader
+            title={activeSource.name}
+            detail={documentCount === null ? "Source-level details" : `${documentCount} documents reported`}
+          />
+          <DataTable
+            columns={["Field", "Value"]}
+            rows={detailRows}
+            emptyText="No source details returned."
+          />
+        </Panel>
+        <Panel>
+          <PanelHeader title="Documents and linked sources" />
+          <DataTable
+            columns={["Type", "Name", "ID", "Metadata", "Content"]}
+            rows={documentRows}
+            emptyText="No document or linked source details were returned for this knowledge source."
+          />
+        </Panel>
+        <Panel>
+          <PanelHeader title="Journey usage" />
+          <DataTable
+            columns={["Journey", "Kind", "Condition"]}
+            rows={usageRows}
+            emptyText="No journeys reference this knowledge source."
+          />
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function collectKnowledgeSources(introspection: StudioAgentIntrospection) {
+  const byName = new Map<string, KnowledgeSourceRecord>();
+  const addSource = (source: StudioAgentIntrospection["knowledge"][number]) => {
+    const previous = byName.get(source.name);
+    byName.set(source.name, { ...(previous ?? {}), ...(source as KnowledgeSourceRecord), name: source.name });
+  };
+
+  introspection.knowledge.forEach(addSource);
+  introspection.journeys.forEach((journey) => journey.knowledge.forEach(addSource));
+
+  return Array.from(byName.values()).sort((left, right) => left.name.localeCompare(right.name));
+}
+
+function knowledgeEmptyText(introspection: StudioAgentIntrospection) {
+  const journeyKnowledgeCount = introspection.journeys.reduce((count, journey) => count + journey.knowledge.length, 0);
+  if (introspection.agent.knowledgeCount > 0 || journeyKnowledgeCount > 0) {
+    return "The adapter reported knowledge usage, but did not include source records to inspect.";
+  }
+  return "Only agent policy and configuration data is available from this target. No knowledge source, document, or metadata records were returned.";
+}
+
+function knowledgeUsageRows(introspection: StudioAgentIntrospection, sourceName: string) {
+  return introspection.journeys
+    .filter((journey) => journey.knowledge.some((source) => source.name === sourceName))
+    .map((journey) => [
+      journey.id,
+      journey.kind === "delegation" ? "Delegation" : "State machine",
+      journey.condition || "-",
+    ]);
+}
+
+function knowledgeDetailRows(source: KnowledgeSourceRecord) {
+  const rows: string[][] = [["Name", source.name]];
+  const optionalFields: Array<[string, string[]]> = [
+    ["Description", ["description", "summary"]],
+    ["Kind", ["kind", "type", "sourceType"]],
+    ["Provider", ["provider", "providerPackageId"]],
+    ["Status", ["status", "state"]],
+  ];
+
+  optionalFields.forEach(([label, keys]) => {
+    const value = firstString(source, keys);
+    if (value) rows.push([label, value]);
+  });
+
+  const documentCount = knowledgeDocumentCount(source);
+  if (documentCount !== null) rows.push(["Documents", String(documentCount)]);
+
+  const linkedSourceCount = knowledgeLinkedSourceCount(source);
+  if (linkedSourceCount !== null) rows.push(["Linked sources", String(linkedSourceCount)]);
+
+  const metadata = recordValue(source.metadata);
+  if (metadata) rows.push(["Metadata", summarizeRecord(metadata)]);
+
+  for (const [key, value] of Object.entries(source)) {
+    if (knowledgeKnownKeys.has(key) || value === undefined || Array.isArray(value) || recordValue(value)) continue;
+    rows.push([humanizeKey(key), summarizeValue(value)]);
+    if (rows.length >= 12) break;
+  }
+
+  if (rows.length === 1) rows.push(["Detail level", "Only the source name was returned by introspection."]);
+  return rows;
+}
+
+function knowledgeDocumentRows(source: KnowledgeSourceRecord) {
+  return [
+    ...knowledgeItems(source, ["documents", "documentSources", "sourceDocuments", "items", "entries"])
+      .map((item, index) => knowledgeItemRow("Document", item, index)),
+    ...knowledgeItems(source, ["sources", "sourceRefs", "linkedSources"])
+      .map((item, index) => knowledgeItemRow("Source", item, index)),
+  ];
+}
+
+function knowledgeDocumentCount(source: KnowledgeSourceRecord) {
+  return firstNumber(source, ["documentCount", "documentsCount", "itemCount", "entryCount", "count"])
+    ?? firstNumber(recordValue(source.metadata), ["documentCount", "documentsCount", "itemCount", "entryCount", "count"])
+    ?? countItems(source, ["documents", "documentSources", "sourceDocuments", "items", "entries"]);
+}
+
+function knowledgeLinkedSourceCount(source: KnowledgeSourceRecord) {
+  return firstNumber(source, ["sourceCount", "sourcesCount", "linkedSourceCount"])
+    ?? firstNumber(recordValue(source.metadata), ["sourceCount", "sourcesCount", "linkedSourceCount"])
+    ?? countItems(source, ["sources", "sourceRefs", "linkedSources"]);
+}
+
+function knowledgeItems(source: KnowledgeSourceRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = source[key];
+    if (Array.isArray(value)) return value;
+  }
+  return [];
+}
+
+function countItems(source: KnowledgeSourceRecord, keys: string[]) {
+  const items = knowledgeItems(source, keys);
+  return items.length > 0 ? items.length : null;
+}
+
+function knowledgeItemRow(type: string, item: unknown, index: number) {
+  const record = recordValue(item);
+  if (!record) return [type, summarizeValue(item) || `${type} ${index + 1}`, "-", "-", "-"];
+
+  const name = firstString(record, ["name", "title", "label", "sourceName", "path", "url"])
+    ?? firstString(record, ["id", "key", "slug"])
+    ?? `${type} ${index + 1}`;
+  const id = firstString(record, ["id", "key", "slug"]) ?? "-";
+  const metadata = recordValue(record.metadata);
+  const content = firstString(record, ["content", "contentSnippet", "snippet"]);
+  return [
+    type,
+    name,
+    id,
+    metadata ? summarizeRecord(metadata) : summarizeInlineMetadata(record),
+    content ? summarizeSnippet(content) : "-",
+  ];
+}
+
+const knowledgeKnownKeys = new Set([
+  "name",
+  "title",
+  "label",
+  "description",
+  "summary",
+  "content",
+  "contentSnippet",
+  "snippet",
+  "kind",
+  "type",
+  "sourceType",
+  "provider",
+  "providerPackageId",
+  "status",
+  "state",
+  "metadata",
+  "documents",
+  "documentSources",
+  "sourceDocuments",
+  "items",
+  "entries",
+  "sources",
+  "sourceRefs",
+  "linkedSources",
+  "documentCount",
+  "documentsCount",
+  "itemCount",
+  "entryCount",
+  "sourceCount",
+  "sourcesCount",
+  "linkedSourceCount",
+  "count",
+]);
+
+function firstString(record: Record<string, unknown> | null, keys: string[]) {
+  if (!record) return null;
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+  }
+  return null;
+}
+
+function firstNumber(record: Record<string, unknown> | null, keys: string[]) {
+  if (!record) return null;
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return null;
+}
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function summarizeRecord(record: Record<string, unknown>) {
+  const entries = Object.entries(record).filter(([, value]) => value !== undefined);
+  return entries.length > 0
+    ? entries.slice(0, 6).map(([key, value]) => `${humanizeKey(key)}: ${summarizeValue(value)}`).join(", ")
+    : "{}";
+}
+
+function summarizeInlineMetadata(record: Record<string, unknown>) {
+  const metadata = Object.fromEntries(
+    Object.entries(record).filter(([key, value]) => !knowledgeKnownKeys.has(key) && value !== undefined)
+  );
+  return Object.keys(metadata).length > 0 ? summarizeRecord(metadata) : "-";
+}
+
+function summarizeValue(value: unknown) {
+  if (value === null || value === undefined || value === "") return "-";
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    const preview = value
+      .filter((item) => ["string", "number", "boolean"].includes(typeof item))
+      .slice(0, 3)
+      .map(String);
+    return preview.length > 0 ? `${preview.join(", ")}${value.length > preview.length ? ` +${value.length - preview.length}` : ""}` : `${value.length} items`;
+  }
+  const record = recordValue(value);
+  return record ? `${Object.keys(record).length} fields` : String(value);
+}
+
+function summarizeSnippet(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= 260) return normalized;
+  return `${normalized.slice(0, 257).trimEnd()}...`;
+}
+
+function humanizeKey(key: string) {
+  return key
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]/g, " ")
+    .replace(/^\w/, (letter) => letter.toUpperCase());
 }
 
 function JourneyGroup(props: {

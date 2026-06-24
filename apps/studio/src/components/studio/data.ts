@@ -49,6 +49,7 @@ export function agentPolicyRows(introspection: StudioAgentIntrospection | null) 
   return [
     ["Persona", summarizePolicyValue(introspection.agent.persona)],
     ["Channel policies", summarizePolicyValue(introspection.agent.channelPolicies)],
+    ["Behavior", summarizeAgentBehavior(introspection.agent.behavior)],
     ["Handoff policy", summarizePolicyValue(introspection.agent.handoffPolicy)],
   ];
 }
@@ -326,6 +327,33 @@ function summarizePolicyValue(value: unknown) {
   return keys.length > 0 ? keys.slice(0, 6).join(", ") : "{}";
 }
 
+function summarizeAgentBehavior(value: unknown) {
+  if (!isRecord(value)) return summarizePolicyValue(value);
+  const entries = Object.entries(value).filter(([, entry]) => entry !== undefined);
+  if (entries.length === 0) return "{}";
+  return entries
+    .slice(0, 6)
+    .map(([key, entry]) => `${key}: ${summarizeBehaviorValue(entry)}`)
+    .join("; ");
+}
+
+function summarizeBehaviorValue(value: unknown) {
+  if (typeof value === "string") return truncate(value, 96);
+  if (value === false || value === null) return "none";
+  if (!isRecord(value)) return summarizePolicyValue(value);
+  const type = typeof value.type === "string" ? value.type : "message";
+  if (type === "message" && typeof value.text === "string") {
+    const visibility = value.visibleToModel === false ? "hidden from model" : "model-visible";
+    return `message "${truncate(value.text, 96)}" (${visibility})`;
+  }
+  if (type === "generatedPreamble") {
+    const purpose = typeof value.purpose === "string" ? `: ${truncate(value.purpose, 64)}` : "";
+    return `generated preamble${purpose}`;
+  }
+  if (type === "none") return "none";
+  return summarizePolicyValue(value);
+}
+
 function summarizeOptionalRecord(value: unknown) {
   return value ? summarizePolicyValue(value) : "-";
 }
@@ -335,4 +363,8 @@ function summarizeBehaviorExtras(behavior: StudioConfigurationSurface["channels"
   const known = new Set(["tone", "maxWords", "maxCharacters", "allowMarkdown", "allowWidgets", "draftFirst"]);
   const entries = Object.entries(behavior).filter(([key, value]) => !known.has(key) && value !== undefined);
   return entries.length > 0 ? entries.map(([key]) => key).slice(0, 6).join(", ") : "-";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

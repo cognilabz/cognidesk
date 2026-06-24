@@ -37,7 +37,7 @@ export async function ensureDemoTelemetryDashboards(input: {
   for (const seed of demoTelemetryDashboardSeeds(input.targetId)) {
     if (existingSlugs.has(seed.slug)) continue;
     draftPromises.push(
-      saveDashboardDraft({
+      ensureSeedDashboardDraft({
         userId: input.userId,
         targetId: input.targetId,
         title: seed.title,
@@ -51,6 +51,28 @@ export async function ensureDemoTelemetryDashboards(input: {
     );
   }
   await Promise.all(draftPromises);
+}
+
+async function ensureSeedDashboardDraft(input: Parameters<typeof saveDashboardDraft>[0] & {
+  targetId: string;
+  slug: string;
+}) {
+  const existing = await getDashboardArtifactBySlug(input.targetId, input.slug);
+  if (existing) return existing;
+  try {
+    return await saveDashboardDraft(input);
+  } catch (error) {
+    const createdByAnotherRequest = await getDashboardArtifactBySlug(input.targetId, input.slug);
+    if (createdByAnotherRequest) return createdByAnotherRequest;
+    throw error;
+  }
+}
+
+async function getDashboardArtifactBySlug(targetId: string, slug: string) {
+  const [dashboard] = await db.select({ id: dashboardArtifacts.id }).from(dashboardArtifacts)
+    .where(and(eq(dashboardArtifacts.targetId, targetId), eq(dashboardArtifacts.slug, slug)))
+    .limit(1);
+  return dashboard ? getDashboardArtifact(dashboard.id) : null;
 }
 
 export async function getDashboardArtifact(id: string): Promise<StudioDashboardArtifact | null> {
@@ -157,7 +179,6 @@ export async function saveDashboardDraft(input: {
       currentVersion: version,
       createdAt: now,
       updatedAt: now,
-      publishedAt: null,
     });
   }
 

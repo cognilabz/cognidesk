@@ -43,7 +43,7 @@ export function Button(props: {
 
 export function Panel(props: { children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-lg border border-slate-200 bg-white ${props.className ?? ""}`}>
+    <section className={`min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white ${props.className ?? ""}`}>
       {props.children}
     </section>
   );
@@ -52,7 +52,7 @@ export function Panel(props: { children: ReactNode; className?: string }) {
 export function PanelHeader(props: { title: string; detail?: string; actions?: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
-      <div>
+      <div className="min-w-0">
         <h2 className="text-base font-semibold text-slate-950">{props.title}</h2>
         {props.detail ? <p className="mt-1 text-sm text-slate-500">{props.detail}</p> : null}
       </div>
@@ -82,9 +82,10 @@ export function Metric(props: { label: string; value: string; detail?: string; t
 }
 
 export function DataTable(props: { columns: string[]; rows: string[][]; emptyText?: string }) {
+  const minWidth = props.columns.length <= 2 ? "100%" : Math.max(640, props.columns.length * 148);
   return (
-    <div className="overflow-auto">
-      <table className="w-full border-collapse text-sm">
+    <div className="max-w-full overflow-x-auto overscroll-x-contain">
+      <table className="w-full table-fixed border-collapse text-sm" style={{ minWidth }}>
         <thead>
           <tr>
             {props.columns.map((column) => (
@@ -95,11 +96,16 @@ export function DataTable(props: { columns: string[]; rows: string[][]; emptyTex
         <tbody>
           {props.rows.length ? props.rows.map((row) => (
             <tr key={row.join("\u0000")}>
-              {props.columns.map((column, columnIndex) => (
-                <td className="break-words border-b border-slate-100 px-4 py-3 align-top text-slate-700" key={`${column}-${columnIndex}`}>
-                  {row[columnIndex] ?? "-"}
-                </td>
-              ))}
+              {props.columns.map((column, columnIndex) => {
+                const value = row[columnIndex] ?? "-";
+                return (
+                  <td className="border-b border-slate-100 px-4 py-3 align-top text-slate-700" key={`${column}-${columnIndex}`}>
+                    <span className="block max-w-[32rem] whitespace-normal break-words leading-6 [overflow-wrap:anywhere]" title={value}>
+                      {value}
+                    </span>
+                  </td>
+                );
+              })}
             </tr>
           )) : (
             <tr>

@@ -248,6 +248,42 @@ export interface DelegationJourneyOptions extends ActivationMetadata {
 
 export interface AgentBehaviorOptions {
   interruptOnNewMessage?: boolean;
+  chatStart?: AgentChatStartBehavior;
+}
+
+export type AgentChatStartBehavior =
+  | AgentChatStartAction
+  | ((input: AgentChatStartInput) => MaybePromise<AgentChatStartAction>);
+
+export type AgentChatStartAction =
+  | string
+  | false
+  | null
+  | undefined
+  | {
+      type?: "message";
+      text: string;
+      visibleToModel?: boolean;
+    }
+  | {
+      type: "generatedPreamble";
+      purpose?: string;
+      maxWords?: number;
+    }
+  | {
+      type: "none";
+    };
+
+export interface AgentChatStartInput {
+  conversation: {
+    id: string;
+    agentId: string;
+    context: unknown;
+    channel?: unknown;
+  };
+  context: unknown;
+  channel?: unknown;
+  app: unknown;
 }
 
 export interface AgentPostProcessingOptions {

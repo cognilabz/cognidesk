@@ -141,6 +141,22 @@ function createTestMatcher(messages: ModelMessage[]) {
   const mentionsBaggage = /\b(bag|bags|baggage|luggage|suitcase|sports equipment)\b/.test(latestUser);
   const baggageServiceIntent = /\badd[- ]?on\b/.test(latestUser)
     || (mentionsBaggage && /\b(add|order|buy|purchase|more|extra|eligib|check|upgrade|pay|second|checked)\b/.test(latestUser));
+  const secureEmailLoginIntent = (
+    latestUser.includes("boarding pass")
+    || latestUser.includes("e-ticket")
+    || latestUser.includes("eticket")
+    || latestUser.includes("invoice")
+    || latestUser.includes("receipt")
+    || latestUser.includes("account profile")
+    || latestUser.includes("access my account")
+    || latestUser.includes("passenger name")
+    || latestUser.includes("change the date")
+    || latestUser.includes("secure email")
+    || (
+      latestUser.includes("email")
+      && /\b(send|mail|login|sign in|sign-in|account|profile|boarding|ticket)\b/.test(latestUser)
+    )
+  );
   const statusIntent = !baggageServiceIntent && (
     latestUser.includes("status of booking")
     || latestUser.includes("booking status")
@@ -155,6 +171,22 @@ function createTestMatcher(messages: ModelMessage[]) {
   );
   if (prompt.includes("ticket-status") && statusIntent) {
     candidates.push({ journeyId: "ticket-status", confidence: 0.9, reason: "Status request." });
+  }
+  if (
+    prompt.includes("secure-email-login")
+    && (
+      secureEmailLoginIntent
+      || (
+        prompt.includes("active journey: secure-email-login")
+        && (
+          latestUser.match(/\bcd-[a-z0-9-]+-\d{4}\b/i)
+          || latestUser.match(/[^\s@]+@[^\s@]+\.[^\s@]+/)
+          || /\b(yes|continue|email|login)\b/.test(latestUser)
+        )
+      )
+    )
+  ) {
+    candidates.push({ journeyId: "secure-email-login", confidence: 0.96, reason: "Account-protected request needs secure email login." });
   }
   if (
     prompt.includes("baggage-service")
@@ -231,6 +263,15 @@ function createTestExtraction(messages: ModelMessage[]) {
   if (wants("passengerName") && passenger?.[1]) values.passengerName = passenger[1];
   const bookingReference = user.match(/\b(?:CD-[A-Z0-9-]+|ABC\d{3,})\b/i)?.[0];
   if (wants("bookingReference") && bookingReference) values.bookingReference = bookingReference.toUpperCase();
+  const accountEmail = user.match(/[^\s@]+@[^\s@]+\.[^\s@.,;:!?]+/)?.[0];
+  if (wants("accountEmail") && accountEmail) values.accountEmail = accountEmail;
+  if (wants("requestType")) {
+    if (lower.includes("boarding pass")) values.requestType = "boarding pass delivery";
+    else if (lower.includes("passenger name")) values.requestType = "passenger-name change";
+    else if (lower.includes("invoice") || lower.includes("receipt")) values.requestType = "invoice request";
+    else if (lower.includes("change the date")) values.requestType = "date-change request";
+    else if (lower.includes("account profile") || lower.includes("access my account")) values.requestType = "account profile access";
+  }
   const flightNumber = user.match(/\bCL\d{3}\b/i)?.[0];
   if (wants("flightNumber") && flightNumber) values.flightNumber = flightNumber.toUpperCase();
   if (wants("selectedFlightId") && flightNumber) values.selectedFlightId = flightNumber.toUpperCase();
@@ -296,6 +337,17 @@ function createTestAnswer(messages: ModelMessage[]) {
   }
   if (user.includes("human") || user.includes("person")) {
     return "I can collect a short summary for human support so the customer can be handed off.";
+  }
+  if (
+    user.includes("boarding pass")
+    || user.includes("passenger name")
+    || user.includes("invoice")
+    || user.includes("receipt")
+    || user.includes("account profile")
+    || user.includes("access my account")
+    || user.includes("change the date")
+  ) {
+    return "For security, this needs a secure email login. I can send a sign-in link and continue this request by email.";
   }
   if (user.includes("bag") || user.includes("bags") || user.includes("luggage") || user.includes("suitcase") || user.includes("sports equipment")) {
     if (user.includes("raw source")) return "Economy tickets include one cabin bag. Source: K1:test-baggage.";
@@ -402,5 +454,6 @@ function keywordEmbedding(text: string) {
     lower.includes("boarding") || lower.includes("gate") ? 1 : 0,
     lower.includes("check-in") || lower.includes("check in") ? 1 : 0,
     lower.includes("disruption") || lower.includes("cancelled") || lower.includes("delayed") ? 1 : 0,
+    lower.includes("email") || lower.includes("login") || lower.includes("sign in") || lower.includes("account") ? 1 : 0,
   ];
 }

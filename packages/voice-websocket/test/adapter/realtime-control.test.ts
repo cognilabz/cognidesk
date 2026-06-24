@@ -104,4 +104,50 @@ describe("@cognidesk/voice-websocket realtime control", () => {
         text: "Find flights from Vienna to Berlin tomorrow.",
       });
     });
+
+    it("does not commit a second message for the spoken initial greeting transcript", async () => {
+      const store = createInMemoryVoiceSessionStore({
+        createToken: createTokenSequence("start-token", "reconnect-token"),
+      });
+      const created = await store.createSession({
+        result: fakeStartVoiceResult(),
+        initialGreeting: "Welcome back. How can I help with flights today?",
+        tokenTtlMs: 60_000,
+      });
+      const socket = new FakeSocket();
+      const runtime = new FakeRuntime();
+      const provider = new FakeProvider();
+
+      await handleVoiceSocket({
+        socket,
+        connectionId: created.session.connection.id,
+        token: created.socket.token,
+        store,
+        runtime,
+        provider,
+        control: {
+          tools: [],
+          handleToolCall: () => ({ output: { ok: true } }),
+        },
+      });
+      await flushAsync();
+      expect(provider.session?.spoken).toEqual(["Welcome back. How can I help with flights today?"]);
+
+      await provider.emitServerEvent({
+        type: "response.output_audio_transcript.done",
+        event_id: "event_transcript_done",
+        response_id: "response_1",
+        item_id: "item_initial_greeting",
+        output_index: 0,
+        content_index: 0,
+        transcript: "Welcome back. How can I help with flights today?",
+      });
+      await flushAsync();
+
+      expect(runtime.committedTranscripts).toEqual([]);
+      expect(socket.sent.some((event) =>
+        event.type === "cognidesk.turn.completed"
+        && event.text === "Welcome back. How can I help with flights today?"
+      )).toBe(false);
+    });
 });
