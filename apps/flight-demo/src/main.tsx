@@ -1,6 +1,6 @@
 import { StrictMode, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { createRoot } from "react-dom/client";
-import { AudioWaveform, Check, Mic, MicOff, Pencil, Trash2, X } from "lucide-react";
+import { Check, Mic, MicOff, Pencil, Trash2, X } from "lucide-react";
 import type { RuntimeEvent } from "@cognidesk/core";
 import {
   ChatWidget,
@@ -678,7 +678,6 @@ function VoiceInputPanel(props: { voice: UseVoiceResult; onStartVoice: () => voi
         <strong>{status}</strong>
         <span>{detail}</span>
       </div>
-      <AudioWaveform size={18} strokeWidth={2.2} aria-hidden="true" className="demo-voice-wave-icon" />
     </div>
   );
 }

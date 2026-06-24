@@ -320,7 +320,7 @@ input {
 
 .demo-voice-input-panel {
   display: grid;
-  grid-template-columns: auto minmax(150px, 1fr) minmax(172px, 1.1fr) auto;
+  grid-template-columns: auto minmax(150px, 1fr) minmax(172px, 1.1fr);
   align-items: center;
   gap: 12px;
   min-height: 84px;
@@ -432,10 +432,6 @@ input {
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.demo-voice-wave-icon {
-  color: #1d4ed8;
 }
 
 @keyframes demo-voice-idle {
@@ -850,10 +846,6 @@ input {
 
   .demo-voice-input-copy {
     min-width: 0;
-  }
-
-  .demo-voice-wave-icon {
-    display: none;
   }
 
   .demo-panel .cd-root {
