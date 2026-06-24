@@ -36,6 +36,17 @@ export function conversationMessagesFromEvents(events: RuntimeEvent[]): Conversa
   const messages: ConversationMessage[] = [];
   let pendingRole: ConversationMessage["role"] | null = null;
   for (const event of events) {
+    if (event.type === "channel.event.received" && isOperatorAgentMessageEvent(event)) {
+      const text = operatorMessageText(event);
+      if (text) {
+        messages.push({
+          role: "assistant",
+          content: text,
+        });
+      }
+      pendingRole = null;
+      continue;
+    }
     if (event.type === "message.started") {
       pendingRole = event.data.role;
       continue;
@@ -57,4 +68,20 @@ export function conversationMessagesFromEvents(events: RuntimeEvent[]): Conversa
     pendingRole = null;
   }
   return messages;
+}
+
+function isOperatorAgentMessageEvent(event: Extract<RuntimeEvent, { type: "channel.event.received" }>) {
+  return event.data.intent === "agent-message" && event.data.actor?.type === "operator";
+}
+
+function operatorMessageText(event: Extract<RuntimeEvent, { type: "channel.event.received" }>) {
+  const payload = event.data.payload;
+  if (!isRecord(payload) || typeof payload.text !== "string" || payload.text.trim().length === 0) return null;
+  const text = payload.text.trim();
+  const name = event.data.actor?.displayName?.trim();
+  return name ? `${name}: ${text}` : text;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }

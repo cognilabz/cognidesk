@@ -1,6 +1,8 @@
 # Flight Demo
 
-The flight demo runs Cognidesk with real runtime modules, real model calls, real embeddings, SQLite storage, and mocked flight-service APIs.
+The flight demo runs Cognidesk with real runtime modules, SQLite storage, mocked flight-service APIs, and a dependency-free local model fallback by default. Real model calls, embeddings, voice, Discord, SMTP/IMAP, and WhatsApp delivery are opt-in.
+
+For the full local Studio, Docker, OpenTelemetry, Discord, and troubleshooting workflow, see `website/getting-started/local-development.md`.
 
 ## Agent Structure
 
@@ -17,6 +19,44 @@ The demo agent is split by authoring concern so it can be used as a reference sh
 ## Configuration
 
 Copy `config.example.json`, `config.openrouter.example.json`, `config.providers.example.json`, `config.azure-speech.example.json`, `config.aws-speech.example.json`, `config.google-speech.example.json`, or `config.deepgram.example.json` to `config.json`. The config file chooses the provider and model for each runtime role. API keys stay in environment variables and should not be committed.
+
+By default the server starts without external API credentials. It uses a deterministic local demo Model Set and builds an in-memory Knowledge Index from `knowledge/documents.json` when `.data/knowledge-index.json` is missing or generated for another embedding provider.
+
+### External Integration Opt-In
+
+Default local mode is dependency-free: no real model calls, no external embedding service, no voice provider secrets, and no live Discord, SMTP/IMAP, or WhatsApp Journeys are required. The app still starts with mocked flight-service APIs and a deterministic local Model Set.
+
+Set this env var to enable real providers from `config.json` and default all external-integration Journeys to enabled:
+
+```sh
+FLIGHT_DEMO_EXTERNAL_APIS=true
+```
+
+Use the per-Journey flags when you want only one live integration while keeping the rest of the demo local:
+
+| Journey | Enables | Env flag |
+| --- | --- | --- |
+| `secure-email-login` | SMTP delivery and IMAP reply verification for account-protected requests | `FLIGHT_DEMO_SECURE_EMAIL_JOURNEY=true` |
+| `human-handoff` | Discord support-thread handoff | `FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=true` |
+| `whatsapp-customer-message` | WhatsApp verification links, confirmation links, and notifications | `FLIGHT_DEMO_WHATSAPP_JOURNEY=true` |
+
+Each per-Journey flag overrides `FLIGHT_DEMO_EXTERNAL_APIS`. For example, this runs with local models and only the WhatsApp Journey registered:
+
+```sh
+FLIGHT_DEMO_EXTERNAL_APIS=false
+FLIGHT_DEMO_SECURE_EMAIL_JOURNEY=false
+FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=false
+FLIGHT_DEMO_WHATSAPP_JOURNEY=true
+```
+
+This enables live models and all external integrations except Discord handoff:
+
+```sh
+FLIGHT_DEMO_EXTERNAL_APIS=true
+FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=false
+```
+
+When a Journey is disabled, it is not registered in the agent and its channel policy is omitted. When a Journey is enabled, the provider still needs its normal config and env secrets; missing credentials show up as blocked provider readiness instead of silently falling back to a mock delivery.
 
 For OpenRouter, put this in the repository root `.env`:
 
@@ -78,9 +118,9 @@ Default voice environment variables:
 | `google-speech` | `GOOGLE_CLOUD_ACCESS_TOKEN` |
 | `deepgram` | `DEEPGRAM_API_KEY` |
 
-## Discord Continuation
+## Discord Human Handoff
 
-The flight demo can sync one conversation between web chat, web voice, and Discord threads through `@cognidesk/integration-messaging-discord`. Discord support is disabled unless `discord.enabled` is true in `config.json`.
+The flight demo can sync one conversation between web chat, web voice, and Discord threads through `@cognidesk/integration-messaging-discord`. Discord support is disabled unless `FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=true` or `FLIGHT_DEMO_EXTERNAL_APIS=true`, and `discord.enabled` is true in `config.json`.
 
 1. Create a Discord application and bot, then enable the Message Content Intent for the bot.
 2. Invite the bot to the test guild with these permissions: View Channel, Read Message History, Send Messages, Create Public Threads, Send Messages in Threads, and Add Reactions.
@@ -102,7 +142,54 @@ The flight demo can sync one conversation between web chat, web voice, and Disco
 }
 ```
 
-Messages sent in the configured support channel create a Discord thread and start a Cognidesk conversation. Messages sent inside that thread resume the same conversation. The web app shows recent conversations in the sidebar and supports `?conversationId=...` resume links. `Continue in Discord` creates or reuses a Discord thread for the active web conversation, stops any active web voice session first, mirrors prior completed messages, and opens the Discord thread.
+Messages sent in the configured support channel create a Discord thread and start a Cognidesk conversation. Messages sent inside that thread resume the same conversation. The web app shows recent conversations in the sidebar and supports `?conversationId=...` resume links. With `FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=true`, Discord is prepared by the server when the `human-handoff` Journey activates; the web app shows readiness status only and does not render a customer-facing "Continue in Discord" button.
+
+## Secure Email SMTP
+
+When `FLIGHT_DEMO_SECURE_EMAIL_JOURNEY=true`, account-protected chat requests, such as sending a boarding pass to the account email, switch into the `secure-email-login` Journey. When booking reference and account email are known, the server sends a real SMTP verification email through `@cognidesk/integration-email-smtp`. The chat workflow is then gated until the customer replies to that email with the generated confirmation code, which is read through `@cognidesk/integration-email-imap`. There is no mock delivery fallback.
+
+SMTP and IMAP settings are configured in `config.json` under `email`; secrets stay in `.env`. For iCloud Mail, use an Apple app-specific password, not your normal Apple ID password:
+
+```sh
+FLIGHT_EMAIL_SMTP_HOST=smtp.mail.me.com
+FLIGHT_EMAIL_SMTP_PORT=587
+FLIGHT_EMAIL_SMTP_SECURE=false
+FLIGHT_EMAIL_SMTP_USER=your-address@icloud.com
+FLIGHT_EMAIL_SMTP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+FLIGHT_EMAIL_FROM=your-address@icloud.com
+FLIGHT_EMAIL_IMAP_HOST=imap.mail.me.com
+FLIGHT_EMAIL_IMAP_PORT=993
+FLIGHT_EMAIL_IMAP_SECURE=true
+FLIGHT_EMAIL_IMAP_USER=your-address@icloud.com
+FLIGHT_EMAIL_IMAP_MAILBOX=INBOX
+```
+
+Optional variables:
+
+```sh
+FLIGHT_EMAIL_REPLY_TO=your-address@icloud.com
+FLIGHT_EMAIL_IMAP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS=15000
+FLIGHT_EMAIL_RECIPIENT_OVERRIDE=demo-recipient@example.com
+FLIGHT_EMAIL_LOGIN_BASE_URL=https://auth.cognidesk.local/flight-demo/login
+```
+
+`FLIGHT_EMAIL_IMAP_PASSWORD` can be omitted when it is the same as `FLIGHT_EMAIL_SMTP_PASSWORD`. `FLIGHT_EMAIL_RECIPIENT_OVERRIDE` is only for local smoke tests. If it is unset, the email is sent to the account email provided in the demo conversation.
+
+## WhatsApp Customer Message
+
+Set `FLIGHT_DEMO_WHATSAPP_JOURNEY=true` to register the `whatsapp-customer-message` Journey without enabling Secure Email or Discord handoff. The Journey can send verification links, confirmation links, or support notifications only after explicit customer confirmation.
+
+Default WhatsApp environment variables:
+
+```sh
+FLIGHT_WHATSAPP_ACCESS_TOKEN=...
+FLIGHT_WHATSAPP_PHONE_NUMBER_ID=...
+FLIGHT_WHATSAPP_APP_SECRET=...
+FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN=...
+FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE=+15550100
+FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL=https://auth.cognidesk.local/flight-demo/whatsapp
+```
 
 Default text role mapping:
 
@@ -126,35 +213,36 @@ OpenRouter text role mapping in `config.openrouter.example.json`:
 
 The JSON Knowledge Index in `.data/knowledge-index.json` is app-owned demo infrastructure. It is intentionally not a Cognidesk v1 Knowledge database package or a recommendation for production retrieval storage.
 
-The demo still uses Cognidesk's `KnowledgeSource` contract and the configured embedding Model Provider. Ranking is embedding-only cosine similarity for v1.
+The demo still uses Cognidesk's `KnowledgeSource` contract and the selected embedding provider. Ranking is embedding-only cosine similarity for v1.
 
-Run ingestion after creating `config.json`:
+Run ingestion after creating `config.json` when you want to use the configured external embedding provider:
 
 ```sh
-pnpm --filter @cognidesk/flight-demo ingest:knowledge
+corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge
 ```
 
-The server fails startup if the Knowledge Index is missing or was generated with a different embedding model.
+With `FLIGHT_DEMO_EXTERNAL_APIS=true`, the server fails startup if the Knowledge Index is missing or was generated with a different embedding model. In the default local mode, the server builds a local in-memory index from `knowledge/documents.json` instead.
 
 ## Local Run
 
 ```sh
-pnpm install
-pnpm --filter @cognidesk/flight-demo ingest:knowledge
-pnpm demo
+corepack pnpm install --frozen-lockfile
+corepack pnpm demo
 ```
 
 This starts the API and Vite frontend in Turbo's terminal UI so you can switch between each service's logs. Open `http://localhost:5173`. The React app uses `http://localhost:8787/api` by default.
 
+For live models and all integrations, set `FLIGHT_DEMO_EXTERNAL_APIS=true`, provide the required provider secrets, and run `corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge` before starting the demo. For a single live integration with local models, use one of the per-Journey flags instead.
+
 ## OpenTelemetry Demo
 
 ```sh
-docker compose -f docker-compose.otel.yml up --build
+docker-compose -f docker-compose.otel.yml up --build
 ```
 
 The OpenTelemetry demo starts the flight app with `COGNIDESK_OTEL=true` and `COGNIDESK_TELEMETRY_CONTENT=full`, exports traces and metrics through the OpenTelemetry Collector, collects container logs with Promtail/Loki, and provisions Grafana dashboards at `http://localhost:3000`.
 
-The stack uses real model calls only. Make sure the configured API key, such as `OPENROUTER_KEY` for the default config, is available in the shell that starts Docker Compose.
+The stack is intended for live-provider runs. Set `FLIGHT_DEMO_EXTERNAL_APIS=true` and make sure the configured API key, such as `OPENROUTER_KEY` for the default config, is available in the shell that starts Docker Compose. Individual integration Journeys can still be overridden with their per-Journey flags.
 
 For local environments that cannot create Docker bridge networks, use `docker-compose.otel.host.yml` from the repository root; it keeps the same Grafana entrypoint and moves the demo API to `http://localhost:18787/api` to avoid common local port collisions.
 
@@ -169,4 +257,4 @@ Use these prompts to exercise the demo agent. The expected behavior below is int
 | `What is the status of booking CD-CL204-4821?` | The ticket-status Journey should activate and use the mocked ticket-status tool. |
 | `Can I check in for CL204?` | The status/check-in path should activate; if a booking reference is required, the agent should ask for it rather than inventing one. |
 | `What baggage is included in economy?` | The base support agent should use Knowledge retrieval and answer with baggage policy direction plus a source reference. |
-| `My flight was cancelled and I need a person.` | The handoff Journey should activate and collect a short summary for human support. |
+| `My flight was cancelled and I need a person.` | With `FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=true`, the handoff Journey should activate and collect a short summary for human support. In default local mode, the agent should explain that live handoff is disabled. |

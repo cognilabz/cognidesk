@@ -18,7 +18,9 @@ type MatrixTurn =
 type MatrixExpectation = {
   activeJourneyId?: string | null;
   activeStateIds?: string[];
+  completedJourneyIds?: string[];
   promptKinds?: string[];
+  promptFieldPaths?: string[];
   noPromptIdsContaining?: string[];
   successfulTools?: string[];
   forbiddenTools?: string[];
@@ -207,6 +209,16 @@ const goodCases: MatrixCase[] = [
     activeJourneyId: null,
     successfulTools: ["getFlightInfo"],
   }),
+  good("secure email login switch for boarding pass resend", "Switch account-protected email delivery to secure email login instead of handling it in chat.", [
+    "Send my boarding pass to my email for booking CD-CL102-4821. My account email is alex@example.com.",
+  ], {
+    activeJourneyId: null,
+    activeStateIds: [],
+    completedJourneyIds: ["secure-email-login"],
+    forbiddenTools: ["searchFlights", "bookFlight", "getTicketStatus"],
+    noPromptIdsContaining: ["book-flight", "ticket-status"],
+    textMatches: [/secure email login|sign-in link|continue.*email/i],
+  }),
 ];
 
 const unsupportedAddOnPrompts = [
@@ -272,17 +284,28 @@ const ambiguousPrompts = [
 
 const unsupportedServicePrompts = [
   "Cancel my ticket and refund me.",
-  "Change my passenger name.",
   "Move me to business class.",
   "Add a meal to my booking.",
   "Take payment for this booking.",
   "Use my loyalty points for a seat.",
-  "Send the boarding pass to my email.",
   "Check my passport details.",
-  "Change the date on CD-CL102-4821.",
   "Make this a real airline booking.",
-  "Can you access my account profile?",
   "Can you call the airline for me?",
+];
+
+const secureEmailFullMissingPrompts = [
+  "Change my passenger name.",
+  "Send the boarding pass to my email.",
+  "Can you access my account profile?",
+];
+
+const secureEmailBookingKnownPrompts = [
+  "Change the date on CD-CL102-4821.",
+  "Please send the invoice for booking CD-CL204-4821.",
+];
+
+const secureEmailEmailKnownPrompts = [
+  "Please send my boarding pass to alex@example.com.",
 ];
 
 const edgeCases: MatrixCase[] = [
@@ -307,6 +330,36 @@ const edgeCases: MatrixCase[] = [
     forbiddenTools: ["bookFlight", "getTicketStatus"],
     noPromptIdsContaining: ["book-flight"],
     textNotMatches: [/done|confirmed|completed|charged|refunded/i],
+  })),
+  ...secureEmailFullMissingPrompts.map((text) => edge(`secure email switch: ${text}`, "Route account-protected changes into secure email login and collect only safe details.", [text], {
+    activeJourneyId: "secure-email-login",
+    activeStateIds: ["collectSecureContact"],
+    promptKinds: ["form"],
+    promptFieldPaths: ["bookingReference", "accountEmail"],
+    forbiddenTools: ["searchFlights", "bookFlight", "getTicketStatus"],
+    noPromptIdsContaining: ["book-flight", "ticket-status"],
+    textMatches: [/secure email|login|sign-in|email/i],
+    textNotMatches: [/password|one-time code|otp|passport number|card number/i],
+  })),
+  ...secureEmailBookingKnownPrompts.map((text) => edge(`secure email switch with booking: ${text}`, "Ask only for account email when the booking reference is already known.", [text], {
+    activeJourneyId: "secure-email-login",
+    activeStateIds: ["collectSecureContact"],
+    promptKinds: ["text-input"],
+    promptFieldPaths: ["accountEmail"],
+    forbiddenTools: ["searchFlights", "bookFlight", "getTicketStatus"],
+    noPromptIdsContaining: ["book-flight", "ticket-status"],
+    textMatches: [/secure email|login|sign-in|email/i],
+    textNotMatches: [/password|one-time code|otp|passport number|card number/i],
+  })),
+  ...secureEmailEmailKnownPrompts.map((text) => edge(`secure email switch with email: ${text}`, "Ask only for booking reference when the account email is already known.", [text], {
+    activeJourneyId: "secure-email-login",
+    activeStateIds: ["collectSecureContact"],
+    promptKinds: ["text-input"],
+    promptFieldPaths: ["bookingReference"],
+    forbiddenTools: ["searchFlights", "bookFlight", "getTicketStatus"],
+    noPromptIdsContaining: ["book-flight", "ticket-status"],
+    textMatches: [/secure email|login|sign-in|email/i],
+    textNotMatches: [/password|one-time code|otp|passport number|card number/i],
   })),
   edge("baggage follow-up does not ask for booking reference", "Avoid creating a fake baggage eligibility workflow.", [
     "What baggage is included in economy?",
@@ -361,6 +414,11 @@ describe("flight demo behavior matrix via HTTP API", () => {
     const knowledgeIndex = await createTestKnowledgeIndex(models);
     const { agent, journeyIndex } = await createFlightDemoRuntimeParts({
       config: testConfig,
+      externalIntegrationJourneysEnabled: {
+        secureEmail: true,
+        discordHandoff: true,
+        whatsapp: true,
+      },
       models,
       knowledgeIndex,
     });
@@ -387,7 +445,7 @@ describe("flight demo behavior matrix via HTTP API", () => {
   });
 
   it("covers the requested amount of good, edge, and breaking cases", () => {
-    expect(goodCases).toHaveLength(27);
+    expect(goodCases).toHaveLength(28);
     expect(edgeCases.length).toBeGreaterThanOrEqual(50);
     expect(cases.length).toBeGreaterThanOrEqual(75);
   });
@@ -436,8 +494,16 @@ function assertExpectation(item: MatrixCase, result: Awaited<ReturnType<typeof r
   if (expected.activeStateIds) {
     expect(result.snapshot?.activeStateIds ?? [], item.customerGoal).toEqual(expected.activeStateIds);
   }
+  for (const journeyId of expected.completedJourneyIds ?? []) {
+    expect(result.events.some((event) =>
+      event.type === "journey.completed" && event.data.journeyId === journeyId
+    ), item.customerGoal).toBe(true);
+  }
   if (expected.promptKinds) {
     expect(result.replay.openPrompts.map((prompt) => prompt.widgetKind), item.customerGoal).toEqual(expected.promptKinds);
+  }
+  if (expected.promptFieldPaths) {
+    expect(openPromptFieldPaths(result.replay.openPrompts), item.customerGoal).toEqual(expected.promptFieldPaths);
   }
   for (const part of expected.noPromptIdsContaining ?? []) {
     expect(result.replay.openPrompts.some((prompt) => prompt.promptId.includes(part)), item.customerGoal).toBe(false);
@@ -478,6 +544,24 @@ function sourceTitles(messages: Awaited<ReturnType<CognideskClient["replayConver
     .flatMap((segment) => segment.references ?? [])
     .filter((reference) => reference.type === "knowledge")
     .map((reference) => reference.title ?? reference.id);
+}
+
+function openPromptFieldPaths(prompts: Awaited<ReturnType<CognideskClient["replayConversation"]>>["openPrompts"]) {
+  return prompts.flatMap((prompt) => {
+    if (prompt.widgetKind === "form" && isRecord(prompt.input) && Array.isArray(prompt.input.fields)) {
+      return prompt.input.fields
+        .filter(isRecord)
+        .map((field) => field.path)
+        .filter((path): path is string => typeof path === "string");
+    }
+    const [prefix, , , path] = prompt.promptId.split(":");
+    if (prefix === "field" && path) return [path];
+    return [];
+  });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 function good(name: string, customerGoal: string, turns: MatrixTurn[], expectation: MatrixExpectation): MatrixCase {

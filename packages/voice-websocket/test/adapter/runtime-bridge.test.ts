@@ -114,6 +114,32 @@ describe("@cognidesk/voice-websocket runtime bridge", () => {
       expect(provider.session?.spoken).toEqual(["Guten Tag, hier ist der Support."]);
     });
 
+    it("can speak a per-session initial greeting once the voice connection is ready", async () => {
+      const store = createInMemoryVoiceSessionStore({
+        createToken: createTokenSequence("start-token", "reconnect-token"),
+      });
+      const created = await store.createSession({
+        result: fakeStartVoiceResult(),
+        initialGreeting: "Hi, I can help with flights today.",
+        tokenTtlMs: 60_000,
+      });
+      const socket = new FakeSocket();
+      const runtime = new FakeRuntime();
+      const provider = new FakeProvider();
+
+      await handleVoiceSocket({
+        socket,
+        connectionId: created.session.connection.id,
+        token: created.socket.token,
+        store,
+        runtime,
+        provider,
+      });
+      await flushAsync();
+
+      expect(provider.session?.spoken).toEqual(["Hi, I can help with flights today."]);
+    });
+
     it("ends the claimed session when provider connection fails", async () => {
       const store = createInMemoryVoiceSessionStore({
         createToken: createTokenSequence("start-token", "reconnect-token"),

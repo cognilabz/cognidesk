@@ -12,9 +12,17 @@ export interface DiscordGatewayServiceConfig {
 export interface DiscordGatewayServiceCopy {
   supportThreadNamePrefix?: string;
   sourceThreadNamePrefix?: string;
+  voiceChannelNamePrefix?: string;
   webMessagePrefix?: string;
   voiceMessagePrefix?: string;
-  connectedMessage?: (input: { conversationId: string; conversationUrl: string }) => string;
   promptFallbackMessage?: (input: { conversationId: string; conversationUrl: string }) => string;
   turnFailureMessage?: (input: { discordThreadId: string; conversationUrl: string }) => string;
+  voiceHandoffMessage?: (input: {
+    conversationId: string;
+    conversationUrl: string;
+    discordThreadId: string;
+    discordThreadUrl: string;
+    discordVoiceChannelId: string;
+    discordVoiceChannelUrl: string;
+  }) => string;
 }

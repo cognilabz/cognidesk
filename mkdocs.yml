@@ -115,6 +115,7 @@ nav:
       - getting-started/index.md
       - Installation: getting-started/installation.md
       - Quick Start: getting-started/quick-start.md
+      - Local Development: getting-started/local-development.md
   - Concepts:
       - concepts/index.md
       - Agents: concepts/agents.md

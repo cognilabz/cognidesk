@@ -150,7 +150,10 @@ export function createCognideskClient(options: CognideskClientOptions): Cognides
       return request("startVoiceConversation", `${baseUrl}/voice/conversations`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(input),
+        body: JSON.stringify({
+          ...input,
+          ...(input.chatStart !== undefined ? { chatStart: input.chatStart } : {}),
+        }),
       }, "Failed to start voice conversation");
     },
     startVoiceSegment(conversationId, input = {}) {

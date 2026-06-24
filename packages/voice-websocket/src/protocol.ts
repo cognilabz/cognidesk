@@ -299,6 +299,7 @@ export interface VoiceSocketSession {
   channelSegment: StartVoiceResult["channelSegment"];
   connection: StartVoiceResult["connection"];
   events: RuntimeEvent[];
+  initialGreeting?: string;
   createdAt: string;
   updatedAt: string;
   status: "pending" | "connected" | "reconnecting" | "ended";
@@ -318,6 +319,7 @@ export interface VoiceSocketToken {
 export interface VoiceSessionStore {
   createSession(input: {
     result: StartVoiceResult;
+    initialGreeting?: string;
     tokenTtlMs: number;
     now?: Date;
   }): Promise<{ session: VoiceSocketSession; socket: VoiceSocketMetadata }>;

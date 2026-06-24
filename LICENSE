@@ -2,15 +2,11 @@ Cognidesk Licensing
 
 Copyright (c) 2026 Cognilabz
 
-This repository contains code under two different licensing models.
-
-1. Cognidesk SDK
-
-The Cognidesk SDK packages are licensed under the Apache License, Version 2.0.
+This repository is licensed under the Apache License, Version 2.0.
 See LICENSES/Apache-2.0.txt.
 
 This includes the packages published as reusable SDK or integration surfaces,
-plus SDK examples and documentation, including:
+SDK examples, applications, Studio, and documentation, including:
 
 - packages/core
 - packages/http
@@ -28,20 +24,11 @@ plus SDK examples and documentation, including:
 - packages/voice-websocket
 - integrations/*/*
 - apps/flight-demo
-- docs
-- website
-
-2. Cognidesk Studio
-
-Cognidesk Studio source code is source-available, not open source. It is
-licensed under the Cognidesk Studio Source Available License. See
-LICENSES/Cognidesk-Studio-Source-Available-License.txt.
-
-This includes:
-
 - apps/studio
 - apps/studio-operator-runtime
 - packages/studio-operator-skills
+- docs
+- website
 
 If a file or directory contains a more specific license notice, that notice
 controls for that file or directory.

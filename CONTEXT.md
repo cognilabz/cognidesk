@@ -573,12 +573,12 @@ The starter Vite React application that uses the Browser Client, ChatWidget, and
 _Avoid_: Next.js-first frontend
 
 **Flight Service Demo**:
-The non-A1 sample domain for demonstrating Cognidesk. It covers flight booking, ticket status, flight information, customer support tools, Knowledge, Widgets, and eval scenarios using real Cognidesk runtime modules, app-owned demo Knowledge, and mocked flight-service integrations.
-_Avoid_: Telecom demo, A1-like demo, fully mocked SDK demo
+The  sample domain for demonstrating Cognidesk. It covers flight booking, ticket status, flight information, customer support tools, Knowledge, Widgets, and eval scenarios using real Cognidesk runtime modules, app-owned demo Knowledge, and mocked flight-service integrations.
+_Avoid_: fully mocked SDK demo
 
 **Flight Demo Studio Target**:
 The first local Studio Target used to prove Cognidesk Studio against a real SDK application. It attaches Studio to the Flight Service Demo's runtime definitions, storage, telemetry, source repository, Journeys, Delegation Journeys, Runtime Events, and demo UI.
-_Avoid_: Fake Studio-only target, A1 Daybreaker target, mocked introspection target
+_Avoid_: Fake Studio-only target,  mocked introspection target
 
 **Demo Data**:
 Mocked data used only by the Flight Service Demo. Demo Data lives inside the demo application and is not a reusable SDK package.
@@ -1514,9 +1514,9 @@ Developer: "Does the Runtime SDK require a specific web server?"
 
 Domain expert: "No. Cognidesk is transport-neutral, but it can provide Built-In Adapters for common integrations."
 
-Developer: "Can Cognidesk include telecom-specific A1 behavior from Daybreaker?"
+Developer: "Can Cognidesk include specific behavior from X ?"
 
-Domain expert: "No. Daybreaker can inspire runtime patterns, but Cognidesk must not contain A1-specific domain behavior."
+Domain expert: "No. X can inspire runtime patterns, but Cognidesk must not contain specific domain behavior."
 
 Developer: "How does Cognidesk control model cost without quality presets?"
 

@@ -69,10 +69,10 @@ The root demo script also supports OpenTelemetry through environment variables s
 
 | Mode | Command | Includes | Open |
 |------|---------|----------|------|
-| Demo only | `docker compose up --build` | Flight demo, Studio, Studio operator runtime, MinIO. OTel services are available behind the `otel` profile. | `http://localhost:5173`, `http://localhost:3000` |
-| Demo plus profiled OTel services | `docker compose --profile otel up --build` | Demo services plus OpenTelemetry Collector, Tempo, and Prometheus. | `http://localhost:9090`, `http://localhost:3200` |
-| Full telemetry demo | `docker compose -f docker-compose.otel.yml up --build` | Flight demo, OpenTelemetry Collector, Tempo, Prometheus, Loki, Promtail, and Grafana dashboards. | `http://localhost:3000` |
-| Host-network fallback | `docker compose -f docker-compose.otel.host.yml up --build` | Full telemetry demo with host-oriented endpoints for environments that cannot create Docker bridge networks. | `http://localhost:3000` |
+| Demo only | `docker-compose up --build` | Flight demo, Studio, Studio operator runtime, MinIO. OTel services are available behind the `otel` profile. | `http://localhost:5173`, `http://localhost:3000` |
+| Studio plus profiled OTel services | `docker-compose --profile otel up --build` | Demo services plus OpenTelemetry Collector, Tempo, and Prometheus for Studio telemetry sources. | `http://localhost:5173`, `http://localhost:3000`, `http://localhost:9090`, `http://localhost:3200` |
+| Grafana telemetry demo | `docker-compose -f docker-compose.otel.yml up --build` | Flight demo, OpenTelemetry Collector, Tempo, Prometheus, Loki, Promtail, and Grafana dashboards. Does not start Studio because Grafana uses port `3000`. | `http://localhost:3000` |
+| Host-network fallback | `docker-compose -f docker-compose.otel.host.yml up --build` | Grafana telemetry demo with host-oriented endpoints for environments that cannot create Docker bridge networks. | `http://localhost:3000` |
 
 The Studio target manifest points at Prometheus and Tempo. Under compose,
 `deploy/studio/compose-overlay.json` rewrites those endpoints from local host

@@ -1,4 +1,6 @@
 import type {
+  AgentChatStartAction,
+  AgentChatStartBehavior,
   CognideskRuntime,
   CompactConversationInput,
   CompactConversationResult,
@@ -57,6 +59,7 @@ export interface VoiceSocketHandshakeInput {
   result: StartVoiceResult;
   request: Request;
   basePath: string;
+  initialGreeting?: string;
 }
 
 export interface VoiceSocketHandshake {
@@ -96,6 +99,7 @@ export interface CognideskHttpHandlerOptions {
   runtime: CognideskHttpRuntime | CognideskRuntime;
   basePath?: string;
   agentId?: string;
+  chatStart?: AgentChatStartBehavior;
   voice?: VoiceSocketHandshake;
   customEvents?: CustomRuntimeEventDefinition[];
   journeyEvents?: JourneyEventDefinition[];
@@ -129,15 +133,20 @@ interface BaseCreateConversationBody {
 
 export interface CreateConversationBody extends BaseCreateConversationBody {
   channel?: ConversationChannelInput;
+  chatStart?: AgentChatStartAction;
+  app?: unknown;
 }
 
 export interface CreateVoiceConversationBody extends BaseCreateConversationBody {
   client?: unknown;
+  chatStart?: AgentChatStartAction;
+  initialGreeting?: string;
   app?: unknown;
 }
 
 export interface CreateVoiceSegmentBody {
   client?: unknown;
+  initialGreeting?: string;
   app?: unknown;
 }
 

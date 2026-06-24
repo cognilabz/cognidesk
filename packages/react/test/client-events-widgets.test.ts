@@ -8,7 +8,7 @@ import {
   reduceChatRuntimeEvent,
 } from "../src/index.js";
 import { PENDING_PROMPT_DISPLAY_OFFSET } from "../src/event-reducer.js";
-import type { RuntimeEvent } from "@cognidesk/core";
+import { defineChannelContext, type RuntimeEvent } from "@cognidesk/core";
 
 describe("React client events and widgets", () => {
   it("streams runtime events through EventSource", () => {
@@ -262,6 +262,222 @@ describe("React client events and widgets", () => {
       }],
       status: "sent",
     }]);
+  });
+
+  it("deduplicates spoken initial greeting voice transcripts", () => {
+    const welcome = "Welcome back. How can I help with flights today?";
+    const initial = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "message.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { role: "assistant" },
+    });
+    const initialDelta = reduceChatRuntimeEvent(initial, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "message.delta",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { textDelta: welcome },
+    });
+    const initialCompleted = reduceChatRuntimeEvent(initialDelta, {
+      id: "event_3",
+      conversationId: "conversation_1",
+      offset: 3,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: welcome, intermediate: true, visibleToModel: true },
+    });
+    const spokenStarted = reduceChatRuntimeEvent(initialCompleted, {
+      id: "event_4",
+      conversationId: "conversation_1",
+      offset: 4,
+      type: "message.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { role: "assistant" },
+    });
+    const spokenCompleted = reduceChatRuntimeEvent(spokenStarted, {
+      id: "event_5",
+      conversationId: "conversation_1",
+      offset: 5,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: welcome },
+    });
+    const transcriptCommitted = reduceChatRuntimeEvent(spokenCompleted, {
+      id: "event_6",
+      conversationId: "conversation_1",
+      offset: 6,
+      type: "voice.transcript.committed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        channelSegmentId: "voice_segment_1",
+        speaker: "assistant",
+        messageEventId: "event_5",
+        transcriptionSource: "openai-realtime",
+      },
+    });
+
+    expect(spokenCompleted.messages.map((message) => message.text)).toEqual([welcome, welcome]);
+    expect(transcriptCommitted.messages.map((message) => message.text)).toEqual([welcome]);
+  });
+
+  it("hides an interrupted intermediate voice greeting before the voice model answers", () => {
+    const welcome = "Welcome back. How can I help with flights today?";
+    const initial = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "event_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: welcome, intermediate: true, visibleToModel: true },
+    });
+    const interrupted = reduceChatRuntimeEvent(initial, {
+      id: "event_2",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "voice.interrupted",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        channelSegmentId: "voice_segment_1",
+        connectionId: "voice_connection_1",
+        source: "userSpeech",
+        reason: "user_speech_started",
+      },
+    });
+    const spokenCompleted = reduceChatRuntimeEvent(interrupted, {
+      id: "event_3",
+      conversationId: "conversation_1",
+      offset: 3,
+      type: "message.completed",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: { text: "Grüß Sie, wie kann ich helfen?" },
+    });
+
+    expect(initial.messages.map((message) => message.text)).toEqual([welcome]);
+    expect(interrupted.messages).toEqual([]);
+    expect(spokenCompleted.messages.map((message) => message.text)).toEqual(["Grüß Sie, wie kann ich helfen?"]);
+  });
+
+  it("reduces Discord operator join, typing, and messages into chat state", () => {
+    const typing = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "typing_1",
+      conversationId: "conversation_1",
+      offset: 1,
+      type: "custom.discord.operator_typing.started",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        operatorId: "operator_1",
+        operatorName: "Michi",
+        discordThreadId: "thread_1",
+        expiresAt: "2099-01-01T00:00:00.000Z",
+      },
+    });
+    const joined = reduceChatRuntimeEvent(typing, {
+      id: "joined_1",
+      conversationId: "conversation_1",
+      offset: 2,
+      type: "custom.discord.operator_joined",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        operatorId: "operator_1",
+        operatorName: "Michi",
+        discordThreadId: "thread_1",
+      },
+    });
+    const messaged = reduceChatRuntimeEvent(joined, {
+      id: "channel_1",
+      conversationId: "conversation_1",
+      offset: 3,
+      type: "channel.event.received",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        eventId: "discord_message_1",
+        nature: "message",
+        direction: "inbound",
+        intent: "agent-message",
+        actor: { type: "operator", id: "operator_1", displayName: "Michi" },
+        channel: defineChannelContext({
+          channelId: "channel_1",
+          kind: "community",
+          provider: "discord",
+          externalThreadId: "thread_1",
+        }),
+        bindingOutcome: "resume-existing",
+        handlingDisposition: "record-only",
+        payload: { text: "Hi, I am checking options." },
+      },
+    });
+
+    expect(typing.activities).toEqual([{
+      id: "typing:operator_1",
+      label: "Michi is typing",
+      status: "running",
+      expiresAt: Date.parse("2099-01-01T00:00:00.000Z"),
+    }]);
+    expect(joined.activities).toEqual([]);
+    expect(messaged.activities).toEqual([]);
+    expect(messaged.messages).toEqual([
+      {
+        id: "joined_1",
+        offset: 2,
+        role: "assistant",
+        text: "Michi joined the chat.",
+        status: "sent",
+      },
+      {
+        id: "channel_1",
+        offset: 3,
+        role: "assistant",
+        text: "Michi: Hi, I am checking options.",
+        status: "sent",
+      },
+    ]);
+  });
+
+  it("adds an operator joined bubble before the first Discord operator message", () => {
+    const reduced = reduceChatRuntimeEvent(emptyChatState(), {
+      id: "channel_1",
+      conversationId: "conversation_1",
+      offset: 3,
+      type: "channel.event.received",
+      createdAt: "2026-05-25T00:00:00.000Z",
+      data: {
+        eventId: "discord_message_1",
+        nature: "message",
+        direction: "inbound",
+        intent: "agent-message",
+        actor: { type: "operator", id: "operator_1", displayName: "Michi" },
+        channel: defineChannelContext({
+          channelId: "channel_1",
+          kind: "community",
+          provider: "discord",
+          externalThreadId: "thread_1",
+        }),
+        bindingOutcome: "resume-existing",
+        handlingDisposition: "record-only",
+        payload: { text: "I can help from here." },
+      },
+    });
+
+    expect(reduced.messages).toEqual([
+      {
+        id: "channel_1:operator_joined",
+        offset: 2.9,
+        role: "assistant",
+        text: "Michi joined the chat.",
+        status: "sent",
+      },
+      {
+        id: "channel_1",
+        offset: 3,
+        role: "assistant",
+        text: "Michi: I can help from here.",
+        status: "sent",
+      },
+    ]);
   });
 
   it("reduces background work events into activity indicators", () => {

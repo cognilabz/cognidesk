@@ -1,32 +1,265 @@
 import { defineChannelPolicy, type ChannelPolicyConfig } from "@cognidesk/core";
+import type { FlightDemoExternalIntegrationJourneyFlags } from "../config.js";
 
 export const FLIGHT_MOCK_BOOKING_CAPABILITY = "flight.mock-booking.create";
 export const FLIGHT_MOCK_BOOKING_POLICY_ID = "mock-booking-confirmation";
+export const FLIGHT_DISCORD_PROVIDER_PACKAGE_ID = "messaging.discord";
+export const FLIGHT_DISCORD_HANDOFF_POLICY_ID = "discord-human-handoff";
+export const FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID = "messaging.whatsapp";
+export const FLIGHT_WHATSAPP_CHANNEL_ID = "flight-demo-whatsapp";
+export const FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID = "whatsapp-customer-message";
+export const FLIGHT_SECURE_EMAIL_CHANNEL_ID = "flight-demo-secure-email";
+export const FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID = "secure-email-login-switch";
 
-export const flightDemoRuntimeChannels: ChannelPolicyConfig[] = [
-  flightDemoRuntimeChannel("voice", { allowMarkdown: false, allowWidgets: false }),
-  flightDemoRuntimeChannel("chat", { allowMarkdown: true, allowWidgets: true }),
-];
+export interface CreateFlightDemoRuntimeChannelsOptions {
+  externalIntegrationJourneysEnabled?: boolean | Partial<FlightDemoExternalIntegrationJourneyFlags>;
+}
+
+export function createFlightDemoRuntimeChannels(options: CreateFlightDemoRuntimeChannelsOptions = {}): ChannelPolicyConfig[] {
+  const externalIntegrationJourneysEnabled = resolveExternalIntegrationJourneyFlags(
+    options.externalIntegrationJourneysEnabled,
+    {
+      secureEmail: true,
+      discordHandoff: true,
+      whatsapp: true,
+    },
+  );
+  return [
+    flightDemoRuntimeChannel(
+      "voice",
+      { allowMarkdown: false, allowWidgets: false },
+      externalIntegrationJourneysEnabled,
+    ),
+    flightDemoRuntimeChannel(
+      "chat",
+      { allowMarkdown: true, allowWidgets: true },
+      externalIntegrationJourneysEnabled,
+    ),
+    flightDemoRuntimeChannel(
+      "community",
+      { allowMarkdown: true, allowWidgets: false },
+      externalIntegrationJourneysEnabled,
+    ),
+    ...(externalIntegrationJourneysEnabled.secureEmail ? [secureEmailChannelPolicy()] : []),
+    ...(externalIntegrationJourneysEnabled.whatsapp ? [whatsAppChannelPolicy()] : []),
+  ];
+}
+
+export const flightDemoRuntimeChannels: ChannelPolicyConfig[] = createFlightDemoRuntimeChannels({
+  externalIntegrationJourneysEnabled: true,
+});
+
+function secureEmailChannelPolicy() {
+  return defineChannelPolicy({
+    id: FLIGHT_SECURE_EMAIL_CHANNEL_ID,
+    channel: "email",
+    enabled: true,
+    audience: "customer-facing",
+    channelSetIds: [],
+    providerPackageIds: [],
+    enabledCapabilities: ["receive", "send", "draft", "thread", "handoff"],
+    flowActivations: [{
+      journeyId: "secure-email-login",
+      policyIds: [FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID],
+      metadata: {
+        destination: "secure-login-email",
+      },
+    }],
+    outbound: {
+      enabled: true,
+      requiresProviderOutboundSupport: false,
+      policyIds: [FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID],
+      metadata: {
+        delivery: "smtp-secure-login-email",
+      },
+    },
+    behavior: {
+      allowMarkdown: false,
+      allowWidgets: false,
+      draftFirst: true,
+    },
+    handoff: {
+      enabled: true,
+      destinations: ["secure-login-email"],
+      sdkControlled: true,
+      policyIds: [FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID],
+    },
+    policies: {
+      [FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID]: {
+        owner: "flight-demo",
+        scope: "secure-account-login-email",
+        requiresLogin: true,
+        allowedInputs: ["bookingReference", "accountEmail"],
+      },
+    },
+    metadata: {
+      provider: "smtp",
+      destination: "secure-login-email",
+    },
+  });
+}
+
+function whatsAppChannelPolicy() {
+  return defineChannelPolicy({
+    id: FLIGHT_WHATSAPP_CHANNEL_ID,
+    channel: "messaging",
+    enabled: true,
+    audience: "customer-facing",
+    channelSetIds: [],
+    providerPackageIds: [FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID],
+    enabledCapabilities: ["receive", "send", "draft", "media", "attach", "notify", "read-provider-object"],
+    flowActivations: [{
+      journeyId: "whatsapp-customer-message",
+      providerPackageIds: [FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID],
+      policyIds: [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID],
+      metadata: {
+        destination: "whatsapp-customer-message",
+      },
+    }],
+    outbound: {
+      enabled: true,
+      providerPackageIds: [FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID],
+      policyIds: [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID],
+      metadata: {
+        delivery: "whatsapp-cloud-api-message",
+      },
+    },
+    behavior: {
+      allowMarkdown: false,
+      allowWidgets: false,
+      draftFirst: true,
+    },
+    policies: {
+      [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID]: {
+        owner: "flight-demo",
+        scope: "customer-whatsapp-message",
+        requiresExplicitConfirmation: true,
+        serviceWindowRequiredForFreeformText: true,
+      },
+    },
+    metadata: {
+      provider: "whatsapp",
+      destination: "whatsapp-customer-message",
+    },
+  });
+}
 
 function flightDemoRuntimeChannel(
-  channel: "voice" | "chat",
+  channel: "voice" | "chat" | "community",
   behavior: { allowMarkdown: boolean; allowWidgets: boolean },
+  externalIntegrationJourneysEnabled: FlightDemoExternalIntegrationJourneyFlags,
 ) {
   return defineChannelPolicy({
     id: channel,
     channel,
     enabled: true,
     channelSetIds: [],
-    providerPackageIds: [],
-    enabledCapabilities: ["receive", "model.call-tools", FLIGHT_MOCK_BOOKING_CAPABILITY],
-    flowActivations: [],
+    providerPackageIds: [
+      ...(externalIntegrationJourneysEnabled.discordHandoff ? [FLIGHT_DISCORD_PROVIDER_PACKAGE_ID] : []),
+      ...(externalIntegrationJourneysEnabled.whatsapp ? [FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID] : []),
+    ],
+    enabledCapabilities: [
+      "receive",
+      "model.call-tools",
+      FLIGHT_MOCK_BOOKING_CAPABILITY,
+      ...(externalIntegrationJourneysEnabled.secureEmail || externalIntegrationJourneysEnabled.discordHandoff
+        ? ["handoff", "thread"]
+        : []),
+      ...(externalIntegrationJourneysEnabled.whatsapp ? ["send", "notify"] : []),
+    ],
+    flowActivations: [
+      ...(externalIntegrationJourneysEnabled.discordHandoff ? [{
+        journeyId: "human-handoff",
+        providerPackageIds: [FLIGHT_DISCORD_PROVIDER_PACKAGE_ID],
+        policyIds: [FLIGHT_DISCORD_HANDOFF_POLICY_ID],
+        metadata: {
+          destination: "discord-support-thread",
+        },
+      }] : []),
+      ...(externalIntegrationJourneysEnabled.secureEmail ? [{
+        journeyId: "secure-email-login",
+        policyIds: [FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID],
+        metadata: {
+          destination: "secure-login-email",
+          toChannelId: FLIGHT_SECURE_EMAIL_CHANNEL_ID,
+        },
+      }] : []),
+      ...(externalIntegrationJourneysEnabled.whatsapp ? [{
+        journeyId: "whatsapp-customer-message",
+        providerPackageIds: [FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID],
+        policyIds: [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID],
+        metadata: {
+          destination: "whatsapp-customer-message",
+          toChannelId: FLIGHT_WHATSAPP_CHANNEL_ID,
+        },
+      }] : []),
+    ],
+    outbound: externalIntegrationJourneysEnabled.whatsapp ? {
+      enabled: true,
+      providerPackageIds: [FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID],
+      policyIds: [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID],
+      metadata: {
+        delivery: "whatsapp-cloud-api-message",
+      },
+    } : { enabled: false },
     behavior,
+    handoff: externalIntegrationJourneysEnabled.discordHandoff ? {
+      enabled: true,
+      providerPackageIds: [FLIGHT_DISCORD_PROVIDER_PACKAGE_ID],
+      destinations: ["discord-support-thread"],
+      sdkControlled: true,
+      policyIds: [FLIGHT_DISCORD_HANDOFF_POLICY_ID],
+      metadata: {
+        journeyId: "human-handoff",
+      },
+    } : { enabled: false },
     policies: {
       [FLIGHT_MOCK_BOOKING_POLICY_ID]: {
         owner: "flight-demo",
         scope: "mock-booking-only",
         requiresExplicitConfirmation: true,
       },
+      ...(externalIntegrationJourneysEnabled.discordHandoff ? {
+        [FLIGHT_DISCORD_HANDOFF_POLICY_ID]: {
+          owner: "flight-demo",
+          scope: "discord-support-thread",
+          journeyId: "human-handoff",
+        },
+      } : {}),
+      ...(externalIntegrationJourneysEnabled.secureEmail ? {
+        [FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID]: {
+          owner: "flight-demo",
+          scope: "secure-account-login-email",
+          journeyId: "secure-email-login",
+        },
+      } : {}),
+      ...(externalIntegrationJourneysEnabled.whatsapp ? {
+        [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID]: {
+          owner: "flight-demo",
+          scope: "customer-whatsapp-message",
+          journeyId: "whatsapp-customer-message",
+          requiresExplicitConfirmation: true,
+        },
+      } : {}),
     },
   });
+}
+
+function resolveExternalIntegrationJourneyFlags(
+  option: CreateFlightDemoRuntimeChannelsOptions["externalIntegrationJourneysEnabled"],
+  fallback: FlightDemoExternalIntegrationJourneyFlags,
+): FlightDemoExternalIntegrationJourneyFlags {
+  if (option === undefined) return fallback;
+  if (typeof option === "boolean") {
+    return {
+      secureEmail: option,
+      discordHandoff: option,
+      whatsapp: option,
+    };
+  }
+  return {
+    secureEmail: option.secureEmail ?? fallback.secureEmail,
+    discordHandoff: option.discordHandoff ?? fallback.discordHandoff,
+    whatsapp: option.whatsapp ?? fallback.whatsapp,
+  };
 }

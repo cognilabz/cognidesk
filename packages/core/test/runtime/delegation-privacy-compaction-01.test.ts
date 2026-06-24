@@ -92,6 +92,82 @@ describe("runtime delegation, privacy, and compaction 01", () => {
     });
   });
 
+  it("completes an active delegation journey when an operator resumes bot control", async () => {
+    const agentBuilder = createAgent("flight-service", {
+      instructions: "Help customers with flights.",
+    });
+    agentBuilder.delegationJourney("human-handoff", {
+      condition: "Customer asks for a human specialist",
+      specialist: {
+        goal: "Collect a concise handoff summary and stop automated troubleshooting.",
+        instructions: "Ask only for missing handoff details.",
+      },
+      completeWhen: ["operator returns control to the bot"],
+    });
+    const agent = agentBuilder.compile();
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({
+      storage,
+      agent,
+      models: createModels({
+        response: {
+          provider: "test",
+          model: "response",
+          generateText: async () => ({ text: "I can continue from here. What is your booking reference?" }),
+        },
+      }),
+    });
+    const conversation = await runtime.createConversation({ agentId: agent.id, context: {} });
+    await storage.saveSnapshot({
+      conversationId: conversation.id,
+      lifecycle: "active",
+      activeJourneyId: "human-handoff",
+      activeStateIds: [],
+      updatedAt: "2026-06-20T00:00:00.000Z",
+    });
+
+    const result = await runtime.handleChannelEvent({
+      conversationId: conversation.id,
+      binding: {
+        outcome: "resume-existing",
+        conversationId: conversation.id,
+      },
+      event: {
+        id: "discord:message_1:bot-resume",
+        nature: "operator.resume",
+        direction: "internal",
+        intent: "operator-resume",
+        actor: { type: "operator", displayName: "Michi" },
+        channel: defineChannelContext({
+          channelId: "discord-support",
+          kind: "community",
+          provider: "discord",
+        }),
+        payload: {
+          text: "Please ask the customer for their booking reference.",
+        },
+      },
+      handling: {
+        disposition: "model-turn",
+        text: "Please ask the customer for their booking reference.",
+        recordUserMessage: false,
+      },
+    });
+
+    const events = await runtime.listEvents(conversation.id);
+    expect(result.activeJourneyId).toBeUndefined();
+    expect(result.snapshot).toBeDefined();
+    expect(result.snapshot?.activeJourneyId).toBeUndefined();
+    expect(result.text).toBe("I can continue from here. What is your booking reference?");
+    expect(events).toContainEqual(expect.objectContaining({
+      type: "journey.completed",
+      data: {
+        journeyId: "human-handoff",
+        reason: "operator-resume",
+      },
+    }));
+  });
+
   it("applies privacy hooks before storage, model calls, and returned assistant text", async () => {
     let modelPrompt = "";
     const response = {

@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createRuntime, createTelemetryContext, type CognideskRuntime, type RuntimeEvent } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
-import { createFlightDemoRuntimeParts } from "../server/agent/index.js";
+import {
+  createFlightDemoRuntimeParts,
+  type FlightDemoExternalIntegrationJourneyOption,
+} from "../server/agent/index.js";
 import { flightDemoRuntimeChannels } from "../server/agent/policies.js";
-import { flightTools } from "../server/agent/tools/flight-tools.js";
+import {
+  createFlightTools,
+  flightTools,
+  type FlightTools,
+  type FlightWhatsAppCustomerMessageSendInput,
+} from "../server/agent/tools/flight-tools.js";
 import { createTestKnowledgeIndex, createTestModelSet, testConfig } from "./fixtures.js";
 
 type FlightDemoTestRuntime = {
@@ -442,8 +450,318 @@ describe("flight demo customer use cases", () => {
     ))).toBeDefined();
   });
 
-  it("routes upset customers asking for a person into the handoff journey", async () => {
+  it("triages delayed baggage claims without turning the booking reference into ticket status", async () => {
     const { runtime, agentId } = await setupFlightDemoRuntime();
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "My checked bag did not arrive in Vienna after flight CL204.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(result.activeJourneyId).toBe("baggage-service");
+    expect(findSuccessfulTool(events, "getTicketStatus")).toBeUndefined();
+    expect(findSuccessfulTool(events, "bookFlight")).toBeUndefined();
+    expect(result.text).toMatch(/delayed|lost|damaged|baggage|handoff/i);
+    expect(openPrompts(events)).toEqual([]);
+  });
+
+  it.each([
+    {
+      name: "all off",
+      flags: false,
+      expectedJourneys: [],
+      expectedTools: [],
+    },
+    {
+      name: "secure email only",
+      flags: { secureEmail: true, discordHandoff: false, whatsapp: false },
+      expectedJourneys: ["secure-email-login"],
+      expectedTools: [],
+    },
+    {
+      name: "WhatsApp only",
+      flags: { secureEmail: false, discordHandoff: false, whatsapp: true },
+      expectedJourneys: ["whatsapp-customer-message"],
+      expectedTools: ["sendWhatsAppCustomerMessage"],
+    },
+    {
+      name: "Discord handoff only",
+      flags: { secureEmail: false, discordHandoff: true, whatsapp: false },
+      expectedJourneys: ["human-handoff"],
+      expectedTools: [],
+    },
+  ] satisfies Array<{
+    name: string;
+    flags: FlightDemoExternalIntegrationJourneyOption;
+    expectedJourneys: string[];
+    expectedTools: string[];
+  }>)("registers external integration journeys individually: $name", async ({ flags, expectedJourneys, expectedTools }) => {
+    const models = createTestModelSet();
+    const knowledgeIndex = await createTestKnowledgeIndex(models);
+    const { agent, journeyIndex } = await createFlightDemoRuntimeParts({
+      config: testConfig,
+      externalIntegrationJourneysEnabled: flags,
+      models,
+      knowledgeIndex,
+    });
+    const journeyIds = agent.journeys.map((journey) => journey.id);
+    const indexedJourneyIds = journeyIndex.entries.map((entry) => entry.journeyId);
+    const toolNames = agent.tools.map((tool) => tool.name);
+
+    expect(journeyIds).toEqual(expect.arrayContaining([
+      "baggage-service",
+      "book-flight",
+      "ticket-status",
+    ]));
+    for (const journeyId of ["secure-email-login", "whatsapp-customer-message", "human-handoff"]) {
+      if (expectedJourneys.includes(journeyId)) {
+        expect(journeyIds).toContain(journeyId);
+        expect(indexedJourneyIds).toContain(journeyId);
+      } else {
+        expect(journeyIds).not.toContain(journeyId);
+        expect(indexedJourneyIds).not.toContain(journeyId);
+      }
+    }
+    for (const toolName of ["sendWhatsAppCustomerMessage"]) {
+      if (expectedTools.includes(toolName)) {
+        expect(toolNames).toContain(toolName);
+      } else {
+        expect(toolNames).not.toContain(toolName);
+      }
+    }
+  });
+
+  it("routes account-protected requests into secure email login and collects safe contact details", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime({
+      externalIntegrationJourneysEnabled: { secureEmail: true, discordHandoff: false, whatsapp: false },
+    });
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "I need to change the passenger name on my booking.",
+    });
+    const prompts = openPrompts(await runtime.listEvents(conversation.id));
+
+    expect(result.activeJourneyId).toBe("secure-email-login");
+    expect(result.snapshot.activeStateIds).toEqual(["collectSecureContact"]);
+    expect(findSuccessfulTool(await runtime.listEvents(conversation.id), "getTicketStatus")).toBeUndefined();
+    expect(prompts).toEqual([
+      expect.objectContaining({
+        promptId: "fields:secure-email-login:collectSecureContact",
+        widgetKind: "form",
+        data: expect.objectContaining({
+          input: expect.objectContaining({
+            fields: [
+              expect.objectContaining({ path: "bookingReference", label: "Booking reference", type: "text" }),
+              expect.objectContaining({ path: "accountEmail", label: "Account email", type: "email" }),
+            ],
+          }),
+        }),
+      }),
+    ]);
+  });
+
+  it("completes secure email login preparation when booking reference and account email are known", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime({
+      externalIntegrationJourneysEnabled: { secureEmail: true, discordHandoff: false, whatsapp: false },
+    });
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Send my boarding pass to my email for booking CD-CL102-4821. My account email is alex@example.com.",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(events.some((event) =>
+      event.type === "journey.activated" && event.data.journeyId === "secure-email-login"
+    )).toBe(true);
+    expect(events.some((event) =>
+      event.type === "journey.completed" && event.data.journeyId === "secure-email-login"
+    )).toBe(true);
+    expect(result.snapshot).toMatchObject({
+      activeStateIds: [],
+    });
+    expect(events.some((event) =>
+      event.type === "journey.extraction.accepted"
+      && event.data.journeyId === "secure-email-login"
+      && event.data.fields.includes("bookingReference")
+      && event.data.fields.includes("accountEmail")
+    )).toBe(true);
+    expect(openPrompts(events)).toEqual([]);
+    expect(findSuccessfulTool(events, "getTicketStatus")).toBeUndefined();
+    expect(result.text).toMatch(/secure email login|sign-in link|continue.*email/i);
+  });
+
+  it("routes refund-status requests through secure email without refunding or cancelling in chat", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime({
+      externalIntegrationJourneysEnabled: { secureEmail: true, discordHandoff: false, whatsapp: false },
+    });
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "What is the refund status for booking CD-CL204-4821?",
+    });
+    const events = await runtime.listEvents(conversation.id);
+
+    expect(result.activeJourneyId).toBe("secure-email-login");
+    expect(result.snapshot.activeStateIds).toEqual(["collectSecureContact"]);
+    expect(result.snapshot.journeyContext).toMatchObject({
+      bookingReference: "CD-CL204-4821",
+      requestType: "refund status request",
+    });
+    expect(findSuccessfulTool(events, "bookFlight")).toBeUndefined();
+    expect(findSuccessfulTool(events, "getTicketStatus")).toBeUndefined();
+    expect(openPrompts(events)).toEqual([
+      expect.objectContaining({
+        promptId: "field:secure-email-login:collectSecureContact:accountEmail",
+        widgetKind: "text-input",
+      }),
+    ]);
+    expect(result.text).not.toMatch(/refunded|cancelled|canceled|completed/i);
+  });
+
+  it("sends WhatsApp verification links only after explicit confirmation", async () => {
+    const sentMessages: FlightWhatsAppCustomerMessageSendInput[] = [];
+    const tools = createFlightTools({
+      whatsapp: {
+        confirmationBaseUrl: "https://auth.example.test/whatsapp",
+        sender: {
+          async send(input) {
+            sentMessages.push(input);
+            return { status: "sent", messageId: "wamid.test-1" };
+          },
+        },
+      },
+    });
+    const { runtime, agentId } = await setupFlightDemoRuntime({
+      externalIntegrationJourneysEnabled: { secureEmail: false, discordHandoff: false, whatsapp: true },
+      tools,
+    });
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Send a WhatsApp verification link for booking CD-CL102-4821 to +15550100.",
+    });
+    const beforeConfirmEvents = await runtime.listEvents(conversation.id);
+
+    expect(result.activeJourneyId).toBe("whatsapp-customer-message");
+    expect(result.snapshot).toMatchObject({
+      activeStateIds: ["sendWhatsAppMessage"],
+      journeyContext: {
+        recipientPhone: "+15550100",
+        messagePurpose: "verification-link",
+        bookingReference: "CD-CL102-4821",
+      },
+    });
+    expect(sentMessages).toEqual([]);
+    expect(openPrompts(beforeConfirmEvents)).toEqual([
+      expect.objectContaining({
+        promptId: "confirm:whatsapp-customer-message:sendWhatsAppMessage:sendWhatsAppCustomerMessage",
+        widgetKind: "confirmation",
+      }),
+    ]);
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "confirm:whatsapp-customer-message:sendWhatsAppMessage:sendWhatsAppCustomerMessage",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
+    const events = await runtime.listEvents(conversation.id);
+    const toolEvent = findSuccessfulTool(events, "sendWhatsAppCustomerMessage");
+
+    expect(sentMessages).toEqual([
+      expect.objectContaining({
+        to: "15550100",
+        purpose: "verification-link",
+        previewUrl: true,
+        customerPhone: "15550100",
+        recipientOverridden: false,
+      }),
+    ]);
+    expect(sentMessages[0]?.body).toContain("https://auth.example.test/whatsapp/verify/");
+    expect(sentMessages[0]?.body).toContain("CD-CL102-4821");
+    expect(sentMessages[0]?.body).toContain("Do not share passwords");
+    expect(toolEvent?.data.result).toMatchObject({
+      provider: "whatsapp",
+      status: "sent",
+      purpose: "verification-link",
+      recipientPhone: "+155...0100",
+      messageId: "wamid.test-1",
+    });
+    expect(events.map((event) => event.type)).toContain("journey.completed");
+  });
+
+  it("sends WhatsApp airline notifications with a support-specific request label", async () => {
+    const sentMessages: FlightWhatsAppCustomerMessageSendInput[] = [];
+    const tools = createFlightTools({
+      whatsapp: {
+        confirmationBaseUrl: "https://auth.example.test/whatsapp",
+        sender: {
+          async send(input) {
+            sentMessages.push(input);
+            return { status: "sent", messageId: "wamid.gate-change" };
+          },
+        },
+      },
+    });
+    const { runtime, agentId } = await setupFlightDemoRuntime({
+      externalIntegrationJourneysEnabled: { secureEmail: false, discordHandoff: false, whatsapp: true },
+      tools,
+    });
+    const conversation = await runtime.createConversation({ agentId, context: {} });
+
+    const result = await runtime.handleUserMessage({
+      conversationId: conversation.id,
+      text: "Send a WhatsApp notification to +15550100 that gate changed for booking CD-CL204-4821.",
+    });
+
+    expect(result.activeJourneyId).toBe("whatsapp-customer-message");
+    expect(result.snapshot).toMatchObject({
+      activeStateIds: ["sendWhatsAppMessage"],
+      journeyContext: {
+        recipientPhone: "+15550100",
+        messagePurpose: "notification",
+        bookingReference: "CD-CL204-4821",
+        requestLabel: "gate-change notification",
+      },
+    });
+    expect(sentMessages).toEqual([]);
+
+    await runtime.submitWidget({
+      conversationId: conversation.id,
+      promptId: "confirm:whatsapp-customer-message:sendWhatsAppMessage:sendWhatsAppCustomerMessage",
+      widgetKind: "confirmation",
+      output: { confirmed: true },
+    });
+    const events = await runtime.listEvents(conversation.id);
+    const toolEvent = findSuccessfulTool(events, "sendWhatsAppCustomerMessage");
+
+    expect(sentMessages).toEqual([
+      expect.objectContaining({
+        to: "15550100",
+        purpose: "notification",
+        body: expect.stringContaining("gate-change notification"),
+      }),
+    ]);
+    expect(toolEvent?.data.result).toMatchObject({
+      provider: "whatsapp",
+      status: "sent",
+      purpose: "notification",
+      messageId: "wamid.gate-change",
+    });
+  });
+
+  it("routes upset customers asking for a person into the handoff journey", async () => {
+    const { runtime, agentId } = await setupFlightDemoRuntime({
+      externalIntegrationJourneysEnabled: { secureEmail: false, discordHandoff: true, whatsapp: false },
+    });
     const conversation = await runtime.createConversation({ agentId, context: {} });
 
     const result = await runtime.handleUserMessage({
@@ -468,13 +786,21 @@ describe("flight demo customer use cases", () => {
   });
 });
 
-async function setupFlightDemoRuntime(options: { channels?: typeof flightDemoRuntimeChannels } = {}): Promise<FlightDemoTestRuntime> {
+async function setupFlightDemoRuntime(options: {
+  channels?: typeof flightDemoRuntimeChannels;
+  externalIntegrationJourneysEnabled?: FlightDemoExternalIntegrationJourneyOption;
+  tools?: FlightTools;
+} = {}): Promise<FlightDemoTestRuntime> {
   const models = createTestModelSet();
   const knowledgeIndex = await createTestKnowledgeIndex(models);
   const { agent, journeyIndex } = await createFlightDemoRuntimeParts({
     config: testConfig,
+    ...(options.externalIntegrationJourneysEnabled === undefined
+      ? {}
+      : { externalIntegrationJourneysEnabled: options.externalIntegrationJourneysEnabled }),
     models,
     knowledgeIndex,
+    ...(options.tools ? { tools: options.tools } : {}),
   });
   const runtime = createRuntime({
     storage: createSqliteStorage({ filename: ":memory:" }),

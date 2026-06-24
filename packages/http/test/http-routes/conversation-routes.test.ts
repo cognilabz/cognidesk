@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createCognideskHttpHandler } from "../../src/index.js";
-import type { ConversationRecord } from "@cognidesk/core";
+import type { ConversationRecord, RuntimeEvent } from "@cognidesk/core";
 import { FakeRuntime } from "../fixtures.js";
 
 describe("HTTP conversation routes", () => {
@@ -90,4 +90,115 @@ describe("HTTP conversation routes", () => {
       expect(message.text).toBe("Handled: Where is my ticket?");
       expect(message.activeJourneyId).toBe("ticket-status");
     });
+
+  it("emits chat start messages during conversation creation", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({
+      runtime,
+      agentId: "flight-service",
+    });
+
+    const response = await handler.handle(new Request("http://localhost/conversations", {
+      method: "POST",
+      body: JSON.stringify({
+        context: { locale: "en" },
+        chatStart: {
+          type: "message",
+          text: "Welcome aboard.",
+          visibleToModel: true,
+        },
+      }),
+    }));
+
+    expect(response.status).toBe(201);
+    const created = await response.json() as { conversation: ConversationRecord; events: RuntimeEvent[] };
+    expect(created.conversation.id).toBe("conversation_1");
+    expect(created.events).toEqual([
+      expect.objectContaining({
+        type: "message.started",
+        data: { role: "assistant" },
+      }),
+      expect.objectContaining({
+        type: "message.completed",
+        data: {
+          text: "Welcome aboard.",
+          intermediate: true,
+          visibleToModel: true,
+        },
+      }),
+    ]);
+  });
+
+  it("emits handler default chat start messages", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({
+      runtime,
+      agentId: "flight-service",
+      chatStart: "Default welcome.",
+    });
+
+    const response = await handler.handle(new Request("http://localhost/conversations", {
+      method: "POST",
+      body: JSON.stringify({ context: { locale: "en" } }),
+    }));
+
+    expect(response.status).toBe(201);
+    const created = await response.json() as { events: RuntimeEvent[] };
+    expect(created.events.at(-1)).toEqual(expect.objectContaining({
+      type: "message.completed",
+      data: {
+        text: "Default welcome.",
+        intermediate: true,
+        visibleToModel: true,
+      },
+    }));
+  });
+
+  it("lets request chat start override the handler default", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({
+      runtime,
+      agentId: "flight-service",
+      chatStart: "Default welcome.",
+    });
+
+    const response = await handler.handle(new Request("http://localhost/conversations", {
+      method: "POST",
+      body: JSON.stringify({
+        chatStart: {
+          type: "message",
+          text: "Request welcome.",
+        },
+      }),
+    }));
+
+    expect(response.status).toBe(201);
+    const created = await response.json() as { events: RuntimeEvent[] };
+    expect(created.events.at(-1)).toEqual(expect.objectContaining({
+      type: "message.completed",
+      data: {
+        text: "Request welcome.",
+        intermediate: true,
+        visibleToModel: true,
+      },
+    }));
+  });
+
+  it("lets request chat start null disable the handler default", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({
+      runtime,
+      agentId: "flight-service",
+      chatStart: "Default welcome.",
+    });
+
+    const response = await handler.handle(new Request("http://localhost/conversations", {
+      method: "POST",
+      body: JSON.stringify({ chatStart: null }),
+    }));
+
+    expect(response.status).toBe(201);
+    const created = await response.json() as { events?: RuntimeEvent[] };
+    expect(created.events).toBeUndefined();
+  });
 });

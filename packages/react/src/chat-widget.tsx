@@ -8,7 +8,7 @@ import {
 } from "@cognidesk/ui";
 import { PENDING_PROMPT_DISPLAY_OFFSET, type ChatActivity, type ChatMessage } from "./event-reducer.js";
 import { defaultWidgetRenderers } from "./default-widgets.js";
-import { collectSupportSourceLinks, formatSupportReferences, type SupportSourceLink } from "./support-references.js";
+import { collectSupportSourceLinks, type SupportSourceLink } from "./support-references.js";
 import type { ChatWidgetProps } from "./types.js";
 import { useChat } from "./use-chat.js";
 
@@ -127,25 +127,27 @@ export function ChatWidget(props: ChatWidgetProps) {
         })}
         {activities.length > 0 ? <ActivityIndicator activities={activities} appearance={appearance} /> : null}
       </div>
-      <form className={resolveElementClassName(elementKeys.composer, appearance)} style={resolveInlineStyle(elementKeys.composer, appearance)} onSubmit={submit}>
-        <input
-          className={resolveElementClassName(elementKeys.composerInput, appearance)}
-          style={resolveInlineStyle(elementKeys.composerInput, appearance)}
-          value={draft}
-          aria-label="Message"
-          placeholder={props.placeholder ?? "Message..."}
-          onChange={(event) => setDraft(event.currentTarget.value)}
-          disabled={busy}
-        />
-        <button
-          className={resolveElementClassName(elementKeys.composerSendButton, appearance)}
-          style={resolveInlineStyle(elementKeys.composerSendButton, appearance)}
-          type="submit"
-          disabled={busy || draft.trim().length === 0}
-        >
-          {props.sendLabel ?? "Send"}
-        </button>
-      </form>
+      {props.composer === false ? null : props.composer ?? (
+        <form className={resolveElementClassName(elementKeys.composer, appearance)} style={resolveInlineStyle(elementKeys.composer, appearance)} onSubmit={submit}>
+          <input
+            className={resolveElementClassName(elementKeys.composerInput, appearance)}
+            style={resolveInlineStyle(elementKeys.composerInput, appearance)}
+            value={draft}
+            aria-label="Message"
+            placeholder={props.placeholder ?? "Message..."}
+            onChange={(event) => setDraft(event.currentTarget.value)}
+            disabled={busy}
+          />
+          <button
+            className={resolveElementClassName(elementKeys.composerSendButton, appearance)}
+            style={resolveInlineStyle(elementKeys.composerSendButton, appearance)}
+            type="submit"
+            disabled={busy || draft.trim().length === 0}
+          >
+            {props.sendLabel ?? "Send"}
+          </button>
+        </form>
+      )}
       {chat.error ? (
         <div className={resolveElementClassName(elementKeys.error, appearance)} style={resolveInlineStyle(elementKeys.error, appearance)}>
           {chat.error.message}
@@ -172,8 +174,7 @@ function MessageContent(props: { message: ChatMessage; appearance: AppearanceCon
   return (
     <>
       {props.message.segments.map((segment) => {
-        const title = formatSupportReferences(segment.references);
-        if (!title) {
+        if (!segment.references?.length) {
           return (
             <Streamdown key={segment.id} isAnimating={isAnimating}>
               {segment.text}
@@ -185,7 +186,6 @@ function MessageContent(props: { message: ChatMessage; appearance: AppearanceCon
             key={segment.id}
             className={resolveElementClassName(elementKeys.messageSourceSegment, props.appearance)}
             style={resolveInlineStyle(elementKeys.messageSourceSegment, props.appearance)}
-            title={title}
           >
             <Streamdown isAnimating={isAnimating}>
               {segment.text}

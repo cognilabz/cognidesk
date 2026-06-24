@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createVoiceProtocolClient, type VoiceProtocolClient } from "./voice-protocol.js";
 import type {
+  ChatStartAction,
+  ChatStartBehavior,
+  ChatStartInput,
   StartVoiceResult,
   UseVoiceOptions,
   VoiceConnectionStatus,
@@ -115,6 +118,34 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
     setError(null);
     cleanup();
     try {
+      const contextPayload = options.initialContext ?? {};
+      let voiceConversationId = conversationId;
+      let createdConversation: StartVoiceResult["conversation"] | null = null;
+      let createdEvents: StartVoiceResult["events"] = [];
+      let createdInitialGreeting: string | undefined;
+      if (!voiceConversationId) {
+        const agentId = options.agentId;
+        if (!agentId) throw new Error("agentId is required when conversationId is not provided.");
+        const chatStart = await resolveChatStart(options.chatStart, {
+          context: contextPayload,
+          channel: "voice",
+          ...(options.app !== undefined ? { app: options.app } : {}),
+        });
+        createdInitialGreeting = chatStartSpeechText(chatStart);
+        const created = await options.client.createConversation({
+          agentId,
+          context: contextPayload,
+          channel: "voice",
+          ...(chatStart !== undefined ? { chatStart } : {}),
+          ...(options.app !== undefined ? { app: options.app } : {}),
+        });
+        voiceConversationId = created.conversation.id;
+        createdConversation = created.conversation;
+        createdEvents = created.events ?? [];
+        setConversationId(voiceConversationId);
+        options.onConversationCreated?.(voiceConversationId);
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia(options.mediaConstraints ?? { audio: true });
       localStreamRef.current = stream;
       setLocalStream(stream);
@@ -127,17 +158,18 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
         userAgent: navigator.userAgent,
         locale: navigator.language,
       };
-      const result = conversationId
-        ? await options.client.startVoiceSegment(conversationId, {
-            client: clientHints,
-            ...(options.app !== undefined ? { app: options.app } : {}),
-          })
-        : await options.client.startVoiceConversation({
-            ...(options.agentId ? { agentId: options.agentId } : {}),
-            context: options.initialContext ?? {},
-            client: clientHints,
-            ...(options.app !== undefined ? { app: options.app } : {}),
-          });
+      const result = await options.client.startVoiceSegment(voiceConversationId, {
+        client: clientHints,
+        ...(createdInitialGreeting ? { initialGreeting: createdInitialGreeting } : {}),
+        ...(options.app !== undefined ? { app: options.app } : {}),
+      });
+      const connectedResult = createdConversation
+        ? {
+            ...result,
+            conversation: createdConversation,
+            events: [...createdEvents, ...result.events],
+          }
+        : result;
 
       const context = options.audioContext ?? new AudioContext({ sampleRate: 24000 });
       audioContextRef.current = context;
@@ -146,7 +178,7 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
       let ready = false;
       const readyPromise = new Promise<void>((resolve, reject) => {
         protocolRef.current = createVoiceProtocolClient({
-          url: result.socket.url,
+          url: connectedResult.socket.url,
           ...(options.WebSocket ? { WebSocket: options.WebSocket } : {}),
           onOpen: () => undefined,
           onEvent: (event) => {
@@ -174,13 +206,12 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
         });
       }, captureNodeRef, sourceNodeRef);
 
-      setConversationId(result.conversation.id);
-      setChannelSegmentId(result.channelSegment.id);
-      setConnectionId(result.connection.id);
+      setConversationId(connectedResult.conversation.id);
+      setChannelSegmentId(connectedResult.channelSegment.id);
+      setConnectionId(connectedResult.connection.id);
       setStatus("connected");
-      if (!conversationId) options.onConversationCreated?.(result.conversation.id);
-      options.onConnected?.(result);
-      return result;
+      options.onConnected?.(connectedResult);
+      return connectedResult;
     } catch (caught) {
       const nextError = caught instanceof Error ? caught : new Error("Failed to start voice connection.");
       setError(nextError);
@@ -210,6 +241,26 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
     setMuted,
     sendEvent,
   };
+}
+
+async function resolveChatStart(
+  behavior: ChatStartBehavior | undefined,
+  input: ChatStartInput,
+): Promise<ChatStartAction> {
+  if (typeof behavior !== "function") return behavior;
+  return behavior(input);
+}
+
+function chatStartSpeechText(action: ChatStartAction): string | undefined {
+  if (!action) return undefined;
+  if (typeof action === "string") return normalizeText(action);
+  if (action.type === "message") return normalizeText(action.text);
+  return undefined;
+}
+
+function normalizeText(text: string) {
+  const trimmed = text.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 async function installCaptureWorklet(

@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import {
   flightDemoCorsEnabled,
+  flightDemoExternalApisEnabled,
+  flightDemoExternalIntegrationJourneysEnabled,
   flightDemoStudioServiceToken,
+  getConfiguredEmailDeliveryConfig,
+  getConfiguredEmailReplyVerificationConfig,
+  getConfiguredWhatsAppDeliveryConfig,
   getConfiguredVoiceProviderSecrets,
   parseFlightDemoConfig,
   requireConfiguredModelApiKeys,
@@ -262,6 +267,352 @@ describe("flight demo model provider config", () => {
       NODE_ENV: "development",
       COGNIDESK_CORS: "sometimes",
     })).toThrow("COGNIDESK_CORS must be a boolean-like value");
+  });
+
+  it("keeps external APIs disabled unless explicitly opted in", () => {
+    expect(flightDemoExternalApisEnabled({})).toBe(false);
+    expect(flightDemoExternalApisEnabled({ FLIGHT_DEMO_EXTERNAL_APIS: "true" })).toBe(true);
+    expect(flightDemoExternalApisEnabled({ FLIGHT_DEMO_EXTERNAL_APIS: "1" })).toBe(true);
+    expect(flightDemoExternalApisEnabled({ FLIGHT_DEMO_EXTERNAL_APIS: "false" })).toBe(false);
+    expect(flightDemoExternalApisEnabled({ COGNIDESK_FLIGHT_DEMO_EXTERNAL_APIS: "yes" })).toBe(true);
+    expect(() => flightDemoExternalApisEnabled({
+      FLIGHT_DEMO_EXTERNAL_APIS: "sometimes",
+    })).toThrow("FLIGHT_DEMO_EXTERNAL_APIS must be a boolean-like value");
+  });
+
+  it("allows external integration journeys to be toggled independently", () => {
+    expect(flightDemoExternalIntegrationJourneysEnabled({})).toEqual({
+      secureEmail: false,
+      discordHandoff: false,
+      whatsapp: false,
+    });
+    expect(flightDemoExternalIntegrationJourneysEnabled({
+      FLIGHT_DEMO_EXTERNAL_APIS: "true",
+      FLIGHT_DEMO_WHATSAPP_JOURNEY: "false",
+    })).toEqual({
+      secureEmail: true,
+      discordHandoff: true,
+      whatsapp: false,
+    });
+    expect(flightDemoExternalIntegrationJourneysEnabled({
+      FLIGHT_DEMO_SECURE_EMAIL_JOURNEY: "true",
+      FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY: "false",
+      FLIGHT_DEMO_WHATSAPP_JOURNEY: "true",
+    })).toEqual({
+      secureEmail: true,
+      discordHandoff: false,
+      whatsapp: true,
+    });
+    expect(() => flightDemoExternalIntegrationJourneysEnabled({
+      FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY: "maybe",
+    })).toThrow("FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY must be a boolean-like value");
+  });
+
+  it("builds runtime parts with local models and local knowledge when external APIs are not enabled", async () => {
+    process.env.FLIGHT_DEMO_EXTERNAL_APIS = "false";
+    delete process.env.COGNIDESK_FLIGHT_DEMO_EXTERNAL_APIS;
+    delete process.env.OPENAI_API_KEY;
+    const { createFlightDemoRuntimeParts } = await import("../server/agent/index.js");
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      storage: {
+        sqlitePath: ":memory:",
+        knowledgeIndexPath: ".data/missing-local-demo-index.json",
+      },
+    });
+
+    const parts = await createFlightDemoRuntimeParts({ config });
+
+    expect(parts.models.response).toMatchObject({
+      provider: "flight-demo-local",
+      model: "deterministic-support-demo",
+    });
+    expect(parts.knowledgeIndex).toMatchObject({
+      embeddingProvider: "flight-demo-local",
+      embeddingModel: "keyword-embedding",
+    });
+    expect(parts.knowledgeIndex.entries.length).toBeGreaterThan(0);
+    expect(parts.journeyIndex.entries.length).toBeGreaterThan(0);
+    const journeyIds = parts.agent.journeys.map((journey) => journey.id);
+    expect(journeyIds).not.toContain("secure-email-login");
+    expect(journeyIds).not.toContain("whatsapp-customer-message");
+    expect(journeyIds).not.toContain("human-handoff");
+  });
+
+  it.each([
+    {
+      name: "secure email",
+      flags: { secureEmail: true, discordHandoff: false, whatsapp: false },
+      expectedJourneyId: "secure-email-login",
+    },
+    {
+      name: "WhatsApp",
+      flags: { secureEmail: false, discordHandoff: false, whatsapp: true },
+      expectedJourneyId: "whatsapp-customer-message",
+    },
+    {
+      name: "Discord handoff",
+      flags: { secureEmail: false, discordHandoff: true, whatsapp: false },
+      expectedJourneyId: "human-handoff",
+    },
+  ])("can register only the $name journey while using local models", async ({ flags, expectedJourneyId }) => {
+    process.env.FLIGHT_DEMO_EXTERNAL_APIS = "false";
+    delete process.env.COGNIDESK_FLIGHT_DEMO_EXTERNAL_APIS;
+    delete process.env.OPENAI_API_KEY;
+    const { createFlightDemoRuntimeParts } = await import("../server/agent/index.js");
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      storage: {
+        sqlitePath: ":memory:",
+        knowledgeIndexPath: ".data/missing-local-demo-index.json",
+      },
+    });
+
+    const parts = await createFlightDemoRuntimeParts({
+      config,
+      externalIntegrationJourneysEnabled: flags,
+    });
+    const journeyIds = parts.agent.journeys.map((journey) => journey.id);
+
+    expect(parts.models.response.provider).toBe("flight-demo-local");
+    expect(journeyIds).toContain(expectedJourneyId);
+    for (const journeyId of ["secure-email-login", "whatsapp-customer-message", "human-handoff"]) {
+      if (journeyId !== expectedJourneyId) expect(journeyIds).not.toContain(journeyId);
+    }
+  });
+
+  it("reports secure-email SMTP as not configured until SMTP env secrets exist", () => {
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      email: {
+        provider: "smtp",
+        hostEnv: "TEST_FLIGHT_EMAIL_SMTP_HOST",
+        userEnv: "TEST_FLIGHT_EMAIL_SMTP_USER",
+        passwordEnv: "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+      },
+    });
+
+    expect(getConfiguredEmailDeliveryConfig(config)).toMatchObject({
+      provider: "smtp",
+      configured: false,
+      missingEnv: [
+        "TEST_FLIGHT_EMAIL_SMTP_HOST",
+        "TEST_FLIGHT_EMAIL_SMTP_USER",
+        "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+      ],
+    });
+  });
+
+  it("reads secure-email SMTP delivery settings without sending mail", () => {
+    process.env.TEST_FLIGHT_EMAIL_SMTP_HOST = "smtp.example.test";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_PORT = "465";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_SECURE = "true";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_USER = "sender@example.test";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_PASSWORD = "smtp-password";
+    process.env.TEST_FLIGHT_EMAIL_FROM = "support@example.test";
+    process.env.TEST_FLIGHT_EMAIL_REPLY_TO = "help@example.test";
+    process.env.TEST_FLIGHT_EMAIL_RECIPIENT_OVERRIDE = "demo@example.test";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      email: {
+        provider: "smtp",
+        hostEnv: "TEST_FLIGHT_EMAIL_SMTP_HOST",
+        portEnv: "TEST_FLIGHT_EMAIL_SMTP_PORT",
+        secureEnv: "TEST_FLIGHT_EMAIL_SMTP_SECURE",
+        userEnv: "TEST_FLIGHT_EMAIL_SMTP_USER",
+        passwordEnv: "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+        fromEnv: "TEST_FLIGHT_EMAIL_FROM",
+        replyToEnv: "TEST_FLIGHT_EMAIL_REPLY_TO",
+        recipientOverrideEnv: "TEST_FLIGHT_EMAIL_RECIPIENT_OVERRIDE",
+        loginBaseUrl: "https://auth.example.test/flight/login",
+      },
+    });
+
+    expect(getConfiguredEmailDeliveryConfig(config)).toMatchObject({
+      provider: "smtp",
+      configured: true,
+      host: "smtp.example.test",
+      port: 465,
+      secure: true,
+      user: "sender@example.test",
+      password: "smtp-password",
+      from: "support@example.test",
+      replyTo: "help@example.test",
+      recipientOverride: "demo@example.test",
+      loginBaseUrl: "https://auth.example.test/flight/login",
+    });
+  });
+
+  it("reads secure-email reply verification from IMAP env and reuses SMTP mailbox credentials", () => {
+    process.env.TEST_FLIGHT_EMAIL_SMTP_USER = "sender@example.test";
+    process.env.TEST_FLIGHT_EMAIL_SMTP_PASSWORD = "smtp-app-password";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_HOST = "imap.example.test";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_PORT = "993";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_SECURE = "true";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_MAILBOX = "Archive";
+    process.env.TEST_FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS = "5000";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      email: {
+        provider: "smtp",
+        userEnv: "TEST_FLIGHT_EMAIL_SMTP_USER",
+        passwordEnv: "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+        replyVerification: {
+          hostEnv: "TEST_FLIGHT_EMAIL_IMAP_HOST",
+          portEnv: "TEST_FLIGHT_EMAIL_IMAP_PORT",
+          secureEnv: "TEST_FLIGHT_EMAIL_IMAP_SECURE",
+          userEnv: "TEST_FLIGHT_EMAIL_IMAP_USER",
+          passwordEnv: "TEST_FLIGHT_EMAIL_IMAP_PASSWORD",
+          mailboxEnv: "TEST_FLIGHT_EMAIL_IMAP_MAILBOX",
+          pollIntervalMsEnv: "TEST_FLIGHT_EMAIL_IMAP_POLL_INTERVAL_MS",
+          mailbox: "INBOX",
+          pollIntervalMs: 15_000,
+          lookbackMinutes: 30,
+        },
+      },
+    });
+
+    expect(getConfiguredEmailReplyVerificationConfig(config)).toMatchObject({
+      provider: "imap",
+      configured: true,
+      enabled: true,
+      host: "imap.example.test",
+      port: 993,
+      secure: true,
+      user: "sender@example.test",
+      password: "smtp-app-password",
+      mailbox: "Archive",
+      pollIntervalMs: 5000,
+      lookbackMinutes: 30,
+    });
+  });
+
+  it("reports secure-email reply verification as not configured without an IMAP host or mailbox credentials", () => {
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      email: {
+        provider: "smtp",
+        userEnv: "TEST_FLIGHT_EMAIL_SMTP_USER",
+        passwordEnv: "TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+        replyVerification: {
+          hostEnv: "TEST_FLIGHT_EMAIL_IMAP_HOST",
+          userEnv: "TEST_FLIGHT_EMAIL_IMAP_USER",
+          passwordEnv: "TEST_FLIGHT_EMAIL_IMAP_PASSWORD",
+        },
+      },
+    });
+
+    expect(getConfiguredEmailReplyVerificationConfig(config)).toMatchObject({
+      provider: "imap",
+      configured: false,
+      enabled: true,
+      missingEnv: [
+        "TEST_FLIGHT_EMAIL_IMAP_HOST",
+        "TEST_FLIGHT_EMAIL_IMAP_USER or TEST_FLIGHT_EMAIL_SMTP_USER",
+        "TEST_FLIGHT_EMAIL_IMAP_PASSWORD or TEST_FLIGHT_EMAIL_SMTP_PASSWORD",
+      ],
+    });
+  });
+
+  it("reports WhatsApp delivery as disabled by default", () => {
+    const config = parseFlightDemoConfig(configWithModels({
+      provider: "openai",
+      roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+    }));
+
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).toMatchObject({
+      provider: "whatsapp",
+      configured: false,
+      enabled: false,
+      missingEnv: [],
+      confirmationBaseUrl: "https://auth.cognidesk.local/flight-demo/whatsapp",
+    });
+  });
+
+  it("reports enabled WhatsApp delivery as blocked until Cloud API env secrets exist", () => {
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      whatsapp: {
+        enabled: true,
+        accessTokenEnv: "TEST_FLIGHT_WHATSAPP_ACCESS_TOKEN",
+        phoneNumberIdEnv: "TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
+        appSecretEnv: "TEST_FLIGHT_WHATSAPP_APP_SECRET",
+      },
+    });
+
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).toMatchObject({
+      provider: "whatsapp",
+      configured: false,
+      enabled: true,
+      missingEnv: [
+        "TEST_FLIGHT_WHATSAPP_ACCESS_TOKEN",
+        "TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
+        "TEST_FLIGHT_WHATSAPP_APP_SECRET",
+      ],
+    });
+  });
+
+  it("reads WhatsApp delivery settings without sending provider messages", () => {
+    process.env.TEST_FLIGHT_WHATSAPP_ACCESS_TOKEN = "whatsapp-token";
+    process.env.TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID = "phone-number-id";
+    process.env.TEST_FLIGHT_WHATSAPP_APP_SECRET = "app-secret";
+    process.env.TEST_FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN = "verify-token";
+    process.env.TEST_FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE = "+15550100";
+    process.env.TEST_FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL = "https://auth.example.test/whatsapp";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      whatsapp: {
+        enabled: true,
+        accessTokenEnv: "TEST_FLIGHT_WHATSAPP_ACCESS_TOKEN",
+        phoneNumberIdEnv: "TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
+        appSecretEnv: "TEST_FLIGHT_WHATSAPP_APP_SECRET",
+        verifyTokenEnv: "TEST_FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN",
+        recipientOverrideEnv: "TEST_FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE",
+        confirmationBaseUrl: "https://auth.example.test/default-whatsapp",
+        confirmationBaseUrlEnv: "TEST_FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL",
+        graphApiBaseUrl: "https://graph.facebook.example.test",
+        graphApiVersion: "v25.0",
+        wabaWebhookSubscribed: true,
+      },
+    });
+
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).toMatchObject({
+      provider: "whatsapp",
+      configured: true,
+      accessToken: "whatsapp-token",
+      phoneNumberId: "phone-number-id",
+      appSecret: "app-secret",
+      verifyToken: "verify-token",
+      recipientOverride: "+15550100",
+      confirmationBaseUrl: "https://auth.example.test/whatsapp",
+      graphApiBaseUrl: "https://graph.facebook.example.test",
+      graphApiVersion: "v25.0",
+      wabaWebhookSubscribed: true,
+    });
   });
 
   it("reads ElevenLabs voice credentials without live provider calls", () => {

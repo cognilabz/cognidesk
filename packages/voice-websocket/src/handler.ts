@@ -60,6 +60,7 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
   let inputTranscriptQueue = Promise.resolve();
   let speechQueue = Promise.resolve();
   let speechGeneration = 0;
+  let initialGreetingTranscriptToSuppress: string | null = null;
 
   const cleanupConnection = () => {
     if (closed) return false;
@@ -173,6 +174,7 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
         });
       }
       if (useRealtimeControl && event.event.type === "response.output_audio_transcript.done") {
+        if (shouldSuppressInitialGreetingTranscript(event.event.transcript)) return;
         await commitControlAssistantTranscript(event.event.transcript, "openai-realtime");
       }
       return;
@@ -442,8 +444,10 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
     lastAckSequence: session.lastAckSequence,
   });
   await issueReconnect();
-  if (options.initialGreeting?.trim()) {
-    queueSpeechAction(speechGeneration, () => providerSession?.speak({ text: options.initialGreeting!.trim() }));
+  const initialGreeting = normalizeSpeechText(session.initialGreeting ?? options.initialGreeting ?? "");
+  if (initialGreeting) {
+    initialGreetingTranscriptToSuppress = initialGreeting;
+    queueSpeechAction(speechGeneration, () => providerSession?.speak({ text: initialGreeting }));
   }
 
   options.socket.on("message", (data) => {
@@ -506,6 +510,15 @@ export async function handleVoiceSocket(options: HandleVoiceSocketOptions): Prom
       return;
     }
     await providerSession?.send(event);
+  }
+
+  function shouldSuppressInitialGreetingTranscript(text: string | undefined) {
+    const expected = initialGreetingTranscriptToSuppress;
+    if (!expected) return false;
+    const normalized = normalizeSpeechText(text ?? "");
+    if (normalized !== expected) return false;
+    initialGreetingTranscriptToSuppress = null;
+    return true;
   }
 }
 

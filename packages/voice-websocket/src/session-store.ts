@@ -27,6 +27,7 @@ export function createInMemoryVoiceSessionStore(
         channelSegment: result.channelSegment,
         connection: result.connection,
         events: result.events,
+        ...(input.initialGreeting ? { initialGreeting: input.initialGreeting } : {}),
         createdAt: now.toISOString(),
         updatedAt: now.toISOString(),
         status: "pending",

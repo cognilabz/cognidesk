@@ -8,6 +8,7 @@ import {
   type NewsChannel,
   type TextChannel,
   type ThreadChannel,
+  type Typing,
 } from "discord.js";
 import type { DiscordGatewayServiceConfig, DiscordGatewayServiceCopy } from "./gateway-config.js";
 import type { DiscordGatewayStore, DiscordThreadBinding } from "./sqlite-store.js";
@@ -16,10 +17,14 @@ const DISCORD_PROVIDER_PACKAGE_ID = "messaging.discord";
 const DISCORD_SOURCE_ID = "discord-gateway";
 const EYE_REACTION = "👀";
 const DONE_REACTION = "✅";
+const WARNING_REACTION = "⚠️";
 const DEFAULT_SUPPORT_THREAD_NAME_PREFIX = "Cognidesk support";
 const DEFAULT_SOURCE_THREAD_NAME_PREFIX = "Cognidesk support";
+const DEFAULT_VOICE_CHANNEL_NAME_PREFIX = "Cognidesk voice support";
 const DEFAULT_WEB_MESSAGE_PREFIX = "Web";
 const DEFAULT_VOICE_MESSAGE_PREFIX = "Voice";
+const BOT_RESUME_COMMAND_PREFIXES = ["bot:", "bot "];
+const OPERATOR_TYPING_TTL_MS = 12_000;
 
 export interface DiscordGatewayServiceOptions {
   config: DiscordGatewayServiceConfig;
@@ -36,6 +41,12 @@ export interface ContinueConversationInDiscordResult {
   conversationId: string;
   discordThreadId: string;
   discordThreadUrl: string;
+  discordVoiceChannelId?: string;
+  discordVoiceChannelUrl?: string;
+}
+
+export interface ContinueConversationInDiscordOptions {
+  voice?: boolean;
 }
 
 export interface DiscordGatewayStatus {
@@ -71,6 +82,9 @@ export class DiscordGatewayService {
   private mirrorRunning = false;
   private stopped = false;
   private readonly discordSourceThreadsInProgress = new Map<string, number>();
+  private readonly mirrorBindingsInProgress = new Set<string>();
+  private readonly continuationsInProgress = new Map<string, Promise<ContinueConversationInDiscordResult>>();
+  private readonly voiceContinuationsInProgress = new Map<string, Promise<ContinueConversationInDiscordResult>>();
 
   constructor(private readonly options: DiscordGatewayServiceOptions) {
     this.client = new Client({
@@ -78,6 +92,7 @@ export class DiscordGatewayService {
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildMessageTyping,
         GatewayIntentBits.MessageContent,
       ],
       partials: [Partials.Message, Partials.Channel, Partials.Reaction],
@@ -89,6 +104,11 @@ export class DiscordGatewayService {
     this.client.on("messageCreate", (message) => {
       void this.handleDiscordMessage(message).catch((error) => {
         console.error("Cognidesk Discord Gateway message handling failed.", error);
+      });
+    });
+    this.client.on("typingStart", (typing) => {
+      void this.handleDiscordTyping(typing).catch((error) => {
+        console.error("Cognidesk Discord Gateway typing handling failed.", error);
       });
     });
     await this.client.login(this.options.botToken);
@@ -124,8 +144,40 @@ export class DiscordGatewayService {
     };
   }
 
-  async continueConversation(conversationId: string): Promise<ContinueConversationInDiscordResult> {
+  async continueConversation(
+    conversationId: string,
+    options: ContinueConversationInDiscordOptions = {},
+  ): Promise<ContinueConversationInDiscordResult> {
     this.requireReady();
+    if (options.voice) {
+      const existingVoiceContinuation = this.voiceContinuationsInProgress.get(conversationId);
+      if (existingVoiceContinuation) return existingVoiceContinuation;
+
+      const voiceContinuation = this.continueConversationThread(conversationId)
+        .then((result) => this.ensureVoiceHandoffRoom(result))
+        .finally(() => {
+          this.voiceContinuationsInProgress.delete(conversationId);
+        });
+      this.voiceContinuationsInProgress.set(conversationId, voiceContinuation);
+      return voiceContinuation;
+    }
+
+    return this.continueConversationThread(conversationId);
+  }
+
+  private async continueConversationThread(conversationId: string): Promise<ContinueConversationInDiscordResult> {
+    const existingContinuation = this.continuationsInProgress.get(conversationId);
+    if (existingContinuation) return existingContinuation;
+
+    const continuation = this.continueConversationThreadOnce(conversationId)
+      .finally(() => {
+        this.continuationsInProgress.delete(conversationId);
+      });
+    this.continuationsInProgress.set(conversationId, continuation);
+    return continuation;
+  }
+
+  private async continueConversationThreadOnce(conversationId: string): Promise<ContinueConversationInDiscordResult> {
     const existing = (await this.options.store.listActiveBindingsForConversation(conversationId))[0];
     if (existing) {
       return {
@@ -134,6 +186,12 @@ export class DiscordGatewayService {
         conversationId,
         discordThreadId: existing.discordThreadId,
         discordThreadUrl: discordThreadUrl(existing.guildId, existing.discordThreadId),
+        ...(existing.discordVoiceChannelId
+          ? {
+              discordVoiceChannelId: existing.discordVoiceChannelId,
+              discordVoiceChannelUrl: discordThreadUrl(existing.guildId, existing.discordVoiceChannelId),
+            }
+          : {}),
       };
     }
 
@@ -155,7 +213,6 @@ export class DiscordGatewayService {
     await this.mirrorBinding(binding).catch((error) => {
       console.error("Cognidesk Discord Gateway initial history mirror failed.", error);
     });
-    await thread.send(this.connectedMessage(conversationId));
 
     return {
       enabled: true,
@@ -164,6 +221,59 @@ export class DiscordGatewayService {
       discordThreadId: thread.id,
       discordThreadUrl: discordThreadUrl(this.options.config.guildId, thread.id),
     };
+  }
+
+  private async ensureVoiceHandoffRoom(
+    result: ContinueConversationInDiscordResult,
+  ): Promise<ContinueConversationInDiscordResult> {
+    if (result.discordVoiceChannelId) return result;
+
+    const existingBinding = (await this.options.store.listActiveBindingsForConversation(result.conversationId))
+      .find((binding) => binding.discordThreadId === result.discordThreadId);
+    if (!existingBinding) {
+      throw new Error("Discord support thread binding is missing for voice handoff.");
+    }
+    if (existingBinding.discordVoiceChannelId) {
+      return {
+        ...result,
+        discordVoiceChannelId: existingBinding.discordVoiceChannelId,
+        discordVoiceChannelUrl: discordThreadUrl(existingBinding.guildId, existingBinding.discordVoiceChannelId),
+      };
+    }
+
+    const supportChannel = await this.fetchSupportChannel();
+    const voiceChannelName = this.voiceChannelName(result.conversationId);
+    const voiceChannel = await supportChannel.guild.channels.create({
+      name: voiceChannelName,
+      type: ChannelType.GuildVoice,
+      ...(supportChannel.parentId ? { parent: supportChannel.parentId } : {}),
+      reason: "Cognidesk Discord Gateway voice handoff",
+    }).catch((error) => {
+      throw new Error(discordVoiceHandoffCreateFailureMessage(error, voiceChannelName));
+    });
+    const binding = await this.options.store.upsertBinding({
+      discordThreadId: existingBinding.discordThreadId,
+      conversationId: existingBinding.conversationId,
+      guildId: existingBinding.guildId,
+      parentChannelId: existingBinding.parentChannelId,
+      ...(existingBinding.starterUserId ? { starterUserId: existingBinding.starterUserId } : {}),
+      ...(existingBinding.threadName ? { threadName: existingBinding.threadName } : {}),
+      discordVoiceChannelId: voiceChannel.id,
+      discordVoiceChannelName: voiceChannel.name,
+      active: existingBinding.active,
+    });
+    if (!binding?.discordVoiceChannelId) throw new Error("Failed to persist Discord voice handoff room.");
+
+    const voiceResult = {
+      ...result,
+      discordVoiceChannelId: binding.discordVoiceChannelId,
+      discordVoiceChannelUrl: discordThreadUrl(binding.guildId, binding.discordVoiceChannelId),
+    };
+    const thread = await this.fetchThread(binding);
+    await thread?.send(this.voiceHandoffText(voiceResult)).catch((error) => {
+      console.error("Cognidesk Discord Gateway voice handoff notice failed.", error);
+    });
+    return voiceResult;
   }
 
   private async handleDiscordMessage(message: Message) {
@@ -176,6 +286,28 @@ export class DiscordGatewayService {
 
     const thread = await this.resolveConversationThread(message);
     if (!thread) return;
+    const currentBinding = await this.options.store.getBindingByThreadId(thread.id);
+    if (currentBinding && isSupportHandoffBinding(currentBinding)) {
+      this.markDiscordSourceThreadInProgress(thread.id);
+      try {
+        const resume = parseBotResumeCommand(content);
+        const accepted = resume
+          ? await this.resumeSupportThreadWithBot(currentBinding, message, thread, resume.note)
+          : await this.recordSupportThreadMessage(currentBinding, message, thread, content);
+        if (!accepted) {
+          await message.react(WARNING_REACTION).catch(() => undefined);
+          await thread.send(this.turnFailureMessage(thread.id));
+          return;
+        }
+        await message.react(DONE_REACTION).catch(() => undefined);
+      } catch (error) {
+        console.error("Cognidesk Discord Gateway support-thread relay failed.", error);
+        await thread.send(this.turnFailureMessage(thread.id));
+      } finally {
+        this.unmarkDiscordSourceThreadInProgress(thread.id);
+      }
+      return;
+    }
 
     this.markDiscordSourceThreadInProgress(thread.id);
     let sourceThreadReleased = false;
@@ -188,7 +320,6 @@ export class DiscordGatewayService {
     await message.react(EYE_REACTION).catch(() => undefined);
     const typing = startTyping(thread);
     try {
-      const currentBinding = await this.options.store.getBindingByThreadId(thread.id);
       const channel = discordChannelContext({
         guildId: this.options.config.guildId,
         parentChannelId: this.options.config.supportChannelId,
@@ -291,6 +422,261 @@ export class DiscordGatewayService {
     }
   }
 
+  private async handleDiscordTyping(typing: Typing) {
+    if (typing.user.bot) return;
+    if (!typing.inGuild()) return;
+    if (typing.guild.id !== this.options.config.guildId) return;
+    const thread = typing.channel;
+    if (!thread.isThread() || thread.parentId !== this.options.config.supportChannelId) return;
+    const binding = await this.options.store.getBindingByThreadId(thread.id);
+    if (!binding || !isSupportHandoffBinding(binding)) return;
+
+    const displayName = typing.member?.displayName ?? typing.user.globalName ?? typing.user.username ?? "Human agent";
+    if (!(await this.supportThreadOperatorAlreadyJoined(binding.conversationId, thread.id, typing.user.id))) {
+      await this.options.runtime.emit({
+        conversationId: binding.conversationId,
+        type: "custom.discord.operator_joined",
+        data: {
+          operatorId: typing.user.id,
+          operatorName: displayName,
+          discordThreadId: thread.id,
+          channel: discordChannelContext({
+            guildId: this.options.config.guildId,
+            parentChannelId: this.options.config.supportChannelId,
+            threadId: thread.id,
+            userId: typing.user.id,
+            threadName: thread.name,
+          }),
+        },
+      });
+    }
+    await this.options.runtime.emit({
+      conversationId: binding.conversationId,
+      type: "custom.discord.operator_typing.started",
+      data: {
+        operatorId: typing.user.id,
+        operatorName: displayName,
+        discordThreadId: thread.id,
+        startedAt: typing.startedAt.toISOString(),
+        expiresAt: new Date(Date.now() + OPERATOR_TYPING_TTL_MS).toISOString(),
+        channel: discordChannelContext({
+          guildId: this.options.config.guildId,
+          parentChannelId: this.options.config.supportChannelId,
+          threadId: thread.id,
+          userId: typing.user.id,
+          threadName: thread.name,
+        }),
+      },
+    });
+  }
+
+  private async resumeSupportThreadWithBot(
+    binding: DiscordThreadBinding,
+    message: Message,
+    thread: ThreadChannel,
+    note: string,
+  ): Promise<boolean> {
+    const displayName = message.member?.displayName ?? message.author.globalName ?? message.author.username;
+    const channel = discordChannelContext({
+      guildId: this.options.config.guildId,
+      parentChannelId: this.options.config.supportChannelId,
+      threadId: thread.id,
+      messageId: message.id,
+      userId: message.author.id,
+      threadName: thread.name,
+    });
+    const resumeText = supportThreadResumeText(displayName, note);
+    const result = await this.options.runtime.handleChannelEvent({
+      event: {
+        id: `discord:${message.id}:bot-resume`,
+        nature: "operator.resume",
+        direction: "internal",
+        intent: "operator-resume",
+        actor: {
+          type: "operator",
+          id: message.author.id,
+          displayName,
+        },
+        channel,
+        occurredAt: message.createdAt.toISOString(),
+        payload: {
+          text: resumeText,
+          providerObject: {
+            guildId: this.options.config.guildId,
+            channelId: message.channelId,
+            threadId: thread.id,
+            messageId: message.id,
+            authorId: message.author.id,
+          },
+        },
+        identity: {
+          key: `discord:${message.id}:bot-resume`,
+          dedupeKey: `discord:${message.id}:bot-resume`,
+          streamId: thread.id,
+        },
+        source: {
+          sourceType: "provider-adapter",
+          sourceId: DISCORD_SOURCE_ID,
+          provider: "discord",
+          providerPackageId: DISCORD_PROVIDER_PACKAGE_ID,
+          eventId: message.id,
+          streamId: thread.id,
+          externalObjectIds: {
+            guildId: this.options.config.guildId,
+            channelId: message.channelId,
+            threadId: thread.id,
+            userId: message.author.id,
+          },
+        },
+      },
+      conversationId: binding.conversationId,
+      binding: {
+        outcome: "resume-existing",
+        conversationId: binding.conversationId,
+      },
+      handling: {
+        disposition: "model-turn",
+        text: botResumeTurnText(displayName, note),
+        recordUserMessage: false,
+      },
+    });
+    if (result.intake.outcome !== "accepted") return false;
+    const intakeEvent = result.events.find((event) => event.type === "channel.event.received");
+    if (intakeEvent) {
+      await this.options.store.recordMirroredEvent({
+        discordThreadId: binding.discordThreadId,
+        conversationId: binding.conversationId,
+        runtimeEventId: intakeEvent.id,
+        runtimeEventOffset: intakeEvent.offset,
+        direction: "discord-to-runtime",
+        discordMessageId: message.id,
+      });
+    }
+    await this.recordSourceThreadEvents(binding, result.events, message.id, thread);
+    return true;
+  }
+
+  private async recordSupportThreadMessage(
+    binding: DiscordThreadBinding,
+    message: Message,
+    thread: ThreadChannel,
+    content: string,
+  ): Promise<boolean> {
+    const displayName = message.member?.displayName ?? message.author.globalName ?? message.author.username;
+    const channel = discordChannelContext({
+      guildId: this.options.config.guildId,
+      parentChannelId: this.options.config.supportChannelId,
+      threadId: thread.id,
+      messageId: message.id,
+      userId: message.author.id,
+      threadName: thread.name,
+    });
+    const result = await this.options.runtime.handleChannelEvent({
+      event: {
+        id: `discord:${message.id}`,
+        nature: "message",
+        direction: "inbound",
+        intent: "agent-message",
+        actor: {
+          type: "operator",
+          id: message.author.id,
+          displayName,
+        },
+        channel,
+        occurredAt: message.createdAt.toISOString(),
+        payload: {
+          text: content,
+          providerObject: {
+            guildId: this.options.config.guildId,
+            channelId: message.channelId,
+            threadId: thread.id,
+            messageId: message.id,
+            authorId: message.author.id,
+          },
+        },
+        identity: {
+          key: `discord:${message.id}`,
+          dedupeKey: `discord:${message.id}`,
+          streamId: thread.id,
+        },
+        source: {
+          sourceType: "provider-adapter",
+          sourceId: DISCORD_SOURCE_ID,
+          provider: "discord",
+          providerPackageId: DISCORD_PROVIDER_PACKAGE_ID,
+          eventId: message.id,
+          streamId: thread.id,
+          externalObjectIds: {
+            guildId: this.options.config.guildId,
+            channelId: message.channelId,
+            threadId: thread.id,
+            userId: message.author.id,
+          },
+        },
+      },
+      conversationId: binding.conversationId,
+      binding: {
+        outcome: "resume-existing",
+        conversationId: binding.conversationId,
+      },
+      handling: {
+        disposition: "record-only",
+      },
+    });
+    if (result.intake.outcome !== "accepted") return false;
+
+    await this.recordSupportThreadOperatorJoined(binding, message, thread, displayName);
+
+    const intakeEvent = result.events.find((event) => event.type === "channel.event.received");
+    if (intakeEvent) {
+      await this.options.store.recordMirroredEvent({
+        discordThreadId: binding.discordThreadId,
+        conversationId: binding.conversationId,
+        runtimeEventId: intakeEvent.id,
+        runtimeEventOffset: intakeEvent.offset,
+        direction: "discord-to-runtime",
+        discordMessageId: message.id,
+      });
+    }
+    return true;
+  }
+
+  private async recordSupportThreadOperatorJoined(
+    binding: DiscordThreadBinding,
+    message: Message,
+    thread: ThreadChannel,
+    displayName: string,
+  ) {
+    if (await this.supportThreadOperatorAlreadyJoined(binding.conversationId, thread.id, message.author.id)) return;
+    const channel = discordChannelContext({
+      guildId: this.options.config.guildId,
+      parentChannelId: this.options.config.supportChannelId,
+      threadId: thread.id,
+      messageId: message.id,
+      userId: message.author.id,
+      threadName: thread.name,
+    });
+    await this.options.runtime.emit({
+      conversationId: binding.conversationId,
+      type: "custom.discord.operator_joined",
+      data: {
+        operatorId: message.author.id,
+        operatorName: displayName,
+        discordThreadId: thread.id,
+        channel,
+      },
+    });
+  }
+
+  private async supportThreadOperatorAlreadyJoined(conversationId: string, threadId: string, operatorId: string) {
+    const events = await this.options.runtime.listEvents(conversationId, 0);
+    return events.some((event) => {
+      if (event.type !== "custom.discord.operator_joined") return false;
+      if (!isRecord(event.data)) return false;
+      return event.data.discordThreadId === threadId && event.data.operatorId === operatorId;
+    });
+  }
+
   private async resolveConversationThread(message: Message): Promise<ThreadChannel | null> {
     if (message.channel.isThread()) {
       if (message.channel.parentId !== this.options.config.supportChannelId) return null;
@@ -357,6 +743,16 @@ export class DiscordGatewayService {
   }
 
   private async mirrorBinding(binding: DiscordThreadBinding) {
+    if (this.mirrorBindingsInProgress.has(binding.discordThreadId)) return;
+    this.mirrorBindingsInProgress.add(binding.discordThreadId);
+    try {
+      await this.mirrorBindingOnce(binding);
+    } finally {
+      this.mirrorBindingsInProgress.delete(binding.discordThreadId);
+    }
+  }
+
+  private async mirrorBindingOnce(binding: DiscordThreadBinding) {
     if (this.isDiscordSourceThreadInProgress(binding.discordThreadId)) return;
 
     const events = await this.options.runtime.listEvents(binding.conversationId, 0);
@@ -418,13 +814,6 @@ export class DiscordGatewayService {
     }) ?? `This step needs the web experience. Continue here: ${this.conversationUrl(conversationId)}`;
   }
 
-  private connectedMessage(conversationId: string) {
-    return this.options.copy?.connectedMessage?.({
-      conversationId,
-      conversationUrl: this.conversationUrl(conversationId),
-    }) ?? `Discord continuation is connected. Web: ${this.conversationUrl(conversationId)}`;
-  }
-
   private turnFailureMessage(discordThreadId: string) {
     return this.options.copy?.turnFailureMessage?.({
       discordThreadId,
@@ -434,6 +823,28 @@ export class DiscordGatewayService {
 
   private supportThreadName(conversationId: string) {
     return `${this.options.copy?.supportThreadNamePrefix ?? DEFAULT_SUPPORT_THREAD_NAME_PREFIX} ${shortId(conversationId)}`;
+  }
+
+  private voiceChannelName(conversationId: string) {
+    return `${this.options.copy?.voiceChannelNamePrefix ?? DEFAULT_VOICE_CHANNEL_NAME_PREFIX} ${shortId(conversationId)}`;
+  }
+
+  private voiceHandoffText(input: ContinueConversationInDiscordResult & {
+    discordVoiceChannelId: string;
+    discordVoiceChannelUrl: string;
+  }) {
+    return this.options.copy?.voiceHandoffMessage?.({
+      conversationId: input.conversationId,
+      conversationUrl: this.conversationUrl(input.conversationId),
+      discordThreadId: input.discordThreadId,
+      discordThreadUrl: input.discordThreadUrl,
+      discordVoiceChannelId: input.discordVoiceChannelId,
+      discordVoiceChannelUrl: input.discordVoiceChannelUrl,
+    }) ?? [
+      `Voice handoff room: ${input.discordVoiceChannelUrl}`,
+      `Customer conversation: ${this.conversationUrl(input.conversationId)}`,
+      "Use this support thread for notes. Type `bot: <instruction>` here to hand the customer back to the bot.",
+    ].join("\n");
   }
 
   private sourceThreadName(userId: string, messageId: string) {
@@ -587,6 +998,57 @@ function isDiscordOriginUserMessage(
   item: DiscordMirrorItem,
 ): item is Extract<DiscordMirrorItem, { kind: "message" }> & { role: "user"; origin: "discord" } {
   return item.kind === "message" && item.role === "user" && item.origin === "discord";
+}
+
+function isSupportHandoffBinding(binding: DiscordThreadBinding) {
+  return !binding.starterUserId;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function discordVoiceHandoffCreateFailureMessage(error: unknown, channelName: string) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (isDiscordMissingPermissionsError(error) || /missing permissions/i.test(message)) {
+    return [
+      `Discord bot is missing permission to create the voice handoff room '${channelName}'.`,
+      "Grant the bot Manage Channels in the server or support-channel category, then retry the voice handoff.",
+    ].join(" ");
+  }
+  return `Failed to create Discord voice handoff room '${channelName}'. ${message}`;
+}
+
+function isDiscordMissingPermissionsError(error: unknown) {
+  if (!isRecord(error)) return false;
+  if (error.code === 50013) return true;
+  return isRecord(error.rawError) && error.rawError.code === 50013;
+}
+
+function parseBotResumeCommand(content: string) {
+  const trimmed = content.trim();
+  const lower = trimmed.toLowerCase();
+  const prefix = BOT_RESUME_COMMAND_PREFIXES.find((candidate) => lower.startsWith(candidate));
+  if (!prefix) return null;
+  return { note: trimmed.slice(prefix.length).trim() };
+}
+
+function supportThreadResumeText(displayName: string | undefined, note: string) {
+  const name = displayName?.trim() || "A human agent";
+  return note
+    ? `${name} handed the conversation back to the bot: ${note}`
+    : `${name} handed the conversation back to the bot.`;
+}
+
+function botResumeTurnText(displayName: string | undefined, note: string) {
+  const name = displayName?.trim() || "A human agent";
+  return [
+    `${name} returned control to the automated flight assistant.`,
+    "The customer already reached human support, so do not start, prepare, or summarize another human transfer.",
+    "Do not say you are handing this over to a person.",
+    note ? `Follow this operator instruction exactly: ${note}` : "Continue from the existing context and ask the customer one concise next question.",
+    "Respond only with the customer-facing bot message.",
+  ].join("\n");
 }
 
 function discordChannelContext(input: {

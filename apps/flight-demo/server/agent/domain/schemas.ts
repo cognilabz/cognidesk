@@ -35,4 +35,30 @@ export const statusContext = z.object({
   }).optional(),
 });
 
+export const secureEmailLoginContext = z.object({
+  bookingReference: z.string().optional(),
+  accountEmail: z.string().email().optional(),
+  requestType: z.string().optional(),
+});
+
+export const whatsappCustomerMessageContext = z.object({
+  recipientPhone: z.string().optional(),
+  messagePurpose: z.enum(["verification-link", "confirmation-link", "notification"]).optional(),
+  bookingReference: z.string().optional(),
+  requestLabel: z.string().optional(),
+  notificationText: z.string().optional(),
+  whatsAppDelivery: z.object({
+    provider: z.literal("whatsapp"),
+    status: z.enum(["sent", "not-configured", "failed"]),
+    purpose: z.enum(["verification-link", "confirmation-link", "notification"]),
+    recipientPhone: z.string(),
+    recipientOverridden: z.boolean(),
+    previewUrl: z.boolean(),
+    messageId: z.string().optional(),
+    link: z.string().url().optional(),
+    reason: z.string().optional(),
+    missingEnv: z.array(z.string()).optional(),
+  }).optional(),
+});
+
 export type Flight = z.infer<typeof flightSchema>;

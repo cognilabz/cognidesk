@@ -2,7 +2,8 @@
 
 ## Get involved
 
-Cognidesk is open source and welcomes contributions.
+Cognidesk welcomes contributions. The SDK packages, integrations, examples,
+applications, Studio, and documentation are Apache-2.0 open source.
 
 <div class="grid cards" markdown>
 

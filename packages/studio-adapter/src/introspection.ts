@@ -34,6 +34,7 @@ export function introspectAgent(
       widgetCount: agent.widgets.length,
       ...(agent.persona !== undefined ? { persona: agent.persona } : {}),
       ...(agent.channels ? { channelPolicies: agent.channels } : {}),
+      ...(agent.behavior ? { behavior: agent.behavior } : {}),
       ...(agent.handoff !== undefined ? { handoffPolicy: agent.handoff } : {}),
     },
     journeys: introspectJourneys(agent),
@@ -80,10 +81,30 @@ function summarizeTool(tool: AnyTool): StudioToolSummary {
   };
 }
 
+type StudioKnowledgeDetails = Partial<Omit<StudioKnowledgeSummary, "name">>;
+type StudioKnowledgeDetailsCarrier = {
+  studio?: StudioKnowledgeDetails;
+};
+
 function summarizeKnowledge(source: KnowledgeSource): StudioKnowledgeSummary {
-  return { name: source.name };
+  const details = source as KnowledgeSource & StudioKnowledgeDetailsCarrier;
+  return {
+    name: source.name,
+    ...pickStudioKnowledgeDetails(details.studio),
+  };
 }
 
 function summarizeWidget(widget: WidgetDefinition): StudioWidgetSummary {
   return { kind: widget.kind };
+}
+
+function pickStudioKnowledgeDetails(details?: StudioKnowledgeDetails): StudioKnowledgeDetails {
+  if (!details) return {};
+  return {
+    ...(details.title !== undefined ? { title: details.title } : {}),
+    ...(details.description !== undefined ? { description: details.description } : {}),
+    ...(details.metadata !== undefined ? { metadata: details.metadata } : {}),
+    ...(details.documentCount !== undefined ? { documentCount: details.documentCount } : {}),
+    ...(details.documents !== undefined ? { documents: details.documents } : {}),
+  };
 }

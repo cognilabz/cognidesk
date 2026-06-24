@@ -120,6 +120,7 @@ export interface CreateConversationResult {
     createdAt: string;
     updatedAt: string;
   };
+  events?: RuntimeEvent[];
 }
 
 export interface CreateConversationInput {
@@ -127,7 +128,38 @@ export interface CreateConversationInput {
   context?: unknown;
   id?: string;
   channel?: ConversationChannelInput;
+  chatStart?: ChatStartAction;
+  app?: unknown;
 }
+
+export type ChatStartAction =
+  | string
+  | false
+  | null
+  | undefined
+  | {
+      type?: "message";
+      text: string;
+      visibleToModel?: boolean;
+    }
+  | {
+      type: "generatedPreamble";
+      purpose?: string;
+      maxWords?: number;
+    }
+  | {
+      type: "none";
+    };
+
+export interface ChatStartInput {
+  context: unknown;
+  channel?: ConversationChannelInput;
+  app?: unknown;
+}
+
+export type ChatStartBehavior =
+  | ChatStartAction
+  | ((input: ChatStartInput) => ChatStartAction | Promise<ChatStartAction>);
 
 export interface ConversationListCursor {
   updatedAt: string;
@@ -231,8 +263,8 @@ export interface CognideskClient {
   recordChannelOutputResolution(input: ChannelOutputResolutionEventInput): Promise<HandleChannelEventResult>;
   requestChannelHandoff(input: ChannelHandoffEventInput): Promise<HandleChannelEventResult>;
   requestChannelHandoffReview(input: ChannelHandoffReviewEventInput): Promise<HandleChannelEventResult>;
-  startVoiceConversation(input: { agentId?: string; context?: unknown; id?: string; client?: VoiceStartClientHints; app?: unknown }): Promise<StartVoiceResult>;
-  startVoiceSegment(conversationId: string, input?: { client?: VoiceStartClientHints; app?: unknown }): Promise<StartVoiceResult>;
+  startVoiceConversation(input: { agentId?: string; context?: unknown; id?: string; client?: VoiceStartClientHints; chatStart?: ChatStartAction; app?: unknown }): Promise<StartVoiceResult>;
+  startVoiceSegment(conversationId: string, input?: { client?: VoiceStartClientHints; initialGreeting?: string; app?: unknown }): Promise<StartVoiceResult>;
   sendMessage(conversationId: string, message: string, options?: { channel?: ConversationChannelInput; turn?: unknown; app?: unknown }): Promise<SendMessageResult>;
   submitWidget(conversationId: string, input: { promptId: string; widgetKind: string; output: unknown }): Promise<{ event: RuntimeEvent }>;
   emitCustomEvent(conversationId: string, eventName: string, input?: { payload?: unknown }): Promise<{ event: RuntimeEvent }>;
@@ -288,9 +320,13 @@ export interface ChatWidgetProps {
   agentId?: string;
   channel?: ConversationChannelInput;
   initialContext?: unknown;
+  app?: unknown;
+  chatStart?: ChatStartBehavior;
+  autoStart?: boolean;
   title?: ReactNode;
   placeholder?: string;
   sendLabel?: string;
+  composer?: ReactNode | false;
   appearance?: AppearanceConfiguration;
   widgets?: WidgetRendererMap;
   formatActivityLabel?: ChatActivityLabelFormatter;
@@ -304,6 +340,9 @@ export interface UseChatOptions {
   agentId?: string;
   channel?: ConversationChannelInput;
   initialContext?: unknown;
+  app?: unknown;
+  chatStart?: ChatStartBehavior;
+  autoStart?: boolean;
   formatActivityLabel?: ChatActivityLabelFormatter;
   onConversationCreated?(conversationId: string): void;
 }
@@ -321,6 +360,7 @@ export interface UseVoiceOptions {
   conversationId?: string;
   agentId?: string;
   initialContext?: unknown;
+  chatStart?: ChatStartBehavior;
   mediaConstraints?: MediaStreamConstraints;
   WebSocket?: typeof WebSocket;
   audioContext?: AudioContext;

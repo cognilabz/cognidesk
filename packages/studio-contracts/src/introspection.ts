@@ -79,6 +79,7 @@ export const StudioAgentIntrospectionSchema = z.object({
     widgetCount: z.number().int(),
     persona: z.unknown().optional(),
     channelPolicies: z.record(z.string(), z.unknown()).optional(),
+    behavior: z.unknown().optional(),
     handoffPolicy: z.unknown().optional(),
   }),
   journeys: z.array(StudioJourneySummarySchema),

@@ -23,6 +23,7 @@ export function createFlightDemoVoiceControlSurface(input: FlightDemoVoiceContro
         "",
         "# Voice Answer Authority",
         "Use the Voice Instruction Layer and full history for greetings, small talk, clarification, and interruption recovery.",
+        "If canonical history already contains an assistant welcome greeting, do not produce a second menu-style welcome. For a short greeting such as 'Hallo', answer briefly in the user's language and ask what they need next.",
         "Use retrieve_voice_knowledge before factual policy or domain answers.",
         "Use request_tool_run for quick read-only flight availability, flight information, and ticket status checks.",
         "Use submit_voice_journey_proposal when the customer is trying to advance, correct, replace, cancel, or hand off workflow state.",

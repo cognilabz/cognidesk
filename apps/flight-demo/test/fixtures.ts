@@ -138,10 +138,49 @@ function createTestMatcher(messages: ModelMessage[]) {
     return { text: JSON.stringify(structured), structured };
   }
   const candidates = [];
-  const mentionsBaggage = /\b(bag|bags|baggage|luggage|suitcase|sports equipment)\b/.test(latestUser);
+  const whatsappIntent = latestUser.includes("whatsapp") || latestUser.includes("whats app");
+  const mentionsBaggage = /\b(bag|bags|baggage|luggage|suitcase|sports equipment|skis|oversized|stroller|wheelchair)\b/.test(latestUser);
   const baggageServiceIntent = /\badd[- ]?on\b/.test(latestUser)
-    || (mentionsBaggage && /\b(add|order|buy|purchase|more|extra|eligib|check|upgrade|pay|second|checked)\b/.test(latestUser));
-  const statusIntent = !baggageServiceIntent && (
+    || (mentionsBaggage && (
+      /\b(add|order|buy|purchase|more|extra|eligib|check|upgrade|pay|second|checked|lost|missing|damaged|delayed|claim|arrive|arrived)\b/.test(latestUser)
+      || latestUser.includes("did not arrive")
+    ));
+  const refundStatusIntent = latestUser.includes("refund status")
+    || latestUser.includes("refund details")
+    || latestUser.includes("refund for booking")
+    || latestUser.includes("refund on booking");
+  const secureEmailLoginIntent = (
+    latestUser.includes("boarding pass")
+    || latestUser.includes("e-ticket")
+    || latestUser.includes("eticket")
+    || latestUser.includes("invoice")
+    || latestUser.includes("receipt")
+    || refundStatusIntent
+    || latestUser.includes("compensation")
+    || latestUser.includes("payment confirmation")
+    || latestUser.includes("resend")
+    || latestUser.includes("account profile")
+    || latestUser.includes("access my account")
+    || latestUser.includes("passenger name")
+    || latestUser.includes("change the date")
+    || latestUser.includes("secure email")
+    || (
+      latestUser.includes("email")
+      && /\b(send|mail|login|sign in|sign-in|account|profile|boarding|ticket)\b/.test(latestUser)
+    )
+  );
+  const handoffIntent = latestUser.includes("human")
+    || latestUser.includes("person")
+    || latestUser.includes("agent")
+    || latestUser.includes("urgent")
+    || latestUser.includes("angry")
+    || latestUser.includes("stranded")
+    || latestUser.includes("missed connection")
+    || latestUser.includes("accessibility")
+    || latestUser.includes("medical")
+    || latestUser.includes("unaccompanied minor");
+  const hasFlightIdentifier = /\bcl\d{3}\b/i.test(latestUser) || /\bcd-[a-z0-9-]+-\d{4}\b/i.test(latestUser);
+  const statusIntent = !whatsappIntent && !baggageServiceIntent && !secureEmailLoginIntent && !handoffIntent && (
     latestUser.includes("status of booking")
     || latestUser.includes("booking status")
     || latestUser.includes("where is my ticket")
@@ -151,10 +190,40 @@ function createTestMatcher(messages: ModelMessage[]) {
     || latestUser.includes("check in for")
     || latestUser.includes("check-in for")
     || latestUser.includes("flight status")
-    || /\bstatus\b/.test(latestUser)
+    || (hasFlightIdentifier && /\b(status|check in|check-in|gate|boarding|delayed|cancelled|canceled)\b/.test(latestUser))
   );
-  if (prompt.includes("ticket-status") && statusIntent) {
-    candidates.push({ journeyId: "ticket-status", confidence: 0.9, reason: "Status request." });
+  if (
+    prompt.includes("whatsapp-customer-message")
+    && (
+      whatsappIntent
+      || (
+        prompt.includes("active journey: whatsapp-customer-message")
+        && (
+          latestUser.match(/\+?\d[\d\s().-]{5,}\d/)
+          || latestUser.includes("verification")
+          || latestUser.includes("confirmation")
+          || latestUser.includes("notification")
+        )
+      )
+    )
+  ) {
+    candidates.push({ journeyId: "whatsapp-customer-message", confidence: 0.97, reason: "WhatsApp delivery requested." });
+  }
+  if (
+    prompt.includes("secure-email-login")
+    && (
+      secureEmailLoginIntent
+      || (
+        prompt.includes("active journey: secure-email-login")
+        && (
+          latestUser.match(/\bcd-[a-z0-9-]+-\d{4}\b/i)
+          || latestUser.match(/[^\s@]+@[^\s@]+\.[^\s@]+/)
+          || /\b(yes|continue|email|login)\b/.test(latestUser)
+        )
+      )
+    )
+  ) {
+    candidates.push({ journeyId: "secure-email-login", confidence: 0.96, reason: "Account-protected request needs secure email login." });
   }
   if (
     prompt.includes("baggage-service")
@@ -171,8 +240,11 @@ function createTestMatcher(messages: ModelMessage[]) {
   ) {
     candidates.push({ journeyId: "baggage-service", confidence: 0.96, reason: "Unsupported baggage/add-on request." });
   }
-  if (prompt.includes("human-handoff") && (latestUser.includes("human") || latestUser.includes("person") || latestUser.includes("cancelled"))) {
+  if (prompt.includes("human-handoff") && handoffIntent) {
     candidates.push({ journeyId: "human-handoff", confidence: 0.92, reason: "Human handoff request." });
+  }
+  if (prompt.includes("ticket-status") && statusIntent) {
+    candidates.push({ journeyId: "ticket-status", confidence: 0.9, reason: "Status request." });
   }
   if (
     prompt.includes("book-flight")
@@ -183,6 +255,8 @@ function createTestMatcher(messages: ModelMessage[]) {
       latestUser.includes("find flights")
       || latestUser.includes("search for a flight")
       || latestUser.includes("looking for a flight")
+      || latestUser.includes("replacement flight")
+      || latestUser.includes("rebook")
       || /\bbook\b/.test(latestUser)
       || latestUser.includes("ticket to")
       || (
@@ -231,6 +305,41 @@ function createTestExtraction(messages: ModelMessage[]) {
   if (wants("passengerName") && passenger?.[1]) values.passengerName = passenger[1];
   const bookingReference = user.match(/\b(?:CD-[A-Z0-9-]+|ABC\d{3,})\b/i)?.[0];
   if (wants("bookingReference") && bookingReference) values.bookingReference = bookingReference.toUpperCase();
+  const accountEmail = user.match(/[^\s@]+@[^\s@]+\.[^\s@.,;:!?]+/)?.[0];
+  if (wants("accountEmail") && accountEmail) values.accountEmail = accountEmail;
+  const recipientPhone = user.match(/\+\d[\d\s().-]{5,}\d/)?.[0]
+    ?? user.match(/(?:whatsapp|to)\s+(\d[\d\s().-]{5,}\d)/i)?.[1];
+  if (wants("recipientPhone") && recipientPhone) values.recipientPhone = recipientPhone;
+  if (wants("messagePurpose")) {
+    if (lower.includes("verification") || lower.includes("verify")) values.messagePurpose = "verification-link";
+    else if (lower.includes("confirmation") || lower.includes("confirm") || lower.includes("bestatig") || lower.includes("bestaetig")) {
+      values.messagePurpose = "confirmation-link";
+    } else if (lower.includes("notification") || lower.includes("notify")) {
+      values.messagePurpose = "notification";
+    }
+  }
+  if (wants("notificationText") && lower.includes("case was updated")) {
+    values.notificationText = "Your support case was updated.";
+  }
+  if (wants("requestLabel")) {
+    if (lower.includes("gate")) values.requestLabel = "gate-change notification";
+    else if (lower.includes("rebook")) values.requestLabel = "rebooking confirmation";
+    else if (lower.includes("check-in") || lower.includes("check in")) values.requestLabel = "check-in reminder";
+    else if (lower.includes("boarding pass")) values.requestLabel = "boarding pass delivery";
+    else if (lower.includes("bag")) values.requestLabel = "baggage-claim update";
+    else if (lower.includes("refund")) values.requestLabel = "refund-status update";
+    else if (lower.includes("support case")) values.requestLabel = "support case update";
+  }
+  if (wants("requestType")) {
+    if (lower.includes("boarding pass")) values.requestType = "boarding pass delivery";
+    else if (lower.includes("e-ticket") || lower.includes("eticket")) values.requestType = "e-ticket delivery";
+    else if (lower.includes("passenger name")) values.requestType = "passenger-name change";
+    else if (lower.includes("invoice") || lower.includes("receipt")) values.requestType = "invoice request";
+    else if (lower.includes("refund") || lower.includes("compensation")) values.requestType = "refund status request";
+    else if (lower.includes("payment confirmation")) values.requestType = "payment-confirmation follow-up";
+    else if (lower.includes("change the date")) values.requestType = "date-change request";
+    else if (lower.includes("account profile") || lower.includes("access my account")) values.requestType = "account profile access";
+  }
   const flightNumber = user.match(/\bCL\d{3}\b/i)?.[0];
   if (wants("flightNumber") && flightNumber) values.flightNumber = flightNumber.toUpperCase();
   if (wants("selectedFlightId") && flightNumber) values.selectedFlightId = flightNumber.toUpperCase();
@@ -294,17 +403,42 @@ function createTestAnswer(messages: ModelMessage[]) {
   if (system.includes('"availableflights":[]')) {
     return "There are no mocked flights for that route and date. I can suggest available mocked flights or check a different route.";
   }
-  if (user.includes("human") || user.includes("person")) {
+  if (/\b(human|person|agent|urgent|angry|stranded|missed connection|accessibility|medical)\b/.test(user)) {
     return "I can collect a short summary for human support so the customer can be handed off.";
+  }
+  if (
+    user.includes("whatsapp")
+    || user.includes("whats app")
+  ) {
+    return "I can send a WhatsApp verification link, confirmation link, or notification after you provide the number and approve the send.";
+  }
+  if (
+    user.includes("boarding pass")
+    || user.includes("passenger name")
+    || user.includes("invoice")
+    || user.includes("receipt")
+    || user.includes("refund status")
+    || user.includes("refund details")
+    || user.includes("compensation")
+    || user.includes("payment confirmation")
+    || user.includes("e-ticket")
+    || user.includes("account profile")
+    || user.includes("access my account")
+    || user.includes("change the date")
+  ) {
+    return "For security, this needs a secure email login. I can send a sign-in link and continue this request by email.";
   }
   if (user.includes("bag") || user.includes("bags") || user.includes("luggage") || user.includes("suitcase") || user.includes("sports equipment")) {
     if (user.includes("raw source")) return "Economy tickets include one cabin bag. Source: K1:test-baggage.";
+    if (/\b(lost|missing|damaged|delayed|claim|arrive|arrived)\b/.test(user) || user.includes("did not arrive")) {
+      return "For delayed, lost, or damaged baggage I can collect a short summary and prepare a human handoff. Do not share payment or passport details here.";
+    }
     if (/\b(add|order|buy|purchase|more|extra|eligib|check|upgrade|pay|second)\b/.test(user)) {
       return "Economy Light includes one cabin bag. This demo can explain the baggage policy, but it cannot add extra baggage or verify baggage add-on eligibility for a booking.";
     }
     return "Economy tickets include one cabin bag.";
   }
-  if (/\bbook\b/.test(user) || user.includes("ticket to") || user.includes("flight to")) {
+  if (/\bbook\b/.test(user) || user.includes("replacement flight") || user.includes("rebook") || user.includes("ticket to") || user.includes("flight to")) {
     return "I can help book a mocked flight. Tell me the origin, destination, travel date, and passenger name. For example, Vienna to Berlin tomorrow for Alex Morgan.";
   }
   if (user.includes("boarding") || user.includes("gate")) {
@@ -392,15 +526,68 @@ function cheapestFlightIdFromContext(contextJson: string) {
 
 function keywordEmbedding(text: string) {
   const lower = text.toLowerCase();
+  const canonicalJourneyEmbedding = canonicalJourneyKeywordEmbedding(lower);
+  if (canonicalJourneyEmbedding) return canonicalJourneyEmbedding;
+  const bookingSignal = /\bbook\b/.test(lower)
+    || lower.includes("find flight")
+    || lower.includes("find flights")
+    || lower.includes("search for a flight")
+    || lower.includes("flight availability")
+    || lower.includes("new itinerary")
+    || lower.includes("replacement flight")
+    || lower.includes("rebook")
+    || lower.includes("ticket to")
+    || lower.includes("flight to");
+  const statusSignal = lower.includes("ticket status")
+    || lower.includes("booking status")
+    || lower.includes("status of booking")
+    || lower.includes("status of flight")
+    || lower.includes("e-ticket status")
+    || lower.includes("flight status")
+    || lower.includes("check-in")
+    || lower.includes("check in")
+    || lower.includes("where is my ticket")
+    || lower.includes("where is my booking")
+    || lower.includes("gate")
+    || lower.includes("boarding");
+  const secureSignal = lower.includes("boarding pass")
+    || lower.includes("e-ticket")
+    || lower.includes("eticket")
+    || lower.includes("invoice")
+    || lower.includes("receipt")
+    || lower.includes("refund status")
+    || lower.includes("refund details")
+    || lower.includes("compensation")
+    || lower.includes("passenger name")
+    || lower.includes("payment confirmation")
+    || lower.includes("change the date")
+    || lower.includes("date change")
+    || lower.includes("fare")
+    || lower.includes("promo")
+    || lower.includes("ticket change")
+    || lower.includes("secure email")
+    || lower.includes("account");
   return [
-    lower.includes("book") || lower.includes("ticket to") ? 1 : 0,
-    lower.includes("status") || lower.includes("check") ? 1 : 0,
-    lower.includes("flight") || lower.includes("cl") ? 1 : 0,
+    bookingSignal ? 1 : 0,
+    statusSignal ? 1 : 0,
+    /\bflights?\b/.test(lower) || /\bcl\d{3}\b/.test(lower) ? 1 : 0,
     lower.includes("bag") ? 1 : 0,
     lower.includes("human") || lower.includes("handoff") ? 1 : 0,
-    lower.includes("change") ? 1 : 0,
+    secureSignal ? 1 : 0,
     lower.includes("boarding") || lower.includes("gate") ? 1 : 0,
     lower.includes("check-in") || lower.includes("check in") ? 1 : 0,
     lower.includes("disruption") || lower.includes("cancelled") || lower.includes("delayed") ? 1 : 0,
+    lower.includes("email") || lower.includes("login") || lower.includes("sign in") || lower.includes("account") ? 1 : 0,
+    lower.includes("whatsapp") || lower.includes("whats app") ? 1 : 0,
   ];
+}
+
+function canonicalJourneyKeywordEmbedding(lower: string) {
+  if (lower.includes("journey:book-flight")) return [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0];
+  if (lower.includes("journey:ticket-status")) return [0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0];
+  if (lower.includes("journey:baggage-service")) return [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0];
+  if (lower.includes("journey:secure-email-login")) return [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0];
+  if (lower.includes("journey:whatsapp-customer-message")) return [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  if (lower.includes("journey:human-handoff")) return [0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0];
+  return null;
 }

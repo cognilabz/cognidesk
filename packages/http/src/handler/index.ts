@@ -1,4 +1,4 @@
-import { defineChannelContext } from "@cognidesk/core";
+import { defineChannelContext, type AgentChatStartAction, type AgentChatStartBehavior, type ConversationRecord, type RuntimeEvent } from "@cognidesk/core";
 import { parseOptionalInteger, normalizeBasePath, stripBasePath } from "../path.js";
 import { emptyResponse, HttpInputError, json, type ResponseOptions } from "../responses.js";
 import { streamEvents } from "../sse.js";
@@ -24,7 +24,7 @@ import {
   optionalTarget,
   optionalVoiceClient,
 } from "./optional.js";
-import { readObject } from "./body.js";
+import { isRecord, readObject } from "./body.js";
 import { withVoiceEventsUrl } from "./voice.js";
 import type {
   CognideskHttpHandler,
@@ -91,7 +91,16 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             ...optionalChannelProperty(body),
             context: body.context ?? {},
           });
-          return json({ conversation }, 201, responseOptions);
+          const events = await emitChatStartEvents({
+            runtime: options.runtime,
+            conversation,
+            behavior: hasOwnProperty(body, "chatStart") ? chatStartBehaviorFromBody(body) : options.chatStart,
+            app: body.app,
+          });
+          return json({
+            conversation,
+            ...(events.length > 0 ? { events } : {}),
+          }, 201, responseOptions);
         }
 
         if (request.method === "POST" && path === "/channel-events") {
@@ -118,6 +127,7 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           const body = await readObject(request);
           const agentId = optionalString(body, "agentId") ?? options.agentId;
           if (!agentId) return json({ error: "agentId is required" }, 400, responseOptions);
+          const requestChatStart = hasOwnProperty(body, "chatStart") ? chatStartBehaviorFromBody(body) : undefined;
           const result = await options.runtime.startVoiceConversation({
             ...optionalStringProperty(body, "id"),
             agentId,
@@ -125,8 +135,23 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             ...optionalVoiceClient(body),
             ...(body.app !== undefined ? { app: body.app } : {}),
           });
-          const socket = await options.voice.createSocket({ result, request, basePath });
-          return json(withVoiceEventsUrl({ ...result, socket }, basePath), 201, responseOptions);
+          const events = await emitChatStartEvents({
+            runtime: options.runtime,
+            conversation: result.conversation,
+            behavior: hasOwnProperty(body, "chatStart") ? requestChatStart : options.chatStart,
+            app: body.app,
+          });
+          const socket = await options.voice.createSocket({
+            result,
+            request,
+            basePath,
+            ...optionalInitialGreeting(body, requestChatStart),
+          });
+          return json(withVoiceEventsUrl({
+            ...result,
+            socket,
+            events: [...result.events, ...events],
+          }, basePath), 201, responseOptions);
         }
 
         const voiceSegmentMatch = path.match(/^\/conversations\/([^/]+)\/voice-segments$/);
@@ -140,7 +165,12 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             ...optionalVoiceClient(body),
             ...(body.app !== undefined ? { app: body.app } : {}),
           });
-          const socket = await options.voice.createSocket({ result, request, basePath });
+          const socket = await options.voice.createSocket({
+            result,
+            request,
+            basePath,
+            ...optionalInitialGreeting(body),
+          });
           return json(withVoiceEventsUrl({ ...result, socket }, basePath), 200, responseOptions);
         }
 
@@ -380,9 +410,120 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
   };
 }
 
+async function emitChatStartEvents(input: {
+  runtime: CognideskHttpHandlerOptions["runtime"];
+  conversation: ConversationRecord;
+  behavior: AgentChatStartBehavior | undefined;
+  app: unknown;
+}): Promise<RuntimeEvent[]> {
+  const action = await resolveChatStartAction(input.behavior, input.conversation, input.app);
+  if (!action) return [];
+  if (typeof action === "string") {
+    return emitChatStartMessage(input.runtime, input.conversation.id, { text: action, visibleToModel: true });
+  }
+  if (action.type === "none") return [];
+  if (action.type === "generatedPreamble") {
+    if (!input.runtime.emitGeneratedPreamble) throw new HttpInputError("chatStart generatedPreamble requires emitGeneratedPreamble support.");
+    const result = await input.runtime.emitGeneratedPreamble({
+      conversationId: input.conversation.id,
+      ...(action.purpose ? { purpose: action.purpose } : {}),
+      ...(action.maxWords !== undefined ? { maxWords: action.maxWords } : {}),
+    });
+    return result.events;
+  }
+  return emitChatStartMessage(input.runtime, input.conversation.id, {
+    text: action.text,
+    visibleToModel: action.visibleToModel ?? true,
+  });
+}
+
+async function resolveChatStartAction(
+  behavior: AgentChatStartBehavior | undefined,
+  conversation: ConversationRecord,
+  app: unknown,
+): Promise<AgentChatStartAction> {
+  if (typeof behavior !== "function") return behavior;
+  return behavior({
+    conversation,
+    context: conversation.context,
+    ...(conversation.channel ? { channel: conversation.channel } : {}),
+    app,
+  });
+}
+
+async function emitChatStartMessage(
+  runtime: CognideskHttpHandlerOptions["runtime"],
+  conversationId: string,
+  input: { text: string; visibleToModel?: boolean },
+) {
+  if (!runtime.emitIntermediateMessage) throw new HttpInputError("chatStart message requires emitIntermediateMessage support.");
+  const text = input.text.trim();
+  if (!text) return [];
+  const result = await runtime.emitIntermediateMessage({
+    conversationId,
+    text,
+    ...(input.visibleToModel ? { visibleToModel: true } : {}),
+  });
+  return result.events;
+}
+
+function chatStartBehaviorFromBody(body: Record<string, unknown>): AgentChatStartAction | undefined {
+  if (!("chatStart" in body)) return undefined;
+  const value = body.chatStart;
+  if (value === undefined) return undefined;
+  if (value === null || value === false || typeof value === "string") return value;
+  if (!isRecord(value)) throw new HttpInputError("chatStart must be a string, false, null, or an object.");
+  const type = optionalString(value, "type") ?? "message";
+  if (type === "none") return { type: "none" };
+  if (type === "generatedPreamble") {
+    const maxWords = optionalNonNegativeNumber(value, "maxWords");
+    return {
+      type,
+      ...optionalStringProperty(value, "purpose"),
+      ...(maxWords !== undefined ? { maxWords } : {}),
+    };
+  }
+  if (type !== "message") throw new HttpInputError("chatStart.type must be message, generatedPreamble, or none.");
+  const text = optionalString(value, "text");
+  if (!text) throw new HttpInputError("chatStart.text is required.");
+  const visibleToModel = value.visibleToModel;
+  if (visibleToModel !== undefined && visibleToModel !== null && typeof visibleToModel !== "boolean") {
+    throw new HttpInputError("chatStart.visibleToModel must be a boolean.");
+  }
+  return {
+    type: "message",
+    text,
+    ...(visibleToModel !== undefined && visibleToModel !== null ? { visibleToModel } : {}),
+  };
+}
+
+function optionalInitialGreeting(
+  body: Record<string, unknown>,
+  chatStart?: AgentChatStartAction,
+) {
+  const initialGreeting = optionalString(body, "initialGreeting") ?? chatStartSpeechText(chatStart);
+  return initialGreeting ? { initialGreeting } : {};
+}
+
+function chatStartSpeechText(action: AgentChatStartAction | undefined) {
+  if (!action) return undefined;
+  if (typeof action === "string") return normalizeText(action);
+  if (action.type === "message") return normalizeText(action.text);
+  return undefined;
+}
+
+function normalizeText(text: string) {
+  const trimmed = text.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 function optionalSearchString(params: URLSearchParams, key: string) {
   const value = params.get(key);
   if (value === null) return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function hasOwnProperty(value: Record<string, unknown>, key: string) {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }

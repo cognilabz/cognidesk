@@ -113,6 +113,11 @@ async function createVoiceHarness(apiKey: string, scenarioId: string) {
   const knowledgeIndex = await loadFlightKnowledgeIndex(resolveFlightDemoPath(config.storage.knowledgeIndexPath));
   const { agent, models, journeyIndex } = await createFlightDemoRuntimeParts({
     config,
+    externalIntegrationJourneysEnabled: {
+      secureEmail: false,
+      discordHandoff: true,
+      whatsapp: false,
+    },
     knowledgeIndex: {
       ...knowledgeIndex,
       embeddingProvider: "openai.embedding",
