@@ -4,8 +4,7 @@
 
 **TypeScript runtime SDK for building customer support agents as code.**
 
-[![SDK License](https://img.shields.io/badge/SDK-Apache--2.0-purple.svg)](LICENSES/Apache-2.0.txt)
-[![Studio License](https://img.shields.io/badge/Studio-source--available-slate.svg)](LICENSES/Cognidesk-Studio-Source-Available-License.txt)
+[![License](https://img.shields.io/badge/License-Apache--2.0-purple.svg)](LICENSES/Apache-2.0.txt)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-24+-green.svg)](https://nodejs.org/)
 
@@ -151,7 +150,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, architecture decis
 
 ## License
 
-The Cognidesk SDK packages are licensed under [Apache-2.0](LICENSES/Apache-2.0.txt).
-Cognidesk Studio is source-available under the [Cognidesk Studio Source Available License](LICENSES/Cognidesk-Studio-Source-Available-License.txt).
+Cognidesk, including Cognidesk Studio, is licensed under [Apache-2.0](LICENSES/Apache-2.0.txt).
 
 See [LICENSE](LICENSE) for the repository license map.

@@ -54,6 +54,19 @@
       "lookbackMinutes": 60
     }
   },
+  "whatsapp": {
+    "enabled": false,
+    "accessTokenEnv": "FLIGHT_WHATSAPP_ACCESS_TOKEN",
+    "phoneNumberIdEnv": "FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
+    "appSecretEnv": "FLIGHT_WHATSAPP_APP_SECRET",
+    "verifyTokenEnv": "FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN",
+    "recipientOverrideEnv": "FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE",
+    "confirmationBaseUrl": "https://auth.cognidesk.local/flight-demo/whatsapp",
+    "confirmationBaseUrlEnv": "FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL",
+    "graphApiBaseUrl": "https://graph.facebook.com",
+    "graphApiVersion": "v25.0",
+    "wabaWebhookSubscribed": false
+  },
   "storage": {
     "sqlitePath": ".data/flight-demo.sqlite",
     "knowledgeIndexPath": ".data/knowledge-index.json"

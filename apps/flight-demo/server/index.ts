@@ -33,6 +33,10 @@ import {
   type DiscordGatewayService,
 } from "@cognidesk/integration-messaging-discord";
 import {
+  whatsappMessagingCredentialStatuses,
+  whatsappMessagingProviderManifest,
+} from "@cognidesk/integration-messaging-whatsapp";
+import {
   createAwsSpeechVoiceProvider,
   type AwsPollySynthesizeCommandInput,
   type AwsSdkCommandConstructor,
@@ -53,15 +57,19 @@ import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
 import {
   flightDemoCorsEnabled,
+  flightDemoExternalApisEnabled,
+  flightDemoExternalIntegrationJourneysEnabled,
   flightDemoStudioServiceToken,
   getConfiguredDiscordIntegration,
   getConfiguredEmailDeliveryConfig,
   getConfiguredEmailReplyVerificationConfig,
+  getConfiguredWhatsAppDeliveryConfig,
   getConfiguredVoiceProviderSecrets,
   loadFlightDemoConfig,
   resolveFlightDemoPath,
   type ConfiguredEmailDeliveryConfig,
   type ConfiguredEmailReplyVerificationConfig,
+  type ConfiguredWhatsAppDeliveryConfig,
   type ConfiguredVoiceProviderSecrets,
   type FlightDemoConfig,
 } from "./config.js";
@@ -75,9 +83,11 @@ import {
   FLIGHT_DISCORD_PROVIDER_PACKAGE_ID,
   FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID,
   FLIGHT_SECURE_EMAIL_CHANNEL_ID,
-  flightDemoRuntimeChannels,
+  FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID,
+  FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+  createFlightDemoRuntimeChannels,
 } from "./agent/policies.js";
-import { createFlightDemoRuntimeParts } from "./agent/index.js";
+import { createFlightDemoRuntimeParts, createFlightTools } from "./agent/index.js";
 import {
   createFlightDemoEmailReplyPoller,
   flightDemoEmailReplySubject,
@@ -88,15 +98,23 @@ import { createFlightDemoVoiceControlSurface } from "./voice-control.js";
 
 const FLIGHT_HANDOFF_JOURNEY_ID = "human-handoff";
 const FLIGHT_SECURE_EMAIL_JOURNEY_ID = "secure-email-login";
+const FLIGHT_WHATSAPP_JOURNEY_ID = "whatsapp-customer-message";
 const FLIGHT_DISCORD_HANDOFF_STATUS_EVENT = "custom.flight.discord_handoff_status";
 const FLIGHT_EMAIL_SWITCH_STATUS_EVENT = "custom.flight.email_channel_switch_status";
 const FLIGHT_DISCORD_UNAVAILABLE_MESSAGE =
   "Human support handoff requested, but Discord support is not configured for this flight demo.";
+const FLIGHT_EXTERNAL_APIS_DISABLED_REASON =
+  "Flight demo external API integrations are disabled. Set FLIGHT_DEMO_EXTERNAL_APIS=true to enable live providers.";
 const flightDiscordCredentialRequirementIds = new Set([
   "discord-bot-token",
   "discord-application-id",
   "discord-guild-id",
   "discord-channel-id",
+]);
+const flightWhatsAppOutboundRequirementIds = new Set([
+  "whatsapp-access-token",
+  "whatsapp-phone-number-id",
+  "whatsapp-app-secret",
 ]);
 const discordHandoffPreparations = new Map<string, Promise<RuntimeEvent[]>>();
 const emailSwitchPreparations = new Map<string, Promise<RuntimeEvent[]>>();
@@ -109,6 +127,56 @@ type FlightDemoEmailReplyVerification = {
   config: ConfiguredEmailReplyVerificationConfig;
   poller: FlightDemoEmailReplyPoller | null;
 };
+
+function flightDemoDisabledEmailDeliveryConfig(
+  config: FlightDemoConfig,
+  reason = FLIGHT_EXTERNAL_APIS_DISABLED_REASON,
+): ConfiguredEmailDeliveryConfig {
+  return {
+    provider: "smtp",
+    configured: false,
+    reason,
+    missingEnv: [],
+    loginBaseUrl: config.email.loginBaseUrl,
+  };
+}
+
+function flightDemoDisabledEmailReplyVerificationConfig(
+  config: FlightDemoConfig,
+  reason = FLIGHT_EXTERNAL_APIS_DISABLED_REASON,
+): ConfiguredEmailReplyVerificationConfig {
+  return {
+    provider: "imap",
+    configured: false,
+    enabled: config.email.replyVerification.enabled,
+    reason,
+    missingEnv: [],
+    mailbox: config.email.replyVerification.mailbox,
+    pollIntervalMs: config.email.replyVerification.pollIntervalMs,
+    lookbackMinutes: config.email.replyVerification.lookbackMinutes,
+  };
+}
+
+function flightDemoDisabledWhatsAppDeliveryConfig(
+  config: FlightDemoConfig,
+  reason = FLIGHT_EXTERNAL_APIS_DISABLED_REASON,
+): ConfiguredWhatsAppDeliveryConfig {
+  return {
+    provider: "whatsapp",
+    configured: false,
+    enabled: config.whatsapp.enabled,
+    reason,
+    missingEnv: [],
+    confirmationBaseUrl: config.whatsapp.confirmationBaseUrl,
+    graphApiBaseUrl: config.whatsapp.graphApiBaseUrl,
+    graphApiVersion: config.whatsapp.graphApiVersion,
+    wabaWebhookSubscribed: config.whatsapp.wabaWebhookSubscribed,
+  };
+}
+
+function flightDemoIntegrationDisabledReason(envName: keyof NodeJS.ProcessEnv & string) {
+  return `This flight demo integration is disabled. Set ${envName}=true to enable it, or set FLIGHT_DEMO_EXTERNAL_APIS=true to enable all external integrations by default.`;
+}
 
 const otel = process.env.COGNIDESK_OTEL === "true"
   ? startCognideskOtel({
@@ -130,16 +198,52 @@ const demoTelemetrySeed = otel && process.env.COGNIDESK_OTEL_FAKE_DATA !== "fals
 
 const config = await loadFlightDemoConfig();
 const corsEnabled = flightDemoCorsEnabled();
+const externalApisEnabled = flightDemoExternalApisEnabled();
+const externalIntegrationJourneysEnabled = flightDemoExternalIntegrationJourneysEnabled();
 const sqlitePath = resolveFlightDemoPath(config.storage.sqlitePath);
 await mkdir(dirname(sqlitePath), { recursive: true });
 
-const { agent, models, journeyIndex, knowledgeIndex } = await createFlightDemoRuntimeParts({ config });
+const whatsAppDeliveryConfig = externalIntegrationJourneysEnabled.whatsapp
+  ? getConfiguredWhatsAppDeliveryConfig(config)
+  : flightDemoDisabledWhatsAppDeliveryConfig(
+      config,
+      flightDemoIntegrationDisabledReason("FLIGHT_DEMO_WHATSAPP_JOURNEY"),
+    );
+const flightRuntimeTools = createFlightTools({ whatsapp: whatsAppDeliveryConfig });
+const { agent, models, journeyIndex, knowledgeIndex } = await createFlightDemoRuntimeParts({
+  config,
+  externalIntegrationJourneysEnabled,
+  tools: flightRuntimeTools,
+});
 const storage = createSqliteStorage({ filename: sqlitePath });
-const voiceSecrets = getConfiguredVoiceProviderSecrets(config);
-const discordCredentialStatuses = flightDemoDiscordCredentialStatuses(config);
-const discordCapabilityAvailability = flightDemoDiscordCapabilityAvailability(config, discordCredentialStatuses);
-const discordIntegration = getConfiguredDiscordIntegration(config);
-const emailDeliveryConfig = getConfiguredEmailDeliveryConfig(config);
+const voiceSecrets = externalApisEnabled ? getConfiguredVoiceProviderSecrets(config) : undefined;
+const discordCredentialStatuses = flightDemoDiscordCredentialStatuses(
+  config,
+  externalIntegrationJourneysEnabled.discordHandoff,
+);
+const discordCapabilityAvailability = flightDemoDiscordCapabilityAvailability(
+  config,
+  discordCredentialStatuses,
+  externalIntegrationJourneysEnabled.discordHandoff,
+);
+const whatsAppCredentialStatuses = flightDemoWhatsAppCredentialStatuses(
+  config,
+  externalIntegrationJourneysEnabled.whatsapp,
+);
+const whatsAppCapabilityAvailability = flightDemoWhatsAppCapabilityAvailability(
+  config,
+  whatsAppCredentialStatuses,
+  externalIntegrationJourneysEnabled.whatsapp,
+);
+const discordIntegration = externalIntegrationJourneysEnabled.discordHandoff
+  ? getConfiguredDiscordIntegration(config)
+  : undefined;
+const emailDeliveryConfig = externalIntegrationJourneysEnabled.secureEmail
+  ? getConfiguredEmailDeliveryConfig(config)
+  : flightDemoDisabledEmailDeliveryConfig(
+      config,
+      flightDemoIntegrationDisabledReason("FLIGHT_DEMO_SECURE_EMAIL_JOURNEY"),
+    );
 const emailSender = emailDeliveryConfig.configured
   ? createSmtpEmailClient({
       transport: {
@@ -158,7 +262,12 @@ const emailSender = emailDeliveryConfig.configured
       },
     })
   : null;
-const emailReplyVerificationConfig = getConfiguredEmailReplyVerificationConfig(config);
+const emailReplyVerificationConfig = externalIntegrationJourneysEnabled.secureEmail
+  ? getConfiguredEmailReplyVerificationConfig(config)
+  : flightDemoDisabledEmailReplyVerificationConfig(
+      config,
+      flightDemoIntegrationDisabledReason("FLIGHT_DEMO_SECURE_EMAIL_JOURNEY"),
+    );
 const voiceSessionStore = createInMemoryVoiceSessionStore();
 const voiceProvider = createConfiguredVoiceProvider(config, voiceSecrets);
 const runtime = createRuntime({
@@ -166,11 +275,25 @@ const runtime = createRuntime({
   agent,
   models,
   journeyIndex,
-  channels: flightDemoRuntimeChannels,
-  providerPackages: [discordMessagingProviderManifest],
-  capabilityAvailability: [discordCapabilityAvailability],
-  providerCredentialStatuses: discordCredentialStatuses,
-  providerReadiness: [flightDemoDiscordProviderReadiness(config, discordCredentialStatuses)],
+  channels: createFlightDemoRuntimeChannels({
+    externalIntegrationJourneysEnabled,
+  }),
+  providerPackages: [discordMessagingProviderManifest, whatsappMessagingProviderManifest],
+  capabilityAvailability: [discordCapabilityAvailability, whatsAppCapabilityAvailability],
+  providerCredentialStatuses: [...discordCredentialStatuses, ...whatsAppCredentialStatuses],
+  providerReadiness: [
+    flightDemoDiscordProviderReadiness(
+      config,
+      discordCredentialStatuses,
+      externalIntegrationJourneysEnabled.discordHandoff,
+    ),
+    flightDemoWhatsAppProviderReadiness(
+      config,
+      whatsAppCredentialStatuses,
+      whatsAppDeliveryConfig,
+      externalIntegrationJourneysEnabled.whatsapp,
+    ),
+  ],
   topKJourneys: 3,
   streaming: {
     syntheticDeltas: true,
@@ -258,10 +381,23 @@ const studioAdapter = createCognideskStudioAdapter({
   agent,
   runtime,
   configuration: {
-    providerPackages: [discordMessagingProviderManifest],
-    capabilityAvailability: [discordCapabilityAvailability],
-    credentialStatuses: discordCredentialStatuses,
-    providerReadiness: [flightDemoDiscordProviderReadiness(config, discordCredentialStatuses, discordService)],
+    providerPackages: [discordMessagingProviderManifest, whatsappMessagingProviderManifest],
+    capabilityAvailability: [discordCapabilityAvailability, whatsAppCapabilityAvailability],
+    credentialStatuses: [...discordCredentialStatuses, ...whatsAppCredentialStatuses],
+    providerReadiness: [
+      flightDemoDiscordProviderReadiness(
+        config,
+        discordCredentialStatuses,
+        externalIntegrationJourneysEnabled.discordHandoff,
+        discordService,
+      ),
+      flightDemoWhatsAppProviderReadiness(
+        config,
+        whatsAppCredentialStatuses,
+        whatsAppDeliveryConfig,
+        externalIntegrationJourneysEnabled.whatsapp,
+      ),
+    ],
   },
   basePath: "/api/studio",
   serviceToken: flightDemoStudioServiceToken(),
@@ -987,7 +1123,11 @@ function channelFromRuntimeEvent(event: RuntimeEvent): unknown {
   return null;
 }
 
-function flightDemoDiscordCredentialStatuses(config: FlightDemoConfig): ProviderCredentialStatus[] {
+function flightDemoDiscordCredentialStatuses(
+  config: FlightDemoConfig,
+  externalApisEnabledForProvider: boolean,
+): ProviderCredentialStatus[] {
+  if (!externalApisEnabledForProvider) return [];
   const discord = config.discord;
   const botToken = discord?.enabled ? process.env[discord.botTokenEnv] : undefined;
   return discordMessagingCredentialStatuses({
@@ -1005,8 +1145,9 @@ function flightDemoDiscordCredentialStatuses(config: FlightDemoConfig): Provider
 function flightDemoDiscordCapabilityAvailability(
   config: FlightDemoConfig,
   credentialStatuses: ProviderCredentialStatus[],
+  externalApisEnabledForProvider: boolean,
 ): CapabilityAvailability {
-  const blockers = flightDemoDiscordBlockers(config, credentialStatuses);
+  const blockers = flightDemoDiscordBlockers(config, credentialStatuses, externalApisEnabledForProvider);
   return CapabilityAvailabilitySchema.parse({
     providerPackageId: FLIGHT_DISCORD_PROVIDER_PACKAGE_ID,
     capability: "thread",
@@ -1025,10 +1166,21 @@ function flightDemoDiscordCapabilityAvailability(
 function flightDemoDiscordProviderReadiness(
   config: FlightDemoConfig,
   credentialStatuses: ProviderCredentialStatus[],
+  externalApisEnabledForProvider: boolean,
   service?: DiscordGatewayService | null,
 ): ProviderReadiness {
-  const blockers = flightDemoDiscordBlockers(config, credentialStatuses);
+  const blockers = flightDemoDiscordBlockers(config, credentialStatuses, externalApisEnabledForProvider);
   const status = service?.status();
+  if (!externalApisEnabledForProvider) {
+    return ProviderReadinessSchema.parse({
+      providerPackageId: FLIGHT_DISCORD_PROVIDER_PACKAGE_ID,
+      status: "not-configured",
+      live: false,
+      checkedAt: new Date().toISOString(),
+      checkSource: "flight-demo-config",
+      blockers,
+    });
+  }
   if (config.discord?.enabled !== true) {
     return ProviderReadinessSchema.parse({
       providerPackageId: FLIGHT_DISCORD_PROVIDER_PACKAGE_ID,
@@ -1072,12 +1224,21 @@ function flightDemoDiscordProviderReadiness(
 function flightDemoDiscordBlockers(
   config: FlightDemoConfig,
   credentialStatuses: ProviderCredentialStatus[],
+  externalApisEnabledForProvider: boolean,
 ) {
   const blockers: Array<{
     code: string;
     message: string;
     kind: "missing-configuration" | "missing-credentials" | "permission-blocked";
   }> = [];
+  if (!externalApisEnabledForProvider) {
+    blockers.push({
+      code: "external-apis-disabled",
+      message: flightDemoIntegrationDisabledReason("FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY"),
+      kind: "missing-configuration",
+    });
+    return blockers;
+  }
   if (config.discord?.enabled !== true) {
     blockers.push({
       code: "discord-disabled",
@@ -1092,6 +1253,146 @@ function flightDemoDiscordBlockers(
     blockers.push({
       code: `discord-${status.requirementId}-${status.state}`,
       message: status.message ?? `Discord credential '${status.requirementId}' is ${status.state}.`,
+      kind: status.state === "permission-blocked" ? "permission-blocked" : "missing-credentials",
+    });
+  }
+  return blockers;
+}
+
+function flightDemoWhatsAppCredentialStatuses(
+  config: FlightDemoConfig,
+  externalApisEnabledForProvider: boolean,
+): ProviderCredentialStatus[] {
+  if (!externalApisEnabledForProvider) return [];
+  const whatsapp = config.whatsapp;
+  const accessToken = whatsapp.enabled ? process.env[whatsapp.accessTokenEnv]?.trim() : undefined;
+  const phoneNumberId = whatsapp.enabled ? process.env[whatsapp.phoneNumberIdEnv]?.trim() : undefined;
+  const appSecret = whatsapp.enabled ? process.env[whatsapp.appSecretEnv]?.trim() : undefined;
+  const verifyToken = whatsapp.enabled ? process.env[whatsapp.verifyTokenEnv]?.trim() : undefined;
+  return whatsappMessagingCredentialStatuses({
+    ...(accessToken ? { accessToken } : {}),
+    ...(phoneNumberId ? { phoneNumberId } : {}),
+    ...(appSecret ? { appSecret } : {}),
+    ...(verifyToken ? { verifyToken } : {}),
+    wabaWebhookSubscribed: whatsapp.enabled && whatsapp.wabaWebhookSubscribed,
+  }).map((status) => ProviderCredentialStatusSchema.parse(status));
+}
+
+function flightDemoWhatsAppCapabilityAvailability(
+  config: FlightDemoConfig,
+  credentialStatuses: ProviderCredentialStatus[],
+  externalApisEnabledForProvider: boolean,
+): CapabilityAvailability {
+  const blockers = flightDemoWhatsAppBlockers(config, credentialStatuses, externalApisEnabledForProvider);
+  return CapabilityAvailabilitySchema.parse({
+    providerPackageId: FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+    capability: "send",
+    status: blockers.length > 0 ? "blocked" : "enabled",
+    enabledForChannels: ["chat", "voice", "messaging"],
+    enabledForJourneys: [FLIGHT_WHATSAPP_JOURNEY_ID],
+    enabledForTools: ["sendWhatsAppCustomerMessage"],
+    blockers,
+    metadata: {
+      destination: "whatsapp-customer-message",
+      enabled: config.whatsapp.enabled,
+      graphApiVersion: config.whatsapp.graphApiVersion,
+      policyId: FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID,
+    },
+  });
+}
+
+function flightDemoWhatsAppProviderReadiness(
+  config: FlightDemoConfig,
+  credentialStatuses: ProviderCredentialStatus[],
+  deliveryConfig: ConfiguredWhatsAppDeliveryConfig,
+  externalApisEnabledForProvider: boolean,
+): ProviderReadiness {
+  const blockers = flightDemoWhatsAppBlockers(config, credentialStatuses, externalApisEnabledForProvider);
+  if (!externalApisEnabledForProvider) {
+    return ProviderReadinessSchema.parse({
+      providerPackageId: FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+      status: "not-configured",
+      live: false,
+      checkedAt: new Date().toISOString(),
+      checkSource: "flight-demo-config",
+      blockers,
+    });
+  }
+  if (!config.whatsapp.enabled) {
+    return ProviderReadinessSchema.parse({
+      providerPackageId: FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+      status: "not-configured",
+      live: false,
+      checkedAt: new Date().toISOString(),
+      checkSource: "flight-demo-config",
+      blockers,
+    });
+  }
+  if (blockers.length > 0) {
+    return ProviderReadinessSchema.parse({
+      providerPackageId: FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+      status: "blocked",
+      live: false,
+      checkedAt: new Date().toISOString(),
+      checkSource: "flight-demo-config",
+      blockers,
+      remediationActions: [{
+        id: "configure-whatsapp-cloud-api",
+        label: "Configure WhatsApp Cloud API credentials",
+        kind: "configure",
+      }],
+    });
+  }
+  return ProviderReadinessSchema.parse({
+    providerPackageId: FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+    status: "configured",
+    live: false,
+    checkedAt: new Date().toISOString(),
+    checkSource: "flight-demo-config",
+    blockers: [],
+    metadata: {
+      phoneNumberId: deliveryConfig.configured ? deliveryConfig.phoneNumberId : undefined,
+      graphApiVersion: config.whatsapp.graphApiVersion,
+      recipientOverrideConfigured: Boolean(deliveryConfig.recipientOverride),
+      wabaWebhookSubscribed: config.whatsapp.wabaWebhookSubscribed,
+    },
+  });
+}
+
+function flightDemoWhatsAppBlockers(
+  config: FlightDemoConfig,
+  credentialStatuses: ProviderCredentialStatus[],
+  externalApisEnabledForProvider: boolean,
+) {
+  const blockers: Array<{
+    code: string;
+    message: string;
+    kind: "missing-configuration" | "missing-credentials" | "permission-blocked";
+  }> = [];
+  if (!externalApisEnabledForProvider) {
+    blockers.push({
+      code: "external-apis-disabled",
+      message: flightDemoIntegrationDisabledReason("FLIGHT_DEMO_WHATSAPP_JOURNEY"),
+      kind: "missing-configuration",
+    });
+    return blockers;
+  }
+  if (!config.whatsapp.enabled) {
+    blockers.push({
+      code: "whatsapp-disabled",
+      message: "WhatsApp delivery is disabled in the flight demo configuration.",
+      kind: "missing-configuration",
+    });
+    return blockers;
+  }
+  for (const status of credentialStatuses) {
+    if (!flightWhatsAppOutboundRequirementIds.has(status.requirementId)) continue;
+    if (!["missing", "expired", "insufficient-scope", "permission-blocked", "unavailable"].includes(status.state)) {
+      continue;
+    }
+    blockers.push({
+      code: `whatsapp-${status.requirementId}-${status.state}`,
+      message: status.message ?? `WhatsApp credential '${status.requirementId}' is ${status.state}.`,
       kind: status.state === "permission-blocked" ? "permission-blocked" : "missing-credentials",
     });
   }

@@ -4,8 +4,7 @@ Cognidesk Studio is the local web application for inspecting a Cognidesk target,
 viewing conversations and telemetry-backed dashboards, and launching operator
 workflows against an allowed source workspace.
 
-Studio is source-available and private in this monorepo. It is not one of the
-Apache-licensed SDK packages.
+Studio is licensed under Apache-2.0 as part of the Cognidesk monorepo.
 
 For the full local Flight Demo, Studio, Docker, OpenTelemetry, Discord, and
 troubleshooting workflow, see `website/getting-started/local-development.md`.

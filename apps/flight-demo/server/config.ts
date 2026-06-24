@@ -247,6 +247,20 @@ const defaultEmailConfig = {
   },
 };
 
+const defaultWhatsAppConfig = {
+  enabled: false,
+  accessTokenEnv: "FLIGHT_WHATSAPP_ACCESS_TOKEN",
+  phoneNumberIdEnv: "FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
+  appSecretEnv: "FLIGHT_WHATSAPP_APP_SECRET",
+  verifyTokenEnv: "FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN",
+  recipientOverrideEnv: "FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE",
+  confirmationBaseUrl: "https://auth.cognidesk.local/flight-demo/whatsapp",
+  confirmationBaseUrlEnv: "FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL",
+  graphApiBaseUrl: "https://graph.facebook.com",
+  graphApiVersion: "v25.0",
+  wabaWebhookSubscribed: false,
+};
+
 const emailReplyVerificationConfigSchema = z.object({
   enabled: z.boolean().default(true),
   hostEnv: z.string().min(1).default("FLIGHT_EMAIL_IMAP_HOST"),
@@ -277,11 +291,26 @@ const emailConfigSchema = z.object({
   replyVerification: emailReplyVerificationConfigSchema,
 }).default(defaultEmailConfig);
 
+const whatsAppConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  accessTokenEnv: z.string().min(1).default("FLIGHT_WHATSAPP_ACCESS_TOKEN"),
+  phoneNumberIdEnv: z.string().min(1).default("FLIGHT_WHATSAPP_PHONE_NUMBER_ID"),
+  appSecretEnv: z.string().min(1).default("FLIGHT_WHATSAPP_APP_SECRET"),
+  verifyTokenEnv: z.string().min(1).default("FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN"),
+  recipientOverrideEnv: z.string().min(1).default("FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE"),
+  confirmationBaseUrl: z.string().url().default("https://auth.cognidesk.local/flight-demo/whatsapp"),
+  confirmationBaseUrlEnv: z.string().min(1).default("FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL"),
+  graphApiBaseUrl: z.string().url().default("https://graph.facebook.com"),
+  graphApiVersion: z.string().min(1).default("v25.0"),
+  wabaWebhookSubscribed: z.boolean().default(false),
+}).default(defaultWhatsAppConfig);
+
 const flightDemoConfigSchema = z.object({
   models: modelProviderSchema,
   voice: voiceProviderSchema.optional(),
   discord: discordConfigSchema.optional(),
   email: emailConfigSchema,
+  whatsapp: whatsAppConfigSchema,
   storage: z.object({
     sqlitePath: z.string().min(1),
     knowledgeIndexPath: z.string().min(1),
@@ -295,6 +324,7 @@ export type FlightDemoModelProvider = FlightDemoModelConfig["provider"];
 export type FlightDemoVoiceConfig = NonNullable<FlightDemoConfig["voice"]>;
 export type FlightDemoDiscordConfig = NonNullable<FlightDemoConfig["discord"]>;
 export type FlightDemoEmailConfig = FlightDemoConfig["email"];
+export type FlightDemoWhatsAppConfig = FlightDemoConfig["whatsapp"];
 export type EnabledFlightDemoDiscordConfig = FlightDemoDiscordConfig & {
   enabled: true;
   applicationId: string;
@@ -366,6 +396,33 @@ export type ConfiguredEmailReplyVerificationConfig =
       mailbox: string;
       pollIntervalMs: number;
       lookbackMinutes: number;
+    };
+export type ConfiguredWhatsAppDeliveryConfig =
+  | {
+      provider: "whatsapp";
+      configured: true;
+      accessToken: string;
+      phoneNumberId: string;
+      appSecret: string;
+      verifyToken?: string;
+      recipientOverride?: string;
+      confirmationBaseUrl: string;
+      graphApiBaseUrl: string;
+      graphApiVersion: string;
+      wabaWebhookSubscribed: boolean;
+    }
+  | {
+      provider: "whatsapp";
+      configured: false;
+      enabled: boolean;
+      reason: string;
+      missingEnv: string[];
+      verifyToken?: string;
+      recipientOverride?: string;
+      confirmationBaseUrl: string;
+      graphApiBaseUrl: string;
+      graphApiVersion: string;
+      wabaWebhookSubscribed: boolean;
     };
 
 const textOnlyModelProviders = new Set<FlightDemoModelProvider>(["anthropic", "groq", "xai"]);
@@ -698,6 +755,57 @@ export function getConfiguredEmailReplyVerificationConfig(
   };
 }
 
+export function getConfiguredWhatsAppDeliveryConfig(config: FlightDemoConfig): ConfiguredWhatsAppDeliveryConfig {
+  loadFlightDemoEnv();
+  const whatsapp = config.whatsapp;
+  const confirmationBaseUrl = readTrimmedEnv(whatsapp.confirmationBaseUrlEnv) ?? whatsapp.confirmationBaseUrl;
+  const verifyToken = readTrimmedEnv(whatsapp.verifyTokenEnv);
+  const recipientOverride = readTrimmedEnv(whatsapp.recipientOverrideEnv);
+  const base = {
+    provider: "whatsapp" as const,
+    confirmationBaseUrl,
+    graphApiBaseUrl: whatsapp.graphApiBaseUrl,
+    graphApiVersion: whatsapp.graphApiVersion,
+    wabaWebhookSubscribed: whatsapp.wabaWebhookSubscribed,
+    ...(verifyToken ? { verifyToken } : {}),
+    ...(recipientOverride ? { recipientOverride } : {}),
+  };
+  if (!whatsapp.enabled) {
+    return {
+      ...base,
+      configured: false,
+      enabled: false,
+      reason: "Flight demo WhatsApp delivery is disabled in config.json.",
+      missingEnv: [],
+    };
+  }
+
+  const accessToken = readTrimmedEnv(whatsapp.accessTokenEnv);
+  const phoneNumberId = readTrimmedEnv(whatsapp.phoneNumberIdEnv);
+  const appSecret = readTrimmedEnv(whatsapp.appSecretEnv);
+  const missingEnv: string[] = [];
+  if (!accessToken) missingEnv.push(whatsapp.accessTokenEnv);
+  if (!phoneNumberId) missingEnv.push(whatsapp.phoneNumberIdEnv);
+  if (!appSecret) missingEnv.push(whatsapp.appSecretEnv);
+  if (missingEnv.length > 0 || !accessToken || !phoneNumberId || !appSecret) {
+    return {
+      ...base,
+      configured: false,
+      enabled: true,
+      reason: `Flight demo WhatsApp delivery requires ${missingEnv.join(", ")}.`,
+      missingEnv,
+    };
+  }
+
+  return {
+    ...base,
+    configured: true,
+    accessToken,
+    phoneNumberId,
+    appSecret,
+  };
+}
+
 export function getConfiguredVoiceApiKey(config: FlightDemoConfig) {
   const secrets = getConfiguredVoiceProviderSecrets(config);
   if (!secrets) return undefined;
@@ -731,6 +839,46 @@ export function flightDemoCorsEnabled(env: NodeJS.ProcessEnv = process.env) {
   return allowsLocalFlightDemoDefaults(env);
 }
 
+export function flightDemoExternalApisEnabled(env: NodeJS.ProcessEnv = process.env) {
+  const configured = (
+    env.FLIGHT_DEMO_EXTERNAL_APIS
+    ?? env.COGNIDESK_FLIGHT_DEMO_EXTERNAL_APIS
+  )?.trim().toLowerCase();
+  if (!configured) return false;
+  if (["1", "true", "yes", "on"].includes(configured)) return true;
+  if (["0", "false", "no", "off"].includes(configured)) return false;
+  throw new Error("FLIGHT_DEMO_EXTERNAL_APIS must be a boolean-like value.");
+}
+
+export interface FlightDemoExternalIntegrationJourneyFlags {
+  secureEmail: boolean;
+  discordHandoff: boolean;
+  whatsapp: boolean;
+}
+
+export function flightDemoExternalIntegrationJourneysEnabled(
+  env: NodeJS.ProcessEnv = process.env,
+): FlightDemoExternalIntegrationJourneyFlags {
+  const globalDefault = flightDemoExternalApisEnabled(env);
+  return {
+    secureEmail: readBooleanOverride(env, [
+      "FLIGHT_DEMO_SECURE_EMAIL_JOURNEY",
+      "FLIGHT_DEMO_SECURE_EMAIL_ENABLED",
+      "COGNIDESK_FLIGHT_DEMO_SECURE_EMAIL_JOURNEY",
+    ], globalDefault, "FLIGHT_DEMO_SECURE_EMAIL_JOURNEY"),
+    discordHandoff: readBooleanOverride(env, [
+      "FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY",
+      "FLIGHT_DEMO_DISCORD_HANDOFF_ENABLED",
+      "COGNIDESK_FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY",
+    ], globalDefault, "FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY"),
+    whatsapp: readBooleanOverride(env, [
+      "FLIGHT_DEMO_WHATSAPP_JOURNEY",
+      "FLIGHT_DEMO_WHATSAPP_ENABLED",
+      "COGNIDESK_FLIGHT_DEMO_WHATSAPP_JOURNEY",
+    ], globalDefault, "FLIGHT_DEMO_WHATSAPP_JOURNEY"),
+  };
+}
+
 function allowsLocalFlightDemoDefaults(env: NodeJS.ProcessEnv) {
   return (
     env.NODE_ENV !== "production"
@@ -742,6 +890,21 @@ function allowsLocalFlightDemoDefaults(env: NodeJS.ProcessEnv) {
 
 function truthyFlag(value: string | undefined) {
   return ["1", "true", "yes", "on"].includes(value?.trim().toLowerCase() ?? "");
+}
+
+function readBooleanOverride(
+  env: NodeJS.ProcessEnv,
+  names: string[],
+  defaultValue: boolean,
+  errorName: string,
+) {
+  const configured = names
+    .map((name) => env[name]?.trim().toLowerCase())
+    .find((value) => value);
+  if (!configured) return defaultValue;
+  if (["1", "true", "yes", "on"].includes(configured)) return true;
+  if (["0", "false", "no", "off"].includes(configured)) return false;
+  throw new Error(`${errorName} must be a boolean-like value.`);
 }
 
 function readTrimmedEnv(name: string) {

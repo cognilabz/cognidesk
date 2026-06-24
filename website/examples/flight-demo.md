@@ -15,6 +15,7 @@ A complete customer support agent for a fictional airline. This example demonstr
 | HTTP transport | REST + SSE |
 | React chat widget | Full UI with custom widgets |
 | Voice | Real-time voice conversations |
+| External integration opt-in | Secure Email, Discord handoff, and WhatsApp Journeys can be enabled independently |
 | OpenTelemetry | Pre-built Grafana dashboards |
 
 ## Local development runbook
@@ -25,12 +26,10 @@ checks, and troubleshooting, use the [local development runbook](../getting-star
 
 ## Running with Docker
 
-Create the demo config first. The default OpenRouter example keeps API keys in
-environment variables:
+Create the demo config first:
 
 ```bash
-cp apps/flight-demo/config.openrouter.example.json apps/flight-demo/config.json
-export OPENROUTER_KEY=sk-or-...
+cp apps/flight-demo/config.example.json apps/flight-demo/config.json
 ```
 
 ```bash
@@ -43,17 +42,18 @@ Then open:
 - **API**: `http://localhost:8787/api`
 - **Studio**: `http://localhost:3000`
 
-The default compose command ingests the demo knowledge index before starting the
-API and frontend.
+By default the API starts with local demo models and builds an in-memory
+knowledge index if no generated index is present. For live models, set
+`FLIGHT_DEMO_EXTERNAL_APIS=true`, provide the configured provider API key, and
+run `corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge` before
+starting the stack.
 
 ## Running locally
 
 ```bash
 corepack enable
 corepack pnpm install --frozen-lockfile
-cp apps/flight-demo/config.openrouter.example.json apps/flight-demo/config.json
-export OPENROUTER_KEY=sk-or-...
-corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge
+cp apps/flight-demo/config.example.json apps/flight-demo/config.json
 corepack pnpm demo
 ```
 
@@ -69,6 +69,13 @@ Studio operator runtime via Turbo's terminal UI.
 
 The default local Studio login is `admin@local.cognidesk.dev` /
 `cognidesk-studio-admin`.
+
+For live model/provider runs, set `FLIGHT_DEMO_EXTERNAL_APIS=true`, provide the
+configured provider secrets, and run:
+
+```bash
+corepack pnpm --filter @cognidesk/flight-demo ingest:knowledge
+```
 
 ## With OpenTelemetry
 
@@ -106,6 +113,32 @@ storage settings. Copy one of these templates:
 
 API keys stay in environment variables and should not be committed.
 
+### External Integration Journeys
+
+The Flight Demo starts in local mode without live external integrations. The
+agent registers only the core flight-support Journeys unless you opt in to a
+specific integration.
+
+| Journey | Env flag |
+|---------|----------|
+| Secure Email login | `FLIGHT_DEMO_SECURE_EMAIL_JOURNEY=true` |
+| Discord human handoff | `FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=true` |
+| WhatsApp customer message | `FLIGHT_DEMO_WHATSAPP_JOURNEY=true` |
+
+`FLIGHT_DEMO_EXTERNAL_APIS=true` enables live models and defaults all three
+integration Journeys to enabled. The per-Journey flags override that default,
+so `FLIGHT_DEMO_EXTERNAL_APIS=true` plus
+`FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=false` runs live providers without the
+Discord handoff Journey.
+
+When only one integration is needed, keep local models and enable just that
+Journey, for example:
+
+```bash
+FLIGHT_DEMO_EXTERNAL_APIS=false
+FLIGHT_DEMO_WHATSAPP_JOURNEY=true
+```
+
 ## Try it
 
 Use these prompts after the frontend opens:
@@ -115,7 +148,7 @@ Use these prompts after the frontend opens:
 | `Find flights from Vienna to Berlin tomorrow.` | Activates the booking Journey and asks for or confirms trip details. |
 | `What is the status of booking CD-CL204-4821?` | Uses the ticket-status Journey and mocked ticket-status tool. |
 | `What baggage is included in economy?` | Uses Knowledge retrieval and includes source-backed policy guidance. |
-| `My flight was cancelled and I need a person.` | Activates the handoff Journey. |
+| `My flight was cancelled and I need a person.` | Activates the handoff Journey when `FLIGHT_DEMO_DISCORD_HANDOFF_JOURNEY=true`; otherwise the agent explains live handoff is disabled. |
 
 ## Source code
 

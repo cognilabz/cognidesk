@@ -40,7 +40,7 @@ update when behavior changes.
 | Path | Responsibility |
 |------|----------------|
 | `apps/flight-demo/` | Reference flight-support application with journeys, tools, knowledge, HTTP transport, React UI, voice, and observability. |
-| `apps/studio/` | Cognidesk Studio web application. It is private and source-available rather than part of the Apache-licensed SDK packages. |
+| `apps/studio/` | Cognidesk Studio web application. |
 | `apps/studio-operator-runtime/` | WebSocket operator runtime that executes Studio source-workspace tasks in disposable sandboxes. |
 | `observability/` | Grafana dashboards and OpenTelemetry, Prometheus, Tempo, Loki, and Promtail configuration. |
 | `deploy/studio/` | Studio deployment overlays and supporting deployment configuration. |

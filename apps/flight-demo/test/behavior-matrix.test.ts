@@ -414,6 +414,11 @@ describe("flight demo behavior matrix via HTTP API", () => {
     const knowledgeIndex = await createTestKnowledgeIndex(models);
     const { agent, journeyIndex } = await createFlightDemoRuntimeParts({
       config: testConfig,
+      externalIntegrationJourneysEnabled: {
+        secureEmail: true,
+        discordHandoff: true,
+        whatsapp: true,
+      },
       models,
       knowledgeIndex,
     });

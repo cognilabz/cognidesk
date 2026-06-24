@@ -7,7 +7,7 @@ import type {
 import type { FlightKnowledgeIndex } from "../knowledge-index.js";
 import { flightTools } from "../agent/tools/flight-tools.js";
 
-export type FlightToolName = keyof typeof flightTools;
+export type FlightToolName = Exclude<keyof typeof flightTools, "sendWhatsAppCustomerMessage">;
 export type VoiceTurnIntent = "advance_journey" | "side_exchange" | "cancel_or_replace" | "correction" | "handoff";
 export type VoiceBackgroundWorkStatus = "running" | "completed" | "failed" | "cancelled";
 

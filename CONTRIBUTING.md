@@ -59,10 +59,7 @@ Open a GitHub issue with:
 ## License
 
 By contributing, you agree that your contributions will be licensed under the
-license that applies to the package, app, or file you modify:
-
-- SDK packages and Studio integration surfaces are licensed under Apache-2.0.
-- Cognidesk Studio source is source-available under the Cognidesk Studio Source
-  Available License.
+Apache License, Version 2.0, unless a file or directory contains a more
+specific license notice.
 
 See [LICENSE](LICENSE) for the repository license map.

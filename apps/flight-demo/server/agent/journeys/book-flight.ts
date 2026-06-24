@@ -5,14 +5,24 @@ import type { FlightTools } from "../tools/flight-tools.js";
 
 export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tools: FlightTools) {
   const booking = agent.stateMachineJourney("book-flight", {
-    condition: "Customer explicitly wants to search flight availability or book a flight itinerary. Do not use this Journey for baggage, luggage, add-ons, seats, payment, ticket changes, refunds, policy questions, or unsupported service requests unless the customer also clearly asks to book a flight itinerary.",
-    examples: ["Book a ticket to Berlin", "Find me a flight from Vienna to Paris tomorrow", "I need a flight from Vienna to Berlin on 2026-05-27"],
-    tags: ["booking", "tickets"],
+    condition: [
+      "Customer explicitly wants to search flight availability, compare flight options, create a new itinerary, or book a replacement flight after a disruption.",
+      "Use this for route/date shopping, fare option selection, and confirmed mocked booking creation.",
+      "Do not use this Journey for baggage, luggage, add-ons, seats, payment, refund status, receipts, passenger-name changes, ticket-status lookups, generic policy questions, or unsupported service requests unless the customer also clearly asks to book a flight itinerary.",
+    ].join(" "),
+    examples: [
+      "Book a ticket to Berlin",
+      "Find me a flight from Vienna to Paris tomorrow",
+      "My flight was cancelled; show me replacement flights from Vienna to Berlin on 2026-05-27",
+      "What is the cheapest option from Vienna to Berlin tomorrow?",
+    ],
+    tags: ["booking", "tickets", "rebooking", "availability"],
     context: bookingContext,
     priority: 20,
   });
   const collectRoute = booking.state("collectRoute")
     .instructions([
+      "Treat the request like airline itinerary shopping: collect origin, destination, travel date, and optionally passenger name.",
       "In chat or web channels, a route-details form is shown when origin, destination, or departure date is missing.",
       "When that form is visible, ask the customer to use the form below instead of asking them to send those values separately in chat.",
       "In voice channels, no form or widget is shown; ask conversationally for one missing travel detail at a time and never tell the customer to use a form.",
@@ -65,10 +75,11 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
   });
   const selectFlight = booking.state("selectFlight")
     .instructions([
-      "Show the availableFlights from journeyContext in the answer.",
+      "Show the availableFlights from journeyContext in the answer with route, departure time, status, and price.",
       "The customer may select a flight with the choice widget or in plain chat.",
       "If the customer says the cheaper/cheapest option, select the available flight with the lowest price.",
       "If the customer names a flight number, normalize it to uppercase.",
+      "Do not mention real payment, seat assignment, baggage purchase, or ticket-change processing in this state.",
     ].join(" "))
     .collect("selectedFlightId", {
       prompt: "Flight option",
@@ -81,6 +92,7 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
   const noFlights = booking.state("noFlights")
     .instructions([
       "No mocked flights matched the last search.",
+      "Frame this like an airline support availability miss: acknowledge the requested route/date, then offer concrete alternatives.",
       "For vague follow-ups such as 'What are available flights?' or 'On any dates?', use routeAlternativeFlights and allAvailableFlights from journeyContext instead of repeating only the failed date.",
       "If routeAlternativeFlights is empty, say there are no mocked flights for that route on any date and list available mocked flights from allAvailableFlights with flight number, route, departure date/time, and price; do not reduce them to route names only.",
       "When listing route alternatives, include the flight numbers such as CL102 so the customer can choose a concrete option.",
@@ -114,7 +126,7 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
       widgetInput: ({ context }) => flightChoiceInput(context),
     });
   const confirmPassenger = booking.state("confirmPassenger")
-    .instructions("Tell the customer which selected mocked flight is being prepared, then collect the passenger name if it is missing.")
+    .instructions("Tell the customer which selected mocked flight is being prepared, then collect the passenger name if it is missing. Do not ask for passport, date of birth, payment card, or loyalty-account data.")
     .collect("passengerName", {
       prompt: "Passenger name",
       widget: widgetPrompt(textInputWidget, {
@@ -125,7 +137,7 @@ export function addBookFlightJourney(agent: ReturnType<typeof createAgent>, tool
   const book = booking.state("book").runTool(tools.bookFlight, {
     confirm: {
       message: "Confirm mocked booking",
-      reason: "Review the mocked booking details before creating the booking.",
+      reason: "Review the itinerary details before creating the mocked booking.",
     },
     input: ({ context }) => ({
       selectedFlightId: normalizeFlightId(context.selectedFlightId),

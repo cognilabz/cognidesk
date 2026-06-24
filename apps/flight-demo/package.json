@@ -31,6 +31,7 @@
     "@cognidesk/integration-email-imap": "workspace:*",
     "@cognidesk/integration-email-smtp": "workspace:*",
     "@cognidesk/integration-messaging-discord": "workspace:*",
+    "@cognidesk/integration-messaging-whatsapp": "workspace:*",
     "@cognidesk/integration-voice-aws-speech": "workspace:*",
     "@cognidesk/integration-voice-azure-speech": "workspace:*",
     "@cognidesk/integration-voice-deepgram": "workspace:*",
