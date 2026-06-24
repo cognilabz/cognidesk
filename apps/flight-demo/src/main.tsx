@@ -399,7 +399,6 @@ function App() {
               <VoiceBar
                 voice={voice}
                 canChangeMode={!visibleConversationId}
-                onStartVoice={startVoiceSession}
                 onChangeMode={returnToSessionPicker}
               />
             ) : null}
@@ -545,30 +544,25 @@ function SessionModePicker(props: {
 function VoiceBar(props: {
   voice: UseVoiceResult;
   canChangeMode: boolean;
-  onStartVoice: () => void;
   onChangeMode: () => void;
 }) {
-  const busy = props.voice.status === "requestingPermission" || props.voice.status === "connecting";
   const error = formatVoiceError(props.voice.error);
+  const showEnd = props.voice.status === "connected";
+  const showActions = showEnd || props.canChangeMode;
   return (
     <div className="demo-voice-bar">
       <div>
         <strong>Voice</strong>
         <span>{formatVoiceStatus(props.voice.status)}</span>
       </div>
-      <div className="demo-voice-actions">
-        {props.voice.status === "connected" ? (
-          <button type="button" onClick={props.voice.stop}>End</button>
-        ) : (
-          <button type="button" disabled={busy} onClick={props.onStartVoice}>
-            Start
-          </button>
-        )}
-        <button type="button" disabled={!props.voice.localStream} onClick={() => props.voice.setMuted(!props.voice.muted)}>
-          {props.voice.muted ? "Unmute" : "Mute"}
-        </button>
-        {props.canChangeMode ? <button type="button" onClick={props.onChangeMode}>Change</button> : null}
-      </div>
+      {showActions ? (
+        <div className="demo-voice-actions">
+          {showEnd ? (
+            <button type="button" onClick={props.voice.stop}>End</button>
+          ) : null}
+          {props.canChangeMode ? <button type="button" onClick={props.onChangeMode}>Change</button> : null}
+        </div>
+      ) : null}
       {error ? <span className="demo-voice-error">{error.status}</span> : null}
     </div>
   );
