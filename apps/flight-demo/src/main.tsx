@@ -1,6 +1,6 @@
-import { StrictMode, useCallback, useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { StrictMode, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { createRoot } from "react-dom/client";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { AudioWaveform, Check, Mic, MicOff, Pencil, Trash2, X } from "lucide-react";
 import type { RuntimeEvent } from "@cognidesk/core";
 import {
   ChatWidget,
@@ -237,7 +237,9 @@ function App() {
   const startVoiceSession = () => {
     setNewSessionMode("voice");
     if (voice.status === "requestingPermission" || voice.status === "connecting" || voice.status === "connected") return;
-    void voice.start().catch(() => undefined);
+    void voice.start().catch((error) => {
+      setConversationError(error instanceof Error ? error.message : "Failed to start voice input.");
+    });
   };
 
   const returnToSessionPicker = () => {
@@ -416,6 +418,8 @@ function App() {
                 sessionMode={sessionMode}
                 widgets={chatWidgets}
                 appearance={chatAppearance}
+                voice={voice}
+                onStartVoice={startVoiceSession}
                 onConversationCreated={handleConversationCreated}
                 onWidgetSubmit={handleWidgetSubmit}
               />
@@ -545,6 +549,7 @@ function VoiceBar(props: {
   onChangeMode: () => void;
 }) {
   const busy = props.voice.status === "requestingPermission" || props.voice.status === "connecting";
+  const error = formatVoiceError(props.voice.error);
   return (
     <div className="demo-voice-bar">
       <div>
@@ -564,7 +569,7 @@ function VoiceBar(props: {
         </button>
         {props.canChangeMode ? <button type="button" onClick={props.onChangeMode}>Change</button> : null}
       </div>
-      {props.voice.error ? <span className="demo-voice-error">{props.voice.error.message}</span> : null}
+      {error ? <span className="demo-voice-error">{error.status}</span> : null}
     </div>
   );
 }
@@ -593,9 +598,14 @@ function ChatSession(props: {
   appearance: {
     variables: Record<string, string>;
   };
+  voice: UseVoiceResult;
+  onStartVoice: () => void;
   onConversationCreated: (conversationId: string) => void;
   onWidgetSubmit: (args: { promptId: string; kind: string; output: unknown }) => Promise<void>;
 }) {
+  const composer = props.sessionMode === "voice"
+    ? <VoiceInputPanel voice={props.voice} onStartVoice={props.onStartVoice} />
+    : undefined;
   return (
     <div className="demo-chat-session">
       <ChatWidget
@@ -609,10 +619,128 @@ function ChatSession(props: {
         onWidgetSubmit={(args) => {
           void props.onWidgetSubmit(args);
         }}
+        composer={composer}
         appearance={props.appearance}
       />
     </div>
   );
+}
+
+function VoiceInputPanel(props: { voice: UseVoiceResult; onStartVoice: () => void }) {
+  const busy = props.voice.status === "requestingPermission" || props.voice.status === "connecting";
+  const connected = props.voice.status === "connected";
+  const canToggleMute = Boolean(props.voice.localStream);
+  const levels = useMicrophoneLevels(props.voice.localStream, connected && !props.voice.muted);
+  const error = formatVoiceError(props.voice.error);
+  const primaryLabel = connected
+    ? props.voice.muted
+      ? "Unmute microphone"
+      : "Mute microphone"
+    : busy
+      ? formatVoiceStatus(props.voice.status)
+      : "Start voice input";
+  const status = error?.status
+    ?? (connected
+      ? props.voice.muted
+        ? "Muted"
+        : "Listening"
+      : busy
+        ? formatVoiceStatus(props.voice.status)
+        : "Ready for voice input");
+  const detail = error?.detail
+    ?? (connected ? "Speak naturally. The transcript stays above." : "Press the microphone to start live voice support.");
+
+  return (
+    <div className={`demo-voice-input-panel is-${props.voice.status}${props.voice.muted ? " is-muted" : ""}`} role="group" aria-label="Voice input">
+      <button
+        type="button"
+        className="demo-voice-orb"
+        aria-label={primaryLabel}
+        title={primaryLabel}
+        disabled={busy}
+        onClick={() => {
+          if (connected && canToggleMute) {
+            props.voice.setMuted(!props.voice.muted);
+            return;
+          }
+          props.onStartVoice();
+        }}
+      >
+        {connected && props.voice.muted ? (
+          <MicOff size={22} strokeWidth={2.2} aria-hidden="true" />
+        ) : (
+          <Mic size={22} strokeWidth={2.2} aria-hidden="true" />
+        )}
+      </button>
+      <div className="demo-voice-meter" aria-hidden="true">
+        {levels.map((level, index) => (
+          <span
+            key={index}
+            style={{ "--voice-level": level.toFixed(3) } as CSSProperties}
+          />
+        ))}
+      </div>
+      <div className="demo-voice-input-copy" role="status" aria-live="polite">
+        <strong>{status}</strong>
+        <span>{detail}</span>
+      </div>
+      <AudioWaveform size={18} strokeWidth={2.2} aria-hidden="true" className="demo-voice-wave-icon" />
+    </div>
+  );
+}
+
+function useMicrophoneLevels(stream: MediaStream | null, active: boolean) {
+  const animationRef = useRef<number | null>(null);
+  const [levels, setLevels] = useState(() => idleVoiceLevels());
+
+  useEffect(() => {
+    if (!stream || !active) {
+      setLevels(idleVoiceLevels());
+      return undefined;
+    }
+    const AudioContextCtor = window.AudioContext;
+    const context = new AudioContextCtor();
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.76;
+    const source = context.createMediaStreamSource(stream);
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    let disposed = false;
+
+    const readLevel = () => {
+      analyser.getByteTimeDomainData(data);
+      let sum = 0;
+      for (const sample of data) {
+        const centered = (sample - 128) / 128;
+        sum += centered * centered;
+      }
+      const rms = Math.sqrt(sum / data.length);
+      const nextLevel = Math.min(1, Math.max(0.08, rms * 5.6));
+      setLevels((current) => current.map((value, index) => {
+        const wobble = 0.78 + ((index % 4) * 0.08);
+        return (value * 0.58) + (Math.min(1, nextLevel * wobble + 0.05) * 0.42);
+      }));
+      if (!disposed) animationRef.current = window.requestAnimationFrame(readLevel);
+    };
+
+    void context.resume().catch(() => undefined);
+    readLevel();
+
+    return () => {
+      disposed = true;
+      if (animationRef.current !== null) window.cancelAnimationFrame(animationRef.current);
+      source.disconnect();
+      analyser.disconnect();
+      void context.close();
+    };
+  }, [active, stream]);
+
+  return levels;
+}
+
+function idleVoiceLevels() {
+  return [0.2, 0.34, 0.48, 0.66, 0.86, 0.72, 0.54, 0.38, 0.24, 0.4, 0.58, 0.32];
 }
 
 function VoiceStartStage({ voice }: { voice: UseVoiceResult }) {
@@ -655,6 +783,21 @@ function formatVoiceStatus(status: string) {
     error: "Error",
   };
   return labels[status] ?? status;
+}
+
+function formatVoiceError(error: Error | null) {
+  if (!error) return null;
+  const fingerprint = `${error.name} ${error.message}`.toLowerCase();
+  if (fingerprint.includes("notallowed") || fingerprint.includes("permission")) {
+    return {
+      status: "Microphone permission blocked",
+      detail: "Allow microphone access for this local app, then press the microphone again.",
+    };
+  }
+  return {
+    status: error.message || "Voice input failed",
+    detail: "Check the voice service and try again.",
+  };
 }
 
 function formatConversationTitle(conversation: ConversationSummary) {

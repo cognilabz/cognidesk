@@ -326,6 +326,7 @@ export interface ChatWidgetProps {
   title?: ReactNode;
   placeholder?: string;
   sendLabel?: string;
+  composer?: ReactNode | false;
   appearance?: AppearanceConfiguration;
   widgets?: WidgetRendererMap;
   formatActivityLabel?: ChatActivityLabelFormatter;
