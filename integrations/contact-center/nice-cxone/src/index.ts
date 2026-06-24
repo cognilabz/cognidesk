@@ -110,10 +110,10 @@ export function createNiceCxoneIntegration(options: NiceCxoneClientOptions) {
   return defineIntegration({
     manifest: niceCxoneProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
-      "contactCenter.callback.schedule": async (input: unknown) => client.scheduleCallback(input as NiceCxoneOperationInput),
-      "contactCenter.contact.start": async (input: unknown) => client.startContact(input as NiceCxoneOperationInput),
-      "contactCenter.contact.end": async (input: unknown) => client.endContact(input as NiceCxoneOperationInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.callback.schedule": async (input: unknown) => client.scheduleCallback(input as NiceCxoneOperationInput),
+      "contact-center.contact.start": async (input: unknown) => client.startContact(input as NiceCxoneOperationInput),
+      "contact-center.contact.end": async (input: unknown) => client.endContact(input as NiceCxoneOperationInput),
       "nice-cxone.request": async (input: unknown) => client.request(input as ProviderExtensionRequestInput),
     },
   });

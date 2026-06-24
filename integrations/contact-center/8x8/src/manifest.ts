@@ -7,7 +7,7 @@ export const eightByEightSupportSlice = {
   allowedOperations: [
   {
     id: "placePhoneCall",
-    alias: "contactCenter.contact.start",
+    alias: "contact-center.contact.start",
     method: "POST",
     path: "/tenants/{tenantId}/calls",
     source: "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
@@ -15,7 +15,7 @@ export const eightByEightSupportSlice = {
   },
   {
     id: "deletePhoneInteraction",
-    alias: "contactCenter.contact.end",
+    alias: "contact-center.contact.end",
     method: "DELETE",
     path: "/tenants/{tenantId}/calls/{interactionId}",
     source: "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
@@ -23,7 +23,7 @@ export const eightByEightSupportSlice = {
   },
   {
     id: "setagentstatus",
-    alias: "contactCenter.agent.status.update",
+    alias: "contact-center.agent.status.update",
     method: "PUT",
     path: "/tenants/{tenantId}/agentstatus/agents/{agentId}",
     source: "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json",
@@ -33,11 +33,11 @@ export const eightByEightSupportSlice = {
 } as const;
 
 export const eightByEightProviderManifestInput = {
-  id: "contactCenter.8x8",
+  id: "contact-center.8x8",
   name: "8x8 Contact Center",
   packageName: "@cognidesk/integration-contact-center-8x8",
   provider: "8x8",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -61,10 +61,10 @@ export const eightByEightProviderManifestInput = {
     { capability: "update-provider-object", providerObjects: [{ kind: "agent", label: "agent" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
-    { alias: "contactCenter.contact.start", capability: "send", providerObject: "contact" },
-    { alias: "contactCenter.contact.end", capability: "update-provider-object", providerObject: "contact" },
-    { alias: "contactCenter.agent.status.update", capability: "update-provider-object", providerObject: "agent" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.contact.start", capability: "send", providerObject: "contact" },
+    { alias: "contact-center.contact.end", capability: "update-provider-object", providerObject: "contact" },
+    { alias: "contact-center.agent.status.update", capability: "update-provider-object", providerObject: "agent" },
   ],
   metadata: {
     implementation: eightByEightSupportSlice,

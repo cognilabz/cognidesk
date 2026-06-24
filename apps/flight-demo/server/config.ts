@@ -273,6 +273,7 @@ const embeddingCapableModelProviders = new Set<FlightDemoModelProvider>([
   "azure-openai",
   "openai-compatible",
 ]);
+const localDevStudioServiceToken = "dev-studio-token";
 
 function validateEndpointBackedProvider(
   provider: { provider: string; resourceName?: string | undefined; baseURL?: string | undefined },
@@ -490,4 +491,41 @@ export function getConfiguredVoiceApiKey(config: FlightDemoConfig) {
     return secrets.apiKey;
   }
   throw new Error(`${secrets.provider} does not use a single API key; call getConfiguredVoiceProviderSecrets instead.`);
+}
+
+export function flightDemoStudioServiceToken(env: NodeJS.ProcessEnv = process.env) {
+  const configured = env.COGNIDESK_STUDIO_TARGET_TOKEN?.trim();
+  if (configured) {
+    if (!allowsLocalFlightDemoDefaults(env) && configured === localDevStudioServiceToken) {
+      throw new Error("COGNIDESK_STUDIO_TARGET_TOKEN must not use dev-studio-token outside local development.");
+    }
+    return configured;
+  }
+  if (!allowsLocalFlightDemoDefaults(env)) {
+    throw new Error("COGNIDESK_STUDIO_TARGET_TOKEN is required for the Flight Demo Studio adapter outside local development.");
+  }
+  return localDevStudioServiceToken;
+}
+
+export function flightDemoCorsEnabled(env: NodeJS.ProcessEnv = process.env) {
+  const configured = env.COGNIDESK_CORS?.trim().toLowerCase();
+  if (configured) {
+    if (["1", "true", "yes", "on"].includes(configured)) return true;
+    if (["0", "false", "no", "off"].includes(configured)) return false;
+    throw new Error("COGNIDESK_CORS must be a boolean-like value.");
+  }
+  return allowsLocalFlightDemoDefaults(env);
+}
+
+function allowsLocalFlightDemoDefaults(env: NodeJS.ProcessEnv) {
+  return (
+    env.NODE_ENV !== "production"
+    && !truthyFlag(env.STUDIO_HOSTED)
+    && !truthyFlag(env.COGNIDESK_STUDIO_HOSTED)
+    && !truthyFlag(env.COGNIDESK_FLIGHT_DEMO_HOSTED)
+  );
+}
+
+function truthyFlag(value: string | undefined) {
+  return ["1", "true", "yes", "on"].includes(value?.trim().toLowerCase() ?? "");
 }

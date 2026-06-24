@@ -49,7 +49,7 @@ describe("channel output resolution runtime", () => {
       expect(result.shouldExecute).toBe(true);
       expect(result.event?.type).toBe("channel.event.received");
       expect(result.event?.data).toMatchObject({
-        kind: "output.resolution",
+        nature: "output.resolution",
         intent: "output-resolution",
         handlingDisposition: "output-resolution",
         payload: {

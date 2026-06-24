@@ -70,5 +70,5 @@ but do not have credentials. Treat it differently from a hard failure.
 
 ## Full type reference
 
-- [`@cognidesk/test-harness`](generated/test-harness/dist.md)
-- [`@cognidesk/test-harness/providers`](generated/test-harness/dist/providers.md)
+- [`@cognidesk/test-harness`](generated/packages/test-harness/dist.md)
+- [`@cognidesk/test-harness/providers`](generated/packages/test-harness/dist/providers.md)

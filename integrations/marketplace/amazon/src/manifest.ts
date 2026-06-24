@@ -63,7 +63,7 @@ export const amazonMarketplaceProviderManifest = defineProviderPackage({
     {
       id: "amazon-aws-role-region",
       label: "Amazon SP-API AWS role and region",
-      description: "Optional IAM role/region and SigV4 material for SDK users who operate through legacy or gateway signing paths.",
+      description: "Optional IAM role/region and SigV4 material for SDK users who operate through signed gateway paths.",
       required: false,
     },
     {
@@ -172,7 +172,7 @@ export const amazonMarketplaceProviderManifest = defineProviderPackage({
     {
       capability: "marketplace.sigv4",
       label: "Sign Amazon SP-API requests",
-      description: "Optionally signs SP-API REST requests with AWS SigV4 for SDK users that still operate signed gateways or legacy authorization paths.",
+      description: "Optionally signs SP-API REST requests with AWS SigV4 for SDK users that operate signed gateways or explicit authorization paths.",
       audiences: ["internal-support"],
       providerObjects: [{ kind: "amazonSignedRequest", label: "Amazon Signed Request" }],
       requiresCredential: true,

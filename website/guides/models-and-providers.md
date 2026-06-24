@@ -4,7 +4,7 @@ This guide covers configuring text/chat Model Providers for your Cognidesk agent
 
 For external support systems such as email, ticketing, messaging, social, workplace, and contact-center platforms, use [Provider Integrations](provider-packages.md). Model adapters decide how Cognidesk calls language models. Provider Integrations decide how Cognidesk reaches external support surfaces.
 
-Voice speech providers such as ElevenLabs, Azure Speech, AWS Speech, Google Cloud Speech, and Deepgram are also separate from text/chat Model Providers: they perform STT/TTS, while the Cognidesk Agent Model Set remains the background LLM.
+Voice speech provider packages such as `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-azure-speech`, `@cognidesk/integration-voice-aws-speech`, `@cognidesk/integration-voice-google-speech`, and `@cognidesk/integration-voice-deepgram` are also separate from text/chat Model Providers: they perform STT/TTS, while the Cognidesk Agent Model Set remains the background LLM.
 
 ## Model configuration
 

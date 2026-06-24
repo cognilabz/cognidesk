@@ -200,7 +200,6 @@ export class DiscordGatewayService {
       const result = await this.options.runtime.handleChannelEvent({
         event: {
           id: `discord:${message.id}`,
-          kind: "message",
           nature: "message",
           direction: "inbound",
           intent: "customer-message",

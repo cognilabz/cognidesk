@@ -7,7 +7,7 @@ export const niceCxoneSupportSlice = {
   allowedOperations: [
   {
     id: "scheduleACallback",
-    alias: "contactCenter.callback.schedule",
+    alias: "contact-center.callback.schedule",
     method: "POST",
     path: "/promise",
     source: "https://developer.niceincontact.com/content/apis/patron/patron-callback-api-docs",
@@ -15,7 +15,7 @@ export const niceCxoneSupportSlice = {
   },
   {
     id: "startChatSession",
-    alias: "contactCenter.contact.start",
+    alias: "contact-center.contact.start",
     method: "POST",
     path: "/contacts/chats",
     source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
@@ -23,7 +23,7 @@ export const niceCxoneSupportSlice = {
   },
   {
     id: "endChat",
-    alias: "contactCenter.contact.end",
+    alias: "contact-center.contact.end",
     method: "DELETE",
     path: "/contacts/chats/{chatSession}",
     source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
@@ -33,11 +33,11 @@ export const niceCxoneSupportSlice = {
 } as const;
 
 export const niceCxoneProviderManifestInput = {
-  id: "contactCenter.nice-cxone",
+  id: "contact-center.nice-cxone",
   name: "NICE CXone",
   packageName: "@cognidesk/integration-contact-center-nice-cxone",
   provider: "nice-cxone",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -62,10 +62,10 @@ export const niceCxoneProviderManifestInput = {
     { capability: "read-provider-object", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: false, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
-    { alias: "contactCenter.callback.schedule", capability: "schedule", providerObject: "callback" },
-    { alias: "contactCenter.contact.start", capability: "send", providerObject: "contact" },
-    { alias: "contactCenter.contact.end", capability: "update-provider-object", providerObject: "contact" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.callback.schedule", capability: "schedule", providerObject: "callback" },
+    { alias: "contact-center.contact.start", capability: "send", providerObject: "contact" },
+    { alias: "contact-center.contact.end", capability: "update-provider-object", providerObject: "contact" },
     { alias: "nice-cxone.request", capability: "read-provider-object", providerObject: "contact", extension: true },
   ],
   metadata: {

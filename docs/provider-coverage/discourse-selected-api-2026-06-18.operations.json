@@ -1,0 +1,13 @@
+{
+  "artifactKind": "provider-coverage-operations",
+  "provider": "discourse",
+  "verifiedAt": "2026-06-18",
+  "scope": "selected-api",
+  "source": "Discourse API docs and webhook signature references recorded in integrations/community/forum/src/manifest.ts",
+  "operations": [
+    "topic/reply creation through posts",
+    "topic and post reads",
+    "search/latest/current-user reads",
+    "X-Discourse-Event-Signature webhook validation"
+  ]
+}

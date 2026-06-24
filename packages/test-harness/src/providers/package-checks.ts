@@ -36,7 +36,7 @@ function defaultPackageNameExpectation(manifest: ProviderManifest) {
   if (infrastructurePackage) return infrastructurePackage;
   if (integrationPackageCategories.has(manifest.category)) {
     const splitPackageName = `@cognidesk/integration-${packageSegment(manifest.category)}-${packageSegment(manifest.provider)}`;
-    return [splitPackageName, "@cognidesk/integrations"];
+    return splitPackageName;
   }
   const categoryPackageName = `@cognidesk/${packageSegment(manifest.category)}`;
   if (manifest.packageName === categoryPackageName) return categoryPackageName;
@@ -46,11 +46,11 @@ function defaultPackageNameExpectation(manifest: ProviderManifest) {
 const integrationPackageCategories = new Set([
   "cobrowsing",
   "community",
-  "contactCenter",
+  "contact-center",
   "ecommerce",
   "email",
   "form",
-  "helpCenter",
+  "help-center",
   "marketplace",
   "messaging",
   "review",

@@ -32,11 +32,13 @@ const findTicket = tool("findTicket", {
   }),
 });
 
-const agent = createAgent("support", {
+const agentBuilder = createAgent("support", {
   instructions: "You are a helpful support agent.",
-})
-  .tools.add(findTicket)
-  .compile();
+});
+
+agentBuilder.tools.add(findTicket);
+
+const agent = agentBuilder.compile();
 
 const runtime = createRuntime({
   storage: createSqliteStorage({ filename: "data.sqlite" }),
@@ -119,6 +121,14 @@ docker compose -f docker-compose.otel.yml up --build
 
 ```bash
 pnpm check
+```
+
+Build the documentation with the pinned MkDocs environment:
+
+```bash
+pnpm build
+pnpm docs:generate
+pnpm docs:build
 ```
 
 See [docs/releasing.md](docs/releasing.md) for SDK dev and stable release flow.

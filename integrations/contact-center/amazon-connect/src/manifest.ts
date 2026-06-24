@@ -4,7 +4,7 @@ import {
 } from "@cognidesk/integration-kit";
 
 export const amazonConnectContactCenterManifestInput = {
-  id: "contactCenter.amazon-connect",
+  id: "contact-center.amazon-connect",
   name: "Amazon Connect",
   packageName: "@cognidesk/integration-contact-center-amazon-connect",
   provider: "amazon-connect",
@@ -94,7 +94,7 @@ export const amazonConnectContactCenterManifestInput = {
   ],
   operations: [
     {
-      alias: "contactCenter.handoff.request",
+      alias: "contact-center.handoff.request",
       capability: "handoff",
       providerOperation: "StartTaskContact",
       providerObject: "contactTransfer",
@@ -103,16 +103,16 @@ export const amazonConnectContactCenterManifestInput = {
       changesWorkflow: true,
     },
     {
-      alias: "contactCenter.task.create",
+      alias: "contact-center.task.create",
       capability: "create-provider-object",
       providerOperation: "StartTaskContact",
-      providerObject: "contactCenterTask",
+      providerObject: "contact-center-task",
       sideEffect: true,
       exposesSensitiveData: true,
       changesWorkflow: true,
     },
     {
-      alias: "contactCenter.contact.start",
+      alias: "contact-center.contact.start",
       capability: "send",
       providerOperation: "StartChatContact",
       providerObject: "contact",
@@ -121,7 +121,7 @@ export const amazonConnectContactCenterManifestInput = {
       changesWorkflow: true,
     },
     {
-      alias: "contactCenter.transfer.request",
+      alias: "contact-center.transfer.request",
       capability: "transfer",
       providerOperation: "TransferContact",
       providerObject: "contactTransfer",
@@ -130,7 +130,7 @@ export const amazonConnectContactCenterManifestInput = {
       changesWorkflow: true,
     },
     {
-      alias: "contactCenter.transcript.read",
+      alias: "contact-center.transcript.read",
       capability: "read-provider-object",
       providerOperation: "GetTranscript",
       providerObject: "contactTranscript",

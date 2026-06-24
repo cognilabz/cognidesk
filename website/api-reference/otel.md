@@ -21,4 +21,4 @@ Native OpenTelemetry integration that instruments the runtime with spans, metric
 
 ## Full type reference
 
-Open the generated [`@cognidesk/otel` type reference](generated/otel/dist.md).
+Open the generated [`@cognidesk/otel` type reference](generated/packages/otel/dist.md).

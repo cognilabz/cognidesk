@@ -1,9 +1,9 @@
+import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import {
   clientFileSuffix,
+  integrationsDir,
   operationsFileSuffix,
-  packagesDir,
   schemaFileSuffix,
 } from "./harden-generated-client-types/constants.mjs";
 import { walk } from "./harden-generated-client-types/filesystem.mjs";
@@ -15,7 +15,12 @@ import {
   renderClientFile,
 } from "./harden-generated-client-types/surface-files.mjs";
 
-const files = await walk(path.join(packagesDir, "integrations", "src"));
+const generatedSurfaceRoots = [
+  integrationsDir,
+].filter((root) => existsSync(root));
+const files = (await Promise.all(generatedSurfaceRoots.map((root) => walk(root))))
+  .flat()
+  .sort((a, b) => a.localeCompare(b));
 const operationFiles = files
   .filter((file) => file.endsWith(operationsFileSuffix))
   .sort((a, b) => a.localeCompare(b));

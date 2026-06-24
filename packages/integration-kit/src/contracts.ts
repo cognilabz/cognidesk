@@ -62,13 +62,28 @@ export type ManifestOperationAlias<Manifest> =
 
 type HandlerAliases<Handlers> = Extract<keyof Handlers, string>;
 
-type MissingOperationHandlers<Manifest, Handlers> = {
-  [Alias in Exclude<ManifestOperationAlias<Manifest>, HandlerAliases<Handlers>>]: IntegrationOperationHandler;
-};
+type IsAny<T> = 0 extends (1 & T) ? true : false;
 
-type ExtraOperationHandlers<Manifest, Handlers> = {
-  [Alias in Exclude<HandlerAliases<Handlers>, ManifestOperationAlias<Manifest>>]: never;
-};
+type ExactManifestOperationAlias<Manifest> =
+  IsAny<Manifest> extends true
+    ? never
+    : string extends ManifestOperationAlias<Manifest>
+      ? never
+      : ManifestOperationAlias<Manifest>;
+
+type MissingOperationHandlers<Manifest, Handlers> =
+  [ExactManifestOperationAlias<Manifest>] extends [never]
+    ? {}
+    : {
+        [Alias in Exclude<ExactManifestOperationAlias<Manifest>, HandlerAliases<Handlers>>]: IntegrationOperationHandler;
+      };
+
+type ExtraOperationHandlers<Manifest, Handlers> =
+  [ExactManifestOperationAlias<Manifest>] extends [never]
+    ? {}
+    : {
+        [Alias in Exclude<HandlerAliases<Handlers>, ExactManifestOperationAlias<Manifest>>]: never;
+      };
 
 export type ExactIntegrationOperationHandlers<
   Manifest,
@@ -188,12 +203,13 @@ export function defineIntegration<
         ...(input.instrumentation ? { hooks: input.instrumentation } : {}),
         ...(context.metadata ? { metadata: context.metadata } : {}),
       });
+      const credentials = context.credentials !== undefined ? context.credentials : input.credentials;
       try {
         const result = await handler(operationInput, {
           providerPackageId: manifest.id,
           provider: manifest.provider,
           operationAlias: alias,
-          ...(input.credentials !== undefined ? { credentials: input.credentials } : {}),
+          ...(credentials !== undefined ? { credentials } : {}),
           ...(context.abortSignal ? { abortSignal: context.abortSignal } : {}),
           ...(context.metadata ? { metadata: context.metadata } : {}),
         });

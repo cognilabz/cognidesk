@@ -10,7 +10,7 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 |----------|----------------|---------|
 | Cobrowsing | 1 | `@cognidesk/integration-cobrowsing-cognidesk` |
 | Community | 1 | `@cognidesk/integration-community-forum` |
-| Contact Center | 9 | `@cognidesk/integration-contact-center-8x8`<br>`@cognidesk/integration-contact-center-aircall`<br>`@cognidesk/integration-contact-center-five9`<br>`@cognidesk/integration-contact-center-genesys-engage`<br>`@cognidesk/integration-contact-center-genesys-pureconnect`<br>`@cognidesk/integration-contact-center-nextiva`<br>`@cognidesk/integration-contact-center-nice-cxone`<br>`@cognidesk/integration-contact-center-talkdesk`<br>`@cognidesk/integration-contact-center-zoom` |
+| Contact Center | 12 | `@cognidesk/integration-contact-center-8x8`<br>`@cognidesk/integration-contact-center-aircall`<br>`@cognidesk/integration-contact-center-amazon-connect`<br>`@cognidesk/integration-contact-center-five9`<br>`@cognidesk/integration-contact-center-genesys-cloud`<br>`@cognidesk/integration-contact-center-genesys-engage`<br>`@cognidesk/integration-contact-center-genesys-pureconnect`<br>`@cognidesk/integration-contact-center-nextiva`<br>`@cognidesk/integration-contact-center-nice-cxone`<br>`@cognidesk/integration-contact-center-ringcentral`<br>`@cognidesk/integration-contact-center-talkdesk`<br>`@cognidesk/integration-contact-center-zoom` |
 | Ecommerce | 2 | `@cognidesk/integration-ecommerce-shopify`<br>`@cognidesk/integration-ecommerce-stripe` |
 | Email | 6 | `@cognidesk/integration-email-ses`<br>`@cognidesk/integration-email-gmail`<br>`@cognidesk/integration-email-imap`<br>`@cognidesk/integration-email-mailgun`<br>`@cognidesk/integration-email-outlook`<br>`@cognidesk/integration-email-postmark` |
 | Forms | 1 | `@cognidesk/integration-form-cognidesk` |
@@ -24,7 +24,6 @@ This catalog is generated from serialized metadata in `@cognidesk/integration-ca
 | Video | 2 | `@cognidesk/integration-video-whereby`<br>`@cognidesk/integration-video-zoom` |
 | Voice Provider APIs | 9 | `@cognidesk/integration-voice-aws-speech`<br>`@cognidesk/integration-voice-azure-speech`<br>`@cognidesk/integration-voice-deepgram`<br>`@cognidesk/integration-voice-elevenlabs`<br>`@cognidesk/integration-voice-sip`<br>`@cognidesk/integration-voice-google-speech`<br>`@cognidesk/integration-voice-openai`<br>`@cognidesk/integration-voice-twilio`<br>`@cognidesk/integration-voice-vonage` |
 | Workplace | 2 | `@cognidesk/integration-workplace-teams`<br>`@cognidesk/integration-workplace-slack` |
-| Contact Center | 3 | `@cognidesk/integration-contact-center-amazon-connect`<br>`@cognidesk/integration-contact-center-genesys-cloud`<br>`@cognidesk/integration-contact-center-ringcentral` |
 
 ## Provider Modules
 
@@ -88,13 +87,13 @@ Evidence: [Discourse API docs](https://docs.discourse.org/); [Discourse webhook 
 | Manifest import | `@cognidesk/integration-contact-center-8x8/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-8x8/runtime` |
 | Workspace | `integrations/contact-center/8x8` |
-| Manifest ID | `contactCenter.8x8` |
+| Manifest ID | `contact-center.8x8` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
 | Documentation | [https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json](https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `update-provider-object`, `update-provider-object` |
+| Capabilities | `handoff`, `send`, `update-provider-object` |
 | Provider setup | required `8x8-contact-center-api-base`, `8x8-contact-center-api-access`; optional `8x8-contact-center-routing` |
 
 Coverage: No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.
@@ -109,7 +108,7 @@ Evidence: [8x8 Contact Center Call API OpenAPI](https://raw.githubusercontent.co
 | Manifest import | `@cognidesk/integration-contact-center-aircall/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-aircall/runtime` |
 | Workspace | `integrations/contact-center/aircall` |
-| Manifest ID | `contactCenter.aircall` |
+| Manifest ID | `contact-center.aircall` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -122,6 +121,29 @@ Coverage: aircall-everywhere is a maintained Workspace iframe SDK, not a server-
 
 Evidence: [Aircall API References](https://developer.aircall.io/api-references/); [Aircall Everywhere SDK](https://github.com/aircall/aircall-everywhere).
 
+#### Amazon Connect
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-amazon-connect` |
+| Manifest import | `@cognidesk/integration-contact-center-amazon-connect/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-amazon-connect/runtime` |
+| Workspace | `integrations/contact-center/amazon-connect` |
+| Manifest ID | `contact-center.amazon-connect` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/aws/aws-sdk-js-v3](https://github.com/aws/aws-sdk-js-v3) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `send`, `transfer`, `read-provider-object` |
+| Provider setup | required `amazon-connect-instance`, `amazon-connect-api-access` |
+
+Coverage: Runtime uses AWS SDK v3 clients for normalized Amazon Connect support workflows.
+
+Boundary: Contact flows, queue/quick-connect routing, outbound consent, IAM policy, participant token custody, and WebSocket subscription behavior remain application/AWS configuration.
+
+Evidence: [AWS SDK for JavaScript v3](https://github.com/aws/aws-sdk-js-v3); [Amazon Connect API Reference](https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html); [Amazon Connect Participant Service](https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Participant_Service.html).
+
 #### Five9
 
 | Field | Value |
@@ -130,7 +152,7 @@ Evidence: [Aircall API References](https://developer.aircall.io/api-references/)
 | Manifest import | `@cognidesk/integration-contact-center-five9/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-five9/runtime` |
 | Workspace | `integrations/contact-center/five9` |
-| Manifest ID | `contactCenter.five9` |
+| Manifest ID | `contact-center.five9` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -143,6 +165,29 @@ Coverage: No viable official server-side JavaScript SDK was verified; npm five9 
 
 Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/capabilities/call-center-apis-and-sdks); [Five9 development program](https://www.five9.com/development).
 
+#### Genesys Cloud CX
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-genesys-cloud` |
+| Manifest import | `@cognidesk/integration-contact-center-genesys-cloud/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-genesys-cloud/runtime` |
+| Workspace | `integrations/contact-center/genesys-cloud` |
+| Manifest ID | `contact-center.genesys-cloud` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/MyPureCloud/platform-client-sdk-javascript](https://github.com/MyPureCloud/platform-client-sdk-javascript) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `contact-center.open-messaging-ingress`, `schedule`, `read-provider-object` |
+| Provider setup | required `genesys-cloud-region`, `genesys-cloud-api-access`; optional `genesys-cloud-open-messaging`, `genesys-cloud-routing` |
+
+Coverage: Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.
+
+Boundary: Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.
+
+Evidence: [Genesys Cloud JavaScript SDK](https://github.com/MyPureCloud/platform-client-sdk-javascript); [Genesys Cloud Developer Center](https://developer.genesys.cloud/); [Genesys Cloud Open Messaging](https://help.genesys.cloud/articles/configure-an-open-messaging-integration/).
+
 #### Genesys Engage / GMS
 
 | Field | Value |
@@ -151,13 +196,13 @@ Evidence: [Five9 Contact Center APIs and SDKs](https://www.five9.com/products/ca
 | Manifest import | `@cognidesk/integration-contact-center-genesys-engage/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-genesys-engage/runtime` |
 | Workspace | `integrations/contact-center/genesys-engage` |
-| Manifest ID | `contactCenter.genesys-engage` |
+| Manifest ID | `contact-center.genesys-engage` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
 | Documentation | [https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI](https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `schedule`, `send`, `send` |
+| Capabilities | `handoff`, `schedule`, `send` |
 | Provider setup | required `genesys-engage-gms-base-url`; optional `genesys-engage-auth`, `genesys-engage-routing` |
 
 Coverage: No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.
@@ -172,7 +217,7 @@ Evidence: [Genesys GMS Callback Services API](https://docs.genesys.com/Documenta
 | Manifest import | `@cognidesk/integration-contact-center-genesys-pureconnect/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-genesys-pureconnect/runtime` |
 | Workspace | `integrations/contact-center/genesys-pureconnect` |
-| Manifest ID | `contactCenter.genesys-pureconnect` |
+| Manifest ID | `contact-center.genesys-pureconnect` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -193,7 +238,7 @@ Evidence: [PureConnect ICWS connection](https://help.genesys.com/developer/cic/d
 | Manifest import | `@cognidesk/integration-contact-center-nextiva/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-nextiva/runtime` |
 | Workspace | `integrations/contact-center/nextiva` |
-| Manifest ID | `contactCenter.nextiva` |
+| Manifest ID | `contact-center.nextiva` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -214,7 +259,7 @@ Evidence: [Nextiva Contact Center REST APIs](https://www.nextiva.com/resources/l
 | Manifest import | `@cognidesk/integration-contact-center-nice-cxone/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-nice-cxone/runtime` |
 | Workspace | `integrations/contact-center/nice-cxone` |
-| Manifest ID | `contactCenter.nice-cxone` |
+| Manifest ID | `contact-center.nice-cxone` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -227,6 +272,29 @@ Coverage: Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus o
 
 Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE CXone Agent SDK](https://github.com/nice-devone/nice-cxone-agent-sdk).
 
+#### RingCentral RingCX
+
+| Field | Value |
+|-------|-------|
+| Package | `@cognidesk/integration-contact-center-ringcentral` |
+| Manifest import | `@cognidesk/integration-contact-center-ringcentral/manifest` |
+| Runtime import | `@cognidesk/integration-contact-center-ringcentral/runtime` |
+| Workspace | `integrations/contact-center/ringcentral` |
+| Manifest ID | `contact-center.ringcentral` |
+| Scope | `support-workflow-subset` |
+| Adapter coverage | `partial` |
+| Implementation | `official-sdk` |
+| Documentation | [https://github.com/ringcentral/ringcentral-js](https://github.com/ringcentral/ringcentral-js) |
+| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
+| Capabilities | `handoff`, `read-provider-object` |
+| Provider setup | required `ringcentral-api-base`, `ringcentral-api-access`; optional `ringcentral-ringcx-routing` |
+
+Coverage: Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.
+
+Boundary: RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.
+
+Evidence: [RingCentral JavaScript SDK](https://github.com/ringcentral/ringcentral-js); [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-api); [RingCX Digital APIs](https://developers.ringcentral.com/engage-digital-api).
+
 #### Talkdesk
 
 | Field | Value |
@@ -235,7 +303,7 @@ Evidence: [NICE CXone REST APIs](https://developer.niceincontact.com/API); [NICE
 | Manifest import | `@cognidesk/integration-contact-center-talkdesk/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-talkdesk/runtime` |
 | Workspace | `integrations/contact-center/talkdesk` |
-| Manifest ID | `contactCenter.talkdesk` |
+| Manifest ID | `contact-center.talkdesk` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
@@ -256,13 +324,13 @@ Evidence: [Talkdesk public OpenAPI bundle](https://api-docs.talkdeskapp.com/publ
 | Manifest import | `@cognidesk/integration-contact-center-zoom/manifest` |
 | Runtime import | `@cognidesk/integration-contact-center-zoom/runtime` |
 | Workspace | `integrations/contact-center/zoom` |
-| Manifest ID | `contactCenter.zoom` |
+| Manifest ID | `contact-center.zoom` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
 | Implementation | `support-workflow-adapter` |
 | Documentation | [https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json](https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json) |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `read-provider-object`, `read-provider-object` |
+| Capabilities | `handoff`, `send`, `read-provider-object` |
 | Provider setup | required `zoom-contact-center-account`, `zoom-contact-center-api-access`; optional `zoom-contact-center-routing` |
 
 Coverage: @zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.
@@ -471,7 +539,7 @@ Evidence: [Postmark Node.js library](https://github.com/ActiveCampaign/postmark.
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
-| Documentation | website/guides/provider-integrations-catalog.md#form-cognidesk |
+| Documentation | website/guides/provider-integrations-catalog.md#cognidesk-forms |
 | Directions | `receive-only`, `inbound-only` |
 | Capabilities | `receive`, `read-provider-object`, `form.webhook-signature` |
 | Provider setup | required `form-registry`; optional `form-webhook-secret` |
@@ -492,14 +560,14 @@ Evidence: No provider evidence listed in the manifest.
 | Manifest import | `@cognidesk/integration-help-center-cognidesk/manifest` |
 | Runtime import | `@cognidesk/integration-help-center-cognidesk/runtime` |
 | Workspace | `integrations/help-center/cognidesk` |
-| Manifest ID | `helpcenter.cognidesk` |
+| Manifest ID | `help-center.cognidesk` |
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
-| Documentation | website/guides/provider-integrations-catalog.md#helpcenter-cognidesk |
+| Documentation | website/guides/provider-integrations-catalog.md#cognidesk-help-center |
 | Directions | `receive-only`, `inbound-only` |
-| Capabilities | `read-provider-object`, `search-provider-object`, `receive`, `helpCenter.webhook-signature` |
-| Provider setup | required `helpcenter-source`; optional `helpcenter-webhook-secret` |
+| Capabilities | `read-provider-object`, `search-provider-object`, `receive`, `help-center.webhook-signature` |
+| Provider setup | required `help-center-source`; optional `help-center-webhook-secret` |
 
 Coverage: Coverage is limited to Cognidesk local or generic HTTP help-center source search/fetch/readiness plus Cognidesk HMAC webhook normalization.
 
@@ -520,7 +588,7 @@ Evidence: No provider evidence listed in the manifest.
 | Manifest ID | `marketplace.amazon` |
 | Scope | `support-workflow-subset` |
 | Adapter coverage | `partial` |
-| Implementation | `official-sdk` |
+| Implementation | `official-sdk-plus-support-slice` |
 | Documentation | [https://github.com/amzn/selling-partner-api-sdk](https://github.com/amzn/selling-partner-api-sdk) |
 | Directions | `receive-only`, `send-only`, `bidirectional` |
 | Capabilities | `receive`, `read-provider-object`, `search-provider-object`, `create-provider-object`, `delete-provider-object`, `send`, `marketplace.notification-signature`, `marketplace.sigv4` |
@@ -1274,7 +1342,7 @@ Evidence: [ElevenLabs JavaScript SDK package](https://www.npmjs.com/package/@ele
 | Scope | `local-protocol` |
 | Adapter coverage | `partial` |
 | Implementation | `local-protocol` |
-| Documentation | website/guides/provider-integrations-catalog.md#voice-sip |
+| Documentation | website/guides/provider-integrations-catalog.md#generic-sip-voice-connection |
 | Directions | `inbound-only`, `outbound-only`, `bidirectional` |
 | Capabilities | `receive`, `send`, `media`, `transfer`, `recording`, `transcription`, `sip.webhook-signature` |
 | Provider setup | required `sip-registrar`, `sip-domain`, `sip-auth`, `sip-tls`, `sip-srtp`, `sip-webhook-callback`; optional `sip-proxy` |
@@ -1426,74 +1494,3 @@ Coverage: Coverage is a Cognidesk support workflow adapter backed by Slack's off
 Boundary: Available Slack operations depend on the SDK user's app scopes, workspace policy, channel membership, Enterprise Grid policy, and user targets for ephemeral messages.
 
 Evidence: [Slack Web API package](https://www.npmjs.com/package/@slack/web-api); [Slack Web API methods](https://docs.slack.dev/reference/methods/); [Slack chat.postMessage](https://docs.slack.dev/reference/methods/chat.postMessage/); [Slack chat.update](https://docs.slack.dev/reference/methods/chat.update/); plus 6 more.
-
-### Contact Center
-
-#### Amazon Connect
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-amazon-connect` |
-| Manifest import | `@cognidesk/integration-contact-center-amazon-connect/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-amazon-connect/runtime` |
-| Workspace | `integrations/contact-center/amazon-connect` |
-| Manifest ID | `contactCenter.amazon-connect` |
-| Scope | `support-workflow-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `official-sdk` |
-| Documentation | [https://github.com/aws/aws-sdk-js-v3](https://github.com/aws/aws-sdk-js-v3) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `send`, `transfer`, `read-provider-object` |
-| Provider setup | required `amazon-connect-instance`, `amazon-connect-api-access` |
-
-Coverage: Runtime uses AWS SDK v3 clients for normalized Amazon Connect support workflows.
-
-Boundary: Contact flows, queue/quick-connect routing, outbound consent, IAM policy, participant token custody, and WebSocket subscription behavior remain application/AWS configuration.
-
-Evidence: [AWS SDK for JavaScript v3](https://github.com/aws/aws-sdk-js-v3); [Amazon Connect API Reference](https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html); [Amazon Connect Participant Service](https://docs.aws.amazon.com/connect/latest/APIReference/API_Operations_Amazon_Connect_Participant_Service.html).
-
-#### Genesys Cloud CX
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-genesys-cloud` |
-| Manifest import | `@cognidesk/integration-contact-center-genesys-cloud/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-genesys-cloud/runtime` |
-| Workspace | `integrations/contact-center/genesys-cloud` |
-| Manifest ID | `contactCenter.genesys-cloud` |
-| Scope | `support-workflow-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `official-sdk` |
-| Documentation | [https://github.com/MyPureCloud/platform-client-sdk-javascript](https://github.com/MyPureCloud/platform-client-sdk-javascript) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `contact-center.open-messaging-ingress`, `schedule`, `read-provider-object` |
-| Provider setup | required `genesys-cloud-region`, `genesys-cloud-api-access`; optional `genesys-cloud-open-messaging`, `genesys-cloud-routing` |
-
-Coverage: Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.
-
-Boundary: Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.
-
-Evidence: [Genesys Cloud JavaScript SDK](https://github.com/MyPureCloud/platform-client-sdk-javascript); [Genesys Cloud Developer Center](https://developer.genesys.cloud/); [Genesys Cloud Open Messaging](https://help.genesys.cloud/articles/configure-an-open-messaging-integration/).
-
-#### RingCentral RingCX
-
-| Field | Value |
-|-------|-------|
-| Package | `@cognidesk/integration-contact-center-ringcentral` |
-| Manifest import | `@cognidesk/integration-contact-center-ringcentral/manifest` |
-| Runtime import | `@cognidesk/integration-contact-center-ringcentral/runtime` |
-| Workspace | `integrations/contact-center/ringcentral` |
-| Manifest ID | `contactCenter.ringcentral` |
-| Scope | `support-workflow-subset` |
-| Adapter coverage | `partial` |
-| Implementation | `official-sdk` |
-| Documentation | [https://github.com/ringcentral/ringcentral-js](https://github.com/ringcentral/ringcentral-js) |
-| Directions | `inbound-only`, `outbound-only`, `bidirectional` |
-| Capabilities | `handoff`, `read-provider-object` |
-| Provider setup | required `ringcentral-api-base`, `ringcentral-api-access`; optional `ringcentral-ringcx-routing` |
-
-Coverage: Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.
-
-Boundary: RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.
-
-Evidence: [RingCentral JavaScript SDK](https://github.com/ringcentral/ringcentral-js); [RingCX Voice APIs](https://developers.ringcentral.com/engage-voice-api); [RingCX Digital APIs](https://developers.ringcentral.com/engage-digital-api).

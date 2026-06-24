@@ -93,9 +93,9 @@ export function createTalkdeskIntegration(options: TalkdeskClientOptions) {
   return defineIntegration({
     manifest: talkdeskProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
-      "contactCenter.callback.schedule": async (input: unknown) => client.scheduleCallback(input as TalkdeskOperationInput),
-      "contactCenter.task.create": async (input: unknown) => client.createTask(input as TalkdeskOperationInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.callback.schedule": async (input: unknown) => client.scheduleCallback(input as TalkdeskOperationInput),
+      "contact-center.task.create": async (input: unknown) => client.createTask(input as TalkdeskOperationInput),
     },
   });
 }

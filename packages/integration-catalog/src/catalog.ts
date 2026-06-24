@@ -1,4 +1,5 @@
 import { integrationCatalogEntries } from "./catalog.generated.js";
+import { normalizeIntegrationCatalogCategory } from "./categories.js";
 import type { IntegrationCatalogEntry, IntegrationProviderReference } from "./types.js";
 
 export const integrationCatalog = integrationCatalogEntries as readonly IntegrationCatalogEntry[];
@@ -14,16 +15,20 @@ export interface IntegrationCatalogQuery {
   strategies?: readonly string[];
 }
 
+export { normalizeIntegrationCatalogCategory } from "./categories.js";
+
 export const integrationProviderReferences = integrationCatalog.map((entry) => ({
   id: entry.id,
-  category: entry.category,
+  category: normalizeIntegrationCatalogCategory(entry.category),
   provider: entry.provider,
   importPath: entry.importPath,
   modulePath: entry.modulePath,
   manifestExport: entry.manifestExport,
 })) satisfies readonly IntegrationProviderReference[];
 
-export const integrationCatalogCategories = [...new Set(integrationCatalog.map((entry) => entry.category))].sort();
+export const integrationCatalogCategories = [
+  ...new Set(integrationCatalog.map((entry) => normalizeIntegrationCatalogCategory(entry.category))),
+].sort();
 
 const catalogById = new Map(integrationCatalog.map((entry) => [entry.id, entry]));
 
@@ -46,7 +51,12 @@ export function isIntegrationCatalogEntryAvailable(id: string): boolean {
 }
 
 function matchesCatalogQuery(entry: IntegrationCatalogEntry, query: IntegrationCatalogQuery) {
-  if (query.category && entry.category !== query.category) return false;
+  if (
+    query.category
+    && normalizeIntegrationCatalogCategory(entry.category) !== normalizeIntegrationCatalogCategory(query.category)
+  ) {
+    return false;
+  }
   if (query.provider && entry.provider !== query.provider) return false;
   if (query.packageName && entry.packageName !== query.packageName) return false;
   if (query.trustLevels?.length && !query.trustLevels.includes(entry.trustLevel)) return false;

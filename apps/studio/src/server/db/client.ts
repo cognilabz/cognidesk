@@ -12,7 +12,7 @@ if (env.databaseProvider === "sqlite" && sqliteFilename !== ":memory:") {
 }
 
 export const libsql = createClient({
-  url: env.databaseProvider === "sqlite" ? `file:${sqliteFilename}` : env.databaseUrl,
+  url: `file:${sqliteFilename}`,
 });
 
 export const db = drizzle(libsql, { schema });

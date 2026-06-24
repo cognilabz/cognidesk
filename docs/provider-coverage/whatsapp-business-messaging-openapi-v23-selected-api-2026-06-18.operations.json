@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-operations",
+  "provider": "whatsapp",
+  "verifiedAt": "2026-06-18",
+  "scope": "business-messaging-openapi-v23-selected-api",
+  "source": "WhatsApp Business Messaging metadata recorded in integrations/messaging/whatsapp/src/manifest.ts",
+  "operations": [
+    "selected Cloud API message send support",
+    "selected webhook parsing and signature validation",
+    "SDK-user-owned templates, consent, and messaging-window policy"
+  ]
+}

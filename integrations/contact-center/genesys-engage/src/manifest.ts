@@ -7,7 +7,7 @@ export const genesysEngageSupportSlice = {
   allowedOperations: [
   {
     id: "createCallback",
-    alias: "contactCenter.callback.schedule",
+    alias: "contact-center.callback.schedule",
     method: "POST",
     path: "/genesys/1/service/callback/{serviceName}",
     source: "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI",
@@ -15,7 +15,7 @@ export const genesysEngageSupportSlice = {
   },
   {
     id: "requestChat",
-    alias: "contactCenter.contact.start",
+    alias: "contact-center.contact.start",
     method: "POST",
     path: "/genesys/2/chat/{serviceName}",
     source: "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
@@ -33,11 +33,11 @@ export const genesysEngageSupportSlice = {
 } as const;
 
 export const genesysEngageProviderManifestInput = {
-  id: "contactCenter.genesys-engage",
+  id: "contact-center.genesys-engage",
   name: "Genesys Engage / GMS",
   packageName: "@cognidesk/integration-contact-center-genesys-engage",
   provider: "genesys-engage",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -58,12 +58,11 @@ export const genesysEngageProviderManifestInput = {
     { capability: "handoff", providerObjects: [{ kind: "contactTransfer", label: "contactTransfer" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
     { capability: "schedule", providerObjects: [{ kind: "callback", label: "callback" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
     { capability: "send", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
-    { capability: "send", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
-    { alias: "contactCenter.callback.schedule", capability: "schedule", providerObject: "callback" },
-    { alias: "contactCenter.contact.start", capability: "send", providerObject: "contact" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.callback.schedule", capability: "schedule", providerObject: "callback" },
+    { alias: "contact-center.contact.start", capability: "send", providerObject: "contact" },
     { alias: "genesys-engage.chat.send", capability: "send", providerObject: "contact", extension: true },
   ],
   metadata: {

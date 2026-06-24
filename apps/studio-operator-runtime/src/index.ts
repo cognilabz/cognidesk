@@ -1,5 +1,6 @@
 import { WebSocketServer } from "ws";
 import { handleCodexNotification } from "./runtime/notifications.js";
+import { claimsFromTrustedStudioHeaders } from "./runtime/auth.js";
 import { codex, handleClientMessage } from "./runtime/sessions.js";
 import { send } from "./runtime/transport.js";
 import type { StudioClaims } from "./runtime/types.js";
@@ -11,12 +12,19 @@ const wss = new WebSocketServer({ host, port, path: "/ws" });
 codex.onNotification(handleCodexNotification);
 
 wss.on("connection", (socket, request) => {
-  const sessionToken = request.headers["x-studio-session-token"]?.toString();
-  const claims: StudioClaims = {
-    userId: request.headers["x-studio-user-id"]?.toString() ?? "unknown",
-    role: request.headers["x-studio-user-role"]?.toString() ?? "viewer",
-    ...(sessionToken ? { sessionToken } : {}),
-  };
+  let claims: StudioClaims;
+  try {
+    claims = claimsFromTrustedStudioHeaders(request.headers);
+  } catch (error) {
+    console.warn(`Rejected Studio Operator Runtime WebSocket: ${error instanceof Error ? error.message : String(error)}`);
+    send(socket, {
+      type: "error",
+      message: "Studio Operator Runtime WebSocket authentication failed",
+    });
+    socket.close(1008, "Unauthorized");
+    return;
+  }
+
   send(socket, {
     type: "activity",
     message: "Studio Operator Runtime connected.",

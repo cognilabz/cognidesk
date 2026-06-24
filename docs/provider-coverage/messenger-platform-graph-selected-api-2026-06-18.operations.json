@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-operations",
+  "provider": "messenger",
+  "verifiedAt": "2026-06-18",
+  "scope": "selected-api",
+  "source": "Messenger Platform Graph metadata recorded in integrations/social/messenger/src/manifest.ts",
+  "operations": [
+    "selected page webhook parsing",
+    "selected message send/readiness metadata",
+    "SDK-user-owned app subscriptions and messaging-window policy"
+  ]
+}

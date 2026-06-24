@@ -22,4 +22,4 @@ The adapter implements a structured JSON protocol over WebSocket:
 
 ## Full type reference
 
-Open the generated [`@cognidesk/voice-websocket` type reference](generated/voice-websocket/dist.md).
+Open the generated [`@cognidesk/voice-websocket` type reference](generated/packages/voice-websocket/dist.md).

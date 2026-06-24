@@ -54,6 +54,7 @@ export async function parseSlackSignedRequest(
 }
 
 export function validateSlackRequestSignature(input: ValidateSlackRequestSignatureInput) {
+  if (!input.signingSecret) throw new Error("Slack signing secret is required to validate request signatures.");
   const timestamp = typeof input.timestamp === "number" ? input.timestamp : Number(input.timestamp);
   if (!Number.isFinite(timestamp)) return false;
   const toleranceSeconds = input.timestampToleranceSeconds ?? 300;

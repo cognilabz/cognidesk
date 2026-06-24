@@ -7,7 +7,7 @@ export const talkdeskSupportSlice = {
   allowedOperations: [
   {
     id: "calls-callback-post",
-    alias: "contactCenter.callback.schedule",
+    alias: "contact-center.callback.schedule",
     method: "POST",
     path: "/calls/callback",
     source: "https://api-docs.talkdeskapp.com/public-api",
@@ -15,7 +15,7 @@ export const talkdeskSupportSlice = {
   },
   {
     id: "CreatingACase",
-    alias: "contactCenter.task.create",
+    alias: "contact-center.task.create",
     method: "POST",
     path: "/cm/core/va/cases",
     source: "https://api-docs.talkdeskapp.com/public-api",
@@ -25,11 +25,11 @@ export const talkdeskSupportSlice = {
 } as const;
 
 export const talkdeskProviderManifestInput = {
-  id: "contactCenter.talkdesk",
+  id: "contact-center.talkdesk",
   name: "Talkdesk",
   packageName: "@cognidesk/integration-contact-center-talkdesk",
   provider: "talkdesk",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -49,12 +49,12 @@ export const talkdeskProviderManifestInput = {
   capabilities: [
     { capability: "handoff", providerObjects: [{ kind: "contactTransfer", label: "contactTransfer" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
     { capability: "schedule", providerObjects: [{ kind: "callback", label: "callback" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
-    { capability: "create-provider-object", providerObjects: [{ kind: "contactCenterTask", label: "contactCenterTask" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
+    { capability: "create-provider-object", providerObjects: [{ kind: "contact-center-task", label: "Contact Center Task" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
-    { alias: "contactCenter.callback.schedule", capability: "schedule", providerObject: "callback" },
-    { alias: "contactCenter.task.create", capability: "create-provider-object", providerObject: "contactCenterTask" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.callback.schedule", capability: "schedule", providerObject: "callback" },
+    { alias: "contact-center.task.create", capability: "create-provider-object", providerObject: "contact-center-task" },
   ],
   metadata: {
     implementation: talkdeskSupportSlice,

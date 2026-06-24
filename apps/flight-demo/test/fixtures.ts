@@ -107,6 +107,16 @@ export async function createTestKnowledgeIndex(models: AgentModelSet) {
 function createTestMatcher(messages: ModelMessage[]) {
   const prompt = messages.map((message) => message.content).join("\n").toLowerCase();
   const latestUser = extractLatestUserMessage(prompt);
+  if (prompt.includes("explicitly confirms the pending side-effect action")) {
+    const latestUtterance = extractLatestUtterance(prompt) || latestUser;
+    const confirmed = isExplicitBookingConfirmation(latestUtterance);
+    const structured = {
+      confirmed,
+      confidence: confirmed ? 0.95 : 0.2,
+      reason: confirmed ? "Clear voice confirmation." : "No explicit voice confirmation.",
+    };
+    return { text: JSON.stringify(structured), structured };
+  }
   if (prompt.includes("state transition candidates")) {
     const candidates = [];
     const mentionsAvailableFlights = prompt.includes("availableflights");
@@ -185,7 +195,7 @@ function createTestMatcher(messages: ModelMessage[]) {
           || latestUser.includes("tomorrow")
           || latestUser.includes("cheaper")
           || latestUser.includes("cheapest")
-          || latestUser.includes("book that")
+          || isBookingConfirmationIntent(latestUser)
           || /\bcl\d{3}\b/i.test(latestUser)
         )
       )
@@ -330,6 +340,40 @@ function extractLatestUserMessage(prompt: string) {
   const jsonValue = prompt.match(/"latestusermessage"\s*:\s*"([^"]*)"/)?.[1];
   if (jsonValue) return jsonValue.replace(/\\"/g, "\"");
   return prompt.match(/latest user message:\s*([^\n]+)/)?.[1] ?? prompt;
+}
+
+function extractLatestUtterance(prompt: string) {
+  return prompt.match(/"latestutterance"\s*:\s*"([^"]*)"/)?.[1]?.replace(/\\"/g, "\"") ?? "";
+}
+
+const confirmationPhrases = [
+  "yes please",
+  "go ahead",
+  "book it",
+  "book that",
+  "create the mocked booking",
+  "confirm",
+  "create",
+  "proceed",
+  "yes",
+];
+
+export function isExplicitBookingConfirmation(utterance: string) {
+  return isBookingConfirmationIntent(utterance);
+}
+
+export function isBookingConfirmationIntent(utterance: string) {
+  const normalized = utterance.toLowerCase();
+  if (/\b(no|not|never|cancel|stop|don't|dont|do not)\b/.test(normalized)) return false;
+  return confirmationPhrases.some((phrase) => phrasePattern(phrase).test(normalized));
+}
+
+function phrasePattern(phrase: string) {
+  return new RegExp(`\\b${escapeRegExp(phrase).replace(/\\s+/g, "\\s+")}\\b`);
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function cheapestFlightIdFromContext(contextJson: string) {

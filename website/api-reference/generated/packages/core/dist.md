@@ -3842,12 +3842,6 @@ optional identity?: ChannelEventIdentity;
 optional intent?: ChannelEventIntent;
 ```
 
-##### kind
-
-```ts
-kind: ChannelEventNature;
-```
-
 ##### metadata?
 
 ```ts
@@ -3927,22 +3921,16 @@ optional identity?: ChannelEventIdentity;
 optional intent?: ChannelEventIntent;
 ```
 
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
 ##### metadata?
 
 ```ts
 optional metadata?: Record<string, unknown>;
 ```
 
-##### nature?
+##### nature
 
 ```ts
-optional nature?: ChannelEventNature;
+nature: ChannelEventNature;
 ```
 
 ##### occurredAt?
@@ -19672,14 +19660,6 @@ type ChannelEventIntent = Extensible<CoreChannelEventIntent>;
 
 ***
 
-### ChannelEventKind
-
-```ts
-type ChannelEventKind = ChannelEventNature;
-```
-
-***
-
 ### ChannelEventNature
 
 ```ts
@@ -19943,14 +19923,6 @@ type CoreChannelEventDirection = ChannelEventDirection;
 
 ```ts
 type CoreChannelEventIntent = typeof coreChannelEventIntents[number];
-```
-
-***
-
-### CoreChannelEventKind
-
-```ts
-type CoreChannelEventKind = CoreChannelEventNature;
 ```
 
 ***
@@ -20484,8 +20456,8 @@ type RuntimeEvent =
   handlingDisposition: ChannelEventHandlingDisposition;
   identity?: ChannelEventIdentity;
   intent?: ChannelEventIntent;
-  kind: ChannelEventKind;
   metadata?: Record<string, unknown>;
+  nature: ChannelEventNature;
   occurredAt?: string;
   payload?: unknown;
   source?: ChannelSourceEvidence;
@@ -21764,7 +21736,6 @@ const ChannelEventEnvelopeInputSchema: z.ZodObject<{
      streamId: z.ZodOptional<z.ZodString>;
   }, z.core.$strip>>;
   intent: z.ZodOptional<z.ZodString>;
-  kind: z.ZodOptional<z.ZodString>;
   metadata: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
   nature: z.ZodOptional<z.ZodString>;
   occurredAt: z.ZodOptional<z.ZodString>;
@@ -22466,14 +22437,6 @@ const coreChannelEventIntents: readonly ["customer-message", "agent-message", "c
 
 ***
 
-### coreChannelEventKinds
-
-```ts
-const coreChannelEventKinds: readonly ["message", "voice.session.started", "voice.turn.finalized", "provider.object.updated", "operator.resume", "outbound.contact.requested", "channel.handoff.requested", "schedule.due", "output.resolution", "delivery.updated", "custom"];
-```
-
-***
-
 ### coreChannelEventNatures
 
 ```ts
@@ -22493,7 +22456,7 @@ const coreChannelOutputIntentKinds: readonly ["message.reply", "message.draft", 
 ### coreConversationChannels
 
 ```ts
-const coreConversationChannels: readonly ["chat", "voice", "email", "ticketing", "contactCenter", "messaging", "sms", "workplace", "social", "form", "helpCenter", "community", "ecommerce", "marketplace", "review", "video", "cobrowsing", "rcs"];
+const coreConversationChannels: readonly ["chat", "voice", "email", "ticketing", "contact-center", "messaging", "sms", "workplace", "social", "form", "help-center", "community", "ecommerce", "marketplace", "review", "video", "cobrowsing", "rcs"];
 ```
 
 ***
@@ -22501,7 +22464,7 @@ const coreConversationChannels: readonly ["chat", "voice", "email", "ticketing",
 ### coreProviderCategories
 
 ```ts
-const coreProviderCategories: readonly ["model", "storage", "chat", "voice", "email", "ticketing", "contactCenter", "handoff", "studio", "messaging", "sms", "workplace", "social", "form", "helpCenter", "community", "ecommerce", "marketplace", "review", "video", "cobrowsing", "rcs"];
+const coreProviderCategories: readonly ["model", "storage", "chat", "voice", "email", "ticketing", "contact-center", "handoff", "studio", "messaging", "sms", "workplace", "social", "form", "help-center", "community", "ecommerce", "marketplace", "review", "video", "cobrowsing", "rcs"];
 ```
 
 ***

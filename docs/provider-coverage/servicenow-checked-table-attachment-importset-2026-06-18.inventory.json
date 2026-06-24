@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-inventory",
+  "provider": "servicenow",
+  "verifiedAt": "2026-06-18",
+  "scope": "checked-table-attachment-importset",
+  "source": "ServiceNow table, attachment, and import-set metadata recorded in integrations/ticketing/servicenow/src/manifest.ts",
+  "inventory": [
+    "selected incident/case table support",
+    "selected attachment support",
+    "selected import-set readiness metadata"
+  ]
+}

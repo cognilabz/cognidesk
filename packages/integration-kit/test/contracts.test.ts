@@ -38,7 +38,7 @@ describe("integration kit contracts", () => {
     expect(ecommerceOperationAliasMap["ecommerce.order.read"]).toBe("ecommerce.order.read");
     expect(smsOperationAliasMap["sms.message.send"]).toBe("sms.message.send");
     expect(voiceOperationAliasMap["voice.call.start"]).toBe("voice.call.start");
-    expect(contactCenterOperationAliasMap["contactCenter.transfer.request"]).toBe("contactCenter.transfer.request");
+    expect(contactCenterOperationAliasMap["contact-center.transfer.request"]).toBe("contact-center.transfer.request");
 
     expectTypeOf(emailOperationAliasMap["email.receive"]).toEqualTypeOf<"email.receive">();
     expectTypeOf(ecommerceOperationAliasMap["ecommerce.refund.create"]).toEqualTypeOf<"ecommerce.refund.create">();
@@ -51,8 +51,8 @@ describe("integration kit contracts", () => {
       "voice",
       "contact-center",
     ]));
-    expect(getIntegrationCategoryProfile("contactCenter")?.id).toBe("contact-center");
-    expect(getIntegrationCategoryProfile("contact-center")?.category).toBe("contactCenter");
+    expect(getIntegrationCategoryProfile("contact_center")).toBeUndefined();
+    expect(getIntegrationCategoryProfile("contact-center")?.category).toBe("contact-center");
   });
 
   it("binds manifest operation declarations to executable handlers", async () => {
@@ -89,6 +89,42 @@ describe("integration kit contracts", () => {
     expect(integration.manifest.metadata?.categoryProfile).toMatchObject({
       id: "email",
       matchedOperations: ["email.receive"],
+    });
+  });
+
+  it("passes per-run credentials to operation handlers", async () => {
+    const integration = defineIntegration({
+      manifest: {
+        id: "email.credentials",
+        name: "Credentials Mail",
+        packageName: "@cognidesk/integration-email-credentials",
+        provider: "credentials",
+        category: "email",
+        directions: ["outbound-only"],
+        capabilities: [
+          { capability: "send" },
+        ],
+        operations: [
+          {
+            alias: "email.send",
+            capability: "send",
+            providerObject: "emailMessage",
+          },
+        ],
+      },
+      credentials: { token: "default-token" },
+      operations: {
+        "email.send": async (_input: unknown, context: { credentials?: { token: string } }) => ({
+          token: context.credentials?.token,
+        }),
+      },
+    });
+
+    await expect(integration.run("email.send", {}, { credentials: { token: "run-token" } })).resolves.toEqual({
+      token: "run-token",
+    });
+    await expect(integration.run("email.send", {})).resolves.toEqual({
+      token: "default-token",
     });
   });
 

@@ -1,0 +1,8 @@
+{
+  "artifactKind": "provider-coverage-functions",
+  "provider": "whereby",
+  "verifiedAt": "2026-06-18",
+  "scope": "whereby-rest-generated-support-slice",
+  "source": "Generated Whereby REST client metadata in integrations/video/whereby/src/full-api-client.generated.ts",
+  "generatedFunctionCount": 21
+}

@@ -83,7 +83,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
   async handleChannelEvent(input: HandleChannelEventInput): Promise<HandleChannelEventResult> {
     const channelEvent = defineChannelEvent(input.event);
     const text = eventPayloadText(input.event.payload);
-    if (channelEvent.kind !== "message" || !input.conversationId || !text) {
+    if (channelEvent.nature !== "message" || !input.conversationId || !text) {
       return {
         channelEvent,
         intake: {

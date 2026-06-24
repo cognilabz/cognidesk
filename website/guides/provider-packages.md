@@ -4,11 +4,11 @@ Provider Integrations connect Cognidesk conversations to external systems withou
 
 Official external providers ship as individual packages named `@cognidesk/integration-{category}-{provider}`. Install only the providers your application enables, such as `@cognidesk/integration-email-gmail`, `@cognidesk/integration-workplace-slack`, `@cognidesk/integration-email-outlook`, `@cognidesk/integration-workplace-teams`, or `@cognidesk/integration-voice-openai`.
 
-The split package work is staged behind #28, first-wave package issues #23-#25, and provider-family trackers #29-#43. Until the new provider workspaces land under `integrations/{category}/{provider}`, generated docs may still be derived from legacy manifests, but public installation guidance should point at the individual packages rather than `@cognidesk/integrations`.
+Provider workspaces live under `integrations/{category}/{provider}` and publish as individual provider packages.
 
 Use this guide when you decide which Provider Integration belongs in a channel, which capabilities to enable, and which provider setup must still be supplied by your application.
 
-For the full provider-by-provider list, see the [Provider Integration Catalog](provider-integrations-catalog.md). For old-import migration and codemod rules, see [Provider Package Migration](provider-package-migration.md). For the broader NG architecture changes, see [Omnichannel NG Changes](omnichannel-changes.md).
+For the full provider-by-provider list, see the [Provider Integration Catalog](provider-integrations-catalog.md). For the broader NG architecture changes, see [Omnichannel NG Changes](omnichannel-changes.md).
 
 ## Install provider packages
 
@@ -49,7 +49,7 @@ export const providerRegistry = createProviderRegistry([
 
 ## Supply lazy loaders
 
-Keep provider SDK runtime code behind application-owned lazy loaders. This lets manifest and catalog imports stay cheap, keeps optional provider SDK dependencies isolated to the provider that needs them, and avoids re-creating a generated monolith through a central barrel import.
+Keep provider SDK runtime code behind application-owned lazy loaders. This lets manifest and catalog imports stay cheap and keeps optional provider SDK dependencies isolated to the provider that needs them.
 
 ```typescript
 export const providerRuntimeLoaders = {
@@ -83,7 +83,7 @@ Cognidesk groups Provider Integrations by business category rather than a flat i
 
 Infrastructure packages stay separate: `@cognidesk/model`, `@cognidesk/storage`, `@cognidesk/http`, `@cognidesk/voice-websocket`, `@cognidesk/react`, `@cognidesk/ui`, and Studio packages are not Provider Integrations.
 
-`@cognidesk/integration-voice-openai` is the OpenAI Realtime voice entry-channel adapter. `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-azure-speech`, `@cognidesk/integration-voice-aws-speech`, `@cognidesk/integration-voice-google-speech`, and `@cognidesk/integration-voice-deepgram` can also create Speech Provider-backed voice adapters where STT/TTS are provider-owned but the background LLM is the Cognidesk Agent Model Set. `@cognidesk/voice-websocket` remains voice runtime infrastructure. Other voice provider APIs such as Twilio Voice, Vonage, and SIP also live in individual `@cognidesk/integration-voice-*` provider packages.
+`@cognidesk/integration-voice-openai` is the OpenAI Realtime voice entry-channel adapter. `@cognidesk/integration-voice-elevenlabs`, `@cognidesk/integration-voice-azure-speech`, `@cognidesk/integration-voice-aws-speech`, `@cognidesk/integration-voice-google-speech`, and `@cognidesk/integration-voice-deepgram` create Speech Provider-backed voice adapters where STT/TTS are provider-owned but the background LLM is the Cognidesk Agent Model Set. Their runtime exports are `createElevenLabsVoiceProvider`, `createAzureSpeechVoiceProvider`, `createAwsSpeechVoiceProvider`, `createGoogleSpeechVoiceProvider`, and `createDeepgramVoiceProvider`. `@cognidesk/voice-websocket` remains voice runtime infrastructure. Other voice provider APIs such as Twilio Voice, Vonage, and SIP also live in individual `@cognidesk/integration-voice-*` provider packages.
 
 Provider modules may add provider-specific sub-capabilities when a core capability word would be too broad. For example, Genesys Cloud exposes an Open Messaging handoff capability separately from outbound callback creation, and Genesys Engage exposes on-prem chat handoff separately from GMS callback creation.
 
@@ -204,18 +204,14 @@ Studio operator changes should update SDK-backed configuration through reviewabl
 
 ## Generated provider code
 
-Generated provider API coverage is committed to the repo and published in package artifacts. It is not generated during `npm install`.
+Generated provider API coverage is committed to the owning provider package and published in package artifacts. It is not generated during `npm install`.
 
-Maintainers regenerate provider surfaces explicitly after checking the upstream provider docs/specs. Generated endpoint clients are split into smaller resource/tag chunks and reassembled by stable `*-client.generated.ts` compatibility files, so provider imports stay stable while generated functions remain reviewable. Shared generated schema DTO files may still be larger when provider component types are cross-cutting.
+Maintainers review provider specs or fixtures before changing generated slices. Provider metadata and public docs are regenerated from manifests:
 
-The maintainer workflow is:
-
-```bash
-pnpm providers:generate
-pnpm providers:check
-pnpm providers:architecture
-pnpm provider-packages:check
-```
+    pnpm providers:catalog:data
+    pnpm providers:catalog
+    pnpm providers:architecture
+    pnpm provider-packages:check
 
 ## Verification
 

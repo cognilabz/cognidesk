@@ -217,6 +217,9 @@ async function queryTraceData(query: StudioDashboardDataQuery) {
 
 async function adapterFetch(manifest: StudioTargetManifest, path: string, init: RequestInit = {}) {
   const env = studioEnv();
+  if (!env.targetServiceToken) {
+    throw new Error("COGNIDESK_STUDIO_TARGET_TOKEN is required for Studio target adapter calls outside local development.");
+  }
   const basePath = manifest.runtime.studioAdapterBasePath.replace(/\/+$/, "");
   const suffix = path.startsWith("/") ? path : `/${path}`;
   const headers = createStudioAdapterHeaders(manifest, env.targetServiceToken, init.headers);

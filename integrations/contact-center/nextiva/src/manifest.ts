@@ -7,7 +7,7 @@ export const nextivaSupportSlice = {
   allowedOperations: [
   {
     id: "configuredHandoff",
-    alias: "contactCenter.handoff.request",
+    alias: "contact-center.handoff.request",
     method: "POST",
     path: "host-configured",
     source: "host-configured",
@@ -17,11 +17,11 @@ export const nextivaSupportSlice = {
 } as const;
 
 export const nextivaProviderManifestInput = {
-  id: "contactCenter.nextiva",
+  id: "contact-center.nextiva",
   name: "Nextiva Contact Center",
   packageName: "@cognidesk/integration-contact-center-nextiva",
   provider: "nextiva",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -44,7 +44,7 @@ export const nextivaProviderManifestInput = {
     { capability: "read-provider-object", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: false, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
     { alias: "nextiva.request", capability: "read-provider-object", providerObject: "contact", extension: true },
   ],
   metadata: {

@@ -71,11 +71,11 @@ describe("@cognidesk/integration-contact-center-amazon-connect", () => {
     expect(amazonConnectContactCenterManifest.metadata?.categoryProfile).toMatchObject({
       id: "contact-center",
       matchedOperations: expect.arrayContaining([
-        "contactCenter.handoff.request",
-        "contactCenter.task.create",
-        "contactCenter.contact.start",
-        "contactCenter.transfer.request",
-        "contactCenter.transcript.read",
+        "contact-center.handoff.request",
+        "contact-center.task.create",
+        "contact-center.contact.start",
+        "contact-center.transfer.request",
+        "contact-center.transcript.read",
       ]),
     });
     expect(amazonConnectContactCenterManifest.capabilities.flatMap((capability) =>

@@ -37,7 +37,10 @@
   },
   "cognidesk": {
     "kind": "provider-package",
-    "providerPackage": true
+    "providerPackage": true,
+    "providerSdkDependencies": [
+      "@deepgram/sdk"
+    ]
   },
   "publishConfig": {
     "access": "public",

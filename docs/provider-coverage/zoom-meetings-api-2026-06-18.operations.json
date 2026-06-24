@@ -1,0 +1,9 @@
+{
+  "artifactKind": "provider-coverage-operations",
+  "provider": "zoom",
+  "verifiedAt": "2026-06-18",
+  "scope": "zoom-meetings-api-hub-generated-support-slice",
+  "source": "Generated Zoom Meetings operation metadata in integrations/video/zoom/src/meetings-api-operations.generated.ts",
+  "documentedOperationCount": 184,
+  "documentedPathCount": 129
+}

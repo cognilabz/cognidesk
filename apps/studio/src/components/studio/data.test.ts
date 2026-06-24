@@ -40,7 +40,7 @@ describe("studio configuration data rows", () => {
       providerPackages: [{
         id: "voice.twilio",
         name: "Twilio Voice",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/integration-voice-twilio",
         provider: "twilio",
         category: "voice",
         trustLevel: "official",
@@ -96,7 +96,7 @@ describe("studio configuration data rows", () => {
     expect(channelHandoffRows(configuration)[0]?.[4]).toBe("SDK-user configured");
     expect(providerPackageRows(configuration)[0]).toEqual([
       "Twilio Voice",
-      "@cognidesk/integrations",
+      "@cognidesk/integration-voice-twilio",
       "voice",
       "official",
       "support-workflow-subset",

@@ -87,7 +87,7 @@ export function createAircallIntegration(options: AircallClientOptions) {
   return defineIntegration({
     manifest: aircallProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
     },
   });
 }

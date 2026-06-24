@@ -92,6 +92,37 @@ describe("studio adapter", () => {
       expect(body.agent.handoffPolicy).toEqual({ destinations: ["priority-support"] });
     });
 
+  it("requires a service token unless unauthenticated local development is explicitly enabled", async () => {
+      const agent = createAgent("test-agent", {
+        instructions: "Test agent instructions",
+      }).compile();
+
+      expect(() => createCognideskStudioAdapter({
+        targetId: "test-target",
+        agent,
+        runtime: {
+          async listEvents() {
+            return [];
+          },
+        },
+      })).toThrow("requires serviceToken");
+
+      const adapter = createCognideskStudioAdapter({
+        targetId: "test-target",
+        agent,
+        allowUnauthenticated: true,
+        runtime: {
+          async listEvents() {
+            return [];
+          },
+        },
+      });
+
+      const response = await adapter.handle(new Request("http://local/api/studio/health"));
+
+      expect(response.status).toBe(200);
+    });
+
   it.each([
       { basePath: "api/studio", requestPath: "/api/studio/health" },
       { basePath: "/api/studio/", requestPath: "/api/studio/health" },
@@ -104,6 +135,7 @@ describe("studio adapter", () => {
         targetId: "test-target",
         agent,
         basePath,
+        allowUnauthenticated: true,
         runtime: {
           async listEvents() {
             return [];

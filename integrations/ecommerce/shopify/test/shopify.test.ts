@@ -121,6 +121,7 @@ describe("@cognidesk/integration-ecommerce-shopify", () => {
         },
       },
     });
+    if (!check) throw new Error("Shopify live check should be registered.");
     const controller = new AbortController();
     controller.abort();
 

@@ -31,11 +31,11 @@ export function parseStoredDatasets(rawJson: string, targetId: string, capturedA
   if (strict.success) return strict.data;
   if (!Array.isArray(parsed)) return StudioDashboardDatasetSchema.array().parse([]);
   return StudioDashboardDatasetSchema.array().parse(
-    parsed.map((dataset, index) => coerceLegacyDataset(dataset, index, targetId, capturedAt)),
+    parsed.map((dataset, index) => coerceStoredDataset(dataset, index, targetId, capturedAt)),
   );
 }
 
-function coerceLegacyDataset(raw: unknown, index: number, targetId: string, capturedAt: string): StudioDashboardDataset {
+function coerceStoredDataset(raw: unknown, index: number, targetId: string, capturedAt: string): StudioDashboardDataset {
   const record = isRecord(raw) ? raw : { data: raw };
   const title = stringValue(record.title) ?? stringValue(record.name) ?? `Dataset ${index + 1}`;
   const id = stringValue(record.id) ?? slugify(title);

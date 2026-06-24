@@ -17,14 +17,14 @@ test("discovers publishable packages and nested provider workspaces", async () =
     const allPackages = allWorkspacePackages(root).map((pkg) => pkg.name);
     assert.deepEqual(allPackages, [
       "@cognidesk/core",
-      "@cognidesk/email-gmail",
+      "@cognidesk/integration-email-gmail",
       "@cognidesk/react",
       "@cognidesk/test-app",
     ]);
 
     assert.deepEqual(packageWorkspaces(root).map((pkg) => pkg.name), [
       "@cognidesk/core",
-      "@cognidesk/email-gmail",
+      "@cognidesk/integration-email-gmail",
       "@cognidesk/react",
     ]);
     assert.deepEqual(platformPackageWorkspaces(root).map((pkg) => pkg.name), [
@@ -32,7 +32,7 @@ test("discovers publishable packages and nested provider workspaces", async () =
       "@cognidesk/react",
     ]);
     assert.deepEqual(providerPackageWorkspaces(root).map((pkg) => pkg.name), [
-      "@cognidesk/email-gmail",
+      "@cognidesk/integration-email-gmail",
     ]);
   });
 });
@@ -97,7 +97,7 @@ test("platform release train updates only platform package dependency links", as
     updatePackageTrain(platformPackages, "1.2.4");
 
     const react = platformPackages.find((pkg) => pkg.name === "@cognidesk/react");
-    const provider = providerPackages.find((pkg) => pkg.name === "@cognidesk/email-gmail");
+    const provider = providerPackages.find((pkg) => pkg.name === "@cognidesk/integration-email-gmail");
 
     assert.equal(react.packageJson.version, "1.2.4");
     assert.equal(react.packageJson.dependencies["@cognidesk/core"], "1.2.4");
@@ -123,7 +123,7 @@ async function withFixtureWorkspace(callback) {
       publishConfig: { access: "public" },
     });
     await writePackage(root, "integrations/email/gmail", {
-      name: "@cognidesk/email-gmail",
+      name: "@cognidesk/integration-email-gmail",
       version: "0.4.0",
       dependencies: {
         "@cognidesk/core": "workspace:*",

@@ -16,7 +16,7 @@ describe("provider manifest and registry contracts", () => {
       const manifest = defineProviderPackage({
         id: "voice.twilio",
         name: "Twilio Voice",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/integration-voice-twilio",
         provider: "twilio",
         category: "voice",
         trustLevel: "official",
@@ -41,7 +41,7 @@ describe("provider manifest and registry contracts", () => {
         }],
       });
 
-      expect(manifest.packageName).toBe("@cognidesk/integrations");
+      expect(manifest.packageName).toBe("@cognidesk/integration-voice-twilio");
       expect(manifest.capabilities.map((capability) => capability.capability)).toContain("transfer");
       expect(manifest.credentialRequirements[0]?.required).toBe(true);
     });
@@ -50,7 +50,7 @@ describe("provider manifest and registry contracts", () => {
       const manifest = defineProviderPackage({
         id: "ticketing.servicenow",
         name: "ServiceNow",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/integration-ticketing-servicenow",
         provider: "servicenow",
         category: "ticketing",
         trustLevel: "verified",
@@ -75,7 +75,7 @@ describe("provider manifest and registry contracts", () => {
       const manifest = defineProviderPackage({
         id: "workplace.slack",
         name: "Slack",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/integration-workplace-slack",
         provider: "slack",
         category: "workplace",
         directions: ["send-only"],
@@ -213,7 +213,7 @@ describe("provider manifest and registry contracts", () => {
         {
           id: "email.gmail",
           name: "Gmail",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-email-gmail",
           provider: "gmail",
           category: "email",
           trustLevel: "official",
@@ -224,7 +224,7 @@ describe("provider manifest and registry contracts", () => {
         {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",

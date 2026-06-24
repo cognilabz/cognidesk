@@ -106,9 +106,9 @@ export function createZoomContactCenterIntegration(options: ZoomContactCenterCli
   return defineIntegration({
     manifest: zoomContactCenterProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
-      "contactCenter.contact.start": async (input: unknown) => client.startContact(input as ZoomContactCenterOperationInput),
-      "contactCenter.contact.read": async (input: unknown) => client.readContact(input as ZoomContactCenterOperationInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.contact.start": async (input: unknown) => client.startContact(input as ZoomContactCenterOperationInput),
+      "contact-center.contact.read": async (input: unknown) => client.readContact(input as ZoomContactCenterOperationInput),
       "zoom.request": async (input: unknown) => client.request(input as ProviderExtensionRequestInput),
     },
   });

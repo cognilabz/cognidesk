@@ -31,23 +31,23 @@ describe("studio adapter", () => {
             channel: "voice",
             audience: "customer-facing",
             channelSetIds: ["customer-support"],
-            providerPackageIds: ["contactCenter.amazon-connect"],
+            providerPackageIds: ["contact-center.amazon-connect"],
             enabledCapabilities: ["handoff", "transfer"],
             flowActivations: [{
               journeyId: "human-handoff",
               policyIds: ["consent"],
-              providerPackageIds: ["contactCenter.amazon-connect"],
+              providerPackageIds: ["contact-center.amazon-connect"],
               metadata: { reasonSource: "sdk" },
             }],
             outbound: {
               enabled: true,
-              providerPackageIds: ["contactCenter.amazon-connect"],
+              providerPackageIds: ["contact-center.amazon-connect"],
               policyIds: ["consent"],
               metadata: { consent: "required" },
             },
             handoff: {
               enabled: true,
-              providerPackageIds: ["contactCenter.amazon-connect"],
+              providerPackageIds: ["contact-center.amazon-connect"],
               sdkControlled: true,
               policyIds: ["consent"],
               metadata: { queue: "priority" },
@@ -58,11 +58,11 @@ describe("studio adapter", () => {
             metadata: { owner: "support" },
           }],
           providerPackages: [{
-            id: "contactCenter.amazon-connect",
+            id: "contact-center.amazon-connect",
             name: "Amazon Connect",
-            packageName: "@cognidesk/integrations",
+            packageName: "@cognidesk/integration-contact-center-amazon-connect",
             provider: "amazon-connect",
-            category: "contactCenter",
+            category: "contact-center",
             trustLevel: "official",
             directions: ["inbound-only", "outbound-only", "bidirectional"],
             channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -88,7 +88,7 @@ describe("studio adapter", () => {
             metadata: { region: "eu-central-1" },
           }],
           capabilityAvailability: [{
-            providerPackageId: "contactCenter.amazon-connect",
+            providerPackageId: "contact-center.amazon-connect",
             capability: "handoff",
             status: "enabled",
             enabledForChannels: ["voice"],
@@ -96,7 +96,7 @@ describe("studio adapter", () => {
             metadata: { configuredBy: "sdk" },
           }],
           credentialStatuses: [{
-            providerPackageId: "contactCenter.amazon-connect",
+            providerPackageId: "contact-center.amazon-connect",
             requirementId: "amazon-connect-api-access",
             state: "configured",
             scopes: ["connect:StartTaskContact"],
@@ -106,6 +106,7 @@ describe("studio adapter", () => {
       const adapter = createCognideskStudioAdapter({
         targetId: "test-target",
         agent,
+        allowUnauthenticated: true,
         runtime: {
           async listEvents() {
             return [];
@@ -150,22 +151,22 @@ describe("studio adapter", () => {
         expect.objectContaining({
           id: "voice-support",
           channel: "voice",
-          providerPackageIds: ["contactCenter.amazon-connect"],
+          providerPackageIds: ["contact-center.amazon-connect"],
           enabledCapabilities: ["handoff", "transfer"],
           policyIds: ["consent"],
           flowActivations: [expect.objectContaining({
             journeyId: "human-handoff",
-            providerPackageIds: ["contactCenter.amazon-connect"],
+            providerPackageIds: ["contact-center.amazon-connect"],
             metadata: { reasonSource: "sdk" },
           })],
           outbound: expect.objectContaining({
             enabled: true,
-            providerPackageIds: ["contactCenter.amazon-connect"],
+            providerPackageIds: ["contact-center.amazon-connect"],
             metadata: { consent: "required" },
           }),
           handoff: expect.objectContaining({
             enabled: true,
-            providerPackageIds: ["contactCenter.amazon-connect"],
+            providerPackageIds: ["contact-center.amazon-connect"],
             sdkControlled: true,
             metadata: { queue: "priority" },
           }),
@@ -181,7 +182,7 @@ describe("studio adapter", () => {
         }),
       ]));
       expect(body.providerPackages).toEqual([expect.objectContaining({
-        id: "contactCenter.amazon-connect",
+        id: "contact-center.amazon-connect",
         capabilities: [expect.objectContaining({
           capability: "handoff",
           requiresCredential: true,
@@ -195,18 +196,18 @@ describe("studio adapter", () => {
         metadata: { region: "eu-central-1" },
       })]);
       expect(body.capabilityAvailability).toEqual([expect.objectContaining({
-        providerPackageId: "contactCenter.amazon-connect",
+        providerPackageId: "contact-center.amazon-connect",
         capability: "handoff",
         status: "enabled",
         metadata: { configuredBy: "sdk" },
       })]);
       expect(body.credentialStatuses).toEqual([expect.objectContaining({
-        providerPackageId: "contactCenter.amazon-connect",
+        providerPackageId: "contact-center.amazon-connect",
         requirementId: "amazon-connect-api-access",
         state: "configured",
       })]);
       expect(body.providerReadiness).toEqual([expect.objectContaining({
-        providerPackageId: "contactCenter.amazon-connect",
+        providerPackageId: "contact-center.amazon-connect",
         status: "configured",
       })]);
       expect(body.policyIds).toEqual(expect.arrayContaining(["tone", "consent", "widgets"]));
@@ -219,6 +220,7 @@ describe("studio adapter", () => {
       const adapter = createCognideskStudioAdapter({
         targetId: "test-target",
         agent,
+        allowUnauthenticated: true,
         runtime: {
           async listEvents() {
             return [];
@@ -228,7 +230,7 @@ describe("studio adapter", () => {
           providerPackages: [{
             id: "ticketing.oracle-service",
             name: "Oracle Service",
-            packageName: "@cognidesk/integrations",
+            packageName: "@cognidesk/integration-ticketing-oracle-service",
             provider: "oracle-service",
             category: "ticketing",
             trustLevel: "official",
@@ -286,6 +288,7 @@ describe("studio adapter", () => {
       const adapter = createCognideskStudioAdapter({
         targetId: "test-target",
         agent,
+        allowUnauthenticated: true,
         runtime: {
           async listEvents() {
             return [];
@@ -308,7 +311,7 @@ describe("studio adapter", () => {
               providerPackages: [{
                 id: "email.postmark",
                 name: "Postmark",
-                packageName: "@cognidesk/integrations",
+                packageName: "@cognidesk/integration-email-postmark",
                 provider: "postmark",
                 category: "email",
                 trustLevel: "official",
@@ -337,7 +340,7 @@ describe("studio adapter", () => {
       })]);
       expect(body.providerPackages).toEqual([expect.objectContaining({
         id: "email.postmark",
-        packageName: "@cognidesk/integrations",
+        packageName: "@cognidesk/integration-email-postmark",
       })]);
       expect(body.providerReadiness).toEqual([expect.objectContaining({
         providerPackageId: "email.postmark",

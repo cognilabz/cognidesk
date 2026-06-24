@@ -7,7 +7,7 @@ export const five9SupportSlice = {
   allowedOperations: [
   {
     id: "configuredHandoff",
-    alias: "contactCenter.handoff.request",
+    alias: "contact-center.handoff.request",
     method: "POST",
     path: "host-configured",
     source: "host-configured",
@@ -17,11 +17,11 @@ export const five9SupportSlice = {
 } as const;
 
 export const five9ProviderManifestInput = {
-  id: "contactCenter.five9",
+  id: "contact-center.five9",
   name: "Five9",
   packageName: "@cognidesk/integration-contact-center-five9",
   provider: "five9",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -42,7 +42,7 @@ export const five9ProviderManifestInput = {
     { capability: "handoff", providerObjects: [{ kind: "contactTransfer", label: "contactTransfer" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
   ],
   metadata: {
     implementation: five9SupportSlice,

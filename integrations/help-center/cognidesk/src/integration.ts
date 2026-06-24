@@ -22,10 +22,10 @@ export function createCognideskHelpCenterIntegration(options: CognideskHelpCente
   return defineIntegration({
     manifest: cognideskHelpCenterProviderManifest as never,
     operations: {
-      "cognidesk.helpCenter.article.search": (input: HelpCenterSearchInput) => client.search(input),
-      "cognidesk.helpCenter.article.fetch": (input: { articleId: string }) =>
+      "cognidesk.help-center.article.search": (input: HelpCenterSearchInput) => client.search(input),
+      "cognidesk.help-center.article.fetch": (input: { articleId: string }) =>
         client.fetchArticle(input.articleId),
-      "cognidesk.helpCenter.webhook.parse": (input: ParseHelpCenterWebhookOperationInput) =>
+      "cognidesk.help-center.webhook.parse": (input: ParseHelpCenterWebhookOperationInput) =>
         parseHelpCenterWebhook(input.request, input.options),
     } as never,
   });

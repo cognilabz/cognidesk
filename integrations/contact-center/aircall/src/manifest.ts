@@ -7,7 +7,7 @@ export const aircallSupportSlice = {
   allowedOperations: [
   {
     id: "configuredHandoff",
-    alias: "contactCenter.handoff.request",
+    alias: "contact-center.handoff.request",
     method: "POST",
     path: "host-configured",
     source: "host-configured",
@@ -17,11 +17,11 @@ export const aircallSupportSlice = {
 } as const;
 
 export const aircallProviderManifestInput = {
-  id: "contactCenter.aircall",
+  id: "contact-center.aircall",
   name: "Aircall",
   packageName: "@cognidesk/integration-contact-center-aircall",
   provider: "aircall",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -42,7 +42,7 @@ export const aircallProviderManifestInput = {
     { capability: "handoff", providerObjects: [{ kind: "contactTransfer", label: "contactTransfer" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
   ],
   metadata: {
     implementation: aircallSupportSlice,

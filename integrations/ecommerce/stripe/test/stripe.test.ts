@@ -128,6 +128,7 @@ describe("@cognidesk/integration-ecommerce-stripe", () => {
         },
       },
     });
+    if (!check) throw new Error("Stripe live check should be registered.");
 
     await expect(check.run()).resolves.toEqual({
       details: {

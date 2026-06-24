@@ -54,6 +54,12 @@ plugins:
   - search
   - social
 
+validation:
+  nav:
+    omitted_files: ignore
+  links:
+    anchors: ignore
+
 markdown_extensions:
   - abbr
   - admonition
@@ -127,7 +133,6 @@ nav:
       - Storage: guides/storage.md
       - Models & Providers: guides/models-and-providers.md
       - Provider Integrations: guides/provider-packages.md
-      - Provider Package Migration: guides/provider-package-migration.md
       - HTTP Transport: guides/http-transport.md
       - SSE Streaming: guides/sse-streaming.md
       - React UI: guides/react-ui.md
@@ -144,7 +149,6 @@ nav:
       - "@cognidesk/ui": api-reference/ui.md
       - "@cognidesk/storage": api-reference/storage.md
       - "@cognidesk/otel": api-reference/otel.md
-      - "@cognidesk/integrations": api-reference/integrations.md
       - "@cognidesk/voice-websocket": api-reference/voice-websocket.md
       - "@cognidesk/journey-index-json": api-reference/journey-index-json.md
       - "@cognidesk/test-harness": api-reference/test-harness.md

@@ -59,6 +59,9 @@
       "./manifest",
       "./cognidesk"
     ],
+    "providerSdkDependencies": [
+      "@amazon-sp-api-release/amazon-sp-api-sdk-js"
+    ],
     "sizeBudget": {
       "dist": "2 MiB",
       "declarationChunk": "1 MiB"

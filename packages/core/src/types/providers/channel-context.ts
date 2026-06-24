@@ -99,7 +99,7 @@ export function channelKindOf(channel?: ConversationChannelInput): ConversationC
 }
 
 export function defaultChannelCapabilityFlags(kind: ConversationChannelKind): ChannelCapabilityFlags {
-  const asyncChannels = new Set(["email", "ticketing", "form", "helpCenter", "community", "marketplace", "review"]);
+  const asyncChannels = new Set(["email", "ticketing", "form", "help-center", "community", "marketplace", "review"]);
   const shortMessagingChannels = new Set(["sms", "messaging", "social", "rcs"]);
   return ChannelCapabilityFlagsSchema.parse({
     realtime: kind === "chat" || kind === "voice" || kind === "workplace" || kind === "video" || kind === "cobrowsing",
@@ -108,8 +108,8 @@ export function defaultChannelCapabilityFlags(kind: ConversationChannelKind): Ch
     audioInput: kind === "voice" || kind === "video",
     audioOutput: kind === "voice" || kind === "video",
     richText: kind !== "sms" && kind !== "voice",
-    markdown: kind === "chat" || kind === "workplace" || kind === "community" || kind === "helpCenter",
-    html: kind === "email" || kind === "helpCenter",
+    markdown: kind === "chat" || kind === "workplace" || kind === "community" || kind === "help-center",
+    html: kind === "email" || kind === "help-center",
     attachments: kind !== "sms",
     images: kind !== "voice" && kind !== "sms",
     files: kind === "email" || kind === "ticketing" || kind === "workplace" || kind === "form",

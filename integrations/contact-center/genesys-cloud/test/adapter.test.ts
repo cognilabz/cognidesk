@@ -77,10 +77,10 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
     expect(genesysCloudContactCenterManifest.metadata?.categoryProfile).toMatchObject({
       id: "contact-center",
       matchedOperations: expect.arrayContaining([
-        "contactCenter.handoff.request",
-        "contactCenter.callback.schedule",
-        "contactCenter.contact.read",
-        "contactCenter.queue.list",
+        "contact-center.handoff.request",
+        "contact-center.callback.schedule",
+        "contact-center.contact.read",
+        "contact-center.queue.list",
       ]),
     });
     expect(genesysCloudContactCenterManifest.capabilities.flatMap((capability) =>

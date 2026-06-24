@@ -1,0 +1,8 @@
+{
+  "artifactKind": "provider-coverage-functions",
+  "provider": "zoom",
+  "verifiedAt": "2026-06-18",
+  "scope": "zoom-meetings-api-hub-generated-support-slice",
+  "source": "Generated Zoom Meetings client metadata in integrations/video/zoom/src/meetings-api-client.generated.ts",
+  "generatedFunctionCount": 184
+}

@@ -7,7 +7,7 @@ export const zoomContactCenterSupportSlice = {
   allowedOperations: [
   {
     id: "Startworkitemengagement",
-    alias: "contactCenter.contact.start",
+    alias: "contact-center.contact.start",
     method: "POST",
     path: "/contact_center/engagement",
     source: "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
@@ -15,7 +15,7 @@ export const zoomContactCenterSupportSlice = {
   },
   {
     id: "getEngagement",
-    alias: "contactCenter.contact.read",
+    alias: "contact-center.contact.read",
     method: "GET",
     path: "/contact_center/engagements/{engagementId}",
     source: "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
@@ -25,11 +25,11 @@ export const zoomContactCenterSupportSlice = {
 } as const;
 
 export const zoomContactCenterProviderManifestInput = {
-  id: "contactCenter.zoom",
+  id: "contact-center.zoom",
   name: "Zoom Contact Center",
   packageName: "@cognidesk/integration-contact-center-zoom",
   provider: "zoom",
-  category: "contactCenter",
+  category: "contact-center",
   trustLevel: "official",
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
@@ -54,9 +54,9 @@ export const zoomContactCenterProviderManifestInput = {
     { capability: "read-provider-object", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: false, exposesSensitiveData: true },
   ],
   operations: [
-    { alias: "contactCenter.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
-    { alias: "contactCenter.contact.start", capability: "send", providerObject: "contact" },
-    { alias: "contactCenter.contact.read", capability: "read-provider-object", providerObject: "contact" },
+    { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
+    { alias: "contact-center.contact.start", capability: "send", providerObject: "contact" },
+    { alias: "contact-center.contact.read", capability: "read-provider-object", providerObject: "contact" },
     { alias: "zoom.request", capability: "read-provider-object", providerObject: "contact", extension: true },
   ],
   metadata: {

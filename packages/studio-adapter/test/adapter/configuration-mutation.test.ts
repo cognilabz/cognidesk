@@ -8,6 +8,7 @@ describe("studio adapter", () => {
       const adapter = createCognideskStudioAdapter({
         targetId: "test-target",
         agent,
+        allowUnauthenticated: true,
         runtime: {
           async listEvents() {
             return [];
@@ -43,6 +44,7 @@ describe("studio adapter", () => {
       const adapter = createCognideskStudioAdapter({
         targetId: "test-target",
         agent,
+        allowUnauthenticated: true,
         runtime: {
           async listEvents() {
             return [];

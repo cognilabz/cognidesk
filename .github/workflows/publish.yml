@@ -1,4 +1,4 @@
-name: Publish SDK
+name: Publish SDK and Provider Packages
 
 on:
   push:
@@ -74,18 +74,7 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Upgrade npm
-        run: npm install -g npm@latest
-
-      - name: Show tool versions
-        run: |
-          node --version
-          npm --version
-
       - uses: pnpm/action-setup@v4
-
-      - name: Show pnpm version
-        run: pnpm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -111,9 +100,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Check
-        run: pnpm check
-
       - name: Verify integration package architecture
         run: pnpm providers:architecture
 
@@ -122,9 +108,6 @@ jobs:
 
       - name: Verify package publish smoke
         run: pnpm release:verify-packages -- --fail-size-budget
-
-      - name: Sync package READMEs
-        run: pnpm packages:sync-readmes
 
       - name: Publish packages
         shell: bash

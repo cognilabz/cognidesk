@@ -47,7 +47,7 @@ export function handleRuntimeChannelEvent<TPayload = unknown, TTurn = unknown>(
 ): Promise<HandleChannelEventResult<TPayload>> {
   const channelEvent = defineChannelEvent(input.event);
   return context.runtimeOperation("handle_channel_event", telemetrySpanNames.runtimeHandleChannelEvent, {
-    "cognidesk.channel_event.kind": channelEvent.kind,
+    "cognidesk.channel_event.nature": channelEvent.nature,
     ...(channelEvent.direction ? { "cognidesk.channel_event.direction": channelEvent.direction } : {}),
     ...(channelEvent.intent ? { "cognidesk.channel_event.intent": channelEvent.intent } : {}),
     ...(input.conversationId ? { [telemetryAttributes.conversationId]: input.conversationId } : {}),

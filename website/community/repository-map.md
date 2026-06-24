@@ -11,7 +11,7 @@ update when behavior changes.
 | `README.md` | Repository and SDK overview for GitHub visitors. | The top-level product shape, quick start, package list, or demo command changes. |
 | `CONTEXT.md` | Canonical domain vocabulary. | A term, boundary, or avoided phrase changes. |
 | `docs/adr/` | Architecture Decision Records. | A durable technical decision is made or replaced. |
-| `docs/` | Release notes, provider generation notes, provider coverage audits, and supporting engineering docs. | Internal engineering workflows or release/provider processes change. |
+| `docs/` | Release notes, provider metadata notes, and supporting engineering docs. | Internal engineering workflows or release/provider processes change. |
 
 ## Packages
 
@@ -24,9 +24,8 @@ update when behavior changes.
 | `packages/ui/` | `@cognidesk/ui` | Prebuilt UI components shared by Cognidesk frontends. |
 | `packages/storage/` | `@cognidesk/storage` | Runtime storage adapters such as SQLite/libSQL and Postgres. |
 | `packages/otel/` | `@cognidesk/otel` | OpenTelemetry spans, metrics, and runtime instrumentation helpers. |
-| `integrations/{category}/{provider}/` | `@cognidesk/integration-{category}-{provider}` | Split Provider Integration packages, staged behind #23-#25 and provider-family trackers #29-#43. |
+| `integrations/{category}/{provider}/` | `@cognidesk/integration-{category}-{provider}` | Provider Integration packages for external providers. |
 | `packages/integration-catalog/` | `@cognidesk/integration-catalog` | Provider catalog metadata for docs, Studio, and manifest-only discovery. |
-| `packages/integrations/` | `@cognidesk/integrations` | Legacy provider integration workspace kept until split provider packages land. |
 | `packages/voice-websocket/` | `@cognidesk/voice-websocket` | Browser-facing voice WebSocket protocol and Node adapter surfaces. |
 | `packages/journey-index-json/` | `@cognidesk/journey-index-json` | JSON-backed journey index support. |
 | `packages/connections/` | `@cognidesk/connections` | Reviewed OpenAPI/MCP connection helpers for provider operation aliases. |
@@ -45,7 +44,7 @@ update when behavior changes.
 | `apps/studio-operator-runtime/` | WebSocket operator runtime that executes Studio source-workspace tasks in disposable sandboxes. |
 | `observability/` | Grafana dashboards and OpenTelemetry, Prometheus, Tempo, Loki, and Promtail configuration. |
 | `deploy/studio/` | Studio deployment overlays and supporting deployment configuration. |
-| `scripts/` | Release, package publishing, provider generation, and docs-generation helpers. |
+| `scripts/` | Release, package publishing, provider catalog, and docs-generation helpers. |
 
 ## Common workflows
 
@@ -56,7 +55,8 @@ update when behavior changes.
 | Run a package test suite | `pnpm --filter @cognidesk/core test` |
 | Run a package typecheck | `pnpm --filter @cognidesk/core typecheck` |
 | Run the demo stack | `pnpm demo` |
-| Generate provider catalog and API docs | `pnpm docs:generate` |
+| Refresh provider catalog data | `pnpm providers:catalog:data` |
+| Generate provider catalog page and API docs | `pnpm providers:catalog:data && pnpm docs:generate` |
 | Build the documentation site | `pnpm docs:build` |
 | Serve the documentation site locally | `pnpm docs:serve` |
 

@@ -10,8 +10,8 @@ A complete customer support agent for a fictional airline. This example demonstr
 | Tools | Ticket lookup, flight search, booking |
 | Knowledge sources | FAQ retrieval |
 | State machine journeys | Ticket status flow with identification |
-| Custom events | Lead capture |
-| Journey events | External ticket sync |
+| Studio target adapter | Introspection, configuration surfaces, conversations, dashboards |
+| Mocked flight-service APIs | Ticket lookup, flight search, booking |
 | HTTP transport | REST + SSE |
 | React chat widget | Full UI with custom widgets |
 | Voice | Real-time voice conversations |

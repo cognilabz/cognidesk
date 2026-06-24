@@ -104,18 +104,17 @@ function isKnownChannelCoverageStatus(status: string) {
     || status.startsWith("generated")
     || status.startsWith("typed")
     || status.startsWith("provider-supported")
-    || status.startsWith("legacy-provider-supported")
     || status.startsWith("sdk-owned");
 }
 
 const channelCoverageRequiredCategories = new Set([
   "cobrowsing",
   "community",
-  "contactCenter",
+  "contact-center",
   "ecommerce",
   "email",
   "form",
-  "helpCenter",
+  "help-center",
   "marketplace",
   "messaging",
   "review",

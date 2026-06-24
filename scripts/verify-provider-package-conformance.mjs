@@ -43,23 +43,6 @@ const providerPackagePrefix = "@cognidesk/integration-";
 const defaultPackedSizeBudgetBytes = 12 * oneMiB;
 const defaultUnpackedSizeBudgetBytes = 40 * oneMiB;
 const defaultDeclarationFileBudgetBytes = 4 * oneMiB;
-const stagedProviderPackages = [
-  "@cognidesk/integration-email-gmail",
-  "@cognidesk/integration-email-outlook",
-  "@cognidesk/integration-messaging-discord",
-  "@cognidesk/integration-workplace-slack",
-  "@cognidesk/integration-workplace-teams",
-  "@cognidesk/integration-ecommerce-stripe",
-];
-const stagedProviderPackageIssues = new Map([
-  ["@cognidesk/integration-email-gmail", "#23"],
-  ["@cognidesk/integration-email-outlook", "#24"],
-  ["@cognidesk/integration-messaging-discord", "#25"],
-  ["@cognidesk/integration-workplace-slack", "#25"],
-  ["@cognidesk/integration-workplace-teams", "#24"],
-  ["@cognidesk/integration-ecommerce-stripe", "#30"],
-]);
-const providerFamilyIssueSummary = "#23 Gmail, #24 Microsoft Graph, #25 Slack/Discord, #29 email, #30 ecommerce, #31 marketplace, #32 Meta, #33 RCS/TikTok, #34 review, #35 helpdesk ticketing, #36 CRM ticketing, #37 enterprise service clouds, #38 contact-center core, #39 contact-center long tail, #40 cloud speech, #41 voice/SMS, #42 video, #43 local/protocol";
 const infrastructurePackageNames = new Set([
   "@cognidesk/voice-websocket",
 ]);
@@ -72,23 +55,13 @@ for (const pkg of workspaces) {
   if (await isProviderPackage(pkg)) providerPackages.push(pkg);
 }
 
-for (const packageName of stagedProviderPackages) {
-  const pkg = workspaceByName.get(packageName);
-  if (pkg && !providerPackages.some((candidate) => candidate.name === packageName)) {
-    providerPackages.push(pkg);
-  }
-}
-
 providerPackages.sort((left, right) => left.name.localeCompare(right.name));
 
-const missingStagedPackages = stagedProviderPackages.filter((packageName) => !workspaceByName.has(packageName));
 const failures = [];
 
 if (providerPackages.length === 0) {
   console.log("Provider package conformance:");
   console.log("  no split provider workspaces discovered yet");
-  console.log(`  staged package checks pending provider package trackers #23-#25/#29-#43: ${formatStagedPackages(missingStagedPackages)}`);
-  console.log(`  provider family trackers: ${providerFamilyIssueSummary}`);
   process.exit(0);
 }
 
@@ -104,9 +77,6 @@ if (failures.length > 0) {
 
 console.log("Provider package conformance passed:");
 console.log(`  checked provider packages: ${providerPackages.map((pkg) => pkg.name).join(", ")}`);
-if (missingStagedPackages.length > 0) {
-  console.log(`  staged package checks still pending provider package trackers #23-#25/#29-#43: ${formatStagedPackages(missingStagedPackages)}`);
-}
 
 async function readWorkspacePackages() {
   const packages = [];
@@ -161,7 +131,6 @@ async function workspacePackageDirs() {
 }
 
 async function isProviderPackage(pkg) {
-  if (pkg.name === "@cognidesk/integrations") return false;
   if (infrastructurePackageNames.has(pkg.name)) return false;
   if (expectedProviderPackageNameForPath(pkg.dir)) return true;
   if (pkg.packageJson.cognidesk?.providerPackage === true) return true;
@@ -204,13 +173,6 @@ function expectedProviderPackageNameForPath(dir) {
   const match = /^integrations\/([^/]+)\/([^/]+)$/.exec(relative);
   if (!match) return undefined;
   return `${providerPackagePrefix}${match[1]}-${match[2]}`;
-}
-
-function formatStagedPackages(packageNames) {
-  return packageNames.map((packageName) => {
-    const issue = stagedProviderPackageIssues.get(packageName);
-    return issue ? `${packageName} (${issue})` : packageName;
-  }).join(", ");
 }
 
 async function sourceFilesForPackage(pkg) {

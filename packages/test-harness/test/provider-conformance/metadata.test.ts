@@ -5,11 +5,11 @@ describe("provider metadata and evidence conformance", () => {
   it("fails channelCoverage metadata with unknown coverage status words", async () => {
       const result = await runProviderConformance({
         manifest: {
-          id: "contactCenter.genesys-cloud",
+          id: "contact-center.genesys-cloud",
           name: "Genesys Cloud CX",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
-          category: "contactCenter",
+          category: "contact-center",
           trustLevel: "official",
           directions: ["bidirectional"],
           coverage: {
@@ -43,7 +43,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "voice.twilio",
           name: "Twilio Programmable Voice",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-voice-twilio",
           provider: "twilio",
           category: "voice",
           trustLevel: "official",
@@ -70,11 +70,11 @@ describe("provider metadata and evidence conformance", () => {
     it("fails provider-supported channelCoverage claims without URL evidence", async () => {
       const result = await runProviderConformance({
         manifest: {
-          id: "contactCenter.genesys-cloud",
+          id: "contact-center.genesys-cloud",
           name: "Genesys Cloud CX",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
-          category: "contactCenter",
+          category: "contact-center",
           trustLevel: "community",
           directions: ["bidirectional"],
           coverage: {
@@ -108,7 +108,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.servicenow",
           name: "ServiceNow",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-servicenow",
           provider: "servicenow",
           category: "ticketing",
           trustLevel: "official",
@@ -141,7 +141,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -172,7 +172,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -203,7 +203,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -230,7 +230,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -256,7 +256,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -292,7 +292,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.zendesk",
           name: "Zendesk",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-zendesk",
           provider: "zendesk",
           category: "ticketing",
           trustLevel: "official",
@@ -336,11 +336,11 @@ describe("provider metadata and evidence conformance", () => {
     it("fails generic provider capabilities without provider-object evidence", async () => {
       const result = await runProviderConformance({
         manifest: {
-          id: "contactCenter.genesys-cloud",
+          id: "contact-center.genesys-cloud",
           name: "Genesys Cloud CX",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-contact-center-genesys-cloud",
           provider: "genesys-cloud",
-          category: "contactCenter",
+          category: "contact-center",
           trustLevel: "official",
           directions: ["bidirectional"],
           capabilities: [{
@@ -363,7 +363,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.front",
           name: "Front",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-front",
           provider: "front",
           category: "ticketing",
           trustLevel: "official",
@@ -416,7 +416,7 @@ describe("provider metadata and evidence conformance", () => {
         manifest: {
           id: "ticketing.front",
           name: "Front",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-ticketing-front",
           provider: "front",
           category: "ticketing",
           trustLevel: "official",

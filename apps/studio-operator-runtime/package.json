@@ -9,7 +9,7 @@
     "start": "tsx src/index.ts",
     "build": "tsup src/index.ts --format esm --sourcemap",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

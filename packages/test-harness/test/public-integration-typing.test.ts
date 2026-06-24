@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 const repoRoot = path.resolve(fileURLToPath(new URL("../../..", import.meta.url)));
 const integrationPackagePattern =
   /^(connections|model$|voice-websocket$)/;
-const generatedIntegrationRoot = path.join(repoRoot, "packages", "integrations", "src");
+const splitIntegrationsRoot = path.join(repoRoot, "integrations");
 
 describe("public integration API typing", () => {
   it("does not expose anonymous unknown/Record provider contracts from hand-written package entrypoints", async () => {
@@ -47,15 +47,22 @@ async function integrationIndexFiles() {
     .map((entry) => path.join(packagesDir, entry.name, "src", "index.ts"))
     .filter((file) => existsSync(file))
     .sort((a, b) => a.localeCompare(b));
-  const integrationModuleFiles = existsSync(generatedIntegrationRoot)
-    ? (await walk(generatedIntegrationRoot))
+  const integrationModuleFiles = existsSync(splitIntegrationsRoot)
+    ? (await walk(splitIntegrationsRoot))
         .filter((file) => path.basename(file) === "index.ts")
+        .filter((file) => file.includes(`${path.sep}src${path.sep}`))
+        .filter(hasGeneratedClientSibling)
         .sort((a, b) => a.localeCompare(b))
     : [];
   return {
     files: [...topLevelFiles, ...integrationModuleFiles],
-    includesGeneratedIntegrations: existsSync(generatedIntegrationRoot),
+    includesSplitIntegrations: existsSync(splitIntegrationsRoot),
   };
+}
+
+function hasGeneratedClientSibling(indexFile: string) {
+  const srcDir = path.dirname(indexFile);
+  return readdirSync(srcDir).some((entry) => entry.endsWith("-client.generated.ts"));
 }
 
 async function walk(dir: string): Promise<string[]> {

@@ -2,6 +2,10 @@ import { z } from "zod";
 import { tool } from "@cognidesk/core";
 import { flights } from "../data/flights.js";
 import { flightSchema } from "../domain/schemas.js";
+import {
+  FLIGHT_MOCK_BOOKING_CAPABILITY,
+  FLIGHT_MOCK_BOOKING_POLICY_ID,
+} from "../policies.js";
 
 export const searchFlights = tool("searchFlights", {
   description: "Search mocked flight inventory.",
@@ -68,6 +72,11 @@ export const bookFlight = tool("bookFlight", {
     bookingReference: z.string(),
   }),
   sideEffect: true,
+  policy: {
+    capability: FLIGHT_MOCK_BOOKING_CAPABILITY,
+    changesWorkflow: true,
+    requiredPolicyIds: [FLIGHT_MOCK_BOOKING_POLICY_ID],
+  },
   idempotencyKey: ({ conversationId, input }) => `${conversationId}:${normalizeFlightId(input.selectedFlightId)}`,
   execute: async ({ input, telemetry }) => telemetry.withSpan("flight_demo.booking.create", {
     attributes: {
@@ -114,9 +123,14 @@ export const getFlightInfo = tool("getFlightInfo", {
   output: flightSchema.optional(),
   execute: async ({ input, telemetry }) => telemetry.withSpan("flight_demo.flight.info_lookup", {
     attributes: {
-      "flight_demo.flight_number": input.flightNumber,
+      "flight_demo.flight_number": normalizeFlightId(input.flightNumber),
     },
-  }, () => flights.find((candidate) => candidate.id.toLowerCase() === input.flightNumber.toLowerCase())),
+  }, () => {
+    const flightNumber = normalizeFlightId(input.flightNumber);
+    const flight = flights.find((candidate) => candidate.id === flightNumber);
+    if (!flight) throw new Error(`Unknown mocked flight '${input.flightNumber}'.`);
+    return flight;
+  }),
 });
 
 export const flightTools = {
@@ -134,5 +148,5 @@ function normalizeText(value: string) {
 }
 
 function normalizeFlightId(value: string) {
-  return value.trim().toUpperCase();
+  return value.replace(/\s+/g, "").toUpperCase();
 }

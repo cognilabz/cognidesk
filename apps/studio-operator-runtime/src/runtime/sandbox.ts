@@ -2,6 +2,7 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { spawn } from "node:child_process";
 import { getStudioOperatorSkillPack } from "@cognidesk/studio-operator-skills";
+import { buildChildProcessEnv } from "./child-env.js";
 
 const sandboxRoot = process.env.STUDIO_OPERATOR_SANDBOX_ROOT ?? "/tmp/cognidesk-studio-sandboxes";
 const sessionIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -83,7 +84,7 @@ export function modelForCodex(modelId?: string) {
 
 function run(command: string, args: string[], cwd: string) {
   return new Promise<void>((resolve, reject) => {
-    const child = spawn(command, args, { cwd, stdio: ["ignore", "pipe", "pipe"], env: process.env });
+    const child = spawn(command, args, { cwd, stdio: ["ignore", "pipe", "pipe"], env: buildChildProcessEnv() });
     let stderr = "";
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString();
@@ -103,7 +104,7 @@ async function localRepoRoot() {
 
 function runCapture(command: string, args: string[], cwd: string) {
   return new Promise<string>((resolve, reject) => {
-    const child = spawn(command, args, { cwd, stdio: ["ignore", "pipe", "pipe"], env: process.env });
+    const child = spawn(command, args, { cwd, stdio: ["ignore", "pipe", "pipe"], env: buildChildProcessEnv() });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (chunk) => {

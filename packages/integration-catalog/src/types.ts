@@ -6,6 +6,7 @@ export interface JsonObject {
 
 export type IntegrationImplementationStrategy =
   | "official-sdk"
+  | "official-sdk-plus-support-slice"
   | "maintained-library"
   | "generated-support-slice"
   | "direct-http-support-slice"
@@ -16,7 +17,7 @@ export type IntegrationImplementationStrategy =
   | "app-supplied-connector"
   | "local-protocol";
 
-export type IntegrationManifestSourceKind = "manifest-only" | "runtime-module-fallback";
+export type IntegrationManifestSourceKind = "manifest-only";
 
 export interface IntegrationProviderReference {
   id: string;

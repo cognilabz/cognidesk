@@ -11,7 +11,7 @@
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -36,7 +36,7 @@
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^1.16.0",
     "nanoid": "^5.1.11",
-    "next": "16.2.6",
+    "next": "16.2.9",
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

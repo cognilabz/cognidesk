@@ -9,11 +9,11 @@ const integrationCatalogIndexPath = path.join(repoRoot, "packages/integration-ca
 const categoryLabels = new Map([
   ["cobrowsing", "Cobrowsing"],
   ["community", "Community"],
-  ["contactCenter", "Contact Center"],
+  ["contact-center", "Contact Center"],
   ["ecommerce", "Ecommerce"],
   ["email", "Email"],
   ["form", "Forms"],
-  ["helpCenter", "Help Center"],
+  ["help-center", "Help Center"],
   ["marketplace", "Marketplace"],
   ["messaging", "Messaging"],
   ["review", "Reviews"],
@@ -31,8 +31,12 @@ function compareText(left, right) {
   return left.localeCompare(right, "en", { sensitivity: "base", numeric: true });
 }
 
+function canonicalCategory(category) {
+  return category;
+}
+
 function displayCategory(category) {
-  const known = categoryLabels.get(category);
+  const known = categoryLabels.get(canonicalCategory(category));
   if (known) return known;
   return category
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
@@ -64,7 +68,7 @@ function providerWorkspacePath(provider) {
 }
 
 function categoryRank(category) {
-  const index = categoryOrder.indexOf(category);
+  const index = categoryOrder.indexOf(canonicalCategory(category));
   return index === -1 ? Number.MAX_SAFE_INTEGER : index;
 }
 
@@ -83,6 +87,10 @@ function inlineCode(value) {
 function codeList(values) {
   if (!values.length) return "none";
   return values.map(inlineCode).join(", ");
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values)];
 }
 
 function credentialSummary(credentials) {
@@ -133,7 +141,7 @@ async function loadProviderCatalogEntries() {
 function groupProviders(providers) {
   const grouped = new Map();
   for (const provider of providers) {
-    const category = provider.category;
+    const category = canonicalCategory(provider.category);
     const entries = grouped.get(category) ?? [];
     entries.push(provider);
     grouped.set(category, entries);
@@ -174,7 +182,7 @@ function renderCatalog(groupedProviders) {
     lines.push("", `### ${displayCategory(category)}`);
 
     for (const provider of providers) {
-      const capabilities = provider.capabilities.map((capability) => capability.capability);
+      const capabilities = uniqueStrings(provider.capabilities.map((capability) => capability.capability));
       const coverageNotes = provider.coverage?.notes ?? [];
       const coverage = firstNonEmpty(coverageNotes) ?? "Coverage details are declared in the provider manifest.";
       const boundary = firstNonEmpty([...(provider.limitations ?? []), ...coverageNotes.slice(1), ...(provider.privacyNotes ?? [])]);

@@ -7,7 +7,7 @@ import { OpenAIRealtimeWS } from "openai/realtime/ws";
 import type { RealtimeClientEvent, RealtimeServerEvent } from "openai/resources/realtime/realtime";
 import { createRuntime, type RuntimeEvent } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
-import { createOpenAIVoiceProvider } from "@cognidesk/integrations/voice/openai";
+import { createOpenAIVoiceProvider } from "@cognidesk/integration-voice-openai";
 import {
   createInMemoryVoiceSessionStore,
   handleVoiceSocket,
@@ -17,6 +17,7 @@ import {
 } from "@cognidesk/voice-websocket";
 import { loadFlightDemoEnv, resolveFlightDemoPath, type FlightDemoConfig } from "../server/config.js";
 import { createFlightDemoRuntimeParts } from "../server/agent/index.js";
+import { flightDemoRuntimeChannels } from "../server/agent/policies.js";
 import { loadFlightKnowledgeIndex } from "../server/knowledge-index.js";
 
 const REALTIME_MODEL = "gpt-realtime-2";
@@ -123,6 +124,7 @@ async function createVoiceHarness(apiKey: string, scenarioId: string) {
     agent,
     models,
     journeyIndex,
+    channels: flightDemoRuntimeChannels,
     topKJourneys: 3,
     streaming: {
       syntheticDeltas: true,
@@ -164,6 +166,7 @@ async function createVoiceHarness(apiKey: string, scenarioId: string) {
     async sendUserTurn(text: string) {
       const fromIndex = socket.sent.length;
       const chunks = await synthesizeUserSpeech(apiKey, text);
+      expect(chunks.length).toBeGreaterThan(0);
       for (const chunk of chunks) {
         sequence += 1;
         socket.receive({
@@ -182,7 +185,15 @@ async function createVoiceHarness(apiKey: string, scenarioId: string) {
         });
         await sleep(audioChunkDurationMs(chunk));
       }
-      const completed = await socket.waitFor("cognidesk.turn.completed", fromIndex, 160_000);
+      socket.receive({ type: "input_audio_buffer.commit" });
+      const completed = await socket.waitFor("cognidesk.turn.completed", fromIndex, 160_000)
+        .catch((error) => {
+          throw new Error([
+            error instanceof Error ? error.message : String(error),
+            `User audio chunks: ${chunks.length}`,
+            `Recent voice events: ${socket.sent.slice(fromIndex).map((event) => event.type).join(", ") || "none"}`,
+          ].join("\n"));
+        });
       await socket.waitFor("response.output_audio.delta", fromIndex, 160_000);
       await socket.waitFor("response.output_audio.done", fromIndex, 160_000);
       const assistantAudioBytes = socket.sent

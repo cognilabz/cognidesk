@@ -73,7 +73,7 @@ export interface HelpCenterClient {
 }
 
 export interface HelpCenterIngestionEvent {
-  type: "channel.helpCenter.article.ingested";
+  type: "channel.help-center.article.ingested";
   id: string;
   occurredAt: string;
   channel: ChannelContext;
@@ -83,7 +83,7 @@ export interface HelpCenterIngestionEvent {
 }
 
 export interface HelpCenterSearchEvent {
-  type: "channel.helpCenter.search.performed";
+  type: "channel.help-center.search.performed";
   id: string;
   occurredAt: string;
   channel: ChannelContext;
@@ -146,12 +146,12 @@ export function normalizeHelpCenterIngestionEvent(input: {
   validateArticle(input.article);
   const occurredAt = input.occurredAt ?? input.article.updatedAt ?? new Date().toISOString();
   return {
-    type: "channel.helpCenter.article.ingested",
+    type: "channel.help-center.article.ingested",
     id: `${input.sourceId}:${input.article.id}:${occurredAt}`,
     occurredAt,
     channel: defineChannelContext({
       channelId: cognideskHelpCenterProviderManifest.id,
-      kind: "helpCenter",
+      kind: "help-center",
       provider: cognideskHelpCenterProviderManifest.provider,
       externalMessageId: input.article.id,
     }),
@@ -170,12 +170,12 @@ export function normalizeHelpCenterSearchEvent(input: {
 }): HelpCenterSearchEvent {
   const occurredAt = input.occurredAt ?? new Date().toISOString();
   return {
-    type: "channel.helpCenter.search.performed",
+    type: "channel.help-center.search.performed",
     id: `${input.sourceId}:search:${occurredAt}`,
     occurredAt,
     channel: defineChannelContext({
       channelId: cognideskHelpCenterProviderManifest.id,
-      kind: "helpCenter",
+      kind: "help-center",
       provider: cognideskHelpCenterProviderManifest.provider,
     }),
     query: input.query,
@@ -193,7 +193,7 @@ export async function parseHelpCenterWebhook(
   const requireSignature = options.requireSignature ?? true;
   if (requireSignature) {
     if (!options.secret) throw new Error("Help center webhook secret is required to validate signatures.");
-    const header = options.signatureHeader ?? "x-cognidesk-helpcenter-signature";
+    const header = options.signatureHeader ?? "x-cognidesk-help-center-signature";
     const signature = request.headers.get(header) ?? "";
     if (!validateHelpCenterWebhookSignature({ rawBody, signature, secret: options.secret })) {
       throw new Error("Help center webhook signature validation failed.");
@@ -228,14 +228,14 @@ export function helpCenterCredentialStatuses(input: HelpCenterCredentialStatusIn
   return [
     {
       providerPackageId: cognideskHelpCenterProviderManifest.id,
-      requirementId: "helpcenter-source",
+      requirementId: "help-center-source",
       state: input.sourceConfigured ? "configured" : "missing",
       scopes: input.scopes ?? [],
       message: input.sourceConfigured ? "Help center source is configured." : "A help center content source is required.",
     },
     {
       providerPackageId: cognideskHelpCenterProviderManifest.id,
-      requirementId: "helpcenter-webhook-secret",
+      requirementId: "help-center-webhook-secret",
       state: input.webhookSecretConfigured ? "configured" : "missing",
       message: input.webhookSecretConfigured
         ? "Help center webhook signature secret is configured."

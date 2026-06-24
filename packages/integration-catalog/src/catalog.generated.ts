@@ -582,7 +582,480 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.amazon-connect",
+    "id": "contact-center.8x8",
+    "category": "contact-center",
+    "provider": "8x8",
+    "importPath": "@cognidesk/integration-contact-center-8x8/manifest",
+    "modulePath": "integrations/contact-center/8x8/dist/manifest.js",
+    "manifestExport": "eightByEightProviderManifest",
+    "name": "8x8 Contact Center",
+    "packageName": "@cognidesk/integration-contact-center-8x8",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "8x8 Contact Center",
+      "summary": "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.",
+      "tags": [
+        "contact-center",
+        "8x8",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "send",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "update-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "update-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "agent",
+            "label": "agent"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone."
+      ],
+      "evidence": [
+        {
+          "label": "8x8 Contact Center Call API OpenAPI",
+          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json"
+        },
+        {
+          "label": "8x8 Contact Center Agent Status OpenAPI",
+          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.agent.status.update"
+        ],
+        "missingRequiredOperations": [
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    },
+    "implementation": {
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-contact-center-8x8",
+      "runtimePackage": "@cognidesk/integration-contact-center-8x8",
+      "providerModule": "integrations/contact-center/8x8/dist/manifest.js",
+      "manifestExport": "eightByEightProviderManifest",
+      "manifestSource": "integrations/contact-center/8x8/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json"
+    },
+    "readiness": {
+      "mode": "credential-configuration",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "8x8-contact-center-api-base",
+        "8x8-contact-center-api-access"
+      ],
+      "optionalCredentialIds": [
+        "8x8-contact-center-routing"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "8x8-contact-center-api-base",
+          "label": "8x8 Contact Center API base URL",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "8x8-contact-center-api-access",
+          "label": "8x8 Contact Center API access",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "8x8-contact-center-routing",
+          "label": "8x8 queue/campaign routing configuration",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [],
+    "limitations": [],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "implementationStrategy": "generated-support-slice",
+        "sdkDecision": "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "placePhoneCall",
+            "alias": "contact-center.contact.start",
+            "method": "POST",
+            "path": "/tenants/{tenantId}/calls",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
+            "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
+          },
+          {
+            "id": "deletePhoneInteraction",
+            "alias": "contact-center.contact.end",
+            "method": "DELETE",
+            "path": "/tenants/{tenantId}/calls/{interactionId}",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
+            "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
+          },
+          {
+            "id": "setagentstatus",
+            "alias": "contact-center.agent.status.update",
+            "method": "PUT",
+            "path": "/tenants/{tenantId}/agentstatus/agents/{agentId}",
+            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json",
+            "checksum": "sha256:89ba77f48f7a471fb21c34dfb0c7170c1a90b7ea08da8de65981049ade09c2ae"
+          }
+        ]
+      },
+      "manifestOnlySafe": true,
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.agent.status.update"
+        ],
+        "missingRequiredOperations": [
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    }
+  },
+  {
+    "id": "contact-center.aircall",
+    "category": "contact-center",
+    "provider": "aircall",
+    "importPath": "@cognidesk/integration-contact-center-aircall/manifest",
+    "modulePath": "integrations/contact-center/aircall/dist/manifest.js",
+    "manifestExport": "aircallProviderManifest",
+    "name": "Aircall",
+    "packageName": "@cognidesk/integration-contact-center-aircall",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "Aircall",
+      "summary": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
+      "tags": [
+        "contact-center",
+        "aircall",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls."
+      ],
+      "evidence": [
+        {
+          "label": "Aircall API References",
+          "url": "https://developer.aircall.io/api-references/"
+        },
+        {
+          "label": "Aircall Everywhere SDK",
+          "url": "https://github.com/aircall/aircall-everywhere"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contact-center.handoff.request"
+        ],
+        "missingRequiredOperations": [
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    },
+    "implementation": {
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-contact-center-aircall",
+      "runtimePackage": "@cognidesk/integration-contact-center-aircall",
+      "providerModule": "integrations/contact-center/aircall/dist/manifest.js",
+      "manifestExport": "aircallProviderManifest",
+      "manifestSource": "integrations/contact-center/aircall/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://developer.aircall.io/api-references/"
+    },
+    "readiness": {
+      "mode": "credential-configuration",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "aircall-api-base",
+        "aircall-api-access"
+      ],
+      "optionalCredentialIds": [
+        "aircall-routing"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "aircall-api-base",
+          "label": "Aircall Public API base URL",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "aircall-api-access",
+          "label": "Aircall API access",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "aircall-routing",
+          "label": "Aircall number/team/routing configuration",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [],
+    "limitations": [],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "implementationStrategy": "direct-http-support-slice",
+        "sdkDecision": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contact-center.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
+      },
+      "manifestOnlySafe": true,
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contact-center.handoff.request"
+        ],
+        "missingRequiredOperations": [
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    }
+  },
+  {
+    "id": "contact-center.amazon-connect",
     "category": "contact-center",
     "provider": "amazon-connect",
     "importPath": "@cognidesk/integration-contact-center-amazon-connect/manifest",
@@ -717,32 +1190,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.transfer.request",
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.task.create",
-          "contactCenter.transcript.read"
+          "contact-center.transfer.request",
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.task.create",
+          "contact-center.transcript.read"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list"
+          "contact-center.contact.read",
+          "contact-center.queue.list"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.update",
+          "contact-center.callback.schedule"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
@@ -830,39 +1303,245 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.transfer.request",
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.task.create",
-          "contactCenter.transcript.read"
+          "contact-center.transfer.request",
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.task.create",
+          "contact-center.transcript.read"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list"
+          "contact-center.contact.read",
+          "contact-center.queue.list"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.update",
+          "contact-center.callback.schedule"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
     }
   },
   {
-    "id": "contactCenter.genesys-cloud",
+    "id": "contact-center.five9",
+    "category": "contact-center",
+    "provider": "five9",
+    "importPath": "@cognidesk/integration-contact-center-five9/manifest",
+    "modulePath": "integrations/contact-center/five9/dist/manifest.js",
+    "manifestExport": "five9ProviderManifest",
+    "name": "Five9",
+    "packageName": "@cognidesk/integration-contact-center-five9",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "Five9",
+      "summary": "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
+      "tags": [
+        "contact-center",
+        "five9",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contactTransfer",
+            "label": "contactTransfer"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented."
+      ],
+      "evidence": [
+        {
+          "label": "Five9 Contact Center APIs and SDKs",
+          "url": "https://www.five9.com/products/capabilities/call-center-apis-and-sdks"
+        },
+        {
+          "label": "Five9 development program",
+          "url": "https://www.five9.com/development"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contact-center.handoff.request"
+        ],
+        "missingRequiredOperations": [
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    },
+    "implementation": {
+      "strategy": "support-workflow-adapter",
+      "sdkPackage": "@cognidesk/integration-contact-center-five9",
+      "runtimePackage": "@cognidesk/integration-contact-center-five9",
+      "providerModule": "integrations/contact-center/five9/dist/manifest.js",
+      "manifestExport": "five9ProviderManifest",
+      "manifestSource": "integrations/contact-center/five9/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://www.five9.com/products/capabilities/call-center-apis-and-sdks"
+    },
+    "readiness": {
+      "mode": "credential-configuration",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "five9-api-base",
+        "five9-api-access"
+      ],
+      "optionalCredentialIds": [
+        "five9-routing"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "five9-api-base",
+          "label": "Five9 API base URL",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "five9-api-access",
+          "label": "Five9 API access",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "five9-routing",
+          "label": "Five9 skill/campaign routing configuration",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [],
+    "limitations": [],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "implementationStrategy": "direct-http-support-slice",
+        "sdkDecision": "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
+        "verifiedAt": "2026-06-21",
+        "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contact-center.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "host-configured",
+            "checksum": "not-applicable-host-configured"
+          }
+        ]
+      },
+      "manifestOnlySafe": true,
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contact-center.handoff.request"
+        ],
+        "missingRequiredOperations": [
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    }
+  },
+  {
+    "id": "contact-center.genesys-cloud",
     "category": "contact-center",
     "provider": "genesys-cloud",
     "importPath": "@cognidesk/integration-contact-center-genesys-cloud/manifest",
@@ -997,32 +1676,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.handoff.request",
-          "contactCenter.callback.schedule"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.handoff.request",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.transfer.request"
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-cloud.openMessaging.message.create"
@@ -1128,32 +1807,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.handoff.request",
-          "contactCenter.callback.schedule"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.handoff.request",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.transfer.request"
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-cloud.openMessaging.message.create"
@@ -1162,927 +1841,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.ringcentral",
+    "id": "contact-center.genesys-engage",
     "category": "contact-center",
-    "provider": "ringcentral",
-    "importPath": "@cognidesk/integration-contact-center-ringcentral/manifest",
-    "modulePath": "integrations/contact-center/ringcentral/dist/manifest.js",
-    "manifestExport": "ringCentralContactCenterManifest",
-    "name": "RingCentral RingCX",
-    "packageName": "@cognidesk/integration-contact-center-ringcentral",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "RingCentral RingCX",
-      "summary": "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
-      "tags": [
-        "contact-center",
-        "ringcentral",
-        "official",
-        "support-workflow-subset"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "label": "Create RingCX handoff",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "ringcxHandoff",
-            "label": "RingCX Handoff"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": true,
-        "extension": false
-      },
-      {
-        "capability": "read-provider-object",
-        "label": "Check RingCentral readiness",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "ringcentralReadiness",
-            "label": "RingCentral Readiness"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "support-workflow-subset",
-      "notes": [
-        "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
-        "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation that the old monolith generated.",
-        "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness plus raw SDK request escape hatches.",
-        "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk."
-      ],
-      "evidence": [
-        {
-          "label": "RingCentral JavaScript SDK",
-          "url": "https://github.com/ringcentral/ringcentral-js"
-        },
-        {
-          "label": "RingCX Voice APIs",
-          "url": "https://developers.ringcentral.com/engage-voice-api"
-        },
-        {
-          "label": "RingCX Digital APIs",
-          "url": "https://developers.ringcentral.com/engage-digital-api"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "support-workflow-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.handoff.status.read"
-        ],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "official-sdk",
-      "sdkPackage": "@ringcentral/sdk",
-      "runtimePackage": "@cognidesk/integration-contact-center-ringcentral",
-      "providerModule": "integrations/contact-center/ringcentral/dist/manifest.js",
-      "manifestExport": "ringCentralContactCenterManifest",
-      "manifestSource": "integrations/contact-center/ringcentral/src/manifest.ts",
-      "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://github.com/ringcentral/ringcentral-js"
-    },
-    "readiness": {
-      "mode": "credential-and-live-check",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "ringcentral-api-base",
-        "ringcentral-api-access"
-      ],
-      "optionalCredentialIds": [
-        "ringcentral-ringcx-routing"
-      ],
-      "credentialRequirements": [
-        {
-          "id": "ringcentral-api-base",
-          "label": "RingCentral API base URL",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "ringcentral-api-access",
-          "label": "RingCentral API access",
-          "description": "RingCentral SDK OAuth access or an injected SDK platform client.",
-          "scopes": [],
-          "required": true,
-          "metadata": {
-            "scopeKind": "mixed-auth-mode",
-            "privilegeGuidance": "RingCX deployments may still require product-specific permissions beyond RingCentral OAuth token possession."
-          }
-        },
-        {
-          "id": "ringcentral-ringcx-routing",
-          "label": "RingCX handoff/readiness routing configuration",
-          "scopes": [],
-          "required": false
-        }
-      ]
-    },
-    "privacyNotes": [
-      "RingCX handoffs can include customer identifiers, queue/campaign metadata, and conversation summaries.",
-      "RingCentral OAuth credentials stay inside the SDK user's runtime configuration."
-    ],
-    "limitations": [
-      "RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.",
-      "Legacy RingCX Voice APIs, product-private endpoints, Channel SDK runtime, web/mobile widgets, and broader RingCentral platform APIs remain separate surfaces."
-    ],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "implementation": {
-        "strategy": "official-sdk-plus-reviewed-slices",
-        "sdkPackage": "@ringcentral/sdk",
-        "sdkPackages": [
-          "@ringcentral/sdk"
-        ]
-      },
-      "channelCoverage": {
-        "configuredHttpHandoff": "sdk-dispatched",
-        "configuredReadiness": "sdk-dispatched",
-        "rawRingCentralSdkPlatform": "escape-hatch",
-        "currentVoiceRestApiOperations": "provider-supported-not-typed",
-        "digitalRestApiOperations": "provider-supported-not-typed",
-        "channelSdkMessaging": "provider-supported-sdk-runtime-not-typed"
-      },
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.handoff.status.read"
-        ],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.8x8",
-    "category": "contactCenter",
-    "provider": "8x8",
-    "importPath": "@cognidesk/integration-contact-center-8x8/manifest",
-    "modulePath": "integrations/contact-center/8x8/dist/manifest.js",
-    "manifestExport": "eightByEightProviderManifest",
-    "name": "8x8 Contact Center",
-    "packageName": "@cognidesk/integration-contact-center-8x8",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "8x8 Contact Center",
-      "summary": "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.",
-      "tags": [
-        "contactCenter",
-        "8x8",
-        "official",
-        "support-workflow-subset"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contactTransfer",
-            "label": "contactTransfer"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "send",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contact",
-            "label": "contact"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "update-provider-object",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contact",
-            "label": "contact"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      },
-      {
-        "capability": "update-provider-object",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "agent",
-            "label": "agent"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "support-workflow-subset",
-      "notes": [
-        "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone."
-      ],
-      "evidence": [
-        {
-          "label": "8x8 Contact Center Call API OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json"
-        },
-        {
-          "label": "8x8 Contact Center Agent Status OpenAPI",
-          "url": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "support-workflow-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.agent.status.update"
-        ],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integration-contact-center-8x8",
-      "runtimePackage": "@cognidesk/integration-contact-center-8x8",
-      "providerModule": "integrations/contact-center/8x8/dist/manifest.js",
-      "manifestExport": "eightByEightProviderManifest",
-      "manifestSource": "integrations/contact-center/8x8/src/manifest.ts",
-      "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json"
-    },
-    "readiness": {
-      "mode": "credential-configuration",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "8x8-contact-center-api-base",
-        "8x8-contact-center-api-access"
-      ],
-      "optionalCredentialIds": [
-        "8x8-contact-center-routing"
-      ],
-      "credentialRequirements": [
-        {
-          "id": "8x8-contact-center-api-base",
-          "label": "8x8 Contact Center API base URL",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "8x8-contact-center-api-access",
-          "label": "8x8 Contact Center API access",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "8x8-contact-center-routing",
-          "label": "8x8 queue/campaign routing configuration",
-          "scopes": [],
-          "required": false
-        }
-      ]
-    },
-    "privacyNotes": [],
-    "limitations": [],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "implementation": {
-        "implementationStrategy": "generated-support-slice",
-        "sdkDecision": "No viable official server-side JavaScript Contact Center SDK was verified; the package keeps selected official OpenAPI support operations instead of a full provider clone.",
-        "verifiedAt": "2026-06-21",
-        "allowedOperations": [
-          {
-            "id": "placePhoneCall",
-            "alias": "contactCenter.contact.start",
-            "method": "POST",
-            "path": "/tenants/{tenantId}/calls",
-            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
-            "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
-          },
-          {
-            "id": "deletePhoneInteraction",
-            "alias": "contactCenter.contact.end",
-            "method": "DELETE",
-            "path": "/tenants/{tenantId}/calls/{interactionId}",
-            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_call_api.json",
-            "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
-          },
-          {
-            "id": "setagentstatus",
-            "alias": "contactCenter.agent.status.update",
-            "method": "PUT",
-            "path": "/tenants/{tenantId}/agentstatus/agents/{agentId}",
-            "source": "https://raw.githubusercontent.com/8x8Cloud/public-developer-docs/master/docs_oas/actions-events/contact_center_agent_status_api.json",
-            "checksum": "sha256:89ba77f48f7a471fb21c34dfb0c7170c1a90b7ea08da8de65981049ade09c2ae"
-          }
-        ]
-      },
-      "manifestOnlySafe": true,
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.agent.status.update"
-        ],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.aircall",
-    "category": "contactCenter",
-    "provider": "aircall",
-    "importPath": "@cognidesk/integration-contact-center-aircall/manifest",
-    "modulePath": "integrations/contact-center/aircall/dist/manifest.js",
-    "manifestExport": "aircallProviderManifest",
-    "name": "Aircall",
-    "packageName": "@cognidesk/integration-contact-center-aircall",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "Aircall",
-      "summary": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
-      "tags": [
-        "contactCenter",
-        "aircall",
-        "official",
-        "support-workflow-subset"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contactTransfer",
-            "label": "contactTransfer"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "support-workflow-subset",
-      "notes": [
-        "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls."
-      ],
-      "evidence": [
-        {
-          "label": "Aircall API References",
-          "url": "https://developer.aircall.io/api-references/"
-        },
-        {
-          "label": "Aircall Everywhere SDK",
-          "url": "https://github.com/aircall/aircall-everywhere"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "support-workflow-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [
-          "contactCenter.handoff.request"
-        ],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integration-contact-center-aircall",
-      "runtimePackage": "@cognidesk/integration-contact-center-aircall",
-      "providerModule": "integrations/contact-center/aircall/dist/manifest.js",
-      "manifestExport": "aircallProviderManifest",
-      "manifestSource": "integrations/contact-center/aircall/src/manifest.ts",
-      "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.aircall.io/api-references/"
-    },
-    "readiness": {
-      "mode": "credential-configuration",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "aircall-api-base",
-        "aircall-api-access"
-      ],
-      "optionalCredentialIds": [
-        "aircall-routing"
-      ],
-      "credentialRequirements": [
-        {
-          "id": "aircall-api-base",
-          "label": "Aircall Public API base URL",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "aircall-api-access",
-          "label": "Aircall API access",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "aircall-routing",
-          "label": "Aircall number/team/routing configuration",
-          "scopes": [],
-          "required": false
-        }
-      ]
-    },
-    "privacyNotes": [],
-    "limitations": [],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "implementation": {
-        "implementationStrategy": "direct-http-support-slice",
-        "sdkDecision": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
-        "verifiedAt": "2026-06-21",
-        "allowedOperations": [
-          {
-            "id": "configuredHandoff",
-            "alias": "contactCenter.handoff.request",
-            "method": "POST",
-            "path": "host-configured",
-            "source": "host-configured",
-            "checksum": "not-applicable-host-configured"
-          }
-        ]
-      },
-      "manifestOnlySafe": true,
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [
-          "contactCenter.handoff.request"
-        ],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.five9",
-    "category": "contactCenter",
-    "provider": "five9",
-    "importPath": "@cognidesk/integration-contact-center-five9/manifest",
-    "modulePath": "integrations/contact-center/five9/dist/manifest.js",
-    "manifestExport": "five9ProviderManifest",
-    "name": "Five9",
-    "packageName": "@cognidesk/integration-contact-center-five9",
-    "trustLevel": "official",
-    "directions": [
-      "inbound-only",
-      "outbound-only",
-      "bidirectional"
-    ],
-    "channelAudiences": [
-      "customer-facing",
-      "internal-support",
-      "mixed"
-    ],
-    "display": {
-      "label": "Five9",
-      "summary": "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
-      "tags": [
-        "contactCenter",
-        "five9",
-        "official",
-        "support-workflow-subset"
-      ]
-    },
-    "capabilities": [
-      {
-        "capability": "handoff",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contactTransfer",
-            "label": "contactTransfer"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
-      }
-    ],
-    "coverage": {
-      "scope": "support-workflow-subset",
-      "notes": [
-        "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented."
-      ],
-      "evidence": [
-        {
-          "label": "Five9 Contact Center APIs and SDKs",
-          "url": "https://www.five9.com/products/capabilities/call-center-apis-and-sdks"
-        },
-        {
-          "label": "Five9 development program",
-          "url": "https://www.five9.com/development"
-        }
-      ]
-    },
-    "adapterCoverage": {
-      "scope": "support-workflow-subset",
-      "level": "partial",
-      "conformant": false,
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [
-          "contactCenter.handoff.request"
-        ],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    },
-    "implementation": {
-      "strategy": "support-workflow-adapter",
-      "sdkPackage": "@cognidesk/integration-contact-center-five9",
-      "runtimePackage": "@cognidesk/integration-contact-center-five9",
-      "providerModule": "integrations/contact-center/five9/dist/manifest.js",
-      "manifestExport": "five9ProviderManifest",
-      "manifestSource": "integrations/contact-center/five9/src/manifest.ts",
-      "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://www.five9.com/products/capabilities/call-center-apis-and-sdks"
-    },
-    "readiness": {
-      "mode": "credential-configuration",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
-        "five9-api-base",
-        "five9-api-access"
-      ],
-      "optionalCredentialIds": [
-        "five9-routing"
-      ],
-      "credentialRequirements": [
-        {
-          "id": "five9-api-base",
-          "label": "Five9 API base URL",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "five9-api-access",
-          "label": "Five9 API access",
-          "scopes": [],
-          "required": true
-        },
-        {
-          "id": "five9-routing",
-          "label": "Five9 skill/campaign routing configuration",
-          "scopes": [],
-          "required": false
-        }
-      ]
-    },
-    "privacyNotes": [],
-    "limitations": [],
-    "maintainers": [
-      {
-        "name": "Cognidesk",
-        "type": "official"
-      }
-    ],
-    "metadata": {
-      "implementation": {
-        "implementationStrategy": "direct-http-support-slice",
-        "sdkDecision": "No viable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
-        "verifiedAt": "2026-06-21",
-        "allowedOperations": [
-          {
-            "id": "configuredHandoff",
-            "alias": "contactCenter.handoff.request",
-            "method": "POST",
-            "path": "host-configured",
-            "source": "host-configured",
-            "checksum": "not-applicable-host-configured"
-          }
-        ]
-      },
-      "manifestOnlySafe": true,
-      "categoryProfileId": "contact-center",
-      "integrationCategoryProfileId": "contact-center",
-      "categoryProfile": {
-        "id": "contact-center",
-        "coverage": "partial",
-        "conformant": false,
-        "matchedOperations": [
-          "contactCenter.handoff.request"
-        ],
-        "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
-        ],
-        "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
-        ],
-        "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
-        ],
-        "extensionOperations": []
-      }
-    }
-  },
-  {
-    "id": "contactCenter.genesys-engage",
-    "category": "contactCenter",
     "provider": "genesys-engage",
     "importPath": "@cognidesk/integration-contact-center-genesys-engage/manifest",
     "modulePath": "integrations/contact-center/genesys-engage/dist/manifest.js",
@@ -2104,7 +1864,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "label": "Genesys Engage / GMS",
       "summary": "No viable GMS Chat API v2 or Engage Callback JavaScript SDK was verified; the package keeps selected GMS support operations.",
       "tags": [
-        "contactCenter",
+        "contact-center",
         "genesys-engage",
         "official",
         "support-workflow-subset"
@@ -2155,21 +1915,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
-      },
-      {
-        "capability": "send",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contact",
-            "label": "contact"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": true,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
       }
     ],
     "coverage": {
@@ -2197,32 +1942,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-engage.chat.send"
@@ -2286,7 +2031,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "createCallback",
-            "alias": "contactCenter.callback.schedule",
+            "alias": "contact-center.callback.schedule",
             "method": "POST",
             "path": "/genesys/1/service/callback/{serviceName}",
             "source": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI",
@@ -2294,7 +2039,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "requestChat",
-            "alias": "contactCenter.contact.start",
+            "alias": "contact-center.contact.start",
             "method": "POST",
             "path": "/genesys/2/chat/{serviceName}",
             "source": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
@@ -2318,32 +2063,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-engage.chat.send"
@@ -2352,8 +2097,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.genesys-pureconnect",
-    "category": "contactCenter",
+    "id": "contact-center.genesys-pureconnect",
+    "category": "contact-center",
     "provider": "genesys-pureconnect",
     "importPath": "@cognidesk/integration-contact-center-genesys-pureconnect/manifest",
     "modulePath": "integrations/contact-center/genesys-pureconnect/dist/manifest.js",
@@ -2375,7 +2120,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "label": "Genesys PureConnect / ICWS",
       "summary": "No viable official JavaScript SDK was verified for PureConnect ICWS or Interaction Web Tools; the package keeps selected ICWS support operations.",
       "tags": [
-        "contactCenter",
+        "contact-center",
         "genesys-pureconnect",
         "official",
         "support-workflow-subset"
@@ -2453,32 +2198,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-pureconnect.icws.connect",
@@ -2567,32 +2312,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "genesys-pureconnect.icws.connect",
@@ -2602,8 +2347,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.nextiva",
-    "category": "contactCenter",
+    "id": "contact-center.nextiva",
+    "category": "contact-center",
     "provider": "nextiva",
     "importPath": "@cognidesk/integration-contact-center-nextiva/manifest",
     "modulePath": "integrations/contact-center/nextiva/dist/manifest.js",
@@ -2625,7 +2370,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "label": "Nextiva Contact Center",
       "summary": "ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request.",
       "tags": [
-        "contactCenter",
+        "contact-center",
         "nextiva",
         "official",
         "support-workflow-subset"
@@ -2692,32 +2437,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "nextiva.request"
@@ -2781,7 +2526,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "configuredHandoff",
-            "alias": "contactCenter.handoff.request",
+            "alias": "contact-center.handoff.request",
             "method": "POST",
             "path": "host-configured",
             "source": "host-configured",
@@ -2797,32 +2542,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request"
+          "contact-center.handoff.request"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "nextiva.request"
@@ -2831,8 +2576,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.nice-cxone",
-    "category": "contactCenter",
+    "id": "contact-center.nice-cxone",
+    "category": "contact-center",
     "provider": "nice-cxone",
     "importPath": "@cognidesk/integration-contact-center-nice-cxone/manifest",
     "modulePath": "integrations/contact-center/nice-cxone/dist/manifest.js",
@@ -2854,7 +2599,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "label": "NICE CXone",
       "summary": "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.",
       "tags": [
-        "contactCenter",
+        "contact-center",
         "nice-cxone",
         "official",
         "support-workflow-subset"
@@ -2962,32 +2707,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "nice-cxone.request"
@@ -3051,7 +2796,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "scheduleACallback",
-            "alias": "contactCenter.callback.schedule",
+            "alias": "contact-center.callback.schedule",
             "method": "POST",
             "path": "/promise",
             "source": "https://developer.niceincontact.com/content/apis/patron/patron-callback-api-docs",
@@ -3059,7 +2804,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "startChatSession",
-            "alias": "contactCenter.contact.start",
+            "alias": "contact-center.contact.start",
             "method": "POST",
             "path": "/contacts/chats",
             "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
@@ -3067,7 +2812,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "endChat",
-            "alias": "contactCenter.contact.end",
+            "alias": "contact-center.contact.end",
             "method": "DELETE",
             "path": "/contacts/chats/{chatSession}",
             "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
@@ -3083,32 +2828,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "nice-cxone.request"
@@ -3117,8 +2862,248 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "contactCenter.talkdesk",
-    "category": "contactCenter",
+    "id": "contact-center.ringcentral",
+    "category": "contact-center",
+    "provider": "ringcentral",
+    "importPath": "@cognidesk/integration-contact-center-ringcentral/manifest",
+    "modulePath": "integrations/contact-center/ringcentral/dist/manifest.js",
+    "manifestExport": "ringCentralContactCenterManifest",
+    "name": "RingCentral RingCX",
+    "packageName": "@cognidesk/integration-contact-center-ringcentral",
+    "trustLevel": "official",
+    "directions": [
+      "inbound-only",
+      "outbound-only",
+      "bidirectional"
+    ],
+    "channelAudiences": [
+      "customer-facing",
+      "internal-support",
+      "mixed"
+    ],
+    "display": {
+      "label": "RingCentral RingCX",
+      "summary": "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
+      "tags": [
+        "contact-center",
+        "ringcentral",
+        "official",
+        "support-workflow-subset"
+      ]
+    },
+    "capabilities": [
+      {
+        "capability": "handoff",
+        "label": "Create RingCX handoff",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "ringcxHandoff",
+            "label": "RingCX Handoff"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "label": "Check RingCentral readiness",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "ringcentralReadiness",
+            "label": "RingCentral Readiness"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      }
+    ],
+    "coverage": {
+      "scope": "support-workflow-subset",
+      "notes": [
+        "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
+        "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation.",
+        "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness plus raw SDK request escape hatches.",
+        "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk."
+      ],
+      "evidence": [
+        {
+          "label": "RingCentral JavaScript SDK",
+          "url": "https://github.com/ringcentral/ringcentral-js"
+        },
+        {
+          "label": "RingCX Voice APIs",
+          "url": "https://developers.ringcentral.com/engage-voice-api"
+        },
+        {
+          "label": "RingCX Digital APIs",
+          "url": "https://developers.ringcentral.com/engage-digital-api"
+        }
+      ]
+    },
+    "adapterCoverage": {
+      "scope": "support-workflow-subset",
+      "level": "partial",
+      "conformant": false,
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contact-center.handoff.request",
+          "contact-center.handoff.status.read"
+        ],
+        "missingRequiredOperations": [
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    },
+    "implementation": {
+      "strategy": "official-sdk",
+      "sdkPackage": "@ringcentral/sdk",
+      "runtimePackage": "@cognidesk/integration-contact-center-ringcentral",
+      "providerModule": "integrations/contact-center/ringcentral/dist/manifest.js",
+      "manifestExport": "ringCentralContactCenterManifest",
+      "manifestSource": "integrations/contact-center/ringcentral/src/manifest.ts",
+      "manifestSourceKind": "manifest-only",
+      "documentationPath": "https://github.com/ringcentral/ringcentral-js"
+    },
+    "readiness": {
+      "mode": "credential-and-live-check",
+      "requiresCredentials": true,
+      "requiredCredentialIds": [
+        "ringcentral-api-base",
+        "ringcentral-api-access"
+      ],
+      "optionalCredentialIds": [
+        "ringcentral-ringcx-routing"
+      ],
+      "credentialRequirements": [
+        {
+          "id": "ringcentral-api-base",
+          "label": "RingCentral API base URL",
+          "scopes": [],
+          "required": true
+        },
+        {
+          "id": "ringcentral-api-access",
+          "label": "RingCentral API access",
+          "description": "RingCentral SDK OAuth access or an injected SDK platform client.",
+          "scopes": [],
+          "required": true,
+          "metadata": {
+            "scopeKind": "mixed-auth-mode",
+            "privilegeGuidance": "RingCX deployments may still require product-specific permissions beyond RingCentral OAuth token possession."
+          }
+        },
+        {
+          "id": "ringcentral-ringcx-routing",
+          "label": "RingCX handoff/readiness routing configuration",
+          "scopes": [],
+          "required": false
+        }
+      ]
+    },
+    "privacyNotes": [
+      "RingCX handoffs can include customer identifiers, queue/campaign metadata, and conversation summaries.",
+      "RingCentral OAuth credentials stay inside the SDK user's runtime configuration."
+    ],
+    "limitations": [
+      "RingCX API product, regional endpoint, queue/campaign IDs, and outbound eligibility are SDK-user configuration.",
+      "Legacy RingCX Voice APIs, product-private endpoints, Channel SDK runtime, web/mobile widgets, and broader RingCentral platform APIs remain separate surfaces."
+    ],
+    "maintainers": [
+      {
+        "name": "Cognidesk",
+        "type": "official"
+      }
+    ],
+    "metadata": {
+      "implementation": {
+        "strategy": "official-sdk-plus-reviewed-slices",
+        "sdkPackage": "@ringcentral/sdk",
+        "sdkPackages": [
+          "@ringcentral/sdk"
+        ]
+      },
+      "channelCoverage": {
+        "configuredHttpHandoff": "sdk-dispatched",
+        "configuredReadiness": "sdk-dispatched",
+        "rawRingCentralSdkPlatform": "escape-hatch",
+        "currentVoiceRestApiOperations": "provider-supported-not-typed",
+        "digitalRestApiOperations": "provider-supported-not-typed",
+        "channelSdkMessaging": "provider-supported-sdk-runtime-not-typed"
+      },
+      "categoryProfileId": "contact-center",
+      "integrationCategoryProfileId": "contact-center",
+      "categoryProfile": {
+        "id": "contact-center",
+        "coverage": "partial",
+        "conformant": false,
+        "matchedOperations": [
+          "contact-center.handoff.request",
+          "contact-center.handoff.status.read"
+        ],
+        "missingRequiredOperations": [
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
+        ],
+        "missingRecommendedOperations": [
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
+        ],
+        "missingOptionalOperations": [
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
+        ],
+        "extensionOperations": []
+      }
+    }
+  },
+  {
+    "id": "contact-center.talkdesk",
+    "category": "contact-center",
     "provider": "talkdesk",
     "importPath": "@cognidesk/integration-contact-center-talkdesk/manifest",
     "modulePath": "integrations/contact-center/talkdesk/dist/manifest.js",
@@ -3140,7 +3125,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "label": "Talkdesk",
       "summary": "No viable official npm REST SDK was verified; this package keeps selected official OpenAPI operations for callback and case creation.",
       "tags": [
-        "contactCenter",
+        "contact-center",
         "talkdesk",
         "official",
         "support-workflow-subset"
@@ -3182,8 +3167,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "audiences": [],
         "providerObjects": [
           {
-            "kind": "contactCenterTask",
-            "label": "contactCenterTask"
+            "kind": "contact-center-task",
+            "label": "Contact Center Task"
           }
         ],
         "requiresCredential": true,
@@ -3218,32 +3203,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.task.create",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.task.create",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
@@ -3305,7 +3290,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "calls-callback-post",
-            "alias": "contactCenter.callback.schedule",
+            "alias": "contact-center.callback.schedule",
             "method": "POST",
             "path": "/calls/callback",
             "source": "https://api-docs.talkdeskapp.com/public-api",
@@ -3313,7 +3298,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "CreatingACase",
-            "alias": "contactCenter.task.create",
+            "alias": "contact-center.task.create",
             "method": "POST",
             "path": "/cm/core/va/cases",
             "source": "https://api-docs.talkdeskapp.com/public-api",
@@ -3329,40 +3314,40 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.handoff.request",
-          "contactCenter.task.create",
-          "contactCenter.callback.schedule"
+          "contact-center.handoff.request",
+          "contact-center.task.create",
+          "contact-center.callback.schedule"
         ],
         "missingRequiredOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.contact.read",
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.start",
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.update",
-          "contactCenter.transcript.read"
+          "contact-center.contact.start",
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.update",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": []
       }
     }
   },
   {
-    "id": "contactCenter.zoom",
-    "category": "contactCenter",
+    "id": "contact-center.zoom",
+    "category": "contact-center",
     "provider": "zoom",
     "importPath": "@cognidesk/integration-contact-center-zoom/manifest",
     "modulePath": "integrations/contact-center/zoom/dist/manifest.js",
@@ -3384,7 +3369,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "label": "Zoom Contact Center",
       "summary": "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center REST client; this package keeps selected official Contact Center REST/webhook operations.",
       "tags": [
-        "contactCenter",
+        "contact-center",
         "zoom",
         "official",
         "support-workflow-subset"
@@ -3435,21 +3420,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
-      },
-      {
-        "capability": "read-provider-object",
-        "audiences": [],
-        "providerObjects": [
-          {
-            "kind": "contact",
-            "label": "contact"
-          }
-        ],
-        "requiresCredential": true,
-        "sideEffect": false,
-        "exposesSensitiveData": true,
-        "changesWorkflow": false,
-        "extension": false
       }
     ],
     "coverage": {
@@ -3481,32 +3451,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start"
+          "contact-center.contact.read",
+          "contact-center.handoff.request",
+          "contact-center.contact.start"
         ],
         "missingRequiredOperations": [
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "zoom.request"
@@ -3570,7 +3540,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "allowedOperations": [
           {
             "id": "Startworkitemengagement",
-            "alias": "contactCenter.contact.start",
+            "alias": "contact-center.contact.start",
             "method": "POST",
             "path": "/contact_center/engagement",
             "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
@@ -3578,7 +3548,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           },
           {
             "id": "getEngagement",
-            "alias": "contactCenter.contact.read",
+            "alias": "contact-center.contact.read",
             "method": "GET",
             "path": "/contact_center/engagements/{engagementId}",
             "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
@@ -3594,32 +3564,32 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "coverage": "partial",
         "conformant": false,
         "matchedOperations": [
-          "contactCenter.contact.read",
-          "contactCenter.handoff.request",
-          "contactCenter.contact.start"
+          "contact-center.contact.read",
+          "contact-center.handoff.request",
+          "contact-center.contact.start"
         ],
         "missingRequiredOperations": [
-          "contactCenter.queue.list",
-          "contactCenter.transfer.request"
+          "contact-center.queue.list",
+          "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
-          "contactCenter.contact.end",
-          "contactCenter.queue.status.read",
-          "contactCenter.agent.list",
-          "contactCenter.agent.status.update",
-          "contactCenter.task.create",
-          "contactCenter.task.update",
-          "contactCenter.callback.schedule",
-          "contactCenter.transcript.read"
+          "contact-center.contact.end",
+          "contact-center.queue.status.read",
+          "contact-center.agent.list",
+          "contact-center.agent.status.update",
+          "contact-center.task.create",
+          "contact-center.task.update",
+          "contact-center.callback.schedule",
+          "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
-          "contactCenter.handoff.status.read",
-          "contactCenter.recording.read",
-          "contactCenter.routingProfile.read",
-          "contactCenter.conversation.monitor",
-          "contactCenter.conversation.whisper",
-          "contactCenter.conversation.barge",
-          "contactCenter.analytics.queueMetrics.read"
+          "contact-center.handoff.status.read",
+          "contact-center.recording.read",
+          "contact-center.routingProfile.read",
+          "contact-center.conversation.monitor",
+          "contact-center.conversation.whisper",
+          "contact-center.conversation.barge",
+          "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
           "zoom.request"
@@ -6273,7 +6243,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestExport": "cognideskFormsProviderManifest",
       "manifestSource": "integrations/form/cognidesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "website/guides/provider-integrations-catalog.md#form-cognidesk"
+      "documentationPath": "website/guides/provider-integrations-catalog.md#cognidesk-forms"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -6325,8 +6295,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     }
   },
   {
-    "id": "helpcenter.cognidesk",
-    "category": "helpCenter",
+    "id": "help-center.cognidesk",
+    "category": "help-center",
     "provider": "cognidesk",
     "importPath": "@cognidesk/integration-help-center-cognidesk/manifest",
     "modulePath": "integrations/help-center/cognidesk/dist/manifest.js",
@@ -6347,7 +6317,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "label": "Cognidesk Help Center",
       "summary": "Coverage is limited to Cognidesk local or generic HTTP help-center source search/fetch/readiness plus Cognidesk HMAC webhook normalization.",
       "tags": [
-        "helpCenter",
+        "help-center",
         "cognidesk",
         "official",
         "local-protocol"
@@ -6365,7 +6335,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "helpCenterArticle",
+            "kind": "help-center-article",
             "label": "Help Center Article"
           }
         ],
@@ -6386,7 +6356,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "helpCenterArticle",
+            "kind": "help-center-article",
             "label": "Help Center Article"
           }
         ],
@@ -6406,7 +6376,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "helpCenterWebhook",
+            "kind": "help-center-webhook",
             "label": "Help Center Webhook"
           }
         ],
@@ -6417,7 +6387,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
-        "capability": "helpCenter.webhook-signature",
+        "capability": "help-center.webhook-signature",
         "label": "Validate help center webhook signatures",
         "description": "Validates HMAC-SHA256 signatures for generic help center content webhooks.",
         "audiences": [
@@ -6425,7 +6395,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ],
         "providerObjects": [
           {
-            "kind": "signedHelpCenterWebhook",
+            "kind": "signed-help-center-webhook",
             "label": "Signed Help Center Webhook"
           }
         ],
@@ -6457,27 +6427,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestExport": "cognideskHelpCenterProviderManifest",
       "manifestSource": "integrations/help-center/cognidesk/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "website/guides/provider-integrations-catalog.md#helpcenter-cognidesk"
+      "documentationPath": "website/guides/provider-integrations-catalog.md#cognidesk-help-center"
     },
     "readiness": {
       "mode": "credential-and-live-check",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "helpcenter-source"
+        "help-center-source"
       ],
       "optionalCredentialIds": [
-        "helpcenter-webhook-secret"
+        "help-center-webhook-secret"
       ],
       "credentialRequirements": [
         {
-          "id": "helpcenter-source",
+          "id": "help-center-source",
           "label": "Help center source",
           "description": "SDK-user-configured local or HTTP help center content source.",
           "scopes": [],
           "required": true
         },
         {
-          "id": "helpcenter-webhook-secret",
+          "id": "help-center-webhook-secret",
           "label": "Help center webhook secret",
           "description": "Shared HMAC secret used to verify help center content webhooks.",
           "scopes": [],
@@ -6708,7 +6678,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "marketplace.sigv4",
         "label": "Sign Amazon SP-API requests",
-        "description": "Optionally signs SP-API REST requests with AWS SigV4 for SDK users that still operate signed gateways or legacy authorization paths.",
+        "description": "Optionally signs SP-API REST requests with AWS SigV4 for SDK users that operate signed gateways or explicit authorization paths.",
         "audiences": [
           "internal-support"
         ],
@@ -6766,7 +6736,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "official-sdk",
+      "strategy": "official-sdk-plus-support-slice",
       "sdkPackage": "@amazon-sp-api-release/amazon-sp-api-sdk-js",
       "runtimePackage": "@cognidesk/integration-marketplace-amazon",
       "providerModule": "integrations/marketplace/amazon/dist/manifest.js",
@@ -6806,7 +6776,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "amazon-aws-role-region",
           "label": "Amazon SP-API AWS role and region",
-          "description": "Optional IAM role/region and SigV4 material for SDK users who operate through legacy or gateway signing paths.",
+          "description": "Optional IAM role/region and SigV4 material for SDK users who operate through signed gateway paths.",
           "scopes": [],
           "required": false
         },
@@ -7201,7 +7171,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "notes": [
         "Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.",
         "The selected REST slice now covers every documented operation in the currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource groups, but does not claim full eBay platform coverage.",
-        "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or Trading/Browse/Finding legacy surfaces.",
+        "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces.",
         "The Fulfillment API issueRefund path supports eBay HTTP Message Signature headers for EU/UK seller policy, but the SDK user must provide Key Management API signing material or a request signer.",
         "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, and retention decisions."
       ],
@@ -10507,7 +10477,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "Coverage is typed for selected Messenger Platform support workflows: Page messages send, text payloads, sender actions, attachment payload/upload helpers, conversation/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation.",
-        "Meta's current Messenger routing surface is Conversation Routing; legacy Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package.",
+        "Meta's current Messenger routing surface is Conversation Routing; deprecated Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package.",
         "This is not full Messenger Platform coverage; Messenger profile, persistent menu, personas, discovery and engagement tools, account linking, NLP, analytics, marketing messages, conversation routing configuration, and broader Page/Graph administration remain outside this adapter."
       ],
       "evidence": [
@@ -10616,7 +10586,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "limitations": [
       "Available operations depend on the SDK user's Meta app mode, Page connection, permissions, Page access token, webhook subscriptions, and messaging window rules.",
-      "Meta no longer supports Handover Protocol as the normal Messenger routing model; SDK users should configure Conversation Routing outside this adapter, and the thread-control client methods are legacy escape hatches only.",
+      "Meta no longer supports Handover Protocol as the normal Messenger routing model; SDK users should configure Conversation Routing outside this adapter, and the thread-control client methods are deprecated provider escape hatches only.",
       "Consent, outbound-contact policy, human escalation, attachment retention, redaction, and deletion behavior remain SDK-user configuration.",
       "This package provides Messenger transport helpers and does not choose default automation, promotional messaging, retry, or rate-limit policy."
     ],
@@ -10634,7 +10604,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "conversations": "typed-list-read",
         "pageReadiness": "typed-read",
         "webhooks": "typed-challenge-verify-parse",
-        "legacyHandoverProtocol": "legacy-provider-supported-typed-thread-control",
+        "handoverProtocolThreadControl": "provider-supported-deprecated-typed-thread-control",
         "conversationRouting": "provider-supported-not-typed"
       },
       "docs": "https://developers.facebook.com/docs/messenger-platform",
@@ -14688,7 +14658,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "notes": [
         "Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.",
         "Implementation uses maintained jsforce v3. Broader Salesforce APIs and org-specific sObjects remain accessible through rawClient, but are not Cognidesk adapter coverage.",
-        "Generated or direct monolith code should be removed only after this package's replacement tests pass."
+        "Generated or direct raw Salesforce slices should stay scoped to reviewed Service Cloud support workflows."
       ],
       "evidence": [
         {
@@ -18590,7 +18560,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestExport": "sipVoiceProviderManifest",
       "manifestSource": "integrations/voice/sip/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "website/guides/provider-integrations-catalog.md#voice-sip"
+      "documentationPath": "website/guides/provider-integrations-catalog.md#generic-sip-voice-connection"
     },
     "readiness": {
       "mode": "credential-and-live-check",

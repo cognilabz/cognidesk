@@ -79,7 +79,6 @@ export const ChannelEventIdentitySchema = z.object({
 
 export const ChannelEventEnvelopeInputSchema = z.object({
   id: z.string().min(1).optional(),
-  kind: ChannelEventNatureSchema.optional(),
   nature: ChannelEventNatureSchema.optional(),
   direction: ChannelEventDirectionSchema.default("inbound"),
   intent: ChannelEventIntentSchema.optional(),
@@ -90,9 +89,21 @@ export const ChannelEventEnvelopeInputSchema = z.object({
   identity: ChannelEventIdentitySchema.optional(),
   source: ChannelEventSourceEvidenceSchema.optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
-}).passthrough().refine((value) => value.nature || value.kind, {
-  message: "Channel Event requires either nature or kind.",
-  path: ["nature"],
+}).passthrough().superRefine((value, ctx) => {
+  if (Object.prototype.hasOwnProperty.call(value, "kind")) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Channel Event uses nature; kind is not supported.",
+      path: ["kind"],
+    });
+  }
+  if (!value.nature) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Channel Event requires nature.",
+      path: ["nature"],
+    });
+  }
 });
 
 export const ChannelOutputIntentProducerSchema = z.object({

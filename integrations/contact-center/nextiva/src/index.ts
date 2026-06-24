@@ -100,7 +100,7 @@ export function createNextivaIntegration(options: NextivaClientOptions) {
   return defineIntegration({
     manifest: nextivaProviderManifestInput,
     operations: {
-      "contactCenter.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
       "nextiva.request": async (input: unknown) => client.request(input as ProviderExtensionRequestInput),
     },
   });

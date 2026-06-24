@@ -1,0 +1,12 @@
+{
+  "artifactKind": "provider-coverage-inventory",
+  "provider": "sap-service-cloud",
+  "verifiedAt": "2026-06-18",
+  "scope": "checked-c4c-odata",
+  "source": "SAP Service Cloud C4C OData metadata recorded in integrations/ticketing/sap-service-cloud/src/manifest.ts",
+  "inventory": [
+    "selected ticket/service request support surface",
+    "selected OData metadata",
+    "SDK-user-owned tenant, auth, and retention policy"
+  ]
+}

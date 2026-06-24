@@ -122,7 +122,6 @@ describe("createCognideskClient HTTP route calls", () => {
             return Response.json({
               channelEvent: {
                 id: body.event.id,
-                kind: "message",
                 nature: "message",
                 direction: "inbound",
                 channel,
@@ -305,12 +304,11 @@ describe("createCognideskClient HTTP route calls", () => {
       await client.startVoiceSegment(created.conversation.id);
       const handled = await client.handleChannelEvent({
         conversationId: created.conversation.id,
-        event: {
-          id: "provider_event_1",
-          channel,
-          kind: "message",
-          nature: "message",
-          direction: "inbound",
+          event: {
+            id: "provider_event_1",
+            channel,
+            nature: "message",
+            direction: "inbound",
           intent: "customer-message",
           actor: { type: "customer" },
           payload: { text: "hello from channel event" },
@@ -386,7 +384,6 @@ describe("createCognideskClient HTTP route calls", () => {
             event: {
               id: "provider_event_1",
               channel,
-              kind: "message",
               nature: "message",
               direction: "inbound",
               intent: "customer-message",
@@ -402,7 +399,6 @@ describe("createCognideskClient HTTP route calls", () => {
             conversationId: "conversation_1",
             event: {
               channel,
-              kind: "message",
               nature: "message",
               direction: "inbound",
               intent: "customer-message",

@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { flightDemoRoot, loadFlightDemoConfig, requireConfiguredModelApiKeys, resolveFlightDemoPath } from "./config.js";
-import { createConfiguredModelSet } from "./flight-agent.js";
+import { createConfiguredModelSet } from "./agent/index.js";
 import {
   buildFlightKnowledgeIndex,
   loadFlightKnowledgeDocuments,

@@ -16,12 +16,12 @@ import {
   type AwsPollySynthesizeCommandInput,
   type AwsSdkCommandConstructor,
   type AwsTranscribeStreamingCommandInput,
-} from "@cognidesk/integrations/voice/aws-speech";
-import { createAzureSpeechVoiceProvider } from "@cognidesk/integrations/voice/azure-speech";
-import { createDeepgramSpeechVoiceProvider } from "@cognidesk/integrations/voice/deepgram";
-import { createElevenLabsSpeechVoiceProvider } from "@cognidesk/integrations/voice/elevenlabs";
-import { createGoogleSpeechVoiceProvider } from "@cognidesk/integrations/voice/google-speech";
-import { createOpenAIVoiceProvider } from "@cognidesk/integrations/voice/openai";
+} from "@cognidesk/integration-voice-aws-speech";
+import { createAzureSpeechVoiceProvider } from "@cognidesk/integration-voice-azure-speech";
+import { createDeepgramVoiceProvider } from "@cognidesk/integration-voice-deepgram";
+import { createElevenLabsVoiceProvider } from "@cognidesk/integration-voice-elevenlabs";
+import { createGoogleSpeechVoiceProvider } from "@cognidesk/integration-voice-google-speech";
+import { createOpenAIVoiceProvider } from "@cognidesk/integration-voice-openai";
 import {
   attachNodeVoiceWebSocketAdapter,
   createInMemoryVoiceSessionStore,
@@ -31,6 +31,8 @@ import { startCognideskDemoTelemetrySeed, startCognideskOtel } from "@cognidesk/
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import { createCognideskStudioAdapter } from "@cognidesk/studio-adapter";
 import {
+  flightDemoCorsEnabled,
+  flightDemoStudioServiceToken,
   getConfiguredDiscordIntegration,
   getConfiguredVoiceProviderSecrets,
   loadFlightDemoConfig,
@@ -38,7 +40,8 @@ import {
   type ConfiguredVoiceProviderSecrets,
   type FlightDemoConfig,
 } from "./config.js";
-import { createFlightDemoRuntimeParts } from "./flight-agent.js";
+import { flightDemoRuntimeChannels } from "./agent/policies.js";
+import { createFlightDemoRuntimeParts } from "./agent/index.js";
 import { createFlightDemoVoiceControlSurface } from "./voice-control.js";
 
 const otel = process.env.COGNIDESK_OTEL === "true"
@@ -60,6 +63,7 @@ const demoTelemetrySeed = otel && process.env.COGNIDESK_OTEL_FAKE_DATA !== "fals
   : null;
 
 const config = await loadFlightDemoConfig();
+const corsEnabled = flightDemoCorsEnabled();
 const sqlitePath = resolveFlightDemoPath(config.storage.sqlitePath);
 await mkdir(dirname(sqlitePath), { recursive: true });
 
@@ -74,6 +78,7 @@ const runtime = createRuntime({
   agent,
   models,
   journeyIndex,
+  channels: flightDemoRuntimeChannels,
   topKJourneys: 3,
   streaming: {
     syntheticDeltas: true,
@@ -94,8 +99,9 @@ const discordService = discordIntegration
       copy: {
         supportThreadNamePrefix: "Flight support",
         sourceThreadNamePrefix: "Flight support",
-        promptFallbackMessage: ({ conversationUrl }) => `This step needs the web demo. Continue here: ${conversationUrl}`,
-        turnFailureMessage: ({ conversationUrl }) =>
+        promptFallbackMessage: ({ conversationUrl }: { conversationUrl: string }) =>
+          `This step needs the web demo. Continue here: ${conversationUrl}`,
+        turnFailureMessage: ({ conversationUrl }: { conversationUrl: string }) =>
           `The flight demo could not generate a response. Continue on web: ${conversationUrl}`,
       },
     })
@@ -113,7 +119,7 @@ const handler = createCognideskHttpHandler({
         }),
       }
     : {}),
-  cors: process.env.COGNIDESK_CORS === "false" ? false : true,
+  cors: corsEnabled,
   ssePollIntervalMs: 300,
 });
 
@@ -122,8 +128,8 @@ const studioAdapter = createCognideskStudioAdapter({
   agent,
   runtime,
   basePath: "/api/studio",
-  serviceToken: process.env.COGNIDESK_STUDIO_TARGET_TOKEN ?? "dev-studio-token",
-  cors: process.env.COGNIDESK_CORS === "false" ? false : true,
+  serviceToken: flightDemoStudioServiceToken(),
+  cors: corsEnabled,
 });
 
 const port = Number(process.env.PORT ?? 8787);
@@ -239,7 +245,7 @@ function demoJson(value: unknown, status = 200) {
 }
 
 function demoCorsHeaders() {
-  if (process.env.COGNIDESK_CORS === "false") return {};
+  if (!corsEnabled) return {};
   return {
     "access-control-allow-origin": "*",
     "access-control-allow-methods": "GET,POST,OPTIONS",
@@ -269,12 +275,12 @@ function createConfiguredVoiceProvider(
       if (secrets.provider !== "elevenlabs") {
         throw new Error("ElevenLabs voice configuration received mismatched credentials.");
       }
-      return createElevenLabsSpeechVoiceProvider({
+      return createElevenLabsVoiceProvider({
         apiKey: secrets.apiKey,
         voiceId: config.voice.voiceId,
         ...(config.voice.textToSpeechModelId ? { textToSpeechModelId: config.voice.textToSpeechModelId } : {}),
         ...(config.voice.speechToTextModelId ? { speechToTextModelId: config.voice.speechToTextModelId } : {}),
-        ...(config.voice.languageCode !== undefined ? { languageCode: config.voice.languageCode } : {}),
+        ...(config.voice.languageCode != null ? { languageCode: config.voice.languageCode } : {}),
         ...(config.voice.outputFormat ? { outputFormat: config.voice.outputFormat } : {}),
       });
     }
@@ -333,7 +339,7 @@ function createConfiguredVoiceProvider(
       if (secrets.provider !== "deepgram") {
         throw new Error("Deepgram voice configuration received mismatched credentials.");
       }
-      return createDeepgramSpeechVoiceProvider({
+      return createDeepgramVoiceProvider({
         apiKey: secrets.apiKey,
         textToSpeechModel: config.voice.textToSpeechModel,
         ...(config.voice.speechToTextModel ? { speechToTextModel: config.voice.speechToTextModel } : {}),

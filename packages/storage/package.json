@@ -30,7 +30,7 @@
   "scripts": {
     "build": "tsup src/index.ts src/sqlite.ts src/postgres.ts src/conformance.ts src/manifests.ts --format esm --dts --clean --platform node --external @libsql/client --external pg",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

@@ -29,7 +29,7 @@ export function ticketingManifestWithOperations(operations: TestProviderOperatio
   return {
     id: "ticketing.zendesk",
     name: "Zendesk",
-    packageName: "@cognidesk/integrations",
+    packageName: "@cognidesk/integration-ticketing-zendesk",
     provider: "zendesk",
     category: "ticketing",
     trustLevel: "community",

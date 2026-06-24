@@ -68,7 +68,7 @@ export const integrationCategoryOperationAliasMaps = {
   ecommerce: ecommerceOperationAliasMap,
   sms: smsOperationAliasMap,
   voice: voiceOperationAliasMap,
-  contactCenter: contactCenterOperationAliasMap,
+  "contact-center": contactCenterOperationAliasMap,
 } as const;
 
 export const integrationCategoryProfiles = [

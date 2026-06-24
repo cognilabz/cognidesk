@@ -137,18 +137,6 @@ optional intent?: ChannelEventIntent;
 Omit.intent
 ```
 
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-```ts
-Omit.kind
-```
-
 ##### message?
 
 ```ts
@@ -476,12 +464,6 @@ optional identityStreamId?: string;
 
 ```ts
 optional intent?: ChannelEventIntent;
-```
-
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
 ```
 
 ##### message?
@@ -913,16 +895,6 @@ optional intent?: ChannelEventIntent;
 ###### Inherited from
 
 [`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
-
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
 
 ##### message?
 
@@ -1446,16 +1418,6 @@ optional intent?: ChannelEventIntent;
 
 [`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
 
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
-
 ##### message?
 
 ```ts
@@ -1959,16 +1921,6 @@ optional intent?: ChannelEventIntent;
 ###### Inherited from
 
 [`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
-
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
 
 ##### message?
 
@@ -2474,16 +2426,6 @@ optional intent?: ChannelEventIntent;
 
 [`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
 
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
-
 ##### message?
 
 ```ts
@@ -2863,7 +2805,7 @@ optional basePath?: string;
 optional cors?: CognideskHttpCorsConfig;
 ```
 
-Enable CORS. `true` keeps the legacy wildcard behavior; prefer an object
+Enable CORS. `true` allows any origin; prefer an object
 with explicit origins for browser-facing deployments.
 
 ##### customEvents?
@@ -3511,16 +3453,6 @@ optional intent?: ChannelEventIntent;
 
 [`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
 
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
-
 ##### message?
 
 ```ts
@@ -4024,16 +3956,6 @@ optional intent?: ChannelEventIntent;
 ###### Inherited from
 
 [`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
-
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
 
 ##### message?
 
@@ -4539,16 +4461,6 @@ optional intent?: ChannelEventIntent;
 
 [`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
 
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
-
 ##### message?
 
 ```ts
@@ -5052,16 +4964,6 @@ optional intent?: ChannelEventIntent;
 ###### Inherited from
 
 [`ChannelEventSubmitInput`](#channeleventsubmitinput).[`intent`](#intent-1)
-
-##### kind?
-
-```ts
-optional kind?: ChannelEventNature;
-```
-
-###### Inherited from
-
-[`ChannelEventSubmitInput`](#channeleventsubmitinput).[`kind`](#kind-1)
 
 ##### message?
 
@@ -5742,12 +5644,6 @@ Re-exports [ChannelEventIntakeStatus](../core/dist.md#channeleventintakestatus)
 ### ChannelEventIntent
 
 Re-exports [ChannelEventIntent](../core/dist.md#channeleventintent)
-
-***
-
-### ChannelEventKind
-
-Re-exports [ChannelEventKind](../core/dist.md#channeleventkind)
 
 ***
 

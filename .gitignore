@@ -1,4 +1,5 @@
 .env
+HANDOFF.md
 apps/flight-demo/config.json
 node_modules/
 dist/
@@ -11,14 +12,13 @@ packages/*/README.md
 apps/*/*data/
 apps/*/.next
 .codex-demo-logs
+.playwright-cli/
+output/playwright/
 site/
 .cache/
 website/api-reference/generated/
 !website/api-reference/generated/
-!website/api-reference/generated/storage/
-!website/api-reference/generated/storage/**
 !website/api-reference/generated/integrations/
 !website/api-reference/generated/integrations/**
-!website/api-reference/generated/integrations/dist/
-!website/api-reference/generated/integrations/dist/**
-docs/provider-coverage/
+!website/api-reference/generated/packages/
+!website/api-reference/generated/packages/**

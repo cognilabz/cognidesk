@@ -23,7 +23,6 @@ export type {
   ChannelEventIntakeResult,
   ChannelEventIntakeStatus,
   ChannelEventIntent,
-  ChannelEventKind,
   ChannelEventNature,
   ChannelEventSourceEvidence,
   ChannelEventSourceType,

@@ -5,7 +5,6 @@ import type {
   ChannelEventEnvelopeInput,
   ChannelEventIdentity,
   ChannelEventIntent,
-  ChannelEventKind,
   ChannelEventNature,
   ChannelEventSourceEvidence,
   ConversationChannelInput,
@@ -44,7 +43,6 @@ export interface ChannelEventSubmitInput<TPayload = NormalizedChannelPayloadInpu
   event?: ChannelEventShortcutEnvelope<TPayload, TRawPayload>;
   channel?: ConversationChannelInput;
   id?: string;
-  kind?: ChannelEventKind;
   nature?: ChannelEventNature;
   direction?: ChannelEventDirection;
   intent?: ChannelEventIntent;

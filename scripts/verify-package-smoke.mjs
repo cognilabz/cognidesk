@@ -26,9 +26,6 @@ const defaultPlatformSmokePackageNames = [
   "@cognidesk/react",
   "@cognidesk/integration-catalog",
 ];
-const legacyIntegrationPackageNames = [
-  "@cognidesk/integrations",
-];
 const oneMiB = 1024 * 1024;
 const defaultPublishedDistBudgetBytes = 100 * oneMiB;
 const defaultDeclarationChunkBudgetBytes = 7 * oneMiB;
@@ -86,7 +83,6 @@ function selectSmokePackages() {
 
   const defaultNames = new Set([
     ...defaultPlatformSmokePackageNames,
-    ...legacyIntegrationPackageNames.filter((name) => workspaceByName.has(name)),
   ]);
   const packages = workspaces.filter((pkg) => {
     return defaultNames.has(pkg.name) || providerPackageNames.has(pkg.name);

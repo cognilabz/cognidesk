@@ -146,14 +146,11 @@ export const channelOutputResolutionStatuses = [
   "no-op",
 ] as const;
 
-export const coreChannelEventKinds = coreChannelEventNatures;
 export const coreChannelEventDirections = channelEventDirections;
 export const coreChannelEventActors = channelEventActorTypes;
 
 export type CoreChannelEventNature = typeof coreChannelEventNatures[number];
 export type ChannelEventNature = Extensible<CoreChannelEventNature>;
-export type CoreChannelEventKind = CoreChannelEventNature;
-export type ChannelEventKind = ChannelEventNature;
 export type ChannelEventDirection = typeof channelEventDirections[number];
 export type ChannelEventActorType = typeof channelEventActorTypes[number];
 export type CoreChannelEventDirection = ChannelEventDirection;

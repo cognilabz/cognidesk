@@ -63,6 +63,7 @@ export interface CreateCognideskStudioAdapterOptions {
   telemetry?: StudioAdapterTelemetrySource;
   basePath?: string;
   serviceToken?: string;
+  allowUnauthenticated?: boolean;
   cors?: boolean;
 }
 

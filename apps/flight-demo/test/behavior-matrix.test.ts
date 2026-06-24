@@ -3,7 +3,7 @@ import { createRuntime, type RuntimeEvent } from "@cognidesk/core";
 import { createCognideskHttpHandler } from "@cognidesk/http";
 import { createCognideskClient, type CognideskClient } from "@cognidesk/react";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
-import { createFlightDemoRuntimeParts } from "../server/flight-agent.js";
+import { createFlightDemoRuntimeParts } from "../server/agent/index.js";
 import { createTestKnowledgeIndex, createTestModelSet, testConfig } from "./fixtures.js";
 
 type MatrixTurn =

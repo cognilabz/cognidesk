@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage } from "node:http";
+import { signStudioRuntimeHeaders } from "@cognidesk/studio-contracts/runtime-auth";
 import next from "next";
 import { WebSocket, WebSocketServer } from "ws";
 import { ensureArtifactBucket } from "@/server/artifacts";
@@ -58,13 +59,18 @@ server.on("upgrade", (request, socket, head) => {
 
 function handleStudioSocket(client: WebSocket, claims: StudioSocketClaims) {
   const env = studioEnv();
+  if (!env.operatorRuntimeSecret) {
+    client.send(JSON.stringify({
+      type: "error",
+      message: "Studio Operator Runtime authentication is not configured.",
+    }));
+    client.close(1011, "Runtime authentication is not configured");
+    return;
+  }
+
   const queuedClientMessages: string[] = [];
   const upstream = new WebSocket(env.operatorRuntimeWsUrl, {
-    headers: {
-      "x-studio-user-id": claims.userId,
-      "x-studio-user-role": claims.role,
-      "x-studio-session-token": claims.sessionToken,
-    },
+    headers: signStudioRuntimeHeaders(claims, env.operatorRuntimeSecret),
   });
 
   upstream.on("open", () => {

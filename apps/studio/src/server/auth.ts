@@ -4,7 +4,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { and, eq, gt } from "drizzle-orm";
 import { db, ensureStudioDatabase } from "@/server/db/client";
 import { schema, session as sessionTable, studioAuditLog, user } from "@/server/db/schema";
-import { studioEnv } from "@/server/config";
+import { allowsLocalStudioDefaults, studioEnv } from "@/server/config";
 import type { StudioRole } from "@cognidesk/studio-contracts";
 
 const env = studioEnv();
@@ -68,9 +68,9 @@ export async function ensureBootstrapAdmin() {
   if (existing) return;
 
   const email = process.env.STUDIO_BOOTSTRAP_ADMIN_EMAIL
-    ?? (process.env.NODE_ENV === "production" ? undefined : "admin@local.cognidesk.dev");
+    ?? (allowsLocalStudioDefaults() ? "admin@local.cognidesk.dev" : undefined);
   const password = process.env.STUDIO_BOOTSTRAP_ADMIN_PASSWORD
-    ?? (process.env.NODE_ENV === "production" ? undefined : "cognidesk-studio-admin");
+    ?? (allowsLocalStudioDefaults() ? "cognidesk-studio-admin" : undefined);
   const name = process.env.STUDIO_BOOTSTRAP_ADMIN_NAME ?? "Cognidesk Studio Admin";
   if (!email || !password) return;
 

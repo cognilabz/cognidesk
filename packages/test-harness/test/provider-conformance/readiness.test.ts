@@ -7,7 +7,7 @@ describe("provider credential and live readiness conformance", () => {
         manifest: {
           id: "email.gmail",
           name: "Gmail",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-email-gmail",
           provider: "gmail",
           category: "email",
           trustLevel: "official",
@@ -35,7 +35,7 @@ describe("provider credential and live readiness conformance", () => {
         manifest: {
           id: "voice.twilio",
           name: "Twilio Voice",
-          packageName: "@cognidesk/integrations",
+          packageName: "@cognidesk/integration-voice-twilio",
           provider: "twilio",
           category: "voice",
           trustLevel: "official",

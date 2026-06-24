@@ -167,11 +167,11 @@ export function createAmazonConnectContactCenterIntegration(options: AmazonConne
   const integration = defineIntegration({
     manifest: amazonConnectContactCenterManifestInput,
     operations: {
-      "contactCenter.handoff.request": client.startTaskContact,
-      "contactCenter.task.create": client.startTaskContact,
-      "contactCenter.contact.start": client.startChatContact,
-      "contactCenter.transfer.request": client.transferContact,
-      "contactCenter.transcript.read": client.getParticipantTranscript,
+      "contact-center.handoff.request": client.startTaskContact,
+      "contact-center.task.create": client.startTaskContact,
+      "contact-center.contact.start": client.startChatContact,
+      "contact-center.transfer.request": client.transferContact,
+      "contact-center.transcript.read": client.getParticipantTranscript,
     },
   });
   return {

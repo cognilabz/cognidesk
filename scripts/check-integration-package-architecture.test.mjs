@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
-  aggregateExportSubpathForImportPath,
   isGeneratedFullProviderApiClone,
+  isSdkBackedPackage,
   manifestOnlyRuntimeImportViolationsForSource,
-  packageExportSubpaths,
-  providerReferenceImportPaths,
+  providerCoverageArtifactReferenceFailuresForSource,
+  providerSdkDependencyMetadataFailuresForPackage,
 } from "./check-integration-package-architecture.mjs";
 
 describe("isGeneratedFullProviderApiClone", () => {
@@ -42,54 +42,6 @@ describe("isGeneratedFullProviderApiClone", () => {
   });
 });
 
-describe("aggregate provider catalog export guards", () => {
-  it("maps aggregate import paths to package export subpaths", () => {
-    assert.equal(
-      aggregateExportSubpathForImportPath("@cognidesk/integrations/ticketing/zendesk"),
-      "./ticketing/zendesk",
-    );
-    assert.equal(aggregateExportSubpathForImportPath("@cognidesk/integrations"), ".");
-    assert.equal(
-      aggregateExportSubpathForImportPath("@cognidesk/integration-ticketing-zendesk/manifest"),
-      undefined,
-    );
-  });
-
-  it("reads subpath exports from package exports maps", () => {
-    assert.deepEqual(
-      packageExportSubpaths({
-        ".": {
-          import: "./dist/index.js",
-        },
-        "./ticketing/zendesk": {
-          import: "./dist/ticketing/zendesk/index.js",
-        },
-      }),
-      new Set([".", "./ticketing/zendesk"]),
-    );
-  });
-
-  it("extracts provider reference import paths from catalog source", () => {
-    const source = `
-      export const references = [
-        { "importPath": "@cognidesk/integrations/ticketing/zendesk" },
-        { importPath: "@cognidesk/integration-ticketing-salesforce/manifest" },
-      ];
-    `;
-
-    assert.deepEqual(providerReferenceImportPaths(source), [
-      {
-        importPath: "@cognidesk/integrations/ticketing/zendesk",
-        line: 3,
-      },
-      {
-        importPath: "@cognidesk/integration-ticketing-salesforce/manifest",
-        line: 4,
-      },
-    ]);
-  });
-});
-
 describe("manifestOnlyRuntimeImportViolationsForSource", () => {
   const manifestFile = "/repo/integrations/email/gmail/src/manifest.ts";
 
@@ -98,7 +50,7 @@ describe("manifestOnlyRuntimeImportViolationsForSource", () => {
       'import { defineProviderPackage } from "@cognidesk/integration-kit";',
       'import { createGmailRuntime } from "./runtime.js";',
       'import { createGmailClient } from "./client/index.js";',
-      'import { createLegacyRuntime } from "../runtime.js";',
+      'import { createProviderRuntime } from "../runtime.js";',
       'import { gmailRuntime } from "@cognidesk/integration-email-gmail/runtime";',
       'export { gmailClient } from "@cognidesk/integration-email-gmail/client/testing";',
     ].join("\n");
@@ -125,5 +77,72 @@ describe("manifestOnlyRuntimeImportViolationsForSource", () => {
     ].join("\n");
 
     assert.deepEqual(manifestOnlyRuntimeImportViolationsForSource(source, manifestFile), []);
+  });
+});
+
+describe("provider SDK dependency metadata", () => {
+  it("detects current SDK-backed provider dependencies even before metadata is declared", () => {
+    const sdkDependencies = [
+      "@amazon-sp-api-release/amazon-sp-api-sdk-js",
+      "@deepgram/sdk",
+      "@elevenlabs/elevenlabs-js",
+      "twilio",
+      "@vonage/server-sdk",
+    ];
+
+    for (const dependencyName of sdkDependencies) {
+      assert.equal(
+        isSdkBackedPackage({ dependencies: { [dependencyName]: "^1.0.0" } }),
+        true,
+        dependencyName,
+      );
+    }
+  });
+
+  it("requires provider SDK metadata to match runtime SDK dependencies", () => {
+    const pkg = {
+      name: "@cognidesk/integration-voice-deepgram",
+      packageJsonPath: "/repo/integrations/voice/deepgram/package.json",
+      packageJson: {
+        dependencies: {
+          "@cognidesk/integration-kit": "workspace:*",
+          "@deepgram/sdk": "^5.4.0",
+        },
+        cognidesk: {
+          providerPackage: true,
+          providerSdkDependencies: ["@missing/sdk"],
+        },
+      },
+    };
+
+    assert.deepEqual(
+      providerSdkDependencyMetadataFailuresForPackage(pkg).map((failure) => failure.replace(/^.*package.json: /, "")),
+      [
+        "SDK-backed provider package must list runtime SDK dependencies in cognidesk.providerSdkDependencies (@deepgram/sdk)",
+        "cognidesk.providerSdkDependencies references packages that are not runtime dependencies (@missing/sdk)",
+      ],
+    );
+  });
+});
+
+describe("providerCoverageArtifactReferenceFailuresForSource", () => {
+  it("requires coverage artifact references to resolve under docs/provider-coverage", () => {
+    const source = [
+      "export const metadata = {",
+      "  coverageArtifact: \"docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json\",",
+      "  \"operationCatalogArtifact\": \"docs/provider-coverage/zoom-meetings-api-2026-06-18.functions.json\",",
+      "  'functionCatalogArtifact': \"tmp/functions.json\",",
+      "};",
+    ].join("\n");
+
+    assert.deepEqual(
+      providerCoverageArtifactReferenceFailuresForSource(source, "/repo/integrations/video/zoom/src/manifest.ts", {
+        artifactExists: (artifactPath) => artifactPath === "docs/provider-coverage/zoom-meetings-api-2026-06-18.operations.json",
+      }).map((failure) => failure.replace(/^.*manifest.ts: /, "")),
+      [
+        "operationCatalogArtifact references missing provider coverage artifact docs/provider-coverage/zoom-meetings-api-2026-06-18.functions.json",
+        "functionCatalogArtifact must reference a repo-relative docs/provider-coverage artifact (tmp/functions.json)",
+      ],
+    );
   });
 });

@@ -27,7 +27,7 @@ export async function amazonRequest<T>(input: AmazonRequestInit & {
   const url = input.query ? appendQuery(input.url, input.query) : input.url;
   let headers: Record<string, string> = {
     accept: "application/json",
-    "user-agent": input.options.userAgent ?? "@cognidesk/integrations/0.0.2",
+    "user-agent": input.options.userAgent ?? "@cognidesk/integration-marketplace-amazon/0.0.2",
     "x-amz-access-token": input.options.accessToken ?? "",
     ...(body ? { "content-type": "application/json" } : {}),
     ...input.headers,
@@ -55,7 +55,7 @@ export async function amazonRequest<T>(input: AmazonRequestInit & {
     ...(input.signal ? { signal: input.signal } : {}),
   });
   const text = await response.text();
-  const parsed = parseAmazonResponseBody<T>(text, response.status);
+  const parsed = parseAmazonResponseBody(text, response.status);
   if (!response.ok) {
     const errorMessage = Array.isArray((parsed as { errors?: Array<{ message?: string }> }).errors)
       ? (parsed as { errors?: Array<{ message?: string }> }).errors?.[0]?.message
@@ -65,10 +65,10 @@ export async function amazonRequest<T>(input: AmazonRequestInit & {
   return parsed as T;
 }
 
-function parseAmazonResponseBody<T>(text: string, status: number): T & { errors?: Array<{ message?: string }>; message?: string } {
-  if (!text) return {} as T;
+function parseAmazonResponseBody(text: string, status: number): unknown {
+  if (!text) return {};
   try {
-    return JSON.parse(text) as T & { errors?: Array<{ message?: string }>; message?: string };
+    return JSON.parse(text) as unknown;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Amazon SP-API returned malformed JSON with HTTP ${status}: ${message}`);
