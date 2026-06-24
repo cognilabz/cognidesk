@@ -102,6 +102,33 @@ describe("flight demo email reply verification", () => {
       }),
     }));
   });
+
+  it("rejects replies from another sender even when the body includes the account email", async () => {
+    const runtime = createRuntimeWithPendingGate();
+    const code = flightDemoEmailReplyVerificationCode({
+      conversationId,
+      bookingReference,
+      accountEmail,
+    });
+    const imapClient = createMatchingImapClient(code, {
+      fromEmail: "attacker@example.test",
+      sourceText: `CONFIRM ${code}\n${accountEmail}`,
+    });
+    const poller = createFlightDemoEmailReplyPoller({
+      runtime,
+      agentId: "flight-demo",
+      imapClient,
+      channelId: "flight-email-secure-login",
+      statusEventType,
+      policyId: "secure-email-login",
+      pollIntervalMs: 15_000,
+      lookbackMinutes: 60,
+    });
+
+    await expect(poller.pollOnce()).resolves.toEqual({ pending: 1, matched: 0 });
+    expect(runtime.emit).not.toHaveBeenCalled();
+    expect(runtime.handleChannelEvent).not.toHaveBeenCalled();
+  });
 });
 
 function createRuntimeWithPendingGate() {
@@ -140,7 +167,10 @@ function createRuntimeWithPendingGate() {
   };
 }
 
-function createMatchingImapClient(code: string) {
+function createMatchingImapClient(
+  code: string,
+  options: { fromEmail?: string; sourceText?: string } = {},
+) {
   return {
     rawClient: {},
     checkMailbox: vi.fn(),
@@ -149,9 +179,9 @@ function createMatchingImapClient(code: string) {
       uid: 42,
       envelope: {
         subject: `Re: Confirm booking ${bookingReference} [${code}]`,
-        from: [{ address: accountEmail }],
+        from: [{ address: options.fromEmail ?? accountEmail }],
       },
-      source: Buffer.from(`CONFIRM ${code}`),
+      source: Buffer.from(options.sourceText ?? `CONFIRM ${code}`),
       internalDate: new Date("2026-06-24T08:05:00.000Z"),
     }]),
     close: vi.fn(async () => {}),

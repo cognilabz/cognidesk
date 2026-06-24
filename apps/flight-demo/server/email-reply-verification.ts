@@ -264,8 +264,7 @@ function emailReplyMatchesGate(message: ImapReplyMessage, gate: FlightDemoEmailR
   const searchable = `${message.subject}\n${message.sourceText}`.toUpperCase();
   if (!searchable.includes(gate.verificationCode.toUpperCase())) return false;
   const expected = gate.accountEmail.toLowerCase();
-  if (message.fromEmails.some((email) => email.toLowerCase() === expected)) return true;
-  return message.sourceText.toLowerCase().includes(expected);
+  return message.fromEmails.some((email) => email.toLowerCase() === expected);
 }
 
 function normalizeImapReplyMessage(value: unknown): ImapReplyMessage | null {
