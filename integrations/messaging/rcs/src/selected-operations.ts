@@ -80,23 +80,25 @@ export const RCS_SELECTED_OPERATIONS = [
 
 export const RCS_SELECTED_OPERATION_COUNT = RCS_SELECTED_OPERATIONS.length;
 
-export const RCS_DIRECT_SLICE_METADATA = {
-  strategy: "direct-http-support-slice",
-  checkedAt: "2026-06-21",
-  source: "official Google RCS for Business REST reference plus documented Discovery URLs",
-  sourceVersion: "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-21",
+export const RCS_HOST_CLIENT_METADATA = {
+  strategy: "provider-rest-adapter",
+  checkedAt: "2026-06-25",
+  source: "official Google RCS for Business REST reference plus provider REST adapter contract",
+  sourceVersion: "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-25",
   allowlistChecksumAlgorithm: "sha256",
   allowlistChecksum: selectedOperationsChecksum(RCS_SELECTED_OPERATIONS),
   selectedOperations: RCS_SELECTED_OPERATIONS,
   apiCoverage: {
-    checkedAt: "2026-06-21",
+    checkedAt: "2026-06-25",
     operationCatalog: "package:src/selected-operations.ts",
   },
   sdkDecision: {
     viableOfficialSdk: false,
+    defaultClient: "provider-rest-adapter",
     notes: [
-      "googleapis@173.0.0 does not expose rcsbusinessmessaging or businesscommunications at runtime.",
-      "@google/rcsbusinessmessaging@1.0.10 covers RBM messaging resources but not Business Communications readiness resources and its helper API uses module-level singleton initialization.",
+      "@google/rcsbusinessmessaging is an official Google Node.js client for RBM messaging, but the selected support slice also includes Business Communications readiness operations and SDK-tunable REST/base URL options.",
+      "This package ships a built-in REST adapter for the selected RCS and Business Communications operations, including accessToken, apiKey, tokenProvider, and service-account credential paths.",
+      "Hosts may still inject RcsMessagingProviderClient when they want to wrap Google's SDK or another approved provider runtime.",
     ],
   },
 } as const;

@@ -1,19 +1,20 @@
 import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 
 export const nextivaSupportSlice = {
-  implementationStrategy: "direct-http-support-slice",
-  sdkDecision: "ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request.",
-  verifiedAt: "2026-06-21",
+  implementationStrategy: "provider-rest-adapter",
+  adapterKind: "no-official-sdk-rest-adapter",
+  sdkDecision: "ncx-sdk is stale and needs API-fit review before adoption; this package provides a built-in REST adapter with providerClient override.",
+  verifiedAt: "2026-06-25",
   allowedOperations: [
-  {
-    id: "configuredHandoff",
-    alias: "contact-center.handoff.request",
-    method: "POST",
-    path: "host-configured",
-    source: "host-configured",
-    checksum: "not-applicable-host-configured"
-  }
-],
+    {
+      id: "configuredHandoff",
+      alias: "contact-center.handoff.request",
+      method: "POST",
+      path: "host-configured",
+      source: "provider-rest-adapter",
+      checksum: "not-applicable-host-configured",
+    },
+  ],
 } as const;
 
 export const nextivaProviderManifestInput = {
@@ -32,7 +33,10 @@ export const nextivaProviderManifestInput = {
   ],
   coverage: {
     scope: "support-workflow-subset",
-    notes: ["ncx-sdk/ncx-web-sdk require API-fit and license review before adoption; this package keeps configured support operations and a mutation-gated extension request."],
+    notes: [
+      "ncx-sdk is stale and needs API-fit review before adoption.",
+      "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with NextivaProviderClient available as an override.",
+    ],
     evidence: [
       { label: "Nextiva Contact Center REST APIs", url: "https://www.nextiva.com/resources/learn/rest-apis" },
       { label: "Nextiva WorkItem Service", url: "https://developer.nextiva.com/nextiva/docs/workitem-service" },
@@ -50,6 +54,11 @@ export const nextivaProviderManifestInput = {
   metadata: {
     implementation: nextivaSupportSlice,
     manifestOnlySafe: true,
+    providerRestAdapter: {
+      strategy: "provider-rest-adapter",
+      adapterKind: "no-official-sdk-rest-adapter",
+      providerClientOverride: "NextivaProviderClient",
+    },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],
 } as const;

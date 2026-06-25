@@ -9,6 +9,7 @@ import {
   appStoreReviewsIntegration,
   appStoreReviewsProviderManifest,
   createAppStoreConnectJwt,
+  createAppStoreReviewsIntegration,
   createAppStoreReviewsClient,
   createAppStoreReviewsLiveChecks,
 } from "../src/index.js";
@@ -16,7 +17,7 @@ import {
 const packageRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 describe("@cognidesk/integration-review-appstore", () => {
-  it("declares a constrained direct REST support slice when no official Connect JS SDK exists", () => {
+  it("declares a built-in App Store Connect REST adapter with provider-client override", () => {
     expect(appStoreReviewsProviderManifest).toMatchObject({
       id: "review.appstore",
       packageName: "@cognidesk/integration-review-appstore",
@@ -32,13 +33,15 @@ describe("@cognidesk/integration-review-appstore", () => {
       "appstore.reviewResponses.delete",
     ]);
     expect(appStoreReviewsIntegration.bindingReport).toMatchObject({
-      missingHandlerAliases: [],
+      missingHandlerAliases: appStoreReviewsProviderManifest.operations.map((operation) => operation.alias),
       extraHandlerAliases: [],
       invalidExtensionOperationAliases: [],
     });
     expect(appStoreReviewsProviderManifest.metadata?.implementation).toMatchObject({
-      strategy: "direct-http-support-slice",
+      strategy: "no-official-sdk-rest-adapter",
       officialJsSdkAvailable: false,
+      packageOwnedRestClient: true,
+      defaultClientPolicy: "built-in-rest-with-jwt",
     });
     expect(appStoreReviewsProviderManifest.metadata?.reviewedSource).toMatchObject({
       source: "Apple App Store Connect OpenAPI specification",
@@ -76,30 +79,11 @@ describe("@cognidesk/integration-review-appstore", () => {
     expect(importedSpecifiers).not.toContain("appstore-connect");
   });
 
-  it("lists, pages, reads, responds to, and deletes App Store reviews", async () => {
-    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-      if (url.includes("/customerReviews/review_1")) {
-        return new Response(JSON.stringify({ data: { id: "review_1", type: "customerReviews" } }), { status: 200 });
-      }
-      if (url.includes("/customerReviewResponses/response_1") && init?.method === "DELETE") {
-        return new Response(null, { status: 204 });
-      }
-      if (url.endsWith("/v1/customerReviewResponses") && init?.method === "POST") {
-        return new Response(JSON.stringify({ data: { id: "response_1", type: "customerReviewResponses" } }), { status: 200 });
-      }
-      return new Response(JSON.stringify({
-        data: [{ id: "review_1", type: "customerReviews" }],
-        links: {
-          next: "https://api.appstoreconnect.apple.com/v1/apps/app_1/customerReviews?cursor=next",
-        },
-      }), { status: 200 });
-    });
+  it("delegates review operations to the injected App Store provider client", async () => {
+    const providerClient = fakeProviderClient();
     const client = createAppStoreReviewsClient({
-      issuerId: "issuer",
-      keyId: "key",
       appId: "app_1",
-      jwtFactory: () => "jwt-token",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
 
     await expect(client.listReviews({
@@ -116,27 +100,93 @@ describe("@cognidesk/integration-review-appstore", () => {
       .resolves.toMatchObject({ data: { id: "response_1" } });
     await expect(client.deleteReviewResponse("response_1")).resolves.toBeUndefined();
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://api.appstoreconnect.apple.com/v1/apps/app_1/customerReviews?limit=10&sort=-createdDate&include=response&fields%5BcustomerReviews%5D=rating%2Ctitle&filter%5Bterritory%5D=USA&filter%5Brating%5D=1%2C2",
-      expect.objectContaining({ method: "GET", headers: expect.objectContaining({ authorization: "Bearer jwt-token" }) }),
-    );
+    expect(providerClient.listReviews).toHaveBeenCalledWith({
+      limit: 10,
+      sort: "-createdDate",
+      include: ["response"],
+      filter: { territory: "USA", rating: ["1", "2"] },
+      fields: { customerReviews: ["rating", "title"] },
+    });
+    expect(providerClient.listReviewsPage).toHaveBeenCalledWith("https://api.appstoreconnect.apple.com/v1/apps/app_1/customerReviews?cursor=next");
+    expect(providerClient.getReview).toHaveBeenCalledWith("review_1", undefined);
+    expect(providerClient.createOrUpdateReviewResponse).toHaveBeenCalledWith({ reviewId: "review_1", responseBody: "Thanks." });
+    expect(providerClient.deleteReviewResponse).toHaveBeenCalledWith("response_1");
     await expect(client.listReviewsPage("https://api.appstoreconnect.apple.com/v1/apps/other/customerReviews?cursor=next"))
       .rejects.toThrow("configured app's customerReviews pagination links");
   });
 
-  it("exposes a raw direct request escape hatch for reviewed support endpoints", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { id: "app_1" } }), { status: 200 }));
+  it("calls App Store Connect review REST APIs by default when JWT credentials are configured", async () => {
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      if (String(url).includes("/customerReviewResponses") && init?.method === "POST") {
+        return new Response(JSON.stringify({ data: { id: "response_1", type: "customerReviewResponses" } }), { status: 201 });
+      }
+      if (init?.method === "DELETE") return new Response(null, { status: 204 });
+      return new Response(JSON.stringify({ data: [{ id: "review_1", type: "customerReviews" }] }), { status: 200 });
+    });
     const client = createAppStoreReviewsClient({
-      issuerId: "issuer",
-      keyId: "key",
-      appId: "app_1",
-      jwtFactory: () => "jwt-token",
+      appId: "app 1",
+      getJwt: () => "jwt-token",
+      baseUrl: "https://appstore.test",
       fetch: fetchMock as unknown as typeof fetch,
     });
 
-    await expect(client.rawClient.request({ method: "GET", path: "/v1/apps/app_1" }))
-      .resolves.toMatchObject({ data: { id: "app_1" } });
+    await expect(client.listReviews({
+      limit: 10,
+      sort: "-createdDate",
+      include: ["response"],
+      filter: { territory: "USA", rating: ["1", "2"] },
+      fields: { customerReviews: ["rating", "title"] },
+    })).resolves.toMatchObject({ data: [{ id: "review_1" }] });
+    await expect(client.createOrUpdateReviewResponse({ reviewId: "review_1", responseBody: "Thanks." }))
+      .resolves.toMatchObject({ data: { id: "response_1" } });
+    await expect(client.deleteReviewResponse("response 1")).resolves.toBeUndefined();
+
+    const [listUrl, listInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const parsedListUrl = new URL(listUrl);
+    expect(parsedListUrl.origin).toBe("https://appstore.test");
+    expect(parsedListUrl.pathname).toBe("/v1/apps/app%201/customerReviews");
+    expect(parsedListUrl.searchParams.get("limit")).toBe("10");
+    expect(parsedListUrl.searchParams.get("include")).toBe("response");
+    expect(parsedListUrl.searchParams.get("filter[rating]")).toBe("1,2");
+    expect(listInit.headers).toMatchObject({
+      accept: "application/json",
+      authorization: "Bearer jwt-token",
+    });
+    const [, responseInit] = fetchMock.mock.calls[1] as [string, RequestInit];
+    expect(JSON.parse(String(responseInit.body))).toMatchObject({
+      data: {
+        type: "customerReviewResponses",
+        attributes: { responseBody: "Thanks." },
+        relationships: { review: { data: { type: "customerReviews", id: "review_1" } } },
+      },
+    });
+    const [deleteUrl] = fetchMock.mock.calls[2] as [string, RequestInit];
+    expect(deleteUrl).toBe("https://appstore.test/v1/customerReviewResponses/response%201");
+  });
+
+  it("throws structured App Store Connect JSON errors from the built-in REST adapter", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ errors: [{ status: "403", detail: "Forbidden" }] }), { status: 403 })
+    );
+    const client = createAppStoreReviewsClient({
+      appId: "app_1",
+      accessToken: "jwt-token",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    await expect(client.getReview("review_1")).rejects.toMatchObject({
+      name: "IntegrationError",
+      code: "provider-permission",
+      statusCode: 403,
+      operationAlias: "appstore.reviews.get",
+      details: { payload: { errors: [{ status: "403", detail: "Forbidden" }] } },
+    });
+  });
+
+  it("fails closed without App Store Connect credentials or a host-injected provider client", async () => {
+    const client = createAppStoreReviewsClient({ appId: "app_1" });
+
+    await expect(client.listReviews()).rejects.toThrow("credentials");
   });
 
   it("generates ES256 App Store Connect JWTs", () => {
@@ -163,19 +213,16 @@ describe("@cognidesk/integration-review-appstore", () => {
   });
 
   it("runs bound operations and reports readiness", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: [{ id: "review_2" }] }), { status: 200 }));
-    await expect((appStoreReviewsIntegration.run as any)(
+    const providerClient = fakeProviderClient({
+      listReviews: vi.fn(async () => ({ data: [{ id: "review_2", type: "customerReviews" as const }] })),
+    });
+    const integration = createAppStoreReviewsIntegration({
+      appId: "app_1",
+      providerClient,
+    });
+    await expect((integration.run as (alias: "appstore.reviews.list", input: { limit: number }) => Promise<unknown>)(
       "appstore.reviews.list",
       { limit: 1 },
-      {
-        credentials: {
-          issuerId: "issuer",
-          keyId: "key",
-          appId: "app_1",
-          jwtFactory: () => "jwt-token",
-          fetch: fetchMock as unknown as typeof fetch,
-        },
-      },
     )).resolves.toMatchObject({ data: [{ id: "review_2" }] });
 
     expect(appStoreReviewsCredentialStatuses({
@@ -193,10 +240,7 @@ describe("@cognidesk/integration-review-appstore", () => {
       data: { id: "app_1", type: "apps" as const, attributes: { name: "Example", bundleId: "com.example.app" } },
     }));
     const [check] = createAppStoreReviewsLiveChecks({
-      issuerId: "issuer",
-      keyId: "key",
       appId: "app_1",
-      jwtFactory: () => "jwt-token",
       client: { getApp },
     });
     await expect(check?.run({})).resolves.toMatchObject({
@@ -204,3 +248,21 @@ describe("@cognidesk/integration-review-appstore", () => {
     });
   });
 });
+
+function fakeProviderClient(overrides: Partial<ReturnType<typeof fakeProviderClientShape>> = {}) {
+  return {
+    ...fakeProviderClientShape(),
+    ...overrides,
+  };
+}
+
+function fakeProviderClientShape() {
+  return {
+    listReviews: vi.fn(async () => ({ data: [{ id: "review_1", type: "customerReviews" as const }] })),
+    listReviewsPage: vi.fn(async () => ({ data: [{ id: "review_1", type: "customerReviews" as const }] })),
+    getReview: vi.fn(async () => ({ data: { id: "review_1", type: "customerReviews" as const } })),
+    createOrUpdateReviewResponse: vi.fn(async () => ({ data: { id: "response_1", type: "customerReviewResponses" as const } })),
+    deleteReviewResponse: vi.fn(async () => undefined),
+    getApp: vi.fn(async () => ({ data: { id: "app_1", type: "apps" as const, attributes: { name: "Example" } } })),
+  };
+}

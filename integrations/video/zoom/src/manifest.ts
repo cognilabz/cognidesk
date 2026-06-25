@@ -17,8 +17,8 @@ export const zoomVideoProviderManifest = defineProviderPackage({
   coverage: {
     scope: "provider-api-subset",
     notes: [
-      "Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec.",
-      "Typed convenience helpers remain available for meetings create/list/read/update/delete, current-user readiness, webhook URL-validation handling, and x-zm-signature verification.",
+      "Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec, executed through a built-in REST adapter when accessToken/getAccessToken/account OAuth/baseUrl/fetch options are provided.",
+      "Typed convenience helpers remain available for meetings create/list/read/update/delete, current-user readiness, webhook URL-validation handling, and x-zm-signature verification; providerClient remains available as a host override.",
       "This package is a generated Zoom Meetings API domain slice, not full Zoom platform coverage. Zoom Phone, Contact Center, Team Chat, Rooms, Marketplace app management outside the Meetings API Hub, account administration beyond this spec, and full webhook/event catalogs remain separate Zoom surfaces.",
       "The SDK user owns OAuth scopes, host delegation, account plan/admin settings, meeting lifecycle policy, recording/transcript consent, retention, deletion, and participant disclosure decisions.",
     ],
@@ -31,9 +31,20 @@ export const zoomVideoProviderManifest = defineProviderPackage({
   },
   credentialRequirements: [
     {
+      id: "zoom-video-provider-client",
+      label: "Optional Zoom video provider client override",
+      description: "Optional host-managed Zoom provider client backed by an approved SDK, provider package, or host-owned transport when overriding the built-in REST adapter.",
+      required: false,
+      metadata: {
+        injectionInterface: "ZoomVideoProviderClient",
+        credentialOwnership: "sdk-user-or-host-managed",
+        defaultClientPolicy: "built-in-rest-with-oauth",
+      },
+    },
+    {
       id: "zoom-oauth-access-token",
       label: "Zoom OAuth access token",
-      description: "Server-side OAuth access token for Zoom REST API meeting and user endpoints.",
+      description: "Server-side OAuth access token used by the built-in Zoom REST adapter or host provider client for meeting and user endpoints.",
       scopes: [
         "meeting:write",
         "meeting:read",
@@ -46,7 +57,10 @@ export const zoomVideoProviderManifest = defineProviderPackage({
         "user:read:user",
       ],
       required: true,
-      metadata: { scopeKind: "provider-oauth-scopes" },
+      metadata: {
+        scopeKind: "provider-oauth-scopes",
+        credentialOwnership: "sdk-user-or-host-managed",
+      },
     },
     {
       id: "zoom-webhook-secret-token",
@@ -180,7 +194,10 @@ export const zoomVideoProviderManifest = defineProviderPackage({
       capability: "read-provider-object",
       providerObject: "zoomMeetingsApiOperation",
       extension: true,
-      metadata: { supportSliceEscapeHatch: true },
+      metadata: {
+        supportSliceEscapeHatch: true,
+        execution: "provider-rest-adapter-or-host-provider-client",
+      },
     },
     {
       alias: "zoom.webhook.parse",
@@ -196,9 +213,11 @@ export const zoomVideoProviderManifest = defineProviderPackage({
     "User consent, meeting disclosure, recording enablement, transcript use, retention, and deletion are owned by the SDK user's Zoom account configuration and application policy.",
   ],
   limitations: [
+    "Runtime provider API calls use the built-in Zoom REST adapter when OAuth credentials are supplied, or an optional host-injected ZoomVideoProviderClient override.",
+    "Missing OAuth credentials and missing providerClient fail closed; SDK users own token lifecycle, retries, and account authorization policy.",
     "Available meeting operations depend on the SDK user's Zoom OAuth scopes, account plan, account-level settings, admin policy, and delegated host permissions.",
     "This package does not choose whether a video workflow is inbound, outbound, customer-facing, internal, recorded, retained, or escalated; those decisions remain SDK-user configuration.",
-    "Live meeting media transport, captions, cloud recording retrieval, and telephony dial-out are outside this package's REST and webhook foundation.",
+    "Live meeting media transport, captions, cloud recording retrieval, and telephony dial-out are outside this package's delegated provider-client and webhook foundation.",
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
@@ -248,9 +267,26 @@ export const zoomVideoProviderManifest = defineProviderPackage({
         "Webinars",
       ],
     },
+    implementationStrategy: "provider-rest-adapter",
+    implementation: {
+      strategy: "provider-rest-adapter",
+      providerClientInterface: "ZoomVideoProviderClient",
+      defaultHttpClient: "fetch",
+      defaultFetchClient: "globalThis.fetch-or-options.fetch",
+      failClosedWithoutProviderClient: false,
+      failClosedWithoutOAuthCredentials: true,
+      manifestImport: "no-client-initialization",
+      generatedMeetingsApiRuntime: "built-in-rest-requestOperation-with-host-provider-client-override",
+    },
+    providerClient: {
+      interface: "ZoomVideoProviderClient",
+      injectionPolicy: "optional-runtime-override",
+      importPolicy: "optional-host-override",
+      defaultClient: "built-in-rest-adapter",
+    },
     sdkViability: {
       decision: "no-official-maintained-server-rest-sdk-found",
-      checkedAt: "2026-06-21",
+      checkedAt: "2026-06-25",
       rejectedSdkPackages: [
         {
           packageName: "@zoom/meetingsdk",

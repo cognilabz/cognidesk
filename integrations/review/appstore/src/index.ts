@@ -1,6 +1,5 @@
 import {
   defineIntegration,
-  type IntegrationOperationContext,
   type ProviderManifestInput,
 } from "@cognidesk/integration-kit";
 import { createAppStoreReviewsClient } from "./client.js";
@@ -13,9 +12,10 @@ import {
 export type * from "./contracts.js";
 export {
   appStoreOperationUrl,
-  appStoreRequest,
   applyListQuery,
+  createAppStoreConnectRestProviderClient,
   createAppStoreReviewsClient,
+  createUnconfiguredAppStoreProviderClient,
   normalizeAppStoreReviewsPageUrl,
 } from "./client.js";
 export { appStoreReviewsCredentialStatuses } from "./credentials.js";
@@ -27,44 +27,51 @@ export {
 } from "./manifest.js";
 export { createAppStoreReviewsLiveChecks } from "./readiness.js";
 
-type AppStoreOperationContext = IntegrationOperationContext<AppStoreReviewsClientOptions>;
-
-const appStoreReviewOperations = {
+export function createAppStoreReviewsOperationHandlers(options: AppStoreReviewsClientOptions) {
+  const client = createAppStoreReviewsClient(options);
+  return {
   "appstore.reviews.list": async (
     input: Parameters<ReturnType<typeof createAppStoreReviewsClient>["listReviews"]>[0],
-    context: AppStoreOperationContext,
   ) => {
-    const client = createAppStoreReviewsClient(context.credentials as Parameters<typeof createAppStoreReviewsClient>[0]);
     return client.listReviews(input);
   },
-  "appstore.reviews.page": async (input: { pageUrl: string }, context: AppStoreOperationContext) => {
-    const client = createAppStoreReviewsClient(context.credentials as Parameters<typeof createAppStoreReviewsClient>[0]);
+  "appstore.reviews.page": async (input: { pageUrl: string }) => {
     return client.listReviewsPage(input.pageUrl);
   },
   "appstore.reviews.get": async (
     input: { reviewId: string } & Parameters<ReturnType<typeof createAppStoreReviewsClient>["getReview"]>[1],
-    context: AppStoreOperationContext,
   ) => {
-    const client = createAppStoreReviewsClient(context.credentials as Parameters<typeof createAppStoreReviewsClient>[0]);
     return client.getReview(input.reviewId, input);
   },
   "appstore.reviewResponses.createOrUpdate": async (
     input: { reviewId: string; responseBody: string },
-    context: AppStoreOperationContext,
   ) => {
-    const client = createAppStoreReviewsClient(context.credentials as Parameters<typeof createAppStoreReviewsClient>[0]);
     return client.createOrUpdateReviewResponse(input);
   },
-  "appstore.reviewResponses.delete": async (input: { responseId: string }, context: AppStoreOperationContext) => {
-    const client = createAppStoreReviewsClient(context.credentials as Parameters<typeof createAppStoreReviewsClient>[0]);
+  "appstore.reviewResponses.delete": async (input: { responseId: string }) => {
     return client.deleteReviewResponse(input.responseId);
   },
-};
+  } as const;
+}
 
-export const appStoreReviewsIntegration = defineIntegration({
-  manifest: appStoreReviewsProviderManifestInput as unknown as ProviderManifestInput,
-  operations: appStoreReviewOperations as never,
-});
+export function createAppStoreReviewsIntegration(options: AppStoreReviewsClientOptions) {
+  return defineIntegration({
+    manifest: appStoreReviewsProviderManifestInput as unknown as ProviderManifestInput,
+    operations: createAppStoreReviewsOperationHandlers(options),
+  });
+}
+
+export const appStoreReviewOperations = createAppStoreReviewsOperationHandlers;
+export const appStoreReviewsIntegration = {
+  manifest: appStoreReviewsProviderManifest,
+  operations: {},
+  operationAliases: [],
+  bindingReport: {
+    missingHandlerAliases: appStoreReviewsProviderManifest.operations.map((operation) => operation.alias),
+    extraHandlerAliases: [],
+    invalidExtensionOperationAliases: [],
+  },
+};
 
 if (appStoreReviewsIntegration.manifest.id !== appStoreReviewsProviderManifest.id) {
   throw new Error("App Store manifest and integration binding are out of sync.");

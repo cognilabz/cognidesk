@@ -1,5 +1,25 @@
 import { defineIntegrationProviderPackage, type ProviderManifestInput } from "@cognidesk/integration-kit";
 
+export const kustomerHostClientSupportSlice = {
+  implementationStrategy: "provider-rest-adapter",
+  sdkDecision: {
+    candidates: ["@kustomer/apps-server", "@kustomer/apps-client", "@kustomer/apps-server-sdk", "@kustomer/chat-react-native"],
+    verdict: "no-official-sdk-rest-adapter",
+    reason: "Kustomer's maintained JavaScript SDK packages target Apps Platform or Chat runtimes; no official package was verified that fully covers backend public REST ticketing operations for conversations, messages, and customer drafts.",
+    checkedAt: "2026-06-25",
+  },
+  allowedOperations: [
+    { id: "conversations.create", alias: "ticket.create", target: "restAdapter.createConversation", source: "provider-rest-adapter" },
+    { id: "conversations.read", alias: "ticket.read", target: "restAdapter.getConversation", source: "provider-rest-adapter" },
+    { id: "conversations.update", alias: "ticket.update", target: "restAdapter.updateConversation", source: "provider-rest-adapter" },
+    { id: "conversations.list", alias: "ticket.search", target: "restAdapter.listConversations", source: "provider-rest-adapter" },
+    { id: "messages.list", alias: "kustomer.message.list", target: "restAdapter.listMessages", source: "provider-rest-adapter" },
+    { id: "messages.create", alias: "ticket.comment.create", target: "restAdapter.createMessage", source: "provider-rest-adapter" },
+    { id: "customer_drafts.create", alias: "kustomer.customerDraft.create", target: "restAdapter.createCustomerDraft", source: "provider-rest-adapter" },
+    { id: "readiness", alias: "kustomer.readiness", target: "restAdapter.readiness", source: "provider-rest-adapter" },
+  ],
+} as const;
+
 export const kustomerTicketingProviderManifestInput = {
   id: "ticketing.kustomer",
   name: "Kustomer",
@@ -10,8 +30,19 @@ export const kustomerTicketingProviderManifestInput = {
   directions: ["bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
   credentialRequirements: [{
+    id: "kustomer-base-url",
+    label: "Kustomer API base URL",
+    required: false,
+  }, {
     id: "kustomer-api-access",
-    label: "Kustomer API access",
+    label: "Kustomer API access token or API key",
+    required: true,
+    metadata: {
+      defaultClientPolicy: "built-in-rest-adapter",
+    },
+  }, {
+    id: "kustomer-api-permissions",
+    label: "Kustomer API permissions",
     scopes: ["org.user.conversation.read", "org.user.conversation.write", "org.permission.conversation.create", "org.user.message.read", "org.user.message.write", "org.permission.message.create", "org.permission.draft.create"],
     required: true,
     metadata: {
@@ -22,13 +53,16 @@ export const kustomerTicketingProviderManifestInput = {
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "SDK decision: Kustomer app/chat SDKs target Apps or Chat runtimes, not backend REST ticketing operations.",
+      "Kustomer's developer surface separates REST APIs for backend systems from Apps Platform and Chat SDK packages.",
+      "Support workflow calls use the built-in Kustomer REST adapter when baseUrl and accessToken/apiKey are configured.",
+      "A host-provided KustomerTicketingProviderClient can still override the built-in REST adapter.",
       "Coverage is limited to Kustomer conversation create/read/update/list, message list/create, customer draft creation, and org readiness for support workflows.",
       "This package intentionally does not copy the old generated full Kustomer public API clone.",
     ],
     evidence: [
       { label: "Kustomer developer portal", url: "https://developer.kustomer.com/" },
       { label: "Kustomer REST APIs portal", url: "https://developer.kustomer.com/kustomer-api-docs/reference" },
+      { label: "@kustomer/apps-server npm package", url: "https://www.npmjs.com/package/@kustomer/apps-server" },
       { label: "Kustomer API keys", url: "https://help.kustomer.com/api-keys-SJs5YTIWX" },
       { label: "Kustomer create message", url: "https://developer.kustomer.com/kustomer-api-docs/reference/createmessage" },
     ],
@@ -51,19 +85,18 @@ export const kustomerTicketingProviderManifestInput = {
     { alias: "kustomer.readiness", capability: "read-provider-object", providerOperation: "GET /v1/messages", providerObject: "kustomerOrg", extension: true, exposesSensitiveData: true },
   ],
   privacyNotes: ["Kustomer conversations can include customer timeline data, messages, notes, tags, queue status, and custom objects."],
-  limitations: ["Conversation model, queues, teams, custom objects, and message visibility are SDK-user configuration."],
+  limitations: ["SDK user configuration owns auth, tenancy, pagination, retries, rate limits, and provider response normalization policy.", "Conversation model, queues, teams, custom objects, and message visibility are SDK-user configuration."],
   metadata: {
     issue: 35,
-    implementationStrategy: "direct-http-support-slice",
-    sdkDecision: {
-      candidates: ["@kustomer/apps-client", "@kustomer/apps-server-sdk", "@kustomer/chat-react-native"],
-      verdict: "not-adopted",
-      reason: "Kustomer SDK packages target app/chat runtimes rather than backend REST ticketing operations.",
-      checkedAt: "2026-06-21",
-    },
-    supportSlice: {
-      source: "Kustomer REST API",
-      allowlistedOperations: ["conversations.create", "conversations.read", "conversations.update", "conversations.list", "messages.list", "messages.create", "customer_drafts.create"],
+    implementation: kustomerHostClientSupportSlice,
+    manifestOnlySafe: true,
+    implementationStrategy: "provider-rest-adapter",
+    sdkDecision: "no-official-sdk-rest-adapter",
+    providerClient: {
+      package: "optional-override",
+      interface: "KustomerTicketingProviderClient",
+      importPolicy: "runtime-override",
+      defaultClientPolicy: "built-in-rest-adapter",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

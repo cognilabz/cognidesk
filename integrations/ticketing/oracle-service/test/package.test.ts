@@ -4,11 +4,12 @@ import { fileURLToPath } from "node:url";
 import { createOperationBindingReport } from "@cognidesk/integration-kit";
 import { describe, expect, it, vi } from "vitest";
 import {
+  createOracleServiceTicketingClient,
   createOracleServiceTicketingIntegration,
   createOracleServiceTicketingOperationHandlers,
   oracleServiceTicketingProviderManifest,
 } from "../src/index.js";
-import { oracleServiceSupportOperationAllowlist } from "../src/manifest.js";
+import { oracleServiceProviderClientOperationTargets } from "../src/manifest.js";
 
 describe("@cognidesk/integration-ticketing-oracle-service", () => {
   it("keeps the manifest-only entry metadata-only and scoped", async () => {
@@ -19,13 +20,23 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       packageName: "@cognidesk/integration-ticketing-oracle-service",
       coverage: { scope: "support-workflow-subset" },
       metadata: {
-        implementationStrategy: { strategy: "direct-support-slice" },
-        supportOperationSlice: {
-          allowlistSha256: "5f3ff8ea4febec8a1f5e4c9d881124c9f215a7b97ebb3ae7a92d7e3f98b370f5",
+        implementationStrategy: { strategy: "no-official-sdk-rest-adapter" },
+        implementation: {
+          strategy: "provider-rest-adapter",
+          adapterKind: "no-official-sdk-rest-adapter",
+          defaultClient: "built-in-oracle-fusion-service-rest-adapter",
+        },
+        providerClient: {
+          interface: "OracleServiceTicketingProviderClient",
+          defaultClientPolicy: "built-in-provider-rest-adapter",
+        },
+        providerRestAdapterOperationSlice: {
+          sourceKind: "provider-rest-adapter",
+          adapterKind: "no-official-sdk-rest-adapter",
         },
       },
     });
-    expect(oracleServiceSupportOperationAllowlist.map((operation) => operation.alias)).toEqual([
+    expect(oracleServiceProviderClientOperationTargets.map((operation) => operation.alias)).toEqual([
       "ticket.create",
       "ticket.read",
       "ticket.update",
@@ -35,7 +46,7 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
   });
 
   it("binds declared operations to executable handlers", async () => {
-    const client = {
+    const providerClient = {
       createServiceRequest: vi.fn(async () => ({ SrNumber: "SR-1" })),
       getServiceRequest: vi.fn(async () => ({ SrNumber: "SR-1" })),
       updateServiceRequest: vi.fn(async () => ({ SrNumber: "SR-1", StatusCd: "RESOLVED" })),
@@ -43,6 +54,7 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       searchServiceRequests: vi.fn(async () => ({ items: [] })),
       readiness: vi.fn(async () => ({ items: [] })),
     };
+    const client = createOracleServiceTicketingClient({ providerClient });
     const handlers = createOracleServiceTicketingOperationHandlers(client);
     expect(createOperationBindingReport(oracleServiceTicketingProviderManifest, handlers)).toMatchObject({
       missingHandlerAliases: [],
@@ -51,12 +63,10 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
     });
 
     const integration = createOracleServiceTicketingIntegration({
-      instanceUrl: "https://example.fa.oraclecloud.com",
-      accessToken: "token",
-      client,
+      providerClient,
     });
     await expect(integration.run("ticket.read", { srNumber: "SR-1" })).resolves.toMatchObject({ SrNumber: "SR-1" });
-    expect(client.getServiceRequest).toHaveBeenCalledWith("SR-1");
+    expect(providerClient.getServiceRequest).toHaveBeenCalledWith("SR-1");
   });
 
   it("depends only on shared Cognidesk packages", () => {

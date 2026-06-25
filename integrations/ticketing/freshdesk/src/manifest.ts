@@ -26,11 +26,14 @@ export const freshdeskTicketingProviderManifestInput = {
   coverage: {
     scope: "provider-api-subset",
     notes: [
-      "SDK decision: Freshworks has beta or very early JavaScript packages, but no verified official maintained Freshdesk ticketing backend client suitable for this adapter.",
+      "Implementation uses a built-in Freshdesk v2 REST adapter when domain and apiKey are configured, with FreshdeskTicketingProviderClient injection as an override for host-owned SDK/client adapters.",
+      "Freshworks API SDK 0.3.0 does not expose a first-class Freshdesk ticketing surface for these operations, so this package owns a constrained provider REST adapter instead of requiring host-injected-only runtime wiring.",
       "Coverage is limited to Freshdesk v2 tickets, contacts, conversations, replies, notes, handoff updates, agents, groups, current-agent readiness, and SDK-user shared-secret webhook validation.",
     ],
     evidence: [
       { label: "Freshdesk API v2 reference", url: "https://developers.freshdesk.com/api/" },
+      { label: "Freshworks API SDK", url: "https://www.npmjs.com/package/@freshworks/api-sdk" },
+      { label: "Freshworks API SDK repository", url: "https://github.com/freshworks/freshworks-api-sdk" },
       { label: "Freshworks API SDK announcement", url: "https://community.freshworks.dev/t/freshworks-api-sdk-for-node-js/5232" },
     ],
   },
@@ -60,14 +63,24 @@ export const freshdeskTicketingProviderManifestInput = {
   limitations: ["Ticket forms, required fields, statuses, products, groups, SLAs, automations, and agent permissions are SDK-user configuration."],
   metadata: {
     issue: 35,
-    implementationStrategy: "direct-http-support-slice",
-    sdkDecision: {
-      candidates: ["@freshworks/api-sdk", "@freshworks/freshdesk"],
-      verdict: "not-adopted",
-      reason: "No verified official maintained Freshdesk ticketing backend SDK was found.",
-      checkedAt: "2026-06-21",
+    implementation: {
+      strategy: "provider-rest-adapter",
+      providerClient: "FreshdeskTicketingProviderClient",
+      defaultClientPolicy: "use-built-in-rest-adapter-when-domain-and-apiKey-are-configured",
+      packageOwnedRestClient: true,
+      providerClientOverride: true,
+      sdkDecision: {
+        checkedAt: "2026-06-25",
+        result: "no-official-sdk-rest-adapter",
+        packageChecked: "@freshworks/api-sdk",
+        notes: [
+          "Freshworks API SDK 0.3.0 documents Freshteam support and partial Freshservice support, but no Freshdesk ticketing client surface.",
+          "Freshdesk v2 ticketing, contacts, conversations, agents, groups, and current-agent readiness remain REST API operations in this package.",
+        ],
+      },
+      delegatedOperationTarget: "built-in Freshdesk v2 REST adapter or injected Freshdesk provider client",
     },
-    supportSlice: {
+    freshdeskV2Coverage: {
       source: "Freshdesk API v2",
       allowlistedOperations: ["tickets.create", "tickets.read", "tickets.update", "tickets.search", "reply.create", "note.create", "contacts.read", "contacts.search", "agents.read", "groups.read", "agents.me", "automation_webhook.parse"],
     },

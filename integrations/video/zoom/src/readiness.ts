@@ -1,10 +1,10 @@
 import type { ZoomLiveCheckOptions } from "./contracts.js";
 import { createZoomVideoClient } from "./client.js";
 
-export function createZoomVideoLiveChecks(options: ZoomLiveCheckOptions) {
+export function createZoomVideoLiveChecks(options: ZoomLiveCheckOptions = {}) {
   return [{
     id: "current-user",
-    description: "Zoom REST API current user endpoint is reachable with the configured OAuth access token.",
+    description: "Zoom video provider client can read the configured current-user resource.",
     requiredCredentialIds: ["zoom-oauth-access-token"],
     async run(context: { signal?: AbortSignal }) {
       const client = options.client ?? createZoomVideoClient(options);

@@ -1,5 +1,19 @@
 import { defineIntegrationProviderPackage, type ProviderManifestInput } from "@cognidesk/integration-kit";
 
+export const zendeskTicketingOperationAliases = [
+  "ticket.create",
+  "ticket.read",
+  "ticket.update",
+  "ticket.search",
+  "ticket.comment.create",
+  "ticket.internalNote.create",
+  "ticket.attachments.add",
+  "customer.read",
+  "zendesk.organization.read",
+  "zendesk.webhook.list",
+  "zendesk.readiness",
+] as const;
+
 export const zendeskTicketingProviderManifestInput = {
   id: "ticketing.zendesk",
   name: "Zendesk Support",
@@ -23,13 +37,14 @@ export const zendeskTicketingProviderManifestInput = {
     },
   ],
   coverage: {
-    scope: "provider-api-subset",
+    scope: "support-workflow-subset",
     notes: [
-      "SDK decision: Zendesk documents node-zendesk but marks it not officially supported, so this package keeps a constrained Zendesk Support API slice instead of adopting it as an official SDK.",
-      "Coverage is limited to ticket create/read/update/search, comments, uploads, users, organizations, webhooks list, current-user readiness, and raw request escape hatch operations used by Cognidesk support workflows.",
+      "Coverage is a Cognidesk support workflow adapter backed by the node-zendesk provider SDK.",
+      "Typed operations cover ticket create/read/update/search, public comments, internal notes, uploads, users, organizations, webhooks list, current-user readiness, and a node-zendesk rawClient escape hatch for SDK-user-owned advanced methods.",
       "This package intentionally does not copy the old generated full Zendesk Support OpenAPI clone.",
     ],
     evidence: [
+      { label: "node-zendesk package", url: "https://www.npmjs.com/package/node-zendesk" },
       { label: "Zendesk Node.js API client docs", url: "https://developer.zendesk.com/documentation/ticketing/api-clients/nodejs/" },
       { label: "Zendesk Support API OpenAPI", url: "https://developer.zendesk.com/zendesk/oas.yaml" },
       { label: "Zendesk Support Tickets API", url: "https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/" },
@@ -60,17 +75,34 @@ export const zendeskTicketingProviderManifestInput = {
   privacyNotes: ["Zendesk tickets can contain customer messages, requester details, internal comments, tags, and workflow metadata."],
   limitations: ["Tenant fields, triggers, automations, macros, routing, requester identity, and outbound policy remain SDK-user configuration."],
   metadata: {
-    issue: 35,
-    implementationStrategy: "direct-http-support-slice",
-    sdkDecision: {
-      candidate: "node-zendesk",
-      verdict: "not-adopted",
-      reason: "Zendesk's own docs mark node-zendesk as not officially supported.",
-      checkedAt: "2026-06-21",
+    integrationName: "Zendesk Integration",
+    integrationPackageName: "@cognidesk/integration-ticketing-zendesk",
+    integrationEntryPoints: {
+      manifest: "@cognidesk/integration-ticketing-zendesk/manifest",
+      runtime: "@cognidesk/integration-ticketing-zendesk/runtime",
     },
-    supportSlice: {
-      source: "Zendesk Support API",
-      allowlistedOperations: ["tickets.create", "tickets.read", "tickets.update", "search", "ticket_comments.create", "uploads.create", "users.read", "organizations.read", "webhooks.list", "users.me"],
+    issue: 35,
+    implementationStrategy: "node-zendesk-sdk-backed-support-workflow-subset",
+    implementation: {
+      strategy: "provider-sdk-backed-client",
+      sdkPackage: "node-zendesk",
+      sdkVersionRange: "^6.0.1",
+      rawClientEscapeHatch: "ZendeskTicketingClient.rawClient",
+      manifestImport: "no-sdk-client-initialization",
+    },
+    providerClient: {
+      package: "node-zendesk",
+      versionRange: "^6.0.1",
+      importPolicy: "runtime-entrypoint-only",
+    },
+    channelCoverage: {
+      tickets: "sdk-backed-create-read-update-search",
+      comments: "sdk-backed-ticket-update-comment",
+      uploads: "sdk-backed-attachments-upload",
+      users: "sdk-backed-read-current-user",
+      organizations: "sdk-backed-read",
+      webhooks: "sdk-backed-list",
+      broaderZendeskApi: "provider-sdk-raw-client",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

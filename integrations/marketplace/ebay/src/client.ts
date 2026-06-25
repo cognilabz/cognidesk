@@ -1,318 +1,297 @@
-import type { ProviderCredentialStatusInput } from "@cognidesk/integration-kit";
-import { ebayMarketplaceProviderManifest } from "./catalog.js";
+import {
+  IntegrationError,
+  normalizeIntegrationError,
+  providerJsonRequest,
+  providerRequestUrl,
+  type ProviderCredentialStatusInput,
+  type ProviderQueryValue,
+} from "@cognidesk/integration-kit";
+import {
+  ebayMarketplaceProviderManifest,
+  ebaySelectedApiFunctionCatalog,
+  ebaySelectedApiOperationCatalog,
+} from "./catalog.js";
 import type {
-  EbayConversation,
-  EbayConversationsCollection,
   EbayCredentialStatusInput,
   EbayLiveCheckOptions,
   EbayMarketplaceClient,
   EbayMarketplaceClientOptions,
-  EbayMarketplaceJsonObject,
-  EbayMarketplaceJsonValue,
   EbayMarketplaceProviderPayload,
-  EbayMessageResponse,
-  EbayNotificationConfig,
-  EbayNotificationDestination,
-  EbayNotificationDestinationsCollection,
-  EbayNotificationPublicKey,
-  EbayNotificationSubscription,
-  EbayNotificationSubscriptionFilter,
-  EbayNotificationSubscriptionsCollection,
-  EbayOrder,
-  EbayOrdersCollection,
-  EbayPaymentDispute,
-  EbayPaymentDisputeActivities,
-  EbayPaymentDisputeActionResponse,
-  EbayPaymentDisputesCollection,
-  EbayRefund,
-  EbayRestCollection,
-  EbayShippingFulfillment,
-  EbayShippingFulfillmentsCollection,
-  EbaySigningKey,
-  EbaySigningKeysCollection,
-  EbayUser,
+  EbayMarketplaceProviderQuery,
+  EbayMarketplaceProviderClient,
+  EbaySelectedApiOperation,
 } from "./contracts.js";
-import { createEbayDigitalSignatureHeaders } from "./signing.js";
-import { isEuOrUkCountry, readString, withQuery } from "./utils.js";
+import { isEuOrUkCountry, readString } from "./utils.js";
 
-export function createEbayMarketplaceClient(options: EbayMarketplaceClientOptions): EbayMarketplaceClient {
-  const apiBaseUrl = (options.apiBaseUrl ?? "https://api.ebay.com").replace(/\/+$/, "");
-  const identityApiBaseUrl = (options.identityApiBaseUrl ?? "https://apiz.ebay.com").replace(/\/+$/, "");
-  const keyManagementApiBaseUrl = (options.keyManagementApiBaseUrl ?? "https://apiz.ebay.com").replace(/\/+$/, "");
-  const fetchImpl = options.fetch ?? fetch;
-  const request = <T>(path: string, init?: EbayRequestInit) => ebayRequest<T>({
-    url: `${apiBaseUrl}${path}`,
-    fetch: fetchImpl,
-    options,
-    ...init,
-  });
-  const applicationRequest = <T>(path: string, init?: EbayRequestInit & { baseUrl?: string }) => {
-    if (!options.applicationAccessToken) {
-      throw new Error("eBay application access token from the client credentials grant is required for this operation.");
-    }
-    return ebayRequest<T>({
-      url: `${init?.baseUrl ?? apiBaseUrl}${path}`,
-      fetch: fetchImpl,
-      options,
-      ...init,
-      accessToken: options.applicationAccessToken,
-    });
-  };
+const EBAY_API_BASE_PATHS: Record<EbaySelectedApiOperation["api"], string> = {
+  "sell.fulfillment": "/sell/fulfillment/v1",
+  "commerce.message": "/commerce/message/v1",
+  "commerce.notification": "/commerce/notification/v1",
+  "developer.key-management": "/developer/key_management/v1",
+  "commerce.identity": "/commerce/identity/v1",
+};
+
+export function createEbayMarketplaceClient(options: EbayMarketplaceClientOptions = {}): EbayMarketplaceClient {
+  const providerClient = options.providerClient ?? createEbayRestMarketplaceProviderClient(options);
+  const delegatedOperations = Object.fromEntries(
+    ebaySelectedApiFunctionCatalog.map((functionName) => [
+      functionName,
+      (...args: unknown[]) => {
+        const method = providerClient[functionName] as unknown;
+        if (typeof method !== "function") {
+          throw new Error(`eBay marketplace provider client must implement ${String(functionName)}().`);
+        }
+        return (method as (...args: unknown[]) => Promise<unknown>).apply(providerClient, args);
+      },
+    ]),
+  ) as unknown as EbayMarketplaceProviderClient;
 
   return {
-    async getOrder(orderId) {
-      return request<EbayOrder>(`/sell/fulfillment/v1/order/${encodeURIComponent(orderId)}`);
-    },
-    async searchOrders(input = {}) {
-      const url = withQuery("/sell/fulfillment/v1/order", {
-        filter: input.filter,
-        limit: input.limit,
-        offset: input.offset,
-        orderids: input.orderIds?.join(","),
-        fieldGroups: input.fieldGroups?.join(","),
-      });
-      return request<EbayOrdersCollection>(url);
-    },
-    async createShippingFulfillment(orderId, input) {
-      return request<EbayShippingFulfillment>(
-        `/sell/fulfillment/v1/order/${encodeURIComponent(orderId)}/shipping_fulfillment`,
-        { method: "POST", body: input },
-      );
-    },
-    async getShippingFulfillments(orderId) {
-      return request<EbayShippingFulfillmentsCollection>(
-        `/sell/fulfillment/v1/order/${encodeURIComponent(orderId)}/shipping_fulfillment`,
-      );
-    },
-    async getShippingFulfillment(orderId, fulfillmentId) {
-      return request<EbayShippingFulfillment>(
-        `/sell/fulfillment/v1/order/${encodeURIComponent(orderId)}/shipping_fulfillment/${encodeURIComponent(fulfillmentId)}`,
-      );
-    },
-    async issueRefund(orderId, input) {
-      const path = `/sell/fulfillment/v1/order/${encodeURIComponent(orderId)}/issue_refund`;
-      return request<EbayRefund>(
-        path,
-        {
-          method: "POST",
-          body: input,
-          requireDigitalSignature: shouldRequireEbayRefundSignature(options),
-        },
-      );
-    },
-    async getPaymentDispute(paymentDisputeId) {
-      return request<EbayPaymentDispute>(
-        `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}`,
-      );
-    },
-    async fetchPaymentDisputeEvidenceContent(paymentDisputeId) {
-      return request<ArrayBuffer | EbayMarketplaceJsonObject>(
-        `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}/fetch_evidence_content`,
-        { responseType: "arrayBuffer" },
-      );
-    },
-    async getPaymentDisputeActivities(paymentDisputeId) {
-      return request<EbayPaymentDisputeActivities>(
-        `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}/activity`,
-      );
-    },
-    async searchPaymentDisputes(input = {}) {
-      return request<EbayPaymentDisputesCollection>(withQuery("/sell/fulfillment/v1/payment_dispute_summary", input));
-    },
-    async acceptPaymentDispute(paymentDisputeId, input = {}) {
-      return request<EbayPaymentDisputeActionResponse>(
-        `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}/accept`,
-        { method: "POST", body: input },
-      );
-    },
-    async contestPaymentDispute(paymentDisputeId, input) {
-      return request<EbayPaymentDisputeActionResponse>(
-        `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}/contest`,
-        { method: "POST", body: input },
-      );
-    },
-    async uploadPaymentDisputeEvidenceFile(paymentDisputeId, input) {
-      return request<EbayPaymentDisputeActionResponse>(
-        `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}/upload_evidence_file`,
-        { method: "POST", body: input },
-      );
-    },
-    async addPaymentDisputeEvidence(paymentDisputeId, input) {
-      return request<EbayPaymentDisputeActionResponse>(
-        `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}/add_evidence`,
-        { method: "POST", body: input },
-      );
-    },
-    async updatePaymentDisputeEvidence(paymentDisputeId, input) {
-      return request<EbayPaymentDisputeActionResponse>(
-        `/sell/fulfillment/v1/payment_dispute/${encodeURIComponent(paymentDisputeId)}/update_evidence`,
-        { method: "POST", body: input },
-      );
-    },
-    async getConversations(input = {}) {
-      return request<EbayConversationsCollection>(withQuery("/commerce/message/v1/conversation", input));
-    },
-    async getConversation(conversationId) {
-      return request<EbayConversation>(
-        `/commerce/message/v1/conversation/${encodeURIComponent(conversationId)}`,
-      );
-    },
-    async sendMessage(input) {
-      return request<EbayMessageResponse>("/commerce/message/v1/send_message", {
-        method: "POST",
-        body: input.body ?? input,
-      });
-    },
-    async updateConversation(input) {
-      return request<EbayConversation>("/commerce/message/v1/update_conversation", {
-        method: "POST",
-        body: input,
-      });
-    },
-    async bulkUpdateConversations(input) {
-      return request<{ conversations?: EbayConversation[]; [providerField: string]: EbayMarketplaceJsonValue | undefined }>("/commerce/message/v1/bulk_update_conversation", {
-        method: "POST",
-        body: input,
-      });
-    },
-    async getUser() {
-      return ebayRequest<EbayUser>({
-        url: `${identityApiBaseUrl}/commerce/identity/v1/user/`,
-        fetch: fetchImpl,
-        options,
-      });
-    },
-    async createSigningKey(input = {}) {
-      return applicationRequest<EbaySigningKey>(
-        "/developer/key_management/v1/signing_key",
-        { method: "POST", body: input, baseUrl: keyManagementApiBaseUrl },
-      );
-    },
-    async getSigningKey(signingKeyId) {
-      return applicationRequest<EbaySigningKey>(
-        `/developer/key_management/v1/signing_key/${encodeURIComponent(signingKeyId)}`,
-        { baseUrl: keyManagementApiBaseUrl },
-      );
-    },
-    async getSigningKeys() {
-      return applicationRequest<EbaySigningKeysCollection>(
-        "/developer/key_management/v1/signing_key",
-        { baseUrl: keyManagementApiBaseUrl },
-      );
-    },
-    async getNotificationConfig() {
-      return request<EbayNotificationConfig>("/commerce/notification/v1/config");
-    },
-    async updateNotificationConfig(input) {
-      return request<EbayNotificationConfig>("/commerce/notification/v1/config", {
-        method: "PUT",
-        body: input,
-      });
-    },
-    async getNotificationPublicKey(publicKeyId) {
-      return applicationRequest<EbayNotificationPublicKey>(
-        `/commerce/notification/v1/public_key/${encodeURIComponent(publicKeyId)}`,
-      );
-    },
-    async createNotificationDestination(input) {
-      return request<EbayNotificationDestination>("/commerce/notification/v1/destination", {
-        method: "POST",
-        body: input,
-      });
-    },
-    async getNotificationDestination(destinationId) {
-      return request<EbayNotificationDestination>(
-        `/commerce/notification/v1/destination/${encodeURIComponent(destinationId)}`,
-      );
-    },
-    async getNotificationDestinations() {
-      return request<EbayNotificationDestinationsCollection>("/commerce/notification/v1/destination");
-    },
-    async updateNotificationDestination(destinationId, input) {
-      return request<EbayNotificationDestination>(
-        `/commerce/notification/v1/destination/${encodeURIComponent(destinationId)}`,
-        { method: "PUT", body: input },
-      );
-    },
-    async deleteNotificationDestination(destinationId) {
-      return request<Record<string, never>>(
-        `/commerce/notification/v1/destination/${encodeURIComponent(destinationId)}`,
-        { method: "DELETE" },
-      );
-    },
-    async createNotificationSubscription(input) {
-      return request<EbayNotificationSubscription>("/commerce/notification/v1/subscription", {
-        method: "POST",
-        body: input,
-      });
-    },
-    async getNotificationSubscription(subscriptionId) {
-      return request<EbayNotificationSubscription>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}`,
-      );
-    },
-    async getNotificationSubscriptions() {
-      return request<EbayNotificationSubscriptionsCollection>("/commerce/notification/v1/subscription");
-    },
-    async updateNotificationSubscription(subscriptionId, input) {
-      return request<EbayNotificationSubscription>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}`,
-        { method: "PUT", body: input },
-      );
-    },
-    async enableNotificationSubscription(subscriptionId) {
-      return request<EbayNotificationSubscription>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}/enable`,
-        { method: "POST" },
-      );
-    },
-    async disableNotificationSubscription(subscriptionId) {
-      return request<EbayNotificationSubscription>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}/disable`,
-        { method: "POST" },
-      );
-    },
-    async testNotificationSubscription(subscriptionId) {
-      return request<EbayNotificationSubscription>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}/test`,
-        { method: "POST" },
-      );
-    },
-    async deleteNotificationSubscription(subscriptionId) {
-      return request<Record<string, never>>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}`,
-        { method: "DELETE" },
-      );
-    },
-    async createNotificationSubscriptionFilter(subscriptionId, input) {
-      return request<EbayNotificationSubscriptionFilter>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}/filter`,
-        { method: "POST", body: input },
-      );
-    },
-    async getNotificationSubscriptionFilter(subscriptionId, filterId) {
-      return request<EbayNotificationSubscriptionFilter>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}/filter/${encodeURIComponent(filterId)}`,
-      );
-    },
-    async deleteNotificationSubscriptionFilter(subscriptionId, filterId) {
-      return request<Record<string, never>>(
-        `/commerce/notification/v1/subscription/${encodeURIComponent(subscriptionId)}/filter/${encodeURIComponent(filterId)}`,
-        { method: "DELETE" },
-      );
-    },
-    async getNotificationTopic(topicId) {
-      return request<{ topicId?: string; description?: string; supportedPayloadVersions?: string[]; [providerField: string]: EbayMarketplaceJsonValue | undefined }>(
-        `/commerce/notification/v1/topic/${encodeURIComponent(topicId)}`,
-      );
-    },
-    async getNotificationTopics(input = {}) {
-      return request<EbayRestCollection>(withQuery("/commerce/notification/v1/topic", {
-        limit: input.limit,
-        continuation_token: input.continuation_token ?? input.continuationToken,
-      }));
+    providerClient,
+    ...delegatedOperations,
+  };
+}
+
+export function createEbayRestMarketplaceProviderClient(
+  options: Omit<EbayMarketplaceClientOptions, "providerClient"> = {},
+): EbayMarketplaceProviderClient {
+  if (!options.accessToken && !options.applicationAccessToken) return createUnconfiguredEbayMarketplaceProviderClient();
+  return Object.fromEntries(
+    ebaySelectedApiOperationCatalog.map((operation) => [
+      operation.functionName,
+      (...args: unknown[]) => invokeEbayRestOperation(operation, args, options),
+    ]),
+  ) as unknown as EbayMarketplaceProviderClient;
+}
+
+export function createUnconfiguredEbayMarketplaceProviderClient(): EbayMarketplaceProviderClient {
+  const fail = async () => {
+    throw new Error(
+      "Pass eBay OAuth tokens to createEbayMarketplaceClient({ accessToken }) or a host-provided eBay marketplace providerClient.",
+    );
+  };
+  return Object.fromEntries(
+    ebaySelectedApiFunctionCatalog.map((functionName) => [functionName, fail]),
+  ) as unknown as EbayMarketplaceProviderClient;
+}
+
+async function invokeEbayRestOperation(
+  operation: EbaySelectedApiOperation,
+  args: unknown[],
+  options: Omit<EbayMarketplaceClientOptions, "providerClient">,
+) {
+  const request = await ebaySignedOperationRequest(ebayOperationRequest(operation, args, options), operation, options);
+  if (operation.functionName === "fetchPaymentDisputeEvidenceContent") {
+    return requestEbayEvidenceContent(request, operation, options);
+  }
+  try {
+    return await providerJsonRequest({
+      ...request,
+      fetch: options.fetch,
+      signal: options.signal,
+      timeoutMs: options.timeoutMs,
+      retry: options.retry,
+      providerName: `eBay ${operation.api}.${operation.operationId}`,
+    });
+  } catch (error) {
+    throw normalizeProviderRequestError(error, {
+      providerPackageId: "marketplace.ebay",
+      provider: "ebay",
+    });
+  }
+}
+
+async function ebaySignedOperationRequest(
+  request: ReturnType<typeof ebayOperationRequest>,
+  operation: EbaySelectedApiOperation,
+  options: Omit<EbayMarketplaceClientOptions, "providerClient">,
+) {
+  if (!options.requestSigner || operation.functionName !== "issueRefund") return request;
+  const body = request.body === undefined ? undefined : JSON.stringify(request.body);
+  const signedHeaders = await options.requestSigner({
+    method: request.method,
+    url: providerRequestUrl(request),
+    ...(body !== undefined ? { body } : {}),
+  });
+  return {
+    ...request,
+    headers: {
+      ...request.headers,
+      ...signedHeaders,
     },
   };
+}
+
+function ebayOperationRequest(
+  operation: EbaySelectedApiOperation,
+  args: unknown[],
+  options: Omit<EbayMarketplaceClientOptions, "providerClient">,
+) {
+  const pathParams: Record<string, string | number | boolean | undefined> = {};
+  const placeholders = [...operation.path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]).filter(Boolean) as string[];
+  for (const [index, placeholder] of placeholders.entries()) {
+    const value = args[index];
+    if (!isPathValue(value)) {
+      throw new IntegrationError(
+        "provider-validation",
+        `Missing eBay path parameter '${placeholder}' for ${operation.functionName}.`,
+        { providerPackageId: "marketplace.ebay", provider: "ebay" },
+      );
+    }
+    pathParams[placeholder] = value;
+  }
+  const remaining = args.slice(placeholders.length);
+  const query = operation.method === "GET" ? ebayQuery(remaining[0] as EbayMarketplaceProviderQuery | undefined) : undefined;
+  const body = operation.method === "GET" || operation.method === "DELETE"
+    ? undefined
+    : remaining[0] as EbayMarketplaceProviderPayload | undefined;
+  const accessToken = ebayAccessTokenForOperation(operation, options);
+  const baseUrl = ebayApiBaseUrl(operation.api, options);
+  const headers: Record<string, string | undefined> = {
+    ...(options.marketplaceId ? { "x-ebay-c-marketplace-id": options.marketplaceId } : {}),
+  };
+  return {
+    baseUrl,
+    path: operation.path,
+    method: operation.method,
+    pathParams,
+    query,
+    body,
+    accessToken,
+    headers,
+  };
+}
+
+async function requestEbayEvidenceContent(
+  request: ReturnType<typeof ebayOperationRequest>,
+  operation: EbaySelectedApiOperation,
+  options: Omit<EbayMarketplaceClientOptions, "providerClient">,
+) {
+  const url = providerRequestUrl(request);
+  const response = await (options.fetch ?? fetch)(url, {
+    method: request.method,
+    headers: {
+      accept: "application/json, application/octet-stream",
+      authorization: `Bearer ${request.accessToken}`,
+      ...request.headers,
+    },
+    ...(options.signal ? { signal: options.signal } : {}),
+  });
+  if (!response.ok) {
+    const payload = await parseEbayResponsePayload(response);
+    throw new IntegrationError(
+      providerErrorCode(response.status),
+      `eBay ${operation.api}.${operation.operationId} failed with HTTP ${response.status}.`,
+      {
+        providerPackageId: "marketplace.ebay",
+        provider: "ebay",
+        statusCode: response.status,
+        retryable: response.status === 429 || response.status >= 500,
+        details: { payload },
+      },
+    );
+  }
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) return response.json() as Promise<unknown>;
+  return response.arrayBuffer();
+}
+
+function ebayAccessTokenForOperation(
+  operation: EbaySelectedApiOperation,
+  options: Omit<EbayMarketplaceClientOptions, "providerClient">,
+) {
+  const token = operation.functionName === "getNotificationPublicKey"
+    ? options.applicationAccessToken ?? options.accessToken
+    : options.accessToken ?? options.applicationAccessToken;
+  if (!token) {
+    throw new IntegrationError(
+      "credential-missing",
+      `eBay OAuth access token is required for ${operation.functionName}.`,
+      { providerPackageId: "marketplace.ebay", provider: "ebay" },
+    );
+  }
+  return token;
+}
+
+function ebayApiBaseUrl(
+  api: EbaySelectedApiOperation["api"],
+  options: Omit<EbayMarketplaceClientOptions, "providerClient">,
+) {
+  const root = options.baseUrl ?? (options.environment === "sandbox" ? "https://api.sandbox.ebay.com" : "https://api.ebay.com");
+  return `${root.replace(/\/+$/, "")}${EBAY_API_BASE_PATHS[api]}`;
+}
+
+function ebayQuery(input: EbayMarketplaceProviderQuery | undefined) {
+  const query: Record<string, ProviderQueryValue> = {};
+  for (const [key, value] of Object.entries(input ?? {})) {
+    if (value === undefined || value === null) continue;
+    const normalizedKey = key === "continuationToken" ? "continuation_token" : key;
+    if (Array.isArray(value)) {
+      query[normalizedKey] = value.map(String);
+      continue;
+    }
+    if (typeof value === "object") {
+      query[normalizedKey] = JSON.stringify(value);
+      continue;
+    }
+    query[normalizedKey] = value;
+  }
+  return query;
+}
+
+async function parseEbayResponsePayload(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return { raw: text };
+  }
+}
+
+function isPathValue(value: unknown): value is string | number | boolean {
+  return typeof value === "string" || typeof value === "number" || typeof value === "boolean";
+}
+
+function normalizeProviderRequestError(
+  error: unknown,
+  context: { providerPackageId: string; provider: string },
+) {
+  return normalizeIntegrationError(error, {
+    ...context,
+    statusCode: readErrorStatus(error),
+    retryable: readErrorRetryable(error),
+    details: readErrorPayload(error),
+  });
+}
+
+function readErrorStatus(error: unknown) {
+  if (!isRecord(error)) return undefined;
+  const status = error.status ?? error.statusCode;
+  return typeof status === "number" ? status : undefined;
+}
+
+function readErrorRetryable(error: unknown) {
+  const status = readErrorStatus(error);
+  return status === undefined ? undefined : status === 429 || status >= 500;
+}
+
+function readErrorPayload(error: unknown) {
+  if (!isRecord(error) || error.payload === undefined) return undefined;
+  return { payload: error.payload };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function providerErrorCode(status: number) {
+  if (status === 401) return "provider-auth";
+  if (status === 403) return "provider-permission";
+  if (status === 429) return "provider-rate-limited";
+  if (status === 408 || status === 504) return "provider-timeout";
+  if (status >= 500) return "provider-unavailable";
+  return "provider-validation";
 }
 
 export function ebayMarketplaceCredentialStatuses(input: EbayCredentialStatusInput): ProviderCredentialStatusInput[] {
@@ -330,8 +309,8 @@ export function ebayMarketplaceCredentialStatuses(input: EbayCredentialStatusInp
       ],
       ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
       message: input.accessTokenConfigured
-        ? "eBay OAuth user access is configured."
-        : "An eBay OAuth user access token is required for marketplace APIs.",
+        ? "eBay OAuth user access is configured for the built-in REST adapter or host provider client."
+        : "An eBay OAuth user access token is required for marketplace REST APIs.",
     },
     {
       providerPackageId: ebayMarketplaceProviderManifest.id,
@@ -348,7 +327,7 @@ export function ebayMarketplaceCredentialStatuses(input: EbayCredentialStatusInp
       state: input.clientIdConfigured ? "configured" : "missing",
       message: input.clientIdConfigured
         ? "eBay application client ID is configured."
-        : "The SDK user's eBay application client ID is required.",
+        : "The host provider client's eBay application client ID is required.",
     },
     {
       providerPackageId: ebayMarketplaceProviderManifest.id,
@@ -356,7 +335,7 @@ export function ebayMarketplaceCredentialStatuses(input: EbayCredentialStatusInp
       state: input.clientSecretConfigured ? "configured" : "missing",
       message: input.clientSecretConfigured
         ? "eBay application client secret is configured server-side."
-        : "The SDK user's eBay application client secret is required for OAuth lifecycle operations.",
+        : "The host provider client's eBay application client secret is required for OAuth lifecycle operations.",
     },
     {
       providerPackageId: ebayMarketplaceProviderManifest.id,
@@ -368,13 +347,21 @@ export function ebayMarketplaceCredentialStatuses(input: EbayCredentialStatusInp
     },
     {
       providerPackageId: ebayMarketplaceProviderManifest.id,
+      requirementId: "ebay-provider-client",
+      state: input.providerClientConfigured ? "configured" : "not-required",
+      message: input.providerClientConfigured
+        ? "Host-provided eBay marketplace provider client override is expected to be available at runtime."
+        : "A host-provided eBay marketplace provider client is optional; the package can use its built-in REST adapter with OAuth tokens.",
+    },
+    {
+      providerPackageId: ebayMarketplaceProviderManifest.id,
       requirementId: "ebay-digital-signature-key",
       state: input.digitalSignatureConfigured ? "configured" : input.requireDigitalSignatureForRefunds || isEuOrUkCountry(input.sellerDomicileCountry) ? "missing" : "not-required",
       message: input.digitalSignatureConfigured
         ? "eBay digital signature key material is configured for regulated refund requests."
         : input.requireDigitalSignatureForRefunds || isEuOrUkCountry(input.sellerDomicileCountry)
           ? "eBay digital signature key material is required for issueRefund under EU/UK seller policy."
-          : "eBay digital signature key material is only required when EU/UK seller or SDK policy requires signed issueRefund calls.",
+          : "eBay digital signature key material is only required when EU/UK seller or host provider policy requires signed issueRefund calls.",
     },
     {
       providerPackageId: ebayMarketplaceProviderManifest.id,
@@ -390,7 +377,7 @@ export function ebayMarketplaceCredentialStatuses(input: EbayCredentialStatusInp
 export function createEbayMarketplaceLiveChecks(options: EbayLiveCheckOptions) {
   return [{
     id: "identity",
-    description: "eBay Identity API is reachable with the configured OAuth access token.",
+    description: "eBay Identity API readiness is checked through the configured provider client.",
     requiredCredentialIds: ["ebay-oauth-access-token", "ebay-marketplace-id"],
     async run(context: { signal?: AbortSignal }) {
       const client = options.client ?? createEbayMarketplaceClient(options);
@@ -404,104 +391,4 @@ export function createEbayMarketplaceLiveChecks(options: EbayLiveCheckOptions) {
       };
     },
   }];
-}
-
-interface EbayRequestInit {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
-  body?: EbayMarketplaceProviderPayload | undefined;
-  headers?: Record<string, string>;
-  requireDigitalSignature?: boolean;
-  accessToken?: string;
-  responseType?: "json" | "arrayBuffer" | "text";
-}
-
-async function ebayRequest<T>(input: EbayRequestInit & {
-  url: string;
-  fetch: typeof fetch;
-  options: EbayMarketplaceClientOptions;
-}): Promise<T> {
-  const method = input.method ?? "GET";
-  const bodyText = input.body === undefined ? undefined : JSON.stringify(input.body);
-  const digitalSignatureHeaders = input.requireDigitalSignature
-    ? await resolveEbayDigitalSignatureHeaders({
-      options: input.options,
-      method,
-      url: input.url,
-      ...(bodyText !== undefined ? { body: bodyText } : {}),
-    })
-    : {};
-  const response = await input.fetch(input.url, {
-    method,
-    headers: {
-      accept: "application/json",
-      authorization: `Bearer ${input.accessToken ?? input.options.accessToken}`,
-      ...(input.options.marketplaceId ? { "x-ebay-c-marketplace-id": input.options.marketplaceId } : {}),
-      ...(bodyText ? { "content-type": "application/json" } : {}),
-      ...digitalSignatureHeaders,
-      ...input.headers,
-    },
-    ...(bodyText ? { body: bodyText } : {}),
-  });
-  const responseType = input.responseType ?? "json";
-  const body = await readEbayResponseBody<T>(response, responseType);
-  if (!response.ok) {
-    const errorMessage = Array.isArray((body as { errors?: Array<{ message?: string }> }).errors)
-      ? (body as { errors?: Array<{ message?: string }> }).errors?.[0]?.message
-      : undefined;
-    throw new Error(errorMessage ?? (body as { message?: string }).message ?? `eBay API returned ${response.status}.`);
-  }
-  return body as T;
-}
-
-async function readEbayResponseBody<T>(
-  response: Response,
-  responseType: "json" | "arrayBuffer" | "text",
-): Promise<T & { errors?: Array<{ message?: string }>; message?: string }> {
-  if (response.ok && responseType === "arrayBuffer") {
-    return await response.arrayBuffer() as unknown as T & { errors?: Array<{ message?: string }>; message?: string };
-  }
-
-  const text = await response.text();
-  if (response.ok && responseType === "text") {
-    return text as unknown as T & { errors?: Array<{ message?: string }>; message?: string };
-  }
-  if (!text) return {} as T & { errors?: Array<{ message?: string }>; message?: string };
-
-  try {
-    return JSON.parse(text) as T & { errors?: Array<{ message?: string }>; message?: string };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (response.ok) {
-      throw new Error(`eBay API returned malformed JSON with HTTP ${response.status}: ${message}`);
-    }
-    return { message: `eBay API returned non-JSON error body with HTTP ${response.status}: ${message}` } as unknown as T & { message: string };
-  }
-}
-
-async function resolveEbayDigitalSignatureHeaders(input: {
-  options: EbayMarketplaceClientOptions;
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  url: string;
-  body?: string;
-}) {
-  if (input.options.signRequest) {
-    return await input.options.signRequest({
-      method: input.method,
-      url: input.url,
-      ...(input.body ? { body: input.body } : {}),
-    });
-  }
-  if (input.options.digitalSignature) {
-    return createEbayDigitalSignatureHeaders({
-      method: input.method,
-      url: input.url,
-      ...(input.body ? { body: input.body } : {}),
-      ...input.options.digitalSignature,
-    });
-  }
-  throw new Error("eBay digital signature key material is required for regulated issueRefund calls.");
-}
-
-function shouldRequireEbayRefundSignature(options: EbayMarketplaceClientOptions) {
-  return Boolean(options.requireDigitalSignatureForRefunds || isEuOrUkCountry(options.sellerDomicileCountry));
 }

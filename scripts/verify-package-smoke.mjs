@@ -45,6 +45,8 @@ const smokePackages = selectSmokePackages();
 
 const exportEntries = smokePackages.flatMap((pkg) => publicExportEntries(pkg));
 const missingTargets = await missingExportTargets(exportEntries);
+const importableExportEntries = exportEntries.filter(isJavaScriptRuntimeExport);
+const assetExportEntries = exportEntries.filter((entry) => !isJavaScriptRuntimeExport(entry));
 
 console.log("Package public export smoke:");
 for (const pkg of smokePackages) {
@@ -63,7 +65,17 @@ if (missingTargets.length > 0) {
   process.exit(1);
 }
 
-await runImportSmoke(exportEntries.map((entry) => entry.specifier));
+if (assetExportEntries.length > 0) {
+  console.log(
+    `\nSkipping ${assetExportEntries.length} non-JavaScript asset export`
+      + `${assetExportEntries.length === 1 ? "" : "s"} during Node import smoke:`,
+  );
+  for (const entry of assetExportEntries) {
+    console.log(`  ${entry.specifier}`);
+  }
+}
+
+await runImportSmoke(importableExportEntries.map((entry) => entry.specifier));
 
 function selectSmokePackages() {
   const requestedPackageNames = readRepeatedOption("--package");
@@ -175,6 +187,13 @@ function collectExportTargets(value) {
   }
 
   return [];
+}
+
+function isJavaScriptRuntimeExport(entry) {
+  return entry.targets.some((target) => {
+    const extension = path.extname(target);
+    return extension === ".js" || extension === ".mjs" || extension === ".cjs";
+  });
 }
 
 async function missingExportTargets(entries) {

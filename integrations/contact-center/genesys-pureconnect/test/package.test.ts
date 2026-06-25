@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 describe("@cognidesk/integration-contact-center-genesys-pureconnect", () => {
   it("keeps manifest imports metadata-only", async () => {
@@ -9,21 +9,20 @@ describe("@cognidesk/integration-contact-center-genesys-pureconnect", () => {
 
   it("binds declared operations to handlers", async () => {
     const mod = await import("../src/index.js");
-    const integration = mod.createGenesysPureConnectIntegration({ apiBaseUrl: "https://example.invalid", defaultHandoffPath: "/handoff", readinessPath: "/ready", fetch: async () => new Response("{}") });
+    const integration = mod.createGenesysPureConnectIntegration({
+      providerClient: fakeProviderClient(),
+      defaultHandoffPath: "/handoff",
+      readinessPath: "/ready",
+    });
     expect(integration.bindingReport).toMatchObject({ missingHandlerAliases: [], extraHandlerAliases: [], invalidExtensionOperationAliases: [] });
   });
 
-  it("uses only the configured handoff path", async () => {
+  it("delegates handoff and ICWS operations to the injected provider client", async () => {
     const mod = await import("../src/index.js");
-    const requests: string[] = [];
+    const providerClient = fakeProviderClient();
     const client = mod.createGenesysPureConnectClient({
-      apiBaseUrl: "https://example.invalid",
+      providerClient,
       defaultHandoffPath: "/configured/handoff",
-      fetch: async (url, init) => {
-        requests.push(String(url));
-        expect(init?.method).toBe("POST");
-        return new Response("{}");
-      },
     });
 
     await client.createHandoff({
@@ -32,7 +31,40 @@ describe("@cognidesk/integration-contact-center-genesys-pureconnect", () => {
       // @ts-expect-error createHandoff intentionally rejects per-call endpoint paths.
       path: "/provider/native-transfer",
     });
+    await client.createConnection({ body: { applicationName: "Cognidesk" } });
+    await client.request({ path: "/icws/session-1/interactions", method: "GET" });
 
-    expect(requests).toEqual(["https://example.invalid/configured/handoff?source=test"]);
+    expect(providerClient.createHandoff).toHaveBeenCalledWith({
+      payload: { conversationId: "conv_123" },
+      query: { source: "test" },
+    });
+    expect(providerClient.createConnection).toHaveBeenCalledWith({
+      body: { applicationName: "Cognidesk" },
+      method: "POST",
+      path: "/icws/connection",
+    });
+    expect(providerClient.request).toHaveBeenCalledWith({
+      path: "/icws/session-1/interactions",
+      method: "GET",
+    });
+  });
+
+  it("creates a built-in REST adapter when configured without a provider client", async () => {
+    const mod = await import("../src/index.js");
+    const client = mod.createGenesysPureConnectClient({
+      baseUrl: "https://api.example.test",
+      accessToken: "pureconnect-token",
+      defaultHandoffPath: "/configured/handoff",
+    });
+    expect(client).toBeDefined();
   });
 });
+
+function fakeProviderClient() {
+  return {
+    createHandoff: vi.fn(async () => ({ ok: true })),
+    createConnection: vi.fn(async () => ({ ok: true })),
+    request: vi.fn(async () => ({ ok: true })),
+    readiness: vi.fn(async () => ({ ok: true })),
+  };
+}

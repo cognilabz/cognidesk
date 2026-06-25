@@ -78,26 +78,38 @@ export const TIKTOK_SELECTED_OPERATIONS = [
 
 export const TIKTOK_SELECTED_OPERATION_COUNT = TIKTOK_SELECTED_OPERATIONS.length;
 
-export const TIKTOK_DIRECT_SLICE_METADATA = {
-  strategy: "direct-http-support-slice",
-  checkedAt: "2026-06-21",
+export const TIKTOK_HOST_CLIENT_SUPPORT_SLICE = {
+  implementationStrategy: "no-official-sdk-rest-adapter",
+  checkedAt: "2026-06-25",
   source: "official TikTok Developers and TikTok Business API docs",
-  sourceVersion: "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-21",
-  allowlistChecksumAlgorithm: "sha256",
-  allowlistChecksum: selectedOperationsChecksum(TIKTOK_SELECTED_OPERATIONS),
+  sourceVersion: "TikTok Open API v2 + Business API v1.3 public docs checked 2026-06-25",
+  selectedOperationChecksumAlgorithm: "sha256",
+  selectedOperationChecksum: selectedOperationsChecksum(TIKTOK_SELECTED_OPERATIONS),
   selectedOperations: TIKTOK_SELECTED_OPERATIONS,
+  allowedOperations: TIKTOK_SELECTED_OPERATIONS.map((operation) => ({
+    id: operation.functionName,
+    alias: operation.uid,
+    target: `providerRestAdapter.${operation.functionName}`,
+    source: "provider-rest-adapter",
+    providerApi: operation.api,
+    providerPath: operation.path,
+    sourceUrl: operation.sourceUrl,
+  })),
   apiCoverage: {
-    checkedAt: "2026-06-21",
+    checkedAt: "2026-06-25",
     operationCatalog: "package:src/selected-operations.ts",
   },
   sdkDecision: {
     viableOfficialSdk: false,
     notes: [
-      "No official maintained JavaScript/TypeScript SDK was found for the mixed Display API, Research API, Content Posting status, webhook, and Business comment surface.",
-      "tiktok-business-api-sdk-official@1.1.3 is a broad Swagger Codegen Business API bundle; it does not cover TikTok Developers Open API, Research API, Content Posting status, or webhooks, and its comment endpoints do not match this adapter's selected /business/comment/* paths.",
+      "TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface.",
+      "The official TikTok Business API SDK is a broad Business API package; it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface.",
+      "This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override.",
     ],
   },
 } as const;
+
+export const TIKTOK_SUPPORT_SLICE = TIKTOK_HOST_CLIENT_SUPPORT_SLICE;
 
 function selectedOperationsChecksum(operations: readonly TikTokSelectedOperation[]): string {
   const serialized = JSON.stringify(operations);

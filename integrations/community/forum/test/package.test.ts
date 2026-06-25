@@ -52,6 +52,13 @@ describe("@cognidesk/integration-community-forum", () => {
       .resolves.toMatchObject({ topics: [{ id: 1 }] });
   });
 
+  it("fails closed when no host provider client is injected", async () => {
+    const integration = createForumCommunityIntegration();
+
+    await expect((integration.run as unknown as OperationRunner)("forum.topic.read", { topicId: 55 }))
+      .rejects.toThrow("Forum provider client is not configured.");
+  });
+
   it("exports the same operation aliases from root and manifest subpath", () => {
     expect(operationAliases(forumCommunityProviderManifestFromRoot)).toEqual(operationAliases(forumCommunityProviderManifest));
     expect(operationAliases(forumCommunityProviderManifestFromRoot)).toEqual([
@@ -66,6 +73,7 @@ describe("@cognidesk/integration-community-forum", () => {
 
   it("keeps the manifest subpath runtime-light and avoids a fake SDK dependency", async () => {
     const source = await readFile(resolve(packageRoot, "src/manifest.ts"), "utf8");
+    const runtimeSource = await readFile(resolve(packageRoot, "src/index.ts"), "utf8");
     const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
     };
@@ -73,6 +81,10 @@ describe("@cognidesk/integration-community-forum", () => {
     expect(forumCommunityProviderManifest.packageName).toBe("@cognidesk/integration-community-forum");
     expect(source).not.toContain("node:crypto");
     expect(source).not.toContain("./index");
+    expect(runtimeSource).toContain("providerJsonRequest");
+    expect(runtimeSource).toContain("Api-Key");
+    expect(runtimeSource).toContain("posts.json");
+    expect(runtimeSource).not.toContain("URLSearchParams");
     expect(packageJson.dependencies).not.toHaveProperty("discourse2");
   });
 });

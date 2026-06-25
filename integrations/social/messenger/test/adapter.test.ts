@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
+import type { MessengerSocialProviderClient } from "../src/index.js";
 import {
   createMessengerSocialClient,
   defineMessengerSocialIntegration,
@@ -23,36 +24,63 @@ describe("@cognidesk/integration-social-messenger", () => {
     expect(messengerSocialProviderManifest.metadata?.apiCoverage).toMatchObject({
       fullMetaGraphCoverage: false,
     });
+    expect(messengerSocialProviderManifest.metadata?.providerClient).toMatchObject({
+      interface: "MessengerSocialProviderClient",
+      importPolicy: "provider-client-override-supported",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
+    });
     const integration = defineMessengerSocialIntegration({
       pageAccessToken: "token",
       pageId: "page_1",
       appSecret: "secret",
-      fetch: vi.fn() as unknown as typeof fetch,
+      providerClient: fakeMessengerProviderClient(),
     });
     expect(() => assertIntegrationConformance(integration)).not.toThrow();
   });
 
-  it("keeps the manifest entry metadata-only", async () => {
+  it("keeps the manifest entry metadata-only and host-client based", async () => {
     const source = await readFile(new URL("../src/manifest.ts", import.meta.url), "utf8");
     expect(source).not.toContain("./client");
     expect(source).not.toContain("./request");
     expect(source).not.toContain("facebook-nodejs-business-sdk");
+    expect(JSON.stringify(messengerSocialProviderManifest.metadata)).not.toContain("direct-http");
+    expect(JSON.stringify(messengerSocialProviderManifest.metadata)).not.toContain("raw Graph");
     const manifestOnly = await import(new URL("../dist/manifest.js", import.meta.url).href);
-    expect(Object.keys(manifestOnly)).toEqual(["messengerSocialProviderManifest"]);
+    expect(Object.keys(manifestOnly).sort()).toEqual([
+      "messengerSocialOperationAliases",
+      "messengerSocialProviderClientSupportSlice",
+      "messengerSocialProviderManifest",
+      "messengerSocialSupportSlice",
+    ]);
   });
 
-  it("preserves raw client access and webhook verification", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ message_id: "mid.1" })));
+  it("delegates normalized operations to the injected provider client and preserves webhook verification", async () => {
+    const providerClient = fakeMessengerProviderClient();
     const client = createMessengerSocialClient({
-      pageAccessToken: "token",
-      pageId: "page_1",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
     await client.sendText({ recipientId: "psid_1", text: "Hello" });
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://graph.facebook.com/v25.0/page_1/messages",
-      expect.objectContaining({ method: "POST" }),
-    );
+    await client.uploadAttachment({ type: "image", url: "https://cdn.example.test/image.png" });
+    await client.listConversations();
+    expect(providerClient.sendMessage).toHaveBeenCalledWith({
+      recipient: { id: "psid_1" },
+      messaging_type: "RESPONSE",
+      message: { text: "Hello" },
+    });
+    expect(providerClient.uploadAttachment).toHaveBeenCalledWith({
+      message: {
+        attachment: {
+          type: "image",
+          payload: {
+            is_reusable: true,
+            url: "https://cdn.example.test/image.png",
+          },
+        },
+      },
+    });
+    expect(providerClient.listConversations).toHaveBeenCalledWith({
+      fields: ["id", "updated_time", "participants", "messages{message,from,to,created_time,attachments}"],
+    });
 
     const body = JSON.stringify({ object: "page", entry: [] });
     const signature = `sha256=${createHmac("sha256", "secret").update(body).digest("hex")}`;
@@ -61,7 +89,7 @@ describe("@cognidesk/integration-social-messenger", () => {
       pageAccessToken: "token",
       pageId: "page_1",
       appSecret: "secret",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
     await expect(integration.run("messenger.webhook-signature", {
       appSecret: "attacker",
@@ -81,6 +109,22 @@ describe("@cognidesk/integration-social-messenger", () => {
     });
     await expect(parseMessengerWebhook(request, { appSecret: "secret" }))
       .resolves.toMatchObject({ object: "page" });
+  });
+
+  it("requires Graph API credentials for the built-in Messenger provider client", async () => {
+    expect(() => createMessengerSocialClient()).toThrow("accessToken");
+
+    expect(() => defineMessengerSocialIntegration({ appSecret: "secret" }))
+      .toThrow("accessToken");
+  });
+
+  it("ships package-owned Graph request defaults for the built-in provider adapter", async () => {
+    const clientSource = await readFile(new URL("../src/client.ts", import.meta.url), "utf8");
+    expect(clientSource).toContain("fetch");
+    expect(clientSource).toContain("graphApiBaseUrl");
+    expect(clientSource).toContain("graphApiVersion");
+    expect(clientSource).toContain("messengerRequest");
+    expect(clientSource).toContain("./request");
   });
 
   it("normalizes inbound message webhook events", () => {
@@ -144,3 +188,16 @@ describe("@cognidesk/integration-social-messenger", () => {
     }]);
   });
 });
+
+function fakeMessengerProviderClient(): MessengerSocialProviderClient {
+  return {
+    sendMessage: vi.fn(async () => ({ message_id: "mid.1" })),
+    uploadAttachment: vi.fn(async () => ({ attachment_id: "att.1" })),
+    passThreadControl: vi.fn(async () => ({ recipient_id: "psid_1" })),
+    takeThreadControl: vi.fn(async () => ({ recipient_id: "psid_1" })),
+    requestThreadControl: vi.fn(async () => ({ recipient_id: "psid_1" })),
+    listConversations: vi.fn(async () => ({ data: [] })),
+    getConversationMessages: vi.fn(async () => ({ data: [] })),
+    getPage: vi.fn(async () => ({ id: "page_1", name: "Test Page" })),
+  };
+}

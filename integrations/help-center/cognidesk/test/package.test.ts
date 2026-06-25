@@ -54,4 +54,14 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
     expect(source).not.toContain("./index");
     expect(source).not.toContain("fetch(");
   });
+
+  it("ships a shared provider REST adapter for HTTP help-center sources", async () => {
+    const source = await readFile(resolve(packageRoot, "src/core.ts"), "utf8");
+
+    expect(source).toContain("providerJsonRequest");
+    expect(source).toContain("typeof fetch");
+    expect(source).toContain("baseUrl");
+    expect(source).not.toContain("helpCenterRequest");
+    expect(source).not.toContain("joinUrl");
+  });
 });

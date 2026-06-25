@@ -1,3 +1,5 @@
+import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
+
 export const RCS_MESSAGING_SCOPE = "https://www.googleapis.com/auth/rcsbusinessmessaging";
 export const RCS_BUSINESS_COMMUNICATIONS_SCOPE = "https://www.googleapis.com/auth/businesscommunications";
 
@@ -16,38 +18,46 @@ export interface RcsMessagingProviderResponse extends RcsMessagingJsonObject {}
 export interface RcsMessagingProviderExtensionFields extends RcsMessagingJsonObject {}
 
 export interface RcsMessagingClientOptions {
-  agentId: string;
+  providerClient?: RcsMessagingProviderClient;
+  agentId?: string;
   agentName?: string;
   accessToken?: string;
+  apiKey?: string;
   tokenProvider?: RcsAccessTokenProvider;
   serviceAccount?: RcsServiceAccountCredentials;
   messagingApiBaseUrl?: string;
   managementApiBaseUrl?: string;
+  baseUrl?: string;
+  managementBaseUrl?: string;
   region?: string;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
+}
+
+export interface RcsCredentialStatusInput {
+  agentId?: string;
+  agentName?: string;
+  providerClientConfigured?: boolean;
+  accessToken?: string;
+  apiKey?: string;
+  serviceAccountConfigured?: boolean;
+  webhookClientToken?: string;
+  scopes?: string[];
+  expiresAt?: string;
 }
 
 export type RcsAccessTokenProvider = (input: {
   scopes: string[];
   fetch: typeof fetch;
-}) => Promise<string> | string;
+}) => string | Promise<string>;
 
 export interface RcsServiceAccountCredentials {
   clientEmail: string;
   privateKey: string;
   tokenUri?: string;
   scopes?: string[];
-}
-
-export interface RcsCredentialStatusInput {
-  agentId?: string;
-  agentName?: string;
-  accessToken?: string;
-  serviceAccountClientEmail?: string;
-  tokenProviderConfigured?: boolean;
-  webhookClientToken?: string;
-  scopes?: string[];
-  expiresAt?: string;
 }
 
 export type RcsMessageTrafficType =
@@ -180,20 +190,26 @@ export interface RcsAgentResource {
   [key: string]: RcsMessagingProviderExtensionValue;
 }
 
-export interface RcsMessagingClient {
+export interface RcsMessagingProviderClient {
+  rawClient?: unknown;
+  rawRequest?<T = RcsMessagingProviderResponse>(operation: string, input?: unknown): Promise<T>;
   sendMessage(input: RcsSendMessageInput): Promise<RcsAgentMessage>;
-  sendText(input: RcsSendTextInput): Promise<RcsAgentMessage>;
-  sendMedia(input: RcsSendMediaInput): Promise<RcsAgentMessage>;
-  sendCard(input: RcsSendCardInput): Promise<RcsAgentMessage>;
   sendAgentEvent(input: RcsSendAgentEventInput): Promise<RcsAgentEvent>;
-  sendReadReceipt(input: { phoneNumber: string; messageId: string; eventId?: string }): Promise<RcsAgentEvent>;
-  sendTyping(input: { phoneNumber: string; eventId?: string }): Promise<RcsAgentEvent>;
   createFile(input: RcsCreateFileInput): Promise<RcsFileResource>;
   uploadFile(input: RcsUploadFileInput): Promise<RcsFileResource>;
   getCapabilities(input: { phoneNumber: string; requestId?: string }): Promise<RcsCapabilityResponse>;
   getAgent(agentName?: string): Promise<RcsAgentResource>;
   getAgentLaunch(agentName?: string): Promise<RcsMessagingProviderResponse>;
   getAgentVerification(agentName?: string): Promise<RcsMessagingProviderResponse>;
+}
+
+export interface RcsMessagingClient extends RcsMessagingProviderClient {
+  providerClient: RcsMessagingProviderClient;
+  sendText(input: RcsSendTextInput): Promise<RcsAgentMessage>;
+  sendMedia(input: RcsSendMediaInput): Promise<RcsAgentMessage>;
+  sendCard(input: RcsSendCardInput): Promise<RcsAgentMessage>;
+  sendReadReceipt(input: { phoneNumber: string; messageId: string; eventId?: string }): Promise<RcsAgentEvent>;
+  sendTyping(input: { phoneNumber: string; eventId?: string }): Promise<RcsAgentEvent>;
 }
 
 export interface RcsLiveCheckOptions extends RcsMessagingClientOptions {

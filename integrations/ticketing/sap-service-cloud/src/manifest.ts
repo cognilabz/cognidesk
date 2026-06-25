@@ -1,12 +1,10 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
 
-export const SAP_SERVICE_CLOUD_DEFAULT_ODATA_PATH = "/sap/c4c/odata/v1/c4codataapi";
-
-export const sapServiceCloudSupportOperationAllowlist = [
-  { alias: "ticket.create", method: "POST", path: "{odataPath}/ServiceRequestCollection" },
-  { alias: "ticket.read", method: "GET", path: "{odataPath}/ServiceRequestCollection('{ObjectID}')" },
-  { alias: "ticket.update", method: "PATCH", path: "{odataPath}/ServiceRequestCollection('{ObjectID}')" },
-  { alias: "ticket.search", method: "GET", path: "{odataPath}/ServiceRequestCollection" },
+export const sapServiceCloudProviderClientOperations = [
+  { alias: "ticket.create", providerClientMethod: "createServiceRequest" },
+  { alias: "ticket.read", providerClientMethod: "getServiceRequest" },
+  { alias: "ticket.update", providerClientMethod: "updateServiceRequest" },
+  { alias: "ticket.search", providerClientMethod: "searchServiceRequests" },
 ] as const;
 
 export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
@@ -21,7 +19,8 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Coverage is typed for SAP Cloud for Customer OData ServiceRequestCollection create, read by ObjectID, patch, collection query, CSRF token preflight, and readiness checks used by Cognidesk support workflows.",
+      "Runtime coverage uses the built-in SAP Service Cloud OData adapter for selected ServiceRequestCollection create, read by ObjectID, update, search, and readiness workflows when baseUrl plus access credentials are provided.",
+      "A host-injected SapServiceCloudTicketingProviderClient remains available as an override for SDK-user-owned generated clients, destination handling, authentication, retries, or endpoint policy.",
       "This is not full SAP Service Cloud API coverage; notes, descriptions, attachments, involved parties, service categories, code-list discovery, custom OData services, communication arrangements, workflow actions, v2 migration policy, and broader SAP Cloud for Customer APIs remain outside this adapter.",
     ],
     evidence: [
@@ -33,20 +32,31 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
   },
   credentialRequirements: [
     {
-      id: "sap-service-cloud-tenant",
-      label: "SAP Service Cloud tenant URL",
-      description: "The SDK user's SAP Cloud for Customer or SAP Service Cloud tenant URL.",
+      id: "sap-service-cloud-provider-client",
+      label: "Optional SAP Service Cloud provider client override",
+      description: "Optional SapServiceCloudTicketingProviderClient override that encapsulates SAP Service Cloud tenant routing, generated SDK/provider runtime, authentication, retries, and endpoint policy.",
+      required: false,
+      metadata: {
+        injectionInterface: "SapServiceCloudTicketingProviderClient",
+        credentialOwnership: "host-managed-override",
+        defaultClientPolicy: "built-in-odata-rest-adapter",
+      },
+    },
+    {
+      id: "sap-service-cloud-instance",
+      label: "SAP Service Cloud base URL",
+      description: "SAP Service Cloud tenant base URL used by the built-in OData adapter, or supplied by a host provider client override.",
       required: true,
     },
     {
       id: "sap-service-cloud-api-access",
-      label: "SAP Service Cloud OData API access",
-      description: "Server-side Basic Auth, communication user/arrangement, or OAuth bearer access authorized for the SAP Cloud for Customer OData API.",
+      label: "SAP Service Cloud API access",
+      description: "Server-side SAP Service Cloud access supplied as accessToken, basic auth, auth headers, or encapsulated in a host provider client override.",
       scopes: ["ServiceRequestCollection:read", "ServiceRequestCollection:write"],
       required: true,
       metadata: {
         scopeKind: "internal-capability-labels",
-        privilegeGuidance: "These strings are Cognidesk capability labels for ServiceRequestCollection access, not official SAP OAuth scope names. SAP authorization depends on communication arrangements, business user permissions, and exposed OData services.",
+        privilegeGuidance: "These strings are Cognidesk capability labels for ServiceRequestCollection access, not official SAP OAuth scope names. SAP authorization depends on the host client's communication arrangements, destination/auth configuration, business user permissions, and exposed services.",
       },
     },
   ],
@@ -54,7 +64,7 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
     {
       capability: "handoff",
       label: "Create SAP Service Cloud handoff",
-      description: "Creates or updates SAP Service Cloud ServiceRequestCollection records as SDK-configured support handoff targets.",
+      description: "Creates or updates SAP Service Cloud ServiceRequestCollection records through the built-in OData adapter or host provider client as SDK-configured support handoff targets.",
       audiences: ["customer-facing", "internal-support", "mixed"],
       providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
       requiresCredential: true,
@@ -65,7 +75,7 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
     {
       capability: "create-provider-object",
       label: "Create SAP service requests",
-      description: "Creates SAP Service Cloud ServiceRequestCollection tickets from SDK-user-selected workflows.",
+      description: "Creates SAP Service Cloud ServiceRequestCollection tickets through the built-in OData adapter or host provider client from SDK-user-selected workflows.",
       audiences: ["customer-facing", "internal-support", "mixed"],
       providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
       requiresCredential: true,
@@ -85,7 +95,7 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
     {
       capability: "update-provider-object",
       label: "Update SAP service requests",
-      description: "Updates SAP Service Cloud ticket fields, statuses, priorities, or SDK-user custom fields.",
+      description: "Updates SAP Service Cloud ticket fields, statuses, priorities, or SDK-user custom fields through the built-in OData adapter or host provider client.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
       requiresCredential: true,
@@ -96,7 +106,7 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
     {
       capability: "search-provider-object",
       label: "Search SAP service requests",
-      description: "Queries SAP Service Cloud ServiceRequestCollection with SDK-user-supplied OData filters and projections.",
+      description: "Queries SAP Service Cloud ServiceRequestCollection with SDK-user-supplied OData query controls.",
       audiences: ["customer-facing", "internal-support", "mixed"],
       providerObjects: [{ kind: "sapServiceRequest", label: "SAP Service Request", schemaName: "ServiceRequestCollection" }],
       requiresCredential: true,
@@ -146,41 +156,63 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
     "SAP API credentials stay server-side and Studio receives only readiness and scope status.",
   ],
   limitations: [
-    "SAP tenant OData exposure, communication arrangements, required fields, statuses, code lists, workflow rules, and extensions are SDK-user configuration.",
+    "SAP tenant exposure, communication arrangements, required fields, statuses, code lists, workflow rules, and extensions are SDK-user host-client configuration.",
+    "The built-in adapter covers selected ServiceRequestCollection OData operations only; hosts can still inject a SapServiceCloudTicketingProviderClient for generated clients, destinations, custom auth, CSRF preflights, or retry policy.",
     "SDK users own escalation timing, customer matching, field mapping, reply visibility, retention, and notification policy before calling SAP APIs.",
   ],
   metadata: {
     implementation: {
-      strategy: "direct-http-support-slice",
+      strategy: "provider-rest-adapter",
+      adapterKind: "no-official-service-sdk-odata-rest-adapter",
+      providerClientInterface: "SapServiceCloudTicketingProviderClient",
+      defaultHttpClient: "built-in-fetch",
+      defaultFetchClient: "built-in-provider-rest-adapter",
+      packageOwnedRestClient: true,
+      providerClientOverride: true,
+      manifestImport: "no-client-initialization",
     },
-    implementationStrategy: {
-      strategy: "sdk-viable-reviewed-support-slice",
-      reason: "SAP Cloud SDK for JavaScript is maintained and viable for OData v2/generator/HTTP transport, but this package keeps the reviewed ServiceRequestCollection slice until a redistributable EDMX/source artifact can be pinned.",
-      checkedAt: "2026-06-21",
-      viableLibraries: [
+    implementationStrategy: "no-official-service-sdk-odata-rest-adapter",
+    providerClient: {
+      interface: "SapServiceCloudTicketingProviderClient",
+      injectionPolicy: "optional-runtime-override",
+      importPolicy: "optional-host-override",
+      defaultClient: "built-in-odata-rest-adapter",
+    },
+    checkedProviderSdk: {
+      checkedAt: "2026-06-25",
+      verdict: "no-official-service-sdk-rest-adapter",
+      reason: "SAP Cloud SDK for JavaScript is official and viable as a generic OData/generator toolkit, but no redistributable SAP Service Cloud ServiceRequestCollection JavaScript client/EDMX artifact is pinned by this package; the package therefore ships a small built-in OData REST adapter for the selected support workflow surface.",
+      candidates: [
         {
-          packageName: "@sap-cloud-sdk/odata-v2",
-          version: "4.7.0",
-          integrity: "sha512-/t1ncLEnm3yTzHRkIgpNcUMGHk7jvQ1nSHrb7YgvgU+/Q2P5Au8llPEH/zudXZ8Bd3k9Qdrfdq/hl+w+YWkBIg==",
+          package: "@sap-cloud-sdk/odata-v2",
+          checkedVersion: "4.7.0",
+          result: "not-used-as-package-default",
+          reason: "Official generic SAP Cloud SDK OData v2 runtime; requires generated service client metadata and host destination/auth setup rather than providing a SAP Service Cloud ServiceRequestCollection client.",
         },
         {
-          packageName: "@sap-cloud-sdk/generator",
-          version: "4.7.0",
-          integrity: "sha512-aW17rUVIZl5RA3WoTTErBwwWCX5A3AresM13Vs7fKEc3Z52919KTlH+7Cpf/9qJrNDQUZU6RzCw+bHd5gs8wHA==",
+          package: "@sap-cloud-sdk/generator",
+          checkedVersion: "4.7.0",
+          result: "not-runtime-client",
+          reason: "Official generator for EDMX-based clients; this package does not own or redistribute tenant/version-specific SAP Service Cloud metadata.",
         },
         {
-          packageName: "@sap-cloud-sdk/http-client",
-          version: "4.7.0",
-          integrity: "sha512-7+S6ru7SrnyKA2MGimX09oix0EVwmPGcCAz0TRwFZVnglU+VTRmZ8QdcwcVTR26E9YhkR4OVl6EK7jb2Z0OxfQ==",
+          package: "@sap-cloud-sdk/http-client",
+          checkedVersion: "4.7.0",
+          result: "not-used-as-package-default",
+          reason: "Generic HTTP transport does not provide a ServiceRequestCollection-specific client; this package uses integration-kit providerJsonRequest for its selected OData REST operations.",
         },
       ],
+      sources: [
+        "https://sap.github.io/cloud-sdk/docs/js/overview",
+        "https://sap.github.io/cloud-sdk/docs/js/features/odata/overview",
+        "https://sap.github.io/cloud-sdk/docs/js/features/odata/generate-client",
+        "https://www.npmjs.com/package/@sap-cloud-sdk/odata-v2",
+      ],
     },
-    supportOperationSlice: {
-      sourceKind: "official-docs-reviewed-slice",
-      sourceVersion: SAP_SERVICE_CLOUD_DEFAULT_ODATA_PATH,
-      checkedAt: "2026-06-21",
-      allowlistSha256: "0878a63145c55ce016d71a56643a963adc9fe945c7d0a029286d567e5027f30f",
-      operations: sapServiceCloudSupportOperationAllowlist,
+    providerRestAdapterSupportSurface: {
+      source: "Built-in SAP Service Cloud OData adapter",
+      adapterKind: "no-official-service-sdk-odata-rest-adapter",
+      operations: sapServiceCloudProviderClientOperations,
     },
     checkedProviderApiCoverage: {
       verifiedAt: "2026-06-18",
@@ -189,12 +221,12 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
       checkedFamilyCount: 3,
       implementedFamilyCount: 2,
       gapFamilyCount: 1,
-      implementedOperationCount: 5,
+      implementedOperationCount: 4,
     },
     channelCoverage: {
-      serviceRequests: "typed-create-read-update-search",
-      csrfToken: "typed-selected",
-      readinessSearch: "typed-search",
+      serviceRequests: "typed-odata-adapter-create-read-update-search",
+      csrfToken: "typed-optional-header-supported-host-owned-prefetch",
+      readinessSearch: "typed-odata-adapter-readiness",
       attachmentFolder: "provider-supported-not-typed",
       notesInvolvedPartiesCodeLists: "provider-supported-not-typed",
       workflowRulesCommunicationArrangements: "not-covered",

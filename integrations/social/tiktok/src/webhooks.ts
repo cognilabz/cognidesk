@@ -6,7 +6,6 @@ import type {
   TikTokWebhookPayload,
   ValidateTikTokWebhookSignatureInput,
 } from "./contracts.js";
-import { stripUndefined } from "./request.js";
 
 export async function parseTikTokWebhook(
   request: Request,
@@ -25,13 +24,13 @@ export async function parseTikTokWebhook(
     if (!options.clientSecret) {
       throw new Error("TikTok client secret is required to validate webhook signatures.");
     }
-    if (!validateTikTokWebhookSignature(stripUndefined({
+    if (!validateTikTokWebhookSignature({
       clientSecret: options.clientSecret,
       rawBody,
       signatureHeader,
-      nowSeconds: options.nowSeconds,
-      toleranceSeconds: options.toleranceSeconds,
-    }) as unknown as ValidateTikTokWebhookSignatureInput)) {
+      ...(options.nowSeconds !== undefined ? { nowSeconds: options.nowSeconds } : {}),
+      ...(options.toleranceSeconds !== undefined ? { toleranceSeconds: options.toleranceSeconds } : {}),
+    })) {
       throw new Error("TikTok webhook signature validation failed.");
     }
   }

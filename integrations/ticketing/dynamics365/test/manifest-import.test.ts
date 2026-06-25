@@ -9,6 +9,13 @@ describe("@cognidesk/integration-ticketing-dynamics365/manifest", () => {
       packageName: "@cognidesk/integration-ticketing-dynamics365",
       category: "ticketing",
       provider: "dynamics365",
+      metadata: {
+        implementation: {
+          strategy: "sdk-backed",
+          sdkPackage: "dynamics-web-api",
+          manifestImport: "no-sdk-client-initialization",
+        },
+      },
     });
   });
 });

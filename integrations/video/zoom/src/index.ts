@@ -21,7 +21,13 @@ export {
 } from "./meetings-api-operations.generated.js";
 export type * from "./meetings-api-schema-types.generated.js";
 
-export { createZoomVideoClient } from "./client.js";
+export {
+  createMissingZoomVideoProviderClient,
+  createZoomRestVideoProviderClient,
+  createZoomServerOAuthAccessToken,
+  createZoomVideoClient,
+  type ZoomServerOAuthTokenOptions,
+} from "./client.js";
 export type * from "./contracts.js";
 export { zoomVideoIntegration, zoomVideoOperationHandlers } from "./integration.js";
 export { zoomVideoCredentialStatuses } from "./credentials.js";

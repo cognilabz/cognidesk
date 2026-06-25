@@ -54,13 +54,19 @@ const knownImplementationStrategies = new Set<IntegrationImplementationStrategy>
   "official-sdk-plus-support-slice",
   "maintained-library",
   "generated-support-slice",
-  "direct-http-support-slice",
+  "provider-rest-adapter",
+  "host-injected-provider-client",
   "direct-support-slice",
   "support-workflow-adapter",
   "provider-api-subset",
   "generated-full-provider-api",
   "app-supplied-connector",
   "local-protocol",
+]);
+
+const providerRestAdapterStrategyAliases = new Set([
+  "no-official-sdk-rest-adapter",
+  "no-official-service-sdk-odata-rest-adapter",
 ]);
 
 const entries = await discoverSplitProviderEntries();
@@ -186,6 +192,11 @@ function toCatalogEntry(
   const optionalCredentialIds = credentialRequirements.filter((credential) => !credential.required).map((credential) => credential.id);
   const summary = firstNonEmpty(coverage.notes) ?? `${manifest.name} provider integration.`;
   const adapterCoverage = deriveAdapterCoverage(manifest);
+  const sdkPackage =
+    stringFrom(implementation?.sdkPackage)
+    ?? stringFrom(metadata?.sdkPackage)
+    ?? providerClientRuntimePackage(metadata)
+    ?? manifest.packageName;
 
   return {
     id: manifest.id,
@@ -209,7 +220,7 @@ function toCatalogEntry(
     adapterCoverage,
     implementation: {
       strategy: implementationStrategy(manifest, implementation),
-      sdkPackage: stringFrom(implementation?.sdkPackage) ?? stringFrom(metadata?.sdkPackage) ?? manifest.packageName,
+      sdkPackage,
       runtimePackage: stringFrom(implementation?.runtimePackage) ?? stringFrom(metadata?.runtimePackage) ?? runtimePackage(reference, manifest),
       providerModule: stringFrom(implementation?.providerModule) ?? reference.modulePath,
       manifestExport: reference.manifestExport,
@@ -353,11 +364,26 @@ function implementationStrategy(
   implementation: Record<string, unknown> | undefined,
 ): IntegrationImplementationStrategy {
   const metadata = recordFrom(manifest.metadata);
+  const providerRestAdapter = recordFrom(metadata?.providerRestAdapter);
+  const providerClient = recordFrom(metadata?.providerClient);
   const declaredStrategy = stringFrom(implementation?.strategy)
+    ?? stringFrom(implementation?.implementationStrategy)
     ?? stringFrom(metadata?.implementationStrategy)
-    ?? stringFrom(metadata?.strategy);
+    ?? stringFrom(metadata?.strategy)
+    ?? stringFrom(providerRestAdapter?.strategy);
+  if (declaredStrategy && providerRestAdapterStrategyAliases.has(declaredStrategy)) {
+    return "provider-rest-adapter";
+  }
   if (declaredStrategy && knownImplementationStrategies.has(declaredStrategy as IntegrationImplementationStrategy)) {
     return declaredStrategy as IntegrationImplementationStrategy;
+  }
+  const defaultClientPolicy = stringFrom(providerClient?.defaultClientPolicy);
+  if (
+    defaultClientPolicy?.includes("provider-rest-adapter")
+    || defaultClientPolicy?.includes("built-in-rest-adapter")
+    || JSON.stringify(providerRestAdapter ?? {}).includes("provider-rest-adapter")
+  ) {
+    return "provider-rest-adapter";
   }
   if (manifest.coverage.scope === "full-provider-api") return "generated-full-provider-api";
   if (manifest.coverage.scope === "provider-api-subset") return "provider-api-subset";
@@ -367,7 +393,18 @@ function implementationStrategy(
     return "app-supplied-connector";
   }
   if (stringFrom(implementation?.sdkPackage) ?? stringFrom(metadata?.sdkPackage)) return "official-sdk";
+  if (providerClientRuntimePackage(metadata)) return "official-sdk-plus-support-slice";
   return "support-workflow-adapter";
+}
+
+function providerClientRuntimePackage(metadata: Record<string, unknown> | undefined) {
+  const providerClient = recordFrom(metadata?.providerClient);
+  const packageName = stringFrom(providerClient?.package);
+  if (!packageName) return undefined;
+  if (packageName === "host-provided" || packageName.includes("built-in") || packageName.includes("host-provided")) {
+    return undefined;
+  }
+  return packageName;
 }
 
 function readinessMode(

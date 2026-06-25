@@ -1,8 +1,21 @@
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
-import { defineIntegration } from "@cognidesk/integration-kit";
-import { pegaCustomerServiceTicketingProviderManifest } from "./manifest.js";
+import {
+  defineIntegration,
+  providerJsonRequest,
+  providerRequestUrl,
+  type ProviderHttpMethod,
+  type ProviderJsonRetryOptions,
+  type ProviderQueryValue,
+} from "@cognidesk/integration-kit";
+import {
+  pegaCustomerServiceTicketingProviderManifest,
+  pegaCustomerServiceTicketingProviderManifestInput,
+} from "./manifest.js";
 
-export { pegaCustomerServiceTicketingProviderManifest } from "./manifest.js";
+export {
+  pegaCustomerServiceTicketingProviderManifest,
+  pegaCustomerServiceTicketingProviderManifestInput,
+} from "./manifest.js";
 
 export type PegaCustomerServiceJsonPrimitive = string | number | boolean | null;
 export type PegaCustomerServiceJsonValue =
@@ -19,19 +32,60 @@ export interface PegaCustomerServiceProviderResponse extends PegaCustomerService
 export interface PegaCustomerServiceProviderExtensionFields extends PegaCustomerServiceJsonObject {}
 
 export interface PegaCustomerServiceTicketingClientOptions {
-  instanceUrl: string;
-  username?: string;
-  password?: string;
+  providerClient?: PegaCustomerServiceProviderClient;
+  client?: PegaCustomerServiceProviderClient;
+  baseUrl?: string;
   accessToken?: string;
+  auth?: PegaCustomerServiceAuthOptions;
   apiBasePath?: string;
+  headers?: Record<string, string>;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
+}
+
+export type PegaCustomerServiceAuthOptions =
+  | { type: "bearer"; accessToken: string }
+  | { type: "headers"; headers: Record<string, string> };
+
+export interface PegaCustomerServiceProviderApiErrorResponseMetadata {
+  statusText: string;
+  headers: Record<string, string>;
+  url: string;
+  requestId?: string;
+}
+
+export interface PegaCustomerServiceProviderApiErrorInput {
+  status: number;
+  message: string;
+  body: unknown;
+  response: PegaCustomerServiceProviderApiErrorResponseMetadata;
+}
+
+export class PegaCustomerServiceProviderApiError extends Error {
+  readonly provider = "pega-customer-service";
+  readonly status: number;
+  readonly body: unknown;
+  readonly response: PegaCustomerServiceProviderApiErrorResponseMetadata;
+
+  constructor(input: PegaCustomerServiceProviderApiErrorInput) {
+    super(input.message);
+    this.name = "PegaCustomerServiceProviderApiError";
+    this.status = input.status;
+    this.body = input.body;
+    this.response = input.response;
+  }
 }
 
 export interface PegaCustomerServiceCredentialStatusInput {
-  instanceUrl?: string;
-  username?: string;
-  password?: string;
+  providerClient?: unknown;
+  client?: unknown;
+  hostProviderClientConfigured?: boolean;
+  baseUrl?: string;
   accessToken?: string;
+  authConfigured?: boolean;
+  apiAccessConfigured?: boolean;
   scopes?: string[];
 }
 
@@ -88,7 +142,7 @@ export interface PegaCasesResult<T = PegaCaseResource> {
   count?: number;
 }
 
-export interface PegaCustomerServiceTicketingClient {
+export interface PegaCustomerServiceProviderClient {
   createCase(input: PegaCreateCaseInput): Promise<PegaCaseResource>;
   getCase(caseId: string): Promise<PegaCaseResource>;
   updateCase(caseId: string, input: PegaUpdateCaseInput): Promise<PegaCaseResource>;
@@ -98,8 +152,20 @@ export interface PegaCustomerServiceTicketingClient {
   readiness(): Promise<PegaCaseTypeResource[]>;
 }
 
-export interface PegaCustomerServiceLiveCheckOptions extends PegaCustomerServiceTicketingClientOptions {
-  client?: Pick<PegaCustomerServiceTicketingClient, "readiness">;
+export interface PegaCustomerServiceTicketingClient extends PegaCustomerServiceProviderClient {}
+
+export interface PegaCustomerServiceLiveCheckOptions {
+  providerClient?: Pick<PegaCustomerServiceProviderClient, "readiness">;
+  client?: Pick<PegaCustomerServiceProviderClient, "readiness">;
+  baseUrl?: string;
+  accessToken?: string;
+  auth?: PegaCustomerServiceAuthOptions;
+  apiBasePath?: string;
+  headers?: Record<string, string>;
+  fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
 }
 
 export interface PegaReadCaseOperationInput {
@@ -110,73 +176,98 @@ export interface PegaUpdateCaseOperationInput extends PegaUpdateCaseInput {
   caseId: string;
 }
 
-export interface PegaCustomerServiceTicketingIntegrationOptions extends PegaCustomerServiceTicketingClientOptions {
-  client?: PegaCustomerServiceTicketingClient;
-}
+export interface PegaCustomerServiceTicketingIntegrationOptions extends PegaCustomerServiceTicketingClientOptions {}
 
 export function createPegaCustomerServiceTicketingClient(
+  options: PegaCustomerServiceTicketingClientOptions = {},
+): PegaCustomerServiceTicketingClient {
+  return requirePegaCustomerServiceProviderClient(
+    options.providerClient
+      ?? options.client
+      ?? (hasPegaCustomerServiceRestConfiguration(options)
+        ? createPegaCustomerServiceRestProviderClient(options)
+        : createMissingPegaCustomerServiceProviderClient()),
+  );
+}
+
+export function createPegaCustomerServiceRestProviderClient(
   options: PegaCustomerServiceTicketingClientOptions,
 ): PegaCustomerServiceTicketingClient {
+  const baseUrl = normalizeBaseUrl(options.baseUrl, "Pega Customer Service baseUrl is required.");
+  const apiBasePath = normalizeApiBasePath(options.apiBasePath ?? "/api/application/v2");
   const fetchImpl = options.fetch ?? fetch;
+  const authHeaders = pegaCustomerServiceAuthHeaders(options);
+
+  const request = async <T>(
+    method: ProviderHttpMethod,
+    path: string,
+    input: {
+      query?: PegaCustomerServiceProviderQuery;
+      body?: PegaCustomerServiceProviderPayload;
+      headers?: Record<string, string>;
+    } = {},
+  ): Promise<T> => {
+    const requestPath = `${apiBasePath}${path}`;
+    const query = providerQuery(input.query);
+    try {
+      return await providerJsonRequest<T>({
+        baseUrl,
+        path: requestPath,
+        method,
+        query,
+        body: input.body,
+        headers: {
+          ...authHeaders,
+          ...(options.headers ?? {}),
+          ...(input.headers ?? {}),
+        },
+        fetch: fetchImpl,
+        signal: options.signal,
+        timeoutMs: options.timeoutMs,
+        retry: options.retry,
+        providerName: "Pega Customer Service",
+      });
+    } catch (error) {
+      throw normalizePegaCustomerServiceProviderJsonError(
+        error,
+        providerRequestUrl({ baseUrl, path: requestPath, query }),
+      );
+    }
+  };
+
   return {
     async createCase(input) {
-      return pegaRequest<PegaCaseResource>({
-        options,
-        fetch: fetchImpl,
-        method: "POST",
-        path: "/cases",
-        body: createCaseBody(input),
-      });
+      return unwrapPegaResource(await request<unknown>("POST", "/cases", {
+        body: pegaCreateCaseBody(input),
+      })) as PegaCaseResource;
     },
     async getCase(caseId) {
-      return pegaRequest<PegaCaseResource>({
-        options,
-        fetch: fetchImpl,
-        method: "GET",
-        path: `/cases/${encodeURIComponent(caseId)}`,
-      });
+      return unwrapPegaResource(await request<unknown>("GET", `/cases/${pathSegment(caseId)}`)) as PegaCaseResource;
     },
     async updateCase(caseId, input) {
-      return pegaRequest<PegaCaseResource>({
-        options,
-        fetch: fetchImpl,
-        method: "PUT",
-        path: `/cases/${encodeURIComponent(caseId)}`,
-        body: updateCaseBody(input),
-      });
+      return unwrapPegaResource(await request<unknown>("PUT", `/cases/${pathSegment(caseId)}`, {
+        body: pegaUpdateCaseBody(input),
+      })) as PegaCaseResource;
     },
     async performAssignmentAction(input) {
-      return pegaRequest<PegaCustomerServiceJsonObject>({
-        options,
-        fetch: fetchImpl,
-        method: "PATCH",
-        path: `/assignments/${encodeURIComponent(input.assignmentId)}/actions/${encodeURIComponent(input.actionId)}`,
-        body: assignmentActionBody(input),
-        ...(input.eTag ? { headers: { "if-match": input.eTag } } : {}),
-      });
+      return unwrapPegaResource(await request<unknown>(
+        "PATCH",
+        `/assignments/${pathSegment(input.assignmentId)}/actions/${pathSegment(input.actionId)}`,
+        {
+          body: pegaAssignmentActionBody(input),
+          ...(input.eTag ? { headers: { "If-Match": input.eTag } } : {}),
+        },
+      )) as PegaCustomerServiceProviderResponse;
     },
     async searchCases(input = {}) {
-      const response = await pegaRequest<PegaCasesApiResponse<PegaCaseResource>>({
-        options,
-        fetch: fetchImpl,
-        method: "GET",
-        path: `/cases${pegaCasesQuery(input)}`,
-      });
-      return {
-        cases: response.cases ?? response.data ?? [],
-        ...(response.count !== undefined ? { count: response.count } : {}),
-      };
+      return pegaCasesResult(await request<unknown>("GET", "/cases", {
+        query: pegaSearchCasesQuery(input),
+      }));
     },
     async listCaseTypes() {
-      const response = await pegaRequest<PegaCaseTypesApiResponse>({
-        options,
-        fetch: fetchImpl,
-        method: "GET",
-        path: "/casetypes",
-      });
-      return response.caseTypes ?? response.data ?? [];
+      return pegaCaseTypes(await request<unknown>("GET", "/casetypes"));
     },
-    async readiness() {
+    readiness() {
       return this.listCaseTypes();
     },
   };
@@ -185,36 +276,46 @@ export function createPegaCustomerServiceTicketingClient(
 export function pegaCustomerServiceTicketingCredentialStatuses(
   input: PegaCustomerServiceCredentialStatusInput,
 ): ProviderCredentialStatusInput[] {
-  const hasBasic = Boolean(input.username && input.password);
-  const hasBearer = Boolean(input.accessToken);
+  const hasProviderClient = Boolean(input.providerClient ?? input.client ?? input.hostProviderClientConfigured);
+  const hasBaseUrl = Boolean(input.baseUrl ?? hasProviderClient);
+  const hasApiAccess = Boolean(input.apiAccessConfigured || input.authConfigured || input.accessToken || hasProviderClient);
   return [
     {
       providerPackageId: pegaCustomerServiceTicketingProviderManifest.id,
+      requirementId: "pega-customer-service-provider-client",
+      state: hasProviderClient ? "configured" : "not-required",
+      message: hasProviderClient
+        ? "Host-injected Pega Customer Service provider client override is configured."
+        : "No Pega provider client override is configured; built-in DX REST adapter can be used.",
+    },
+    {
+      providerPackageId: pegaCustomerServiceTicketingProviderManifest.id,
       requirementId: "pega-customer-service-instance",
-      state: input.instanceUrl ? "configured" : "missing",
-      message: input.instanceUrl
-        ? "Pega Customer Service instance URL is configured."
-        : "A Pega Customer Service instance URL is required.",
+      state: hasBaseUrl ? "configured" : "missing",
+      message: hasBaseUrl
+        ? "Pega Customer Service base URL is configured."
+        : "Pega Customer Service baseUrl is required unless a host provider client supplies it.",
     },
     {
       providerPackageId: pegaCustomerServiceTicketingProviderManifest.id,
       requirementId: "pega-customer-service-api-access",
-      state: hasBasic || hasBearer ? "configured" : "missing",
-      scopes: input.scopes ?? ["cases:read", "cases:write", "casetypes:read"],
-      message: hasBasic || hasBearer
-        ? "Pega DX API access is configured."
-        : "Pega DX API OAuth bearer access or Basic Auth credentials are required.",
+      state: hasApiAccess ? "configured" : "missing",
+      scopes: input.scopes ?? ["cases:read", "cases:write", "assignments:write"],
+      message: hasApiAccess
+        ? "Pega Customer Service DX API access is configured."
+        : "Pega Customer Service DX API access requires accessToken, auth headers, or a host provider client.",
     },
   ];
 }
 
-export function createPegaCustomerServiceTicketingLiveChecks(options: PegaCustomerServiceLiveCheckOptions) {
+export function createPegaCustomerServiceTicketingLiveChecks(options: PegaCustomerServiceLiveCheckOptions = {}) {
   return [{
     id: "case-types",
-    description: "Pega DX API case types endpoint can be queried with the configured credentials.",
+    description: "Pega Customer Service provider client can report case-type readiness.",
     requiredCredentialIds: ["pega-customer-service-instance", "pega-customer-service-api-access"],
     async run(context: { signal?: AbortSignal }) {
-      const client = options.client ?? createPegaCustomerServiceTicketingClient(options);
+      const { providerClient: _providerClient, client: _client, ...restOptions } = options;
+      const client = options.providerClient ?? options.client ?? createPegaCustomerServiceTicketingClient(restOptions);
       const caseTypes = await client.readiness();
       if (context.signal?.aborted) throw new Error("Pega Customer Service live case-types check aborted.");
       return { details: { caseTypeCount: caseTypes.length } };
@@ -238,17 +339,129 @@ export function createPegaCustomerServiceTicketingOperationHandlers(client: Pega
 }
 
 export function createPegaCustomerServiceTicketingIntegration(
-  options: PegaCustomerServiceTicketingIntegrationOptions,
+  options: PegaCustomerServiceTicketingIntegrationOptions = {},
 ) {
-  const client = options.client ?? createPegaCustomerServiceTicketingClient(options);
+  const client = createPegaCustomerServiceTicketingClient(options);
   return defineIntegration({
-    manifest: pegaCustomerServiceTicketingProviderManifest,
+    manifest: pegaCustomerServiceTicketingProviderManifestInput,
+    metadata: { manifest: pegaCustomerServiceTicketingProviderManifest },
     operations: createPegaCustomerServiceTicketingOperationHandlers(client),
     credentials: options,
   });
 }
 
-function createCaseBody(input: PegaCreateCaseInput) {
+function createMissingPegaCustomerServiceProviderClient(): PegaCustomerServiceTicketingClient {
+  const missingClient = async (): Promise<never> => {
+    throw new Error(
+      "Configure Pega Customer Service with a host-injected providerClient or with baseUrl plus accessToken/auth headers.",
+    );
+  };
+  return {
+    createCase: missingClient,
+    getCase: missingClient,
+    updateCase: missingClient,
+    performAssignmentAction: missingClient,
+    searchCases: missingClient,
+    listCaseTypes: missingClient,
+    readiness: missingClient,
+  };
+}
+
+function requirePegaCustomerServiceProviderClient(
+  client: PegaCustomerServiceProviderClient,
+): PegaCustomerServiceProviderClient {
+  for (const method of [
+    "createCase",
+    "getCase",
+    "updateCase",
+    "performAssignmentAction",
+    "searchCases",
+    "listCaseTypes",
+    "readiness",
+  ] as const) {
+    if (typeof client[method] !== "function") {
+      throw new Error(`PegaCustomerServiceProviderClient must implement ${method}().`);
+    }
+  }
+  return client;
+}
+
+function hasPegaCustomerServiceRestConfiguration(options: PegaCustomerServiceTicketingClientOptions) {
+  return Boolean(options.baseUrl && hasPegaCustomerServiceAuthConfiguration(options));
+}
+
+function hasPegaCustomerServiceAuthConfiguration(options: PegaCustomerServiceTicketingClientOptions) {
+  if (options.accessToken) return true;
+  if (!options.auth) return false;
+  if (options.auth.type === "bearer") return Boolean(options.auth.accessToken);
+  return Object.keys(options.auth.headers).length > 0;
+}
+
+function pegaCustomerServiceAuthHeaders(options: PegaCustomerServiceTicketingClientOptions): Record<string, string> {
+  if (options.auth?.type === "headers") return options.auth.headers;
+  if (options.auth?.type === "bearer") return { Authorization: `Bearer ${options.auth.accessToken}` };
+  if (options.accessToken) return { Authorization: `Bearer ${options.accessToken}` };
+  throw new Error("Pega Customer Service accessToken or auth headers are required.");
+}
+
+function normalizeBaseUrl(value: string | undefined, message: string) {
+  if (!value) throw new Error(message);
+  const url = new URL(value);
+  return `${url.protocol}//${url.host}${url.pathname.replace(/\/+$/, "")}`;
+}
+
+function normalizeApiBasePath(value: string) {
+  return `/${value.replace(/^\/+/, "").replace(/\/+$/, "")}`;
+}
+
+function providerUrl(
+  baseUrl: string,
+  path: string,
+  query: PegaCustomerServiceProviderQuery | undefined,
+) {
+  const url = new URL(`${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`);
+  if (query) appendQuery(url, query);
+  return url.toString();
+}
+
+function appendQuery(url: URL, query: PegaCustomerServiceProviderQuery) {
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null || value === "") continue;
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item !== undefined && item !== null && item !== "") url.searchParams.append(key, String(item));
+      }
+      continue;
+    }
+    url.searchParams.set(key, String(value));
+  }
+}
+
+function requestHeaders(
+  authHeaders: Record<string, string>,
+  optionHeaders: Record<string, string> | undefined,
+  requestSpecificHeaders: Record<string, string> | undefined,
+  hasBody: boolean,
+) {
+  const headers = new Headers({
+    Accept: "application/json",
+    ...authHeaders,
+    ...(optionHeaders ?? {}),
+    ...(requestSpecificHeaders ?? {}),
+  });
+  if (hasBody && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  return headers;
+}
+
+function providerQuery(query: PegaCustomerServiceProviderQuery | undefined): Record<string, ProviderQueryValue> | undefined {
+  return query as Record<string, ProviderQueryValue> | undefined;
+}
+
+function pathSegment(value: string | number | boolean) {
+  return encodeURIComponent(String(value));
+}
+
+function pegaCreateCaseBody(input: PegaCreateCaseInput): PegaCustomerServiceProviderPayload {
   return stripUndefined({
     caseTypeID: input.caseTypeId,
     processID: input.processId,
@@ -259,7 +472,7 @@ function createCaseBody(input: PegaCreateCaseInput) {
   });
 }
 
-function updateCaseBody(input: PegaUpdateCaseInput) {
+function pegaUpdateCaseBody(input: PegaUpdateCaseInput): PegaCustomerServiceProviderPayload {
   return stripUndefined({
     content: input.content,
     pageInstructions: input.pageInstructions,
@@ -267,7 +480,7 @@ function updateCaseBody(input: PegaUpdateCaseInput) {
   });
 }
 
-function assignmentActionBody(input: PegaAssignmentActionInput) {
+function pegaAssignmentActionBody(input: PegaAssignmentActionInput): PegaCustomerServiceProviderPayload {
   return stripUndefined({
     content: input.content,
     pageInstructions: input.pageInstructions,
@@ -275,88 +488,135 @@ function assignmentActionBody(input: PegaAssignmentActionInput) {
   });
 }
 
-function pegaCasesQuery(input: PegaSearchCasesInput) {
-  const params = new URLSearchParams();
-  if (input.caseTypeId) params.set("caseTypeID", input.caseTypeId);
-  if (input.status) params.set("status", input.status);
-  if (input.assignmentId) params.set("assignmentID", input.assignmentId);
-  if (input.page !== undefined) params.set("page", String(input.page));
-  if (input.pageSize !== undefined) params.set("pageSize", String(input.pageSize));
-  for (const [key, value] of Object.entries(input.fields ?? {})) {
-    params.set(key, String(value));
-  }
-  return params.size ? `?${params}` : "";
-}
-
-async function pegaRequest<T>(input: {
-  options: PegaCustomerServiceTicketingClientOptions;
-  fetch: typeof fetch;
-  method: "GET" | "POST" | "PUT" | "PATCH";
-  path: string;
-  body?: PegaCustomerServiceProviderPayload;
-  headers?: Record<string, string>;
-}): Promise<T> {
-  const baseUrl = `${normalizeInstanceUrl(input.options.instanceUrl)}${input.options.apiBasePath ?? "/api/v1"}`;
-  const response = await input.fetch(`${baseUrl}${input.path}`, {
-    method: input.method,
-    headers: {
-      accept: "application/json",
-      ...(input.body ? { "content-type": "application/json" } : {}),
-      ...(input.headers ?? {}),
-      ...authHeaders(input.options),
-    },
-    ...(input.body ? { body: JSON.stringify(input.body) } : {}),
+function pegaSearchCasesQuery(input: PegaSearchCasesInput): PegaCustomerServiceProviderQuery {
+  return stripUndefined({
+    caseTypeID: input.caseTypeId,
+    status: input.status,
+    assignmentID: input.assignmentId,
+    page: input.page,
+    pageSize: input.pageSize,
+    ...(input.fields ?? {}),
   });
-  const text = await response.text();
-  const body = text ? JSON.parse(text) as T & PegaErrorResponse : {} as T & PegaErrorResponse;
-  if (!response.ok) throw new Error(pegaErrorMessage(body, response.status));
-  return body as T;
 }
 
-function normalizeInstanceUrl(instanceUrl: string) {
-  if (!instanceUrl) throw new Error("Pega Customer Service instanceUrl is required.");
-  const withProtocol = /^https?:\/\//i.test(instanceUrl) ? instanceUrl : `https://${instanceUrl}`;
-  const url = new URL(withProtocol);
-  return `${url.protocol}//${url.host}${url.pathname.replace(/\/+$/, "")}`;
-}
-
-function authHeaders(options: PegaCustomerServiceTicketingClientOptions) {
-  if (options.accessToken) return { authorization: `Bearer ${options.accessToken}` };
-  if (options.username && options.password) {
-    return {
-      authorization: `Basic ${Buffer.from(`${options.username}:${options.password}`).toString("base64")}`,
-    };
-  }
-  throw new Error("Pega Customer Service API access requires either accessToken or username and password.");
-}
-
-interface PegaCasesApiResponse<T> {
-  cases?: T[];
-  data?: T[];
-  count?: number;
-}
-
-interface PegaCaseTypesApiResponse {
-  caseTypes?: PegaCaseTypeResource[];
-  data?: PegaCaseTypeResource[];
-}
-
-interface PegaErrorResponse {
-  message?: string;
-  error?: string;
-  errors?: Array<{ message?: string; ValidationMessage?: string; ID?: string }>;
-}
-
-function pegaErrorMessage(body: PegaErrorResponse, status: number) {
-  const firstError = body.errors?.[0];
-  return firstError?.ValidationMessage
-    ?? firstError?.message
-    ?? firstError?.ID
-    ?? body.message
-    ?? body.error
-    ?? `Pega Customer Service API returned ${status}.`;
-}
-
-function stripUndefined<T extends PegaCustomerServiceJsonObject>(input: T): T {
+function stripUndefined<T extends Record<string, unknown>>(input: T): T {
   return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as T;
+}
+
+async function parsePegaCustomerServiceResponse<T>(response: Response, url: string): Promise<T> {
+  const body = await parseJsonResponseBody(response);
+  if (response.ok) {
+    return (body === undefined ? {} : body) as T;
+  }
+  const headers = headersToRecord(response.headers);
+  const responseMetadata: PegaCustomerServiceProviderApiErrorResponseMetadata = {
+    statusText: response.statusText,
+    headers,
+    url,
+    ...requestIdMetadata(headers),
+  };
+  throw new PegaCustomerServiceProviderApiError({
+    status: response.status,
+    message: providerErrorMessage(body, `Pega Customer Service request returned HTTP ${response.status}.`),
+    body,
+    response: responseMetadata,
+  });
+}
+
+function normalizePegaCustomerServiceProviderJsonError(error: unknown, url: string): unknown {
+  if (error instanceof PegaCustomerServiceProviderApiError) return error;
+  if (!isRecord(error) || typeof error.status !== "number") return error;
+  const body = error.payload;
+  return new PegaCustomerServiceProviderApiError({
+    status: error.status,
+    message: providerErrorMessage(body, `Pega Customer Service request returned HTTP ${error.status}.`),
+    body,
+    response: {
+      statusText: typeof error.statusText === "string" ? error.statusText : "",
+      headers: {},
+      url,
+    },
+  });
+}
+
+async function parseJsonResponseBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text.trim()) return undefined;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+function unwrapPegaResource(value: unknown): unknown {
+  if (!isRecord(value)) return value;
+  if ("data" in value) return value.data;
+  return value;
+}
+
+function pegaCasesResult(value: unknown): PegaCasesResult {
+  const unwrapped = unwrapPegaResource(value);
+  if (Array.isArray(unwrapped)) return { cases: unwrapped as PegaCaseResource[] };
+  if (!isRecord(unwrapped)) return { cases: [] };
+  const cases = Array.isArray(unwrapped.cases)
+    ? unwrapped.cases
+    : Array.isArray(unwrapped.data)
+      ? unwrapped.data
+      : Array.isArray(unwrapped.results)
+        ? unwrapped.results
+        : [];
+  const count = typeof unwrapped.count === "number" ? unwrapped.count : undefined;
+  return {
+    cases: cases as PegaCaseResource[],
+    ...(count !== undefined ? { count } : {}),
+  };
+}
+
+function pegaCaseTypes(value: unknown): PegaCaseTypeResource[] {
+  const unwrapped = unwrapPegaResource(value);
+  if (Array.isArray(unwrapped)) return unwrapped as PegaCaseTypeResource[];
+  if (!isRecord(unwrapped)) return [];
+  if (Array.isArray(unwrapped.caseTypes)) return unwrapped.caseTypes as PegaCaseTypeResource[];
+  if (Array.isArray(unwrapped.casetypes)) return unwrapped.casetypes as PegaCaseTypeResource[];
+  if (Array.isArray(unwrapped.data)) return unwrapped.data as PegaCaseTypeResource[];
+  return [];
+}
+
+function providerErrorMessage(body: unknown, fallback: string): string {
+  if (typeof body === "string" && body.trim()) return body;
+  if (!isRecord(body)) return fallback;
+  const nestedError = isRecord(body.error) ? body.error : undefined;
+  const firstError = Array.isArray(body.errors) && isRecord(body.errors[0]) ? body.errors[0] : undefined;
+  for (const candidate of [
+    body.message,
+    body.error_description,
+    nestedError?.message,
+    nestedError?.error_description,
+    firstError?.message,
+    firstError?.localizedValue,
+  ]) {
+    if (typeof candidate === "string" && candidate.trim()) return candidate;
+  }
+  return fallback;
+}
+
+function headersToRecord(headers: Headers) {
+  const record: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    record[key.toLowerCase()] = value;
+  });
+  return record;
+}
+
+function requestIdMetadata(headers: Record<string, string>) {
+  const requestId = headers["x-request-id"]
+    ?? headers["request-id"]
+    ?? headers["correlation-id"]
+    ?? headers["x-correlation-id"];
+  return requestId ? { requestId } : {};
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

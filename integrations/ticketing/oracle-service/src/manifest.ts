@@ -2,15 +2,14 @@ import { defineIntegrationProviderPackage as defineProviderPackage } from "@cogn
 
 export const ORACLE_SERVICE_DEFAULT_API_VERSION = "11.13.18.05";
 
-export const oracleServiceSupportOperationAllowlist = [
-  { alias: "ticket.create", method: "POST", path: "/crmRestApi/resources/{apiVersion}/serviceRequests" },
-  { alias: "ticket.read", method: "GET", path: "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}" },
-  { alias: "ticket.update", method: "PATCH", path: "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}" },
-  { alias: "ticket.search", method: "GET", path: "/crmRestApi/resources/{apiVersion}/serviceRequests" },
+export const oracleServiceProviderClientOperationTargets = [
+  { alias: "ticket.create", target: "providerClient.createServiceRequest" },
+  { alias: "ticket.read", target: "providerClient.getServiceRequest" },
+  { alias: "ticket.update", target: "providerClient.updateServiceRequest" },
+  { alias: "ticket.search", target: "providerClient.searchServiceRequests" },
   {
     alias: "oracle-service.serviceRequestMessage.create",
-    method: "POST",
-    path: "/crmRestApi/resources/{apiVersion}/serviceRequests/{SrNumber}/child/messages",
+    target: "providerClient.createServiceRequestMessage",
   },
 ] as const;
 
@@ -27,6 +26,7 @@ export const oracleServiceTicketingProviderManifest = defineProviderPackage({
     scope: "support-workflow-subset",
     notes: [
       "Coverage is typed for Oracle Fusion Service serviceRequests create, read by SrNumber, patch, collection search, child message creation, and readiness checks used by Cognidesk support workflows.",
+      "Runtime provider operations use the built-in Oracle Fusion Service REST adapter when baseUrl/instanceUrl plus access credentials are provided; a host-injected OracleServiceTicketingProviderClient remains available as an override.",
       "This is not full Oracle Fusion Service API coverage; service request child resources such as activities, attachments, contacts, message attachment/channel-communication lifecycle, milestones, resources, smart actions, tags, LOV/metadata behavior, workflow rules, queues, privileges, and broader Fusion CX APIs remain outside this adapter.",
     ],
     evidence: [
@@ -40,15 +40,26 @@ export const oracleServiceTicketingProviderManifest = defineProviderPackage({
   },
   credentialRequirements: [
     {
+      id: "oracle-service-provider-client",
+      label: "Optional host-provided Oracle Service provider client",
+      description: "Optional SDK-user-owned provider client implementing OracleServiceTicketingProviderClient. When omitted, the package uses its built-in Oracle Fusion Service REST adapter.",
+      required: false,
+      metadata: {
+        interface: "OracleServiceTicketingProviderClient",
+        importPolicy: "optional-host-override",
+        defaultClientPolicy: "built-in-provider-rest-adapter",
+      },
+    },
+    {
       id: "oracle-service-instance",
       label: "Oracle Fusion Service instance URL",
-      description: "The SDK user's Oracle Fusion Service host, for example https://example.fa.oraclecloud.com.",
+      description: "The Oracle Fusion Service base URL, for example https://example.fa.oraclecloud.com, used by the built-in REST adapter or supplied by a host provider client override.",
       required: true,
     },
     {
       id: "oracle-service-api-access",
-      label: "Oracle Fusion Service REST API access",
-      description: "Server-side OAuth bearer access or Basic Auth credentials for Oracle Fusion Service REST APIs with service roles and privileges for serviceRequests and child messages.",
+      label: "Oracle Fusion Service API access",
+      description: "Server-side Oracle Fusion Service access for serviceRequests and child messages, supplied as accessToken, basic auth, auth headers, or encapsulated in a host provider client.",
       scopes: ["serviceRequests:read", "serviceRequests:write"],
       required: true,
       metadata: {
@@ -171,31 +182,42 @@ export const oracleServiceTicketingProviderManifest = defineProviderPackage({
   ],
   limitations: [
     "Oracle Service categories, required fields, queues, assignment rules, milestones, extensions, and privileges are owned by the SDK user's Fusion Service environment.",
-    "SDK users own handoff timing, field mapping, customer identity matching, visibility, consent, notification policy, and retention before calling Oracle APIs.",
+    "SDK users own handoff timing, field mapping, customer identity matching, visibility, consent, notification policy, retry/rate-limit behavior, and retention before calling Oracle APIs.",
+    "The built-in adapter covers selected serviceRequests REST operations only; hosts can still inject an approved Oracle Service provider client for custom authentication, retries, or API-version policy.",
   ],
   metadata: {
     implementation: {
-      strategy: "direct-http-support-slice",
+      strategy: "provider-rest-adapter",
+      adapterKind: "no-official-sdk-rest-adapter",
+      defaultClient: "built-in-oracle-fusion-service-rest-adapter",
+      providerClientOverride: true,
+      apiVersion: ORACLE_SERVICE_DEFAULT_API_VERSION,
     },
     implementationStrategy: {
-      strategy: "direct-support-slice",
-      reason: "No suitable official JavaScript SDK was found for Oracle Fusion Service serviceRequests; oci-fusionapps targets OCI Fusion Apps Service resource management, not this REST surface.",
-      checkedAt: "2026-06-21",
+      strategy: "no-official-sdk-rest-adapter",
+      reason: "No suitable official JavaScript SDK was verified for Oracle Fusion Service serviceRequests; Oracle documents this surface as Fusion Cloud Applications REST APIs, while the official OCI TypeScript/JavaScript SDK manages OCI resources including Fusion Apps as a Service rather than service request records.",
+      checkedAt: "2026-06-25",
       rejectedLibraries: [
         {
-          packageName: "oci-fusionapps",
-          version: "2.135.0",
-          integrity: "sha512-L0mF2w4tYeVBM1DXEDVuufuKysTQqhvS65GCN7meubjWzxUNMRDO9P/EM1ouSguyjJio7NeCr4hQWSP5AEe46Q==",
-          reason: "Official Oracle-maintained OCI SDK package, but not a Fusion Service service request client.",
+          packageName: "oci-sdk / oci-fusionapps",
+          version: "2.135.1",
+          reason: "Official Oracle-maintained OCI SDK family for OCI resources and Fusion Apps as a Service administration, but not a Fusion Service service request data client.",
         },
       ],
     },
-    supportOperationSlice: {
-      sourceKind: "official-docs-reviewed-slice",
+    providerClient: {
+      package: "optional-host-provided",
+      interface: "OracleServiceTicketingProviderClient",
+      importPolicy: "optional-host-override",
+      defaultClientPolicy: "built-in-provider-rest-adapter",
+      operationTargets: oracleServiceProviderClientOperationTargets,
+    },
+    providerRestAdapterOperationSlice: {
+      sourceKind: "provider-rest-adapter",
+      adapterKind: "no-official-sdk-rest-adapter",
       sourceVersion: ORACLE_SERVICE_DEFAULT_API_VERSION,
-      checkedAt: "2026-06-21",
-      allowlistSha256: "5f3ff8ea4febec8a1f5e4c9d881124c9f215a7b97ebb3ae7a92d7e3f98b370f5",
-      operations: oracleServiceSupportOperationAllowlist,
+      checkedAt: "2026-06-25",
+      operations: oracleServiceProviderClientOperationTargets,
     },
     checkedProviderApiCoverage: {
       verifiedAt: "2026-06-18",

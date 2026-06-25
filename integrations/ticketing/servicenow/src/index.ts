@@ -1,7 +1,18 @@
+import { Buffer } from "node:buffer";
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
+import {
+  defineIntegration,
+  providerJsonRequest,
+  providerRequestUrl,
+  type IntegrationOperationHandlers,
+  type ProviderHttpMethod,
+  type ProviderQueryValue,
+} from "@cognidesk/integration-kit";
 import { serviceNowTicketingProviderManifest } from "./manifest.js";
 
 export { serviceNowTicketingProviderManifest } from "./manifest.js";
+export { serviceNowTicketingProviderOperations } from "./operations.js";
+export type { ServiceNowTicketingOperationAlias } from "./operations.js";
 
 export type ServiceNowJsonPrimitive = string | number | boolean | null;
 export type ServiceNowJsonValue =
@@ -17,16 +28,33 @@ export type ServiceNowProviderQuery = Record<string, ServiceNowProviderExtension
 export interface ServiceNowProviderResponse extends ServiceNowJsonObject {}
 export interface ServiceNowProviderExtensionFields extends ServiceNowJsonObject {}
 
+export interface ServiceNowJsonRetryOptions {
+  attempts?: number;
+  statusCodes?: readonly number[];
+  baseDelayMs?: number;
+  maxDelayMs?: number;
+}
+
 export interface ServiceNowTicketingClientOptions {
-  instanceUrl: string;
+  rawClient?: ServiceNowRawClient;
+  instance?: string;
+  instanceUrl?: string;
+  baseUrl?: string;
+  apiVersion?: string;
+  accessToken?: string;
   username?: string;
   password?: string;
-  accessToken?: string;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ServiceNowJsonRetryOptions;
+  headers?: Record<string, string>;
 }
 
 export interface ServiceNowCredentialStatusInput {
+  instance?: string;
   instanceUrl?: string;
+  baseUrl?: string;
   username?: string;
   password?: string;
   accessToken?: string;
@@ -70,12 +98,11 @@ export interface ServiceNowUploadAttachmentInput {
   data: BodyInit;
 }
 
-export interface ServiceNowTicketingClient {
+export interface ServiceNowRawClient {
   createRecord<T extends ServiceNowRecord = ServiceNowRecord>(
     tableName: string,
     record: ServiceNowProviderPayload,
   ): Promise<T>;
-  createIncident(input: ServiceNowCreateIncidentInput): Promise<ServiceNowRecord>;
   getRecord<T extends ServiceNowRecord = ServiceNowRecord>(
     tableName: string,
     sysId: string,
@@ -86,8 +113,6 @@ export interface ServiceNowTicketingClient {
     sysId: string,
     patch: ServiceNowProviderPayload,
   ): Promise<T>;
-  addIncidentWorkNote(sysId: string, note: string): Promise<ServiceNowRecord>;
-  addIncidentComment(sysId: string, comment: string): Promise<ServiceNowRecord>;
   searchRecords<T extends ServiceNowRecord = ServiceNowRecord>(
     tableName: string,
     query?: ServiceNowTableQuery,
@@ -98,117 +123,151 @@ export interface ServiceNowTicketingClient {
   getImportSetResult(stagingTableName: string, sysId: string): Promise<ServiceNowProviderResponse>;
 }
 
+export interface ServiceNowTicketingClient extends ServiceNowRawClient {
+  rawClient: ServiceNowRawClient;
+  createIncident(input: ServiceNowCreateIncidentInput): Promise<ServiceNowRecord>;
+  addIncidentWorkNote(sysId: string, note: string): Promise<ServiceNowRecord>;
+  addIncidentComment(sysId: string, comment: string): Promise<ServiceNowRecord>;
+}
+
 export interface ServiceNowLiveCheckOptions extends ServiceNowTicketingClientOptions {
   client?: Pick<ServiceNowTicketingClient, "searchRecords">;
   tableName?: string;
 }
 
+export interface ServiceNowTicketingIntegrationOptions extends ServiceNowTicketingClientOptions {
+  ticketingClient?: ServiceNowTicketingClient;
+}
+
+export interface ServiceNowRecordIdentifierInput {
+  tableName?: string;
+  sysId?: string;
+  ticketId?: string;
+  id?: string;
+}
+
+export interface ServiceNowCreateTicketOperationInput extends Partial<ServiceNowCreateIncidentInput> {
+  subject?: string;
+  title?: string;
+  fields?: ServiceNowProviderExtensionFields;
+}
+
+export interface ServiceNowUpdateTicketOperationInput extends ServiceNowRecordIdentifierInput {
+  patch?: ServiceNowProviderPayload;
+  fields?: ServiceNowProviderPayload;
+}
+
+export interface ServiceNowSearchRecordsOperationInput extends ServiceNowTableQuery {
+  tableName?: string;
+}
+
+export interface ServiceNowCreateCommentOperationInput extends ServiceNowRecordIdentifierInput {
+  comment?: string;
+  body?: string;
+  text?: string;
+}
+
+export interface ServiceNowCreateInternalNoteOperationInput extends ServiceNowRecordIdentifierInput {
+  note?: string;
+  body?: string;
+  text?: string;
+}
+
+export interface ServiceNowAddAttachmentOperationInput extends ServiceNowRecordIdentifierInput {
+  tableSysId?: string;
+  fileName: string;
+  contentType?: string;
+  data: BodyInit;
+}
+
+export interface ServiceNowListAttachmentsOperationInput extends ServiceNowRecordIdentifierInput, ServiceNowTableQuery {
+  tableSysId?: string;
+}
+
+export interface ServiceNowCreateRecordOperationInput {
+  tableName: string;
+  record?: ServiceNowProviderPayload;
+  fields?: ServiceNowProviderPayload;
+}
+
+export interface ServiceNowImportSetOperationInput {
+  stagingTableName?: string;
+  tableName?: string;
+  record?: ServiceNowProviderPayload;
+  fields?: ServiceNowProviderPayload;
+}
+
+export interface ServiceNowImportSetResultOperationInput {
+  stagingTableName?: string;
+  tableName?: string;
+  sysId?: string;
+  id?: string;
+}
+
 export function createServiceNowTicketingClient(
-  options: ServiceNowTicketingClientOptions,
+  options: ServiceNowTicketingClientOptions = {},
 ): ServiceNowTicketingClient {
-  const baseUrl = normalizeInstanceUrl(options.instanceUrl);
-  const fetchImpl = options.fetch ?? fetch;
+  const rawClient = options.rawClient ?? createDefaultServiceNowRawClient(options);
 
   return {
-    async createRecord(tableName, record) {
-      return serviceNowRequest({
-        url: tableUrl(baseUrl, tableName),
-        method: "POST",
-        body: record,
-        options,
-        fetch: fetchImpl,
-      });
-    },
+    rawClient,
+    createRecord: (tableName, record) => rawClient.createRecord(tableName, record),
+    getRecord: (tableName, sysId, query) => rawClient.getRecord(tableName, sysId, query),
+    updateRecord: (tableName, sysId, patch) => rawClient.updateRecord(tableName, sysId, patch),
+    searchRecords: (tableName, query) => rawClient.searchRecords(tableName, query),
+    uploadAttachment: (input) => rawClient.uploadAttachment(input),
+    listAttachments: (query) => rawClient.listAttachments(query),
+    importSet: (stagingTableName, record) => rawClient.importSet(stagingTableName, record),
+    getImportSetResult: (stagingTableName, sysId) => rawClient.getImportSetResult(stagingTableName, sysId),
     async createIncident(input) {
-      return this.createRecord("incident", {
-        short_description: input.shortDescription,
-        ...(input.description ? { description: input.description } : {}),
-        ...(input.callerId ? { caller_id: input.callerId } : {}),
-        ...(input.contactType ? { contact_type: input.contactType } : {}),
-        ...(input.urgency ? { urgency: input.urgency } : {}),
-        ...(input.impact ? { impact: input.impact } : {}),
-        ...(input.category ? { category: input.category } : {}),
-        ...(input.subcategory ? { subcategory: input.subcategory } : {}),
-        ...(input.assignmentGroup ? { assignment_group: input.assignmentGroup } : {}),
-        ...(input.additionalFields ?? {}),
-      });
-    },
-    async getRecord(tableName, sysId, query) {
-      const url = tableRecordUrl(baseUrl, tableName, sysId);
-      applyTableQuery(url, query);
-      return serviceNowRequest({
-        url,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    async updateRecord(tableName, sysId, patch) {
-      return serviceNowRequest({
-        url: tableRecordUrl(baseUrl, tableName, sysId),
-        method: "PATCH",
-        body: patch,
-        options,
-        fetch: fetchImpl,
-      });
+      return rawClient.createRecord("incident", serviceNowIncidentRecord(input));
     },
     async addIncidentWorkNote(sysId, note) {
-      return this.updateRecord("incident", sysId, { work_notes: note });
+      return rawClient.updateRecord("incident", sysId, { work_notes: note });
     },
     async addIncidentComment(sysId, comment) {
-      return this.updateRecord("incident", sysId, { comments: comment });
-    },
-    async searchRecords(tableName, query = {}) {
-      const url = tableUrl(baseUrl, tableName);
-      applyTableQuery(url, query);
-      return serviceNowRequest({
-        url,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-        expectArray: true,
-      });
-    },
-    async uploadAttachment(input) {
-      const url = attachmentFileUrl(baseUrl, input);
-      return serviceNowRequest({
-        url,
-        method: "POST",
-        rawBody: input.data,
-        contentType: input.contentType ?? "application/octet-stream",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    async listAttachments(query = {}) {
-      const url = new URL("/api/now/attachment", baseUrl);
-      applyTableQuery(url, query);
-      return serviceNowRequest({
-        url,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-        expectArray: true,
-      });
-    },
-    async importSet(stagingTableName, record) {
-      return serviceNowRequest({
-        url: importSetUrl(baseUrl, stagingTableName),
-        method: "POST",
-        body: record,
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    async getImportSetResult(stagingTableName, sysId) {
-      return serviceNowRequest({
-        url: new URL(`${importSetUrl(baseUrl, stagingTableName).pathname}/${encodeURIComponent(sysId)}`, baseUrl),
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
+      return rawClient.updateRecord("incident", sysId, { comments: comment });
     },
   };
+}
+
+export function createServiceNowTicketingOperationHandlers(
+  options: ServiceNowTicketingIntegrationOptions,
+): IntegrationOperationHandlers {
+  const client = options.ticketingClient ?? createServiceNowTicketingClient(options);
+
+  return {
+    "ticket.create": (input: ServiceNowCreateTicketOperationInput) =>
+      client.createIncident(serviceNowCreateIncidentInput(input)),
+    "ticket.read": (input: ServiceNowRecordIdentifierInput & {
+      query?: Omit<ServiceNowTableQuery, "query" | "limit" | "offset">;
+    }) => client.getRecord(input.tableName ?? "incident", serviceNowRecordId(input, "ticket.read"), input.query),
+    "ticket.update": (input: ServiceNowUpdateTicketOperationInput) =>
+      client.updateRecord(input.tableName ?? "incident", serviceNowRecordId(input, "ticket.update"), serviceNowPatch(input)),
+    "ticket.search": (input: ServiceNowSearchRecordsOperationInput = {}) =>
+      client.searchRecords(input.tableName ?? "incident", serviceNowSearchQuery(input)),
+    "ticket.comment.create": (input: ServiceNowCreateCommentOperationInput) =>
+      client.addIncidentComment(serviceNowRecordId(input, "ticket.comment.create"), serviceNowCommentText(input)),
+    "ticket.internalNote.create": (input: ServiceNowCreateInternalNoteOperationInput) =>
+      client.addIncidentWorkNote(serviceNowRecordId(input, "ticket.internalNote.create"), serviceNowInternalNoteText(input)),
+    "ticket.attachments.add": (input: ServiceNowAddAttachmentOperationInput) =>
+      client.uploadAttachment(serviceNowAttachmentInput(input)),
+    "ticket.attachments.list": (input: ServiceNowListAttachmentsOperationInput = {}) =>
+      client.listAttachments(serviceNowAttachmentListQuery(input)),
+    "servicenow.record.create": (input: ServiceNowCreateRecordOperationInput) =>
+      client.createRecord(input.tableName, serviceNowPayload(input, "servicenow.record.create")),
+    "servicenow.importSet.insert": (input: ServiceNowImportSetOperationInput) =>
+      client.importSet(serviceNowStagingTableName(input), serviceNowPayload(input, "servicenow.importSet.insert")),
+    "servicenow.importSet.result.read": (input: ServiceNowImportSetResultOperationInput) =>
+      client.getImportSetResult(serviceNowStagingTableName(input), serviceNowRecordId(input, "servicenow.importSet.result.read")),
+  };
+}
+
+export function createServiceNowTicketingIntegration(options: ServiceNowTicketingIntegrationOptions) {
+  return defineIntegration({
+    manifest: serviceNowTicketingProviderManifest,
+    operations: createServiceNowTicketingOperationHandlers(options),
+  });
 }
 
 export function serviceNowTicketingCredentialStatuses(
@@ -216,14 +275,15 @@ export function serviceNowTicketingCredentialStatuses(
 ): ProviderCredentialStatusInput[] {
   const hasBasic = Boolean(input.username && input.password);
   const hasBearer = Boolean(input.accessToken);
+  const hasInstance = Boolean(input.instanceUrl ?? input.instance ?? input.baseUrl);
   return [
     {
       providerPackageId: serviceNowTicketingProviderManifest.id,
       requirementId: "servicenow-instance",
-      state: input.instanceUrl ? "configured" : "missing",
-      message: input.instanceUrl
-        ? "ServiceNow instance URL is configured."
-        : "A ServiceNow instance URL is required.",
+      state: hasInstance ? "configured" : "missing",
+      message: hasInstance
+        ? "ServiceNow instance URL or API base URL is configured."
+        : "A ServiceNow instance URL or API base URL is required.",
     },
     {
       providerPackageId: serviceNowTicketingProviderManifest.id,
@@ -237,7 +297,7 @@ export function serviceNowTicketingCredentialStatuses(
   ];
 }
 
-export function createServiceNowTicketingLiveChecks(options: ServiceNowLiveCheckOptions) {
+export function createServiceNowTicketingLiveChecks(options: ServiceNowLiveCheckOptions = {}) {
   return [{
     id: "table-api",
     description: "ServiceNow Table API can query the configured table with the supplied API credentials.",
@@ -260,82 +320,366 @@ export function createServiceNowTicketingLiveChecks(options: ServiceNowLiveCheck
   }];
 }
 
-function normalizeInstanceUrl(instanceUrl: string) {
-  if (!instanceUrl) throw new Error("ServiceNow instanceUrl is required.");
-  const url = new URL(instanceUrl);
-  return `${url.protocol}//${url.host}`;
-}
-
-function tableUrl(baseUrl: string, tableName: string) {
-  return new URL(`/api/now/table/${encodeURIComponent(tableName)}`, baseUrl);
-}
-
-function tableRecordUrl(baseUrl: string, tableName: string, sysId: string) {
-  return new URL(`/api/now/table/${encodeURIComponent(tableName)}/${encodeURIComponent(sysId)}`, baseUrl);
-}
-
-function attachmentFileUrl(baseUrl: string, input: ServiceNowUploadAttachmentInput) {
-  const url = new URL("/api/now/attachment/file", baseUrl);
-  url.searchParams.set("table_name", input.tableName);
-  url.searchParams.set("table_sys_id", input.tableSysId);
-  url.searchParams.set("file_name", input.fileName);
-  return url;
-}
-
-function importSetUrl(baseUrl: string, stagingTableName: string) {
-  return new URL(`/api/now/import/${encodeURIComponent(stagingTableName)}`, baseUrl);
-}
-
-function applyTableQuery(url: URL, query: Partial<ServiceNowTableQuery> = {}) {
-  if (query.query) url.searchParams.set("sysparm_query", query.query);
-  if (query.fields?.length) url.searchParams.set("sysparm_fields", query.fields.join(","));
-  if (query.limit !== undefined) url.searchParams.set("sysparm_limit", String(query.limit));
-  if (query.offset !== undefined) url.searchParams.set("sysparm_offset", String(query.offset));
-  if (query.displayValue !== undefined) url.searchParams.set("sysparm_display_value", String(query.displayValue));
-  if (query.excludeReferenceLink !== undefined) {
-    url.searchParams.set("sysparm_exclude_reference_link", String(query.excludeReferenceLink));
+function serviceNowCreateIncidentInput(input: ServiceNowCreateTicketOperationInput): ServiceNowCreateIncidentInput {
+  const shortDescription = input.shortDescription ?? input.subject ?? input.title;
+  if (!shortDescription) {
+    throw new Error("ServiceNow ticket.create requires shortDescription, subject, or title.");
   }
+  const additionalFields = {
+    ...(input.additionalFields ?? {}),
+    ...(input.fields ?? {}),
+  };
+  return {
+    shortDescription,
+    ...(input.description ? { description: input.description } : {}),
+    ...(input.callerId ? { callerId: input.callerId } : {}),
+    ...(input.contactType ? { contactType: input.contactType } : {}),
+    ...(input.urgency ? { urgency: input.urgency } : {}),
+    ...(input.impact ? { impact: input.impact } : {}),
+    ...(input.category ? { category: input.category } : {}),
+    ...(input.subcategory ? { subcategory: input.subcategory } : {}),
+    ...(input.assignmentGroup ? { assignmentGroup: input.assignmentGroup } : {}),
+    ...(Object.keys(additionalFields).length > 0 ? { additionalFields } : {}),
+  };
 }
 
-async function serviceNowRequest<T>(input: {
-  url: URL;
-  method: "GET" | "POST" | "PATCH";
-  options: ServiceNowTicketingClientOptions;
-  fetch: typeof fetch;
-  body?: ServiceNowProviderPayload;
-  rawBody?: BodyInit;
-  contentType?: string;
-  expectArray?: boolean;
-}): Promise<T> {
-  const response = await input.fetch(input.url.toString(), {
-    method: input.method,
-    headers: {
-      accept: "application/json",
-      ...(input.body ? { "content-type": "application/json" } : {}),
-      ...(input.rawBody && input.contentType ? { "content-type": input.contentType } : {}),
-      ...authHeaders(input.options),
-    },
-    ...(input.body ? { body: JSON.stringify(input.body) } : {}),
-    ...(input.rawBody ? { body: input.rawBody } : {}),
+function serviceNowIncidentRecord(input: ServiceNowCreateIncidentInput): ServiceNowProviderPayload {
+  return {
+    short_description: input.shortDescription,
+    ...(input.description ? { description: input.description } : {}),
+    ...(input.callerId ? { caller_id: input.callerId } : {}),
+    ...(input.contactType ? { contact_type: input.contactType } : {}),
+    ...(input.urgency ? { urgency: input.urgency } : {}),
+    ...(input.impact ? { impact: input.impact } : {}),
+    ...(input.category ? { category: input.category } : {}),
+    ...(input.subcategory ? { subcategory: input.subcategory } : {}),
+    ...(input.assignmentGroup ? { assignment_group: input.assignmentGroup } : {}),
+    ...(input.additionalFields ?? {}),
+  };
+}
+
+function serviceNowRecordId(
+  input: { sysId?: string; ticketId?: string; id?: string },
+  operation: string,
+): string {
+  const sysId = input.sysId ?? input.ticketId ?? input.id;
+  if (!sysId) throw new Error(`ServiceNow ${operation} requires sysId, ticketId, or id.`);
+  return sysId;
+}
+
+function serviceNowPatch(input: ServiceNowUpdateTicketOperationInput): ServiceNowProviderPayload {
+  const patch = input.patch ?? input.fields;
+  if (!patch) throw new Error("ServiceNow ticket.update requires patch or fields.");
+  return patch;
+}
+
+function serviceNowPayload(
+  input: { record?: ServiceNowProviderPayload; fields?: ServiceNowProviderPayload },
+  operation: string,
+): ServiceNowProviderPayload {
+  const payload = input.record ?? input.fields;
+  if (!payload) throw new Error(`ServiceNow ${operation} requires record or fields.`);
+  return payload;
+}
+
+function serviceNowSearchQuery(input: ServiceNowSearchRecordsOperationInput): ServiceNowTableQuery {
+  const { tableName: _tableName, ...query } = input;
+  return query;
+}
+
+function serviceNowCommentText(input: ServiceNowCreateCommentOperationInput): string {
+  const comment = input.comment ?? input.body ?? input.text;
+  if (!comment) throw new Error("ServiceNow ticket.comment.create requires comment, body, or text.");
+  return comment;
+}
+
+function serviceNowInternalNoteText(input: ServiceNowCreateInternalNoteOperationInput): string {
+  const note = input.note ?? input.body ?? input.text;
+  if (!note) throw new Error("ServiceNow ticket.internalNote.create requires note, body, or text.");
+  return note;
+}
+
+function serviceNowAttachmentInput(input: ServiceNowAddAttachmentOperationInput): ServiceNowUploadAttachmentInput {
+  return {
+    tableName: input.tableName ?? "incident",
+    tableSysId: input.tableSysId ?? serviceNowRecordId(input, "ticket.attachments.add"),
+    fileName: input.fileName,
+    data: input.data,
+    ...(input.contentType ? { contentType: input.contentType } : {}),
+  };
+}
+
+function serviceNowAttachmentListQuery(input: ServiceNowListAttachmentsOperationInput): ServiceNowTableQuery {
+  const {
+    tableName,
+    tableSysId,
+    sysId,
+    ticketId,
+    id,
+    query,
+    ...tableQuery
+  } = input;
+  const scopedSysId = tableSysId ?? sysId ?? ticketId ?? id;
+  const scopedQuery = scopedSysId
+    ? [query, `table_name=${tableName ?? "incident"}^table_sys_id=${scopedSysId}`].filter(Boolean).join("^")
+    : query;
+  return {
+    ...tableQuery,
+    ...(scopedQuery ? { query: scopedQuery } : {}),
+  };
+}
+
+function serviceNowStagingTableName(input: { stagingTableName?: string; tableName?: string }): string {
+  const stagingTableName = input.stagingTableName ?? input.tableName;
+  if (!stagingTableName) throw new Error("ServiceNow Import Set operation requires stagingTableName or tableName.");
+  return stagingTableName;
+}
+
+export function createServiceNowRestRawClient(options: ServiceNowTicketingClientOptions): ServiceNowRawClient {
+  const baseUrl = serviceNowApiBaseUrl(options);
+  const fetchImpl = options.fetch ?? globalThis.fetch;
+  const authorization = serviceNowAuthorization(options);
+
+  const request = (method: ProviderHttpMethod, path: string, input?: {
+    body?: ServiceNowProviderPayload;
+    query?: Record<string, ProviderQueryValue>;
+  }) => providerJsonRequest<unknown>({
+    baseUrl,
+    method,
+    path,
+    authorizationHeader: authorization,
+    ...(options.headers ? { headers: options.headers } : {}),
+    ...(input?.body !== undefined ? { body: input.body } : {}),
+    ...(input?.query !== undefined ? { query: input.query } : {}),
+    ...(options.fetch ? { fetch: options.fetch } : {}),
+    ...(options.signal ? { signal: options.signal } : {}),
+    ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+    ...(options.retry !== undefined ? { retry: options.retry } : {}),
+    providerName: "ServiceNow",
   });
-  const text = await response.text();
-  const body = text ? JSON.parse(text) as {
-    result?: unknown;
-    error?: { message?: string; detail?: string };
-  } : {};
-  if (!response.ok) {
-    throw new Error(body.error?.message ?? body.error?.detail ?? `ServiceNow Table API returned ${response.status}.`);
-  }
-  const result = body.result ?? (input.expectArray ? [] : {});
-  return result as T;
+
+  return {
+    async createRecord<T extends ServiceNowRecord = ServiceNowRecord>(
+      tableName: string,
+      record: ServiceNowProviderPayload,
+    ): Promise<T> {
+      return serviceNowResult(await request("POST", `table/${pathSegment(tableName)}`, { body: record })) as T;
+    },
+    async getRecord<T extends ServiceNowRecord = ServiceNowRecord>(
+      tableName: string,
+      sysId: string,
+      query?: Omit<ServiceNowTableQuery, "query" | "limit" | "offset">,
+    ): Promise<T> {
+      return serviceNowResult(await request("GET", `table/${pathSegment(tableName)}/${pathSegment(sysId)}`, {
+        query: serviceNowTableQueryParams(query),
+      })) as T;
+    },
+    async updateRecord<T extends ServiceNowRecord = ServiceNowRecord>(
+      tableName: string,
+      sysId: string,
+      patch: ServiceNowProviderPayload,
+    ): Promise<T> {
+      return serviceNowResult(await request("PATCH", `table/${pathSegment(tableName)}/${pathSegment(sysId)}`, { body: patch })) as T;
+    },
+    async searchRecords<T extends ServiceNowRecord = ServiceNowRecord>(
+      tableName: string,
+      query?: ServiceNowTableQuery,
+    ): Promise<T[]> {
+      const result = serviceNowResult(await request("GET", `table/${pathSegment(tableName)}`, {
+        query: serviceNowTableQueryParams(query),
+      }));
+      return (Array.isArray(result) ? result : []) as T[];
+    },
+    async uploadAttachment(input) {
+      return asServiceNowObject(serviceNowResult(await serviceNowRawRequest(fetchImpl, {
+        baseUrl,
+        path: "attachment/file",
+        method: "POST",
+        authorization,
+        ...(options.headers ? { headers: options.headers } : {}),
+        body: input.data,
+        contentType: input.contentType ?? "application/octet-stream",
+        query: {
+          table_name: input.tableName,
+          table_sys_id: input.tableSysId,
+          file_name: input.fileName,
+        },
+        ...(options.signal ? { signal: options.signal } : {}),
+      })));
+    },
+    async listAttachments(query) {
+      const result = serviceNowResult(await request("GET", "attachment", {
+        query: serviceNowTableQueryParams(query),
+      }));
+      return (Array.isArray(result) ? result : []) as ServiceNowJsonObject[];
+    },
+    async importSet(stagingTableName, record) {
+      return asServiceNowObject(serviceNowResult(await request("POST", `import/${pathSegment(stagingTableName)}`, { body: record })));
+    },
+    async getImportSetResult(stagingTableName, sysId) {
+      return asServiceNowObject(serviceNowResult(await request("GET", `import/${pathSegment(stagingTableName)}/${pathSegment(sysId)}`)));
+    },
+  };
 }
 
-function authHeaders(options: ServiceNowTicketingClientOptions) {
-  if (options.accessToken) return { authorization: `Bearer ${options.accessToken}` };
-  if (options.username && options.password) {
-    return {
-      authorization: `Basic ${Buffer.from(`${options.username}:${options.password}`).toString("base64")}`,
-    };
+export function createUnconfiguredServiceNowRawClient(
+  message = "ServiceNow REST adapter requires instanceUrl/baseUrl plus accessToken or username/password, or an injected ServiceNowRawClient.",
+): ServiceNowRawClient {
+  const fail = async (): Promise<never> => {
+    throw new Error(message);
+  };
+  return {
+    createRecord: fail,
+    getRecord: fail,
+    updateRecord: fail,
+    searchRecords: fail,
+    uploadAttachment: fail,
+    listAttachments: fail,
+    importSet: fail,
+    getImportSetResult: fail,
+  };
+}
+
+export function serviceNowApiBaseUrl(options: Pick<ServiceNowTicketingClientOptions, "baseUrl" | "instance" | "instanceUrl" | "apiVersion">): string {
+  if (options.baseUrl) {
+    const baseUrl = new URL(/^https?:\/\//i.test(options.baseUrl) ? options.baseUrl : `https://${options.baseUrl}`);
+    if (baseUrl.pathname === "/" || baseUrl.pathname === "") {
+      return `${baseUrl.origin}/api/now${serviceNowApiVersionPath(options.apiVersion)}`;
+    }
+    return `${baseUrl.origin}${baseUrl.pathname.replace(/\/+$/, "")}`;
   }
-  throw new Error("ServiceNow API access requires either accessToken or username and password.");
+
+  const instanceUrl = options.instanceUrl ?? options.instance;
+  if (!instanceUrl) {
+    throw new Error("ServiceNow REST adapter requires instanceUrl or baseUrl.");
+  }
+  const url = new URL(/^https?:\/\//i.test(instanceUrl) ? instanceUrl : `https://${instanceUrl}`);
+  return `${url.origin}/api/now${serviceNowApiVersionPath(options.apiVersion)}`;
+}
+
+class ServiceNowRestError extends Error {
+  readonly status: number;
+  readonly statusText: string;
+  readonly payload: unknown;
+
+  constructor(response: Response, payload: unknown) {
+    super(`ServiceNow request failed with ${response.status}.`);
+    this.name = "ServiceNowRestError";
+    this.status = response.status;
+    this.statusText = response.statusText;
+    this.payload = payload;
+  }
+}
+
+async function serviceNowRawRequest(
+  fetchImpl: typeof fetch | undefined,
+  input: {
+    baseUrl: string;
+    method: ProviderHttpMethod;
+    path: string;
+    authorization: string;
+    headers?: Record<string, string>;
+    body: BodyInit;
+    contentType?: string;
+    query?: Record<string, ProviderQueryValue>;
+    signal?: AbortSignal;
+  },
+): Promise<unknown> {
+  if (typeof fetchImpl !== "function") {
+    throw new Error("ServiceNow REST adapter requires a fetch implementation.");
+  }
+  const response = await fetchImpl(providerRequestUrl({
+    baseUrl: input.baseUrl,
+    path: input.path,
+    query: input.query,
+  }), {
+    method: input.method,
+    headers: serviceNowHeaders({
+      authorization: input.authorization,
+      contentType: input.contentType ?? "application/octet-stream",
+      ...(input.headers ? { headers: input.headers } : {}),
+    }),
+    body: input.body,
+    ...(input.signal ? { signal: input.signal } : {}),
+  });
+  const payload = await parseServiceNowResponseBody(response);
+  if (!response.ok) {
+    throw new ServiceNowRestError(response, payload);
+  }
+  return payload;
+}
+
+function createDefaultServiceNowRawClient(options: ServiceNowTicketingClientOptions): ServiceNowRawClient {
+  if ((options.baseUrl || options.instanceUrl || options.instance) && (options.accessToken || (options.username && options.password))) {
+    return createServiceNowRestRawClient(options);
+  }
+  return createUnconfiguredServiceNowRawClient();
+}
+
+function serviceNowAuthorization(options: Pick<ServiceNowTicketingClientOptions, "accessToken" | "username" | "password">): string {
+  if (options.accessToken) {
+    return `Bearer ${options.accessToken}`;
+  }
+  if (options.username && options.password) {
+    return `Basic ${Buffer.from(`${options.username}:${options.password}`).toString("base64")}`;
+  }
+  throw new Error("ServiceNow REST adapter requires accessToken or username/password.");
+}
+
+function serviceNowHeaders(input: {
+  authorization: string;
+  headers?: Record<string, string>;
+  contentType?: string;
+}): Record<string, string> {
+  return {
+    Accept: "application/json",
+    Authorization: input.authorization,
+    ...(input.contentType ? { "Content-Type": input.contentType } : {}),
+    ...(input.headers ?? {}),
+  };
+}
+
+function serviceNowTableQueryParams(query?: ServiceNowTableQuery): Record<string, ProviderQueryValue> {
+  const params: Record<string, ProviderQueryValue> = {};
+  if (!query) return params;
+  if (query.query !== undefined) params.sysparm_query = query.query;
+  if (query.fields?.length) params.sysparm_fields = query.fields.join(",");
+  if (query.limit !== undefined) params.sysparm_limit = query.limit;
+  if (query.offset !== undefined) params.sysparm_offset = query.offset;
+  if (query.displayValue !== undefined) params.sysparm_display_value = String(query.displayValue);
+  if (query.excludeReferenceLink !== undefined) params.sysparm_exclude_reference_link = query.excludeReferenceLink;
+  return params;
+}
+
+async function parseServiceNowResponseBody(response: Response): Promise<unknown> {
+  if (response.status === 204) return {};
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { rawBody: text };
+  }
+}
+
+function serviceNowResult(value: unknown): unknown {
+  if (typeof value === "object" && value !== null && "result" in value) {
+    return (value as { result?: unknown }).result;
+  }
+  return value;
+}
+
+function asServiceNowObject(value: unknown): ServiceNowProviderResponse {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as ServiceNowProviderResponse;
+  }
+  return { data: value as ServiceNowJsonValue };
+}
+
+function serviceNowApiVersionPath(apiVersion: string | undefined): string {
+  return apiVersion ? `/${pathSegment(apiVersion)}` : "";
+}
+
+function pathSegment(value: string | number): string {
+  return encodeURIComponent(String(value));
 }

@@ -59,7 +59,6 @@ Open a GitHub issue with:
 ## License
 
 By contributing, you agree that your contributions will be licensed under the
-Apache License, Version 2.0, unless a file or directory contains a more
-specific license notice.
+Apache License, Version 2.0.
 
-See [LICENSE](LICENSE) for the repository license map.
+See [LICENSE](LICENSE) for the repository license.

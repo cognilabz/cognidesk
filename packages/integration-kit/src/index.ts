@@ -116,6 +116,7 @@ export {
 export type {
   ProviderHttpMethod,
   ProviderJsonRequestInput,
+  ProviderJsonRetryOptions,
   ProviderQueryValue,
 } from "./http.js";
 

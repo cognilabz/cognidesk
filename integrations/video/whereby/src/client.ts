@@ -1,247 +1,421 @@
 import {
+  IntegrationError,
+  normalizeIntegrationError,
+  providerJsonRequest,
+  type ProviderQueryValue,
+} from "@cognidesk/integration-kit";
+import {
   createWherebyFullApiGeneratedClient,
+  type WherebyFullApiOperationKey,
   type WherebyGeneratedOperationCaller,
 } from "./full-api-client.generated.js";
 import {
   WHEREBY_FULL_API_OPERATION_BY_ID,
   WHEREBY_FULL_API_OPERATION_BY_UID,
+  type WherebyFullApiOperation,
   type WherebyFullApiOperationUid,
 } from "./full-api-operations.generated.js";
 import type {
+  WherebyAccessLinkResource,
   WherebyCreateMeetingInput,
-  WherebyHttpMethod,
+  WherebyInsightsListResponse,
+  WherebyListMeetingsResponse,
+  WherebyListRecordingsResponse,
+  WherebyListSummariesResponse,
+  WherebyListTranscriptionsResponse,
+  WherebyMeetingResource,
   WherebyOperationRequestInput,
-  WherebyResource,
+  WherebyRecordingResource,
+  WherebySummaryResource,
+  WherebyTranscriptionResource,
   WherebyVideoClient,
   WherebyVideoClientOptions,
   WherebyVideoJsonObject,
+  WherebyVideoProviderClient,
+  WherebyVideoProviderQuery,
 } from "./contracts.js";
-import {
-  applyWherebyAccessLinkQuery,
-  applyWherebyCursorQuery,
-  stripUndefined,
-  wherebyOperationUrl,
-  wherebyRequest,
-  wherebyUrl,
-} from "./request.js";
 
-export function createWherebyVideoClient(options: WherebyVideoClientOptions): WherebyVideoClient {
-  const apiBaseUrl = (options.apiBaseUrl ?? "https://api.whereby.dev/v1").replace(/\/+$/, "");
-  const fetchImpl = options.fetch ?? fetch;
-  const request = <T = WherebyResource>(
-    method: WherebyHttpMethod,
-    path: string,
-    input: WherebyOperationRequestInput = {},
-  ) => wherebyRequest<T>({
-    url: wherebyOperationUrl(apiBaseUrl, path, input.pathParams, input.query),
-    method,
-    options,
-    fetch: fetchImpl,
-    body: input.body,
-    headers: input.headers,
-  });
-  const requestOperation = async (
-    operationUidOrId: WherebyFullApiOperationUid | string,
-    input: WherebyOperationRequestInput = {},
-  ) => {
-    const operation = WHEREBY_FULL_API_OPERATION_BY_UID.get(operationUidOrId)
-      ?? WHEREBY_FULL_API_OPERATION_BY_ID.get(operationUidOrId);
-    if (!operation) throw new Error(`Unknown Whereby REST OpenAPI operation '${operationUidOrId}'.`);
-    return request(operation.method, operation.path, input);
+const WHEREBY_DEFAULT_API_BASE_URL = "https://api.whereby.dev/v1";
+
+export function createWherebyVideoClient(options: WherebyVideoClientOptions = {}): WherebyVideoClient {
+  const providerClient = requireWherebyVideoProviderClient(
+    options.providerClient ?? createWherebyRestProviderClient(options),
+  );
+  const requestOperation = createProviderOperationCaller(providerClient);
+  const fullApi = createWherebyFullApiGeneratedClient(requestOperation);
+  const invoke = <T>(operationUidOrId: WherebyFullApiOperationUid | string, input?: WherebyOperationRequestInput) => {
+    if (input === undefined) return requestOperation(operationUidOrId as WherebyFullApiOperationKey) as Promise<T>;
+    return requestOperation(operationUidOrId as WherebyFullApiOperationKey, input as never) as Promise<T>;
   };
-  const fullApi = createWherebyFullApiGeneratedClient(requestOperation as WherebyGeneratedOperationCaller);
 
   return {
+    providerClient,
     fullApi,
-    requestOperation: requestOperation as WherebyGeneratedOperationCaller,
-    async createMeeting(input) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, "/meetings"),
-        method: "POST",
-        options,
-        fetch: fetchImpl,
-        body: wherebyMeetingBody(input),
+    requestOperation,
+    createMeeting(input) {
+      return invoke<WherebyMeetingResource>("POST /meetings", { body: wherebyMeetingBody(input) });
+    },
+    listMeetings(input = {}) {
+      return invoke<WherebyListMeetingsResponse>("GET /meetings", {
+        query: compactWherebyQuery({
+          cursor: input.cursor,
+          limit: input.limit,
+          fields: input.fields,
+        }),
       });
     },
-    async listMeetings(input = {}) {
-      const url = wherebyUrl(apiBaseUrl, "/meetings");
-      if (input.cursor) url.searchParams.set("cursor", input.cursor);
-      if (input.limit !== undefined) url.searchParams.set("limit", String(input.limit));
-      for (const field of input.fields ?? []) url.searchParams.append("fields", field);
-      return wherebyRequest({
-        url,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
+    getMeeting(meetingId, input = {}) {
+      return invoke<WherebyMeetingResource>("GET /meetings/{meetingId}", {
+        pathParams: { meetingId },
+        query: compactWherebyQuery({ fields: input.fields }),
       });
     },
-    async getMeeting(meetingId, input = {}) {
-      const url = wherebyUrl(apiBaseUrl, `/meetings/${encodeURIComponent(meetingId)}`);
-      for (const field of input.fields ?? []) url.searchParams.append("fields", field);
-      return wherebyRequest({
-        url,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
+    deleteMeeting(meetingId) {
+      return invoke<Record<string, never>>("DELETE /meetings/{meetingId}", { pathParams: { meetingId } });
     },
-    async deleteMeeting(meetingId) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, `/meetings/${encodeURIComponent(meetingId)}`),
-        method: "DELETE",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    async setRoomThemeTokens(roomName, input) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, `/rooms/${encodeURIComponent(roomName)}/theme/tokens`),
-        method: "PUT",
-        options,
-        fetch: fetchImpl,
+    setRoomThemeTokens(roomName, input) {
+      return invoke<Record<string, never>>("PUT /rooms/{roomName}/theme/tokens", {
+        pathParams: { roomName },
         body: stripUndefined(input as WherebyVideoJsonObject),
       });
     },
-    async setRoomLogo(roomName, input) {
-      return request("PUT", "/rooms/{roomName}/theme/logo", {
+    setRoomLogo(roomName, input) {
+      return invoke<Record<string, never>>("PUT /rooms/{roomName}/theme/logo", {
         pathParams: { roomName },
         body: input,
       });
     },
-    async setRoomBackground(roomName, input) {
-      return request("PUT", "/rooms/{roomName}/theme/room-background", {
+    setRoomBackground(roomName, input) {
+      return invoke<Record<string, never>>("PUT /rooms/{roomName}/theme/room-background", {
         pathParams: { roomName },
         body: input,
       });
     },
-    async setRoomKnockPageBackground(roomName, input) {
-      return request("PUT", "/rooms/{roomName}/theme/room-knock-page-background", {
+    setRoomKnockPageBackground(roomName, input) {
+      return invoke<Record<string, never>>("PUT /rooms/{roomName}/theme/room-knock-page-background", {
         pathParams: { roomName },
         body: input,
       });
     },
-    async listRecordings(input = {}) {
-      const url = wherebyUrl(apiBaseUrl, "/recordings");
-      applyWherebyCursorQuery(url, input);
-      return wherebyRequest({ url, method: "GET", options, fetch: fetchImpl });
+    listRecordings(input = {}) {
+      return invoke<WherebyListRecordingsResponse>("GET /recordings", { query: compactWherebyQuery(input) });
     },
-    async getRecording(recordingId) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, `/recordings/${encodeURIComponent(recordingId)}`),
-        method: "GET",
-        options,
-        fetch: fetchImpl,
+    getRecording(recordingId) {
+      return invoke<WherebyRecordingResource>("GET /recordings/{recordingId}", { pathParams: { recordingId } });
+    },
+    getRecordingAccessLink(recordingId, input = {}) {
+      return invoke<WherebyAccessLinkResource>("GET /recordings/{recordingId}/access-link", {
+        pathParams: { recordingId },
+        query: compactWherebyQuery(input),
       });
     },
-    async getRecordingAccessLink(recordingId, input = {}) {
-      const url = wherebyUrl(apiBaseUrl, `/recordings/${encodeURIComponent(recordingId)}/access-link`);
-      applyWherebyAccessLinkQuery(url, input);
-      return wherebyRequest({ url, method: "GET", options, fetch: fetchImpl });
+    bulkDeleteRecordings(recordingIds) {
+      return invoke<Record<string, never>>("POST /recordings/bulk-delete", { body: { recordingIds } });
     },
-    async bulkDeleteRecordings(recordingIds) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, "/recordings/bulk-delete"),
-        method: "POST",
-        options,
-        fetch: fetchImpl,
-        body: { recordingIds },
+    deleteRecording(recordingId) {
+      return invoke<Record<string, never>>("DELETE /recordings/{recordingId}", { pathParams: { recordingId } });
+    },
+    createTranscription(input) {
+      return invoke<WherebyTranscriptionResource>("POST /transcriptions", { body: input });
+    },
+    listTranscriptions(input = {}) {
+      return invoke<WherebyListTranscriptionsResponse>("GET /transcriptions", { query: compactWherebyQuery(input) });
+    },
+    getTranscription(transcriptionId) {
+      return invoke<WherebyTranscriptionResource>("GET /transcriptions/{transcriptionId}", { pathParams: { transcriptionId } });
+    },
+    getTranscriptionAccessLink(transcriptionId, input = {}) {
+      return invoke<WherebyAccessLinkResource>("GET /transcriptions/{transcriptionId}/access-link", {
+        pathParams: { transcriptionId },
+        query: compactWherebyQuery(input),
       });
     },
-    async deleteRecording(recordingId) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, `/recordings/${encodeURIComponent(recordingId)}`),
-        method: "DELETE",
-        options,
-        fetch: fetchImpl,
-      });
+    bulkDeleteTranscriptions(transcriptionIds) {
+      return invoke<Record<string, never>>("POST /transcriptions/bulk-delete", { body: { transcriptionIds } });
     },
-    async createTranscription(input) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, "/transcriptions"),
-        method: "POST",
-        options,
-        fetch: fetchImpl,
-        body: input,
-      });
+    deleteTranscription(transcriptionId) {
+      return invoke<Record<string, never>>("DELETE /transcriptions/{transcriptionId}", { pathParams: { transcriptionId } });
     },
-    async listTranscriptions(input = {}) {
-      const url = wherebyUrl(apiBaseUrl, "/transcriptions");
-      applyWherebyCursorQuery(url, input);
-      return wherebyRequest({ url, method: "GET", options, fetch: fetchImpl });
+    createSummary(input) {
+      return invoke<WherebySummaryResource>("POST /summaries", { body: input });
     },
-    async getTranscription(transcriptionId) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, `/transcriptions/${encodeURIComponent(transcriptionId)}`),
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
+    listSummaries(input = {}) {
+      return invoke<WherebyListSummariesResponse>("GET /summaries", { query: compactWherebyQuery(input) });
     },
-    async getTranscriptionAccessLink(transcriptionId, input = {}) {
-      const url = wherebyUrl(apiBaseUrl, `/transcriptions/${encodeURIComponent(transcriptionId)}/access-link`);
-      applyWherebyAccessLinkQuery(url, input);
-      return wherebyRequest({ url, method: "GET", options, fetch: fetchImpl });
+    getSummary(summaryId) {
+      return invoke<WherebySummaryResource>("GET /summaries/{summaryId}", { pathParams: { summaryId } });
     },
-    async bulkDeleteTranscriptions(transcriptionIds) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, "/transcriptions/bulk-delete"),
-        method: "POST",
-        options,
-        fetch: fetchImpl,
-        body: { transcriptionIds },
-      });
+    deleteSummary(summaryId) {
+      return invoke<Record<string, never>>("DELETE /summaries/{summaryId}", { pathParams: { summaryId } });
     },
-    async deleteTranscription(transcriptionId) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, `/transcriptions/${encodeURIComponent(transcriptionId)}`),
-        method: "DELETE",
-        options,
-        fetch: fetchImpl,
-      });
+    getRoomInsights(input = {}) {
+      return invoke<WherebyInsightsListResponse>("GET /insights/rooms", { query: compactWherebyQuery(input) });
     },
-    async createSummary(input) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, "/summaries"),
-        method: "POST",
-        options,
-        fetch: fetchImpl,
-        body: input,
-      });
+    getRoomSessionInsights(input) {
+      return invoke<WherebyInsightsListResponse>("GET /insights/room-sessions", { query: compactWherebyQuery(input) });
     },
-    async listSummaries(input = {}) {
-      const url = wherebyUrl(apiBaseUrl, "/summaries");
-      applyWherebyCursorQuery(url, input);
-      return wherebyRequest({ url, method: "GET", options, fetch: fetchImpl });
+    listParticipants(input) {
+      return invoke<WherebyInsightsListResponse>("GET /insights/participants", { query: compactWherebyQuery(input) });
     },
-    async getSummary(summaryId) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, `/summaries/${encodeURIComponent(summaryId)}`),
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    async deleteSummary(summaryId) {
-      return wherebyRequest({
-        url: wherebyUrl(apiBaseUrl, `/summaries/${encodeURIComponent(summaryId)}`),
-        method: "DELETE",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    async getRoomInsights(input = {}) {
-      return request("GET", "/insights/rooms", { query: input });
-    },
-    async getRoomSessionInsights(input) {
-      return request("GET", "/insights/room-sessions", { query: input });
-    },
-    async listParticipants(input) {
-      return request("GET", "/insights/participants", { query: input });
-    },
-    async getParticipantInsights(input) {
-      return request("GET", "/insights/participant", { query: input });
+    getParticipantInsights(input) {
+      return invoke<WherebyVideoJsonObject[]>("GET /insights/participant", { query: compactWherebyQuery(input) });
     },
   };
+}
+
+export function createWherebyRestProviderClient(options: Omit<WherebyVideoClientOptions, "providerClient">): WherebyVideoProviderClient {
+  if (!options.apiKey) return createUnconfiguredWherebyVideoProviderClient();
+  return {
+    requestOperation(operationUidOrId, input) {
+      const operation = resolveWherebyFullApiOperation(operationUidOrId);
+      validateWherebyOperationPathParams(operation, input);
+      return requestWherebyRestOperation(operation, input, options);
+    },
+  };
+}
+
+export function createUnconfiguredWherebyVideoProviderClient(): WherebyVideoProviderClient {
+  const failClosed: WherebyVideoProviderClient["requestOperation"] = async () => {
+    throw new Error(
+      "Pass Whereby API credentials to createWherebyVideoClient({ apiKey }) or a host-provided " +
+      "Whereby providerClient to createWherebyVideoClient({ providerClient }).",
+    );
+  };
+  return { requestOperation: failClosed };
+}
+
+function requireWherebyVideoProviderClient(client: WherebyVideoProviderClient): WherebyVideoProviderClient {
+  if (!client || typeof client.requestOperation !== "function") {
+    throw new Error(
+      "Whereby requires a providerClient implementing requestOperation() or an apiKey for the built-in REST adapter.",
+    );
+  }
+  return client;
+}
+
+function createProviderOperationCaller(providerClient: WherebyVideoProviderClient): WherebyGeneratedOperationCaller {
+  return (async (operationUidOrId: WherebyFullApiOperationUid | string, input?: WherebyOperationRequestInput) => {
+    const operation = resolveWherebyFullApiOperation(operationUidOrId);
+    validateWherebyOperationPathParams(operation, input);
+    if (input === undefined) {
+      return providerClient.requestOperation(operation.uid as WherebyFullApiOperationKey);
+    }
+    return providerClient.requestOperation(operation.uid as WherebyFullApiOperationKey, input);
+  }) as WherebyGeneratedOperationCaller;
+}
+
+function resolveWherebyFullApiOperation(operationUidOrId: WherebyFullApiOperationUid | string) {
+  const operation = WHEREBY_FULL_API_OPERATION_BY_UID.get(operationUidOrId)
+    ?? WHEREBY_FULL_API_OPERATION_BY_ID.get(operationUidOrId);
+  if (!operation) throw new Error(`Unknown Whereby provider operation '${operationUidOrId}'.`);
+  return operation;
+}
+
+function validateWherebyOperationPathParams(
+  operation: WherebyFullApiOperation,
+  input: WherebyOperationRequestInput | undefined,
+) {
+  for (const key of operation.path.matchAll(/\{([^}]+)\}/g)) {
+    const parameterName = key[1];
+    if (!parameterName) continue;
+    const value = input?.pathParams?.[parameterName];
+    if (value === undefined) throw new Error(`Missing Whereby path parameter '${parameterName}'.`);
+  }
+}
+
+async function requestWherebyRestOperation(
+  operation: WherebyFullApiOperation,
+  input: WherebyOperationRequestInput | undefined,
+  options: Omit<WherebyVideoClientOptions, "providerClient">,
+) {
+  if (!options.apiKey) {
+    throw new IntegrationError(
+      "credential-missing",
+      "Whereby API key is required for the built-in REST adapter.",
+      { providerPackageId: "video.whereby", provider: "whereby" },
+    );
+  }
+  if (!(input?.body instanceof FormData)) {
+    try {
+      return await providerJsonRequest({
+        baseUrl: options.baseUrl ?? WHEREBY_DEFAULT_API_BASE_URL,
+        path: operation.path,
+        method: operation.method,
+        pathParams: input?.pathParams,
+        query: flattenWherebyQuery(input?.query),
+        body: input?.body,
+        authorizationHeader: `Bearer ${options.apiKey}`,
+        headers: input?.headers,
+        fetch: options.fetch,
+        signal: options.signal,
+        timeoutMs: options.timeoutMs,
+        retry: options.retry,
+        providerName: `Whereby REST operation '${operation.uid}'`,
+      });
+    } catch (error) {
+      throw normalizeProviderRequestError(error, {
+        providerPackageId: "video.whereby",
+        provider: "whereby",
+      });
+    }
+  }
+  const body = input.body;
+  const response = await (options.fetch ?? fetch)(wherebyOperationUrl(options.baseUrl ?? WHEREBY_DEFAULT_API_BASE_URL, operation.path, input), {
+    method: operation.method,
+    headers: {
+      accept: "application/json",
+      authorization: `Bearer ${options.apiKey}`,
+      ...(input?.headers ?? {}),
+    },
+    body,
+    ...(options.signal ? { signal: options.signal } : {}),
+  });
+  return parseWherebyRestResponse(response, operation.uid);
+}
+
+function wherebyOperationUrl(baseUrl: string, path: string, input: WherebyOperationRequestInput | undefined) {
+  const resolvedPath = expandWherebyPath(path, input?.pathParams ?? {});
+  const url = new URL(resolvedPath.startsWith("/") ? resolvedPath : `/${resolvedPath}`, normalizedBaseUrl(baseUrl));
+  appendWherebyQuery(url.searchParams, input?.query);
+  return url.toString();
+}
+
+function expandWherebyPath(path: string, pathParams: Record<string, string | number | boolean | undefined>) {
+  return path.replace(/\{([^}]+)\}/g, (_match, key: string) => {
+    const value = pathParams[key];
+    if (value === undefined) {
+      throw new IntegrationError(
+        "provider-validation",
+        `Missing Whereby path parameter '${key}'.`,
+        { providerPackageId: "video.whereby", provider: "whereby" },
+      );
+    }
+    return encodeURIComponent(String(value));
+  });
+}
+
+function appendWherebyQuery(params: URLSearchParams, query: WherebyVideoProviderQuery | undefined, prefix?: string) {
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value === undefined || value === null) continue;
+    const queryKey = prefix ? `${prefix}[${key}]` : key;
+    if (Array.isArray(value)) {
+      for (const item of value) params.append(queryKey, String(item));
+      continue;
+    }
+    if (typeof value === "object") {
+      appendWherebyQuery(params, value as WherebyVideoProviderQuery, queryKey);
+      continue;
+    }
+    params.set(queryKey, String(value));
+  }
+}
+
+async function parseWherebyRestResponse(response: Response, operation: string) {
+  const payload = await parseWherebyResponsePayload(response);
+  if (!response.ok) {
+    throw new IntegrationError(
+      providerErrorCode(response.status),
+      `Whereby REST operation '${operation}' failed with HTTP ${response.status}.`,
+      {
+        providerPackageId: "video.whereby",
+        provider: "whereby",
+        statusCode: response.status,
+        retryable: response.status === 429 || response.status >= 500,
+        details: { payload },
+      },
+    );
+  }
+  return payload;
+}
+
+function flattenWherebyQuery(query: WherebyVideoProviderQuery | undefined) {
+  const flattened: Record<string, ProviderQueryValue> = {};
+  flattenWherebyQueryInto(flattened, query);
+  return flattened;
+}
+
+function flattenWherebyQueryInto(
+  target: Record<string, ProviderQueryValue>,
+  query: WherebyVideoProviderQuery | undefined,
+  prefix?: string,
+) {
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value === undefined || value === null) continue;
+    const queryKey = prefix ? `${prefix}[${key}]` : key;
+    if (Array.isArray(value)) {
+      target[queryKey] = value.map(String);
+      continue;
+    }
+    if (typeof value === "object") {
+      flattenWherebyQueryInto(target, value as WherebyVideoProviderQuery, queryKey);
+      continue;
+    }
+    target[queryKey] = value;
+  }
+}
+
+function normalizeProviderRequestError(
+  error: unknown,
+  context: { providerPackageId: string; provider: string },
+) {
+  const normalized = normalizeIntegrationError(error, {
+    ...context,
+    statusCode: readErrorStatus(error),
+    retryable: readErrorRetryable(error),
+    details: readErrorPayload(error),
+  });
+  return normalized;
+}
+
+function readErrorStatus(error: unknown) {
+  if (!isRecord(error)) return undefined;
+  const status = error.status ?? error.statusCode;
+  return typeof status === "number" ? status : undefined;
+}
+
+function readErrorRetryable(error: unknown) {
+  const status = readErrorStatus(error);
+  return status === undefined ? undefined : status === 429 || status >= 500;
+}
+
+function readErrorPayload(error: unknown) {
+  if (!isRecord(error) || error.payload === undefined) return undefined;
+  return { payload: error.payload };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+async function parseWherebyResponsePayload(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return { raw: text };
+  }
+}
+
+function providerErrorCode(status: number) {
+  if (status === 401) return "provider-auth";
+  if (status === 403) return "provider-permission";
+  if (status === 429) return "provider-rate-limited";
+  if (status === 408 || status === 504) return "provider-timeout";
+  if (status >= 500) return "provider-unavailable";
+  return "provider-validation";
+}
+
+function normalizedBaseUrl(baseUrl: string) {
+  return baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+}
+
+function compactWherebyQuery(input: object | undefined): WherebyVideoProviderQuery {
+  return stripUndefined((input ?? {}) as WherebyVideoJsonObject) as WherebyVideoProviderQuery;
+}
+
+function stripUndefined(input: WherebyVideoJsonObject) {
+  return Object.fromEntries(Object.entries(input).filter((entry) => entry[1] !== undefined));
 }
 
 function wherebyMeetingBody(input: WherebyCreateMeetingInput) {

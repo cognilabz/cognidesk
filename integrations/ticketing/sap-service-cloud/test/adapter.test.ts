@@ -2,10 +2,22 @@ import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import {
   createSapServiceCloudTicketingClient,
+  createSapServiceCloudTicketingIntegration,
   createSapServiceCloudTicketingLiveChecks,
   sapServiceCloudTicketingCredentialStatuses,
   sapServiceCloudTicketingProviderManifest,
+  type SapServiceCloudTicketingProviderClient,
 } from "../src/index.js";
+
+function createProviderClient(): SapServiceCloudTicketingProviderClient {
+  return {
+    createServiceRequest: vi.fn(async () => ({ ObjectID: "object-1", ID: "8000001", Name: "Damaged baggage" })),
+    getServiceRequest: vi.fn(async () => ({ ObjectID: "object-1", ID: "8000001" })),
+    updateServiceRequest: vi.fn(async () => ({ ObjectID: "object-1", StatusCode: "2" })),
+    searchServiceRequests: vi.fn(async () => ({ results: [{ ObjectID: "object-1", ID: "8000001" }], count: "1" })),
+    readiness: vi.fn(async () => ({ results: [{ ObjectID: "object-1", ID: "8000001" }] })),
+  };
+}
 
 describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
   it("exports an official provider manifest for SAP Service Cloud ticketing", () => {
@@ -18,9 +30,10 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     });
   });
 
-  it("declares docs-backed scoped SAP Service Cloud coverage", () => {
+  it("declares docs-backed scoped SAP Service Cloud coverage with built-in OData transport", () => {
     expect(sapServiceCloudTicketingProviderManifest.coverage.scope).toBe("support-workflow-subset");
     expect(sapServiceCloudTicketingProviderManifest.coverage.notes.join(" ")).toContain("not full SAP Service Cloud API coverage");
+    expect(sapServiceCloudTicketingProviderManifest.coverage.notes.join(" ")).toContain("built-in SAP Service Cloud OData adapter");
     expect(sapServiceCloudTicketingProviderManifest.coverage.evidence.map((item) => item.url)).toEqual(expect.arrayContaining([
       "https://help.sap.com/docs/sap-cloud-for-customer/odata-services/sap-cloud-for-customer-odata-api",
       "https://help.sap.com/docs/sap-cloud-for-customer/1364b70b9cbb417ea5e2d80e966d4f49/6c0a463cc9ca450cbd01a9a5057ce682.html",
@@ -32,28 +45,33 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       expect.objectContaining({ kind: "sapServiceRequest", schemaName: "ServiceRequestCollection" }),
     ]));
     expect(sapServiceCloudTicketingProviderManifest.metadata).toMatchObject({
+      implementationStrategy: "no-official-service-sdk-odata-rest-adapter",
+      implementation: {
+        strategy: "provider-rest-adapter",
+        adapterKind: "no-official-service-sdk-odata-rest-adapter",
+        defaultHttpClient: "built-in-fetch",
+        defaultFetchClient: "built-in-provider-rest-adapter",
+        packageOwnedRestClient: true,
+      },
       checkedProviderApiCoverage: {
         coverageArtifact: "docs/provider-coverage/sap-service-cloud-checked-c4c-odata-2026-06-18.inventory.json",
         checkedFamilyCount: 3,
         implementedFamilyCount: 2,
         gapFamilyCount: 1,
-        implementedOperationCount: 5,
+        implementedOperationCount: 4,
       },
     });
+    expect(JSON.stringify(sapServiceCloudTicketingProviderManifest.metadata)).not.toContain("direct-http-support-slice");
   });
 
-  it("creates SAP Service Cloud service requests through OData", async () => {
-    const fetchMock = vi.fn(async (url: string) => {
-      if (url.endsWith("/$metadata")) {
-        return new Response("", { status: 200, headers: { "x-csrf-token": "csrf-token", "set-cookie": "SAP_SESSIONID=abc" } });
-      }
-      return new Response(JSON.stringify({ d: { ObjectID: "object-1", ID: "8000001", Name: "Damaged baggage" } }), { status: 201 });
-    });
+  it("uses the built-in SAP Service Cloud OData adapter when credentials are provided", async () => {
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({ d: { ObjectID: "object-1", ID: "8000001", Name: "Damaged baggage" } })
+    );
     const client = createSapServiceCloudTicketingClient({
-      tenantUrl: "https://example.crm.ondemand.com/",
-      username: "api-user",
-      password: "api-pass",
-      fetch: fetchMock as unknown as typeof fetch,
+      baseUrl: "https://tenant.crm.ondemand.com/",
+      accessToken: "sap-token",
+      fetch: fetchMock,
     });
 
     await expect(client.createServiceRequest({
@@ -63,20 +81,12 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       fields: { DataOriginTypeCode: "4" },
     })).resolves.toMatchObject({ ID: "8000001" });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://example.crm.ondemand.com/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          authorization: `Basic ${Buffer.from("api-user:api-pass").toString("base64")}`,
-          "x-csrf-token": "csrf-token",
-          cookie: "SAP_SESSIONID=abc",
-        }),
-      }),
-    );
-    const request = (fetchMock.mock.calls[1] as unknown[])[1] as { body: string };
-    expect(JSON.parse(request.body)).toMatchObject({
+    const [url, init] = fetchCall(fetchMock);
+    expect(url).toBe("https://tenant.crm.ondemand.com/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection");
+    expect(init.method).toBe("POST");
+    expect(headerValue(init, "authorization")).toBe("Bearer sap-token");
+    expect(headerValue(init, "content-type")).toContain("application/json");
+    expect(jsonBody(init)).toEqual({
       Name: "Damaged baggage",
       ProcessingTypeCode: "SRRQ",
       ServicePriorityCode: "3",
@@ -84,19 +94,88 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     });
   });
 
-  it("searches ServiceRequestCollection with OData controls", async () => {
+  it("encodes SAP OData keys and query parameters for built-in operations", async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ d: { results: [], __count: "0" } }));
+    const client = createSapServiceCloudTicketingClient({
+      baseUrl: "https://tenant.crm.ondemand.com",
+      accessToken: "sap-token",
+      csrfToken: "csrf-token",
+      fetch: fetchMock,
+    });
+
+    await client.updateServiceRequest("object/1'quoted", {
+      statusCode: "2",
+      fields: { ServicePriorityCode: "1" },
+    }, "etag-1");
+    await client.searchServiceRequests({
+      filter: "ID eq '8000001'",
+      select: ["ObjectID", "ID"],
+      expand: ["ServiceRequestDescription"],
+      orderBy: "ID desc",
+      top: 5,
+      skip: 10,
+      inlineCount: "allpages",
+    });
+
+    const [updateUrl, updateInit] = fetchCall(fetchMock, 0);
+    expect(new URL(updateUrl).pathname).toBe(
+      "/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection('object%2F1''quoted')",
+    );
+    expect(updateInit.method).toBe("PATCH");
+    expect(headerValue(updateInit, "if-match")).toBe("etag-1");
+    expect(headerValue(updateInit, "x-csrf-token")).toBe("csrf-token");
+    expect(jsonBody(updateInit)).toEqual({
+      StatusCode: "2",
+      ServicePriorityCode: "1",
+    });
+
+    const [searchUrl] = fetchCall(fetchMock, 1);
+    const query = new URL(searchUrl).searchParams;
+    expect(query.get("$filter")).toBe("ID eq '8000001'");
+    expect(query.get("$select")).toBe("ObjectID,ID");
+    expect(query.get("$expand")).toBe("ServiceRequestDescription");
+    expect(query.get("$orderby")).toBe("ID desc");
+    expect(query.get("$top")).toBe("5");
+    expect(query.get("$skip")).toBe("10");
+    expect(query.get("$inlinecount")).toBe("allpages");
+  });
+
+  it("surfaces SAP OData JSON errors with status and payload", async () => {
     const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({
-        d: {
-          __count: "1",
-          results: [{ ObjectID: "object-1", ID: "8000001" }],
-        },
-      }), { status: 200 })
+      jsonResponse({ error: { code: "NOT_FOUND", message: { value: "Invalid ObjectID." } } }, {
+        status: 404,
+        statusText: "Not Found",
+      })
     );
     const client = createSapServiceCloudTicketingClient({
-      tenantUrl: "example.crm.ondemand.com",
-      accessToken: "oauth-token",
-      fetch: fetchMock as unknown as typeof fetch,
+      baseUrl: "https://tenant.crm.ondemand.com",
+      accessToken: "sap-token",
+      fetch: fetchMock,
+    });
+
+    await expect(client.getServiceRequest("missing")).rejects.toMatchObject({
+      name: "SapServiceCloudProviderApiError",
+      status: 404,
+      message: "Invalid ObjectID.",
+      body: expect.objectContaining({ error: expect.any(Object) }),
+    });
+  });
+
+  it("delegates SAP Service Cloud ticket operations to the host provider client", async () => {
+    const providerClient = createProviderClient();
+    const client = createSapServiceCloudTicketingClient({ providerClient });
+
+    await expect(client.createServiceRequest({
+      name: "Damaged baggage",
+      processingTypeCode: "SRRQ",
+      servicePriorityCode: "3",
+      fields: { DataOriginTypeCode: "4" },
+    })).resolves.toMatchObject({ ID: "8000001" });
+    expect(providerClient.createServiceRequest).toHaveBeenCalledWith({
+      name: "Damaged baggage",
+      processingTypeCode: "SRRQ",
+      servicePriorityCode: "3",
+      fields: { DataOriginTypeCode: "4" },
     });
 
     await expect(client.searchServiceRequests({
@@ -105,13 +184,43 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       top: 5,
       inlineCount: "allpages",
     })).resolves.toMatchObject({ count: "1" });
+    expect(providerClient.searchServiceRequests).toHaveBeenCalledWith({
+      filter: "ID eq '8000001'",
+      select: ["ObjectID", "ID"],
+      top: 5,
+      inlineCount: "allpages",
+    });
 
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
-    expect(url).toBe("https://example.crm.ondemand.com/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection?%24format=json&%24filter=ID+eq+%278000001%27&%24select=ObjectID%2CID&%24top=5&%24inlinecount=allpages");
-    expect(init.headers.authorization).toBe("Bearer oauth-token");
+    const integration = createSapServiceCloudTicketingIntegration({ providerClient });
+    await expect(integration.run("ticket.update", {
+      objectId: "object-1",
+      statusCode: "2",
+      etag: "etag-1",
+    })).resolves.toMatchObject({ StatusCode: "2" });
+    expect(providerClient.updateServiceRequest).toHaveBeenCalledWith("object-1", { statusCode: "2" }, "etag-1");
   });
 
-  it("reports live conformance as credential-blocked until SAP credentials are configured", async () => {
+  it("requires either providerClient or OData credentials before executing operations", async () => {
+    const client = createSapServiceCloudTicketingClient();
+    await expect(client.searchServiceRequests()).rejects.toThrow("baseUrl plus accessToken");
+
+    const integration = createSapServiceCloudTicketingIntegration();
+    await expect(integration.run("ticket.read", { objectId: "object-1" })).rejects.toThrow("baseUrl plus accessToken");
+
+    const [check] = createSapServiceCloudTicketingLiveChecks({});
+    if (!check) throw new Error("Expected SAP Service Cloud live check to be registered.");
+    await expect(check.run({})).rejects.toThrow("baseUrl plus accessToken");
+  });
+
+  it("rejects partial provider clients before binding runtime operations", () => {
+    expect(() => createSapServiceCloudTicketingClient({
+      providerClient: {
+        createServiceRequest: vi.fn(),
+      } as unknown as SapServiceCloudTicketingProviderClient,
+    })).toThrow("SapServiceCloudTicketingProviderClient must implement getServiceRequest()");
+  });
+
+  it("reports live conformance as credential-blocked until SAP host client access is configured", async () => {
     const result = await runProviderConformance({
       manifest: sapServiceCloudTicketingProviderManifest,
       channels: [{
@@ -124,8 +233,6 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       live: {
         enabled: true,
         checks: createSapServiceCloudTicketingLiveChecks({
-          tenantUrl: "https://example.crm.ondemand.com",
-          accessToken: "missing",
           client: { async readiness() {
             return { results: [] };
           } },
@@ -140,7 +247,7 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     }));
   });
 
-  it("passes conformance when SAP live checks and credentials are configured", async () => {
+  it("passes conformance when SAP live checks and host-client credentials are configured", async () => {
     const result = await runProviderConformance({
       manifest: sapServiceCloudTicketingProviderManifest,
       channels: [{
@@ -150,14 +257,12 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
         enabledCapabilities: ["handoff", "create-provider-object", "read-provider-object", "update-provider-object", "search-provider-object"],
       }],
       credentialStatuses: sapServiceCloudTicketingCredentialStatuses({
-        tenantUrl: "https://example.crm.ondemand.com",
+        baseUrl: "https://tenant.crm.ondemand.com",
         accessToken: "configured",
       }),
       live: {
         enabled: true,
         checks: createSapServiceCloudTicketingLiveChecks({
-          tenantUrl: "https://example.crm.ondemand.com",
-          accessToken: "configured",
           client: { async readiness() {
             return { results: [{ ObjectID: "object-1", ID: "8000001" }] };
           } },
@@ -168,3 +273,24 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     expect(result.status).toBe("passed");
   });
 });
+
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    headers: { "content-type": "application/json" },
+    ...init,
+  });
+}
+
+function fetchCall(fetchMock: ReturnType<typeof vi.fn>, index = 0): [string, RequestInit] {
+  const call = fetchMock.mock.calls[index];
+  if (!call) throw new Error(`Missing fetch call ${index}.`);
+  return [String(call[0]), call[1] as RequestInit];
+}
+
+function headerValue(init: RequestInit, key: string) {
+  return new Headers(init.headers).get(key);
+}
+
+function jsonBody(init: RequestInit) {
+  return JSON.parse(String(init.body)) as unknown;
+}

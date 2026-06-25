@@ -1,6 +1,6 @@
 import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 import {
-  TIKTOK_DIRECT_SLICE_METADATA,
+  TIKTOK_HOST_CLIENT_SUPPORT_SLICE,
   TIKTOK_SELECTED_OPERATION_COUNT,
 } from "./selected-operations.js";
 
@@ -29,7 +29,7 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
     {
       id: "tiktok-access-token",
       label: "TikTok access token",
-      description: "User or client access token supplied by SDK configuration for approved TikTok APIs.",
+      description: "User or client access token used by the built-in TikTok REST adapter or an injected TikTok provider client for approved TikTok APIs.",
       scopes: ["user.info.basic", "user.info.profile", "video.list"],
       required: true,
       metadata: { scopeKind: "provider-oauth-scopes" },
@@ -75,6 +75,7 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
     scope: "support-workflow-subset",
     notes: [
       "Coverage is limited to selected TikTok Display API user/video reads, Research API comment reads, Business API comment operations, posting-status reads, and webhook signature parsing for SDK-user-owned support/review workflows.",
+      "Runtime provider calls use the built-in REST adapter when credentials are configured; hosts may inject a TikTok provider client override.",
       "The package does not implement a general TikTok direct-message inbox and does not cover the full TikTok product surface for Content Posting, Share Kit, Commercial Content, Data Portability, Shop, analytics, tester/launch, or full Business Center administration.",
     ],
     evidence: [
@@ -123,7 +124,7 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
     {
       capability: "read-provider-object",
       label: "Read TikTok profile, videos, and comments",
-      description: "Reads TikTok Display API profile/video data, Research API video comments, and Business API comment resources where approved.",
+      description: "Reads TikTok Display API profile/videos, Research API comments, and Business API comment resources through the configured REST adapter or provider client where approved.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [
         { kind: "tiktokUser", label: "TikTok User" },
@@ -136,7 +137,7 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
     {
       capability: "search-provider-object",
       label: "List TikTok videos and comments",
-      description: "Lists approved TikTok video and comment resources with SDK-user-supplied fields and pagination.",
+      description: "Lists approved TikTok videos and comments with SDK-user-supplied fields and pagination through the configured REST adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [
         { kind: "tiktokVideo", label: "TikTok Video" },
@@ -148,7 +149,7 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
     {
       capability: "social.comment-reply",
       label: "Reply to TikTok Business comments",
-      description: "Uses TikTok Business API comment reply primitives only when the SDK user has the relevant Business account and approvals.",
+      description: "Calls TikTok Business API comment reply primitives through the configured REST adapter or provider client only when the SDK user has the relevant Business account and approvals.",
       audiences: ["customer-facing"],
       providerObjects: [{ kind: "tiktokComment", label: "TikTok Comment" }],
       requiresCredential: true,
@@ -176,15 +177,16 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
     "Comment reply operations require TikTok API for Business account access and approvals; Display API and Research API access are separate TikTok products with separate scopes and eligibility.",
     "Available operations depend on the SDK user's app review, regional availability, callback URL registration, scopes, product approvals, rate limits, Business account ownership, and TikTok platform policy.",
     "TikTok direct-message lead APIs are Business lead surfaces, not a generic customer-service DM inbox for this adapter.",
+    "Provider API calls use the built-in REST adapter when accessToken is configured; providerClient injection remains available as an override.",
     "Consent, outbound-contact policy, conversation continuity, human escalation, moderation, retention, redaction, and deletion behavior are SDK-user configuration.",
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     channelCoverage: {
-      displayProfileVideos: "typed-read-list",
-      researchVideoComments: "typed-query",
-      contentPostingStatus: "typed-read",
-      businessComments: "typed-list-create-reply",
+      displayProfileVideos: "provider-rest-adapter-read-list",
+      researchVideoComments: "provider-rest-adapter-query",
+      contentPostingStatus: "provider-rest-adapter-read",
+      businessComments: "provider-rest-adapter-list-create-reply",
       webhooks: "typed-verify-parse",
       directMessages: "not-covered",
       contentPostingCreate: "not-covered",
@@ -199,7 +201,7 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
       "https://business-api.tiktok.com/portal/docs/reply-to-a-comment/v1.3",
     ],
     apiCoverage: {
-      ...TIKTOK_DIRECT_SLICE_METADATA.apiCoverage,
+      ...TIKTOK_HOST_CLIENT_SUPPORT_SLICE.apiCoverage,
       generatedFromOfficialSpec: false,
       machineReadableSpecStatus: "No official public complete TikTok Developers/Business OpenAPI spec was found for this mixed selected surface during this audit.",
       selectedOperationCount: TIKTOK_SELECTED_OPERATION_COUNT,
@@ -207,6 +209,12 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
       fullProviderApi: false,
       fullTikTokPlatformCoverage: false,
     },
-    implementation: TIKTOK_DIRECT_SLICE_METADATA,
+    implementation: TIKTOK_HOST_CLIENT_SUPPORT_SLICE,
+    providerClient: {
+      package: "built-in-or-host-provided",
+      interface: "TikTokSocialProviderClient",
+      importPolicy: "provider-client-override-supported",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
+    },
   },
 });

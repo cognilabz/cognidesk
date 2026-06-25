@@ -1,4 +1,5 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
+import { serviceNowTicketingProviderOperations } from "./operations.js";
 
 export const serviceNowTicketingProviderManifest = defineProviderPackage({
   id: "ticketing.servicenow",
@@ -9,10 +10,12 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
   trustLevel: "official",
   directions: ["bidirectional"],
   channelAudiences: ["internal-support", "mixed"],
+  operations: serviceNowTicketingProviderOperations,
   coverage: {
     scope: "support-workflow-subset",
     notes: [
       "Coverage is limited to ServiceNow Table API record create/read/update/search, incident creation, Attachment API upload/list, Import Set insert/read, and readiness checks used by Cognidesk support workflows.",
+      "Implementation uses a built-in ServiceNow REST adapter when instanceUrl/baseUrl and bearer or Basic Auth credentials are configured, with ServiceNowRawClient injection as an override.",
       "Generic Table API helpers accept SDK-user-selected table names and fields, but they are not customer-specific generated schema coverage for arbitrary tables, custom fields, ACLs, business rules, or plugins.",
       "This is not full ServiceNow platform API coverage for Service Catalog/cart, journal-field semantics, attachment download/delete, transform-map lifecycle, scripted REST APIs, workflow APIs, or broader platform administration.",
     ],
@@ -110,9 +113,28 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
   ],
   metadata: {
     implementation: {
-      strategy: "direct-http-support-slice",
+      strategy: "provider-rest-adapter",
       runtimePackage: "@cognidesk/integration-ticketing-servicenow",
+      rawClientEscapeHatch: "ServiceNowTicketingClient.rawClient",
       manifestImport: "no-sdk-client-initialization",
+      defaultClientPolicy: "use-built-in-rest-adapter-when-instance-and-auth-are-configured",
+      rawClientOverride: true,
+      packageOwnedRestClient: true,
+    },
+    sdkDecision: {
+      checkedAt: "2026-06-25",
+      package: "@servicenow/sdk",
+      checkedVersion: "4.8.0",
+      license: "MIT",
+      result: "official-sdk-not-runtime-rest-client",
+      reason: "The package exports Fluent/application metadata authoring, CLI, LSP, and project orchestration APIs. Its Record, RestApi, and ImportSet APIs generate ServiceNow app metadata; they do not provide a runtime Table API, Attachment API, or Import Set API client for Cognidesk support operations.",
+    },
+    checkedProviderSdk: {
+      package: "@servicenow/sdk",
+      checkedVersion: "4.8.0",
+      license: "MIT",
+      result: "not-used-as-runtime-rest-client",
+      reason: "Retained compatibility metadata for catalog consumers; see sdkDecision for the runtime-client decision.",
     },
     checkedProviderApiCoverage: {
       verifiedAt: "2026-06-18",

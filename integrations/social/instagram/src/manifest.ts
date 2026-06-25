@@ -1,5 +1,51 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
 
+export const instagramHostClientSupportSlice = {
+  implementationStrategy: "no-official-sdk-rest-adapter",
+  sdkDecision: "Meta's official facebook-nodejs-business-sdk exists, but it is published as a broad Marketing/Business SDK and does not provide a dedicated typed Instagram Messaging client surface for this support slice. This package therefore ships a built-in Graph API REST adapter and still accepts an injected Instagram/Meta provider client override.",
+  verifiedAt: "2026-06-25",
+  allowedOperations: [
+    {
+      id: "sendMessage",
+      alias: "instagram.message.send",
+      target: "providerRestAdapter.sendMessage",
+      source: "provider-rest-adapter",
+    },
+    {
+      id: "listConversations",
+      alias: "instagram.conversations.list",
+      target: "providerRestAdapter.listConversations",
+      source: "provider-rest-adapter",
+    },
+    {
+      id: "listConversationMessages",
+      alias: "instagram.conversationMessages.list",
+      target: "providerRestAdapter.listConversationMessages",
+      source: "provider-rest-adapter",
+    },
+    {
+      id: "getMessage",
+      alias: "instagram.message.read",
+      target: "providerRestAdapter.getMessage",
+      source: "provider-rest-adapter",
+    },
+    {
+      id: "getInstagramBusinessAccount",
+      alias: "instagram.account.read",
+      target: "providerRestAdapter.getInstagramBusinessAccount",
+      source: "provider-rest-adapter",
+    },
+    {
+      id: "getPage",
+      alias: "instagram.page.read",
+      target: "providerRestAdapter.getPage",
+      source: "provider-rest-adapter",
+    },
+  ],
+} as const;
+
+export const instagramSocialSupportSlice = instagramHostClientSupportSlice;
+
 export const instagramSocialProviderManifest = defineProviderPackage({
   id: "social.instagram",
   name: "Instagram Direct Messages",
@@ -13,7 +59,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
     {
       id: "instagram-page-access-token",
       label: "Meta Page access token",
-      description: "Server-side Page access token used for Instagram Messaging and Graph API calls.",
+      description: "Server-side Page access token used by the built-in Graph API adapter or an injected Instagram/Meta provider client.",
       scopes: [
         "instagram_manage_messages",
         "instagram_basic",
@@ -58,7 +104,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
     {
       id: "instagram-permissions",
       label: "Instagram Graph permissions",
-      description: "SDK-user-reviewed permissions granted to the Meta app for messaging and account access.",
+      description: "SDK-user-reviewed permissions granted to the Meta app and enforced by the configured Graph API adapter or provider client.",
       scopes: [
         "instagram_manage_messages",
         "instagram_basic",
@@ -75,6 +121,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
     notes: [
       "Coverage is limited to Instagram Messaging send payloads, conversations/messages reads, account/page reads, webhook challenge handling, and X-Hub-Signature-256 validation for SDK-user-owned support messaging.",
       "This package uses the Meta Business Messaging / Page access token model for Instagram Messaging; it does not implement the separate Instagram API with Instagram Login messaging surface.",
+      "Runtime provider calls use the built-in Graph API REST adapter when credentials are configured; hosts may inject an Instagram/Meta provider client override.",
       "The package does not implement the broader Instagram Platform for media publishing, comments/moderation, mentions, insights, content discovery, account management, or full Graph API coverage.",
     ],
     evidence: [
@@ -82,6 +129,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
       { label: "Instagram Messaging send message", url: "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/features/send-message" },
       { label: "Instagram Messaging webhooks", url: "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/webhooks" },
       { label: "Instagram Messaging app review", url: "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/app-review" },
+      { label: "Meta Business SDK for NodeJS", url: "https://github.com/facebook/facebook-nodejs-business-sdk" },
     ],
   },
   capabilities: [
@@ -101,7 +149,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
     {
       capability: "send",
       label: "Send Instagram DM messages",
-      description: "Sends Instagram direct messages through Meta Graph API inside the 24-hour response window, or with HUMAN_AGENT human-support review where Meta permits up to 7 days.",
+      description: "Sends Instagram direct messages through the configured Graph API adapter or provider client inside policy windows selected by the SDK user.",
       audiences: ["customer-facing"],
       providerObjects: [{ kind: "instagramDirectMessage", label: "Instagram Direct Message" }],
       requiresCredential: true,
@@ -132,7 +180,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
     {
       capability: "read-provider-object",
       label: "Read Instagram account and messages",
-      description: "Reads Instagram professional account, page, conversations, messages, and message details where Graph APIs support it.",
+      description: "Reads Instagram professional account, page, conversation, and message resources through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [
         { kind: "instagramAccount", label: "Instagram Account" },
@@ -146,7 +194,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
     {
       capability: "search-provider-object",
       label: "List Instagram conversations",
-      description: "Lists Instagram conversations with SDK-user-supplied fields, pagination, and Graph API limits.",
+      description: "Lists Instagram conversations with SDK-user-supplied fields and pagination through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [{ kind: "instagramConversation", label: "Instagram Conversation" }],
       requiresCredential: true,
@@ -182,7 +230,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
       capability: "send",
       providerObject: "instagramDirectMessage",
       label: "Send Instagram message",
-      description: "Send an Instagram Messaging direct message through the configured Page.",
+      description: "Send an Instagram Messaging direct message through the configured Graph API adapter or provider client.",
       audiences: ["customer-facing"],
       requiresCredential: true,
       requiresApproval: true,
@@ -208,7 +256,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
       capability: "search-provider-object",
       providerObject: "instagramConversation",
       label: "List Instagram conversations",
-      description: "List Instagram conversations with SDK-user-supplied fields and pagination.",
+      description: "List Instagram conversations through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       requiresCredential: true,
       exposesSensitiveData: true,
@@ -220,7 +268,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
       capability: "read-provider-object",
       providerObject: "instagramDirectMessage",
       label: "Read Instagram conversation messages",
-      description: "Read messages for an Instagram conversation.",
+      description: "Read messages for an Instagram conversation through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       requiresCredential: true,
       exposesSensitiveData: true,
@@ -232,7 +280,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
       capability: "read-provider-object",
       providerObject: "instagramDirectMessage",
       label: "Read Instagram message",
-      description: "Read an Instagram message by provider message ID.",
+      description: "Read an Instagram message by provider message ID through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       requiresCredential: true,
       exposesSensitiveData: true,
@@ -244,7 +292,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
       capability: "read-provider-object",
       providerObject: "instagramAccount",
       label: "Read Instagram account",
-      description: "Read configured Instagram professional account metadata.",
+      description: "Read configured Instagram professional account metadata through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       requiresCredential: true,
       exposesSensitiveData: true,
@@ -256,7 +304,7 @@ export const instagramSocialProviderManifest = defineProviderPackage({
       capability: "read-provider-object",
       providerObject: "instagramPage",
       label: "Read connected Facebook Page",
-      description: "Read the Facebook Page connected to the Instagram professional account.",
+      description: "Read the Facebook Page connected to the Instagram professional account through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       requiresCredential: true,
       extension: true,
@@ -282,15 +330,15 @@ export const instagramSocialProviderManifest = defineProviderPackage({
     "Available operations depend on the SDK user's Meta app review, Page ownership, Instagram professional account link, granted permissions, webhook field subscriptions, messaging windows, HUMAN_AGENT review, rate limits, and regional policy.",
     "Instagram does not inherit general Messenger message tags as safe defaults; SDK users must configure Instagram-specific outbound policy and HUMAN_AGENT review where needed.",
     "Consent, outbound-contact policy, conversation continuity across channels, human escalation, retention, redaction, and deletion behavior are SDK-user configuration.",
-    "This package provides Graph API and webhook primitives; it does not decide when to auto-reply, start outbound outreach, join chats across channels, or expose social content to operators.",
+    "This package provides typed operation contracts, webhook primitives, and a built-in Graph API REST adapter; providerClient injection remains available as an override.",
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     channelCoverage: {
-      directMessages: "typed-send",
-      conversations: "typed-list-read",
-      messageDetails: "typed-read",
-      accountPageReadiness: "typed-read",
+      directMessages: "provider-rest-adapter-send",
+      conversations: "provider-rest-adapter-list-read",
+      messageDetails: "provider-rest-adapter-read",
+      accountPageReadiness: "provider-rest-adapter-read",
       webhooks: "typed-challenge-verify-parse",
       humanAgentWindow: "sdk-owned-policy",
       commentsPublishingInsights: "not-covered",
@@ -301,14 +349,21 @@ export const instagramSocialProviderManifest = defineProviderPackage({
       "https://developers.facebook.com/documentation/business-messaging/instagram-messaging/webhooks",
     ],
     apiCoverage: {
-      checkedAt: "2026-06-18",
+      checkedAt: "2026-06-25",
       operationCatalog: "docs/provider-coverage/instagram-messaging-graph-selected-api-2026-06-18.operations.json",
       generatedFromOfficialSpec: false,
-      machineReadableSpecStatus: "No official public complete Instagram Messaging/Graph OpenAPI spec was found in facebook/openapi during this audit.",
+      machineReadableSpecStatus: "No official public complete Instagram Messaging/Graph OpenAPI spec or dedicated typed Instagram Messaging SDK surface was found during this audit.",
       selectedOperationCount: 6,
       implementedOperationCount: 6,
       fullProviderApi: false,
       fullMetaGraphCoverage: false,
+    },
+    implementation: instagramHostClientSupportSlice,
+    providerClient: {
+      package: "built-in-or-host-provided",
+      interface: "InstagramMetaProviderClient",
+      importPolicy: "provider-client-override-supported",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
     },
   },
 });

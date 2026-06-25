@@ -22,7 +22,11 @@ export {
 export type * from "./full-api-schema-types.generated.js";
 export type * from "./contracts.js";
 
-export { createWherebyVideoClient } from "./client.js";
+export {
+  createWherebyRestProviderClient,
+  createUnconfiguredWherebyVideoProviderClient,
+  createWherebyVideoClient,
+} from "./client.js";
 export { wherebyVideoIntegration, wherebyVideoOperationHandlers } from "./integration.js";
 export {
   createWherebyVideoLiveChecks,

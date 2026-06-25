@@ -36,8 +36,8 @@ export const appStoreConnectReviewedOperationAllowlist = [
     method: "GET",
     path: "/v1/apps/{id}",
     aliases: [],
-    clientMethods: ["getApp", "rawClient.request"],
-    purpose: "configured app check and reviewed raw-client escape hatch",
+    clientMethods: ["getApp"],
+    purpose: "configured app check through the built-in App Store Connect REST adapter or provider client override",
   },
 ] as const;
 
@@ -54,7 +54,7 @@ export const appStoreReviewsProviderManifestInput = {
     scope: "support-workflow-subset",
     notes: [
       "Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.",
-      "No official Apple JavaScript or TypeScript SDK for App Store Connect customer reviews was found on 2026-06-21; this package uses a constrained direct REST support slice with ES256 JWT auth.",
+      "No official Apple JavaScript or TypeScript SDK for App Store Connect customer reviews was found on 2026-06-25; this package uses a constrained built-in REST adapter with ES256 JWT auth.",
       "Apple's official @apple/app-store-server-library Node package targets App Store Server APIs, not App Store Connect customer review resources.",
     ],
     evidence: [
@@ -211,11 +211,14 @@ export const appStoreReviewsProviderManifestInput = {
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     implementation: {
-      strategy: "direct-http-support-slice",
+      strategy: "no-official-sdk-rest-adapter",
+      defaultClientPolicy: "built-in-rest-with-jwt",
       officialJsSdkAvailable: false,
-      verifiedAt: "2026-06-21",
+      verifiedAt: "2026-06-25",
       runtimePackage: "@cognidesk/integration-review-appstore/runtime",
-      rawClientExport: "AppStoreReviewsClient.rawClient.request",
+      providerClient: "AppStoreReviewsProviderClient",
+      providerClientOverride: true,
+      packageOwnedRestClient: true,
     },
     reviewedSource: {
       source: "Apple App Store Connect OpenAPI specification",

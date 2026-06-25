@@ -3,9 +3,19 @@ import { runProviderConformance } from "@cognidesk/test-harness";
 import {
   createZohoDeskTicketingClient,
   createZohoDeskTicketingLiveChecks,
+  createUnconfiguredZohoDeskProviderClient,
+  type ZohoDeskProviderClient,
+  type ZohoDeskTicketingClientOptions,
   zohoDeskTicketingCredentialStatuses,
   zohoDeskTicketingProviderManifest,
 } from "../src/index.js";
+
+function createProviderClient(overrides: Partial<ZohoDeskProviderClient> = {}): ZohoDeskProviderClient {
+  return {
+    ...createUnconfiguredZohoDeskProviderClient(),
+    ...overrides,
+  };
+}
 
 describe("@cognidesk/integration-ticketing-zoho-desk", () => {
   it("exports an official provider manifest", () => {
@@ -42,51 +52,59 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       "zohoDeskReply",
     ]));
     expect(zohoDeskTicketingProviderManifest.metadata).toMatchObject({
+      implementation: {
+        strategy: "provider-rest-adapter",
+        defaultClientPolicy: "use-built-in-rest-adapter-when-orgId-and-accessToken-are-configured",
+        packageOwnedRestClient: true,
+        providerClientOverride: true,
+        manifestImport: "no-client-initialization",
+      },
+      providerClient: {
+        interface: "ZohoDeskProviderClient",
+        importPolicy: "runtime-entrypoint-only",
+        defaultClientPolicy: "configured-rest-default-with-host-client-override",
+        sdkDecision: {
+          result: "no-official-sdk-rest-adapter",
+        },
+      },
       checkedProviderApiCoverage: {
         coverageArtifact: "docs/provider-coverage/zoho-desk-checked-rest-api-2026-06-18.inventory.json",
         checkedFamilyCount: 5,
-        implementedFamilyCount: 4,
+        delegatedFamilyCount: 0,
         gapFamilyCount: 1,
-        implementedOperationCount: 9,
+        delegatedOperationCount: 0,
+        packageOwnedProviderOperationCount: 9,
       },
     });
+    expect(JSON.stringify(zohoDeskTicketingProviderManifest.metadata)).not.toContain("direct-http-support-slice");
   });
 
-  it("creates Zoho Desk tickets", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ id: "ticket-1" }), { status: 201 }));
+  it("delegates Zoho Desk ticket creation to the host-injected provider client", async () => {
+    const createTicket = vi.fn(async () => ({ id: "ticket-1" }));
     const client = createZohoDeskTicketingClient({
-      orgId: "123456",
-      accessToken: "configured",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient: createProviderClient({ createTicket }),
     });
 
     await expect(client.createTicket({
       subject: "Flight disruption",
       departmentId: "dept-1",
       email: "ada@example.test",
+      additionalFields: { cfEscalationTier: "gold" },
     })).resolves.toMatchObject({ id: "ticket-1" });
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://desk.zoho.com/api/v1/tickets",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          authorization: "Zoho-oauthtoken configured",
-          orgId: "123456",
-        }),
-      }),
-    );
+    expect(createTicket).toHaveBeenCalledWith({
+      subject: "Flight disruption",
+      departmentId: "dept-1",
+      email: "ada@example.test",
+      cfEscalationTier: "gold",
+    });
   });
 
-  it("lists and creates Zoho Desk ticket comments", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify({ data: [] }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ id: "comment-1" }), { status: 201 }));
+  it("delegates Zoho Desk ticket comment operations to the host-injected provider client", async () => {
+    const listTicketComments = vi.fn(async () => ({ data: [] }));
+    const createTicketComment = vi.fn(async () => ({ id: "comment-1" }));
     const client = createZohoDeskTicketingClient({
-      orgId: "123456",
-      accessToken: "configured",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient: createProviderClient({ listTicketComments, createTicketComment }),
     });
 
     await expect(client.listTicketComments("ticket-1", { limit: 50, from: 0, include: "plainText" }))
@@ -97,40 +115,19 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       contentType: "plainText",
     })).resolves.toMatchObject({ id: "comment-1" });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://desk.zoho.com/api/v1/tickets/ticket-1/comments?limit=50&from=0&include=plainText",
-      expect.objectContaining({
-        method: "GET",
-        headers: expect.objectContaining({
-          authorization: "Zoho-oauthtoken configured",
-          orgId: "123456",
-        }),
-      }),
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://desk.zoho.com/api/v1/tickets/ticket-1/comments",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({
-          content: "Internal handoff note.",
-          isPublic: false,
-          contentType: "plainText",
-        }),
-      }),
-    );
+    expect(listTicketComments).toHaveBeenCalledWith("ticket-1", { limit: 50, from: 0, include: "plainText" });
+    expect(createTicketComment).toHaveBeenCalledWith("ticket-1", {
+      content: "Internal handoff note.",
+      isPublic: false,
+      contentType: "plainText",
+    });
   });
 
-  it("lists Zoho Desk ticket threads and sends ticket replies", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify({ data: [{ id: "thread-1" }] }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ id: "reply-1" }), { status: 201 }));
+  it("delegates Zoho Desk ticket threads and replies to the host-injected provider client", async () => {
+    const listTicketThreads = vi.fn(async () => ({ data: [{ id: "thread-1" }] }));
+    const sendTicketReply = vi.fn(async () => ({ id: "reply-1" }));
     const client = createZohoDeskTicketingClient({
-      orgId: "123456",
-      accessToken: "configured",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient: createProviderClient({ listTicketThreads, sendTicketReply }),
     });
 
     await expect(client.listTicketThreads("ticket-1", { limit: 25, sortBy: "createdTime" }))
@@ -142,24 +139,91 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       fromEmailAddress: "support@example.test",
     })).resolves.toMatchObject({ id: "reply-1" });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://desk.zoho.com/api/v1/tickets/ticket-1/threads?limit=25&sortBy=createdTime",
-      expect.objectContaining({ method: "GET" }),
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://desk.zoho.com/api/v1/tickets/ticket-1/sendReply",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({
-          channel: "EMAIL",
-          content: "We are escalating this to a specialist.",
-          to: "ada@example.test",
-          fromEmailAddress: "support@example.test",
-        }),
-      }),
-    );
+    expect(listTicketThreads).toHaveBeenCalledWith("ticket-1", { limit: 25, sortBy: "createdTime" });
+    expect(sendTicketReply).toHaveBeenCalledWith("ticket-1", {
+      channel: "EMAIL",
+      content: "We are escalating this to a specialist.",
+      to: "ada@example.test",
+      fromEmailAddress: "support@example.test",
+    });
+  });
+
+  it("uses the built-in Zoho Desk REST adapter when credentials are configured", async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse({ id: "ticket-1" }));
+    const client = createZohoDeskTicketingClient({
+      orgId: "123456",
+      accessToken: "access-token",
+      dataCenter: "eu",
+      fetch: fetchMock,
+    });
+
+    await expect(client.createTicket({
+      subject: "Flight disruption",
+      departmentId: "dept-1",
+      email: "ada@example.test",
+      additionalFields: { cfEscalationTier: "gold" },
+    })).resolves.toMatchObject({ id: "ticket-1" });
+    await client.listTicketComments("ticket 42/a", { limit: 50, include: "plainText" });
+
+    const [createUrl, createInit] = fetchMock.mock.calls[0]!;
+    expect(String(createUrl)).toBe("https://desk.zoho.eu/api/v1/tickets");
+    expect(createInit?.method).toBe("POST");
+    const createHeaders = new Headers(createInit?.headers);
+    expect(createHeaders.get("Authorization")).toBe("Zoho-oauthtoken access-token");
+    expect(createHeaders.get("orgId")).toBe("123456");
+    expect(createHeaders.get("Content-Type")).toBe("application/json");
+    expect(JSON.parse(createInit?.body as string)).toEqual({
+      subject: "Flight disruption",
+      departmentId: "dept-1",
+      email: "ada@example.test",
+      cfEscalationTier: "gold",
+    });
+
+    const commentsUrl = new URL(String(fetchMock.mock.calls[1]![0]));
+    expect(commentsUrl.origin).toBe("https://desk.zoho.eu");
+    expect(commentsUrl.pathname).toBe("/api/v1/tickets/ticket%2042%2Fa/comments");
+    expect(commentsUrl.searchParams.get("limit")).toBe("50");
+    expect(commentsUrl.searchParams.get("include")).toBe("plainText");
+  });
+
+  it("surfaces Zoho Desk REST JSON errors", async () => {
+    const fetchMock: NonNullable<ZohoDeskTicketingClientOptions["fetch"]> = vi.fn(async () =>
+      jsonResponse({ errorCode: "INVALID_OAUTH", message: "Invalid OAuth token" }, {
+        status: 401,
+        statusText: "Unauthorized",
+      }));
+    const client = createZohoDeskTicketingClient({
+      orgId: "123456",
+      accessToken: "expired-token",
+      fetch: fetchMock,
+    });
+
+    await expect(client.getTicket("ticket-1")).rejects.toMatchObject({
+      message: "Zoho Desk request failed with 401.",
+      status: 401,
+      payload: { errorCode: "INVALID_OAUTH", message: "Invalid OAuth token" },
+    });
+  });
+
+  it("fails closed only when neither REST credentials nor host/provider client are provided", async () => {
+    const client = createZohoDeskTicketingClient();
+
+    await expect(client.listTickets()).rejects.toThrow("Zoho Desk REST adapter requires orgId and accessToken");
+
+    const liveCheck = createZohoDeskTicketingLiveChecks()[0];
+    await expect(liveCheck!.run({})).rejects.toThrow("Zoho Desk REST adapter requires orgId and accessToken");
+
+    const incompleteProviderClient = { ...createUnconfiguredZohoDeskProviderClient() } as Record<string, unknown>;
+    delete incompleteProviderClient.readiness;
+    expect(() => createZohoDeskTicketingClient({
+      providerClient: incompleteProviderClient as unknown as ZohoDeskProviderClient,
+    })).toThrow("Zoho Desk providerClient must implement readiness()");
+  });
+
+  it("does not carry the retired direct-http-support-slice metadata", () => {
+    const metadata = JSON.stringify(zohoDeskTicketingProviderManifest.metadata);
+    expect(metadata).not.toContain("direct-http-support-slice");
   });
 
   it("passes provider conformance", async () => {
@@ -190,8 +254,6 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       live: {
         enabled: true,
         checks: createZohoDeskTicketingLiveChecks({
-          orgId: "123456",
-          accessToken: "configured",
           client: { async readiness() {
             return { data: [{ id: "org-1" }] };
           } },
@@ -219,8 +281,6 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       live: {
         enabled: true,
         checks: createZohoDeskTicketingLiveChecks({
-          orgId: "missing",
-          accessToken: "configured",
           client: { async readiness() {
             throw new Error("Zoho Desk readiness should be credential-blocked before execution.");
           } },
@@ -240,8 +300,6 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       live: {
         enabled: true,
         checks: createZohoDeskTicketingLiveChecks({
-          orgId: "123456",
-          accessToken: "missing",
           client: { async readiness() {
             throw new Error("Zoho Desk readiness should be credential-blocked before execution.");
           } },
@@ -259,3 +317,11 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
     }
   });
 });
+
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+    ...init,
+  });
+}

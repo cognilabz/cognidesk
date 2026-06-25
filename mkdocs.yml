@@ -26,9 +26,8 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-  font:
-    text: Inter
-    code: JetBrains Mono
+  font: false
+  logo: assets/images/cognidesk-mark.svg
   icon:
     repo: fontawesome/brands/github
   features:
@@ -53,6 +52,9 @@ theme:
 plugins:
   - search
   - social
+
+extra_css:
+  - assets/styles/cognidesk-theme.css
 
 validation:
   nav:

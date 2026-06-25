@@ -1,5 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
+import {
+  providerJsonRequest,
+  type ProviderHttpMethod,
+  type ProviderQueryValue,
+} from "@cognidesk/integration-kit";
 import { forumCommunityProviderManifest } from "./manifest.js";
 
 export { createForumCommunityIntegration } from "./integration.js";
@@ -22,13 +27,6 @@ export type ForumCommunityProviderPayload = ForumCommunityJsonObject | object;
 export type ForumCommunityProviderQuery = Record<string, ForumCommunityProviderExtensionValue>;
 export interface ForumCommunityProviderResponse extends ForumCommunityJsonObject {}
 export interface ForumCommunityProviderExtensionFields extends ForumCommunityJsonObject {}
-
-export interface ForumCommunityClientOptions {
-  baseUrl: string;
-  apiKey: string;
-  apiUsername: string;
-  fetch?: typeof fetch;
-}
 
 export interface ForumCredentialStatusInput {
   baseUrl?: string;
@@ -83,91 +81,56 @@ export interface ForumCommunityClient {
   getCurrentUser(): Promise<ForumCommunityProviderResponse>;
 }
 
-export interface ForumLiveCheckOptions extends ForumCommunityClientOptions {
-  client?: Pick<ForumCommunityClient, "getCurrentUser" | "latest">;
+export type ForumCommunityProviderClient = ForumCommunityClient;
+
+export interface ForumCommunityClientOptions {
+  providerClient?: ForumCommunityProviderClient;
+  client?: ForumCommunityClient;
+  baseUrl?: string;
+  apiKey?: string;
+  apiUsername?: string;
+  fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
 }
 
-export function createForumCommunityClient(options: ForumCommunityClientOptions): ForumCommunityClient {
-  const baseUrl = options.baseUrl.replace(/\/+$/, "");
-  const fetchImpl = options.fetch ?? fetch;
+export interface ProviderJsonRetryOptions {
+  attempts?: number;
+  statusCodes?: readonly number[];
+  baseDelayMs?: number;
+  maxDelayMs?: number;
+}
 
+export interface ForumLiveCheckOptions {
+  client?: Pick<ForumCommunityClient, "getCurrentUser" | "latest">;
+  unavailableReason?: string;
+}
+
+const forumCommunityProviderClientUnavailable =
+  "Forum provider client is not configured. Inject a ForumCommunityProviderClient or configure baseUrl, apiKey, and apiUsername for the built-in Discourse-compatible REST adapter.";
+
+export function createForumCommunityClient(
+  options: ForumCommunityClientOptions = {},
+): ForumCommunityClient {
+  if (options.client) return options.client;
+  if (options.providerClient) return options.providerClient;
+  if (hasForumRestConfig(options)) return createDiscourseRestForumClient(options);
+  return createForumCommunityUnavailableClient();
+}
+
+export function createForumCommunityUnavailableClient(
+  reason = forumCommunityProviderClientUnavailable,
+): ForumCommunityClient {
+  const unavailable = () => Promise.reject(new Error(reason));
   return {
-    createTopic(input) {
-      const body = new URLSearchParams({
-        title: input.title,
-        raw: input.raw,
-      });
-      if (input.category !== undefined) body.set("category", String(input.category));
-      if (input.archetype) body.set("archetype", input.archetype);
-      if (input.createdAt) body.set("created_at", input.createdAt);
-      for (const tag of input.tags ?? []) body.append("tags[]", tag);
-      return forumRequest<ForumCommunityJsonObject>({
-        url: `${baseUrl}/posts.json`,
-        method: "POST",
-        options,
-        fetch: fetchImpl,
-        body,
-      });
-    },
-    createReply(input) {
-      const body = new URLSearchParams({
-        topic_id: String(input.topicId),
-        raw: input.raw,
-      });
-      if (input.replyToPostNumber !== undefined) {
-        body.set("reply_to_post_number", String(input.replyToPostNumber));
-      }
-      return forumRequest<ForumCommunityJsonObject>({
-        url: `${baseUrl}/posts.json`,
-        method: "POST",
-        options,
-        fetch: fetchImpl,
-        body,
-      });
-    },
-    getTopic(topicId) {
-      return forumRequest<ForumCommunityJsonObject>({
-        url: `${baseUrl}/t/${encodeURIComponent(String(topicId))}.json`,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    getPost(postId) {
-      return forumRequest<ForumCommunityJsonObject>({
-        url: `${baseUrl}/posts/${encodeURIComponent(String(postId))}.json`,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    search(input) {
-      const url = new URL(`${baseUrl}/search.json`);
-      url.searchParams.set("q", input.query);
-      if (input.page !== undefined) url.searchParams.set("page", String(input.page));
-      return forumRequest<ForumCommunityJsonObject>({
-        url: url.toString(),
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    latest() {
-      return forumRequest<ForumCommunityJsonObject>({
-        url: `${baseUrl}/latest.json`,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
-    },
-    getCurrentUser() {
-      return forumRequest<ForumCommunityJsonObject>({
-        url: `${baseUrl}/session/current.json`,
-        method: "GET",
-        options,
-        fetch: fetchImpl,
-      });
-    },
+    createTopic: unavailable,
+    createReply: unavailable,
+    getTopic: unavailable,
+    getPost: unavailable,
+    search: unavailable,
+    latest: unavailable,
+    getCurrentUser: unavailable,
   };
 }
 
@@ -203,13 +166,13 @@ export function forumCommunityCredentialStatuses(input: ForumCredentialStatusInp
   ];
 }
 
-export function createForumCommunityLiveChecks(options: ForumLiveCheckOptions) {
+export function createForumCommunityLiveChecks(options: ForumLiveCheckOptions = {}) {
   return [{
     id: "current-user",
-    description: "Forum API can read the current API user.",
+    description: "Host-injected forum provider client can read the current API user.",
     requiredCredentialIds: ["forum-base-url", "forum-api-key", "forum-api-username"],
     async run(context: { signal?: AbortSignal }) {
-      const client = options.client ?? createForumCommunityClient(options);
+      const client = options.client ?? createForumCommunityUnavailableClient(options.unavailableReason);
       const currentUser = await client.getCurrentUser();
       if (context.signal?.aborted) throw new Error("Forum live current-user check aborted.");
       return {
@@ -256,27 +219,142 @@ export function validateForumWebhookSignature(input: {
   return expectedBuffer.length === actualBuffer.length && timingSafeEqual(expectedBuffer, actualBuffer);
 }
 
-async function forumRequest<T>(input: {
-  url: string;
-  method: "GET" | "POST";
-  options: ForumCommunityClientOptions;
-  fetch: typeof fetch;
-  body?: URLSearchParams;
-}): Promise<T> {
-  const response = await input.fetch(input.url, {
-    method: input.method,
-    headers: {
-      accept: "application/json",
-      "Api-Key": input.options.apiKey,
-      "Api-Username": input.options.apiUsername,
-      ...(input.body ? { "content-type": "application/x-www-form-urlencoded" } : {}),
+function hasForumRestConfig(options: ForumCommunityClientOptions): boolean {
+  return Boolean(options.baseUrl || options.apiKey || options.apiUsername || options.fetch);
+}
+
+function createDiscourseRestForumClient(options: ForumCommunityClientOptions): ForumCommunityClient {
+  return {
+    createTopic(input) {
+      return forumRequest(options, {
+        method: "POST",
+        path: "/posts.json",
+        body: stripUndefined({
+          title: input.title,
+          raw: input.raw,
+          category: input.category,
+          tags: input.tags,
+          archetype: input.archetype,
+          created_at: input.createdAt,
+        }),
+      });
     },
-    ...(input.body ? { body: input.body } : {}),
+    createReply(input) {
+      return forumRequest(options, {
+        method: "POST",
+        path: "/posts.json",
+        body: stripUndefined({
+          topic_id: input.topicId,
+          raw: input.raw,
+          reply_to_post_number: input.replyToPostNumber,
+        }),
+      });
+    },
+    getTopic(topicId) {
+      return forumRequest(options, {
+        path: "/t/{topicId}.json",
+        pathParams: { topicId },
+      });
+    },
+    getPost(postId) {
+      return forumRequest(options, {
+        path: "/posts/{postId}.json",
+        pathParams: { postId },
+      });
+    },
+    search(input) {
+      return forumRequest(options, {
+        path: "/search.json",
+        query: stripUndefined({
+          q: input.query,
+          page: input.page,
+        }),
+      });
+    },
+    latest() {
+      return forumRequest(options, {
+        path: "/latest.json",
+      });
+    },
+    getCurrentUser() {
+      return forumRequest(options, {
+        path: "/session/current.json",
+      });
+    },
+  };
+}
+
+async function forumRequest<T = ForumCommunityProviderResponse>(
+  options: ForumCommunityClientOptions,
+  request: {
+    path: string;
+    method?: ProviderHttpMethod | undefined;
+    pathParams?: Record<string, string | number | boolean | undefined>;
+    query?: ForumCommunityProviderQuery | undefined;
+    body?: unknown;
+  },
+): Promise<T> {
+  return providerJsonRequestWithControls<T>({
+    baseUrl: requiredForumBaseUrl(options),
+    path: request.path,
+    method: request.method ?? "GET",
+    pathParams: request.pathParams,
+    query: forumProviderQuery(request.query),
+    body: request.body,
+    headers: { "Api-Username": requiredForumApiUsername(options) },
+    apiKey: requiredForumApiKey(options),
+    apiKeyHeaderName: "Api-Key",
+    fetch: options.fetch,
+    signal: options.signal,
+    timeoutMs: options.timeoutMs,
+    retry: options.retry,
+    providerName: "Forum",
   });
-  const text = await response.text();
-  const body = (text ? JSON.parse(text) : {}) as T & { errors?: string[]; error?: string };
-  if (!response.ok) {
-    throw new Error(body.error ?? body.errors?.[0] ?? `Forum API returned ${response.status}.`);
-  }
-  return body as T;
+}
+
+type ProviderJsonRequestWithControls = Parameters<typeof providerJsonRequest>[0] & {
+  signal?: AbortSignal | undefined;
+  timeoutMs?: number | undefined;
+  retry?: number | ProviderJsonRetryOptions | undefined;
+};
+
+function providerJsonRequestWithControls<T = unknown>(input: ProviderJsonRequestWithControls): Promise<T> {
+  return providerJsonRequest<T>(input as Parameters<typeof providerJsonRequest>[0]);
+}
+
+function requiredForumBaseUrl(options: ForumCommunityClientOptions): string {
+  if (!options.baseUrl?.trim()) throw new Error("Forum REST adapter requires baseUrl.");
+  return options.baseUrl;
+}
+
+function requiredForumApiKey(options: ForumCommunityClientOptions): string {
+  if (!options.apiKey?.trim()) throw new Error("Forum REST adapter requires apiKey.");
+  return options.apiKey;
+}
+
+function requiredForumApiUsername(options: ForumCommunityClientOptions): string {
+  if (!options.apiUsername?.trim()) throw new Error("Forum REST adapter requires apiUsername.");
+  return options.apiUsername;
+}
+
+function forumProviderQuery(query?: ForumCommunityProviderQuery): Record<string, ProviderQueryValue> | undefined {
+  if (!query) return undefined;
+  const entries = Object.entries(query)
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => [key, forumProviderQueryValue(value)] as const);
+  return Object.fromEntries(entries);
+}
+
+function stripUndefined<T extends Record<string, unknown>>(input: T): ForumCommunityProviderQuery {
+  return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as ForumCommunityProviderQuery;
+}
+
+function forumProviderQueryValue(value: ForumCommunityProviderExtensionValue): ProviderQueryValue {
+  if (Array.isArray(value)) return value.map((item) => typeof item === "object" ? JSON.stringify(item) : item) as ProviderQueryValue;
+  if (isRecord(value)) return JSON.stringify(value);
+  return value as ProviderQueryValue;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

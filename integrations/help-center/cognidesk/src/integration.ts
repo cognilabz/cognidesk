@@ -2,14 +2,17 @@ import { defineIntegration } from "@cognidesk/integration-kit";
 import {
   createHelpCenterClient,
   parseHelpCenterWebhook,
+  type CreateHelpCenterClientOptions,
+  type HelpCenterClient,
   type HelpCenterSearchInput,
   type HelpCenterSource,
   type ParseHelpCenterWebhookOptions,
 } from "./core.js";
 import { cognideskHelpCenterProviderManifest } from "./manifest.js";
 
-export interface CognideskHelpCenterIntegrationOptions {
+export interface CognideskHelpCenterIntegrationOptions extends CreateHelpCenterClientOptions {
   source: HelpCenterSource;
+  client?: HelpCenterClient;
 }
 
 export interface ParseHelpCenterWebhookOperationInput {
@@ -18,7 +21,7 @@ export interface ParseHelpCenterWebhookOperationInput {
 }
 
 export function createCognideskHelpCenterIntegration(options: CognideskHelpCenterIntegrationOptions) {
-  const client = createHelpCenterClient(options.source);
+  const client = options.client ?? createHelpCenterClient(options.source, options);
   return defineIntegration({
     manifest: cognideskHelpCenterProviderManifest as never,
     operations: {
@@ -28,5 +31,9 @@ export function createCognideskHelpCenterIntegration(options: CognideskHelpCente
       "cognidesk.help-center.webhook.parse": (input: ParseHelpCenterWebhookOperationInput) =>
         parseHelpCenterWebhook(input.request, input.options),
     } as never,
+    metadata: {
+      implementationStrategy: "local-source-or-host-injected-help-center-client",
+      providerClient: "HelpCenterProviderClient",
+    },
   });
 }

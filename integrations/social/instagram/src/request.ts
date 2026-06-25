@@ -1,10 +1,22 @@
+import { providerJsonRequest } from "@cognidesk/integration-kit";
+import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
 import type {
   InstagramSocialJsonObject,
   InstagramSocialProviderPayload,
 } from "./contracts.js";
 
-export function instagramGraphUrl(baseUrl: string, version: string, path: string) {
-  return new URL(`/${version.replace(/^\/+|\/+$/g, "")}${path}`, baseUrl);
+export interface InstagramGraphRequestOptions {
+  accessToken: string;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
+}
+
+export function instagramGraphUrl(baseUrl: string, version: string, pathSegments: readonly string[], suffix = "") {
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+  const normalizedVersion = version.replace(/^\/+|\/+$/g, "");
+  const encodedPath = pathSegments.map((segment) => encodeURIComponent(segment)).join("/");
+  return new URL(`/${normalizedVersion}/${encodedPath}${suffix}`, normalizedBaseUrl);
 }
 
 export function applyListQuery(
@@ -15,7 +27,7 @@ export function applyListQuery(
     after?: string;
     before?: string;
   },
-  defaultFields: string[],
+  defaultFields: readonly string[],
 ) {
   const fields = input.fields ?? defaultFields;
   if (fields.length) url.searchParams.set("fields", fields.join(","));
@@ -27,25 +39,26 @@ export function applyListQuery(
 export async function instagramRequest<T>(input: {
   url: URL;
   method: "GET" | "POST";
-  options: { accessToken: string };
+  options: InstagramGraphRequestOptions;
   fetch: typeof fetch;
   body?: InstagramSocialProviderPayload;
 }): Promise<T> {
-  const response = await input.fetch(input.url.toString(), {
-    method: input.method,
-    headers: {
-      accept: "application/json",
-      authorization: `Bearer ${input.options.accessToken}`,
-      ...(input.body ? { "content-type": "application/json" } : {}),
-    },
-    ...(input.body ? { body: JSON.stringify(input.body) } : {}),
-  });
-  const text = await response.text();
-  const body = text ? JSON.parse(text) as T & InstagramErrorResponse : {} as T & InstagramErrorResponse;
-  if (!response.ok) {
-    throw new Error(instagramErrorMessage(body, response.status));
+  try {
+    return await providerJsonRequest<T>({
+      baseUrl: input.url.origin,
+      path: `${input.url.pathname}${input.url.search}`,
+      method: input.method,
+      accessToken: input.options.accessToken,
+      body: input.body,
+      fetch: input.fetch,
+      signal: input.options.signal,
+      timeoutMs: input.options.timeoutMs,
+      retry: input.options.retry,
+      providerName: "Instagram Graph API",
+    });
+  } catch (error) {
+    throw new Error(instagramProviderJsonErrorMessage(error));
   }
-  return body as T;
 }
 
 export function stripUndefined(input: InstagramSocialJsonObject) {
@@ -65,4 +78,16 @@ interface InstagramErrorResponse {
 function instagramErrorMessage(body: InstagramErrorResponse, status: number) {
   const code = body.error?.code !== undefined ? ` (${body.error.code})` : "";
   return body.error?.message ? `${body.error.message}${code}` : `Instagram Graph API returned ${status}.`;
+}
+
+function instagramProviderJsonErrorMessage(error: unknown) {
+  const payload = typeof error === "object" && error !== null && "payload" in error
+    ? (error as { payload?: InstagramErrorResponse }).payload
+    : undefined;
+  const status = typeof error === "object" && error !== null && "status" in error
+    ? Number((error as { status?: unknown }).status)
+    : undefined;
+  const providerStatus = typeof status === "number" && Number.isFinite(status) ? status : 0;
+  if (payload) return instagramErrorMessage(payload, providerStatus);
+  return error instanceof Error ? error.message : String(error);
 }

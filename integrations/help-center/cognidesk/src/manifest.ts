@@ -13,7 +13,7 @@ export const cognideskHelpCenterProviderManifest = defineProviderPackage({
     {
       id: "help-center-source",
       label: "Help center source",
-      description: "SDK-user-configured local or HTTP help center content source.",
+      description: "SDK-user-configured local content source, HTTP source, or remote help center provider client override.",
       required: true,
     },
     {
@@ -26,8 +26,8 @@ export const cognideskHelpCenterProviderManifest = defineProviderPackage({
   coverage: {
     scope: "local-protocol",
     notes: [
-      "Coverage is limited to Cognidesk local or generic HTTP help-center source search/fetch/readiness plus Cognidesk HMAC webhook normalization.",
-      "The package does not implement a named external help-center provider API for article/category/section/versioning/locale/permission/webhook administration; SDK users must wrap provider-specific APIs behind the configured source endpoints.",
+      "Coverage is limited to Cognidesk local help-center source search/fetch/readiness, built-in HTTP source adapters, remote HelpCenterClient overrides, and Cognidesk HMAC webhook normalization.",
+      "The package does not implement a named external help-center provider API or broader article/category/section/versioning/locale/permission/webhook administration clients; SDK users can configure generic HTTP sources or wrap provider-specific APIs behind a HelpCenter provider client.",
     ],
     evidence: [],
   },
@@ -35,7 +35,7 @@ export const cognideskHelpCenterProviderManifest = defineProviderPackage({
     {
       capability: "read-provider-object",
       label: "Fetch help center articles",
-      description: "Fetches articles from SDK-user-configured local or generic HTTP help center sources.",
+      description: "Fetches articles from SDK-user-configured local sources, HTTP sources, or a HelpCenter provider client override.",
       audiences: ["customer-facing", "internal-support", "mixed"],
       providerObjects: [{ kind: "help-center-article", label: "Help Center Article" }],
       requiresCredential: true,
@@ -44,7 +44,7 @@ export const cognideskHelpCenterProviderManifest = defineProviderPackage({
     {
       capability: "search-provider-object",
       label: "Search help center articles",
-      description: "Searches configured help center article sources using explicit source search parameters.",
+      description: "Searches local help center articles, HTTP sources, or a HelpCenter provider client override.",
       audiences: ["customer-facing", "internal-support", "mixed"],
       providerObjects: [{ kind: "help-center-article", label: "Help Center Article" }],
       requiresCredential: true,
@@ -101,19 +101,21 @@ export const cognideskHelpCenterProviderManifest = defineProviderPackage({
   ],
   privacyNotes: [
     "Help center content can include public support guidance, draft metadata, author data, locale data, and SDK-user-defined source metadata.",
-    "HTTP headers, access tokens, and webhook secrets stay server-side and are represented in Studio only as readiness state.",
+    "Remote provider credentials, HTTP headers, access tokens, and webhook secrets stay in the host runtime and are represented in Studio only as readiness state.",
   ],
   limitations: [
-    "Source selection, article visibility, indexing cadence, ranking, retention, locale fallback, and answer policy are owned by SDK user configuration.",
+    "Remote provider transport, source selection, article visibility, indexing cadence, ranking, retention, locale fallback, and answer policy are owned by SDK user configuration.",
     "Local search is explicit lexical filtering; semantic ranking belongs in a configured search provider or evaluator.",
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     channelCoverage: {
       articles: "typed-read-search",
-      readiness: "typed-readiness",
+      readiness: "typed-local-or-http-source-readiness-or-provider-client-delegation",
       contentWebhooks: "typed-validate-parse",
       providerSpecificAdminLocalePermissionVersioning: "not-covered",
     },
+    importPolicy: "local-source-http-source-or-provider-client",
+    defaultClientPolicy: "built-in-http-source-when-base-url-configured",
   },
 });

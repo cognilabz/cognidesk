@@ -3,6 +3,13 @@ import type {
   ZoomMeetingsGeneratedOperationCaller,
 } from "./meetings-api-client.generated.js";
 
+export interface ZoomProviderJsonRetryOptions {
+  attempts?: number | undefined;
+  statusCodes?: readonly number[] | undefined;
+  baseDelayMs?: number | undefined;
+  maxDelayMs?: number | undefined;
+}
+
 export type ZoomVideoJsonPrimitive = string | number | boolean | null;
 export type ZoomVideoJsonValue =
   | ZoomVideoJsonPrimitive
@@ -18,13 +25,23 @@ export interface ZoomVideoProviderResponse extends ZoomVideoJsonObject {}
 export interface ZoomVideoProviderExtensionFields extends ZoomVideoJsonObject {}
 
 export interface ZoomVideoClientOptions {
-  accessToken: string;
-  userId?: string;
-  apiBaseUrl?: string;
+  providerClient?: ZoomVideoProviderClient;
+  accessToken?: string;
+  getAccessToken?: () => string | Promise<string>;
+  baseUrl?: string;
   fetch?: typeof fetch;
+  userId?: string | number;
+  accountId?: string;
+  clientId?: string;
+  clientSecret?: string;
+  oauthBaseUrl?: string;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ZoomProviderJsonRetryOptions;
 }
 
 export interface ZoomCredentialStatusInput {
+  providerClientConfigured?: boolean;
   accessToken?: string;
   webhookSecretToken?: string;
   scopes?: string[];
@@ -150,8 +167,6 @@ export interface ZoomDeleteMeetingInput {
   scheduleForReminder?: boolean;
 }
 
-export type ZoomHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-
 export interface ZoomResource {
   [key: string]: ZoomVideoProviderExtensionValue;
 }
@@ -163,8 +178,9 @@ export interface ZoomOperationRequestInput {
   headers?: Record<string, string> | undefined;
 }
 
-export interface ZoomVideoClient {
-  meetingsApi: ZoomMeetingsApiGeneratedClient;
+export interface ZoomVideoProviderClient {
+  rawClient?: unknown;
+  rawRequest?<T = ZoomVideoJsonValue>(operation: string, input?: unknown): Promise<T>;
   requestOperation: ZoomMeetingsGeneratedOperationCaller;
   createMeeting(input: ZoomCreateMeetingInput): Promise<ZoomMeetingResource>;
   listMeetings(input?: ZoomListMeetingsInput): Promise<ZoomListMeetingsResponse>;
@@ -172,6 +188,11 @@ export interface ZoomVideoClient {
   updateMeeting(meetingId: number | string, input: ZoomUpdateMeetingInput): Promise<ZoomMeetingResource>;
   deleteMeeting(meetingId: number | string, input?: ZoomDeleteMeetingInput): Promise<Record<string, never>>;
   getCurrentUser(): Promise<ZoomUserResource>;
+}
+
+export interface ZoomVideoClient extends ZoomVideoProviderClient {
+  providerClient: ZoomVideoProviderClient;
+  meetingsApi: ZoomMeetingsApiGeneratedClient;
 }
 
 export interface ZoomLiveCheckOptions extends ZoomVideoClientOptions {

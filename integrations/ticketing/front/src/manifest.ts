@@ -9,18 +9,22 @@ export const frontTicketingProviderManifestInput = {
   trustLevel: "official",
   directions: ["bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
-  credentialRequirements: [{
-    id: "front-api-access",
-    label: "Front API token",
-    scopes: ["conversations:read", "conversations:write", "messages:send", "messages:read", "comments:write", "comments:read", "teammates:read"],
-    required: true,
-    metadata: { scopeKind: "provider-oauth-scopes" },
-  }],
+  credentialRequirements: [
+    { id: "front-base-url", label: "Front API base URL", required: false },
+    {
+      id: "front-api-access",
+      label: "Front API access token or API key",
+      scopes: ["conversations:read", "conversations:write", "messages:send", "messages:read", "comments:write", "comments:read", "teammates:read"],
+      required: true,
+      metadata: { scopeKind: "provider-oauth-scopes" },
+    },
+  ],
   coverage: {
-    scope: "provider-api-subset",
+    scope: "support-workflow-subset",
     notes: [
-      "SDK decision: no viable official maintained backend JavaScript client was verified. The deprecated front-sdk package is not adopted.",
-      "Coverage is limited to selected Front Core/Channel API conversation, message, comment, search, update, and teammate readiness operations for support workflows.",
+      "Runtime calls use the built-in Front REST adapter by default because no viable official maintained backend Core/Channel API JavaScript client was verified.",
+      "Coverage is limited to selected Front conversation, message, comment, search, update, and teammate readiness operations for support workflows.",
+      "A host-provided FrontTicketingProviderClient can still override the built-in REST adapter.",
       "This package intentionally does not copy the old generated full Front Core/Channel API clone.",
     ],
     evidence: [
@@ -49,18 +53,44 @@ export const frontTicketingProviderManifestInput = {
     { alias: "front.readiness", capability: "read-provider-object", providerOperation: "GET /teammates", providerObject: "frontTeammate", extension: true, exposesSensitiveData: true },
   ],
   privacyNotes: ["Front conversations can contain customer messages, teammate comments, inbox routing, tags, links, and assignment context."],
-  limitations: ["Inbox IDs, channel IDs, teammate assignment, tags, and message visibility are SDK-user configuration. Multipart attachments are rejected by JSON helpers and require SDK-user direct multipart handling."],
+  limitations: ["Inbox IDs, channel IDs, teammate assignment, tags, message visibility, credentials, retries, pagination, and API base URL selection are SDK-user configuration. Multipart attachments are rejected by JSON operation helpers and require SDK-user direct multipart handling."],
   metadata: {
     issue: 35,
-    implementationStrategy: "direct-http-support-slice",
-    sdkDecision: {
-      candidates: ["front-sdk", "Front Plugin SDK"],
-      verdict: "not-adopted",
-      reason: "front-sdk is deprecated and the official Plugin SDK is not a backend Core API client.",
-      checkedAt: "2026-06-21",
+    implementationStrategy: "provider-rest-adapter",
+    sdkDecision: "no-official-sdk-rest-adapter",
+    implementation: {
+      strategy: "provider-rest-adapter",
+      runtimePackage: "@cognidesk/integration-ticketing-front",
+      providerClientInterface: "FrontTicketingProviderClient",
+      manifestImport: "no-sdk-client-initialization",
+      packageOwnedRestClient: true,
+      providerClientOverride: true,
     },
-    supportSlice: {
-      source: "Front Core and Channel APIs",
+    checkedProviderSdk: {
+      checkedAt: "2026-06-25",
+      candidates: [
+        {
+          package: "front-sdk",
+          checkedVersion: "0.8.2",
+          result: "rejected-deprecated-archived",
+          reason: "The npm package is deprecated and reports that its GitHub repository has been archived.",
+        },
+        {
+          package: "@frontapp/plugin-sdk",
+          checkedVersion: "1.10.0",
+          result: "not-runtime-core-api-client",
+          reason: "The package is the Front UI/plugin SDK, not a backend Core/Channel API client for support ticketing operations.",
+        },
+        {
+          package: "front-chat-sdk",
+          checkedVersion: "1.2.1",
+          result: "not-ticketing-core-api-client",
+          reason: "The package targets Front Chat SDK use cases rather than Core/Channel API ticketing operations.",
+        },
+      ],
+    },
+    frontCoreChannelCoverage: {
+      source: "Built-in Front Core and Channel REST adapter",
       allowlistedOperations: ["messages.create", "conversations.reply", "conversations.read", "conversations.update", "conversations.search", "conversation_messages.list", "comments.create", "comments.list", "teammates.list"],
     },
   },

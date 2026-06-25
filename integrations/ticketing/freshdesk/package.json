@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-ticketing-freshdesk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,6 +44,7 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "freshdesk",
+    "providerSdkDependencies": [],
     "manifestOnlyExports": [
       "./manifest"
     ],

@@ -6,4 +6,8 @@ export * from "./integration.js";
 export * from "./manifest.js";
 export * from "./message-builders.js";
 export * from "./readiness.js";
+export * from "./web-client.js";
+export * from "./web-contracts.js";
+export * from "./web-integration.js";
+export * from "./web-manifest.js";
 export * from "./webhooks.js";

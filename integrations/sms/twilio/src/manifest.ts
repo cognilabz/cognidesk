@@ -12,7 +12,7 @@ export const twilioSmsProviderManifest = defineIntegrationProviderPackage({
   coverage: {
     scope: "provider-api-subset",
     notes: [
-      "Implements normalized SMS/MMS send, read, list, cancel, readiness, webhook, and raw Twilio helper-client access with the official Twilio Node helper library.",
+      "Implements normalized SMS/MMS send, read, list, cancel, readiness, webhook, and Twilio SDK client access with the official Twilio Node helper library.",
       "Twilio SMS and Twilio Voice are separate Cognidesk category packages even though they use the same upstream helper library.",
       "Messaging Services administration, Verify, Conversations, Content, Studio, toll-free/A2P compliance, pricing, and carrier policy remain available only through raw Twilio client access or future normalized operations.",
     ],
@@ -155,9 +155,13 @@ export const twilioSmsProviderManifest = defineIntegrationProviderPackage({
       verifiedVersion: "6.0.2",
       verifiedAt: "2026-06-21",
     },
+    sdkClient: {
+      export: "getSdkClient",
+      coverage: "upstream-sdk",
+    },
     rawClient: {
       export: "getRawClient",
-      coverage: "upstream-sdk",
+      coverage: "legacy-upstream-sdk-alias",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Cognidesk mark</title>
+  <defs>
+    <linearGradient id="mark" x1="10" x2="54" y1="7" y2="57" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3579f6"/>
+      <stop offset=".58" stop-color="#6e58e8"/>
+      <stop offset="1" stop-color="#39b8d6"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#19172d"/>
+  <path fill="url(#mark)" d="M16 20.5c0-2.5 2-4.5 4.5-4.5h22.8c2.5 0 4.5 2 4.5 4.5v7.1H41v-4.2H23v17.2h18v-4.2h6.8v7.1c0 2.5-2 4.5-4.5 4.5H20.5c-2.5 0-4.5-2-4.5-4.5v-23Z"/>
+  <path fill="#f3f5fb" d="M28.3 28.5h26v7h-26z"/>
+  <circle cx="52" cy="32" r="3.5" fill="#f1be5d"/>
+</svg>

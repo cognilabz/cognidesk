@@ -1,6 +1,6 @@
 import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 import {
-  RCS_DIRECT_SLICE_METADATA,
+  RCS_HOST_CLIENT_METADATA,
   RCS_SELECTED_OPERATION_COUNT,
 } from "./selected-operations.js";
 
@@ -16,8 +16,9 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Coverage is typed for selected RCS for Business support workflows: agentMessages text/media/card sends, agent events, phone capability checks, agent readiness, file create/upload helpers, webhook challenge handling, and X-Goog-Signature validation.",
+      "Runtime coverage uses a built-in provider REST adapter for selected RCS for Business support workflows: agentMessages text/media/card sends, agent events, phone capability checks, agent readiness, file create/upload helpers, webhook challenge handling, and X-Goog-Signature validation.",
       "Launch and verification coverage is read-only readiness via getLaunch/getVerification; launch and verification request/update workflows remain outside this adapter.",
+      "This package accepts accessToken, apiKey, tokenProvider, serviceAccount, baseUrl, messagingApiBaseUrl, and managementApiBaseUrl options; hosts may still provide an injected provider client backed by an approved SDK or runtime.",
       "This is not full RCS for Business API coverage; brand/agent lifecycle management, launch and verification mutation workflows, tester management, integrations, analytics, user batch APIs, Dialogflow messages, revoke/delete breadth, and broader event catalogs remain outside this adapter.",
     ],
     evidence: [
@@ -37,15 +38,20 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
       required: true,
     },
     {
-      id: "rcs-access-token",
-      label: "RCS OAuth access token or service account",
-      description: "Server-side OAuth bearer token, token provider, or service-account credentials scoped for RCS for Business APIs.",
+      id: "rcs-provider-client",
+      label: "RCS provider transport",
+      description: "Built-in REST adapter credentials or host-owned RcsMessagingProviderClient that encapsulates Google SDK/provider transport, OAuth, token refresh, retries, and regional endpoint configuration.",
       scopes: [
         "https://www.googleapis.com/auth/rcsbusinessmessaging",
         "https://www.googleapis.com/auth/businesscommunications",
       ],
       required: true,
-      metadata: { scopeKind: "provider-oauth-scopes" },
+      metadata: {
+        scopeKind: "provider-oauth-scopes",
+        injectionInterface: "RcsMessagingProviderClient",
+        credentialOwnership: "sdk-user-or-host-managed",
+        defaultClientPolicy: "provider-rest-adapter-when-configured",
+      },
     },
     {
       id: "rcs-webhook-client-token",
@@ -135,14 +141,15 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
   ],
   privacyNotes: [
     "RCS messages, phone numbers, media metadata, suggested replies/actions, delivery receipts, subscription events, and webhook payloads can contain customer data.",
-    "OAuth tokens, service-account keys, webhook client tokens, and shared secrets stay server-side and are represented in Studio only as credential readiness.",
+    "OAuth tokens, Google credential material, SDK clients, webhook client tokens, and shared secrets stay server-side and are represented in Studio only as credential/provider transport readiness.",
     "Unsubscribe, resubscribe, STOP/START fallback handling, outbound-contact policy, consent, fallback routing, retention, and deletion are SDK-user-owned responsibilities.",
   ],
   limitations: [
     "RCS for Business access, agent creation, brand verification, carrier launch, tester setup, webhook configuration, and production throughput require the SDK user's Google RBM partner or provider approval.",
     "Recipient reachability and feature support depend on the user's device, carrier, region, agent launch state, tester status, and capability checks; unsupported recipients or features may return NOT_FOUND or INVALID_ARGUMENT.",
-    "This package provides Google RBM/RCS Business Messaging transport helpers and does not choose default automation, promotional messaging, consent, fallback, retry, or rate-limit policies.",
-    "Media upload endpoints are exposed as request foundations; callers must satisfy Google-hosted/external media, file-size, caching, and approval requirements for their deployment.",
+    "Host applications may inject an RcsMessagingProviderClient backed by an approved SDK, provider package, or host-owned transport.",
+    "The built-in REST adapter requires accessToken, apiKey, tokenProvider, serviceAccount, or providerClient plus agent identifiers; it does not silently invent credentials.",
+    "Media upload behavior is delegated to the host provider client; callers must satisfy Google-hosted/external media, file-size, caching, and approval requirements for their deployment.",
   ],
   metadata: {
     channelCoverage: {
@@ -156,7 +163,7 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
       brandAgentLifecycle: "provider-supported-not-typed",
     },
     apiCoverage: {
-      ...RCS_DIRECT_SLICE_METADATA.apiCoverage,
+      ...RCS_HOST_CLIENT_METADATA.apiCoverage,
       generatedFromOfficialSpec: false,
       machineReadableSpecStatus: "Google documents Discovery URLs for rcsbusinessmessaging.v1 and businesscommunications.v1, but anonymous fetches returned 403 during this audit.",
       documentedOperationCount: 38,
@@ -164,7 +171,21 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
       implementedOperationCount: RCS_SELECTED_OPERATION_COUNT,
       fullProviderApi: false,
     },
-    implementation: RCS_DIRECT_SLICE_METADATA,
+    implementationStrategy: "provider-rest-adapter",
+    implementation: {
+      ...RCS_HOST_CLIENT_METADATA,
+      providerClientInterface: "RcsMessagingProviderClient",
+      defaultHttpClient: "providerJsonRequest",
+      defaultFetchClient: "provider-rest-adapter",
+      failClosedWithoutProviderClient: false,
+      manifestImport: "no-client-initialization",
+    },
+    providerClient: {
+      interface: "RcsMessagingProviderClient",
+      injectionPolicy: "override-supported",
+      importPolicy: "provider-client-override-supported",
+      defaultClient: "provider-rest-adapter-when-configured",
+    },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],
 });

@@ -60,10 +60,14 @@ const providerSdkPackages = new Set([
   "discord.js",
   "googleapis",
   "mailgun.js",
+  "node-zendesk",
   "openai",
   "purecloud-platform-client-v2",
   "stripe",
   "twilio",
+  "@freshworks/api-sdk",
+  "@servicenow/sdk",
+  "dynamics-web-api",
 ]);
 const infrastructurePackageNames = new Set([
   "@cognidesk/voice-websocket",
@@ -107,6 +111,7 @@ async function main() {
   await checkManifestOnlyEntrypoints();
   await checkSdkBackedGeneratedClones(splitProviderPackages);
   checkProviderSdkDependencyMetadata(splitProviderPackages);
+  await checkNoDirectHttpSupportSlice(splitProviderPackages);
   await checkFullProviderApiClaimsUseAdapterVerification(splitProviderPackages);
   await checkProviderCoverageArtifactReferences(splitProviderPackages);
 
@@ -129,6 +134,7 @@ async function main() {
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
   console.log("  SDK-backed provider packages declare provider SDK dependency metadata");
+  console.log("  provider packages do not use retired direct-http support slices");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
   console.log("  provider coverage artifact references resolve under docs/provider-coverage");
   console.log("  provider package names use @cognidesk/integration-{category}-{provider}");
@@ -549,6 +555,22 @@ export function providerSdkDependencyMetadataFailuresForPackage(pkg) {
   }
 
   return failures;
+}
+
+async function checkNoDirectHttpSupportSlice(packages) {
+  for (const pkg of packages) {
+    const sourceFiles = await sourceFilesForPackage(pkg);
+    const manifestFiles = sourceFiles.filter((file) => /(^|[/\\])(?:manifest|catalog|selected-operations)(?:\.[a-z0-9-]+)?\.ts$/.test(file));
+
+    for (const file of manifestFiles) {
+      const source = await readFile(file, "utf8");
+      if (!source.includes("direct-http-support-slice")) continue;
+
+      failures.push(
+        `${path.relative(repoRoot, file)}: direct-http-support-slice is retired; provider packages must use a provider SDK/package or a robust provider-rest-adapter strategy, with host-injected clients kept as optional overrides instead of fragile raw API ownership`,
+      );
+    }
+  }
 }
 
 export function isGeneratedFullProviderApiClone(file) {

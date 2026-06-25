@@ -1,12 +1,34 @@
-import { defineIntegration, providerJsonRequest, type ProviderHttpMethod, type ProviderQueryValue } from "@cognidesk/integration-kit";
-import { five9ProviderManifest, five9ProviderManifestInput, five9SupportSlice } from "./manifest.js";
+import {
+  defineIntegration,
+  providerJsonRequest,
+  type ProviderQueryValue,
+} from "@cognidesk/integration-kit";
+import { five9ProviderManifest, five9ProviderManifestInput, five9RestSupportSlice } from "./manifest.js";
 
-export { five9ProviderManifest, five9ProviderManifestInput, five9SupportSlice } from "./manifest.js";
+export { five9ProviderManifest, five9ProviderManifestInput, five9RestSupportSlice } from "./manifest.js";
 
 export type ProviderJsonObject = Record<string, unknown>;
 
+export interface ProviderRestRetryOptions {
+  attempts?: number | undefined;
+  statusCodes?: readonly number[] | undefined;
+  baseDelayMs?: number | undefined;
+  maxDelayMs?: number | undefined;
+}
+
+type ProviderRestRequestInput = Parameters<typeof providerJsonRequest>[0] & {
+  signal?: AbortSignal | undefined;
+  timeoutMs?: number | undefined;
+  retry?: number | ProviderRestRetryOptions | undefined;
+};
+
+function providerRestRequest<T = unknown>(input: ProviderRestRequestInput): Promise<T> {
+  return providerJsonRequest<T>(input as Parameters<typeof providerJsonRequest>[0]);
+}
+
 export interface Five9ClientOptions {
-  apiBaseUrl: string;
+  baseUrl?: string | undefined;
+  apiBaseUrl?: string | undefined;
   accessToken?: string | undefined;
   authorizationHeader?: string | undefined;
   apiKey?: string | undefined;
@@ -14,6 +36,14 @@ export interface Five9ClientOptions {
   defaultHandoffPath?: string | undefined;
   readinessPath?: string | undefined;
   fetch?: typeof fetch | undefined;
+  signal?: AbortSignal | undefined;
+  timeoutMs?: number | undefined;
+  retry?: number | ProviderRestRetryOptions | undefined;
+  rawClient?: Five9RawClient | undefined;
+}
+
+export interface Five9IntegrationOptions extends Five9ClientOptions {
+  client?: Five9Client | undefined;
 }
 
 export interface ConfiguredHandoffInput {
@@ -22,72 +52,109 @@ export interface ConfiguredHandoffInput {
   idempotencyKey?: string | undefined;
 }
 
-export interface Five9OperationInput {
-  pathParams?: Record<string, string | number | boolean | undefined> | undefined;
-  query?: Record<string, ProviderQueryValue> | undefined;
-  body?: unknown;
-  headers?: Record<string, string | undefined> | undefined;
-  idempotencyKey?: string | undefined;
+export interface Five9ReadinessInput {
+  signal?: AbortSignal | undefined;
 }
 
-export interface ProviderExtensionRequestInput extends Five9OperationInput {
-  operationId?: string | undefined;
-  method?: ProviderHttpMethod | undefined;
-  path?: string | undefined;
-  allowMutation?: boolean | undefined;
-  classification?: string | undefined;
+export interface Five9RawClient {
+  createHandoff(input?: ConfiguredHandoffInput): Promise<ProviderJsonObject>;
+  readiness?(input?: Five9ReadinessInput): Promise<ProviderJsonObject>;
 }
 
 export interface Five9Client {
-  createHandoff(input: ConfiguredHandoffInput): Promise<ProviderJsonObject>;
-
-  readiness(): Promise<ProviderJsonObject>;
+  rawClient: Five9RawClient;
+  createHandoff(input?: ConfiguredHandoffInput): Promise<ProviderJsonObject>;
+  readiness(input?: Five9ReadinessInput): Promise<ProviderJsonObject>;
 }
 
-export function createFive9Client(options: Five9ClientOptions): Five9Client {
-  const request = (method: ProviderHttpMethod, path: string, input: Five9OperationInput = {}) => providerJsonRequest<ProviderJsonObject>({
-    baseUrl: options.apiBaseUrl,
-    method,
-    path,
-    pathParams: input.pathParams,
-    query: input.query,
-    body: input.body,
-    headers: input.headers,
-    accessToken: options.accessToken,
-    authorizationHeader: options.authorizationHeader,
-    apiKey: options.apiKey,
-    apiKeyHeaderName: options.apiKeyHeaderName,
-    idempotencyKey: input.idempotencyKey,
-    fetch: options.fetch,
-    providerName: "Five9",
-  });
-  const requestAllowedOperation = (operationId: string, input: Five9OperationInput = {}) => {
-    const operation = five9SupportSlice.allowedOperations.find((candidate) => candidate.id === operationId);
-    if (!operation || String(operation.path) === "host-configured") throw new Error(`Five9 operation '${operationId}' is not in the reviewed allowlist.`);
-    return request(operation.method as ProviderHttpMethod, operation.path, input);
-  };
-  const client: Five9Client = {
-    createHandoff(input) {
-      const path = options.defaultHandoffPath;
-      if (!path) throw new Error("Five9 handoff path must be configured by the host app.");
-      return request("POST", path, { body: input.payload ?? {}, query: input.query, idempotencyKey: input.idempotencyKey });
+export function createFive9Client(options: Five9ClientOptions = {}): Five9Client {
+  const rawClient = options.rawClient ?? createFive9RestRawClient(options);
+  return {
+    rawClient,
+    createHandoff(input = {}) {
+      return rawClient.createHandoff(normalizeConfiguredHandoffInput(input));
     },
-
-    readiness() {
-      const path = options.readinessPath ?? "";
-      if (!path) throw new Error("Five9 readiness path must be configured by the host app.");
-      return request("GET", path);
+    readiness(input) {
+      if (!rawClient.readiness) {
+        throw new Error("Five9 rawClient.readiness implementation is required for readiness checks.");
+      }
+      return rawClient.readiness(input);
     },
   };
-  return client;
 }
 
-export function createFive9Integration(options: Five9ClientOptions) {
-  const client = createFive9Client(options);
+export function createFive9OperationHandlers(options: Five9IntegrationOptions = {}) {
+  const client = options.client ?? createFive9Client(options);
+
+  return {
+    "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+  } as const;
+}
+
+export function createFive9Integration(options: Five9IntegrationOptions = {}) {
   return defineIntegration({
     manifest: five9ProviderManifestInput,
-    operations: {
-      "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
-    },
+    operations: createFive9OperationHandlers(options),
   });
+}
+
+function createFive9RestRawClient(options: Five9ClientOptions): Five9RawClient {
+  return {
+    createHandoff(input = {}) {
+      const path = configuredPath(options.defaultHandoffPath, "Five9 handoff path");
+      return providerRestRequest<ProviderJsonObject>({
+        baseUrl: configuredBaseUrl(options),
+        method: "POST",
+        path,
+        query: input.query,
+        body: input.payload ?? {},
+        accessToken: options.accessToken,
+        authorizationHeader: options.authorizationHeader,
+        apiKey: options.apiKey,
+        apiKeyHeaderName: options.apiKeyHeaderName,
+        idempotencyKey: input.idempotencyKey,
+        fetch: options.fetch,
+    signal: options.signal,
+    timeoutMs: options.timeoutMs,
+    retry: options.retry,
+        providerName: "Five9",
+      });
+    },
+    readiness() {
+      const path = configuredPath(options.readinessPath, "Five9 readiness path");
+      return providerRestRequest<ProviderJsonObject>({
+        baseUrl: configuredBaseUrl(options),
+        method: "GET",
+        path,
+        accessToken: options.accessToken,
+        authorizationHeader: options.authorizationHeader,
+        apiKey: options.apiKey,
+        apiKeyHeaderName: options.apiKeyHeaderName,
+        fetch: options.fetch,
+    signal: options.signal,
+    timeoutMs: options.timeoutMs,
+    retry: options.retry,
+        providerName: "Five9",
+      });
+    },
+  };
+}
+
+function configuredBaseUrl(options: Pick<Five9ClientOptions, "apiBaseUrl" | "baseUrl">): string {
+  const baseUrl = options.baseUrl ?? options.apiBaseUrl;
+  if (!baseUrl) throw new Error("Five9 baseUrl is required to use the built-in REST adapter.");
+  return baseUrl;
+}
+
+function configuredPath(path: string | undefined, label: string): string {
+  if (!path) throw new Error(`${label} must be configured to use the built-in REST adapter.`);
+  return path;
+}
+
+function normalizeConfiguredHandoffInput(input: ConfiguredHandoffInput): ConfiguredHandoffInput {
+  return {
+    ...(input.payload !== undefined ? { payload: input.payload } : {}),
+    ...(input.query !== undefined ? { query: input.query } : {}),
+    ...(input.idempotencyKey !== undefined ? { idempotencyKey: input.idempotencyKey } : {}),
+  };
 }

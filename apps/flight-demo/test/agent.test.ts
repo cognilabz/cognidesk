@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createRuntime, createTelemetryContext, type CognideskRuntime, type RuntimeEvent } from "@cognidesk/core";
 import { createSqliteStorage } from "@cognidesk/storage/sqlite";
 import {
@@ -755,6 +755,140 @@ describe("flight demo customer use cases", () => {
       status: "sent",
       purpose: "notification",
       messageId: "wamid.gate-change",
+    });
+  });
+
+  it("sends configured WhatsApp messages through the Cloud API Graph endpoint", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      messaging_product: "whatsapp",
+      messages: [{ id: "wamid.graph-test" }],
+    }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    }));
+    globalThis.fetch = fetchMock as typeof fetch;
+    try {
+      const tools = createFlightTools({
+        whatsapp: {
+          configured: true,
+          accessToken: "test-token",
+          phoneNumberId: "1234567890",
+          confirmationBaseUrl: "https://auth.example.test/whatsapp",
+          graphApiBaseUrl: "https://graph.facebook.example.test/",
+          graphApiVersion: "/v25.0/",
+        },
+      });
+
+      const result = await tools.sendWhatsAppCustomerMessage.execute({
+        input: {
+          recipientPhone: "+15550100",
+          messagePurpose: "confirmation-link",
+          bookingReference: "CD-CL102-4821",
+        },
+        app: {},
+        conversationId: "test-conversation",
+        telemetry: createTelemetryContext({}),
+        signal: new AbortController().signal,
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, init] = fetchMock.mock.calls[0] ?? [];
+      expect(String(url)).toBe("https://graph.facebook.example.test/v25.0/1234567890/messages");
+      expect(init).toMatchObject({
+        method: "POST",
+        headers: {
+          authorization: "Bearer test-token",
+          "content-type": "application/json",
+        },
+      });
+      const body = JSON.parse(String(init?.body)) as {
+        messaging_product?: string;
+        to?: string;
+        type?: string;
+        text?: { body?: string; preview_url?: boolean };
+      };
+      expect(body).toMatchObject({
+        messaging_product: "whatsapp",
+        to: "15550100",
+        type: "text",
+        text: { preview_url: true },
+      });
+      expect(body.text?.body).toContain("https://auth.example.test/whatsapp/confirm/");
+      expect(body.text?.body).toContain("CD-CL102-4821");
+      expect(result).toMatchObject({
+        provider: "whatsapp",
+        status: "sent",
+        purpose: "confirmation-link",
+        messageId: "wamid.graph-test",
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("sends configured WhatsApp messages through a linked-device web session without Meta credentials", async () => {
+    const sends: Array<{ jid: string; message: string }> = [];
+    const closes: string[] = [];
+    const tools = createFlightTools({
+      whatsapp: {
+        transport: "web",
+        providerPackageId: "messaging.whatsapp-web",
+        configured: true,
+        authStateDir: "/tmp/cognidesk-wa",
+        pairingPhoneNumber: "+15550123",
+        connectTimeoutMs: 12_000,
+        sendTimeoutMs: 8_000,
+        confirmationBaseUrl: "https://auth.example.test/whatsapp",
+        sessionProvider: {
+          async connect(options) {
+            expect(options).toMatchObject({
+              authStateDir: "/tmp/cognidesk-wa",
+              pairingPhoneNumber: "+15550123",
+              connectTimeoutMs: 12_000,
+              sendTimeoutMs: 8_000,
+            });
+            return {
+              async sendText(input) {
+                sends.push({ jid: input.jid, message: input.message });
+                return {
+                  sent: true,
+                  jid: input.jid,
+                  messageId: "wamid.web-flight",
+                };
+              },
+              async close() {
+                closes.push("closed");
+              },
+            };
+          },
+        },
+      },
+    });
+
+    const result = await tools.sendWhatsAppCustomerMessage.execute({
+      input: {
+        recipientPhone: "+15550100",
+        messagePurpose: "notification",
+        notificationText: "Your flight support request has an update.",
+      },
+      app: {},
+      conversationId: "test-conversation",
+      telemetry: createTelemetryContext({}),
+      signal: new AbortController().signal,
+    });
+
+    expect(sends).toEqual([{
+      jid: "15550100@s.whatsapp.net",
+      message: "Your flight support request has an update.",
+    }]);
+    expect(closes).toEqual(["closed"]);
+    expect(result).toMatchObject({
+      provider: "whatsapp",
+      status: "sent",
+      purpose: "notification",
+      recipientOverridden: false,
+      messageId: "wamid.web-flight",
     });
   });
 

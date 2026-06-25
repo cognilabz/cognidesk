@@ -5,8 +5,8 @@ export function createRcsMessagingLiveChecks(options: RcsLiveCheckOptions) {
   return [
     {
       id: "agent",
-      description: "RCS Business Communications agent resource is reachable with the configured OAuth credentials.",
-      requiredCredentialIds: ["rcs-agent", "rcs-access-token"],
+      description: "RCS Business Communications agent resource is reachable through the configured provider transport.",
+      requiredCredentialIds: ["rcs-agent", "rcs-provider-client"],
       async run(context: { signal?: AbortSignal }) {
         if (!options.agentName) return { details: { agentName: "not-configured-management-check-skipped" } };
         const client = options.client ?? createRcsMessagingClient(options);
@@ -22,8 +22,8 @@ export function createRcsMessagingLiveChecks(options: RcsLiveCheckOptions) {
     },
     {
       id: "launch",
-      description: "RCS agent launch state is readable for Studio readiness.",
-      requiredCredentialIds: ["rcs-agent", "rcs-access-token"],
+      description: "RCS agent launch state is readable through the configured provider transport.",
+      requiredCredentialIds: ["rcs-agent", "rcs-provider-client"],
       async run(context: { signal?: AbortSignal }) {
         if (!options.agentName) return { details: { agentName: "not-configured-launch-check-skipped" } };
         const client = options.client ?? createRcsMessagingClient(options);
@@ -34,8 +34,8 @@ export function createRcsMessagingLiveChecks(options: RcsLiveCheckOptions) {
     },
     {
       id: "verification",
-      description: "RCS agent verification state is readable for Studio readiness.",
-      requiredCredentialIds: ["rcs-agent", "rcs-access-token"],
+      description: "RCS agent verification state is readable through the configured provider transport.",
+      requiredCredentialIds: ["rcs-agent", "rcs-provider-client"],
       async run(context: { signal?: AbortSignal }) {
         if (!options.agentName) return { details: { agentName: "not-configured-verification-check-skipped" } };
         const client = options.client ?? createRcsMessagingClient(options);
@@ -47,7 +47,7 @@ export function createRcsMessagingLiveChecks(options: RcsLiveCheckOptions) {
     {
       id: "capabilities",
       description: "Optional RBM phone capability check can confirm a tester or recipient is reachable.",
-      requiredCredentialIds: ["rcs-agent", "rcs-access-token"],
+      requiredCredentialIds: ["rcs-agent", "rcs-provider-client"],
       async run(context: { signal?: AbortSignal }) {
         if (!options.capabilityPhoneNumber) {
           return { details: { phoneNumber: "not-configured-capability-check-skipped" } };

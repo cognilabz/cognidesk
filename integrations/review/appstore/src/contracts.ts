@@ -1,3 +1,5 @@
+import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
+
 export type AppStoreReviewsJsonPrimitive = string | number | boolean | null;
 export type AppStoreReviewsJsonValue =
   | AppStoreReviewsJsonPrimitive
@@ -11,13 +13,18 @@ export type AppStoreReviewsProviderPayload = AppStoreReviewsJsonObject | object;
 export type AppStoreReviewsProviderQuery = Record<string, AppStoreReviewsProviderExtensionValue>;
 
 export interface AppStoreReviewsClientOptions {
-  issuerId: string;
-  keyId: string;
-  privateKey?: string;
   appId: string;
-  apiBaseUrl?: string;
-  jwtFactory?: () => string | Promise<string>;
+  providerClient?: AppStoreReviewsProviderClient;
+  issuerId?: string;
+  keyId?: string;
+  privateKey?: string;
+  accessToken?: string;
+  getJwt?: () => string | Promise<string>;
+  baseUrl?: string;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
 }
 
 export interface AppStoreCredentialStatusInput {
@@ -162,16 +169,17 @@ export interface AppStoreRawRequestInput {
 
 export type AppStoreHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-export interface AppStoreReviewsClient {
-  rawClient: {
-    request<T = AppStoreReviewsJsonObject>(input: AppStoreRawRequestInput): Promise<T>;
-  };
+export interface AppStoreReviewsProviderClient {
   listReviews(input?: AppStoreListReviewsInput): Promise<AppStoreReviewsListResponse>;
   listReviewsPage(pageUrl: string): Promise<AppStoreReviewsListResponse>;
   getReview(reviewId: string, input?: Pick<AppStoreListReviewsInput, "include" | "fields">): Promise<AppStoreReviewResponse>;
   createOrUpdateReviewResponse(input: AppStoreReviewResponseInput): Promise<AppStoreCustomerReviewResponseDocument>;
   deleteReviewResponse(responseId: string): Promise<void>;
   getApp(): Promise<AppStoreAppResponse>;
+}
+
+export interface AppStoreReviewsClient extends AppStoreReviewsProviderClient {
+  providerClient: AppStoreReviewsProviderClient;
 }
 
 export interface AppStoreLiveCheckOptions extends AppStoreReviewsClientOptions {

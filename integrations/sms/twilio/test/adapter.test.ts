@@ -2,10 +2,10 @@ import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import {
+  createTwilioSmsIntegration,
   createTwilioSmsClient,
   parseTwilioSmsWebhook,
   twilioSmsCredentialStatuses,
-  twilioSmsIntegration,
   twilioSmsProviderManifest,
 } from "../src/index.js";
 
@@ -18,21 +18,35 @@ describe("@cognidesk/integration-sms-twilio", () => {
       sdkPackage: "twilio",
       verifiedVersion: "6.0.2",
     });
-    expect(Object.keys(twilioSmsIntegration.operations)).toEqual([
+    const integration = createTwilioSmsIntegration({
+      accountSid: "AC123",
+      authToken: "token",
+      smsClient: fakeTwilioSmsClient(),
+    });
+    expect(integration.operationAliases).toEqual([
       "sms.message.receive",
       "sms.message.send",
       "sms.message.read",
       "sms.message.search",
     ]);
+    await expect(integration.operations["sms.message.send"]({
+      to: "+15550100",
+      from: "+15550999",
+      body: "Hello",
+    }, {
+      providerPackageId: "sms.twilio",
+      provider: "twilio",
+      operationAlias: "sms.message.send",
+    })).resolves.toMatchObject({ sid: "SM123" });
     await expect(readFile(new URL("../src/manifest.ts", import.meta.url), "utf8"))
       .resolves.not.toMatch(/from\s+["']twilio["']/);
   });
 
-  it("uses injected Twilio helper clients for SMS operations", async () => {
+  it("uses injected Twilio SDK clients for SMS operations", async () => {
     const client = createTwilioSmsClient({
       accountSid: "AC123",
       authToken: "token",
-      rawClient: {
+      sdkClient: {
         messages: {
           async create(input) {
             expect(input).toMatchObject({ to: "+15550100", from: "+15550999", body: "Hello" });
@@ -113,6 +127,43 @@ describe("@cognidesk/integration-sms-twilio", () => {
       .toEqual(["configured", "configured"]);
   });
 });
+
+function fakeTwilioSmsClient() {
+  return createTwilioSmsClient({
+    accountSid: "AC123",
+    authToken: "token",
+    sdkClient: {
+      messages: {
+        async create() {
+          return { sid: "SM123", status: "queued" };
+        },
+        get(sid) {
+          return {
+            async fetch() {
+              return { sid, status: "sent" };
+            },
+            async update() {
+              return { sid, status: "canceled" };
+            },
+          };
+        },
+        async list() {
+          return [{ sid: "SM123" }];
+        },
+      },
+      incomingPhoneNumbers: {
+        async list() {
+          return [{ sid: "PN123", capabilities: { sms: true } }];
+        },
+      },
+      api: {
+        accounts(accountSid) {
+          return { async fetch() { return { sid: accountSid, status: "active" }; } };
+        },
+      },
+    },
+  });
+}
 
 function signTwilio(url: string, params: Record<string, string>, authToken: string) {
   const signed = Object.keys(params).sort()

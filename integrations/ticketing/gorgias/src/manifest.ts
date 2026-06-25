@@ -10,21 +10,33 @@ export const gorgiasTicketingProviderManifestInput = {
   directions: ["bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
   credentialRequirements: [
-    { id: "gorgias-api-base", label: "Gorgias API base URL", required: true },
-    { id: "gorgias-api-access", label: "Gorgias API access", scopes: ["account:read", "tickets:read", "tickets:write"], required: true, metadata: { scopeKind: "provider-oauth-scopes" } },
+    {
+      id: "gorgias-base-url",
+      label: "Gorgias REST API base URL",
+      required: true,
+    },
+    {
+      id: "gorgias-api-access",
+      label: "Gorgias access token or API key",
+      required: true,
+      metadata: { authSchemes: ["bearer", "basic-email-api-key"] },
+    },
   ],
   coverage: {
-    scope: "provider-api-subset",
+    scope: "support-workflow-subset",
     notes: [
-      "SDK decision: no official maintained backend JavaScript REST client was verified for Gorgias.",
-      "Coverage is limited to Gorgias ticket create/read/update/list operations, ticket-message create/list operations, and account readiness for Cognidesk support workflows.",
+      "Runtime coverage is provided through the built-in Gorgias REST adapter when baseUrl and accessToken/apiKey are configured.",
+      "A host-provided GorgiasTicketingProviderClient can still override the built-in REST adapter.",
+      "Coverage is limited to delegated Gorgias ticket create/read/update/list operations, ticket-message create/list operations, and account readiness for Cognidesk support workflows.",
       "This package intentionally does not copy the old generated full Gorgias public API clone.",
     ],
     evidence: [
       { label: "Gorgias developer docs", url: "https://developers.gorgias.com/" },
+      { label: "Gorgias REST API credentials", url: "https://docs.gorgias.com/en-US/rest-api-208286" },
       { label: "Gorgias Create ticket", url: "https://developers.gorgias.com/reference/create-ticket" },
       { label: "Gorgias Create ticket message", url: "https://developers.gorgias.com/reference/create-ticket-message" },
       { label: "Gorgias OAuth2 Scopes", url: "https://developers.gorgias.com/docs/oauth2-scopes" },
+      { label: "gorgias-client package review", url: "https://www.npmjs.com/package/gorgias-client" },
     ],
   },
   capabilities: [
@@ -44,18 +56,48 @@ export const gorgiasTicketingProviderManifestInput = {
     { alias: "gorgias.readiness", capability: "read-provider-object", providerOperation: "GET /api/account", providerObject: "gorgiasAccount", extension: true, exposesSensitiveData: true },
   ],
   privacyNotes: ["Gorgias tickets can include ecommerce context, customer identifiers, messages, notes, tags, and assignment metadata."],
-  limitations: ["Domain URL, ticket channels, message channels, macros, Shopify context, automations, and visibility are SDK-user configuration."],
+  limitations: [
+    "Domain URL, ticket channels, message channels, macros, Shopify context, automations, and visibility are SDK-user configuration.",
+    "The REST adapter covers JSON operations; multipart or provider-specific advanced endpoints belong in an injected GorgiasTicketingProviderClient or rawRequest.",
+  ],
   metadata: {
     issue: 35,
-    implementationStrategy: "direct-http-support-slice",
-    sdkDecision: {
-      candidates: ["gorgias-client", "@friggframework/api-module-gorgias", "Gorgias REST docs"],
-      verdict: "not-adopted",
-      reason: "No official maintained backend JavaScript REST client was verified.",
-      checkedAt: "2026-06-21",
+    implementationStrategy: "provider-rest-adapter",
+    sdkDecision: "no-official-sdk-rest-adapter",
+    implementation: {
+      strategy: "provider-rest-adapter",
+      providerClientInterface: "GorgiasTicketingProviderClient",
+      defaultHttpClient: "providerJsonRequest",
+      defaultFetchClient: "runtime-fetch-or-configured-fetch",
+      providerClientOverride: true,
+      manifestImport: "no-client-initialization",
     },
-    supportSlice: {
-      source: "Gorgias public REST API",
+    providerClient: {
+      interface: "GorgiasTicketingProviderClient",
+      injectionPolicy: "optional-override",
+      importPolicy: "runtime-override",
+      defaultClient: "built-in-rest-adapter",
+    },
+    sdkEvaluation: {
+      checkedAt: "2026-06-25",
+      officialBackendJavaScriptSdk: "not-verified",
+      reviewedPackages: [
+        {
+          package: "gorgias-client",
+          version: "2.0.4",
+          result: "not-used-as-package-default",
+          reason: "Unofficial package; its public GorgiasClient constructs a FetchHttpClient and does not expose constructor-level HTTP client injection.",
+        },
+        {
+          package: "@friggframework/api-module-gorgias",
+          version: "0.10.1",
+          result: "not-used-as-package-default",
+          reason: "Framework module rather than a standalone official Gorgias backend SDK for this runtime package.",
+        },
+      ],
+    },
+    delegatedSupportSurface: {
+      source: "Built-in Gorgias REST adapter",
       allowlistedOperations: ["tickets.create", "tickets.read", "tickets.update", "tickets.list", "ticket_messages.create", "messages.list", "account.read"],
     },
   },

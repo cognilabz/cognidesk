@@ -4,9 +4,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { assertIntegrationConformance, createOperationHandlerStubs } from "@cognidesk/integration-kit/testing";
 import {
+  createImapEmailIntegrationOperationHandlers,
   createImapEmailIntegration,
   imapEmailCredentialStatuses,
   imapEmailProviderManifest,
+  type ImapEmailClient,
   type ImapRawClient,
 } from "../src/index.js";
 
@@ -78,5 +80,27 @@ describe("@cognidesk/integration-email-imap", () => {
     expect(integration.rawClient).toBe(rawClient);
     expect(integration.client.rawClient).toBe(rawClient);
     expect(rawClient.connect).toHaveBeenCalledTimes(1);
+  });
+
+  it("delegates operation handlers to an injected IMAP client", async () => {
+    const emailClient = {
+      rawClient: {} as ImapRawClient,
+      checkMailbox: vi.fn(async () => ({ ready: true, mailbox: "Archive" })),
+      searchMessages: vi.fn(async () => [42]),
+      fetchMessages: vi.fn(async () => [{ uid: 42, flags: ["\\Seen"] }]),
+      close: vi.fn(async () => {}),
+    } satisfies ImapEmailClient;
+    const handlers = createImapEmailIntegrationOperationHandlers({
+      connection: { host: "unused.example.test", port: 993, secure: true },
+      emailClient,
+    });
+
+    await expect(handlers["imap.mailbox.check"]()).resolves.toMatchObject({ ready: true, mailbox: "Archive" });
+    await expect(handlers["email.thread.search"]({ query: { all: true } })).resolves.toEqual([42]);
+    await expect(handlers["email.thread.read"]({ range: [42], query: { flags: true } }))
+      .resolves.toEqual([{ uid: 42, flags: ["\\Seen"] }]);
+    expect(emailClient.checkMailbox).toHaveBeenCalledTimes(1);
+    expect(emailClient.searchMessages).toHaveBeenCalledWith({ query: { all: true } });
+    expect(emailClient.fetchMessages).toHaveBeenCalledWith({ range: [42], query: { flags: true } });
   });
 });

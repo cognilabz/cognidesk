@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import {
@@ -10,6 +11,7 @@ import {
   parseTikTokWebhook,
   tiktokSocialCredentialStatuses,
   tiktokSocialProviderManifest,
+  type TikTokSocialProviderClient,
   validateTikTokWebhookSignature,
 } from "../src/index.js";
 
@@ -50,7 +52,7 @@ describe("@cognidesk/integration-social-tiktok", () => {
       capability.capability === "social.comment-reply"
     );
     expect(commentReplyCapability?.label).toBe("Reply to TikTok Business comments");
-    expect(commentReplyCapability?.description).toContain("Business API comment reply primitives only");
+    expect(commentReplyCapability?.description).toContain("configured REST adapter or provider client");
     expect(tiktokSocialProviderManifest.limitations.join(" ")).toContain("do not expose a general customer-service direct-message inbox");
     expect(tiktokSocialProviderManifest.limitations.join(" ")).toContain("callback URL registration");
     expect(tiktokSocialProviderManifest.limitations.join(" ")).toContain("direct-message lead APIs are Business lead surfaces");
@@ -59,6 +61,8 @@ describe("@cognidesk/integration-social-tiktok", () => {
     });
     expect(tiktokSocialProviderManifest.coverage.notes.join(" "))
       .toContain("does not implement a general TikTok direct-message inbox");
+    expect(tiktokSocialProviderManifest.coverage.notes.join(" "))
+      .toContain("built-in REST adapter");
     expect(tiktokSocialProviderManifest.metadata?.apiCoverage).toMatchObject({
       operationCatalog: "package:src/selected-operations.ts",
       generatedFromOfficialSpec: false,
@@ -66,6 +70,15 @@ describe("@cognidesk/integration-social-tiktok", () => {
       implementedOperationCount: 8,
       fullProviderApi: false,
       fullTikTokPlatformCoverage: false,
+    });
+    expect(tiktokSocialProviderManifest.metadata?.implementation).toMatchObject({
+      implementationStrategy: "no-official-sdk-rest-adapter",
+      sdkDecision: { viableOfficialSdk: false },
+    });
+    expect(tiktokSocialProviderManifest.metadata?.providerClient).toMatchObject({
+      package: "built-in-or-host-provided",
+      interface: "TikTokSocialProviderClient",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
     });
     expect(tiktokSocialProviderManifest.coverage.evidence.map((evidence) => evidence.url))
       .toEqual(expect.arrayContaining([
@@ -110,23 +123,35 @@ describe("@cognidesk/integration-social-tiktok", () => {
     }));
   });
 
-  it("reads TikTok profile and videos through documented Open API endpoints", async () => {
-    const fetchMock = vi.fn(async (url: string) => {
-      if (url.includes("/v2/video/list/")) {
-        return new Response(JSON.stringify({
-          data: { videos: [{ id: "video_1", title: "Support update" }], has_more: false },
-          error: { code: "ok", message: "" },
-        }), { status: 200 });
-      }
-      return new Response(JSON.stringify({
+  it("ships a built-in TikTok REST adapter and still validates provider-client overrides", async () => {
+    const clientSource = await readFile(new URL("../src/client.ts", import.meta.url), "utf8");
+    const selectedOperationsSource = await readFile(new URL("../src/selected-operations.ts", import.meta.url), "utf8");
+
+    expect(clientSource).toContain("fetch");
+    expect(clientSource).toContain("new URL(");
+    expect(selectedOperationsSource).not.toContain(["direct", "http", "support", "slice"].join("-"));
+    expect(selectedOperationsSource).toContain("no-official-sdk-rest-adapter");
+    expect(() => createTikTokSocialClient())
+      .toThrow("TikTok built-in REST adapter requires accessToken");
+    expect(() => createTikTokSocialClient({
+      providerClient: { getUserInfo: vi.fn() } as unknown as TikTokSocialProviderClient,
+    })).toThrow("listVideos");
+  });
+
+  it("delegates TikTok profile and video reads through the host-injected provider client", async () => {
+    const providerClient = fakeTikTokProviderClient({
+      getUserInfo: vi.fn(async () => ({
         data: { user: { open_id: "open_1", username: "support" } },
         error: { code: "ok", message: "" },
-      }), { status: 200 });
+      })),
+      listVideos: vi.fn(async () => ({
+        data: { videos: [{ id: "video_1", title: "Support update" }], has_more: false },
+        error: { code: "ok", message: "" },
+      })),
     });
     const client = createTikTokSocialClient({
-      accessToken: "access-token",
       openId: "open_1",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
 
     await expect(client.getUserInfo(["open_id", "username"]))
@@ -134,46 +159,24 @@ describe("@cognidesk/integration-social-tiktok", () => {
     await expect(client.listVideos({ fields: ["id", "title"], maxCount: 10 }))
       .resolves.toMatchObject({ data: { videos: [{ id: "video_1" }] } });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://open.tiktokapis.com/v2/user/info/?fields=open_id%2Cusername",
-      expect.objectContaining({
-        method: "GET",
-        headers: expect.objectContaining({ authorization: "Bearer access-token" }),
-      }),
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://open.tiktokapis.com/v2/video/list/?fields=id%2Ctitle",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          authorization: "Bearer access-token",
-          "content-type": "application/json",
-        }),
-      }),
-    );
-    const request = (fetchMock.mock.calls[1] as unknown[])[1] as { body: string };
-    expect(JSON.parse(request.body)).toEqual({ max_count: 10 });
+    expect(providerClient.getUserInfo).toHaveBeenCalledWith(["open_id", "username"]);
+    expect(providerClient.listVideos).toHaveBeenCalledWith({ fields: ["id", "title"], maxCount: 10 });
   });
 
-  it("queries research comments and Business API comment reply primitives", async () => {
-    const fetchMock = vi.fn(async (url: string) => {
-      if (url.includes("/v2/research/video/comment/list/")) {
-        return new Response(JSON.stringify({
-          data: { comments: [{ id: "comment_1", text: "Need help" }] },
-          error: { code: "ok", message: "" },
-        }), { status: 200 });
-      }
-      return new Response(JSON.stringify({
+  it("delegates research comments and Business API comment reply primitives through the provider client", async () => {
+    const providerClient = fakeTikTokProviderClient({
+      queryResearchVideoComments: vi.fn(async () => ({
+        data: { comments: [{ id: "comment_1", text: "Need help" }] },
+        error: { code: "ok", message: "" },
+      })),
+      replyToBusinessComment: vi.fn(async () => ({
         data: { reply_id: "reply_1" },
         error: { code: "ok", message: "" },
-      }), { status: 200 });
+      })),
     });
     const client = createTikTokSocialClient({
-      accessToken: "access-token",
       businessId: "business_1",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
 
     await expect(client.queryResearchVideoComments({
@@ -187,24 +190,15 @@ describe("@cognidesk/integration-social-tiktok", () => {
       text: "Operator-approved reply.",
     })).resolves.toMatchObject({ data: { reply_id: "reply_1" } });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://open.tiktokapis.com/v2/research/video/comment/list/?fields=id%2Ctext",
-      expect.objectContaining({ method: "POST" }),
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://business-api.tiktok.com/open_api/v1.3/business/comment/reply/create/",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({ "Access-Token": "access-token" }),
-      }),
-    );
-    const replyRequest = (fetchMock.mock.calls[1] as unknown[])[1] as { body: string };
-    expect(JSON.parse(replyRequest.body)).toEqual({
-      business_id: "business_1",
-      video_id: "video_1",
-      comment_id: "comment_1",
+    expect(providerClient.queryResearchVideoComments).toHaveBeenCalledWith({
+      videoId: "video_1",
+      fields: ["id", "text"],
+      maxCount: 20,
+    });
+    expect(providerClient.replyToBusinessComment).toHaveBeenCalledWith({
+      businessId: "business_1",
+      videoId: "video_1",
+      commentId: "comment_1",
       text: "Operator-approved reply.",
     });
   });
@@ -400,4 +394,36 @@ describe("@cognidesk/integration-social-tiktok", () => {
 function signTikTok(clientSecret: string, timestamp: number, body: string) {
   const signature = createHmac("sha256", clientSecret).update(`${timestamp}.${body}`).digest("hex");
   return `t=${timestamp},s=${signature}`;
+}
+
+function fakeTikTokProviderClient(
+  overrides: Partial<TikTokSocialProviderClient> = {},
+): TikTokSocialProviderClient {
+  return {
+    async getUserInfo() {
+      return { data: { user: { open_id: "open_1" } }, error: { code: "ok" } };
+    },
+    async listVideos() {
+      return { data: { videos: [] }, error: { code: "ok" } };
+    },
+    async fetchPostStatus() {
+      return { data: {}, error: { code: "ok" } };
+    },
+    async queryResearchVideoComments() {
+      return { data: { comments: [] }, error: { code: "ok" } };
+    },
+    async listBusinessVideos() {
+      return { data: {}, error: { code: "ok" } };
+    },
+    async listBusinessComments() {
+      return { data: { comments: [] }, error: { code: "ok" } };
+    },
+    async replyToBusinessComment() {
+      return { data: {}, error: { code: "ok" } };
+    },
+    async createBusinessComment() {
+      return { data: {}, error: { code: "ok" } };
+    },
+    ...overrides,
+  };
 }

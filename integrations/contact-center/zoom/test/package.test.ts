@@ -1,38 +1,91 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type { ZoomContactCenterProviderClient } from "../src/index.js";
 
 describe("@cognidesk/integration-contact-center-zoom", () => {
-  it("keeps manifest imports metadata-only", async () => {
+  it("declares the built-in REST adapter metadata", async () => {
     const manifestModule = await import("../src/manifest.js");
+    const metadata = JSON.stringify(manifestModule.zoomContactCenterProviderManifest.metadata);
+
     expect(manifestModule.zoomContactCenterProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-zoom");
-    expect(manifestModule.zoomContactCenterSupportSlice.allowedOperations.length).toBeGreaterThan(0);
+    expect(manifestModule.zoomContactCenterRestSupportSlice).toBe(manifestModule.zoomContactCenterSupportSlice);
+    expect(manifestModule.zoomContactCenterSupportSlice.implementationStrategy).toBe("provider-rest-adapter");
+    expect(manifestModule.zoomContactCenterSupportSlice.adapterKind).toBe("no-official-sdk-rest-adapter");
+    expect(manifestModule.zoomContactCenterProviderManifest.operations.map((operation) => operation.alias))
+      .toEqual([...manifestModule.zoomContactCenterOperationAliases]);
+    expect(metadata).not.toContain("host-injected-only");
+    expect(metadata).not.toContain("fail-closed");
+    expect(metadata).not.toContain("direct-http-support-slice");
   });
 
-  it("binds declared operations to handlers", async () => {
+  it("binds declared operations to built-in REST handlers", async () => {
     const mod = await import("../src/index.js");
-    const integration = mod.createZoomContactCenterIntegration({ apiBaseUrl: "https://example.invalid", defaultHandoffPath: "/handoff", readinessPath: "/ready", fetch: async () => new Response("{}") });
+    const integration = mod.createZoomContactCenterIntegration({
+      baseUrl: "https://api.example.test",
+      defaultHandoffPath: "/handoff",
+      fetch: async () => new Response("{}"),
+    });
     expect(integration.bindingReport).toMatchObject({ missingHandlerAliases: [], extraHandlerAliases: [], invalidExtensionOperationAliases: [] });
   });
 
-  it("uses only the configured handoff path", async () => {
+  it("uses the default adapter with encoded paths, headers, query, and JSON body", async () => {
     const mod = await import("../src/index.js");
-    const requests: string[] = [];
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true })));
     const client = mod.createZoomContactCenterClient({
-      apiBaseUrl: "https://example.invalid",
-      defaultHandoffPath: "/configured/handoff",
-      fetch: async (url, init) => {
-        requests.push(String(url));
-        expect(init?.method).toBe("POST");
-        return new Response("{}");
-      },
+      baseUrl: "https://api.example.test",
+      accessToken: "token_123",
+      fetch: fetchMock as unknown as typeof fetch,
     });
 
-    await client.createHandoff({
-      payload: { conversationId: "conv_123" },
-      query: { source: "test" },
-      // @ts-expect-error createHandoff intentionally rejects per-call endpoint paths.
-      path: "/provider/native-transfer",
+    await client.request({
+      method: "POST",
+      path: "/contact_center/engagements/{engagementId}/notes",
+      pathParams: { engagementId: "eng/123" },
+      query: { include: ["participants", "queue"] },
+      body: { note: "follow up" },
+      allowMutation: true,
+      idempotencyKey: "idem_123",
     });
 
-    expect(requests).toEqual(["https://example.invalid/configured/handoff?source=test"]);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [RequestInfo | URL, RequestInit];
+    expect(String(url)).toBe("https://api.example.test/contact_center/engagements/eng%2F123/notes?include=participants&include=queue");
+    expect(init?.method).toBe("POST");
+    expect(init?.body).toBe(JSON.stringify({ note: "follow up" }));
+    expect(init?.headers).toMatchObject({
+      authorization: "Bearer token_123",
+      "idempotency-key": "idem_123",
+      "content-type": "application/json",
+    });
+  });
+
+  it("delegates to an injected provider client override", async () => {
+    const mod = await import("../src/index.js");
+    const providerClient = fakeProviderClient();
+    const client = mod.createZoomContactCenterClient({ baseUrl: "https://api.example.test", providerClient });
+
+    await client.readContact({ pathParams: { engagementId: "engagement_123" } });
+
+    expect(client.providerClient).toBe(providerClient);
+    expect(providerClient.readContact).toHaveBeenCalledWith({ pathParams: { engagementId: "engagement_123" } });
+  });
+
+  it("surfaces provider JSON error payloads from the default adapter", async () => {
+    const mod = await import("../src/index.js");
+    const client = mod.createZoomContactCenterClient({
+      baseUrl: "https://api.example.test",
+      fetch: async () => new Response(JSON.stringify({ error: "missing_scope" }), { status: 403, statusText: "Forbidden" }),
+    });
+
+    await expect(client.startContact({ body: { queueId: "queue_123" } }))
+      .rejects.toMatchObject({ status: 403, payload: { error: "missing_scope" } });
   });
 });
+
+function fakeProviderClient(): ZoomContactCenterProviderClient {
+  return {
+    createHandoff: vi.fn(async () => ({ ok: true })),
+    startContact: vi.fn(async () => ({ ok: true })),
+    readContact: vi.fn(async () => ({ ok: true })),
+    request: vi.fn(async () => ({ ok: true })),
+    readiness: vi.fn(async () => ({ ok: true })),
+  };
+}

@@ -1,20 +1,30 @@
-import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
+import {
+  defineIntegrationProviderPackage,
+  type ProviderManifestInput,
+} from "@cognidesk/integration-kit";
 
-export const aircallSupportSlice = {
-  implementationStrategy: "direct-http-support-slice",
-  sdkDecision: "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls.",
-  verifiedAt: "2026-06-21",
+export const aircallOperationAliases = [
+  "contact-center.handoff.request",
+] as const;
+
+export const aircallRestSupportSlice = {
+  implementationStrategy: "provider-rest-adapter",
+  adapterKind: "no-official-sdk-rest-adapter",
+  sdkDecision: "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package provides a built-in REST adapter with rawClient override.",
+  verifiedAt: "2026-06-25",
   allowedOperations: [
-  {
-    id: "configuredHandoff",
-    alias: "contact-center.handoff.request",
-    method: "POST",
-    path: "host-configured",
-    source: "host-configured",
-    checksum: "not-applicable-host-configured"
-  }
-],
+    {
+      id: "configuredHandoff",
+      alias: "contact-center.handoff.request",
+      method: "POST",
+      path: "host-configured",
+      source: "provider-rest-adapter",
+      checksum: "not-applicable-host-configured",
+    },
+  ],
 } as const;
+
+export const aircallSupportSlice = aircallRestSupportSlice;
 
 export const aircallProviderManifestInput = {
   id: "contact-center.aircall",
@@ -26,13 +36,16 @@ export const aircallProviderManifestInput = {
   directions: ["inbound-only", "outbound-only", "bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
   credentialRequirements: [
-    { id: "aircall-api-base", label: "Aircall Public API base URL", required: true },
+    { id: "aircall-api-base", label: "Aircall API base URL", required: true },
     { id: "aircall-api-access", label: "Aircall API access", required: true },
     { id: "aircall-routing", label: "Aircall number/team/routing configuration", required: false },
   ],
   coverage: {
     scope: "support-workflow-subset",
-    notes: ["aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package keeps only configured-path support workflow calls."],
+    notes: [
+      "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client.",
+      "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with AircallRawClient available as an override.",
+    ],
     evidence: [
       { label: "Aircall API References", url: "https://developer.aircall.io/api-references/" },
       { label: "Aircall Everywhere SDK", url: "https://github.com/aircall/aircall-everywhere" },
@@ -45,10 +58,15 @@ export const aircallProviderManifestInput = {
     { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
   ],
   metadata: {
-    implementation: aircallSupportSlice,
+    implementation: aircallRestSupportSlice,
     manifestOnlySafe: true,
+    providerRestAdapter: {
+      strategy: "provider-rest-adapter",
+      adapterKind: "no-official-sdk-rest-adapter",
+      rawClientOverride: "AircallRawClient",
+    },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],
-} as const;
+} as const satisfies ProviderManifestInput;
 
 export const aircallProviderManifest = defineIntegrationProviderPackage(aircallProviderManifestInput);

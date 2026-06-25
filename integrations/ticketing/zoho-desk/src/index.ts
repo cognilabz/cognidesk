@@ -1,4 +1,10 @@
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
+import {
+  providerJsonRequest,
+  type ProviderHttpMethod,
+  type ProviderJsonRequestInput,
+  type ProviderQueryValue,
+} from "@cognidesk/integration-kit";
 import { zohoDeskTicketingProviderManifest } from "./manifest.js";
 
 export { zohoDeskTicketingProviderManifest } from "./manifest.js";
@@ -17,11 +23,24 @@ export type ZohoDeskProviderQuery = Record<string, ZohoDeskProviderExtensionValu
 export interface ZohoDeskProviderResponse extends ZohoDeskJsonObject {}
 export interface ZohoDeskProviderExtensionFields extends ZohoDeskJsonObject {}
 
+export interface ZohoDeskJsonRetryOptions {
+  attempts?: number;
+  statusCodes?: readonly number[];
+  baseDelayMs?: number;
+  maxDelayMs?: number;
+}
+
 export interface ZohoDeskTicketingClientOptions {
-  orgId: string;
+  providerClient?: ZohoDeskProviderClient;
+  orgId?: string;
   accessToken?: string;
+  dataCenter?: string;
   apiBaseUrl?: string;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ZohoDeskJsonRetryOptions;
+  headers?: Record<string, string>;
 }
 
 export interface ZohoDeskCredentialStatusInput {
@@ -41,13 +60,26 @@ export interface ZohoDeskTicketInput {
 }
 
 export interface ZohoDeskTicketingClient {
+  providerClient: ZohoDeskProviderClient;
   createTicket(input: ZohoDeskTicketInput): Promise<ZohoDeskProviderResponse>;
   getTicket(ticketId: string): Promise<ZohoDeskProviderResponse>;
   updateTicket(ticketId: string, patch: ZohoDeskProviderPayload): Promise<ZohoDeskProviderResponse>;
-  listTickets(query?: Record<string, string | number | boolean>): Promise<ZohoDeskProviderResponse>;
-  listTicketComments(ticketId: string, query?: Record<string, string | number | boolean>): Promise<ZohoDeskProviderResponse>;
+  listTickets(query?: ZohoDeskProviderQuery): Promise<ZohoDeskProviderResponse>;
+  listTicketComments(ticketId: string, query?: ZohoDeskProviderQuery): Promise<ZohoDeskProviderResponse>;
   createTicketComment(ticketId: string, body: ZohoDeskProviderPayload): Promise<ZohoDeskProviderResponse>;
-  listTicketThreads(ticketId: string, query?: Record<string, string | number | boolean>): Promise<ZohoDeskProviderResponse>;
+  listTicketThreads(ticketId: string, query?: ZohoDeskProviderQuery): Promise<ZohoDeskProviderResponse>;
+  sendTicketReply(ticketId: string, body: ZohoDeskProviderPayload): Promise<ZohoDeskProviderResponse>;
+  readiness(): Promise<ZohoDeskProviderResponse>;
+}
+
+export interface ZohoDeskProviderClient {
+  createTicket(input: ZohoDeskProviderPayload): Promise<ZohoDeskProviderResponse>;
+  getTicket(ticketId: string): Promise<ZohoDeskProviderResponse>;
+  updateTicket(ticketId: string, patch: ZohoDeskProviderPayload): Promise<ZohoDeskProviderResponse>;
+  listTickets(query?: ZohoDeskProviderQuery): Promise<ZohoDeskProviderResponse>;
+  listTicketComments(ticketId: string, query?: ZohoDeskProviderQuery): Promise<ZohoDeskProviderResponse>;
+  createTicketComment(ticketId: string, body: ZohoDeskProviderPayload): Promise<ZohoDeskProviderResponse>;
+  listTicketThreads(ticketId: string, query?: ZohoDeskProviderQuery): Promise<ZohoDeskProviderResponse>;
   sendTicketReply(ticketId: string, body: ZohoDeskProviderPayload): Promise<ZohoDeskProviderResponse>;
   readiness(): Promise<ZohoDeskProviderResponse>;
 }
@@ -56,55 +88,116 @@ export interface ZohoDeskLiveCheckOptions extends ZohoDeskTicketingClientOptions
   client?: Pick<ZohoDeskTicketingClient, "readiness">;
 }
 
-export function createZohoDeskTicketingClient(options: ZohoDeskTicketingClientOptions): ZohoDeskTicketingClient {
-  const fetchImpl = options.fetch ?? fetch;
+export function createZohoDeskTicketingClient(options: ZohoDeskTicketingClientOptions = {}): ZohoDeskTicketingClient {
+  const providerClient = requireZohoDeskProviderClient(
+    options.providerClient ?? createDefaultZohoDeskProviderClient(options),
+  );
+
   return {
+    providerClient,
     async createTicket(input) {
-      return zohoRequest({
-        options,
-        fetch: fetchImpl,
-        method: "POST",
-        path: "/api/v1/tickets",
-        body: {
-          subject: input.subject,
-          departmentId: input.departmentId,
-          ...(input.contactId ? { contactId: input.contactId } : {}),
-          ...(input.email ? { email: input.email } : {}),
-          ...(input.description ? { description: input.description } : {}),
-          ...(input.priority ? { priority: input.priority } : {}),
-          ...(input.status ? { status: input.status } : {}),
-          ...(input.additionalFields ?? {}),
-        },
-      });
+      return providerClient.createTicket(createZohoDeskTicketPayload(input));
     },
     async getTicket(ticketId) {
-      return zohoRequest({ options, fetch: fetchImpl, method: "GET", path: `/api/v1/tickets/${encodeURIComponent(ticketId)}` });
+      return providerClient.getTicket(ticketId);
     },
     async updateTicket(ticketId, patch) {
-      return zohoRequest({ options, fetch: fetchImpl, method: "PATCH", path: `/api/v1/tickets/${encodeURIComponent(ticketId)}`, body: patch });
+      return providerClient.updateTicket(ticketId, patch);
     },
     async listTickets(query = {}) {
-      const params = new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]));
-      return zohoRequest({ options, fetch: fetchImpl, method: "GET", path: `/api/v1/tickets${params.size ? `?${params}` : ""}` });
+      return providerClient.listTickets(query);
     },
     async listTicketComments(ticketId, query = {}) {
-      const params = new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]));
-      return zohoRequest({ options, fetch: fetchImpl, method: "GET", path: `/api/v1/tickets/${encodeURIComponent(ticketId)}/comments${params.size ? `?${params}` : ""}` });
+      return providerClient.listTicketComments(ticketId, query);
     },
     async createTicketComment(ticketId, body) {
-      return zohoRequest({ options, fetch: fetchImpl, method: "POST", path: `/api/v1/tickets/${encodeURIComponent(ticketId)}/comments`, body });
+      return providerClient.createTicketComment(ticketId, body);
     },
     async listTicketThreads(ticketId, query = {}) {
-      const params = new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]));
-      return zohoRequest({ options, fetch: fetchImpl, method: "GET", path: `/api/v1/tickets/${encodeURIComponent(ticketId)}/threads${params.size ? `?${params}` : ""}` });
+      return providerClient.listTicketThreads(ticketId, query);
     },
     async sendTicketReply(ticketId, body) {
-      return zohoRequest({ options, fetch: fetchImpl, method: "POST", path: `/api/v1/tickets/${encodeURIComponent(ticketId)}/sendReply`, body });
+      return providerClient.sendTicketReply(ticketId, body);
     },
     async readiness() {
-      return zohoRequest({ options, fetch: fetchImpl, method: "GET", path: "/api/v1/organizations" });
+      return providerClient.readiness();
     },
   };
+}
+
+export function createZohoDeskRestProviderClient(options: ZohoDeskTicketingClientOptions): ZohoDeskProviderClient {
+  const baseUrl = zohoDeskApiBaseUrl(options);
+  if (!options.orgId) {
+    throw new Error("Zoho Desk REST adapter requires orgId.");
+  }
+  if (!options.accessToken) {
+    throw new Error("Zoho Desk REST adapter requires accessToken.");
+  }
+  const orgId = options.orgId;
+  const accessToken = options.accessToken;
+
+  const request = (method: ProviderHttpMethod, path: string, input?: {
+    body?: ZohoDeskProviderPayload;
+    pathParams?: ProviderJsonRequestInput["pathParams"];
+    query?: ZohoDeskProviderQuery;
+  }) => providerJsonRequest<unknown>({
+    baseUrl,
+    method,
+    path,
+    authorizationHeader: `Zoho-oauthtoken ${accessToken}`,
+    pathParams: input?.pathParams,
+    query: zohoDeskProviderQuery(input?.query),
+    headers: {
+      orgId,
+      ...(options.headers ?? {}),
+    },
+    ...(input?.body !== undefined ? { body: input.body } : {}),
+    ...(options.fetch ? { fetch: options.fetch } : {}),
+    ...(options.signal ? { signal: options.signal } : {}),
+    ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+    ...(options.retry !== undefined ? { retry: options.retry } : {}),
+    providerName: "Zoho Desk",
+  }).then(asZohoDeskResponse);
+
+  return {
+    createTicket: (input) => request("POST", "tickets", { body: input }),
+    getTicket: (ticketId) => request("GET", "tickets/{ticketId}", { pathParams: { ticketId } }),
+    updateTicket: (ticketId, patch) => request("PATCH", "tickets/{ticketId}", { pathParams: { ticketId }, body: patch }),
+    listTickets: (query = {}) => request("GET", "tickets", { query }),
+    listTicketComments: (ticketId, query = {}) => request("GET", "tickets/{ticketId}/comments", { pathParams: { ticketId }, query }),
+    createTicketComment: (ticketId, body) => request("POST", "tickets/{ticketId}/comments", { pathParams: { ticketId }, body }),
+    listTicketThreads: (ticketId, query = {}) => request("GET", "tickets/{ticketId}/threads", { pathParams: { ticketId }, query }),
+    sendTicketReply: (ticketId, body) => request("POST", "tickets/{ticketId}/sendReply", { pathParams: { ticketId }, body }),
+    readiness: () => request("GET", "organizations"),
+  };
+}
+
+export function createUnconfiguredZohoDeskProviderClient(): ZohoDeskProviderClient {
+  const fail = async (): Promise<never> => {
+    throw new Error(
+      "Zoho Desk REST adapter requires orgId and accessToken, or pass a host-provided ZohoDeskProviderClient.",
+    );
+  };
+  return {
+    createTicket: fail,
+    getTicket: fail,
+    updateTicket: fail,
+    listTickets: fail,
+    listTicketComments: fail,
+    createTicketComment: fail,
+    listTicketThreads: fail,
+    sendTicketReply: fail,
+    readiness: fail,
+  };
+}
+
+export function zohoDeskApiBaseUrl(options: Pick<ZohoDeskTicketingClientOptions, "apiBaseUrl" | "dataCenter">): string {
+  if (options.apiBaseUrl) {
+    return options.apiBaseUrl.replace(/\/+$/, "");
+  }
+  const dataCenter = options.dataCenter?.trim().toLowerCase() ?? "us";
+  const host = zohoDeskHost(dataCenter);
+  return `https://${host}/api/v1`;
 }
 
 export function zohoDeskTicketingCredentialStatuses(input: ZohoDeskCredentialStatusInput): ProviderCredentialStatusInput[] {
@@ -114,7 +207,7 @@ export function zohoDeskTicketingCredentialStatuses(input: ZohoDeskCredentialSta
   ];
 }
 
-export function createZohoDeskTicketingLiveChecks(options: ZohoDeskLiveCheckOptions) {
+export function createZohoDeskTicketingLiveChecks(options: ZohoDeskLiveCheckOptions = {}) {
   return [{ id: "organizations", description: "Zoho Desk API can list organizations.", requiredCredentialIds: ["zoho-desk-org", "zoho-desk-api-access"], async run(context: { signal?: AbortSignal }) {
     const client = options.client ?? createZohoDeskTicketingClient(options);
     const result = await client.readiness();
@@ -123,23 +216,88 @@ export function createZohoDeskTicketingLiveChecks(options: ZohoDeskLiveCheckOpti
   } }];
 }
 
-async function zohoRequest(input: { options: ZohoDeskTicketingClientOptions; fetch: typeof fetch; method: "GET" | "POST" | "PATCH"; path: string; body?: ZohoDeskProviderPayload }) {
-  const response = await input.fetch(`${(input.options.apiBaseUrl ?? "https://desk.zoho.com").replace(/\/+$/, "")}${input.path}`, {
-    method: input.method,
-    headers: {
-      accept: "application/json",
-      orgId: input.options.orgId,
-      ...(input.body ? { "content-type": "application/json" } : {}),
-      ...(input.options.accessToken ? { authorization: `Zoho-oauthtoken ${input.options.accessToken}` } : {}),
-    },
-    ...(input.body ? { body: JSON.stringify(input.body) } : {}),
-  });
-  return parseResponse(response, "Zoho Desk");
+function createZohoDeskTicketPayload(input: ZohoDeskTicketInput): ZohoDeskProviderPayload {
+  return {
+    subject: input.subject,
+    departmentId: input.departmentId,
+    ...(input.contactId ? { contactId: input.contactId } : {}),
+    ...(input.email ? { email: input.email } : {}),
+    ...(input.description ? { description: input.description } : {}),
+    ...(input.priority ? { priority: input.priority } : {}),
+    ...(input.status ? { status: input.status } : {}),
+    ...(input.additionalFields ?? {}),
+  };
 }
 
-async function parseResponse(response: Response, provider: string) {
-  const text = await response.text();
-  const body = text ? JSON.parse(text) as ZohoDeskJsonObject : {};
-  if (!response.ok) throw new Error(typeof body.message === "string" ? body.message : `${provider} API returned ${response.status}.`);
-  return body;
+function requireZohoDeskProviderClient(client: ZohoDeskProviderClient): ZohoDeskProviderClient {
+  for (const method of [
+    "createTicket",
+    "getTicket",
+    "updateTicket",
+    "listTickets",
+    "listTicketComments",
+    "createTicketComment",
+    "listTicketThreads",
+    "sendTicketReply",
+    "readiness",
+  ] as const) {
+    if (typeof client[method] !== "function") {
+      throw new Error(`Zoho Desk providerClient must implement ${method}(); omit providerClient to use the built-in REST adapter when orgId and accessToken are configured.`);
+    }
+  }
+  return client;
+}
+
+function createDefaultZohoDeskProviderClient(options: ZohoDeskTicketingClientOptions): ZohoDeskProviderClient {
+  if (options.orgId && options.accessToken) {
+    return createZohoDeskRestProviderClient(options);
+  }
+  return createUnconfiguredZohoDeskProviderClient();
+}
+
+function zohoDeskProviderQuery(query: ZohoDeskProviderQuery | undefined): Record<string, ProviderQueryValue> | undefined {
+  if (!query) return undefined;
+  const output: Record<string, ProviderQueryValue> = {};
+  for (const [key, value] of Object.entries(query)) {
+    output[key] = zohoDeskProviderQueryValue(value);
+  }
+  return output;
+}
+
+function zohoDeskProviderQueryValue(value: ZohoDeskProviderExtensionValue): ProviderQueryValue {
+  if (value === undefined || value === null) return value;
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => {
+      if (item === null) return [];
+      if (typeof item === "object" && item !== null) return JSON.stringify(item);
+      return item;
+    });
+  }
+  if (typeof value === "object") return JSON.stringify(value);
+  return value;
+}
+
+function asZohoDeskResponse(value: unknown): ZohoDeskProviderResponse {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as ZohoDeskProviderResponse;
+  }
+  return { data: value as ZohoDeskJsonValue };
+}
+
+function zohoDeskHost(dataCenter: string): string {
+  const hosts: Record<string, string> = {
+    us: "desk.zoho.com",
+    com: "desk.zoho.com",
+    eu: "desk.zoho.eu",
+    in: "desk.zoho.in",
+    au: "desk.zoho.com.au",
+    jp: "desk.zoho.jp",
+    ca: "desk.zohocloud.ca",
+    uk: "desk.zoho.uk",
+    sa: "desk.zoho.sa",
+    cn: "desk.zoho.com.cn",
+  };
+  if (hosts[dataCenter]) return hosts[dataCenter];
+  const url = new URL(/^https?:\/\//i.test(dataCenter) ? dataCenter : `https://${dataCenter}`);
+  return url.hostname;
 }

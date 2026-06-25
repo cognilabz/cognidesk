@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-ticketing-zendesk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "node-zendesk": "^6.0.1"
   },
   "devDependencies": {
     "tsup": "^8.5.0",
@@ -44,6 +45,9 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "zendesk",
+    "providerSdkDependencies": [
+      "node-zendesk"
+    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

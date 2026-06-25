@@ -4,8 +4,8 @@ import { createMessengerSocialClient } from "./client.js";
 export function createMessengerSocialLiveChecks(options: MessengerLiveCheckOptions) {
   return [{
     id: "page",
-    description: "Meta Graph API can read the configured Messenger Page with the Page access token.",
-    requiredCredentialIds: ["messenger-page-access-token", "messenger-page-id"],
+    description: "Configured Messenger Graph API adapter or provider client can read the Messenger Page.",
+    requiredCredentialIds: ["messenger-provider-client", "messenger-page-access-token", "messenger-page-id"],
     async run(context: { signal?: AbortSignal }) {
       const client = options.client ?? createMessengerSocialClient(options);
       const page = await client.getPage();

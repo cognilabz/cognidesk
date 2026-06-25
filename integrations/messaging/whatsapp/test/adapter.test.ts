@@ -10,6 +10,7 @@ import {
   validateWhatsAppWebhookSignature,
   whatsappMessagingProviderManifest,
 } from "../src/index.js";
+import type { WhatsAppMessagingProviderClient } from "../src/index.js";
 
 describe("@cognidesk/integration-messaging-whatsapp", () => {
   it("declares split-package metadata and bound operations", () => {
@@ -31,10 +32,8 @@ describe("@cognidesk/integration-messaging-whatsapp", () => {
       ]));
 
     const integration = defineWhatsAppMessagingIntegration({
-      accessToken: "token",
-      phoneNumberId: "phone_1",
       appSecret: "secret",
-      fetch: vi.fn() as unknown as typeof fetch,
+      providerClient: fakeProviderClient(),
     });
     expect(() => assertIntegrationConformance(integration)).not.toThrow();
   });
@@ -47,27 +46,20 @@ describe("@cognidesk/integration-messaging-whatsapp", () => {
     expect(Object.keys(manifestOnly)).toEqual(["whatsappMessagingProviderManifest"]);
   });
 
-  it("preserves raw client access and webhook verification", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ messages: [{ id: "wamid.1" }] })));
+  it("delegates provider operations and preserves webhook verification", async () => {
+    const providerClient = fakeProviderClient();
     const client = createWhatsAppMessagingClient({
-      accessToken: "token",
-      phoneNumberId: "phone_1",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
     await client.sendMessage({ to: "15550100", type: "text", text: { body: "Hello" } });
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://graph.facebook.com/v25.0/phone_1/messages",
-      expect.objectContaining({ method: "POST" }),
-    );
+    expect(providerClient.sendMessage).toHaveBeenCalledWith({ to: "15550100", type: "text", text: { body: "Hello" } });
 
     const body = JSON.stringify({ object: "whatsapp_business_account", entry: [] });
     const signature = `sha256=${createHmac("sha256", "secret").update(body).digest("hex")}`;
     expect(validateWhatsAppWebhookSignature({ appSecret: "secret", rawBody: body, signature })).toBe(true);
     const integration = defineWhatsAppMessagingIntegration({
-      accessToken: "token",
-      phoneNumberId: "phone_1",
       appSecret: "secret",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
     await expect(integration.run("whatsapp.webhook-signature", {
       appSecret: "attacker",
@@ -87,6 +79,25 @@ describe("@cognidesk/integration-messaging-whatsapp", () => {
     });
     await expect(parseWhatsAppWebhook(request, { appSecret: "secret" }))
       .resolves.toMatchObject({ payload: { object: "whatsapp_business_account" } });
+  });
+
+  it("requires Graph API credentials for the built-in WhatsApp provider client", async () => {
+    expect(() => createWhatsAppMessagingClient()).toThrow("accessToken");
+
+    expect(() => defineWhatsAppMessagingIntegration({ appSecret: "secret" })).toThrow("accessToken");
+  });
+
+  it("uses a built-in Graph REST adapter without retired direct-graph metadata", async () => {
+    const clientSource = await readFile(new URL("../src/client/index.ts", import.meta.url), "utf8");
+    expect(clientSource).toContain("createWhatsAppGraphProviderClient");
+    expect(clientSource).toContain("graph.facebook.com");
+    expect(clientSource).toContain("whatsappRequest");
+    expect(clientSource).toContain("FormData");
+
+    const runtimeSource = await readFile(new URL("../src/integration.ts", import.meta.url), "utf8");
+    expect(runtimeSource).toContain("provider-rest-adapter");
+    expect(runtimeSource).not.toContain("direct-graph-support-slice");
+    expect(runtimeSource).not.toContain("rawClientAccess");
   });
 
   it("normalizes inbound message and delivery webhook events", () => {
@@ -150,3 +161,15 @@ describe("@cognidesk/integration-messaging-whatsapp", () => {
     }]);
   });
 });
+
+function fakeProviderClient(): WhatsAppMessagingProviderClient {
+  return {
+    sendMessage: vi.fn(async () => ({ messages: [{ id: "wamid.1" }] })),
+    uploadMedia: vi.fn(async () => ({ id: "media_1" })),
+    getMedia: vi.fn(async () => ({ id: "media_1" })),
+    downloadMedia: vi.fn(async () => new Response("media")),
+    getPhoneNumber: vi.fn(async () => ({ id: "phone_1", display_phone_number: "+1 555 0100" })),
+    getBusinessProfile: vi.fn(async () => ({ data: [{ about: "Support" }] })),
+    updateBusinessProfile: vi.fn(async () => ({ success: true })),
+  };
+}

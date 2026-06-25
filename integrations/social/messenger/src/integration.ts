@@ -12,7 +12,11 @@ import {
 
 export interface MessengerSocialIntegrationOptions extends MessengerSocialClientOptions {
   appSecret: string;
-  client?: MessengerSocialClient;
+  verifyToken?: string | undefined;
+  pageWebhookSubscribed?: boolean | undefined;
+  scopes?: string[] | undefined;
+  expiresAt?: string | undefined;
+  client?: MessengerSocialClient | undefined;
 }
 
 export function defineMessengerSocialIntegration(options: MessengerSocialIntegrationOptions) {
@@ -53,8 +57,9 @@ export function defineMessengerSocialIntegration(options: MessengerSocialIntegra
       },
     },
     metadata: {
-      implementationStrategy: "direct-graph-support-slice",
-      rawClientAccess: "createMessengerSocialClient",
+      implementationStrategy: options.providerClient ? "provider-client-override" : "provider-rest-adapter",
+      providerClientAccess: "createMessengerSocialClient({ providerClient })",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
     },
   });
 }

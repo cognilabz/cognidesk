@@ -1,117 +1,158 @@
 import type {
-  MessengerApiResponse,
   MessengerAttachmentType,
+  MessengerApiResponse,
   MessengerConversationResponse,
   MessengerConversationSearchInput,
   MessengerHandoverInput,
+  MessengerProviderHandoverInput,
+  MessengerProviderSendMessageInput,
+  MessengerProviderUploadAttachmentInput,
   MessengerSendMessageInput,
   MessengerSocialClient,
   MessengerSocialClientOptions,
-  MessengerSocialJsonObject,
+  MessengerSocialProviderClient,
   MessengerSocialProviderPayload,
+  MessengerSocialProviderResponse,
 } from "./contracts.js";
 import {
   applyConversationQuery,
+  messengerGraphUrl,
   messengerRequest,
 } from "./request.js";
 
-export function createMessengerSocialClient(options: MessengerSocialClientOptions): MessengerSocialClient {
-  const graphApiBaseUrl = (options.graphApiBaseUrl ?? "https://graph.facebook.com").replace(/\/+$/, "");
-  const graphApiVersion = options.graphApiVersion ?? "v25.0";
-  const fetchImpl = options.fetch ?? fetch;
+export function createMessengerSocialClient(options: MessengerSocialClientOptions = {}): MessengerSocialClient {
+  const providerClient = requireMessengerSocialProviderClient(
+    options.providerClient ?? createMessengerGraphProviderClient(options),
+  );
 
-  return {
+  const client: MessengerSocialClient = {
+    providerClient,
     async sendMessage(input) {
-      return messengerRequest<MessengerApiResponse>({
-        url: `${graphApiBaseUrl}/${graphApiVersion}/${encodeURIComponent(options.pageId)}/messages`,
-        method: "POST",
-        token: options.pageAccessToken,
-        fetch: fetchImpl,
-        body: normalizeMessageInput(input),
-      });
+      return providerClient.sendMessage(normalizeMessageInput(input));
     },
     async sendText(input) {
-      return this.sendMessage(createMessengerTextMessage(input));
+      return client.sendMessage(createMessengerTextMessage(input));
     },
     async sendSenderAction(input) {
-      return this.sendMessage({
+      return client.sendMessage({
         recipient: { id: input.recipientId },
         senderAction: input.action,
       });
     },
     async uploadAttachment(input) {
-      return messengerRequest<MessengerApiResponse>({
-        url: `${graphApiBaseUrl}/${graphApiVersion}/${encodeURIComponent(options.pageId)}/message_attachments`,
-        method: "POST",
-        token: options.pageAccessToken,
-        fetch: fetchImpl,
-        body: {
-          message: {
-            attachment: {
-              type: input.type,
-              payload: {
-                is_reusable: input.isReusable ?? true,
-                url: input.url,
-              },
-            },
-          },
-        },
-      });
+      return providerClient.uploadAttachment(normalizeAttachmentUploadInput(input));
     },
     async passThreadControl(input) {
-      return messengerRequest<MessengerApiResponse>({
-        url: `${graphApiBaseUrl}/${graphApiVersion}/${encodeURIComponent(options.pageId)}/pass_thread_control`,
-        method: "POST",
-        token: options.pageAccessToken,
-        fetch: fetchImpl,
-        body: handoverBody(input),
-      });
+      return providerClient.passThreadControl(handoverBody(input));
     },
     async takeThreadControl(input) {
-      return messengerRequest<MessengerApiResponse>({
-        url: `${graphApiBaseUrl}/${graphApiVersion}/${encodeURIComponent(options.pageId)}/take_thread_control`,
-        method: "POST",
-        token: options.pageAccessToken,
-        fetch: fetchImpl,
-        body: handoverBody(input),
-      });
+      return providerClient.takeThreadControl(handoverBody(input));
     },
     async requestThreadControl(input) {
-      return messengerRequest<MessengerApiResponse>({
-        url: `${graphApiBaseUrl}/${graphApiVersion}/${encodeURIComponent(options.pageId)}/request_thread_control`,
-        method: "POST",
-        token: options.pageAccessToken,
-        fetch: fetchImpl,
-        body: handoverBody(input),
-      });
+      return providerClient.requestThreadControl(handoverBody(input));
     },
     async listConversations(input = {}) {
-      const url = new URL(`${graphApiBaseUrl}/${graphApiVersion}/${encodeURIComponent(options.pageId)}/conversations`);
-      applyConversationQuery(url, input);
-      return messengerRequest<MessengerConversationResponse>({
-        url: url.toString(),
-        method: "GET",
-        token: options.pageAccessToken,
-        fetch: fetchImpl,
-      });
+      return providerClient.listConversations(normalizeConversationSearchInput(input));
     },
     async getConversationMessages(conversationId, input = {}) {
-      const url = new URL(`${graphApiBaseUrl}/${graphApiVersion}/${encodeURIComponent(conversationId)}/messages`);
+      return providerClient.getConversationMessages(conversationId, normalizeConversationSearchInput(input));
+    },
+    async getPage() {
+      return providerClient.getPage();
+    },
+  };
+  return client;
+}
+
+export function createMessengerGraphProviderClient(options: MessengerSocialClientOptions): MessengerSocialProviderClient {
+  const accessToken = requireConfiguredMessengerOption(
+    options.pageAccessToken ?? options.accessToken,
+    "accessToken",
+  );
+  const pageId = requireConfiguredMessengerOption(options.pageId, "pageId");
+  const graphApiBaseUrl = (options.graphApiBaseUrl ?? options.baseUrl ?? "https://graph.facebook.com").replace(/\/+$/, "");
+  const graphApiVersion = options.graphApiVersion ?? "v25.0";
+  const fetchImpl = options.fetch ?? fetch;
+  const graphOptions = {
+    accessToken,
+    ...(options.signal ? { signal: options.signal } : {}),
+    ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+    ...(options.retry !== undefined ? { retry: options.retry } : {}),
+  };
+
+  return {
+    sendMessage(input) {
+      return messengerRequest<MessengerApiResponse>({
+        url: messengerGraphUrl(graphApiBaseUrl, graphApiVersion, [pageId], "/messages"),
+        method: "POST",
+        options: graphOptions,
+        fetch: fetchImpl,
+        body: input,
+      });
+    },
+    uploadAttachment(input) {
+      return messengerRequest<MessengerApiResponse>({
+        url: messengerGraphUrl(graphApiBaseUrl, graphApiVersion, [pageId], "/message_attachments"),
+        method: "POST",
+        options: graphOptions,
+        fetch: fetchImpl,
+        body: input,
+      });
+    },
+    passThreadControl(input) {
+      return messengerRequest<MessengerApiResponse>({
+        url: messengerGraphUrl(graphApiBaseUrl, graphApiVersion, [pageId], "/pass_thread_control"),
+        method: "POST",
+        options: graphOptions,
+        fetch: fetchImpl,
+        body: input,
+      });
+    },
+    takeThreadControl(input) {
+      return messengerRequest<MessengerApiResponse>({
+        url: messengerGraphUrl(graphApiBaseUrl, graphApiVersion, [pageId], "/take_thread_control"),
+        method: "POST",
+        options: graphOptions,
+        fetch: fetchImpl,
+        body: input,
+      });
+    },
+    requestThreadControl(input) {
+      return messengerRequest<MessengerApiResponse>({
+        url: messengerGraphUrl(graphApiBaseUrl, graphApiVersion, [pageId], "/request_thread_control"),
+        method: "POST",
+        options: graphOptions,
+        fetch: fetchImpl,
+        body: input,
+      });
+    },
+    listConversations(input = {}) {
+      const url = messengerGraphUrl(graphApiBaseUrl, graphApiVersion, [pageId], "/conversations");
       applyConversationQuery(url, input);
       return messengerRequest<MessengerConversationResponse>({
-        url: url.toString(),
+        url,
         method: "GET",
-        token: options.pageAccessToken,
+        options: graphOptions,
         fetch: fetchImpl,
       });
     },
-    async getPage() {
-      const url = new URL(`${graphApiBaseUrl}/${graphApiVersion}/${encodeURIComponent(options.pageId)}`);
-      url.searchParams.set("fields", "id,name,category,link");
-      return messengerRequest<MessengerSocialJsonObject>({
-        url: url.toString(),
+    getConversationMessages(conversationId, input = {}) {
+      const url = messengerGraphUrl(graphApiBaseUrl, graphApiVersion, [conversationId], "/messages");
+      applyConversationQuery(url, input);
+      return messengerRequest<MessengerConversationResponse>({
+        url,
         method: "GET",
-        token: options.pageAccessToken,
+        options: graphOptions,
+        fetch: fetchImpl,
+      });
+    },
+    getPage() {
+      const url = messengerGraphUrl(graphApiBaseUrl, graphApiVersion, [pageId]);
+      url.searchParams.set("fields", "id,name,category,link");
+      return messengerRequest<MessengerSocialProviderResponse>({
+        url,
+        method: "GET",
+        options: graphOptions,
         fetch: fetchImpl,
       });
     },
@@ -152,7 +193,7 @@ export function createMessengerAttachmentMessage(input: {
   };
 }
 
-function normalizeMessageInput(input: MessengerSendMessageInput) {
+function normalizeMessageInput(input: MessengerSendMessageInput): MessengerProviderSendMessageInput {
   return {
     recipient: input.recipient,
     messaging_type: input.messagingType ?? "RESPONSE",
@@ -164,10 +205,69 @@ function normalizeMessageInput(input: MessengerSendMessageInput) {
   };
 }
 
-function handoverBody(input: MessengerHandoverInput) {
+function normalizeAttachmentUploadInput(input: {
+  type: MessengerAttachmentType;
+  url: string;
+  isReusable?: boolean;
+}): MessengerProviderUploadAttachmentInput {
+  return {
+    message: {
+      attachment: {
+        type: input.type,
+        payload: {
+          is_reusable: input.isReusable ?? true,
+          url: input.url,
+        },
+      },
+    },
+  };
+}
+
+function handoverBody(input: MessengerHandoverInput): MessengerProviderHandoverInput {
   return {
     recipient: { id: input.recipientId },
     ...(input.targetAppId ? { target_app_id: input.targetAppId } : {}),
     ...(input.metadata ? { metadata: input.metadata } : {}),
   };
 }
+
+function normalizeConversationSearchInput<T extends MessengerConversationSearchInput>(input: T): T {
+  return {
+    ...input,
+    fields: input.fields?.length ? input.fields : defaultMessengerConversationFields,
+  };
+}
+
+function requireMessengerSocialProviderClient(client: MessengerSocialProviderClient) {
+  for (const method of requiredProviderClientMethods) {
+    if (typeof client[method] !== "function") {
+      throw new Error(`MessengerSocialProviderClient must implement ${method}().`);
+    }
+  }
+  return client;
+}
+
+function requireConfiguredMessengerOption(value: string | undefined, name: string) {
+  if (!value) {
+    throw new Error(`Messenger built-in Graph API adapter requires ${name}; pass ${name} or providerClient.`);
+  }
+  return value;
+}
+
+const requiredProviderClientMethods = [
+  "sendMessage",
+  "uploadAttachment",
+  "passThreadControl",
+  "takeThreadControl",
+  "requestThreadControl",
+  "listConversations",
+  "getConversationMessages",
+  "getPage",
+] as const;
+
+const defaultMessengerConversationFields = [
+  "id",
+  "updated_time",
+  "participants",
+  "messages{message,from,to,created_time,attachments}",
+];

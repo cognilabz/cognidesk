@@ -5,7 +5,9 @@ import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing
 import {
   createInstagramSocialClient,
   defineInstagramSocialIntegration,
+  instagramHostClientSupportSlice,
   instagramSocialProviderManifest,
+  instagramSocialSupportSlice,
   normalizeInstagramWebhookEvents,
   parseInstagramWebhook,
   validateInstagramWebhookSignature,
@@ -22,48 +24,61 @@ describe("@cognidesk/integration-social-instagram", () => {
     });
     expect(instagramSocialProviderManifest.coverage.notes.join(" "))
       .toContain("does not implement the broader Instagram Platform");
+    expect(instagramSocialProviderManifest.metadata?.providerClient).toMatchObject({
+      interface: "InstagramMetaProviderClient",
+      importPolicy: "provider-client-override-supported",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
+    });
+    expect(instagramHostClientSupportSlice).toBe(instagramSocialSupportSlice);
+    expect(instagramHostClientSupportSlice.implementationStrategy).toBe("no-official-sdk-rest-adapter");
     const integration = defineInstagramSocialIntegration({
-      accessToken: "token",
       pageId: "page_1",
       instagramBusinessAccountId: "ig_1",
       appSecret: "secret",
-      fetch: vi.fn() as unknown as typeof fetch,
+      providerClient: fakeProviderClient(),
     });
     expect(() => assertIntegrationConformance(integration)).not.toThrow();
   });
 
   it("keeps the manifest entry metadata-only", async () => {
     const source = await readFile(new URL("../src/manifest.ts", import.meta.url), "utf8");
-    expect(source).not.toContain("./client");
-    expect(source).not.toContain("./request");
-    expect(source).not.toContain("facebook-nodejs-business-sdk");
+    expect(source).not.toContain("from \"./client");
+    expect(source).not.toContain("from \"./request");
+    expect(source).not.toContain("direct-graph-support-slice");
+    expect(JSON.stringify(instagramSocialProviderManifest.metadata?.implementation)).not.toContain("direct-http");
+    expect(JSON.stringify(instagramSocialProviderManifest.metadata?.implementation)).not.toContain("raw Graph default");
     const manifestOnly = await import(new URL("../dist/manifest.js", import.meta.url).href);
-    expect(Object.keys(manifestOnly)).toEqual(["instagramSocialProviderManifest"]);
+    expect(Object.keys(manifestOnly)).toContain("instagramSocialProviderManifest");
+    expect(Object.keys(manifestOnly)).not.toContain("createInstagramSocialClient");
   });
 
-  it("preserves raw client access and webhook verification", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ message_id: "mid.1" })));
+  it("delegates provider operations to the host-injected client and preserves webhook verification", async () => {
+    const providerClient = fakeProviderClient();
     const client = createInstagramSocialClient({
-      accessToken: "token",
       pageId: "page_1",
       instagramBusinessAccountId: "ig_1",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
     await client.sendTextMessage({ recipientId: "igsid_1", text: "Hello" });
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://graph.facebook.com/v25.0/page_1/messages",
-      expect.objectContaining({ method: "POST" }),
-    );
+    await client.listConversations({ limit: 10 });
+    expect(providerClient.sendMessage).toHaveBeenCalledWith({
+      recipient: { id: "igsid_1" },
+      message: { text: "Hello" },
+      senderId: "page_1",
+    });
+    expect(providerClient.listConversations).toHaveBeenCalledWith({
+      limit: 10,
+      accountId: "ig_1",
+    });
 
     const body = JSON.stringify({ object: "instagram", entry: [] });
     const signature = `sha256=${createHmac("sha256", "secret").update(body).digest("hex")}`;
     expect(validateInstagramWebhookSignature({ appSecret: "secret", rawBody: body, signature })).toBe(true);
     const integration = defineInstagramSocialIntegration({
-      accessToken: "token",
       pageId: "page_1",
       instagramBusinessAccountId: "ig_1",
       appSecret: "secret",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient,
     });
     await expect(integration.run("instagram.webhook-signature", {
       appSecret: "attacker",
@@ -83,6 +98,13 @@ describe("@cognidesk/integration-social-instagram", () => {
     });
     await expect(parseInstagramWebhook(request, { appSecret: "secret" }))
       .resolves.toMatchObject({ payload: { object: "instagram" } });
+  });
+
+  it("ships a Graph API adapter but fails closed without credentials", () => {
+    expect(() => createInstagramSocialClient({ pageId: "page_1" }))
+      .toThrow("Instagram built-in Graph API adapter requires accessToken");
+    expect(() => defineInstagramSocialIntegration({ appSecret: "secret" }))
+      .toThrow("Instagram built-in Graph API adapter requires accessToken");
   });
 
   it("normalizes inbound message webhook events", () => {
@@ -117,3 +139,14 @@ describe("@cognidesk/integration-social-instagram", () => {
     })).toEqual([]);
   });
 });
+
+function fakeProviderClient() {
+  return {
+    sendMessage: vi.fn(async () => ({ message_id: "mid.1" })),
+    listConversations: vi.fn(async () => ({ data: [] })),
+    listConversationMessages: vi.fn(async () => ({ data: [] })),
+    getMessage: vi.fn(async () => ({ id: "mid.1" })),
+    getInstagramBusinessAccount: vi.fn(async () => ({ id: "ig_1", username: "example" })),
+    getPage: vi.fn(async () => ({ id: "page_1", name: "Example Page" })),
+  };
+}

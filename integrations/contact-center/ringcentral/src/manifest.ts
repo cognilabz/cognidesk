@@ -29,9 +29,9 @@ export const ringCentralContactCenterManifestInput = {
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
+      "Runtime uses @ringcentral/sdk for authentication and SDK-dispatched contact-center operations.",
       "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation.",
-      "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness plus raw SDK request escape hatches.",
+      "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness through an injected SDK-backed client.",
       "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk.",
     ],
     evidence: [
@@ -62,7 +62,7 @@ export const ringCentralContactCenterManifestInput = {
     {
       alias: "contact-center.handoff.request",
       capability: "handoff",
-      providerOperation: "sdk-configured-request",
+      providerOperation: "sdk-client-handoff-create",
       providerObject: "contactTransfer",
       sideEffect: true,
       exposesSensitiveData: true,
@@ -71,7 +71,7 @@ export const ringCentralContactCenterManifestInput = {
     {
       alias: "contact-center.handoff.status.read",
       capability: "handoff",
-      providerOperation: "sdk-configured-readiness-request",
+      providerOperation: "sdk-client-readiness-read",
       providerObject: "contactTransfer",
       exposesSensitiveData: true,
     },
@@ -86,14 +86,14 @@ export const ringCentralContactCenterManifestInput = {
   ],
   metadata: {
     implementation: {
-      strategy: "official-sdk-plus-reviewed-slices",
+      strategy: "official-sdk-backed-client-plus-reviewed-slices",
       sdkPackage: "@ringcentral/sdk",
       sdkPackages: ["@ringcentral/sdk"],
     },
     channelCoverage: {
       configuredHttpHandoff: "sdk-dispatched",
       configuredReadiness: "sdk-dispatched",
-      rawRingCentralSdkPlatform: "escape-hatch",
+      sdkBackedClient: "injected-client",
       currentVoiceRestApiOperations: "provider-supported-not-typed",
       digitalRestApiOperations: "provider-supported-not-typed",
       channelSdkMessaging: "provider-supported-sdk-runtime-not-typed",

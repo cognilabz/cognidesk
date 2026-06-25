@@ -1,5 +1,23 @@
 import { defineIntegrationProviderPackage, type ProviderManifestInput } from "@cognidesk/integration-kit";
 
+export const helpScoutHostClientSupportSlice = {
+  implementationStrategy: "provider-rest-adapter",
+  providerSdkDecision: "no-official-sdk-rest-adapter",
+  verifiedAt: "2026-06-25",
+  allowedOperations: [
+    { id: "conversations.create", alias: "ticket.create", target: "restAdapter.createConversation" },
+    { id: "conversations.read", alias: "ticket.read", target: "restAdapter.getConversation" },
+    { id: "conversations.update", alias: "ticket.update", target: "restAdapter.updateConversation" },
+    { id: "conversations.list", alias: "ticket.search", target: "restAdapter.listConversations" },
+    { id: "reply.create", alias: "ticket.comment.create", target: "restAdapter.createReply" },
+    { id: "note.create", alias: "ticket.internalNote.create", target: "restAdapter.createNote" },
+    { id: "threads.list", alias: "help-scout.thread.list", target: "restAdapter.listThreads" },
+    { id: "mailboxes.list", alias: "help-scout.readiness", target: "restAdapter.readiness" },
+  ],
+} as const;
+
+export const helpScoutSupportSlice = helpScoutHostClientSupportSlice;
+
 export const helpScoutTicketingProviderManifestInput = {
   id: "ticketing.help-scout",
   name: "Help Scout",
@@ -9,12 +27,16 @@ export const helpScoutTicketingProviderManifestInput = {
   trustLevel: "official",
   directions: ["bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
-  credentialRequirements: [{ id: "help-scout-api-access", label: "Help Scout OAuth access", required: true }],
+  credentialRequirements: [
+    { id: "help-scout-base-url", label: "Help Scout API base URL", required: false },
+    { id: "help-scout-api-access", label: "Help Scout OAuth access token or API key", required: true },
+  ],
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "SDK decision: Help Scout's official JavaScript SDK is for Apps UI context, not a backend Inbox API client.",
-      "Coverage is limited to Help Scout Inbox API conversation create/read/list/update, thread list, reply/note thread creation, and mailbox-list readiness.",
+      "No official maintained backend JavaScript Inbox API client was verified; Help Scout's official JavaScript SDK is for Apps UI context.",
+      "Coverage is implemented by the built-in Help Scout REST adapter for conversation create/read/list/update, thread list, reply/note thread creation, and mailbox-list readiness.",
+      "A host-provided HelpScoutTicketingProviderClient can still override the built-in REST adapter.",
     ],
     evidence: [
       { label: "Help Scout JavaScript SDK", url: "https://developer.helpscout.com/apps/javascript-sdk/" },
@@ -43,16 +65,15 @@ export const helpScoutTicketingProviderManifestInput = {
   limitations: ["Mailbox IDs, thread types, assignment, workflow rules, and customer visibility are SDK-user configuration."],
   metadata: {
     issue: 35,
-    implementationStrategy: "direct-http-support-slice",
-    sdkDecision: {
-      candidates: ["@helpscout/javascript-sdk"],
-      verdict: "not-adopted",
-      reason: "The official JavaScript SDK targets Help Scout Apps UI, not backend Inbox API operations.",
-      checkedAt: "2026-06-21",
-    },
-    supportSlice: {
-      source: "Help Scout Inbox API",
-      allowlistedOperations: ["conversations.create", "conversations.read", "conversations.update", "conversations.list", "threads.list", "reply.create", "note.create", "mailboxes.list"],
+    implementation: helpScoutHostClientSupportSlice,
+    manifestOnlySafe: true,
+    implementationStrategy: "provider-rest-adapter",
+    sdkDecision: "no-official-sdk-rest-adapter",
+    providerClient: {
+      package: "optional-override",
+      interface: "HelpScoutTicketingProviderClient",
+      importPolicy: "runtime-override",
+      defaultClientPolicy: "built-in-rest-adapter",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

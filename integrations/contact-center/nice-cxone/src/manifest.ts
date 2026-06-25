@@ -1,36 +1,47 @@
 import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 
-export const niceCxoneSupportSlice = {
-  implementationStrategy: "generated-support-slice",
-  sdkDecision: "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice.",
-  verifiedAt: "2026-06-21",
+export const niceCxoneRestSupportSlice = {
+  implementationStrategy: "provider-rest-adapter",
+  adapterKind: "no-official-sdk-rest-adapter",
+  sdkDecision: "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital surfaces; this package provides a built-in REST adapter with providerClient override.",
+  verifiedAt: "2026-06-25",
   allowedOperations: [
-  {
-    id: "scheduleACallback",
-    alias: "contact-center.callback.schedule",
-    method: "POST",
-    path: "/promise",
-    source: "https://developer.niceincontact.com/content/apis/patron/patron-callback-api-docs",
-    checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
-  },
-  {
-    id: "startChatSession",
-    alias: "contact-center.contact.start",
-    method: "POST",
-    path: "/contacts/chats",
-    source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
-    checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
-  },
-  {
-    id: "endChat",
-    alias: "contact-center.contact.end",
-    method: "DELETE",
-    path: "/contacts/chats/{chatSession}",
-    source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
-    checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
-  }
-],
+    {
+      id: "configuredHandoff",
+      alias: "contact-center.handoff.request",
+      method: "POST",
+      path: "host-configured",
+      source: "provider-rest-adapter",
+      checksum: "not-applicable-host-configured",
+    },
+    {
+      id: "scheduleACallback",
+      alias: "contact-center.callback.schedule",
+      method: "POST",
+      path: "/promise",
+      source: "https://developer.niceincontact.com/content/apis/patron/patron-callback-api-docs",
+      checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog",
+    },
+    {
+      id: "startChatSession",
+      alias: "contact-center.contact.start",
+      method: "POST",
+      path: "/contacts/chats",
+      source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
+      checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog",
+    },
+    {
+      id: "endChat",
+      alias: "contact-center.contact.end",
+      method: "DELETE",
+      path: "/contacts/chats/{chatSession}",
+      source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
+      checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog",
+    },
+  ],
 } as const;
+
+export const niceCxoneSupportSlice = niceCxoneRestSupportSlice;
 
 export const niceCxoneProviderManifestInput = {
   id: "contact-center.nice-cxone",
@@ -48,7 +59,10 @@ export const niceCxoneProviderManifestInput = {
   ],
   coverage: {
     scope: "support-workflow-subset",
-    notes: ["Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital SDK surfaces; this package keeps a reviewed support slice."],
+    notes: [
+      "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital surfaces.",
+      "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with NiceCxoneProviderClient available as an override.",
+    ],
     evidence: [
       { label: "NICE CXone REST APIs", url: "https://developer.niceincontact.com/API" },
       { label: "NICE CXone Agent SDK", url: "https://github.com/nice-devone/nice-cxone-agent-sdk" },
@@ -69,8 +83,13 @@ export const niceCxoneProviderManifestInput = {
     { alias: "nice-cxone.request", capability: "read-provider-object", providerObject: "contact", extension: true },
   ],
   metadata: {
-    implementation: niceCxoneSupportSlice,
+    implementation: niceCxoneRestSupportSlice,
     manifestOnlySafe: true,
+    providerRestAdapter: {
+      strategy: "provider-rest-adapter",
+      adapterKind: "no-official-sdk-rest-adapter",
+      providerClientOverride: "NiceCxoneProviderClient",
+    },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],
 } as const;

@@ -3,6 +3,7 @@ import { runProviderConformance } from "@cognidesk/test-harness";
 import {
   createOracleServiceTicketingClient,
   createOracleServiceTicketingLiveChecks,
+  type OracleServiceTicketingProviderClient,
   oracleServiceTicketingCredentialStatuses,
   oracleServiceTicketingProviderManifest,
 } from "../src/index.js";
@@ -54,15 +55,101 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
     });
   });
 
-  it("creates Oracle Fusion Service service requests", async () => {
+  it("uses the built-in Oracle Fusion Service REST adapter when credentials are provided", async () => {
     const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ SrId: 42, SrNumber: "SR00042", Title: "Cannot check in" }), { status: 201 })
+      jsonResponse({ SrId: 42, SrNumber: "SR/00042", Title: "Cannot check in" })
     );
     const client = createOracleServiceTicketingClient({
-      instanceUrl: "https://example.fa.oraclecloud.com/",
-      username: "api-user",
-      password: "api-pass",
-      fetch: fetchMock as unknown as typeof fetch,
+      baseUrl: "https://example.fa.oraclecloud.com/",
+      accessToken: "oracle-token",
+      fetch: fetchMock,
+    });
+
+    await expect(client.createServiceRequest({
+      title: "Cannot check in",
+      problemDescription: "Customer cannot complete online check-in.",
+      severityCode: "ORA_SVC_SEV2",
+      fields: { SourceCd: "API" },
+    })).resolves.toMatchObject({ SrNumber: "SR/00042" });
+
+    const [url, init] = fetchCall(fetchMock);
+    expect(url).toBe("https://example.fa.oraclecloud.com/crmRestApi/resources/11.13.18.05/serviceRequests");
+    expect(init.method).toBe("POST");
+    expect(headerValue(init, "authorization")).toBe("Bearer oracle-token");
+    expect(headerValue(init, "content-type")).toContain("application/json");
+    expect(jsonBody(init)).toEqual({
+      Title: "Cannot check in",
+      ProblemDescription: "Customer cannot complete online check-in.",
+      SeverityCd: "ORA_SVC_SEV2",
+      SourceCd: "API",
+    });
+  });
+
+  it("encodes Oracle REST paths and query parameters for built-in operations", async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ items: [], count: 0 }));
+    const client = createOracleServiceTicketingClient({
+      baseUrl: "https://example.fa.oraclecloud.com",
+      auth: { type: "basic", username: "svc-user", password: "svc-pass" },
+      fetch: fetchMock,
+    });
+
+    await client.createServiceRequestMessage({
+      srNumber: "SR/00042",
+      messageTypeCode: "Internal Note",
+      messageContent: "handoff",
+    });
+    await client.searchServiceRequests({
+      q: "StatusCd='ORA_SVC_NEW'",
+      fields: ["SrId", "SrNumber"],
+      expand: ["messages"],
+      limit: 5,
+      onlyData: true,
+    });
+
+    const [messageUrl, messageInit] = fetchCall(fetchMock, 0);
+    expect(new URL(messageUrl).pathname).toBe(
+      "/crmRestApi/resources/11.13.18.05/serviceRequests/SR%2F00042/child/messages",
+    );
+    expect(headerValue(messageInit, "authorization")).toBe(`Basic ${Buffer.from("svc-user:svc-pass").toString("base64")}`);
+    expect(jsonBody(messageInit)).toMatchObject({
+      MessageTypeCd: "Internal Note",
+      MessageContent: "handoff",
+    });
+
+    const [searchUrl] = fetchCall(fetchMock, 1);
+    const query = new URL(searchUrl).searchParams;
+    expect(query.get("q")).toBe("StatusCd='ORA_SVC_NEW'");
+    expect(query.get("fields")).toBe("SrId,SrNumber");
+    expect(query.get("expand")).toBe("messages");
+    expect(query.get("limit")).toBe("5");
+    expect(query.get("onlyData")).toBe("true");
+  });
+
+  it("surfaces Oracle REST JSON errors with status and payload", async () => {
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({ title: "Invalid service request", "o:errorDetails": [{ detail: "Status is invalid." }] }, {
+        status: 400,
+        statusText: "Bad Request",
+      })
+    );
+    const client = createOracleServiceTicketingClient({
+      baseUrl: "https://example.fa.oraclecloud.com",
+      accessToken: "oracle-token",
+      fetch: fetchMock,
+    });
+
+    await expect(client.searchServiceRequests()).rejects.toMatchObject({
+      name: "OracleServiceProviderApiError",
+      status: 400,
+      message: "Status is invalid.",
+      body: expect.objectContaining({ title: "Invalid service request" }),
+    });
+  });
+
+  it("delegates service request operations to the host-injected provider client", async () => {
+    const providerClient = fakeOracleServiceProviderClient();
+    const client = createOracleServiceTicketingClient({
+      providerClient,
     });
 
     await expect(client.createServiceRequest({
@@ -71,35 +158,18 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       severityCode: "ORA_SVC_SEV2",
       fields: { SourceCd: "API" },
     })).resolves.toMatchObject({ SrNumber: "SR00042" });
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://example.fa.oraclecloud.com/crmRestApi/resources/11.13.18.05/serviceRequests",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          authorization: `Basic ${Buffer.from("api-user:api-pass").toString("base64")}`,
-          "content-type": "application/vnd.oracle.adf.resourceitem+json",
-        }),
-      }),
-    );
-    const request = (fetchMock.mock.calls[0] as unknown[])[1] as { body: string };
-    expect(JSON.parse(request.body)).toMatchObject({
-      Title: "Cannot check in",
-      ProblemDescription: "Customer cannot complete online check-in.",
-      SeverityCd: "ORA_SVC_SEV2",
-      SourceCd: "API",
-    });
-  });
-
-  it("creates Oracle Fusion Service service request child messages", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ MessageId: 99, MessageTypeCd: "Internal Note" }), { status: 201 })
-    );
-    const client = createOracleServiceTicketingClient({
-      instanceUrl: "https://example.fa.oraclecloud.com",
-      accessToken: "oauth-token",
-      fetch: fetchMock as unknown as typeof fetch,
-    });
+    await expect(client.getServiceRequest("SR00042")).resolves.toMatchObject({ SrNumber: "SR00042" });
+    await expect(client.updateServiceRequest("SR00042", {
+      statusCode: "ORA_SVC_RESOLVED",
+      resolveDescription: "Resolved by support.",
+    })).resolves.toMatchObject({ StatusCd: "ORA_SVC_RESOLVED" });
+    await expect(client.searchServiceRequests({
+      q: "StatusCd='ORA_SVC_NEW'",
+      fields: ["SrId", "SrNumber"],
+      limit: 5,
+      onlyData: true,
+    })).resolves.toMatchObject({ count: 1 });
+    await expect(client.readiness()).resolves.toMatchObject({ count: 1 });
 
     const messageContent = Buffer.from("Internal handoff context.").toString("base64");
     await expect(client.createServiceRequestMessage({
@@ -112,87 +182,35 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       channelTypeCode: "ORA_SVC_EMAIL",
     })).resolves.toMatchObject({ MessageId: 99 });
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://example.fa.oraclecloud.com/crmRestApi/resources/11.13.18.05/serviceRequests/SR00042/child/messages",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          authorization: "Bearer oauth-token",
-          "content-type": "application/vnd.oracle.adf.resourceitem+json",
-        }),
-      }),
-    );
-    const request = (fetchMock.mock.calls[0] as unknown[])[1] as { body: string };
-    expect(JSON.parse(request.body)).toMatchObject({
-      MessageTypeCd: "Internal Note",
-      MessageContent: messageContent,
-      StatusCd: "ORA_SVC_READY",
-      SocialPrivateFlag: false,
-      SourceCd: "API",
-      ChannelTypeCd: "ORA_SVC_EMAIL",
-    });
-  });
-
-  it("searches service requests with Oracle collection query controls", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({
-        items: [{ SrId: 42, SrNumber: "SR00042" }],
-        count: 1,
-        hasMore: false,
-      }), { status: 200 })
-    );
-    const client = createOracleServiceTicketingClient({
-      instanceUrl: "https://example.fa.oraclecloud.com",
-      accessToken: "oauth-token",
-      fetch: fetchMock as unknown as typeof fetch,
-    });
-
-    await expect(client.searchServiceRequests({
+    expect(providerClient.createServiceRequest).toHaveBeenCalledWith(expect.objectContaining({
+      title: "Cannot check in",
+      fields: { SourceCd: "API" },
+    }));
+    expect(providerClient.getServiceRequest).toHaveBeenCalledWith("SR00042");
+    expect(providerClient.updateServiceRequest).toHaveBeenCalledWith("SR00042", expect.objectContaining({
+      statusCode: "ORA_SVC_RESOLVED",
+      resolveDescription: "Resolved by support.",
+    }));
+    expect(providerClient.searchServiceRequests).toHaveBeenCalledWith(expect.objectContaining({
       q: "StatusCd='ORA_SVC_NEW'",
       fields: ["SrId", "SrNumber"],
       limit: 5,
       onlyData: true,
-    })).resolves.toMatchObject({ count: 1 });
-
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
-    expect(url).toBe("https://example.fa.oraclecloud.com/crmRestApi/resources/11.13.18.05/serviceRequests?q=StatusCd%3D%27ORA_SVC_NEW%27&fields=SrId%2CSrNumber&limit=5&onlyData=true");
-    expect(init.headers.authorization).toBe("Bearer oauth-token");
+    }));
+    expect(providerClient.readiness).toHaveBeenCalled();
+    expect(providerClient.createServiceRequestMessage).toHaveBeenCalledWith(expect.objectContaining({
+      srNumber: "SR00042",
+      messageTypeCode: "Internal Note",
+      messageContent,
+    }));
   });
 
-  it("reads and updates service requests by Oracle SrNumber", async () => {
-    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-      if (init?.method === "GET") {
-        return new Response(JSON.stringify({ SrId: 42, SrNumber: "SR00042", Title: "Cannot check in" }), { status: 200 });
-      }
-      return new Response(JSON.stringify({ SrId: 42, SrNumber: "SR00042", StatusCd: "ORA_SVC_RESOLVED" }), { status: 200 });
-    });
-    const client = createOracleServiceTicketingClient({
-      instanceUrl: "https://example.fa.oraclecloud.com",
-      accessToken: "oauth-token",
-      fetch: fetchMock as unknown as typeof fetch,
-    });
-
-    await expect(client.getServiceRequest("SR00042")).resolves.toMatchObject({ SrNumber: "SR00042" });
-    await expect(client.updateServiceRequest("SR00042", {
-      statusCode: "ORA_SVC_RESOLVED",
-      resolveDescription: "Resolved by support.",
-    })).resolves.toMatchObject({ StatusCd: "ORA_SVC_RESOLVED" });
-
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://example.fa.oraclecloud.com/crmRestApi/resources/11.13.18.05/serviceRequests/SR00042",
-      expect.objectContaining({ method: "GET" }),
+  it("requires either providerClient or REST credentials before executing operations", async () => {
+    const client = createOracleServiceTicketingClient();
+    await expect(client.searchServiceRequests()).rejects.toThrow("baseUrl/instanceUrl plus accessToken");
+    await expect(createOracleServiceTicketingLiveChecks({})[0]?.run({})).rejects.toThrow(
+      "baseUrl/instanceUrl plus accessToken",
     );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://example.fa.oraclecloud.com/crmRestApi/resources/11.13.18.05/serviceRequests/SR00042",
-      expect.objectContaining({ method: "PATCH" }),
-    );
-    const request = (fetchMock.mock.calls[1] as unknown[])[1] as { body: string };
-    expect(JSON.parse(request.body)).toMatchObject({
-      StatusCd: "ORA_SVC_RESOLVED",
-      ResolveDescription: "Resolved by support.",
-    });
   });
 
   it("reports live conformance as credential-blocked until Oracle credentials are configured", async () => {
@@ -208,8 +226,6 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       live: {
         enabled: true,
         checks: createOracleServiceTicketingLiveChecks({
-          instanceUrl: "https://example.fa.oraclecloud.com",
-          accessToken: "missing",
           client: { async readiness() {
             return { items: [] };
           } },
@@ -234,14 +250,12 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
         enabledCapabilities: ["create-provider-object", "read-provider-object", "update-provider-object", "search-provider-object", "handoff"],
       }],
       credentialStatuses: oracleServiceTicketingCredentialStatuses({
-        instanceUrl: "https://example.fa.oraclecloud.com",
+        baseUrl: "https://example.fa.oraclecloud.com",
         accessToken: "configured",
       }),
       live: {
         enabled: true,
         checks: createOracleServiceTicketingLiveChecks({
-          instanceUrl: "https://example.fa.oraclecloud.com",
-          accessToken: "configured",
           client: { async readiness() {
             return { items: [{ SrId: 42, SrNumber: "SR00042" }], hasMore: false };
           } },
@@ -252,3 +266,43 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
     expect(result.status).toBe("passed");
   });
 });
+
+function fakeOracleServiceProviderClient(): OracleServiceTicketingProviderClient {
+  return {
+    createServiceRequest: vi.fn(async () => ({ SrId: 42, SrNumber: "SR00042", Title: "Cannot check in" })),
+    getServiceRequest: vi.fn(async () => ({ SrId: 42, SrNumber: "SR00042", Title: "Cannot check in" })),
+    updateServiceRequest: vi.fn(async () => ({ SrId: 42, SrNumber: "SR00042", StatusCd: "ORA_SVC_RESOLVED" })),
+    createServiceRequestMessage: vi.fn(async () => ({ MessageId: 99, MessageTypeCd: "Internal Note" })),
+    searchServiceRequests: vi.fn(async () => ({
+      items: [{ SrId: 42, SrNumber: "SR00042" }],
+      count: 1,
+      hasMore: false,
+    })),
+    readiness: vi.fn(async () => ({
+      items: [{ SrId: 42, SrNumber: "SR00042" }],
+      count: 1,
+      hasMore: false,
+    })),
+  };
+}
+
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    headers: { "content-type": "application/json" },
+    ...init,
+  });
+}
+
+function fetchCall(fetchMock: ReturnType<typeof vi.fn>, index = 0): [string, RequestInit] {
+  const call = fetchMock.mock.calls[index];
+  if (!call) throw new Error(`Missing fetch call ${index}.`);
+  return [String(call[0]), call[1] as RequestInit];
+}
+
+function headerValue(init: RequestInit, key: string) {
+  return new Headers(init.headers).get(key);
+}
+
+function jsonBody(init: RequestInit) {
+  return JSON.parse(String(init.body)) as unknown;
+}

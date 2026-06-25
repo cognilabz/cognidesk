@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 describe("@cognidesk/integration-contact-center-talkdesk", () => {
   it("keeps manifest imports metadata-only", async () => {
@@ -9,21 +9,20 @@ describe("@cognidesk/integration-contact-center-talkdesk", () => {
 
   it("binds declared operations to handlers", async () => {
     const mod = await import("../src/index.js");
-    const integration = mod.createTalkdeskIntegration({ apiBaseUrl: "https://example.invalid", defaultHandoffPath: "/handoff", readinessPath: "/ready", fetch: async () => new Response("{}") });
+    const integration = mod.createTalkdeskIntegration({
+      providerClient: fakeProviderClient(),
+      defaultHandoffPath: "/handoff",
+      readinessPath: "/ready",
+    });
     expect(integration.bindingReport).toMatchObject({ missingHandlerAliases: [], extraHandlerAliases: [], invalidExtensionOperationAliases: [] });
   });
 
-  it("uses only the configured handoff path", async () => {
+  it("delegates handoff and provider operations to the injected provider client", async () => {
     const mod = await import("../src/index.js");
-    const requests: string[] = [];
+    const providerClient = fakeProviderClient();
     const client = mod.createTalkdeskClient({
-      apiBaseUrl: "https://example.invalid",
+      providerClient,
       defaultHandoffPath: "/configured/handoff",
-      fetch: async (url, init) => {
-        requests.push(String(url));
-        expect(init?.method).toBe("POST");
-        return new Response("{}");
-      },
     });
 
     await client.createHandoff({
@@ -32,7 +31,41 @@ describe("@cognidesk/integration-contact-center-talkdesk", () => {
       // @ts-expect-error createHandoff intentionally rejects per-call endpoint paths.
       path: "/provider/native-transfer",
     });
+    await client.scheduleCallback({ body: { phone: "+15550100" } });
+    await client.createTask({ body: { title: "Follow up" } });
 
-    expect(requests).toEqual(["https://example.invalid/configured/handoff?source=test"]);
+    expect(providerClient.createHandoff).toHaveBeenCalledWith({
+      payload: { conversationId: "conv_123" },
+      query: { source: "test" },
+    });
+    expect(providerClient.scheduleCallback).toHaveBeenCalledWith({
+      body: { phone: "+15550100" },
+      method: "POST",
+      path: "/calls/callback",
+    });
+    expect(providerClient.createTask).toHaveBeenCalledWith({
+      body: { title: "Follow up" },
+      method: "POST",
+      path: "/cm/core/va/cases",
+    });
+  });
+
+  it("creates a built-in REST adapter when configured without a provider client", async () => {
+    const mod = await import("../src/index.js");
+    const client = mod.createTalkdeskClient({
+      baseUrl: "https://api.example.test",
+      accessToken: "talkdesk-token",
+      defaultHandoffPath: "/configured/handoff",
+    });
+    expect(client).toBeDefined();
   });
 });
+
+function fakeProviderClient() {
+  return {
+    createHandoff: vi.fn(async () => ({ ok: true })),
+    scheduleCallback: vi.fn(async () => ({ ok: true })),
+    createTask: vi.fn(async () => ({ ok: true })),
+    readiness: vi.fn(async () => ({ ok: true })),
+  };
+}

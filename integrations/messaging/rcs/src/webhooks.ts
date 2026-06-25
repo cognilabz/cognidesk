@@ -7,7 +7,6 @@ import type {
   RcsWebhookEventKind,
   ValidateRcsWebhookSignatureInput,
 } from "./contracts.js";
-import { stripUndefined } from "./request.js";
 
 export function validateRcsWebhookSignature(input: ValidateRcsWebhookSignatureInput) {
   const decodedBody = Buffer.from(input.encodedMessageBody, "base64");
@@ -135,4 +134,8 @@ function timingSafeStringEqual(expected: string, actual: string) {
   const actualBuffer = Buffer.from(actual);
   return expectedBuffer.length === actualBuffer.length
     && timingSafeEqual(expectedBuffer, actualBuffer);
+}
+
+function stripUndefined(input: RcsMessagingJsonObject) {
+  return Object.fromEntries(Object.entries(input).filter((entry) => entry[1] !== undefined)) as RcsMessagingJsonObject;
 }
