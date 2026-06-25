@@ -45,6 +45,23 @@ describe("operator runtime session authorization", () => {
     expect(sessions.get(sessionId)?.currentTurnId).toBe("next-turn");
   });
 
+  it("normalizes minimal reasoning effort for the Codex app-server", async () => {
+    sessions.set(sessionId, session({ userId: "owner" }));
+
+    await handleClientMessage(socket, claims({ userId: "owner" }), JSON.stringify({
+      type: "turn.start",
+      sessionId,
+      message: "continue",
+      reasoningEffort: "minimal",
+    }));
+
+    expect(codex.startTurn).toHaveBeenCalledWith(expect.objectContaining({
+      effort: "low",
+      message: "continue",
+    }));
+    expect(sessions.get(sessionId)?.reasoningEffort).toBe("minimal");
+  });
+
   it("blocks a non-owner from resuming or interrupting an in-memory session", async () => {
     sessions.set(sessionId, session({ userId: "owner", currentTurnId: "turn-1" }));
 

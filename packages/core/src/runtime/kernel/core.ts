@@ -110,6 +110,9 @@ export function createRuntimeCore(options: RuntimeOptions) {
     listEvents(conversationId: string, afterOffset?: number) {
       return listRuntimeEvents(options, conversationId, afterOffset);
     },
+    getConversation<TConversationContext = unknown>(conversationId: string) {
+      return options.storage.getConversation<TConversationContext>(conversationId);
+    },
     listConversations<TConversationContext = unknown>(input: ListRuntimeConversationsOptions = {}) {
       return listRuntimeConversations<TConversationContext>(options, input);
     },

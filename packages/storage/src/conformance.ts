@@ -128,13 +128,13 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
         await storage.createConversation({
           id: "conv_support_old",
           agentId: "support",
-          context: { tier: "standard" },
+          context: { customerId: "customer_123", customer: { label: "standard support customer" }, tier: "standard" },
           channel: "chat",
         });
         await storage.createConversation({
           id: "conv_sales",
           agentId: "sales",
-          context: { tier: "enterprise" },
+          context: { customerId: "customer_999", customer: { label: "sales customer" }, tier: "enterprise" },
           channel: {
             channelId: "email.sales",
             kind: "email",
@@ -144,7 +144,7 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
         await storage.createConversation({
           id: "conv_support_new",
           agentId: "support",
-          context: { tier: "vip" },
+          context: { customer: { id: "customer_123", label: "nested customer id" }, tier: "vip" },
         });
 
         await storage.appendEvent({
@@ -191,6 +191,10 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
           .resolves.toHaveLength(2);
         await expect(storage.listConversations({ agentId: "support" }))
           .resolves.toMatchObject([{ id: "conv_support_new" }, { id: "conv_support_old" }]);
+        await expect(storage.listConversations({ customerId: "customer_123" }))
+          .resolves.toMatchObject([{ id: "conv_support_new" }, { id: "conv_support_old" }]);
+        await expect(storage.listConversations({ agentId: "support", customerId: "customer_999" }))
+          .resolves.toEqual([]);
         await expect(storage.listConversations({
           afterUpdatedAt: "2098-12-31T00:00:00.000Z",
           beforeUpdatedAt: "2099-01-03T00:00:00.000Z",

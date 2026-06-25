@@ -141,6 +141,12 @@ export class SqliteStorageAdapter implements StorageAdapter {
   ): Promise<ConversationRecord<TConversationContext>[]> {
     const filters = [
       ...(options.agentId ? [eq(sqliteConversations.agentId, options.agentId)] : []),
+      ...(options.customerId
+        ? [sql`(
+            json_extract(${sqliteConversations.contextJson}, '$.customerId') = ${options.customerId}
+            OR json_extract(${sqliteConversations.contextJson}, '$.customer.id') = ${options.customerId}
+          )`]
+        : []),
       ...(options.before ? [or(
         lt(sqliteConversations.updatedAt, options.before.updatedAt),
         and(

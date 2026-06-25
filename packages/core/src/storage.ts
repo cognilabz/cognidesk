@@ -30,6 +30,12 @@ export interface ConversationListCursor {
 
 export interface ListConversationsOptions {
   agentId?: string;
+  /**
+   * Filters conversations by an application-defined customer identifier in
+   * conversation context. Built-in adapters match `context.customerId` and
+   * `context.customer.id`.
+   */
+  customerId?: string;
   before?: ConversationListCursor;
   after?: ConversationListCursor;
   /** Timestamp-only range filter. Use `before` for lossless cursor pagination. */
