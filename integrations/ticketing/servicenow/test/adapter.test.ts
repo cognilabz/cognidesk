@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
@@ -83,7 +82,7 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
         result: "official-sdk-runtime-connector-not-ticketing-client",
       },
       implementation: {
-        strategy: "provider-rest-adapter",
+        strategy: "official-sdk-connector",
         rawClientEscapeHatch: "ServiceNowTicketingClient.rawClient",
         sdkPackage: "@servicenow/sdk-api",
         sdkRuntimeSurface: "Connector.fetch and Connector.queryTable",
@@ -311,23 +310,21 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
     });
   });
 
-  it("uses ServiceNow Basic Auth when username and password are configured", async () => {
+  it("does not fall back to package-owned Basic Auth REST when the SDK connector cannot be configured", async () => {
     const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
       jsonResponse({ result: [{ sys_id: "match-1" }] }));
     const client = createServiceNowTicketingClient({
       instance: "example.service-now.com",
-      username: "api-user",
-      password: "api-pass",
-      fetch: fetchMock,
+      ...({
+        username: "api-user",
+        password: "api-pass",
+        fetch: fetchMock,
+      } as unknown as Partial<ServiceNowTicketingClientOptions> & { fetch: typeof fetchMock }),
     });
 
     await expect(client.searchRecords("incident", { limit: 1, query: "active=true" }))
-      .resolves.toEqual([{ sys_id: "match-1" }]);
-
-    const [url, init] = fetchMock.mock.calls[0]!;
-    expect(String(url)).toBe("https://example.service-now.com/api/now/table/incident?sysparm_query=active%3Dtrue&sysparm_limit=1");
-    expect(new Headers(init?.headers).get("Authorization"))
-      .toBe(`Basic ${Buffer.from("api-user:api-pass").toString("base64")}`);
+      .rejects.toThrow("built-in @servicenow/sdk-api Connector");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("creates an unconfigured integration safely with no factory options", async () => {
@@ -338,16 +335,15 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
   });
 
   it("surfaces ServiceNow REST JSON errors", async () => {
-    const fetchMock: NonNullable<ServiceNowTicketingClientOptions["fetch"]> = async () =>
-      jsonResponse({ error: { message: "ACL denied" }, status: "failure" }, {
+    const connector: FakeServiceNowConnector = {
+      fetch: vi.fn(async () => jsonResponse({ error: { message: "ACL denied" }, status: "failure" }, {
         status: 403,
         statusText: "Forbidden",
-      });
+      })),
+      queryTable: vi.fn(),
+    };
     const client = createServiceNowTicketingClient({
-      instanceUrl: "https://example.service-now.com",
-      username: "api-user",
-      password: "api-pass",
-      fetch: fetchMock,
+      connector: connector as any,
     });
 
     await expect(client.getRecord("incident", "abc123")).rejects.toMatchObject({
@@ -355,9 +351,14 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
       status: 403,
       payload: { error: { message: "ACL denied" }, status: "failure" },
     });
+    expect(connector.fetch).toHaveBeenCalledWith(
+      "/api/now/table/incident/abc123",
+      expect.objectContaining({ method: "GET" }),
+      expect.any(URLSearchParams),
+    );
   });
 
-  it("fails closed only when neither REST credentials nor host raw client are provided", async () => {
+  it("fails closed when neither the official SDK connector nor a host raw client is provided", async () => {
     const client = createServiceNowTicketingClient({});
     await expect(client.searchRecords("incident"))
       .rejects.toThrow("ServiceNow integration requires an injected ServiceNowRawClient");

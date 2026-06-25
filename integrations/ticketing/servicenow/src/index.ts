@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
 import {
   Connector as ServiceNowSdkConnectorClass,
@@ -8,8 +7,6 @@ import {
 } from "@servicenow/sdk-api";
 import {
   defineIntegration,
-  providerJsonRequest,
-  providerRequestUrl,
   type IntegrationOperationHandlers,
   type ProviderHttpMethod,
   type ProviderQueryValue,
@@ -34,13 +31,6 @@ export type ServiceNowProviderQuery = Record<string, ServiceNowProviderExtension
 export interface ServiceNowProviderResponse extends ServiceNowJsonObject {}
 export interface ServiceNowProviderExtensionFields extends ServiceNowJsonObject {}
 
-export interface ServiceNowJsonRetryOptions {
-  attempts?: number;
-  statusCodes?: readonly number[];
-  baseDelayMs?: number;
-  maxDelayMs?: number;
-}
-
 export interface ServiceNowTicketingClientOptions {
   rawClient?: ServiceNowRawClient;
   connector?: ServiceNowSdkConnector;
@@ -49,12 +39,8 @@ export interface ServiceNowTicketingClientOptions {
   baseUrl?: string;
   apiVersion?: string;
   accessToken?: string;
-  username?: string;
-  password?: string;
-  fetch?: typeof fetch;
   signal?: AbortSignal;
   timeoutMs?: number;
-  retry?: number | ServiceNowJsonRetryOptions;
   headers?: Record<string, string>;
 }
 
@@ -62,8 +48,6 @@ export interface ServiceNowCredentialStatusInput {
   instance?: string;
   instanceUrl?: string;
   baseUrl?: string;
-  username?: string;
-  password?: string;
   accessToken?: string;
 }
 
@@ -280,7 +264,6 @@ export function createServiceNowTicketingIntegration(options: ServiceNowTicketin
 export function serviceNowTicketingCredentialStatuses(
   input: ServiceNowCredentialStatusInput,
 ): ProviderCredentialStatusInput[] {
-  const hasBasic = Boolean(input.username && input.password);
   const hasBearer = Boolean(input.accessToken);
   const hasInstance = Boolean(input.instanceUrl ?? input.instance ?? input.baseUrl);
   return [
@@ -295,11 +278,11 @@ export function serviceNowTicketingCredentialStatuses(
     {
       providerPackageId: serviceNowTicketingProviderManifest.id,
       requirementId: "servicenow-api-access",
-      state: hasBasic || hasBearer ? "configured" : "missing",
+      state: hasBearer ? "configured" : "missing",
       scopes: ["table_api"],
-      message: hasBasic || hasBearer
-        ? "ServiceNow API access is configured."
-        : "ServiceNow Basic Auth credentials or an OAuth bearer token are required.",
+      message: hasBearer
+        ? "ServiceNow OAuth bearer access is configured for the official SDK connector."
+        : "A ServiceNow OAuth bearer token is required for the built-in official SDK connector; use ServiceNowRawClient injection for other tenant-auth transports.",
     },
   ];
 }
@@ -453,94 +436,6 @@ function serviceNowStagingTableName(input: { stagingTableName?: string; tableNam
   return stagingTableName;
 }
 
-export function createServiceNowRestRawClient(options: ServiceNowTicketingClientOptions): ServiceNowRawClient {
-  const baseUrl = serviceNowApiBaseUrl(options);
-  const fetchImpl = options.fetch ?? globalThis.fetch;
-  const authorization = serviceNowAuthorization(options);
-
-  const request = (method: ProviderHttpMethod, path: string, input?: {
-    body?: ServiceNowProviderPayload;
-    query?: Record<string, ProviderQueryValue>;
-  }) => providerJsonRequest<unknown>({
-    baseUrl,
-    method,
-    path,
-    authorizationHeader: authorization,
-    ...(options.headers ? { headers: options.headers } : {}),
-    ...(input?.body !== undefined ? { body: input.body } : {}),
-    ...(input?.query !== undefined ? { query: input.query } : {}),
-    ...(options.fetch ? { fetch: options.fetch } : {}),
-    ...(options.signal ? { signal: options.signal } : {}),
-    ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
-    ...(options.retry !== undefined ? { retry: options.retry } : {}),
-    providerName: "ServiceNow",
-  });
-
-  return {
-    async createRecord<T extends ServiceNowRecord = ServiceNowRecord>(
-      tableName: string,
-      record: ServiceNowProviderPayload,
-    ): Promise<T> {
-      return serviceNowResult(await request("POST", `table/${pathSegment(tableName)}`, { body: record })) as T;
-    },
-    async getRecord<T extends ServiceNowRecord = ServiceNowRecord>(
-      tableName: string,
-      sysId: string,
-      query?: Omit<ServiceNowTableQuery, "query" | "limit" | "offset">,
-    ): Promise<T> {
-      return serviceNowResult(await request("GET", `table/${pathSegment(tableName)}/${pathSegment(sysId)}`, {
-        query: serviceNowTableQueryParams(query),
-      })) as T;
-    },
-    async updateRecord<T extends ServiceNowRecord = ServiceNowRecord>(
-      tableName: string,
-      sysId: string,
-      patch: ServiceNowProviderPayload,
-    ): Promise<T> {
-      return serviceNowResult(await request("PATCH", `table/${pathSegment(tableName)}/${pathSegment(sysId)}`, { body: patch })) as T;
-    },
-    async searchRecords<T extends ServiceNowRecord = ServiceNowRecord>(
-      tableName: string,
-      query?: ServiceNowTableQuery,
-    ): Promise<T[]> {
-      const result = serviceNowResult(await request("GET", `table/${pathSegment(tableName)}`, {
-        query: serviceNowTableQueryParams(query),
-      }));
-      return (Array.isArray(result) ? result : []) as T[];
-    },
-    async uploadAttachment(input) {
-      return asServiceNowObject(serviceNowResult(await serviceNowRawRequest(fetchImpl, {
-        baseUrl,
-        path: "attachment/file",
-        method: "POST",
-        authorization,
-        ...(options.headers ? { headers: options.headers } : {}),
-        body: input.data,
-        contentType: input.contentType ?? "application/octet-stream",
-        query: {
-          table_name: input.tableName,
-          table_sys_id: input.tableSysId,
-          file_name: input.fileName,
-        },
-        ...(options.signal ? { signal: options.signal } : {}),
-        ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
-      })));
-    },
-    async listAttachments(query) {
-      const result = serviceNowResult(await request("GET", "attachment", {
-        query: serviceNowTableQueryParams(query),
-      }));
-      return (Array.isArray(result) ? result : []) as ServiceNowJsonObject[];
-    },
-    async importSet(stagingTableName, record) {
-      return asServiceNowObject(serviceNowResult(await request("POST", `import/${pathSegment(stagingTableName)}`, { body: record })));
-    },
-    async getImportSetResult(stagingTableName, sysId) {
-      return asServiceNowObject(serviceNowResult(await request("GET", `import/${pathSegment(stagingTableName)}/${pathSegment(sysId)}`)));
-    },
-  };
-}
-
 export function createServiceNowSdkConnector(
   options: Pick<ServiceNowTicketingClientOptions, "accessToken" | "baseUrl" | "instance" | "instanceUrl">,
 ): ServiceNowSdkConnector {
@@ -651,7 +546,7 @@ export function createServiceNowSdkConnectorRawClient(
 }
 
 export function createUnconfiguredServiceNowRawClient(
-  message = "ServiceNow integration requires an injected ServiceNowRawClient, an injected ServiceNow SDK connector, accessToken with instanceUrl/baseUrl, or username/password for the Basic Auth REST fallback.",
+  message = "ServiceNow integration requires an injected ServiceNowRawClient, an injected ServiceNow SDK connector, or accessToken with instanceUrl/baseUrl for the built-in @servicenow/sdk-api Connector.",
 ): ServiceNowRawClient {
   const fail = async (): Promise<never> => {
     throw new Error(message);
@@ -666,23 +561,6 @@ export function createUnconfiguredServiceNowRawClient(
     importSet: fail,
     getImportSetResult: fail,
   };
-}
-
-export function serviceNowApiBaseUrl(options: Pick<ServiceNowTicketingClientOptions, "baseUrl" | "instance" | "instanceUrl" | "apiVersion">): string {
-  if (options.baseUrl) {
-    const baseUrl = new URL(/^https?:\/\//i.test(options.baseUrl) ? options.baseUrl : `https://${options.baseUrl}`);
-    if (baseUrl.pathname === "/" || baseUrl.pathname === "") {
-      return `${baseUrl.origin}/api/now${serviceNowApiVersionPath(options.apiVersion)}`;
-    }
-    return `${baseUrl.origin}${baseUrl.pathname.replace(/\/+$/, "")}`;
-  }
-
-  const instanceUrl = options.instanceUrl ?? options.instance;
-  if (!instanceUrl) {
-    throw new Error("ServiceNow REST adapter requires instanceUrl or baseUrl.");
-  }
-  const url = new URL(/^https?:\/\//i.test(instanceUrl) ? instanceUrl : `https://${instanceUrl}`);
-  return `${url.origin}/api/now${serviceNowApiVersionPath(options.apiVersion)}`;
 }
 
 function serviceNowInstanceOriginUrl(options: Pick<ServiceNowTicketingClientOptions, "baseUrl" | "instance" | "instanceUrl">): URL {
@@ -774,81 +652,11 @@ async function serviceNowConnectorRawRequest(
   }
 }
 
-async function serviceNowRawRequest(
-  fetchImpl: typeof fetch | undefined,
-  input: {
-    baseUrl: string;
-    method: ProviderHttpMethod;
-    path: string;
-    authorization: string;
-    headers?: Record<string, string>;
-    body: BodyInit;
-    contentType?: string;
-    query?: Record<string, ProviderQueryValue>;
-    signal?: AbortSignal;
-    timeoutMs?: number;
-  },
-): Promise<unknown> {
-  if (typeof fetchImpl !== "function") {
-    throw new Error("ServiceNow REST adapter requires a fetch implementation.");
-  }
-  const { signal, cleanup } = serviceNowAbortSignal(input.signal, input.timeoutMs);
-  try {
-    const response = await fetchImpl(providerRequestUrl({
-      baseUrl: input.baseUrl,
-      path: input.path,
-      query: input.query,
-    }), {
-      method: input.method,
-      headers: serviceNowHeaders({
-        authorization: input.authorization,
-        contentType: input.contentType ?? "application/octet-stream",
-        ...(input.headers ? { headers: input.headers } : {}),
-      }),
-      body: input.body,
-      ...(signal ? { signal } : {}),
-    });
-    const payload = await parseServiceNowResponseBody(response);
-    if (!response.ok) {
-      throw new ServiceNowRestError(response, payload);
-    }
-    return payload;
-  } finally {
-    cleanup();
-  }
-}
-
 function createDefaultServiceNowRawClient(options: ServiceNowTicketingClientOptions): ServiceNowRawClient {
   if (options.connector || ((options.baseUrl || options.instanceUrl || options.instance) && options.accessToken)) {
     return createServiceNowSdkConnectorRawClient(options);
   }
-  if ((options.baseUrl || options.instanceUrl || options.instance) && options.username && options.password) {
-    return createServiceNowRestRawClient(options);
-  }
   return createUnconfiguredServiceNowRawClient();
-}
-
-function serviceNowAuthorization(options: Pick<ServiceNowTicketingClientOptions, "accessToken" | "username" | "password">): string {
-  if (options.accessToken) {
-    return `Bearer ${options.accessToken}`;
-  }
-  if (options.username && options.password) {
-    return `Basic ${Buffer.from(`${options.username}:${options.password}`).toString("base64")}`;
-  }
-  throw new Error("ServiceNow REST adapter requires accessToken or username/password.");
-}
-
-function serviceNowHeaders(input: {
-  authorization: string;
-  headers?: Record<string, string>;
-  contentType?: string;
-}): Record<string, string> {
-  return {
-    Accept: "application/json",
-    Authorization: input.authorization,
-    ...(input.contentType ? { "Content-Type": input.contentType } : {}),
-    ...(input.headers ?? {}),
-  };
 }
 
 function serviceNowConnectorHeaders(input: {
@@ -899,8 +707,7 @@ function canUseServiceNowSdkQueryTable(
   return typeof connector.queryTable === "function"
     && serviceNowConnectorApiRoot(options) === "/api/now"
     && options.headers === undefined
-    && options.signal === undefined
-    && options.retry === undefined;
+    && options.signal === undefined;
 }
 
 function serviceNowSdkDisplayValue(displayValue: boolean | "all"): ServiceNowSdkQueryDisplayValue {

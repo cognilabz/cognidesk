@@ -95,6 +95,7 @@ describe("provider SDK runtime dependencies", () => {
       "appstore-connect-sdk",
       "baileys",
       "drachtio-srf",
+      "engagement-client-js",
       "facebook-nodejs-business-sdk",
       "nodemailer",
       "twilio",

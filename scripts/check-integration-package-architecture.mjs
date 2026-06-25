@@ -66,6 +66,7 @@ const providerSdkPackages = new Set([
   "baileys",
   "discord.js",
   "drachtio-srf",
+  "engagement-client-js",
   "facebook-nodejs-business-sdk",
   "googleapis",
   "mailgun.js",

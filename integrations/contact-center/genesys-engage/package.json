@@ -26,7 +26,9 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/integration-kit": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "engagement-client-js": "^9.0.83",
+    "superagent-proxy": "^3.0.0"
   },
   "devDependencies": {
     "tsup": "^8.5.0",
@@ -63,16 +65,16 @@
     },
     "providerSdkDecision": {
       "checkedAt": "2026-06-25",
-      "result": "no-suitable-genesys-engage-gms-runtime-sdk",
-      "defaultRestPolicy": "fail-closed-gms-rest-adapter-with-typed-provider-client-override",
+      "result": "official-engagement-sdk-for-callbacks-gms-chat-rest-adapter",
+      "defaultRestPolicy": "official-engagement-client-sdk-for-callbacks-with-fail-closed-gms-chat-rest-adapter-and-typed-provider-client-override",
       "typedClientOverride": "GenesysEngageProviderClient",
       "checkedPackages": [
         {
           "package": "engagement-client-js",
           "checkedVersion": "9.0.83",
           "license": "MIT",
-          "result": "pureengage-engagement-api-not-gms-chat-callback-client",
-          "reason": "Official PureEngage Engagement client is a different API surface and does not expose the package-owned GMS Chat API v2 or Callback Services operations."
+          "result": "accepted-callback-runtime-sdk",
+          "reason": "Official PureEngage Engagement client exposes CallbacksApi.bookCallbackExternal, which backs Cognidesk contact-center.callback.schedule. It does not expose GMS Chat API v2, so chat operations stay on the reviewed REST adapter."
         },
         {
           "package": "genesys-workspace-client-js",

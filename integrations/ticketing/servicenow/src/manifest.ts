@@ -15,7 +15,7 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
     scope: "support-workflow-subset",
     notes: [
       "Coverage is limited to ServiceNow Table API record create/read/update/search, incident creation, Attachment API upload/list, Import Set insert/read, and readiness checks used by Cognidesk support workflows.",
-      "Implementation uses a built-in ServiceNow REST adapter when instanceUrl/baseUrl and bearer or Basic Auth credentials are configured, with ServiceNowRawClient injection as an override.",
+      "Implementation uses the official @servicenow/sdk-api Connector when instanceUrl/baseUrl and OAuth bearer credentials are configured, with ServiceNowRawClient injection as an override for host-owned transports.",
       "Generic Table API helpers accept SDK-user-selected table names and fields, but they are not customer-specific generated schema coverage for arbitrary tables, custom fields, ACLs, business rules, or plugins.",
       "This is not full ServiceNow platform API coverage for Service Catalog/cart, journal-field semantics, attachment download/delete, transform-map lifecycle, scripted REST APIs, workflow APIs, or broader platform administration.",
     ],
@@ -41,7 +41,7 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
     {
       id: "servicenow-api-access",
       label: "ServiceNow API access",
-      description: "Server-side OAuth bearer or Basic Auth access for the built-in official @servicenow/sdk-api Connector transport and Basic Auth fallback; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes. Not required when the host injects a ServiceNowRawClient.",
+      description: "Server-side OAuth bearer access for the built-in official @servicenow/sdk-api Connector transport; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes. Use ServiceNowRawClient injection for other tenant-auth transports.",
       scopes: ["table_api"],
       required: false,
       metadata: {
@@ -163,13 +163,13 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
   ],
   metadata: {
     implementation: {
-      strategy: "provider-rest-adapter",
+      strategy: "official-sdk-connector",
       runtimePackage: "@cognidesk/integration-ticketing-servicenow",
       rawClientEscapeHatch: "ServiceNowTicketingClient.rawClient",
       sdkPackage: "@servicenow/sdk-api",
       sdkRuntimeSurface: "Connector.fetch and Connector.queryTable",
       manifestImport: "no-sdk-client-initialization",
-      defaultClientPolicy: "use-official-servicenow-sdk-api-connector-for-oauth-runtime-transport; use Basic Auth REST fallback only when username/password are configured",
+      defaultClientPolicy: "use-official-servicenow-sdk-api-connector-for-oauth-runtime-transport; require ServiceNowRawClient injection for non-OAuth tenant-auth transports",
       rawClientOverride: true,
       packageOwnedRestClient: false,
     },
@@ -186,7 +186,7 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
       checkedVersion: "4.8.0",
       license: "MIT",
       result: "used-as-runtime-connector",
-      reason: "OAuth default runtime uses Connector.fetch for create/read/update/attachment/import-set calls and Connector.queryTable for compatible table search calls. Username/password credentials use the Basic Auth REST fallback because the SDK connector credential API exposes OAuth bearer tokens and user-token/cookie auth, not Basic Auth credentials.",
+      reason: "OAuth default runtime uses Connector.fetch for create/read/update/attachment/import-set calls and Connector.queryTable for compatible table search calls. Non-OAuth tenant-auth transports must be supplied through ServiceNowRawClient injection instead of a package-owned REST fallback.",
     },
     checkedProviderApiCoverage: {
       verifiedAt: "2026-06-18",

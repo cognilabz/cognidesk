@@ -171,7 +171,7 @@ export const sapServiceCloudTicketingProviderManifest = defineProviderPackage({
       providerClientInterface: "SapServiceCloudTicketingProviderClient",
       providerSdkPackage: "@sap-cloud-sdk/http-client",
       defaultHttpClient: "executeHttpRequest",
-      defaultFetchClient: "host-fetch-override-only",
+      defaultFetchClient: "none-provider-client-override-only",
       packageOwnedRestClient: false,
       packageOwnedODataMapping: true,
       providerClientOverride: true,

@@ -9,8 +9,9 @@ describe("@cognidesk/integration-contact-center-genesys-engage", () => {
     expect(packageJson.cognidesk.providerSdkDecision).toMatchObject({
       checkedAt: "2026-06-25",
       typedClientOverride: "GenesysEngageProviderClient",
+      result: "official-engagement-sdk-for-callbacks-gms-chat-rest-adapter",
     });
-    expect(packageJson.cognidesk.providerSdkDecision.defaultRestPolicy).toContain("rest-adapter");
+    expect(packageJson.cognidesk.providerSdkDecision.defaultRestPolicy).toContain("official-engagement-client-sdk");
     expect(packageJson.cognidesk.providerSdkDecision.checkedPackages.length).toBeGreaterThan(0);
     expect(manifestModule.genesysEngageSupportSlice.providerSdkDecision).toEqual(packageJson.cognidesk.providerSdkDecision);
     expect(manifestModule.genesysEngageProviderManifestInput.metadata.providerSdkDecision).toEqual(packageJson.cognidesk.providerSdkDecision);
@@ -22,9 +23,10 @@ describe("@cognidesk/integration-contact-center-genesys-engage", () => {
 
     expect(manifestModule.genesysEngageProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-genesys-engage");
     expect(manifestModule.genesysEngageRestSupportSlice).toBe(manifestModule.genesysEngageSupportSlice);
-    expect(manifestModule.genesysEngageSupportSlice.implementationStrategy).toBe("provider-rest-adapter");
-    expect(manifestModule.genesysEngageSupportSlice.adapterKind).toBe("no-official-sdk-rest-adapter");
+    expect(manifestModule.genesysEngageSupportSlice.implementationStrategy).toBe("official-sdk-and-provider-rest-adapter");
+    expect(manifestModule.genesysEngageSupportSlice.adapterKind).toBe("official-engagement-sdk-plus-gms-rest-adapter");
     expect(manifestModule.genesysEngageSupportSlice.allowedOperations.length).toBeGreaterThan(0);
+    expect(metadata).toContain("CallbacksApi.bookCallbackExternal");
     expect(metadata).not.toContain("host-injected-only");
     expect(metadata).not.toContain("direct-http-support-slice");
   });
@@ -66,6 +68,32 @@ describe("@cognidesk/integration-contact-center-genesys-engage", () => {
     });
   });
 
+  it("uses engagement-client-js CallbacksApi for callback scheduling when an API key is configured", async () => {
+    const mod = await import("../src/index.js");
+    const callbacksApi = {
+      bookCallbackExternal: vi.fn(async () => ({ id: "callback-1" })),
+    };
+    const engagementSdkClient = {
+      sdk: {} as never,
+      apiClient: {} as never,
+      callbacksApi,
+    };
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true })));
+    const client = mod.createGenesysEngageClient({
+      baseUrl: "https://gms.example.test",
+      engagementSdkClient,
+      apiKey: "genesys-api-key",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    const result = await client.scheduleCallback({ body: { phone: "+15550100" } });
+
+    expect(result).toEqual({ id: "callback-1" });
+    expect(callbacksApi.bookCallbackExternal).toHaveBeenCalledWith("genesys-api-key", { phone: "+15550100" });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(client.engagementSdkClient).toBe(engagementSdkClient);
+  });
+
   it("delegates handoff and GMS operations to the injected provider client", async () => {
     const mod = await import("../src/index.js");
     const providerClient = fakeProviderClient();
@@ -93,7 +121,7 @@ describe("@cognidesk/integration-contact-center-genesys-engage", () => {
       pathParams: { serviceName: "support" },
       body: { phone: "+15550100" },
       method: "POST",
-      path: "/genesys/1/service/callback/{serviceName}",
+      path: "/callback/create",
     });
     expect(providerClient.startContact).toHaveBeenCalledWith({
       pathParams: { serviceName: "support" },

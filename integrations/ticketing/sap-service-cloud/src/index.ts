@@ -7,10 +7,8 @@ import {
 } from "@sap-cloud-sdk/http-client";
 import {
   defineIntegration,
-  providerJsonRequest,
   providerRequestUrl,
   type ProviderHttpMethod,
-  type ProviderJsonRetryOptions,
   type ProviderQueryValue,
 } from "@cognidesk/integration-kit";
 import { sapServiceCloudTicketingProviderManifest } from "./manifest.js";
@@ -41,10 +39,8 @@ export interface SapServiceCloudTicketingClientOptions {
   odataBasePath?: string;
   csrfToken?: string;
   headers?: Record<string, string>;
-  fetch?: typeof fetch;
   signal?: AbortSignal;
   timeoutMs?: number;
-  retry?: number | ProviderJsonRetryOptions;
 }
 
 export type SapServiceCloudAuthOptions =
@@ -180,11 +176,9 @@ export function createSapServiceCloudODataProviderClient(
 ): SapServiceCloudTicketingProviderClient {
   const baseUrl = normalizeBaseUrl(options.baseUrl, "SAP Service Cloud baseUrl is required.");
   const odataBasePath = normalizeApiBasePath(options.odataBasePath ?? "/sap/c4c/odata/v1/c4codataapi");
-  const fetchImpl = options.fetch ?? fetch;
   const authHeaders = sapServiceCloudAuthHeaders(options);
   const serviceRequestsPath = `${odataBasePath}/ServiceRequestCollection`;
   const sdkDestination: SapServiceCloudSdkHttpDestination = { url: baseUrl };
-  const useSapCloudSdkHttpClient = options.fetch === undefined && options.retry === undefined;
 
   const request = async <T>(
     method: ProviderHttpMethod,
@@ -203,34 +197,18 @@ export function createSapServiceCloudODataProviderClient(
       ...(input.headers ?? {}),
     };
     try {
-      if (useSapCloudSdkHttpClient) {
-        const requestConfig: HttpRequestConfig = {
-          method: method as Method,
-          url: path,
-          headers,
-          ...(query !== undefined ? { params: query } : {}),
-          ...(input.body !== undefined ? { data: input.body } : {}),
-          ...(options.signal !== undefined ? { signal: options.signal } : {}),
-          ...(options.timeoutMs !== undefined ? { timeout: options.timeoutMs } : {}),
-        };
-        return await sapCloudSdkHttpRequest<T>({
-          destination: sdkDestination,
-          requestConfig,
-        });
-      }
-
-      return await providerJsonRequest<T>({
-        baseUrl,
-        path,
-        method,
-        query,
-        body: input.body,
+      const requestConfig: HttpRequestConfig = {
+        method: method as Method,
+        url: path,
         headers,
-        fetch: fetchImpl,
-        signal: options.signal,
-        timeoutMs: options.timeoutMs,
-        retry: options.retry,
-        providerName: "SAP Service Cloud",
+        ...(query !== undefined ? { params: query } : {}),
+        ...(input.body !== undefined ? { data: input.body } : {}),
+        ...(options.signal !== undefined ? { signal: options.signal } : {}),
+        ...(options.timeoutMs !== undefined ? { timeout: options.timeoutMs } : {}),
+      };
+      return await sapCloudSdkHttpRequest<T>({
+        destination: sdkDestination,
+        requestConfig,
       });
     } catch (error) {
       throw normalizeSapServiceCloudProviderJsonError(error, providerRequestUrl({ baseUrl, path, query }));
@@ -423,47 +401,6 @@ function normalizeApiBasePath(value: string) {
   return `/${value.replace(/^\/+/, "").replace(/\/+$/, "")}`;
 }
 
-function providerUrl(
-  baseUrl: string,
-  path: string,
-  query: SapServiceCloudProviderQuery | undefined,
-) {
-  const url = new URL(`${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`);
-  if (query) appendQuery(url, query);
-  return url.toString();
-}
-
-function appendQuery(url: URL, query: SapServiceCloudProviderQuery) {
-  for (const [key, value] of Object.entries(query)) {
-    if (value === undefined || value === null || value === "") continue;
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        if (item !== undefined && item !== null && item !== "") url.searchParams.append(key, String(item));
-      }
-      continue;
-    }
-    url.searchParams.set(key, String(value));
-  }
-}
-
-function requestHeaders(
-  authHeaders: Record<string, string>,
-  optionHeaders: Record<string, string> | undefined,
-  requestSpecificHeaders: Record<string, string> | undefined,
-  hasBody: boolean,
-  csrfToken: string | undefined,
-) {
-  const headers = new Headers({
-    Accept: "application/json",
-    ...authHeaders,
-    ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
-    ...(optionHeaders ?? {}),
-    ...(requestSpecificHeaders ?? {}),
-  });
-  if (hasBody && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  return headers;
-}
-
 function providerQuery(query: SapServiceCloudProviderQuery | undefined): Record<string, ProviderQueryValue> | undefined {
   return query as Record<string, ProviderQueryValue> | undefined;
 }
@@ -508,26 +445,6 @@ function sapServiceRequestUpdateBody(input: SapServiceUpdateRequestInput): SapSe
 
 function stripUndefined<T extends Record<string, unknown>>(input: T): T {
   return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as T;
-}
-
-async function parseSapServiceCloudResponse<T>(response: Response, url: string): Promise<T> {
-  const body = await parseJsonResponseBody(response);
-  if (response.ok) {
-    return (body === undefined ? {} : body) as T;
-  }
-  const headers = headersToRecord(response.headers);
-  const responseMetadata: SapServiceCloudProviderApiErrorResponseMetadata = {
-    statusText: response.statusText,
-    headers,
-    url,
-    ...requestIdMetadata(headers),
-  };
-  throw new SapServiceCloudProviderApiError({
-    status: response.status,
-    message: providerErrorMessage(body, `SAP Service Cloud request returned HTTP ${response.status}.`),
-    body,
-    response: responseMetadata,
-  });
 }
 
 function normalizeSapServiceCloudProviderJsonError(error: unknown, url: string): unknown {
@@ -590,16 +507,6 @@ function headersLikeToRecord(headers: unknown): Record<string, string> {
     record[key.toLowerCase()] = String(value);
   }
   return record;
-}
-
-async function parseJsonResponseBody(response: Response): Promise<unknown> {
-  const text = await response.text();
-  if (!text.trim()) return undefined;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
 }
 
 function sapODataEntity(value: unknown): unknown {

@@ -11,7 +11,7 @@ describe("@cognidesk/integration-ticketing-servicenow/manifest", () => {
       provider: "servicenow",
       metadata: {
         implementation: {
-          strategy: "provider-rest-adapter",
+          strategy: "official-sdk-connector",
           manifestImport: "no-sdk-client-initialization",
           sdkPackage: "@servicenow/sdk-api",
           packageOwnedRestClient: false,

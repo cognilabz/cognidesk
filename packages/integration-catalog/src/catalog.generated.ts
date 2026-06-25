@@ -2183,7 +2183,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Genesys Engage / GMS",
-      "summary": "No suitable maintained backend/runtime JavaScript SDK was verified for GMS Chat API v2 or Callback Services.",
+      "summary": "Runtime callback scheduling uses the official PureEngage engagement-client-js generated SDK through CallbacksApi.bookCallbackExternal.",
       "tags": [
         "contact-center",
         "genesys-engage",
@@ -2256,9 +2256,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "No suitable maintained backend/runtime JavaScript SDK was verified for GMS Chat API v2 or Callback Services.",
-        "The maintained Genesys Cloud Platform SDK targets Genesys Cloud, while the PureEngage Engagement Node client targets the Engagement API surface rather than GMS Chat API v2 or GMS Callback Services.",
-        "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with GenesysEngageProviderClient available as an override."
+        "Runtime callback scheduling uses the official PureEngage engagement-client-js generated SDK through CallbacksApi.bookCallbackExternal.",
+        "No matching maintained backend/runtime SDK was verified for GMS Chat API v2, so chat operations use the reviewed REST adapter.",
+        "GenesysEngageProviderClient remains available as a typed host override for tenant-specific surfaces and handoff routing."
       ],
       "evidence": [
         {
@@ -2268,6 +2268,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Genesys GMS Chat API v2",
           "url": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2"
+        },
+        {
+          "label": "PureEngage engagement-client-js",
+          "url": "https://www.npmjs.com/package/engagement-client-js"
         },
         {
           "label": "Genesys Cloud Platform SDK for JavaScript",
@@ -2373,16 +2377,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "providerSdkDecision": {
         "checkedAt": "2026-06-25",
-        "result": "no-suitable-genesys-engage-gms-runtime-sdk",
-        "defaultRestPolicy": "fail-closed-gms-rest-adapter-with-typed-provider-client-override",
+        "result": "official-engagement-sdk-for-callbacks-gms-chat-rest-adapter",
+        "defaultRestPolicy": "official-engagement-client-sdk-for-callbacks-with-fail-closed-gms-chat-rest-adapter-and-typed-provider-client-override",
         "typedClientOverride": "GenesysEngageProviderClient",
         "checkedPackages": [
           {
             "package": "engagement-client-js",
             "checkedVersion": "9.0.83",
             "license": "MIT",
-            "result": "pureengage-engagement-api-not-gms-chat-callback-client",
-            "reason": "Official PureEngage Engagement client is a different API surface and does not expose the package-owned GMS Chat API v2 or Callback Services operations."
+            "result": "accepted-callback-runtime-sdk",
+            "reason": "Official PureEngage Engagement client exposes CallbacksApi.bookCallbackExternal, which backs Cognidesk contact-center.callback.schedule. It does not expose GMS Chat API v2, so chat operations stay on the reviewed REST adapter."
           },
           {
             "package": "genesys-workspace-client-js",
@@ -2401,20 +2405,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ]
       },
       "implementation": {
-        "implementationStrategy": "provider-rest-adapter",
-        "adapterKind": "no-official-sdk-rest-adapter",
+        "implementationStrategy": "official-sdk-and-provider-rest-adapter",
+        "adapterKind": "official-engagement-sdk-plus-gms-rest-adapter",
         "providerSdkDecision": {
           "checkedAt": "2026-06-25",
-          "result": "no-suitable-genesys-engage-gms-runtime-sdk",
-          "defaultRestPolicy": "fail-closed-gms-rest-adapter-with-typed-provider-client-override",
+          "result": "official-engagement-sdk-for-callbacks-gms-chat-rest-adapter",
+          "defaultRestPolicy": "official-engagement-client-sdk-for-callbacks-with-fail-closed-gms-chat-rest-adapter-and-typed-provider-client-override",
           "typedClientOverride": "GenesysEngageProviderClient",
           "checkedPackages": [
             {
               "package": "engagement-client-js",
               "checkedVersion": "9.0.83",
               "license": "MIT",
-              "result": "pureengage-engagement-api-not-gms-chat-callback-client",
-              "reason": "Official PureEngage Engagement client is a different API surface and does not expose the package-owned GMS Chat API v2 or Callback Services operations."
+              "result": "accepted-callback-runtime-sdk",
+              "reason": "Official PureEngage Engagement client exposes CallbacksApi.bookCallbackExternal, which backs Cognidesk contact-center.callback.schedule. It does not expose GMS Chat API v2, so chat operations stay on the reviewed REST adapter."
             },
             {
               "package": "genesys-workspace-client-js",
@@ -2432,7 +2436,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             }
           ]
         },
-        "sdkDecision": "No suitable maintained backend/runtime JavaScript SDK was verified for GMS Chat API v2 or Callback Services; Genesys Cloud and PureEngage Engagement SDKs target different APIs, so this package provides a built-in REST adapter with providerClient override.",
+        "sdkDecision": "engagement-client-js is used for callback scheduling through CallbacksApi.bookCallbackExternal. GMS Chat API v2 has no matching maintained backend/runtime SDK in the checked packages, so chat operations use the built-in reviewed REST adapter with providerClient override.",
         "verifiedAt": "2026-06-25",
         "allowedOperations": [
           {
@@ -2447,9 +2451,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "id": "createCallback",
             "alias": "contact-center.callback.schedule",
             "method": "POST",
-            "path": "/genesys/1/service/callback/{serviceName}",
-            "source": "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI",
-            "checksum": "not-available-html-doc"
+            "path": "/callback/create",
+            "source": "engagement-client-js CallbacksApi.bookCallbackExternal",
+            "sdkPackage": "engagement-client-js",
+            "sdkMethod": "CallbacksApi.bookCallbackExternal",
+            "checksum": "provider-sdk-generated-swagger-client"
           },
           {
             "id": "requestChat",
@@ -2479,8 +2485,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       "manifestOnlySafe": true,
       "providerRestAdapter": {
-        "strategy": "provider-rest-adapter",
-        "adapterKind": "no-official-sdk-rest-adapter",
+        "strategy": "official-sdk-and-provider-rest-adapter",
+        "adapterKind": "official-engagement-sdk-plus-gms-rest-adapter",
         "providerClientOverride": "GenesysEngageProviderClient"
       },
       "categoryProfileId": "contact-center",
@@ -13461,7 +13467,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Implementation uses the official @freshworks/freshdesk JavaScript SDK by default when domain and apiKey are configured.",
-        "A constrained Freshdesk v2 REST fallback remains only for SDK gaps such as agents, groups, readiness, and explicit low-level host controls like custom fetch, retry, timeout, headers, or apiBaseUrl.",
+        "Operations not exposed by the official SDK, such as agents, groups, and current-agent readiness, require an injected FreshdeskTicketingProviderClient instead of a package-owned REST fallback.",
         "Coverage is limited to Freshdesk v2 tickets, contacts, conversations, replies, notes, handoff updates, agents, groups, current-agent readiness, and SDK-user shared-secret webhook validation."
       ],
       "evidence": [
@@ -13602,7 +13608,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "providerSdkPackage": "@freshworks/freshdesk",
         "defaultClientPolicy": "use-official-freshworks-freshdesk-sdk-when-domain-and-apiKey-are-configured",
         "packageOwnedRestClient": false,
-        "packageOwnedRestFallback": true,
+        "packageOwnedRestFallback": false,
         "providerClientOverride": true,
         "rawClientOverride": true,
         "sdkDecision": {
@@ -13611,14 +13617,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "checkedVersion": "0.0.1",
           "license": "freshdesk",
           "result": "accepted-runtime-sdk",
-          "reason": "@freshworks/freshdesk exposes Freshdesk tickets, contacts, and conversations runtime clients. Agents, groups, and current-agent readiness are not exposed by that package and stay behind the narrow REST fallback.",
+          "reason": "@freshworks/freshdesk exposes Freshdesk tickets, contacts, and conversations runtime clients. Agents, groups, and current-agent readiness are not exposed by that package and require FreshdeskTicketingProviderClient injection.",
           "packageChecked": "@freshworks/freshdesk",
           "notes": [
             "@freshworks/freshdesk 0.0.1 exposes tickets.createTicket/getTicket/updateTicket/searchTicket/replyTicket/addNotes and contacts.getContact/searchContacts.",
-            "The package does not expose agents/groups/readiness helpers; those remain REST fallback operations."
+            "The package does not expose agents/groups/readiness helpers; those operations fail closed unless a host FreshdeskTicketingProviderClient is injected."
           ]
         },
-        "delegatedOperationTarget": "official Freshdesk SDK, REST fallback for SDK gaps, or injected Freshdesk provider client"
+        "delegatedOperationTarget": "official Freshdesk SDK for covered operations or injected Freshdesk provider client for SDK gaps"
       },
       "sdkDecision": {
         "checkedAt": "2026-06-25",
@@ -17502,7 +17508,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "providerClientInterface": "SapServiceCloudTicketingProviderClient",
         "providerSdkPackage": "@sap-cloud-sdk/http-client",
         "defaultHttpClient": "executeHttpRequest",
-        "defaultFetchClient": "host-fetch-override-only",
+        "defaultFetchClient": "none-provider-client-override-only",
         "packageOwnedRestClient": false,
         "packageOwnedODataMapping": true,
         "providerClientOverride": true,
@@ -17869,7 +17875,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "Coverage is limited to ServiceNow Table API record create/read/update/search, incident creation, Attachment API upload/list, Import Set insert/read, and readiness checks used by Cognidesk support workflows.",
-        "Implementation uses a built-in ServiceNow REST adapter when instanceUrl/baseUrl and bearer or Basic Auth credentials are configured, with ServiceNowRawClient injection as an override.",
+        "Implementation uses the official @servicenow/sdk-api Connector when instanceUrl/baseUrl and OAuth bearer credentials are configured, with ServiceNowRawClient injection as an override for host-owned transports.",
         "Generic Table API helpers accept SDK-user-selected table names and fields, but they are not customer-specific generated schema coverage for arbitrary tables, custom fields, ACLs, business rules, or plugins.",
         "This is not full ServiceNow platform API coverage for Service Catalog/cart, journal-field semantics, attachment download/delete, transform-map lifecycle, scripted REST APIs, workflow APIs, or broader platform administration."
       ],
@@ -17944,7 +17950,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "official-sdk",
       "sdkPackage": "@servicenow/sdk-api",
       "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
       "providerModule": "integrations/ticketing/servicenow/dist/manifest.js",
@@ -17976,7 +17982,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "servicenow-api-access",
           "label": "ServiceNow API access",
-          "description": "Server-side OAuth bearer or Basic Auth access for the built-in official @servicenow/sdk-api Connector transport and Basic Auth fallback; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes. Not required when the host injects a ServiceNowRawClient.",
+          "description": "Server-side OAuth bearer access for the built-in official @servicenow/sdk-api Connector transport; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes. Use ServiceNowRawClient injection for other tenant-auth transports.",
           "scopes": [
             "table_api"
           ],
@@ -18020,13 +18026,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "implementation": {
-        "strategy": "provider-rest-adapter",
+        "strategy": "official-sdk-connector",
         "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
         "rawClientEscapeHatch": "ServiceNowTicketingClient.rawClient",
         "sdkPackage": "@servicenow/sdk-api",
         "sdkRuntimeSurface": "Connector.fetch and Connector.queryTable",
         "manifestImport": "no-sdk-client-initialization",
-        "defaultClientPolicy": "use-official-servicenow-sdk-api-connector-for-oauth-runtime-transport; use Basic Auth REST fallback only when username/password are configured",
+        "defaultClientPolicy": "use-official-servicenow-sdk-api-connector-for-oauth-runtime-transport; require ServiceNowRawClient injection for non-OAuth tenant-auth transports",
         "rawClientOverride": true,
         "packageOwnedRestClient": false
       },
@@ -18043,7 +18049,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "checkedVersion": "4.8.0",
         "license": "MIT",
         "result": "used-as-runtime-connector",
-        "reason": "OAuth default runtime uses Connector.fetch for create/read/update/attachment/import-set calls and Connector.queryTable for compatible table search calls. Username/password credentials use the Basic Auth REST fallback because the SDK connector credential API exposes OAuth bearer tokens and user-token/cookie auth, not Basic Auth credentials."
+        "reason": "OAuth default runtime uses Connector.fetch for create/read/update/attachment/import-set calls and Connector.queryTable for compatible table search calls. Non-OAuth tenant-auth transports must be supplied through ServiceNowRawClient injection instead of a package-owned REST fallback."
       },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",

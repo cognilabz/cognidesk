@@ -1,11 +1,4 @@
-import { Buffer } from "node:buffer";
 import FreshdeskSdk, { type FreshdeskSdkClient, type FreshdeskSdkJsonObject } from "@freshworks/freshdesk";
-import {
-  providerJsonRequest,
-  type ProviderHttpMethod,
-  type ProviderJsonRequestInput,
-  type ProviderQueryValue,
-} from "@cognidesk/integration-kit";
 import type {
   FreshdeskJsonObject,
   FreshdeskJsonValue,
@@ -33,48 +26,6 @@ export function createFreshdeskTicketingClient(options: FreshdeskTicketingClient
   };
 }
 
-export function createFreshdeskRestProviderClient(options: FreshdeskTicketingClientOptions): FreshdeskTicketingProviderClient {
-  const baseUrl = freshdeskApiBaseUrl(options);
-  if (!options.apiKey) {
-    throw new Error("Freshdesk REST adapter requires apiKey.");
-  }
-
-  const authorizationHeader = `Basic ${Buffer.from(`${options.apiKey}:X`).toString("base64")}`;
-  const request = (method: ProviderHttpMethod, path: string, input?: {
-    body?: FreshdeskJsonObject;
-    pathParams?: ProviderJsonRequestInput["pathParams"];
-    query?: FreshdeskQueryInput;
-  }) => providerJsonRequest<unknown>({
-    baseUrl,
-    method,
-    path,
-    authorizationHeader,
-    pathParams: input?.pathParams,
-    query: freshdeskProviderQuery(input?.query),
-    ...(options.headers ? { headers: options.headers } : {}),
-    ...(input?.body !== undefined ? { body: input.body } : {}),
-    ...(options.fetch ? { fetch: options.fetch } : {}),
-    ...(options.signal ? { signal: options.signal } : {}),
-    ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
-    ...(options.retry !== undefined ? { retry: options.retry } : {}),
-    providerName: "Freshdesk",
-  }).then(asFreshdeskJsonObject);
-
-  return {
-    createTicket: (input) => request("POST", "tickets", { body: input }),
-    getTicket: (ticketId) => request("GET", "tickets/{ticketId}", { pathParams: { ticketId } }),
-    updateTicket: (ticketId, patch) => request("PUT", "tickets/{ticketId}", { pathParams: { ticketId }, body: patch }),
-    searchTickets: (query) => request("GET", "search/tickets", { query: freshdeskSearchQuery(query) }),
-    createReply: (ticketId, body) => request("POST", "tickets/{ticketId}/reply", { pathParams: { ticketId }, body }),
-    createNote: (ticketId, body) => request("POST", "tickets/{ticketId}/notes", { pathParams: { ticketId }, body }),
-    getContact: (contactId) => request("GET", "contacts/{contactId}", { pathParams: { contactId } }),
-    searchContacts: (query) => request("GET", "search/contacts", { query: freshdeskSearchQuery(query) }),
-    getAgent: (agentId) => request("GET", "agents/{agentId}", { pathParams: { agentId } }),
-    getGroup: (groupId) => request("GET", "groups/{groupId}", { pathParams: { groupId } }),
-    readiness: () => request("GET", "agents/me"),
-  };
-}
-
 export function createFreshworksFreshdeskProviderClient(options: FreshdeskTicketingClientOptions): FreshdeskTicketingProviderClient {
   if (!options.apiKey) {
     throw new Error("Freshdesk SDK adapter requires apiKey.");
@@ -83,14 +34,12 @@ export function createFreshworksFreshdeskProviderClient(options: FreshdeskTicket
     domain: freshdeskSdkDomain(options),
     api_key: options.apiKey,
   });
-  const restFallback = createFreshdeskRestProviderClient(options);
 
-  return createFreshworksFreshdeskSdkProviderClient(sdkClient, restFallback);
+  return createFreshworksFreshdeskSdkProviderClient(sdkClient);
 }
 
 export function createFreshworksFreshdeskSdkProviderClient(
   sdkClient: FreshdeskSdkClient,
-  restFallback: FreshdeskTicketingProviderClient,
 ): FreshdeskTicketingProviderClient {
   return {
     createTicket: (input) => freshdeskSdkJson(sdkClient.tickets.createTicket(freshdeskSdkPayload(input))),
@@ -99,19 +48,19 @@ export function createFreshworksFreshdeskSdkProviderClient(
     searchTickets: (query) => {
       const sdkQuery = freshdeskSdkSearchQuery(query);
       if (sdkQuery) return freshdeskSdkJson(sdkClient.tickets.searchTicket(sdkQuery));
-      return restFallback.searchTickets(query);
+      return freshdeskUnsupportedSdkOperation("searchTickets", "the official @freshworks/freshdesk SDK searchTicket method accepts a string query only; inject FreshdeskTicketingProviderClient for structured search.");
     },
     createReply: (ticketId, body) => freshdeskSdkJson(sdkClient.tickets.replyTicket(ticketId, freshdeskSdkPayload(body))),
     createNote: (ticketId, body) => freshdeskSdkJson(sdkClient.tickets.addNotes(ticketId, freshdeskSdkPayload(body))),
     getContact: (contactId) => freshdeskSdkJson(sdkClient.contacts.getContact(contactId)),
     searchContacts: (query) => freshdeskSdkJson(sdkClient.contacts.searchContacts(freshdeskSdkContactSearchOptions(query))),
-    getAgent: (agentId) => restFallback.getAgent(agentId),
-    getGroup: (groupId) => restFallback.getGroup(groupId),
-    readiness: () => restFallback.readiness(),
+    getAgent: () => freshdeskUnsupportedSdkOperation("getAgent", "the official @freshworks/freshdesk SDK does not expose agents APIs; inject FreshdeskTicketingProviderClient for this operation."),
+    getGroup: () => freshdeskUnsupportedSdkOperation("getGroup", "the official @freshworks/freshdesk SDK does not expose groups APIs; inject FreshdeskTicketingProviderClient for this operation."),
+    readiness: () => freshdeskUnsupportedSdkOperation("readiness", "the official @freshworks/freshdesk SDK does not expose agents/me readiness; inject FreshdeskTicketingProviderClient for this operation."),
   };
 }
 
-export function createFreshdeskUnavailableClient(message = "Freshdesk REST adapter requires domain and apiKey, or an injected FreshdeskTicketingProviderClient."): FreshdeskTicketingProviderClient {
+export function createFreshdeskUnavailableClient(message = "Freshdesk SDK adapter requires domain and apiKey, or an injected FreshdeskTicketingProviderClient."): FreshdeskTicketingProviderClient {
   return {
     createTicket: () => unavailable("createTicket"),
     getTicket: () => unavailable("getTicket"),
@@ -133,44 +82,11 @@ export function createFreshdeskUnavailableClient(message = "Freshdesk REST adapt
   }
 }
 
-export function freshdeskApiBaseUrl(options: Pick<FreshdeskTicketingClientOptions, "domain" | "apiBaseUrl">): string {
-  if (options.apiBaseUrl) {
-    return options.apiBaseUrl.replace(/\/+$/, "");
-  }
-
-  const domain = options.domain?.trim();
-  if (!domain) {
-    throw new Error("Freshdesk REST adapter requires domain.");
-  }
-
-  const url = new URL(/^https?:\/\//i.test(domain) ? domain : `https://${domain}`);
-  const host = url.hostname.includes(".") ? url.hostname : `${url.hostname}.freshdesk.com`;
-  return `https://${host}/api/v2`;
-}
-
-type FreshdeskQueryInput = Record<string, FreshdeskJsonValue | object | undefined>;
-
 function createDefaultFreshdeskProviderClient(options: FreshdeskTicketingClientOptions): FreshdeskTicketingProviderClient {
-  if ((options.domain || options.apiBaseUrl) && options.apiKey) {
-    if (shouldUseFreshworksFreshdeskSdk(options)) {
-      return createFreshworksFreshdeskProviderClient(options);
-    }
-    return createFreshdeskRestProviderClient(options);
+  if (options.domain && options.apiKey) {
+    return createFreshworksFreshdeskProviderClient(options);
   }
   return createFreshdeskUnavailableClient();
-}
-
-function shouldUseFreshworksFreshdeskSdk(options: FreshdeskTicketingClientOptions): boolean {
-  return Boolean(
-    options.domain
-      && options.apiKey
-      && !options.apiBaseUrl
-      && !options.fetch
-      && !options.signal
-      && options.timeoutMs === undefined
-      && options.retry === undefined
-      && options.headers === undefined,
-  );
 }
 
 function freshdeskSdkDomain(options: Pick<FreshdeskTicketingClientOptions, "domain">): string {
@@ -178,11 +94,6 @@ function freshdeskSdkDomain(options: Pick<FreshdeskTicketingClientOptions, "doma
   if (!domain) throw new Error("Freshdesk SDK adapter requires domain.");
   const url = new URL(/^https?:\/\//i.test(domain) ? domain : `https://${domain}`);
   return url.hostname.includes(".") ? url.hostname : `${url.hostname}.freshdesk.com`;
-}
-
-function freshdeskSearchQuery(query: string | FreshdeskJsonObject): FreshdeskQueryInput {
-  if (typeof query === "string") return { query };
-  return query;
 }
 
 function freshdeskSdkSearchQuery(query: string | FreshdeskJsonObject): string | undefined {
@@ -207,26 +118,10 @@ async function freshdeskSdkJson(value: Promise<unknown>): Promise<FreshdeskJsonO
   return asFreshdeskJsonObject(await value);
 }
 
-function freshdeskProviderQuery(query: FreshdeskQueryInput | undefined): Record<string, ProviderQueryValue> | undefined {
-  if (!query) return undefined;
-  const output: Record<string, ProviderQueryValue> = {};
-  for (const [key, value] of Object.entries(query)) {
-    output[key] = freshdeskProviderQueryValue(value);
-  }
-  return output;
-}
-
-function freshdeskProviderQueryValue(value: FreshdeskJsonValue | object | undefined): ProviderQueryValue {
-  if (value === undefined || value === null) return value;
-  if (Array.isArray(value)) {
-    return value.flatMap((item) => {
-      if (item === null) return [];
-      if (typeof item === "object" && item !== null) return JSON.stringify(item);
-      return item;
-    });
-  }
-  if (typeof value === "object") return JSON.stringify(value);
-  return value;
+function freshdeskUnsupportedSdkOperation(operation: string, reason: string): Promise<never> {
+  return Promise.reject(
+    new Error(`Freshdesk ${operation} is not available through the built-in official SDK adapter: ${reason}`),
+  );
 }
 
 function asFreshdeskJsonObject(value: unknown): FreshdeskJsonObject {

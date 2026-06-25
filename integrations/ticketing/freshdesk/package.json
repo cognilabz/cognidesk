@@ -52,7 +52,7 @@
       "license": "freshdesk",
       "result": "accepted-default-runtime-sdk",
       "reason": "@freshworks/freshdesk is the official Freshdesk JavaScript SDK package and exposes tickets, contacts, and conversations runtime clients used by this package.",
-      "defaultClientPolicy": "official-sdk-for-covered-operations-with-rest-fallback-for-agents-groups-readiness-and-host-overrides",
+      "defaultClientPolicy": "official-sdk-for-covered-operations-with-host-provider-client-required-for-sdk-gaps",
       "typedClientOverride": "FreshdeskTicketingProviderClient"
     },
     "manifestOnlyExports": [

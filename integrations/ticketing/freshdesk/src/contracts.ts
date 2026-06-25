@@ -11,13 +11,6 @@ export interface FreshdeskJsonObject {
 
 export type FreshdeskProviderPayload = FreshdeskJsonObject;
 
-export interface FreshdeskJsonRetryOptions {
-  attempts?: number;
-  statusCodes?: readonly number[];
-  baseDelayMs?: number;
-  maxDelayMs?: number;
-}
-
 export interface FreshdeskTicketingProviderClient {
   createTicket(input: FreshdeskJsonObject): Promise<FreshdeskJsonObject>;
   getTicket(ticketId: string | number): Promise<FreshdeskJsonObject>;
@@ -36,12 +29,6 @@ export interface FreshdeskTicketingClientOptions {
   providerClient?: FreshdeskTicketingProviderClient;
   domain?: string;
   apiKey?: string;
-  apiBaseUrl?: string;
-  fetch?: typeof fetch;
-  signal?: AbortSignal;
-  timeoutMs?: number;
-  retry?: number | FreshdeskJsonRetryOptions;
-  headers?: Record<string, string>;
 }
 
 export interface FreshdeskTicketingClient extends FreshdeskTicketingProviderClient {

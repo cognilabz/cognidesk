@@ -4,6 +4,7 @@ import {
   type ProviderHttpMethod,
   type ProviderQueryValue,
 } from "@cognidesk/integration-kit";
+import EngagementClientSdk from "engagement-client-js";
 import { genesysEngageProviderManifest, genesysEngageProviderManifestInput, genesysEngageSupportSlice } from "./manifest.js";
 
 export { genesysEngageProviderManifest, genesysEngageProviderManifestInput, genesysEngageRestSupportSlice, genesysEngageSupportSlice } from "./manifest.js";
@@ -30,6 +31,7 @@ function providerRestRequest<T = unknown>(input: ProviderRestRequestInput): Prom
 export interface GenesysEngageClientOptions {
   baseUrl?: string | undefined;
   apiBaseUrl?: string | undefined;
+  engagementBaseUrl?: string | undefined;
   accessToken?: string | undefined;
   authorizationHeader?: string | undefined;
   apiKey?: string | undefined;
@@ -40,6 +42,8 @@ export interface GenesysEngageClientOptions {
   signal?: AbortSignal | undefined;
   timeoutMs?: number | undefined;
   retry?: number | ProviderRestRetryOptions | undefined;
+  engagementSdk?: GenesysEngageEngagementSdk | undefined;
+  engagementSdkClient?: GenesysEngageEngagementSdkClient | undefined;
   providerClient?: GenesysEngageProviderClient | undefined;
 }
 
@@ -71,6 +75,7 @@ export interface ProviderExtensionRequestInput extends GenesysEngageOperationInp
 
 export interface GenesysEngageClient {
   providerClient: GenesysEngageProviderClient;
+  engagementSdkClient?: GenesysEngageEngagementSdkClient | undefined;
   createHandoff(input?: ConfiguredHandoffInput): Promise<ProviderJsonObject>;
   scheduleCallback(input?: GenesysEngageOperationInput): Promise<ProviderJsonObject>;
   startContact(input?: GenesysEngageOperationInput): Promise<ProviderJsonObject>;
@@ -88,10 +93,26 @@ export interface GenesysEngageProviderClient {
   readiness?(): Promise<ProviderJsonObject>;
 }
 
+export type GenesysEngageEngagementSdk = typeof EngagementClientSdk;
+export type GenesysEngageEngagementApiClient = InstanceType<GenesysEngageEngagementSdk["ApiClient"]>;
+export type GenesysEngageCallbacksApi = InstanceType<GenesysEngageEngagementSdk["CallbacksApi"]>;
+
+export interface GenesysEngageEngagementSdkClient {
+  sdk: GenesysEngageEngagementSdk;
+  apiClient: GenesysEngageEngagementApiClient;
+  callbacksApi: GenesysEngageCallbacksApi;
+}
+
 export function createGenesysEngageClient(options: GenesysEngageClientOptions = {}): GenesysEngageClient {
-  const providerClient = options.providerClient ?? createGenesysEngageRestProviderClient(options);
+  const engagementSdkClient = options.providerClient ? undefined : createOptionalGenesysEngageEngagementSdkClient(options);
+  const providerClient = options.providerClient ?? (
+    engagementSdkClient
+      ? createGenesysEngageHybridProviderClient(options, engagementSdkClient)
+      : createGenesysEngageRestProviderClient(options)
+  );
   return {
     providerClient,
+    ...(engagementSdkClient ? { engagementSdkClient } : {}),
     createHandoff(input = {}) {
       return providerClient.createHandoff(normalizeConfiguredHandoffInput(input));
     },
@@ -113,6 +134,19 @@ export function createGenesysEngageClient(options: GenesysEngageClientOptions = 
       }
       return providerClient.readiness();
     },
+  };
+}
+
+export function createGenesysEngageEngagementSdkClient(
+  options: Pick<GenesysEngageClientOptions, "apiBaseUrl" | "baseUrl" | "engagementBaseUrl" | "engagementSdk"> = {},
+): GenesysEngageEngagementSdkClient {
+  const sdk = options.engagementSdk ?? EngagementClientSdk;
+  const apiClient = new sdk.ApiClient();
+  apiClient.basePath = configuredEngagementBaseUrl(options);
+  return {
+    sdk,
+    apiClient,
+    callbacksApi: new sdk.CallbacksApi(apiClient),
   };
 }
 
@@ -195,6 +229,26 @@ function createGenesysEngageRestProviderClient(options: GenesysEngageClientOptio
   }
 }
 
+function createGenesysEngageHybridProviderClient(
+  options: GenesysEngageClientOptions,
+  engagementSdkClient: GenesysEngageEngagementSdkClient,
+): GenesysEngageProviderClient {
+  const restProviderClient = createGenesysEngageRestProviderClient(options);
+  const hybridClient: GenesysEngageProviderClient = {
+    createHandoff: restProviderClient.createHandoff,
+    scheduleCallback(input: GenesysEngageOperationInput = {}) {
+      const apiKey = callbackApiKey(options, input);
+      const body = input.body ?? {};
+      return engagementSdkClient.callbacksApi.bookCallbackExternal(apiKey, body) as Promise<ProviderJsonObject>;
+    },
+    startContact: restProviderClient.startContact,
+    sendChatMessage: restProviderClient.sendChatMessage,
+    request: restProviderClient.request,
+  };
+  if (restProviderClient.readiness) hybridClient.readiness = restProviderClient.readiness;
+  return hybridClient;
+}
+
 function validateGenesysEngageAllowedOperation(operationId: string, input: GenesysEngageOperationInput = {}) {
   const operation = genesysEngageSupportSlice.allowedOperations.find((candidate) => candidate.id === operationId);
   if (!operation || String(operation.path) === "host-configured") {
@@ -261,6 +315,29 @@ function configuredBaseUrl(options: Pick<GenesysEngageClientOptions, "apiBaseUrl
   const baseUrl = options.baseUrl ?? options.apiBaseUrl;
   if (!baseUrl) throw new Error("Genesys Engage / GMS baseUrl is required to use the built-in REST adapter.");
   return baseUrl;
+}
+
+function createOptionalGenesysEngageEngagementSdkClient(
+  options: GenesysEngageClientOptions,
+): GenesysEngageEngagementSdkClient | undefined {
+  if (options.engagementSdkClient) return options.engagementSdkClient;
+  if (!options.apiKey && !options.engagementSdk) return undefined;
+  return createGenesysEngageEngagementSdkClient(options);
+}
+
+function configuredEngagementBaseUrl(
+  options: Pick<GenesysEngageClientOptions, "apiBaseUrl" | "baseUrl" | "engagementBaseUrl">,
+): string {
+  const baseUrl = options.engagementBaseUrl ?? options.apiBaseUrl ?? options.baseUrl;
+  if (!baseUrl) throw new Error("Genesys Engage Engagement API baseUrl is required to use engagement-client-js.");
+  return baseUrl;
+}
+
+function callbackApiKey(options: Pick<GenesysEngageClientOptions, "apiKey" | "apiKeyHeaderName">, input: GenesysEngageOperationInput): string {
+  const headerName = options.apiKeyHeaderName ?? "x-api-key";
+  const apiKey = input.headers?.[headerName] ?? input.headers?.[headerName.toLowerCase()] ?? options.apiKey;
+  if (!apiKey) throw new Error("Genesys Engage Engagement API key is required to schedule callbacks through engagement-client-js.");
+  return apiKey;
 }
 
 function configuredPath(path: string | undefined, label: string): string {

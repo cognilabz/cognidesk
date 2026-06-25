@@ -60,7 +60,7 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
         adapterKind: "sap-cloud-sdk-http-client-odata-adapter",
         providerSdkPackage: "@sap-cloud-sdk/http-client",
         defaultHttpClient: "executeHttpRequest",
-        defaultFetchClient: "host-fetch-override-only",
+        defaultFetchClient: "none-provider-client-override-only",
         packageOwnedODataMapping: true,
       },
       checkedProviderApiCoverage: {
@@ -114,14 +114,18 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     );
   });
 
-  it("keeps the explicit fetch override path for host-controlled OData transport", async () => {
-    const fetchMock = vi.fn(async () =>
-      jsonResponse({ d: { ObjectID: "object-1", ID: "8000001", Name: "Damaged baggage" } })
-    );
+  it("does not bypass the official SAP Cloud SDK HTTP client for legacy fetch overrides", async () => {
+    vi.mocked(executeHttpRequest).mockResolvedValueOnce({
+      data: { d: { ObjectID: "object-1", ID: "8000001", Name: "Damaged baggage" } },
+      status: 201,
+      headers: {},
+      request: {},
+    } as Awaited<ReturnType<typeof executeHttpRequest>>);
+    const fetchMock = vi.fn(async () => new Response("{}"));
     const client = createSapServiceCloudTicketingClient({
       baseUrl: "https://tenant.crm.ondemand.com/",
       accessToken: "sap-token",
-      fetch: fetchMock,
+      ...({ fetch: fetchMock } as unknown as { fetch: typeof fetchMock }),
     });
 
     await expect(client.createServiceRequest({
@@ -131,27 +135,41 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       fields: { DataOriginTypeCode: "4" },
     })).resolves.toMatchObject({ ID: "8000001" });
 
-    const [url, init] = fetchCall(fetchMock);
-    expect(url).toBe("https://tenant.crm.ondemand.com/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection");
-    expect(init.method).toBe("POST");
-    expect(headerValue(init, "authorization")).toBe("Bearer sap-token");
-    expect(headerValue(init, "content-type")).toContain("application/json");
-    expect(jsonBody(init)).toEqual({
-      Name: "Damaged baggage",
-      ProcessingTypeCode: "SRRQ",
-      ServicePriorityCode: "3",
-      DataOriginTypeCode: "4",
-    });
-    expect(executeHttpRequest).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(executeHttpRequest).toHaveBeenCalledWith(
+      { url: "https://tenant.crm.ondemand.com" },
+      expect.objectContaining({
+        method: "POST",
+        url: "/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection",
+        data: expect.objectContaining({
+          Name: "Damaged baggage",
+          ProcessingTypeCode: "SRRQ",
+          ServicePriorityCode: "3",
+          DataOriginTypeCode: "4",
+        }),
+      }),
+      { fetchCsrfToken: false },
+    );
   });
 
   it("encodes SAP OData keys and query parameters for built-in operations", async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ d: { results: [], __count: "0" } }));
+    vi.mocked(executeHttpRequest)
+      .mockResolvedValueOnce({
+        data: { d: { ObjectID: "object-1", StatusCode: "2" } },
+        status: 200,
+        headers: {},
+        request: {},
+      } as Awaited<ReturnType<typeof executeHttpRequest>>)
+      .mockResolvedValueOnce({
+        data: { d: { results: [], __count: "0" } },
+        status: 200,
+        headers: {},
+        request: {},
+      } as Awaited<ReturnType<typeof executeHttpRequest>>);
     const client = createSapServiceCloudTicketingClient({
       baseUrl: "https://tenant.crm.ondemand.com",
       accessToken: "sap-token",
       csrfToken: "csrf-token",
-      fetch: fetchMock,
     });
 
     await client.updateServiceRequest("object/1'quoted", {
@@ -168,40 +186,52 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       inlineCount: "allpages",
     });
 
-    const [updateUrl, updateInit] = fetchCall(fetchMock, 0);
-    expect(new URL(updateUrl).pathname).toBe(
-      "/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection('object%2F1''quoted')",
-    );
-    expect(updateInit.method).toBe("PATCH");
-    expect(headerValue(updateInit, "if-match")).toBe("etag-1");
-    expect(headerValue(updateInit, "x-csrf-token")).toBe("csrf-token");
-    expect(jsonBody(updateInit)).toEqual({
+    const updateConfig = vi.mocked(executeHttpRequest).mock.calls[0]?.[1];
+    expect(updateConfig).toMatchObject({
+      method: "PATCH",
+      url: "/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection('object%2F1''quoted')",
+      headers: expect.objectContaining({
+        "If-Match": "etag-1",
+        "x-csrf-token": "csrf-token",
+      }),
+      data: {
+        StatusCode: "2",
+        ServicePriorityCode: "1",
+      },
+    });
+
+    const searchConfig = vi.mocked(executeHttpRequest).mock.calls[1]?.[1];
+    expect(searchConfig).toMatchObject({
+      method: "GET",
+      url: "/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection",
+      params: {
+        "$filter": "ID eq '8000001'",
+        "$select": "ObjectID,ID",
+        "$expand": "ServiceRequestDescription",
+        "$orderby": "ID desc",
+        "$top": 5,
+        "$skip": 10,
+        "$inlinecount": "allpages",
+      },
+    });
+    expect(updateConfig?.data).toEqual({
       StatusCode: "2",
       ServicePriorityCode: "1",
     });
-
-    const [searchUrl] = fetchCall(fetchMock, 1);
-    const query = new URL(searchUrl).searchParams;
-    expect(query.get("$filter")).toBe("ID eq '8000001'");
-    expect(query.get("$select")).toBe("ObjectID,ID");
-    expect(query.get("$expand")).toBe("ServiceRequestDescription");
-    expect(query.get("$orderby")).toBe("ID desc");
-    expect(query.get("$top")).toBe("5");
-    expect(query.get("$skip")).toBe("10");
-    expect(query.get("$inlinecount")).toBe("allpages");
   });
 
-  it("surfaces SAP OData JSON errors with status and payload", async () => {
-    const fetchMock = vi.fn(async () =>
-      jsonResponse({ error: { code: "NOT_FOUND", message: { value: "Invalid ObjectID." } } }, {
+  it("surfaces SAP Cloud SDK OData errors with status and payload", async () => {
+    vi.mocked(executeHttpRequest).mockRejectedValueOnce({
+      response: {
         status: 404,
         statusText: "Not Found",
-      })
-    );
+        headers: { "x-correlationid": "correlation-1" },
+        data: { error: { code: "NOT_FOUND", message: { value: "Invalid ObjectID." } } },
+      },
+    });
     const client = createSapServiceCloudTicketingClient({
       baseUrl: "https://tenant.crm.ondemand.com",
       accessToken: "sap-token",
-      fetch: fetchMock,
     });
 
     await expect(client.getServiceRequest("missing")).rejects.toMatchObject({
@@ -209,6 +239,7 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       status: 404,
       message: "Invalid ObjectID.",
       body: expect.objectContaining({ error: expect.any(Object) }),
+      response: expect.objectContaining({ requestId: "correlation-1" }),
     });
   });
 
@@ -347,24 +378,3 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     expect(result.status).toBe("passed");
   });
 });
-
-function jsonResponse(body: unknown, init: ResponseInit = {}) {
-  return new Response(JSON.stringify(body), {
-    headers: { "content-type": "application/json" },
-    ...init,
-  });
-}
-
-function fetchCall(fetchMock: ReturnType<typeof vi.fn>, index = 0): [string, RequestInit] {
-  const call = fetchMock.mock.calls[index];
-  if (!call) throw new Error(`Missing fetch call ${index}.`);
-  return [String(call[0]), call[1] as RequestInit];
-}
-
-function headerValue(init: RequestInit, key: string) {
-  return new Headers(init.headers).get(key);
-}
-
-function jsonBody(init: RequestInit) {
-  return JSON.parse(String(init.body)) as unknown;
-}

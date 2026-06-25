@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -8,7 +7,6 @@ import {
   createFreshdeskTicketingIntegration,
   parseFreshdeskWebhookRequest,
   type FreshdeskJsonObject,
-  type FreshdeskTicketingClientOptions,
   type FreshdeskTicketingProviderClient,
 } from "../src/index.js";
 import packageJson from "../package.json";
@@ -35,7 +33,7 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
       rawClientEscapeHatch: "FreshdeskTicketingClient.providerClient",
       defaultClientPolicy: "use-official-freshworks-freshdesk-sdk-when-domain-and-apiKey-are-configured",
       packageOwnedRestClient: false,
-      packageOwnedRestFallback: true,
+      packageOwnedRestFallback: false,
       providerClientOverride: true,
       rawClientOverride: true,
       sdkDecision: {
@@ -126,6 +124,11 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
     await client.createNote(42, { body: "Internal" });
     await client.getContact(7);
     await client.searchContacts({ query: "\"email:ada@example.test\"" });
+    await expect(client.searchTickets({ query: "\"email:ada@example.test\"", page: 2 }))
+      .rejects.toThrow("searchTicket method accepts a string query only");
+    await expect(client.getAgent(1)).rejects.toThrow("does not expose agents APIs");
+    await expect(client.getGroup(2)).rejects.toThrow("does not expose groups APIs");
+    await expect(client.readiness()).rejects.toThrow("does not expose agents/me readiness");
 
     expect(freshdeskSdkFactory).toHaveBeenCalledWith({
       domain: "acme.freshdesk.com",
@@ -143,70 +146,43 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
     expect(sdkClient.contacts.searchContacts).toHaveBeenCalledWith({ query: "\"email:ada@example.test\"" });
   });
 
-  it("uses the built-in Freshdesk REST adapter when credentials are configured", async () => {
-    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
-      jsonResponse({ ok: true, id: 42 }));
+  it("does not revive a package-owned REST fallback for SDK gaps", async () => {
+    const sdkClient = {
+      tickets: {
+        createTicket: vi.fn(),
+        getTicket: vi.fn(),
+        updateTicket: vi.fn(),
+        searchTicket: vi.fn(),
+        replyTicket: vi.fn(),
+        addNotes: vi.fn(),
+      },
+      contacts: {
+        getContact: vi.fn(),
+        searchContacts: vi.fn(),
+      },
+      conversations: {
+        getAllTicketConversations: vi.fn(),
+      },
+    };
+    freshdeskSdkFactory.mockImplementation(function FreshdeskSdkMock() {
+      return sdkClient;
+    });
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response("{}"));
     const client = createFreshdeskTicketingClient({
       domain: "acme",
       apiKey: "fd-key",
-      fetch: fetchMock,
+      ...({ fetch: fetchMock } as unknown as { fetch: typeof fetchMock }),
     });
 
-    await expect(client.createTicket({
-      subject: "Flight disruption",
-      email: "ada@example.test",
-      custom_fields: { cf_tier: "gold" },
-    })).resolves.toMatchObject({ ok: true, id: 42 });
-    await client.getTicket("ticket 42/a");
-    await client.searchTickets({ query: "\"email:ada@example.test\"", page: 2 });
-
-    const [createUrl, createInit] = fetchMock.mock.calls[0]!;
-    expect(String(createUrl)).toBe("https://acme.freshdesk.com/api/v2/tickets");
-    expect(createInit?.method).toBe("POST");
-    expect(new Headers(createInit?.headers).get("Authorization"))
-      .toBe(`Basic ${Buffer.from("fd-key:X").toString("base64")}`);
-    expect(new Headers(createInit?.headers).get("Content-Type")).toBe("application/json");
-    expect(JSON.parse(createInit?.body as string)).toEqual({
-      subject: "Flight disruption",
-      email: "ada@example.test",
-      custom_fields: { cf_tier: "gold" },
-    });
-
-    expect(String(fetchMock.mock.calls[1]![0]))
-      .toBe("https://acme.freshdesk.com/api/v2/tickets/ticket%2042%2Fa");
-    const searchUrl = new URL(String(fetchMock.mock.calls[2]![0]));
-    expect(searchUrl.pathname).toBe("/api/v2/search/tickets");
-    expect(searchUrl.searchParams.get("query")).toBe("\"email:ada@example.test\"");
-    expect(searchUrl.searchParams.get("page")).toBe("2");
-    expect(freshdeskSdkFactory).not.toHaveBeenCalled();
+    await expect(client.getAgent(1)).rejects.toThrow("does not expose agents APIs");
+    await expect(client.searchTickets({ query: "\"email:ada@example.test\"", page: 2 }))
+      .rejects.toThrow("inject FreshdeskTicketingProviderClient for structured search");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("surfaces Freshdesk REST JSON errors", async () => {
-    const fetchMock: NonNullable<FreshdeskTicketingClientOptions["fetch"]> = vi.fn(async () =>
-      jsonResponse({
-        errors: [{ field: "subject", message: "It should be a/an String" }],
-      }, {
-        status: 422,
-        statusText: "Unprocessable Entity",
-      }));
-    const client = createFreshdeskTicketingClient({
-      domain: "https://acme.freshdesk.com",
-      apiKey: "fd-key",
-      fetch: fetchMock,
-    });
-
-    await expect(client.createTicket({})).rejects.toMatchObject({
-      message: "Freshdesk request failed with 422.",
-      status: 422,
-      payload: {
-        errors: [{ field: "subject", message: "It should be a/an String" }],
-      },
-    });
-  });
-
-  it("fails closed only when neither REST credentials nor host client are provided", async () => {
+  it("fails closed only when neither SDK credentials nor host client are provided", async () => {
     const client = createFreshdeskUnavailableClient();
-    await expect(client.readiness()).rejects.toThrow("Freshdesk REST adapter requires domain and apiKey");
+    await expect(client.readiness()).rejects.toThrow("Freshdesk SDK adapter requires domain and apiKey");
 
     const integration = createFreshdeskTicketingIntegration({});
     await expect(integration.run("freshdesk.readiness", undefined)).rejects.toThrow("domain and apiKey");
@@ -313,12 +289,4 @@ function fakeFreshdeskProviderClient(
     getGroup: (groupId) => record("getGroup", [groupId]),
     readiness: () => record("readiness", []),
   };
-}
-
-function jsonResponse(body: unknown, init: ResponseInit = {}) {
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-    ...init,
-  });
 }

@@ -27,7 +27,7 @@ export const freshdeskTicketingProviderManifestInput = {
     scope: "provider-api-subset",
     notes: [
       "Implementation uses the official @freshworks/freshdesk JavaScript SDK by default when domain and apiKey are configured.",
-      "A constrained Freshdesk v2 REST fallback remains only for SDK gaps such as agents, groups, readiness, and explicit low-level host controls like custom fetch, retry, timeout, headers, or apiBaseUrl.",
+      "Operations not exposed by the official SDK, such as agents, groups, and current-agent readiness, require an injected FreshdeskTicketingProviderClient instead of a package-owned REST fallback.",
       "Coverage is limited to Freshdesk v2 tickets, contacts, conversations, replies, notes, handoff updates, agents, groups, current-agent readiness, and SDK-user shared-secret webhook validation.",
     ],
     evidence: [
@@ -73,7 +73,7 @@ export const freshdeskTicketingProviderManifestInput = {
       providerSdkPackage: "@freshworks/freshdesk",
       defaultClientPolicy: "use-official-freshworks-freshdesk-sdk-when-domain-and-apiKey-are-configured",
       packageOwnedRestClient: false,
-      packageOwnedRestFallback: true,
+      packageOwnedRestFallback: false,
       providerClientOverride: true,
       rawClientOverride: true,
       sdkDecision: {
@@ -82,14 +82,14 @@ export const freshdeskTicketingProviderManifestInput = {
         checkedVersion: "0.0.1",
         license: "freshdesk",
         result: "accepted-runtime-sdk",
-        reason: "@freshworks/freshdesk exposes Freshdesk tickets, contacts, and conversations runtime clients. Agents, groups, and current-agent readiness are not exposed by that package and stay behind the narrow REST fallback.",
+        reason: "@freshworks/freshdesk exposes Freshdesk tickets, contacts, and conversations runtime clients. Agents, groups, and current-agent readiness are not exposed by that package and require FreshdeskTicketingProviderClient injection.",
         packageChecked: "@freshworks/freshdesk",
         notes: [
           "@freshworks/freshdesk 0.0.1 exposes tickets.createTicket/getTicket/updateTicket/searchTicket/replyTicket/addNotes and contacts.getContact/searchContacts.",
-          "The package does not expose agents/groups/readiness helpers; those remain REST fallback operations.",
+          "The package does not expose agents/groups/readiness helpers; those operations fail closed unless a host FreshdeskTicketingProviderClient is injected.",
         ],
       },
-      delegatedOperationTarget: "official Freshdesk SDK, REST fallback for SDK gaps, or injected Freshdesk provider client",
+      delegatedOperationTarget: "official Freshdesk SDK for covered operations or injected Freshdesk provider client for SDK gaps",
     },
     sdkDecision: {
       checkedAt: "2026-06-25",

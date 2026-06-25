@@ -1,15 +1,12 @@
 export {
   createFreshworksFreshdeskProviderClient,
   createFreshworksFreshdeskSdkProviderClient,
-  createFreshdeskRestProviderClient,
   createFreshdeskTicketingClient,
   createFreshdeskUnavailableClient,
-  freshdeskApiBaseUrl,
 } from "./client.js";
 export type {
   FreshdeskJsonObject,
   FreshdeskJsonPrimitive,
-  FreshdeskJsonRetryOptions,
   FreshdeskJsonValue,
   FreshdeskProviderPayload,
   FreshdeskTicketingClient,

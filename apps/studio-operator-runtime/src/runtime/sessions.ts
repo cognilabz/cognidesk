@@ -3,6 +3,7 @@ import type { WebSocket } from "ws";
 import {
   StudioOperatorClientEventSchema,
   type StudioOperatorClientEvent,
+  type StudioOperatorReasoningEffort,
 } from "@cognidesk/studio-contracts";
 import { CodexAppServerClient } from "../codex-client.js";
 import { buildBaseInstructions, modelForCodex, prepareSandbox } from "./sandbox.js";
@@ -72,12 +73,12 @@ async function startSession(
     modelId: event.modelId,
   });
   if (event.message?.trim()) {
-    const turn = await codex.startTurn({
-      threadId: thread.thread.id,
-      message: event.message,
-      ...(model ? { model } : {}),
-      ...(event.reasoningEffort ? { effort: event.reasoningEffort } : {}),
-    });
+  const turn = await codex.startTurn({
+    threadId: thread.thread.id,
+    message: event.message,
+    ...(model ? { model } : {}),
+    ...(event.reasoningEffort ? { effort: effortForCodexAppServer(event.reasoningEffort) } : {}),
+  });
     session.currentTurnId = turn.turn.id;
   }
 }
@@ -108,9 +109,13 @@ async function startTurn(
     threadId: session.threadId,
     message: event.message,
     ...(model ? { model } : {}),
-    ...(session.reasoningEffort ? { effort: session.reasoningEffort } : {}),
+    ...(session.reasoningEffort ? { effort: effortForCodexAppServer(session.reasoningEffort) } : {}),
   });
   session.currentTurnId = turn.turn.id;
+}
+
+function effortForCodexAppServer(effort: StudioOperatorReasoningEffort) {
+  return effort === "minimal" ? "low" : effort;
 }
 
 export async function interruptTurn(claims: StudioClaims, sessionId: string) {

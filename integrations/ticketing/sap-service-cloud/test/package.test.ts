@@ -25,7 +25,7 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
           adapterKind: "sap-cloud-sdk-http-client-odata-adapter",
           providerSdkPackage: "@sap-cloud-sdk/http-client",
           defaultHttpClient: "executeHttpRequest",
-          defaultFetchClient: "host-fetch-override-only",
+          defaultFetchClient: "none-provider-client-override-only",
           packageOwnedODataMapping: true,
         },
         providerClient: {
