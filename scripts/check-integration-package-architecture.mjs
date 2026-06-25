@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const workspacePatterns = [
@@ -567,46 +568,91 @@ export async function providerSdkRuntimeUsageFailuresForPackage(pkg) {
 }
 
 function sourceUsesRuntimePackage(source, dependencyName) {
-  const escaped = escapeRegExp(dependencyName);
-  const directImport = new RegExp(`(^|\\n)\\s*import\\s+(?!type\\b)(?:([\\s\\S]*?)\\s+from\\s+)?["']${escaped}(?:/[^"']*)?["']`, "g");
-  const directExport = new RegExp(`(^|\\n)\\s*export\\s+(?!type\\b)([\\s\\S]*?\\s+from\\s+)["']${escaped}(?:/[^"']*)?["']`, "g");
-  const dynamicImport = new RegExp(`\\bimport\\s*\\(\\s*["']${escaped}(?:/[^"']*)?["']\\s*\\)`);
-  const requireCall = new RegExp(`\\brequire\\s*\\(\\s*["']${escaped}(?:/[^"']*)?["']\\s*\\)`);
-  const importEqualsRequire = new RegExp(`(^|\\n)\\s*import\\s+\\w+\\s*=\\s*require\\s*\\(\\s*["']${escaped}(?:/[^"']*)?["']\\s*\\)`);
+  const sourceFile = ts.createSourceFile(
+    "integration-runtime-usage.ts",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
+  let found = false;
 
-  if (dynamicImport.test(source) || requireCall.test(source) || importEqualsRequire.test(source)) {
-    return true;
+  const moduleMatches = (value) => value === dependencyName || value.startsWith(`${dependencyName}/`);
+
+  const stringLiteralText = (node) =>
+    node && ts.isStringLiteralLike(node) ? node.text : undefined;
+
+  const isExternalModuleReference = (node) =>
+    ts.isExternalModuleReference(node)
+    && stringLiteralText(node.expression) !== undefined
+    && moduleMatches(stringLiteralText(node.expression));
+
+  const hasRuntimeImportClause = (importClause) => {
+    if (!importClause) return true;
+    if (importClause.isTypeOnly) return false;
+    if (importClause.name) return true;
+    const namedBindings = importClause.namedBindings;
+    if (!namedBindings) return false;
+    if (ts.isNamespaceImport(namedBindings)) return true;
+    return namedBindings.elements.some((specifier) => !specifier.isTypeOnly);
+  };
+
+  const hasRuntimeExportClause = (exportClause, isTypeOnly) => {
+    if (isTypeOnly) return false;
+    if (!exportClause) return true;
+    if (ts.isNamespaceExport(exportClause)) return true;
+    return exportClause.elements.some((specifier) => !specifier.isTypeOnly);
+  };
+
+  function visit(node) {
+    if (found) return;
+
+    if (
+      ts.isImportDeclaration(node)
+      && stringLiteralText(node.moduleSpecifier) !== undefined
+      && moduleMatches(stringLiteralText(node.moduleSpecifier))
+      && hasRuntimeImportClause(node.importClause)
+    ) {
+      found = true;
+      return;
+    }
+
+    if (
+      ts.isExportDeclaration(node)
+      && stringLiteralText(node.moduleSpecifier) !== undefined
+      && moduleMatches(stringLiteralText(node.moduleSpecifier))
+      && hasRuntimeExportClause(node.exportClause, node.isTypeOnly)
+    ) {
+      found = true;
+      return;
+    }
+
+    if (
+      ts.isImportEqualsDeclaration(node)
+      && !node.isTypeOnly
+      && isExternalModuleReference(node.moduleReference)
+    ) {
+      found = true;
+      return;
+    }
+
+    if (
+      ts.isCallExpression(node)
+      && node.arguments.length > 0
+      && stringLiteralText(node.arguments[0]) !== undefined
+      && moduleMatches(stringLiteralText(node.arguments[0]))
+      && (node.expression.kind === ts.SyntaxKind.ImportKeyword
+        || (ts.isIdentifier(node.expression) && node.expression.text === "require"))
+    ) {
+      found = true;
+      return;
+    }
+
+    ts.forEachChild(node, visit);
   }
 
-  let match;
-  while ((match = directImport.exec(source))) {
-    const importClause = match[2]?.trim();
-    if (importClause === undefined || importClause === "") return true;
-    if (importClauseHasRuntimeBinding(importClause)) return true;
-  }
-
-  while ((match = directExport.exec(source))) {
-    const exportClause = match[2]?.replace(/\s+from\s+$/u, "").trim();
-    if (exportClause === undefined || exportClause === "") continue;
-    if (exportClause.startsWith("*")) return true;
-    if (importClauseHasRuntimeBinding(exportClause)) return true;
-  }
-
-  return false;
-}
-
-function importClauseHasRuntimeBinding(clause) {
-  const trimmed = clause.trim();
-  if (trimmed === "" || trimmed.startsWith("type ")) return false;
-
-  if (!trimmed.startsWith("{")) return true;
-
-  const namedSpecifiers = trimmed.replace(/^\{\s*/u, "").replace(/\s*\}$/u, "");
-  return namedSpecifiers
-    .split(",")
-    .map((specifier) => specifier.trim())
-    .filter(Boolean)
-    .some((specifier) => !specifier.startsWith("type "));
+  visit(sourceFile);
+  return found;
 }
 
 export function providerSdkDependencyMetadataFailuresForPackage(pkg) {

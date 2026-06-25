@@ -297,6 +297,52 @@ describe("provider SDK runtime usage", () => {
     });
   });
 
+  it("does not let earlier runtime imports make later type-only SDK imports count as runtime usage", async () => {
+    await withTempProviderPackage({
+      "src/index.ts": [
+        'import { createIntegration } from "@cognidesk/integration-kit";',
+        'import type { Connector } from "@servicenow/sdk-api";',
+        "export const runtime = createIntegration;",
+      ].join("\n"),
+    }, async (pkg) => {
+      pkg.packageJson = {
+        dependencies: {
+          "@cognidesk/integration-kit": "workspace:*",
+          "@servicenow/sdk-api": "^4.8.0",
+        },
+        cognidesk: { providerSdkDependencies: ["@servicenow/sdk-api"] },
+      };
+
+      assert.deepEqual(
+        (await providerSdkRuntimeUsageFailuresForPackage(pkg)).map((failure) => failure.replace(/^.*package.json: /, "")),
+        [
+          "cognidesk.providerSdkDependencies declares @servicenow/sdk-api, but runtime source does not import it",
+        ],
+      );
+    });
+  });
+
+  it("does not count type-only SDK re-exports as runtime usage", async () => {
+    await withTempProviderPackage({
+      "src/index.ts": [
+        'export type { Connector } from "@servicenow/sdk-api";',
+        "export const runtime = {};",
+      ].join("\n"),
+    }, async (pkg) => {
+      pkg.packageJson = {
+        dependencies: { "@servicenow/sdk-api": "^4.8.0" },
+        cognidesk: { providerSdkDependencies: ["@servicenow/sdk-api"] },
+      };
+
+      assert.deepEqual(
+        (await providerSdkRuntimeUsageFailuresForPackage(pkg)).map((failure) => failure.replace(/^.*package.json: /, "")),
+        [
+          "cognidesk.providerSdkDependencies declares @servicenow/sdk-api, but runtime source does not import it",
+        ],
+      );
+    });
+  });
+
   it("counts mixed value and type specifier imports as runtime SDK usage", async () => {
     await withTempProviderPackage({
       "src/index.ts": [
