@@ -102,7 +102,6 @@ describe("flight demo channel policies", () => {
     const channels = createFlightDemoRuntimeChannels({
       externalIntegrationJourneysEnabled: { secureEmail: false, discordHandoff: false, whatsapp: true },
       whatsappProviderPackageId: FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID,
-      whatsappDelivery: "whatsapp-web-message",
     });
     const decision = evaluateCapabilityUse({
       request: {
@@ -123,6 +122,17 @@ describe("flight demo channel policies", () => {
     expect(decision).toMatchObject({ allowed: true });
     expect(providerPackageIds(channels)).toContain(FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID);
     expect(providerPackageIds(channels)).not.toContain(FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID);
+    expect(whatsAppOutboundDeliveries(channels)).toEqual(["whatsapp-web-message"]);
+  });
+
+  it("derives WhatsApp delivery metadata from the selected provider package", () => {
+    const channels = createFlightDemoRuntimeChannels({
+      externalIntegrationJourneysEnabled: { secureEmail: false, discordHandoff: false, whatsapp: true },
+      whatsappProviderPackageId: FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID,
+      whatsappDelivery: "whatsapp-cloud-api-message",
+    });
+
+    expect(whatsAppOutboundDeliveries(channels)).toEqual(["whatsapp-web-message"]);
   });
 
   it("adds secure email channel policies only when secure email is enabled", () => {
@@ -158,4 +168,10 @@ function journeyActivations(channels: typeof flightDemoRuntimeChannels) {
 
 function providerPackageIds(channels: typeof flightDemoRuntimeChannels) {
   return channels.flatMap((channel) => channel.providerPackageIds ?? []);
+}
+
+function whatsAppOutboundDeliveries(channels: typeof flightDemoRuntimeChannels) {
+  return [...new Set(channels
+    .filter((channel) => channel.providerPackageIds?.includes(FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID))
+    .map((channel) => channel.outbound?.metadata?.delivery))];
 }

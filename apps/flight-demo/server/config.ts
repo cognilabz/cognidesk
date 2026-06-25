@@ -791,7 +791,6 @@ export function getConfiguredEmailReplyVerificationConfig(
 export function getConfiguredWhatsAppDeliveryConfig(config: FlightDemoConfig): ConfiguredWhatsAppDeliveryConfig {
   loadFlightDemoEnv();
   const whatsapp = config.whatsapp;
-  const transport = readWhatsAppTransport(whatsapp.providerEnv, whatsapp.provider);
   const confirmationBaseUrl = readTrimmedEnv(whatsapp.confirmationBaseUrlEnv) ?? whatsapp.confirmationBaseUrl;
   const verifyToken = readTrimmedEnv(whatsapp.verifyTokenEnv);
   const commonBase = {
@@ -803,6 +802,7 @@ export function getConfiguredWhatsAppDeliveryConfig(config: FlightDemoConfig): C
     ...(verifyToken ? { verifyToken } : {}),
   };
   if (!whatsapp.enabled) {
+    const transport = whatsapp.provider;
     return {
       ...commonBase,
       transport,
@@ -814,9 +814,10 @@ export function getConfiguredWhatsAppDeliveryConfig(config: FlightDemoConfig): C
     };
   }
 
+  const transport = readWhatsAppTransport(whatsapp.providerEnv, whatsapp.provider);
   if (transport === "web") {
     const configuredAuthStateDir = readTrimmedEnv(whatsapp.webAuthStateDirEnv) ?? whatsapp.webAuthStateDir;
-    const pairingPhoneNumber = readTrimmedEnv(whatsapp.webPairingPhoneEnv);
+    const pairingPhoneNumber = readWhatsAppPairingPhoneNumber(whatsapp.webPairingPhoneEnv);
     const connectTimeoutMs = numberEnv(whatsapp.webConnectTimeoutMsEnv, whatsapp.webConnectTimeoutMs);
     const sendTimeoutMs = numberEnv(whatsapp.webSendTimeoutMsEnv, whatsapp.webSendTimeoutMs);
     return {
@@ -974,6 +975,15 @@ function readWhatsAppTransport(
   if (!value) return defaultValue;
   if (value === "cloud-api" || value === "web") return value;
   throw new Error(`${providerEnv} must be 'cloud-api' or 'web'.`);
+}
+
+function readWhatsAppPairingPhoneNumber(envName: string) {
+  const value = readTrimmedEnv(envName);
+  if (!value) return undefined;
+  if (!/^\+?\d+$/.test(value)) {
+    throw new Error(`${envName} must contain digits only, optionally prefixed by '+'.`);
+  }
+  return value.replace(/^\+/, "");
 }
 
 function numberEnv(name: string, defaultValue: number) {

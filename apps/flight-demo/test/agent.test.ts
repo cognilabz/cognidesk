@@ -5,7 +5,10 @@ import {
   createFlightDemoRuntimeParts,
   type FlightDemoExternalIntegrationJourneyOption,
 } from "../server/agent/index.js";
-import { flightDemoRuntimeChannels } from "../server/agent/policies.js";
+import {
+  FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID,
+  flightDemoRuntimeChannels,
+} from "../server/agent/policies.js";
 import {
   createFlightTools,
   flightTools,
@@ -825,6 +828,18 @@ describe("flight demo customer use cases", () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+
+  it("uses the web provider package in WhatsApp tool policy when web transport is selected", () => {
+    const tools = createFlightTools({
+      whatsapp: {
+        transport: "web",
+        configured: false,
+      },
+    });
+
+    expect(tools.sendWhatsAppCustomerMessage.policy?.providerPackageId)
+      .toBe(FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID);
   });
 
   it("sends configured WhatsApp messages through a linked-device web session without Meta credentials", async () => {

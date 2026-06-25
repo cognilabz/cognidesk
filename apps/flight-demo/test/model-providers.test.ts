@@ -547,6 +547,28 @@ describe("flight demo model provider config", () => {
     });
   });
 
+  it("does not validate WhatsApp transport env when delivery is disabled", () => {
+    process.env.TEST_FLIGHT_WHATSAPP_PROVIDER = "not-a-transport";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      whatsapp: {
+        enabled: false,
+        provider: "cloud-api",
+        providerEnv: "TEST_FLIGHT_WHATSAPP_PROVIDER",
+      },
+    });
+
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).toMatchObject({
+      provider: "whatsapp",
+      transport: "cloud-api",
+      configured: false,
+      enabled: false,
+    });
+  });
+
   it("reports enabled WhatsApp send-only delivery as blocked until Cloud API send env exists", () => {
     const config = parseFlightDemoConfig({
       ...configWithModels({
@@ -629,12 +651,31 @@ describe("flight demo model provider config", () => {
       providerPackageId: "messaging.whatsapp-web",
       configured: true,
       authStateDir: "/tmp/cognidesk-wa",
-      pairingPhoneNumber: "+15550123",
+      pairingPhoneNumber: "15550123",
       connectTimeoutMs: 12000,
       sendTimeoutMs: 8000,
     });
     expect(getConfiguredWhatsAppDeliveryConfig(config)).not.toHaveProperty("accessToken");
     expect(getConfiguredWhatsAppDeliveryConfig(config)).not.toHaveProperty("recipientOverride");
+  });
+
+  it("rejects invalid WhatsApp Web pairing phone numbers", () => {
+    process.env.TEST_FLIGHT_WHATSAPP_PROVIDER = "web";
+    process.env.TEST_FLIGHT_WHATSAPP_WEB_PAIRING_PHONE = "+1 555 0123";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      whatsapp: {
+        enabled: true,
+        providerEnv: "TEST_FLIGHT_WHATSAPP_PROVIDER",
+        webPairingPhoneEnv: "TEST_FLIGHT_WHATSAPP_WEB_PAIRING_PHONE",
+      },
+    });
+
+    expect(() => getConfiguredWhatsAppDeliveryConfig(config))
+      .toThrow("TEST_FLIGHT_WHATSAPP_WEB_PAIRING_PHONE must contain digits only, optionally prefixed by '+'.");
   });
 
   it("reads WhatsApp delivery settings without sending provider messages", () => {

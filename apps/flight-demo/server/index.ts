@@ -86,6 +86,7 @@ import {
   FLIGHT_SECURE_EMAIL_CHANNEL_ID,
   FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID,
   createFlightDemoRuntimeChannels,
+  flightWhatsAppDeliveryForTransport,
 } from "./agent/policies.js";
 import { createFlightDemoRuntimeParts, createFlightTools } from "./agent/index.js";
 import {
@@ -274,9 +275,7 @@ const emailReplyVerificationConfig = externalIntegrationJourneysEnabled.secureEm
       config,
       flightDemoIntegrationDisabledReason("FLIGHT_DEMO_SECURE_EMAIL_JOURNEY"),
     );
-const whatsAppDeliveryName = whatsAppDeliveryConfig.transport === "web"
-  ? "whatsapp-web-message"
-  : "whatsapp-cloud-api-message";
+const whatsAppDeliveryName = flightWhatsAppDeliveryForTransport(whatsAppDeliveryConfig.transport);
 const providerPackages = [
   discordMessagingProviderManifest,
   whatsappMessagingProviderManifest,
@@ -1283,18 +1282,24 @@ function flightDemoWhatsAppCredentialStatuses(
   const whatsapp = config.whatsapp;
   const deliveryConfig = getConfiguredWhatsAppDeliveryConfig(config);
   if (deliveryConfig.transport === "web") {
+    const webCredentialState = deliveryConfig.configured ? "configured" : "missing";
+    const authStateDir = deliveryConfig.configured ? deliveryConfig.authStateDir : config.whatsapp.webAuthStateDir;
     return [
       ProviderCredentialStatusSchema.parse({
         providerPackageId: deliveryConfig.providerPackageId,
         requirementId: "whatsapp-web-auth-state",
-        state: "configured",
-        message: `WhatsApp Web auth state is stored in '${deliveryConfig.configured ? deliveryConfig.authStateDir : config.whatsapp.webAuthStateDir}'.`,
+        state: webCredentialState,
+        message: deliveryConfig.configured
+          ? `WhatsApp Web auth state is stored in '${authStateDir}'.`
+          : deliveryConfig.reason,
       }),
       ProviderCredentialStatusSchema.parse({
         providerPackageId: deliveryConfig.providerPackageId,
         requirementId: "whatsapp-web-linked-device-session",
-        state: "configured",
-        message: "Pair WhatsApp from Linked Devices on first use; the demo verifies the linked-device session when sending.",
+        state: webCredentialState,
+        message: deliveryConfig.configured
+          ? "Pair WhatsApp from Linked Devices on first use; the demo verifies the linked-device session when sending."
+          : "Configure WhatsApp Web auth state before pairing a linked-device session.",
       }),
     ];
   }

@@ -35,6 +35,20 @@ export interface ProviderJsonRetryOptions {
   maxDelayMs?: number | undefined;
 }
 
+const DEFAULT_RETRY_ATTEMPTS = 3;
+const RETRYABLE_NETWORK_ERROR_CODES = new Set([
+  "ECONNRESET",
+  "ECONNREFUSED",
+  "EHOSTUNREACH",
+  "ENETDOWN",
+  "ENETRESET",
+  "ENETUNREACH",
+  "ETIMEDOUT",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_HEADERS_TIMEOUT",
+  "UND_ERR_SOCKET",
+]);
+
 export async function providerJsonRequest<T = unknown>(input: ProviderJsonRequestInput): Promise<T> {
   const attempts = retryAttempts(input.retry);
   let lastError: unknown;
@@ -139,7 +153,7 @@ function providerRequestTimeout(input: ProviderJsonRequestInput) {
 function retryAttempts(retry: ProviderJsonRequestInput["retry"]): number {
   if (retry === undefined) return 1;
   if (typeof retry === "number") return Math.max(1, Math.floor(retry));
-  return Math.max(1, Math.floor(retry.attempts ?? 1));
+  return Math.max(1, Math.floor(retry.attempts ?? DEFAULT_RETRY_ATTEMPTS));
 }
 
 function shouldRetryProviderJsonRequest(
@@ -154,7 +168,7 @@ function shouldRetryProviderJsonRequest(
   const status = typeof error === "object" && error !== null && "status" in error
     ? Number((error as { status?: unknown }).status)
     : undefined;
-  if (status === undefined || Number.isNaN(status)) return true;
+  if (status === undefined || Number.isNaN(status)) return isRetryableStatuslessError(error);
 
   const retry = typeof input.retry === "object" ? input.retry : undefined;
   const statusCodes = retry?.statusCodes ?? [408, 409, 425, 429, 500, 502, 503, 504];
@@ -164,8 +178,25 @@ function shouldRetryProviderJsonRequest(
 function retryDelayMs(retry: ProviderJsonRequestInput["retry"], attempt: number): number {
   if (typeof retry !== "object" || retry === null) return 0;
   const base = retry.baseDelayMs ?? 0;
-  const max = retry.maxDelayMs ?? base;
+  const max = retry.maxDelayMs ?? Number.POSITIVE_INFINITY;
   return Math.min(max, base * 2 ** attempt);
+}
+
+function isRetryableStatuslessError(error: unknown): boolean {
+  let current: unknown = error;
+  while (typeof current === "object" && current !== null) {
+    const candidate = current as {
+      cause?: unknown;
+      code?: unknown;
+      message?: unknown;
+      name?: unknown;
+    };
+    if (candidate.name === "AbortError" || candidate.name === "TimeoutError") return true;
+    if (candidate.code && RETRYABLE_NETWORK_ERROR_CODES.has(String(candidate.code))) return true;
+    if (typeof candidate.message === "string" && candidate.message.startsWith("Provider request timed out after ")) return true;
+    current = candidate.cause;
+  }
+  return false;
 }
 
 function delay(ms: number): Promise<void> {

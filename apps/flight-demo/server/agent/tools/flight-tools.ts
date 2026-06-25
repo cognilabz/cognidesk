@@ -18,7 +18,7 @@ import {
   FLIGHT_MOCK_BOOKING_CAPABILITY,
   FLIGHT_MOCK_BOOKING_POLICY_ID,
   FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID,
-  FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+  flightWhatsAppProviderPackageIdForTransport,
 } from "../policies.js";
 
 const whatsAppMessagePurposeSchema = z.enum(["verification-link", "confirmation-link", "notification"]);
@@ -238,7 +238,8 @@ function createSendWhatsAppCustomerMessageTool(options: FlightWhatsAppToolOption
     sideEffect: true,
     policy: {
       capability: "send",
-      providerPackageId: options.providerPackageId ?? FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+      providerPackageId: options.providerPackageId
+        ?? flightWhatsAppProviderPackageIdForTransport(options.transport ?? "cloud-api"),
       outbound: true,
       externallyVisible: true,
       requiredPolicyIds: [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID],

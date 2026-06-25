@@ -221,12 +221,50 @@ body[data-md-color-scheme="slate"]::before {
 
 .md-typeset .highlight pre {
   background:
+    linear-gradient(135deg, oklch(98.5% 0.008 285), oklch(94.5% 0.025 250)) !important;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .highlight pre {
+  background:
     linear-gradient(135deg, oklch(16% 0.03 286), oklch(20% 0.04 286)) !important;
 }
 
 .md-typeset .highlight code {
   border: 0;
+  color: var(--cd-ink);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .highlight code {
   color: oklch(90% 0.012 285);
+}
+
+[data-md-color-scheme="default"] .md-typeset .highlight .c,
+[data-md-color-scheme="default"] .md-typeset .highlight .c1,
+[data-md-color-scheme="default"] .md-typeset .highlight .cm,
+[data-md-color-scheme="default"] .md-typeset .highlight .cp {
+  color: oklch(48% 0.028 282);
+}
+
+[data-md-color-scheme="default"] .md-typeset .highlight .k,
+[data-md-color-scheme="default"] .md-typeset .highlight .kc,
+[data-md-color-scheme="default"] .md-typeset .highlight .kd,
+[data-md-color-scheme="default"] .md-typeset .highlight .kn,
+[data-md-color-scheme="default"] .md-typeset .highlight .nb {
+  color: oklch(45% 0.18 292);
+}
+
+[data-md-color-scheme="default"] .md-typeset .highlight .s,
+[data-md-color-scheme="default"] .md-typeset .highlight .s1,
+[data-md-color-scheme="default"] .md-typeset .highlight .s2,
+[data-md-color-scheme="default"] .md-typeset .highlight .sb {
+  color: oklch(38% 0.15 252);
+}
+
+[data-md-color-scheme="default"] .md-typeset .highlight .na,
+[data-md-color-scheme="default"] .md-typeset .highlight .nc,
+[data-md-color-scheme="default"] .md-typeset .highlight .nf,
+[data-md-color-scheme="default"] .md-typeset .highlight .nx {
+  color: oklch(34% 0.11 220);
 }
 
 .md-typeset table:not([class]) {
@@ -556,6 +594,13 @@ body[data-md-color-scheme="slate"]::before {
 
 .cd-home .headerlink {
   opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.cd-home :is(h1, h2, h3, h4, h5, h6):hover .headerlink,
+.cd-home .headerlink:focus,
+.cd-home .headerlink:focus-visible {
+  opacity: 1;
 }
 
 .md-footer {

@@ -12,6 +12,8 @@ export const FLIGHT_WHATSAPP_CHANNEL_ID = "flight-demo-whatsapp";
 export const FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID = "whatsapp-customer-message";
 export const FLIGHT_SECURE_EMAIL_CHANNEL_ID = "flight-demo-secure-email";
 export const FLIGHT_EMAIL_CHANNEL_SWITCH_POLICY_ID = "secure-email-login-switch";
+export type FlightWhatsAppTransport = "cloud-api" | "web";
+export type FlightWhatsAppDeliveryName = "whatsapp-cloud-api-message" | "whatsapp-web-message";
 
 export interface CreateFlightDemoRuntimeChannelsOptions {
   externalIntegrationJourneysEnabled?: boolean | Partial<FlightDemoExternalIntegrationJourneyFlags>;
@@ -28,10 +30,9 @@ export function createFlightDemoRuntimeChannels(options: CreateFlightDemoRuntime
       whatsapp: true,
     },
   );
-  const whatsappPolicyOptions = {
-    ...(options.whatsappProviderPackageId ? { whatsappProviderPackageId: options.whatsappProviderPackageId } : {}),
-    ...(options.whatsappDelivery ? { whatsappDelivery: options.whatsappDelivery } : {}),
-  };
+  const whatsappProviderPackageId = options.whatsappProviderPackageId ?? whatsappProviderPackageIdForDelivery(options.whatsappDelivery);
+  const whatsappDelivery = whatsappDeliveryForProviderPackageId(whatsappProviderPackageId);
+  const whatsappPolicyOptions = { whatsappProviderPackageId, whatsappDelivery };
   return [
     flightDemoRuntimeChannel(
       "voice",
@@ -53,10 +54,28 @@ export function createFlightDemoRuntimeChannels(options: CreateFlightDemoRuntime
     ),
     ...(externalIntegrationJourneysEnabled.secureEmail ? [secureEmailChannelPolicy()] : []),
     ...(externalIntegrationJourneysEnabled.whatsapp ? [whatsAppChannelPolicy({
-      providerPackageId: options.whatsappProviderPackageId ?? FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
-      delivery: options.whatsappDelivery ?? "whatsapp-cloud-api-message",
+      providerPackageId: whatsappProviderPackageId,
+      delivery: whatsappDelivery,
     })] : []),
   ];
+}
+
+export function flightWhatsAppProviderPackageIdForTransport(transport: FlightWhatsAppTransport) {
+  return transport === "web" ? FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID : FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID;
+}
+
+export function flightWhatsAppDeliveryForTransport(transport: FlightWhatsAppTransport): FlightWhatsAppDeliveryName {
+  return transport === "web" ? "whatsapp-web-message" : "whatsapp-cloud-api-message";
+}
+
+function whatsappProviderPackageIdForDelivery(delivery: string | undefined) {
+  return delivery === "whatsapp-web-message" ? FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID : FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID;
+}
+
+function whatsappDeliveryForProviderPackageId(providerPackageId: string): FlightWhatsAppDeliveryName {
+  return providerPackageId === FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID
+    ? "whatsapp-web-message"
+    : "whatsapp-cloud-api-message";
 }
 
 export const flightDemoRuntimeChannels: ChannelPolicyConfig[] = createFlightDemoRuntimeChannels({
