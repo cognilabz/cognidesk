@@ -6,7 +6,7 @@ import {
 } from "@cognidesk/integration-kit";
 import { genesysEngageProviderManifest, genesysEngageProviderManifestInput, genesysEngageSupportSlice } from "./manifest.js";
 
-export { genesysEngageProviderManifest, genesysEngageProviderManifestInput, genesysEngageSupportSlice } from "./manifest.js";
+export { genesysEngageProviderManifest, genesysEngageProviderManifestInput, genesysEngageRestSupportSlice, genesysEngageSupportSlice } from "./manifest.js";
 
 export type ProviderJsonObject = Record<string, unknown>;
 
@@ -75,6 +75,7 @@ export interface GenesysEngageClient {
   scheduleCallback(input?: GenesysEngageOperationInput): Promise<ProviderJsonObject>;
   startContact(input?: GenesysEngageOperationInput): Promise<ProviderJsonObject>;
   sendChatMessage(input?: GenesysEngageOperationInput): Promise<ProviderJsonObject>;
+  request(input: ProviderExtensionRequestInput): Promise<ProviderJsonObject>;
   readiness(): Promise<ProviderJsonObject>;
 }
 
@@ -83,6 +84,7 @@ export interface GenesysEngageProviderClient {
   scheduleCallback(input?: GenesysEngageOperationInput): Promise<ProviderJsonObject>;
   startContact(input?: GenesysEngageOperationInput): Promise<ProviderJsonObject>;
   sendChatMessage(input?: GenesysEngageOperationInput): Promise<ProviderJsonObject>;
+  request(input: ProviderExtensionRequestInput): Promise<ProviderJsonObject>;
   readiness?(): Promise<ProviderJsonObject>;
 }
 
@@ -102,6 +104,9 @@ export function createGenesysEngageClient(options: GenesysEngageClientOptions = 
     sendChatMessage(input: GenesysEngageOperationInput = {}) {
       return providerClient.sendChatMessage(validateGenesysEngageAllowedOperation("sendChatMessage", input));
     },
+    request(input) {
+      return providerClient.request(validateGenesysEngageProviderRequest(input));
+    },
     readiness() {
       if (!providerClient.readiness) {
         throw new Error("Genesys Engage / GMS provider client must implement readiness() for live readiness checks.");
@@ -118,6 +123,7 @@ export function createGenesysEngageIntegrationOperationHandlers(options: Genesys
     "contact-center.callback.schedule": async (input: unknown) => client.scheduleCallback(input as GenesysEngageOperationInput),
     "contact-center.contact.start": async (input: unknown) => client.startContact(input as GenesysEngageOperationInput),
     "genesys-engage.chat.send": async (input: unknown) => client.sendChatMessage(input as GenesysEngageOperationInput),
+    "genesys-engage.gms.request": async (input: unknown) => client.request(input as ProviderExtensionRequestInput),
   } as const;
 }
 
@@ -127,6 +133,9 @@ export function createGenesysEngageIntegration(options: GenesysEngageIntegration
     operations: createGenesysEngageIntegrationOperationHandlers(options),
   });
 }
+
+const supportedRequestMethods = new Set<ProviderHttpMethod>(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+const mutatingRequestMethods = new Set<ProviderHttpMethod>(["POST", "PUT", "PATCH", "DELETE"]);
 
 function createGenesysEngageRestProviderClient(options: GenesysEngageClientOptions): GenesysEngageProviderClient {
   const request = (method: ProviderHttpMethod, path: string, input: GenesysEngageOperationInput = {}) => providerRestRequest<ProviderJsonObject>({
@@ -167,6 +176,10 @@ function createGenesysEngageRestProviderClient(options: GenesysEngageClientOptio
     sendChatMessage(input: GenesysEngageOperationInput = {}) {
       return requestAllowedOperation("sendChatMessage", input);
     },
+    request(input) {
+      const value = validateGenesysEngageProviderRequest(input);
+      return request(value.method, value.path, value);
+    },
     readiness() {
       const path = configuredPath(options.readinessPath, "Genesys Engage / GMS readiness path");
       return request("GET", path);
@@ -194,12 +207,54 @@ function validateGenesysEngageAllowedOperation(operationId: string, input: Genes
   };
 }
 
+function validateGenesysEngageProviderRequest(input: ProviderExtensionRequestInput): ProviderExtensionRequestInput & { method: ProviderHttpMethod; path: string } {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error("Genesys Engage / GMS request input object is required.");
+  }
+  const operation = input.operationId
+    ? genesysEngageSupportSlice.allowedOperations.find((candidate) => candidate.id === input.operationId)
+    : undefined;
+  const method = providerHttpMethod(input.method ?? operationMethod(operation) ?? "GET", "Genesys Engage / GMS");
+  const path = input.path ?? operationPath(operation);
+  if (!path || path === "host-configured") {
+    throw new Error("Genesys Engage / GMS request path or reviewed operationId is required.");
+  }
+  if (mutatingRequestMethods.has(method) && (input.allowMutation !== true || !hasPolicyClassification(input.classification))) {
+    throw new Error("Genesys Engage / GMS mutating extension requests require allowMutation=true and host policy classification.");
+  }
+  return {
+    ...input,
+    method,
+    path,
+  };
+}
+
+function hasPolicyClassification(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function providerHttpMethod(value: unknown, providerName: string): ProviderHttpMethod {
+  const method = String(value).toUpperCase();
+  if (!supportedRequestMethods.has(method as ProviderHttpMethod)) {
+    throw new Error(`${providerName} request method '${method}' is not supported.`);
+  }
+  return method as ProviderHttpMethod;
+}
+
 function normalizeConfiguredHandoffInput(input: ConfiguredHandoffInput): ConfiguredHandoffInput {
   return {
     ...(input.payload !== undefined ? { payload: input.payload } : {}),
     ...(input.query !== undefined ? { query: input.query } : {}),
     ...(input.idempotencyKey !== undefined ? { idempotencyKey: input.idempotencyKey } : {}),
   };
+}
+
+function operationMethod(operation: GenesysEngageAllowedOperation | undefined): ProviderHttpMethod | undefined {
+  return operation && "method" in operation ? operation.method as ProviderHttpMethod : undefined;
+}
+
+function operationPath(operation: GenesysEngageAllowedOperation | undefined): string | undefined {
+  return operation && "path" in operation ? operation.path : undefined;
 }
 
 function configuredBaseUrl(options: Pick<GenesysEngageClientOptions, "apiBaseUrl" | "baseUrl">): string {
@@ -212,3 +267,5 @@ function configuredPath(path: string | undefined, label: string): string {
   if (!path) throw new Error(`${label} must be configured to use the built-in REST adapter.`);
   return path;
 }
+
+type GenesysEngageAllowedOperation = typeof genesysEngageSupportSlice.allowedOperations[number];

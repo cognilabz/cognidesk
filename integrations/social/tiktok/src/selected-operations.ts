@@ -99,11 +99,30 @@ export const TIKTOK_HOST_CLIENT_SUPPORT_SLICE = {
     checkedAt: "2026-06-25",
     operationCatalog: "package:src/selected-operations.ts",
   },
+  providerRestAdapterException: {
+    sdkPackage: "tiktok-business-api-sdk-official",
+    checkedAt: "2026-06-25",
+    checkedVersion: "1.1.3",
+    license: "Unlicense",
+    result: "sdk-not-suitable-for-mixed-social-surface",
+    reason: "The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package.",
+    defaultClientPolicy: "built-in-tiktok-rest-adapter",
+    typedClientOverride: "TikTokSocialProviderClient",
+  },
   sdkDecision: {
     viableOfficialSdk: false,
+    auditedPackages: [
+      {
+        package: "tiktok-business-api-sdk-official",
+        version: "1.1.3",
+        source: "npm + tiktok/tiktok-business-api-sdk",
+        status: "not-suitable",
+        reason: "CommentsApi covers a Business comment surface, but the package does not expose the full mixed TikTok Developers/Business support surface selected by this adapter.",
+      },
+    ],
     notes: [
       "TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface.",
-      "The official TikTok Business API SDK is a broad Business API package; it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface.",
+      "The official TikTok Business API SDK is a broad Business API package with comment helpers, but it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface.",
       "This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override.",
     ],
   },

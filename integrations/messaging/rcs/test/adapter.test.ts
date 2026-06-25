@@ -2,9 +2,12 @@ import { createHmac } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import {
+  RCS_BUSINESS_COMMUNICATIONS_SCOPE,
+  RCS_MESSAGING_SCOPE,
   createRcsCardMessage,
   createRcsMediaMessage,
   createRcsMessagingClient,
+  createRcsRestProviderClient,
   createRcsMessagingLiveChecks,
   createRcsTextMessage,
   parseRcsWebhook,
@@ -14,6 +17,7 @@ import {
   verifyRcsWebhookChallenge,
   type RcsMessagingProviderClient,
 } from "../src/index.js";
+import type { RcsBusinessMessagingSdkClient } from "../src/index.js";
 
 describe("@cognidesk/integration-messaging-rcs", () => {
   it("exports an official provider manifest for RCS messaging", () => {
@@ -42,9 +46,9 @@ describe("@cognidesk/integration-messaging-rcs", () => {
     expect(rcsMessagingProviderManifest.coverage.notes.join(" "))
       .toContain("not full RCS for Business API coverage");
     expect(rcsMessagingProviderManifest.coverage.notes.join(" "))
-      .toContain("built-in provider REST adapter");
+      .toContain("official @google/rcsbusinessmessaging SDK");
     expect(rcsMessagingProviderManifest.coverage.notes.join(" "))
-      .toContain("Launch and verification coverage is read-only readiness");
+      .toContain("Agent readiness, launch, and verification coverage is read-only via the Business Communications REST API");
     expect(rcsMessagingProviderManifest.metadata?.apiCoverage).toMatchObject({
       operationCatalog: "package:src/selected-operations.ts",
       generatedFromOfficialSpec: false,
@@ -54,17 +58,34 @@ describe("@cognidesk/integration-messaging-rcs", () => {
       fullProviderApi: false,
     });
     expect(rcsMessagingProviderManifest.metadata).toMatchObject({
-      implementationStrategy: "provider-rest-adapter",
+      implementationStrategy: "provider-sdk-hybrid",
       providerClient: {
         interface: "RcsMessagingProviderClient",
-        defaultClient: "provider-rest-adapter-when-configured",
+        defaultClient: "google-rcsbusinessmessaging-sdk-when-configured",
       },
       implementation: {
-        strategy: "provider-rest-adapter",
-        defaultFetchClient: "provider-rest-adapter",
+        strategy: "provider-sdk-hybrid",
+        defaultProviderSdk: "@google/rcsbusinessmessaging",
+        defaultFetchClient: "businesscommunications-rest-adapter",
         failClosedWithoutProviderClient: false,
+        failClosedWithoutCredentialedTransport: true,
+        acceptedAuthModes: ["accessToken", "tokenProvider", "serviceAccount", "providerClient"],
+        rejectedAuthModes: ["apiKey-only"],
       },
     });
+    expect(rcsMessagingProviderManifest.metadata?.implementation?.sdkDecision).toMatchObject({
+      officialRuntimeSdk: {
+        packageName: "@google/rcsbusinessmessaging",
+        versionChecked: "1.0.10",
+        status: "real-maintained-rbm-runtime",
+      },
+      viableAsSoleDefaultRuntime: false,
+      viableForRbmMessagingRuntime: true,
+      selectedDefaultClient: "google-rcsbusinessmessaging-sdk-plus-businesscommunications-rest",
+      failClosedWithoutCredentialedTransport: true,
+    });
+    expect(rcsMessagingProviderManifest.metadata?.implementation?.sdkDecision?.notes.join(" "))
+      .toContain("Business Communications brands.agents readiness API");
     expect(rcsMessagingProviderManifest.coverage.evidence.map((evidence) => evidence.url))
       .toEqual(expect.arrayContaining([
         "https://developers.google.com/business-communications/rcs-business-messaging/reference/rest/v1/phones.agentMessages/create",
@@ -78,7 +99,9 @@ describe("@cognidesk/integration-messaging-rcs", () => {
     expect(rcsMessagingProviderManifest.limitations.join(" "))
       .toContain("Recipient reachability and feature support depend");
     expect(rcsMessagingProviderManifest.limitations.join(" "))
-      .toContain("built-in REST adapter requires accessToken");
+      .toContain("built-in Google RCS SDK/Business Communications REST adapter requires accessToken");
+    expect(rcsMessagingProviderManifest.limitations.join(" "))
+      .toContain("API key-only transport is rejected");
     expect(rcsMessagingProviderManifest.limitations.join(" "))
       .toContain("file-size, caching, and approval requirements");
     const receive = rcsMessagingProviderManifest.capabilities.find((capability) => capability.capability === "receive");
@@ -251,14 +274,17 @@ describe("@cognidesk/integration-messaging-rcs", () => {
     expect(getAgentVerification).toHaveBeenCalledWith("brands/brand-1/agents/agent-1");
   });
 
-  it("ships a default REST adapter but fails closed when credentials are missing", async () => {
-    const client = createRcsMessagingClient({
+  it("ships a typed REST adapter but fails closed when credentialed transport is missing", async () => {
+    expect(() => createRcsMessagingClient({
       agentId: "welcome-bot",
       agentName: "brands/brand-1/agents/agent-1",
-    });
+    })).toThrow("RCS built-in REST adapter requires accessToken");
 
-    await expect(client.getAgent())
-      .rejects.toThrow("RCS built-in REST adapter requires accessToken");
+    expect(() => createRcsMessagingClient({
+      agentId: "welcome-bot",
+      agentName: "brands/brand-1/agents/agent-1",
+      apiKey: "api-key-only",
+    } as never)).toThrow("RCS built-in REST adapter requires accessToken");
 
     const [agentCheck] = createRcsMessagingLiveChecks({
       agentId: "welcome-bot",
@@ -266,6 +292,144 @@ describe("@cognidesk/integration-messaging-rcs", () => {
     });
     if (!agentCheck) throw new Error("Expected RCS agent live check to be registered.");
     await expect(agentCheck.run({})).rejects.toThrow("RCS built-in REST adapter requires accessToken");
+  });
+
+  it("uses the official Google RCS SDK for RBM operations and REST only for Business Communications readiness", async () => {
+    const agentMessagesCreate = vi.fn(async () => ({ data: { contentMessage: { text: "Sent" } } }));
+    const agentEventsCreate = vi.fn(async () => ({ data: { eventType: "READ" } }));
+    const filesCreate = vi.fn(async () => ({ data: { name: "files/url-media" } }));
+    const getCapabilities = vi.fn(async () => ({ data: { features: ["RICHCARD_STANDALONE"] } }));
+    const sdkClient = {
+      files: { create: filesCreate },
+      phones: {
+        agentEvents: { create: agentEventsCreate },
+        agentMessages: { create: agentMessagesCreate },
+        getCapabilities,
+      },
+    } as unknown as RcsBusinessMessagingSdkClient;
+    const requests: Array<{ url: string; init: RequestInit }> = [];
+    const tokenProvider = vi.fn(async (input: { scopes: string[] }) => {
+      if (input.scopes.includes(RCS_BUSINESS_COMMUNICATIONS_SCOPE)) return "management-token";
+      return "messaging-token";
+    });
+    const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      requests.push({ url: String(url), init: init ?? {} });
+      const responseBody = String(url).includes("businesscommunications.googleapis.com")
+        ? { name: "brands/brand-1/agents/agent-1", displayName: "Example Support" }
+        : { contentMessage: { text: "Sent" } };
+      return new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    });
+    const client = createRcsMessagingClient({
+      agentId: "welcome-bot",
+      agentName: "brands/brand-1/agents/agent-1",
+      sdkClient,
+      tokenProvider,
+      fetch: fetchMock as typeof fetch,
+    });
+
+    await expect(client.sendText({
+      phoneNumber: "+15550100",
+      messageId: "msg-1",
+      text: "Sent",
+    })).resolves.toMatchObject({ contentMessage: { text: "Sent" } });
+    await expect(client.sendReadReceipt({
+      phoneNumber: "+15550100",
+      messageId: "user-msg-1",
+      eventId: "event-1",
+    })).resolves.toMatchObject({ eventType: "READ" });
+    await expect(client.createFile({ fileUrl: "https://example.test/receipt.pdf" }))
+      .resolves.toMatchObject({ name: "files/url-media" });
+    await expect(client.getCapabilities({ phoneNumber: "+15550100", requestId: "cap-1" }))
+      .resolves.toMatchObject({ features: ["RICHCARD_STANDALONE"] });
+    await expect(client.getAgent()).resolves.toMatchObject({ displayName: "Example Support" });
+
+    expect(tokenProvider).toHaveBeenNthCalledWith(1, {
+      scopes: [RCS_MESSAGING_SCOPE],
+      fetch: fetchMock,
+    });
+    expect(tokenProvider).toHaveBeenNthCalledWith(2, {
+      scopes: [RCS_MESSAGING_SCOPE],
+      fetch: fetchMock,
+    });
+    expect(tokenProvider).toHaveBeenNthCalledWith(3, {
+      scopes: [RCS_MESSAGING_SCOPE],
+      fetch: fetchMock,
+    });
+    expect(tokenProvider).toHaveBeenNthCalledWith(4, {
+      scopes: [RCS_MESSAGING_SCOPE],
+      fetch: fetchMock,
+    });
+    expect(tokenProvider).toHaveBeenNthCalledWith(5, {
+      scopes: [RCS_BUSINESS_COMMUNICATIONS_SCOPE],
+      fetch: fetchMock,
+    });
+    expect(agentMessagesCreate).toHaveBeenCalledWith(expect.objectContaining({
+      access_token: "messaging-token",
+      agentId: "welcome-bot",
+      parent: "phones/+15550100",
+      messageId: "msg-1",
+      requestBody: { contentMessage: { text: "Sent" } },
+    }), expect.objectContaining({ rootUrl: "https://rcsbusinessmessaging.googleapis.com" }));
+    expect(agentEventsCreate).toHaveBeenCalledWith(expect.objectContaining({
+      access_token: "messaging-token",
+      agentId: "welcome-bot",
+      parent: "phones/+15550100",
+      eventId: "event-1",
+      requestBody: { eventType: "READ", messageId: "user-msg-1" },
+    }), expect.objectContaining({ rootUrl: "https://rcsbusinessmessaging.googleapis.com" }));
+    expect(filesCreate).toHaveBeenCalledWith(expect.objectContaining({
+      access_token: "messaging-token",
+      agentId: "welcome-bot",
+      requestBody: { fileUrl: "https://example.test/receipt.pdf" },
+    }), expect.objectContaining({ rootUrl: "https://rcsbusinessmessaging.googleapis.com" }));
+    expect(getCapabilities).toHaveBeenCalledWith(expect.objectContaining({
+      access_token: "messaging-token",
+      agentId: "welcome-bot",
+      name: "phones/+15550100",
+      requestId: "cap-1",
+    }), expect.objectContaining({ rootUrl: "https://rcsbusinessmessaging.googleapis.com" }));
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toMatchObject({
+      url: "https://businesscommunications.googleapis.com/v1/brands/brand-1/agents/agent-1",
+      init: {
+        method: "GET",
+        headers: expect.objectContaining({ authorization: "Bearer management-token" }),
+      },
+    });
+  });
+
+  it("keeps the explicit REST provider client available for hosts that select it", async () => {
+    const requests: Array<{ url: string; init: RequestInit }> = [];
+    const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      requests.push({ url: String(url), init: init ?? {} });
+      return new Response(JSON.stringify({ contentMessage: { text: "Sent" } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    });
+    const restClient = createRcsRestProviderClient({
+      agentId: "welcome-bot",
+      accessToken: "rest-token",
+      fetch: fetchMock as typeof fetch,
+    });
+
+    await expect(restClient.sendMessage({
+      phoneNumber: "+15550100",
+      messageId: "msg-1",
+      message: { contentMessage: { text: "Sent" } },
+    })).resolves.toMatchObject({ contentMessage: { text: "Sent" } });
+
+    expect(requests[0]).toMatchObject({
+      url: "https://rcsbusinessmessaging.googleapis.com/v1/phones/%2B15550100/agentMessages?messageId=msg-1&agentId=welcome-bot",
+      init: {
+        method: "POST",
+        headers: expect.objectContaining({ authorization: "Bearer rest-token" }),
+      },
+    });
+    expect(requests[0]?.init.body).toBe(JSON.stringify({ contentMessage: { text: "Sent" } }));
   });
 
   it("validates, parses, and classifies signed RCS webhooks", async () => {

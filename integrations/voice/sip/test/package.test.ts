@@ -38,16 +38,49 @@ describe("@cognidesk/integration-voice-sip", () => {
     })).resolves.toMatchObject({ callId: "call_1", state: "inviting" });
   });
 
-  it("keeps the manifest subpath runtime-light and leaves drachtio optional to applications", async () => {
+  it("keeps the manifest subpath runtime-light and declares the drachtio runtime SDK", async () => {
     const source = await readFile(resolve(packageRoot, "src/manifest.ts"), "utf8");
+    const drachtioSource = await readFile(resolve(packageRoot, "src/drachtio.ts"), "utf8");
     const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
+      cognidesk?: {
+        providerSdkDependencies?: unknown;
+        providerSdkDecision?: {
+          selectedSdkPackage?: string;
+          defaultClientPolicy?: string;
+          typedClientOverride?: string;
+        };
+      };
     };
 
     expect(sipVoiceProviderManifest.packageName).toBe("@cognidesk/integration-voice-sip");
+    expect(sipVoiceProviderManifest.metadata).toMatchObject({
+      implementation: {
+        providerSdkDecision: "provider-protocol-lib/drachtio-srf",
+        providerSdkDependencies: ["drachtio-srf"],
+        runtime: "createDrachtioSipStackGateway backed by drachtio-srf Srf, createUAC, and Dialog call-control methods",
+      },
+      checkedProviderSdk: {
+        verdict: "provider-protocol-lib-selected",
+        packageSurfaceRuntimeSdkAvailable: true,
+        providerSdkDependencies: ["drachtio-srf"],
+      },
+    });
     expect(source).not.toContain("./client");
     expect(source).not.toContain("./webhooks");
-    expect(packageJson.dependencies).not.toHaveProperty("drachtio-srf");
+    expect(drachtioSource).toContain("from \"drachtio-srf\"");
+    expect(drachtioSource).toContain("new Srf()");
+    expect(drachtioSource).toContain("createUAC");
+    expect(drachtioSource).toContain("dialog.request");
+    expect(drachtioSource).toContain("dialog.modify");
+    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual(["drachtio-srf"]);
+    expect(packageJson.cognidesk?.providerSdkDecision).toMatchObject({
+      selectedSdkPackage: "drachtio-srf",
+      defaultClientPolicy: "drachtio-srf-gateway-when-configured-or-host-injected-SipStackGateway",
+      typedClientOverride: "SipStackGateway",
+    });
+    expect(packageJson.dependencies).toHaveProperty("drachtio-srf");
     expect(packageJson.dependencies).not.toHaveProperty("sip.js");
+    expect(packageJson.dependencies).not.toHaveProperty("jssip");
   });
 });

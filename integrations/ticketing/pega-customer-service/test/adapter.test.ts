@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import {
   createPegaCustomerServiceTicketingClient,
+  createPegaCustomerServiceTicketingIntegration,
   createPegaCustomerServiceTicketingLiveChecks,
   pegaCustomerServiceTicketingCredentialStatuses,
   pegaCustomerServiceTicketingProviderManifest,
@@ -34,6 +35,7 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
       "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-patch-assignments-assignmentid-actions-actionid.html",
       "https://github.com/pegasystems/react-sdk",
       "https://www.npmjs.com/package/@pega/constellationjs",
+      "https://www.npmjs.com/package/@pega/auth",
     ]));
     const handoff = pegaCustomerServiceTicketingProviderManifest.capabilities.find((capability) =>
       capability.capability === "handoff"
@@ -60,6 +62,14 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
         implementedOperationCount: 6,
         implementationOwnership: "built-in-provider-rest-adapter",
       },
+    });
+    expect(pegaCustomerServiceTicketingProviderManifest.metadata?.implementationStrategy).toMatchObject({
+      strategy: "no-official-sdk-rest-adapter",
+      rejectedLibraries: expect.arrayContaining([
+        expect.objectContaining({ packageName: "@pega/constellationjs", result: "not-used-as-package-default" }),
+        expect.objectContaining({ packageName: "@pega/auth", result: "not-used-as-package-default" }),
+        expect.objectContaining({ packageName: "pegasystems/react-sdk", result: "not-used-as-package-default" }),
+      ]),
     });
   });
 
@@ -161,6 +171,38 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
     await expect(client.createCase({ caseTypeId: "MyCo-CS-Work-Service" })).rejects.toThrow(
       "baseUrl plus accessToken/auth headers",
     );
+  });
+
+  it("does not attach secret-bearing Pega options as integration credentials", async () => {
+    const integration = createPegaCustomerServiceTicketingIntegration({
+      providerClient: createProviderClientMock(),
+      baseUrl: "https://pega.example.test",
+      accessToken: "pega-token",
+      auth: { type: "headers", headers: { Authorization: "Bearer secret-token" } },
+      headers: { "x-api-key": "secret-header" },
+      apiBasePath: "/api/application/v2",
+      timeoutMs: 250,
+      retry: 1,
+    });
+    const capturedCredentials: unknown[] = [];
+    (integration.operations as Record<string, unknown>)["ticket.create"] = async (_input: unknown, context: { credentials?: unknown }) => {
+      capturedCredentials.push(context.credentials);
+      return {};
+    };
+
+    await integration.run("ticket.create", { caseTypeId: "MyCo-CS-Work-Service" });
+
+    expect(capturedCredentials[0]).toMatchObject({
+      apiAccessConfigured: true,
+      apiBasePath: "/api/application/v2",
+      baseUrl: "https://pega.example.test",
+      headersConfigured: true,
+      providerClientConfigured: true,
+      retry: 1,
+      timeoutMs: 250,
+    });
+    expect(JSON.stringify(capturedCredentials[0])).not.toContain("secret");
+    expect(JSON.stringify(capturedCredentials[0])).not.toContain("pega-token");
   });
 
   it("delegates Pega case operations to the host-injected provider client", async () => {

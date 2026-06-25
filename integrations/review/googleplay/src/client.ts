@@ -7,6 +7,9 @@ import { IntegrationError, normalizeIntegrationError } from "@cognidesk/integrat
 import type {
   GooglePlayReviewsClient,
   GooglePlayReviewsClientOptions,
+  GooglePlayReviewsOperationAlias,
+  GooglePlayReviewsOperationHandlers,
+  GooglePlayReviewsOperationInputMap,
   GooglePlayReviewReplyInput,
   GooglePlaySdkAuth,
 } from "./contracts.js";
@@ -20,9 +23,8 @@ export function createGooglePlayReviewsClient(options: GooglePlayReviewsClientOp
     ...(configuredAuth ? { auth: configuredAuth } : {}),
   });
 
-  return {
-    rawClient,
-    async listReviews(input = {}) {
+  const handlers: GooglePlayReviewsOperationHandlers = {
+    async "googleplay.reviews.list"(input = {}) {
       const authClient = await resolveGooglePlayAuth(options, configuredAuth);
       const params: androidpublisher_v3.Params$Resource$Reviews$List = {
         packageName: input.packageName ?? options.packageName,
@@ -35,7 +37,8 @@ export function createGooglePlayReviewsClient(options: GooglePlayReviewsClientOp
       const response = await rawClient.reviews.list(params);
       return response.data;
     },
-    async getReview(reviewId, input = {}) {
+    async "googleplay.reviews.get"(input) {
+      const { reviewId } = input;
       const authClient = await resolveGooglePlayAuth(options, configuredAuth);
       const params: androidpublisher_v3.Params$Resource$Reviews$Get = {
         packageName: input.packageName ?? options.packageName,
@@ -46,7 +49,8 @@ export function createGooglePlayReviewsClient(options: GooglePlayReviewsClientOp
       const response = await rawClient.reviews.get(params);
       return response.data;
     },
-    async replyToReview(reviewId, input: GooglePlayReviewReplyInput) {
+    async "googleplay.reviews.reply"(input) {
+      const { reviewId } = input;
       if (input.replyText.length > 350) {
         throw new IntegrationError(
           "provider-validation",
@@ -70,6 +74,26 @@ export function createGooglePlayReviewsClient(options: GooglePlayReviewsClientOp
           operationAlias: "googleplay.reviews.reply",
         });
       }
+    },
+  };
+
+  const execute = (<K extends GooglePlayReviewsOperationAlias>(
+    alias: K,
+    input: GooglePlayReviewsOperationInputMap[K],
+  ) => handlers[alias](input as never)) as GooglePlayReviewsClient["execute"];
+
+  return {
+    rawClient,
+    handlers,
+    execute,
+    listReviews(input) {
+      return handlers["googleplay.reviews.list"](input);
+    },
+    getReview(reviewId, input = {}) {
+      return handlers["googleplay.reviews.get"]({ ...input, reviewId });
+    },
+    replyToReview(reviewId, input: GooglePlayReviewReplyInput) {
+      return handlers["googleplay.reviews.reply"]({ ...input, reviewId });
     },
   };
 }

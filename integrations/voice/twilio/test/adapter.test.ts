@@ -11,6 +11,8 @@ import {
   twilioVoiceIntegration,
   twilioVoiceProviderManifest,
   validateTwilioRequestSignature,
+  type TwilioVoiceSdkCallCreateOptions,
+  type TwilioVoiceSdkCallUpdateOptions,
   type TwilioVoiceRawClient,
 } from "../src/index.js";
 
@@ -23,7 +25,34 @@ describe("@cognidesk/integration-voice-twilio", () => {
       sdkPackage: "twilio",
       verifiedVersion: "6.0.2",
     });
+    expect(twilioVoiceProviderManifest.metadata?.rawClient).toMatchObject({
+      export: "getRawClient",
+      coverage: "upstream-sdk",
+    });
+    expect(twilioVoiceProviderManifest.metadata?.sdkClient).toMatchObject({
+      export: "getSdkClient",
+      coverage: "deprecated-raw-client-alias",
+    });
+    expect(twilioVoiceProviderManifest.operations?.map(({ alias, providerOperation }) => [alias, providerOperation]))
+      .toEqual([
+        ["voice.call.answer", "twilio.validateRequest"],
+        ["voice.call.start", "calls.create"],
+        ["voice.call.redirect", "calls(sid).update"],
+      ]);
     expect(Object.keys(twilioVoiceIntegration.operations)).toEqual([
+      "voice.call.answer",
+      "voice.call.start",
+      "voice.call.redirect",
+    ]);
+    const rawClient = fakeTwilioRawClient();
+    const integration = createTwilioVoiceIntegration({
+      accountSid: "AC123",
+      authToken: "token",
+      rawClient,
+    });
+    await expect(integration.getRawClient()).resolves.toBe(rawClient);
+    await expect(integration.getSdkClient()).resolves.toBe(rawClient);
+    expect(integration.operationAliases).toEqual([
       "voice.call.answer",
       "voice.call.start",
       "voice.call.redirect",
@@ -52,6 +81,23 @@ describe("@cognidesk/integration-voice-twilio", () => {
       .resolves.not.toMatch(/createHmac|timingSafeEqual|globalThis\.fetch|fetchImpl/);
   });
 
+  it("creates the official Twilio helper client for runtime Voice operations", async () => {
+    const client = createTwilioVoiceClient({
+      accountSid: "AC123",
+      authToken: "token",
+    });
+    const rawClient = await client.getRawClient();
+    const callContext = rawClient.calls("CA00000000000000000000000000000000");
+
+    expect(await client.getSdkClient()).toBe(rawClient);
+    expect(typeof rawClient.calls).toBe("function");
+    expect(typeof rawClient.calls.create).toBe("function");
+    expect(typeof rawClient.calls.get).toBe("function");
+    expect(typeof callContext.fetch).toBe("function");
+    expect(typeof callContext.update).toBe("function");
+    expect(typeof rawClient.api.accounts("AC123").fetch).toBe("function");
+  });
+
   it("uses injected Twilio helper clients for voice calls", async () => {
     const client = createTwilioVoiceClient({
       accountSid: "AC123",
@@ -65,6 +111,7 @@ describe("@cognidesk/integration-voice-twilio", () => {
       }),
     });
 
+    await expect(client.getRawClient()).resolves.toBe(await client.getSdkClient());
     await expect(client.createOutboundCall({
       to: "+15550100",
       from: "+15550999",
@@ -173,18 +220,18 @@ describe("@cognidesk/integration-voice-twilio", () => {
   });
 });
 
-function fakeTwilioRawClient(onCreate?: (input: Record<string, unknown>) => void): TwilioVoiceRawClient {
+function fakeTwilioRawClient(onCreate?: (input: TwilioVoiceSdkCallCreateOptions) => void): TwilioVoiceRawClient {
   const calls = Object.assign(
     (sid: string) => ({
       async fetch() {
         return { sid, status: "in-progress" };
       },
-      async update(input: Record<string, unknown>) {
+      async update(input: TwilioVoiceSdkCallUpdateOptions) {
         return { sid, ...input };
       },
     }),
     {
-      async create(input: Record<string, unknown>) {
+      async create(input: TwilioVoiceSdkCallCreateOptions) {
         onCreate?.(input);
         return { sid: "CA123", status: "queued" };
       },

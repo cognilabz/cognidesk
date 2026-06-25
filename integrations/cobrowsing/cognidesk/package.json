@@ -53,6 +53,15 @@
       "packedSizeBytes": 1048576,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "not-applicable-internal-provider",
+      "reason": "Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization; it does not wrap a named external cobrowsing provider SDK.",
+      "defaultClientPolicy": "sdk-user-provided-cobrowsing-session-client",
+      "typedClientOverride": "CognideskCobrowsingIntegrationClient",
+      "rejectedSdkPackages": []
     }
   },
   "repository": {

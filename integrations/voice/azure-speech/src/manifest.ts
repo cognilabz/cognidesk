@@ -1,5 +1,13 @@
-import { defineIntegration } from "@cognidesk/integration-kit";
+import {
+  defineIntegration,
+  type IntegrationOperationContext,
+} from "@cognidesk/integration-kit";
 import type { ProviderManifestInput } from "@cognidesk/integration-kit";
+import type {
+  AzureSpeechClient,
+  AzureSpeechToTextInput,
+  AzureTextToSpeechInput,
+} from "./contracts.js";
 
 export const azureSpeechManifestInput = {
   id: "voice.azure-speech",
@@ -137,10 +145,19 @@ export const azureSpeechManifestInput = {
 export const azureSpeechIntegration = defineIntegration({
   manifest: azureSpeechManifestInput,
   operations: {
-    "voice.session.start": async (input: unknown) => input,
-    "voice.turn.finalize": async (input: unknown) => input,
-    "voice.speak": async (input: unknown) => input,
-  } as never,
+    "voice.session.start": async (input: unknown, context: IntegrationOperationContext) =>
+      metadataClient(context).transcribeSpeech(input as AzureSpeechToTextInput),
+    "voice.turn.finalize": async (input: unknown, context: IntegrationOperationContext) =>
+      metadataClient(context).transcribeSpeech(input as AzureSpeechToTextInput),
+    "voice.speak": async (input: unknown, context: IntegrationOperationContext) =>
+      metadataClient(context).synthesizeSpeech(input as AzureTextToSpeechInput),
+  },
 });
 
 export const azureSpeechProviderManifest = azureSpeechIntegration.manifest;
+
+function metadataClient(context: IntegrationOperationContext): AzureSpeechClient {
+  const client = context.metadata?.client;
+  if (!client) throw new Error("Pass an Azure Speech client as context.metadata.client.");
+  return client as AzureSpeechClient;
+}

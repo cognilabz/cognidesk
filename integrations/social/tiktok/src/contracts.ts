@@ -51,6 +51,9 @@ export interface TikTokApiResponse<T extends TikTokSocialProviderExtensionValue 
     message?: string;
     log_id?: string;
   };
+  code?: number | string;
+  message?: string;
+  request_id?: string;
   [key: string]: TikTokSocialProviderExtensionValue;
 }
 

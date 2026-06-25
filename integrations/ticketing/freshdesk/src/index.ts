@@ -1,4 +1,6 @@
 export {
+  createFreshworksFreshdeskProviderClient,
+  createFreshworksFreshdeskSdkProviderClient,
   createFreshdeskRestProviderClient,
   createFreshdeskTicketingClient,
   createFreshdeskUnavailableClient,

@@ -9,7 +9,11 @@ export { ringCentralContactCenterManifest } from "./manifest.js";
 
 export type RingCentralJsonObject = Record<string, unknown>;
 
-export type RingCentralSdkClient = Pick<SDK, "get" | "post" | "platform">;
+export type RingCentralSdkPlatform = Pick<ReturnType<SDK["platform"]>, "auth" | "get" | "post">;
+
+export interface RingCentralSdkClient {
+  platform(): RingCentralSdkPlatform;
+}
 
 export interface RingCentralCreateHandoffInput {
   payload: unknown;
@@ -50,18 +54,19 @@ export function createRingCentralContactCenterClient(
   options: RingCentralContactCenterClientOptions,
 ): RingCentralContactCenterClient {
   const sdk = options.sdk ?? createRingCentralSdk(options);
-  const ensureAuthentication = createRingCentralSdkAuthenticationEnsurer(sdk, options);
+  const platform = sdk.platform();
+  const ensureAuthentication = createRingCentralSdkAuthenticationEnsurer(platform, options);
 
   return {
     sdk,
     async createHandoff(input) {
       await ensureAuthentication();
-      const response = await sdk.post(configuredPath(options.defaultHandoffPath, "RingCX handoff path"), input.payload);
+      const response = await platform.post(configuredPath(options.defaultHandoffPath, "RingCX handoff path"), input.payload);
       return readRingCentralSdkResponse(response);
     },
     async readiness() {
       await ensureAuthentication();
-      const response = await sdk.get(configuredPath(options.readinessPath, "RingCX readiness path"));
+      const response = await platform.get(configuredPath(options.readinessPath, "RingCX readiness path"));
       return readRingCentralSdkResponse(response);
     },
   };
@@ -168,13 +173,13 @@ function createRingCentralSdk(options: RingCentralContactCenterClientOptions) {
 }
 
 function createRingCentralSdkAuthenticationEnsurer(
-  sdk: RingCentralSdkClient,
+  platform: RingCentralSdkPlatform,
   options: RingCentralContactCenterClientOptions,
 ) {
   let authenticationReady: Promise<void> | undefined;
 
   return () => {
-    authenticationReady ??= configureRingCentralSdkAuthentication(sdk, options).catch((error) => {
+    authenticationReady ??= configureRingCentralSdkAuthentication(platform, options).catch((error) => {
       authenticationReady = undefined;
       throw error;
     });
@@ -183,11 +188,11 @@ function createRingCentralSdkAuthenticationEnsurer(
 }
 
 async function configureRingCentralSdkAuthentication(
-  sdk: RingCentralSdkClient,
+  platform: RingCentralSdkPlatform,
   options: RingCentralContactCenterClientOptions,
 ) {
   if (options.accessToken) {
-    await sdk.platform().auth().setData({
+    await platform.auth().setData({
       access_token: options.accessToken,
       token_type: "bearer",
     });

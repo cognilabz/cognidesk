@@ -1,5 +1,11 @@
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
 import {
+  executeHttpRequest,
+  type HttpRequestConfig,
+  type HttpResponse,
+  type Method,
+} from "@sap-cloud-sdk/http-client";
+import {
   defineIntegration,
   providerJsonRequest,
   providerRequestUrl,
@@ -139,6 +145,7 @@ export interface SapServiceCloudTicketingProviderClient {
 }
 
 export type SapServiceCloudTicketingClient = SapServiceCloudTicketingProviderClient;
+export type SapServiceCloudSdkHttpDestination = Parameters<typeof executeHttpRequest>[0];
 
 export interface SapServiceCloudLiveCheckOptions extends SapServiceCloudTicketingClientOptions {
   client?: Pick<SapServiceCloudTicketingClient, "readiness">;
@@ -176,6 +183,8 @@ export function createSapServiceCloudODataProviderClient(
   const fetchImpl = options.fetch ?? fetch;
   const authHeaders = sapServiceCloudAuthHeaders(options);
   const serviceRequestsPath = `${odataBasePath}/ServiceRequestCollection`;
+  const sdkDestination: SapServiceCloudSdkHttpDestination = { url: baseUrl };
+  const useSapCloudSdkHttpClient = options.fetch === undefined && options.retry === undefined;
 
   const request = async <T>(
     method: ProviderHttpMethod,
@@ -187,19 +196,36 @@ export function createSapServiceCloudODataProviderClient(
     } = {},
   ): Promise<T> => {
     const query = providerQuery(input.query);
+    const headers = {
+      ...authHeaders,
+      ...(options.csrfToken ? { "x-csrf-token": options.csrfToken } : {}),
+      ...(options.headers ?? {}),
+      ...(input.headers ?? {}),
+    };
     try {
+      if (useSapCloudSdkHttpClient) {
+        const requestConfig: HttpRequestConfig = {
+          method: method as Method,
+          url: path,
+          headers,
+          ...(query !== undefined ? { params: query } : {}),
+          ...(input.body !== undefined ? { data: input.body } : {}),
+          ...(options.signal !== undefined ? { signal: options.signal } : {}),
+          ...(options.timeoutMs !== undefined ? { timeout: options.timeoutMs } : {}),
+        };
+        return await sapCloudSdkHttpRequest<T>({
+          destination: sdkDestination,
+          requestConfig,
+        });
+      }
+
       return await providerJsonRequest<T>({
         baseUrl,
         path,
         method,
         query,
         body: input.body,
-        headers: {
-          ...authHeaders,
-          ...(options.csrfToken ? { "x-csrf-token": options.csrfToken } : {}),
-          ...(options.headers ?? {}),
-          ...(input.headers ?? {}),
-        },
+        headers,
         fetch: fetchImpl,
         signal: options.signal,
         timeoutMs: options.timeoutMs,
@@ -243,6 +269,16 @@ export function createSapServiceCloudODataProviderClient(
       });
     },
   };
+}
+
+interface SapCloudSdkHttpRequestInput {
+  destination: SapServiceCloudSdkHttpDestination;
+  requestConfig: HttpRequestConfig;
+}
+
+async function sapCloudSdkHttpRequest<T>({ destination, requestConfig }: SapCloudSdkHttpRequestInput): Promise<T> {
+  const response: HttpResponse = await executeHttpRequest(destination, requestConfig, { fetchCsrfToken: false });
+  return response.data as T;
 }
 
 export function sapServiceCloudTicketingCredentialStatuses(
@@ -496,6 +532,21 @@ async function parseSapServiceCloudResponse<T>(response: Response, url: string):
 
 function normalizeSapServiceCloudProviderJsonError(error: unknown, url: string): unknown {
   if (error instanceof SapServiceCloudProviderApiError) return error;
+  const sdkResponse = sapCloudSdkErrorResponse(error);
+  if (sdkResponse) {
+    const headers = headersLikeToRecord(sdkResponse.headers);
+    return new SapServiceCloudProviderApiError({
+      status: sdkResponse.status,
+      message: providerErrorMessage(sdkResponse.data, `SAP Service Cloud request returned HTTP ${sdkResponse.status}.`),
+      body: sdkResponse.data,
+      response: {
+        statusText: sdkResponse.statusText,
+        headers,
+        url,
+        ...requestIdMetadata(headers),
+      },
+    });
+  }
   if (!isRecord(error) || typeof error.status !== "number") return error;
   const body = error.payload;
   return new SapServiceCloudProviderApiError({
@@ -508,6 +559,37 @@ function normalizeSapServiceCloudProviderJsonError(error: unknown, url: string):
       url,
     },
   });
+}
+
+function sapCloudSdkErrorResponse(error: unknown): {
+  status: number;
+  statusText: string;
+  headers: unknown;
+  data: unknown;
+} | undefined {
+  if (!isRecord(error) || !isRecord(error.response)) return undefined;
+  const response = error.response;
+  if (typeof response.status !== "number") return undefined;
+  return {
+    status: response.status,
+    statusText: typeof response.statusText === "string" ? response.statusText : "",
+    headers: response.headers,
+    data: response.data,
+  };
+}
+
+function headersLikeToRecord(headers: unknown): Record<string, string> {
+  if (headers instanceof Headers) return headersToRecord(headers);
+  const maybeJson = isRecord(headers) && typeof headers.toJSON === "function"
+    ? headers.toJSON()
+    : headers;
+  if (!isRecord(maybeJson)) return {};
+  const record: Record<string, string> = {};
+  for (const [key, value] of Object.entries(maybeJson)) {
+    if (value === undefined || value === null) continue;
+    record[key.toLowerCase()] = String(value);
+  }
+  return record;
 }
 
 async function parseJsonResponseBody(response: Response): Promise<unknown> {

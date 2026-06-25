@@ -123,7 +123,7 @@ export const dynamics365TicketingProviderManifest = defineProviderPackage({
       strategy: "sdk-backed",
       sdkPackage: "dynamics-web-api",
       sdkVersionRange: "2.5.0",
-      rawClientEscapeHatch: "Dynamics365TicketingClient.rawClient",
+      rawClientEscapeHatch: "Dynamics365TicketingClient.rawClient/getRawClient()",
       runtimePackage: "@cognidesk/integration-ticketing-dynamics365",
       manifestImport: "no-sdk-client-initialization",
     },

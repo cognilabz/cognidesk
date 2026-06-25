@@ -1,9 +1,40 @@
 import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 
-export const genesysEngageSupportSlice = {
+export const genesysEngageProviderSdkDecision = {
+  "checkedAt": "2026-06-25",
+  "result": "no-suitable-genesys-engage-gms-runtime-sdk",
+  "defaultRestPolicy": "fail-closed-gms-rest-adapter-with-typed-provider-client-override",
+  "typedClientOverride": "GenesysEngageProviderClient",
+  "checkedPackages": [
+    {
+      "package": "engagement-client-js",
+      "checkedVersion": "9.0.83",
+      "license": "MIT",
+      "result": "pureengage-engagement-api-not-gms-chat-callback-client",
+      "reason": "Official PureEngage Engagement client is a different API surface and does not expose the package-owned GMS Chat API v2 or Callback Services operations."
+    },
+    {
+      "package": "genesys-workspace-client-js",
+      "checkedVersion": "9.0.95",
+      "license": "MIT",
+      "result": "workspace-web-edition-api-not-gms-runtime-client",
+      "reason": "Workspace Web Edition client targets workspace voice/call controls rather than GMS Chat API v2 and GMS callback endpoints."
+    },
+    {
+      "package": "purecloud-platform-client-v2",
+      "checkedVersion": "255.1.0",
+      "license": "MIT",
+      "result": "genesys-cloud-sdk-not-genesys-engage-gms",
+      "reason": "Maintained SDK targets Genesys Cloud Platform APIs, not Genesys Engage GMS Chat/Callback endpoints."
+    }
+  ]
+} as const;
+
+export const genesysEngageRestSupportSlice = {
   implementationStrategy: "provider-rest-adapter",
   adapterKind: "no-official-sdk-rest-adapter",
-  sdkDecision: "PureEngage Node client libraries exist for other Engage APIs, but no suitable GMS Chat API v2 or Callback Services SDK was verified; this package provides a built-in REST adapter with providerClient override.",
+  providerSdkDecision: genesysEngageProviderSdkDecision,
+  sdkDecision: "No suitable maintained backend/runtime JavaScript SDK was verified for GMS Chat API v2 or Callback Services; Genesys Cloud and PureEngage Engagement SDKs target different APIs, so this package provides a built-in REST adapter with providerClient override.",
   verifiedAt: "2026-06-25",
   allowedOperations: [
     {
@@ -38,8 +69,18 @@ export const genesysEngageSupportSlice = {
       source: "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
       checksum: "not-available-html-doc",
     },
+    {
+      id: "providerExtensionRequest",
+      alias: "genesys-engage.gms.request",
+      method: "GET",
+      path: "host-configured",
+      source: "provider-rest-adapter",
+      checksum: "not-applicable-host-configured",
+    },
   ],
 } as const;
+
+export const genesysEngageSupportSlice = genesysEngageRestSupportSlice;
 
 export const genesysEngageProviderManifestInput = {
   id: "contact-center.genesys-engage",
@@ -58,12 +99,14 @@ export const genesysEngageProviderManifestInput = {
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "PureEngage Node client libraries exist for other Engage APIs, but no suitable GMS Chat API v2 or Callback Services SDK was verified.",
+      "No suitable maintained backend/runtime JavaScript SDK was verified for GMS Chat API v2 or Callback Services.",
+      "The maintained Genesys Cloud Platform SDK targets Genesys Cloud, while the PureEngage Engagement Node client targets the Engagement API surface rather than GMS Chat API v2 or GMS Callback Services.",
       "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with GenesysEngageProviderClient available as an override.",
     ],
     evidence: [
       { label: "Genesys GMS Callback Services API", url: "https://docs.genesys.com/Documentation/GMS/latest/API/CallbackServicesAPI" },
       { label: "Genesys GMS Chat API v2", url: "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2" },
+      { label: "Genesys Cloud Platform SDK for JavaScript", url: "https://github.com/MyPureCloud/platform-client-sdk-javascript" },
       { label: "PureEngage Engagement Client Library", url: "https://developer.genesyscloud.com/client-libraries/engagement/js/index.html" },
     ],
   },
@@ -71,15 +114,18 @@ export const genesysEngageProviderManifestInput = {
     { capability: "handoff", providerObjects: [{ kind: "contactTransfer", label: "contactTransfer" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
     { capability: "schedule", providerObjects: [{ kind: "callback", label: "callback" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
     { capability: "send", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: true, exposesSensitiveData: true },
+    { capability: "read-provider-object", providerObjects: [{ kind: "contact", label: "contact" }], requiresCredential: true, sideEffect: false, exposesSensitiveData: true },
   ],
   operations: [
     { alias: "contact-center.handoff.request", capability: "handoff", providerObject: "contactTransfer" },
     { alias: "contact-center.callback.schedule", capability: "schedule", providerObject: "callback" },
     { alias: "contact-center.contact.start", capability: "send", providerObject: "contact" },
     { alias: "genesys-engage.chat.send", capability: "send", providerObject: "contact", extension: true },
+    { alias: "genesys-engage.gms.request", capability: "read-provider-object", providerObject: "contact", extension: true },
   ],
   metadata: {
-    implementation: genesysEngageSupportSlice,
+    providerSdkDecision: genesysEngageProviderSdkDecision,
+    implementation: genesysEngageRestSupportSlice,
     manifestOnlySafe: true,
     providerRestAdapter: {
       strategy: "provider-rest-adapter",

@@ -1,4 +1,5 @@
 export {
+  createDynamics365RawClient,
   createDynamics365TicketingClient,
   createDynamics365TicketingIntegration,
   createDynamics365TicketingLiveChecks,

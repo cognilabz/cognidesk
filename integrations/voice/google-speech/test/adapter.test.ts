@@ -1,14 +1,19 @@
+import { readFile } from "node:fs/promises";
+import { SpeechClient } from "@google-cloud/speech";
+import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { describe, expect, it, vi } from "vitest";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   createGoogleSpeechClient,
+  createGoogleSpeechRawClients,
   googleSpeechCredentialStatuses,
   googleSpeechIntegration,
   googleSpeechProviderManifest,
+  type GoogleSpeechClient,
 } from "../src/index.js";
 
 describe("@cognidesk/integration-voice-google-speech", () => {
-  it("declares Google Cloud SDK-backed metadata and exact operation handlers", () => {
+  it("declares Google Cloud SDK-backed metadata and exact operation handlers", async () => {
     expect(googleSpeechProviderManifest).toMatchObject({
       id: "voice.google-speech",
       packageName: "@cognidesk/integration-voice-google-speech",
@@ -33,6 +38,17 @@ describe("@cognidesk/integration-voice-google-speech", () => {
       missingHandlerAliases: [],
       extraHandlerAliases: [],
     });
+    await expect(readFile(new URL("../src/manifest.ts", import.meta.url), "utf8"))
+      .resolves.not.toMatch(/from\s+["']@google-cloud\/(?:speech|text-to-speech)["']/);
+  });
+
+  it("constructs official Google Cloud SDK raw clients", () => {
+    const rawClients = createGoogleSpeechRawClients({
+      clientOptions: { fallback: true },
+    });
+
+    expect(rawClients.speechClient).toBeInstanceOf(SpeechClient);
+    expect(rawClients.textToSpeechClient).toBeInstanceOf(TextToSpeechClient);
   });
 
   it("uses injected Google Cloud clients for recognize and synthesize", async () => {
@@ -57,6 +73,8 @@ describe("@cognidesk/integration-voice-google-speech", () => {
       quotaProjectId: "quota-project",
     });
 
+    expect(client.getRawClients().speechClient).toBe(speechClient);
+    expect(client.getRawClients().textToSpeechClient).toBe(textToSpeechClient);
     await expect(client.transcribeSpeech({
       audio: new Uint8Array([1, 2]),
       languageCode: "en-US",
@@ -72,6 +90,51 @@ describe("@cognidesk/integration-voice-google-speech", () => {
           "x-goog-user-project": "quota-project",
         },
       },
+    });
+  });
+
+  it("maps Cognidesk operation handlers to Google SDK-backed client methods", async () => {
+    const speechClient = {
+      recognize: vi.fn(async () => [{ results: [] }]),
+    };
+    const textToSpeechClient = {
+      synthesizeSpeech: vi.fn(async () => [{ audioContent: new Uint8Array([9]) }]),
+    };
+    const client: GoogleSpeechClient = {
+      getRawClients: vi.fn(() => ({
+        speechClient: speechClient as never,
+        textToSpeechClient: textToSpeechClient as never,
+      })),
+      transcribeSpeech: vi.fn(async () => ({ text: "mapped transcript" })),
+      synthesizeSpeech: vi.fn(async () => new Uint8Array([9]).buffer),
+    };
+    const context = { metadata: { client } };
+
+    await expect(googleSpeechIntegration.run(
+      "voice.session.start",
+      { audio: new Uint8Array([1]) },
+      context,
+    )).resolves.toMatchObject({ text: "mapped transcript" });
+    await expect(googleSpeechIntegration.run(
+      "voice.turn.finalize",
+      { audio: new Uint8Array([2]), languageCode: "en-US" },
+      context,
+    )).resolves.toMatchObject({ text: "mapped transcript" });
+    await expect(googleSpeechIntegration.run(
+      "voice.speak",
+      { text: "Reply", voiceName: "en-US-Standard-A" },
+      context,
+    )).resolves.toBeInstanceOf(ArrayBuffer);
+
+    expect(client.transcribeSpeech).toHaveBeenCalledTimes(2);
+    expect(client.transcribeSpeech).toHaveBeenNthCalledWith(1, { audio: new Uint8Array([1]) });
+    expect(client.transcribeSpeech).toHaveBeenNthCalledWith(2, {
+      audio: new Uint8Array([2]),
+      languageCode: "en-US",
+    });
+    expect(client.synthesizeSpeech).toHaveBeenCalledWith({
+      text: "Reply",
+      voiceName: "en-US-Standard-A",
     });
   });
 

@@ -6,7 +6,7 @@ export interface FreshdeskWebhookOptions {
 }
 
 export function validateFreshdeskWebhookSecret(headers: Headers, options: FreshdeskWebhookOptions = {}): boolean {
-  if (!options.webhookSecret) return true;
+  if (!options.webhookSecret) return false;
   const headerName = options.headerName ?? "x-cognidesk-freshdesk-webhook-secret";
   return headers.get(headerName) === options.webhookSecret;
 }
@@ -15,12 +15,15 @@ export async function parseFreshdeskWebhookRequest(request: Request, options: Fr
   if (!validateFreshdeskWebhookSecret(request.headers, options)) {
     throw new Error("Freshdesk webhook shared secret mismatch.");
   }
-  const payload = await request.json() as FreshdeskJsonObject;
+  const payload = await request.json();
+  if (payload === null || Array.isArray(payload) || typeof payload !== "object") {
+    throw new Error("Freshdesk webhook payload must be a JSON object.");
+  }
   return {
     verified: Boolean(options.webhookSecret),
     event: {
       provider: "freshdesk",
-      payload,
+      payload: payload as FreshdeskJsonObject,
     },
   };
 }

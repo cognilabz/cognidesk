@@ -48,6 +48,34 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerRestAdapterException": {
+      "checkedAt": "2026-06-25",
+      "result": "no-oracle-fusion-service-ticketing-runtime-sdk",
+      "reason": "Oracle-maintained JavaScript SDK packages verified on npm target OCI/Fusion Apps administration or database/client infrastructure, not the Oracle Fusion Service serviceRequests and child message REST resources exposed by this support package. The only Oracle Service Cloud wrapper found is unofficial and stale.",
+      "defaultClientPolicy": "built-in-oracle-fusion-service-rest-adapter",
+      "typedClientOverride": "OracleServiceTicketingProviderClient",
+      "rejectedSdkPackages": [
+        {
+          "packageName": "oci-fusionapps",
+          "checkedVersion": "2.135.1",
+          "license": "(UPL-1.0 OR Apache-2.0)",
+          "reason": "Oracle-maintained OCI Fusion Apps Service administration SDK, not a typed Oracle Fusion Service serviceRequests ticketing data client."
+        },
+        {
+          "packageName": "oci-sdk",
+          "checkedVersion": "2.135.1",
+          "license": "(UPL-1.0 OR Apache-2.0)",
+          "reason": "Oracle-maintained OCI aggregate SDK; does not expose the Oracle Fusion Service serviceRequests or Oracle B2C Service incident runtime surface used here."
+        },
+        {
+          "packageName": "osvc_node",
+          "checkedVersion": "1.0.0",
+          "license": "MIT",
+          "reason": "Unofficial Oracle Service Cloud REST wrapper, not a maintained Oracle-owned runtime SDK suitable as this package's default."
+        }
+      ]
     }
   },
   "publishConfig": {

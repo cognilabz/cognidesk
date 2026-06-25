@@ -346,7 +346,7 @@ export function createPegaCustomerServiceTicketingIntegration(
     manifest: pegaCustomerServiceTicketingProviderManifestInput,
     metadata: { manifest: pegaCustomerServiceTicketingProviderManifest },
     operations: createPegaCustomerServiceTicketingOperationHandlers(client),
-    credentials: options,
+    credentials: pegaCustomerServiceIntegrationCredentials(options),
   });
 }
 
@@ -384,6 +384,22 @@ function requirePegaCustomerServiceProviderClient(
     }
   }
   return client;
+}
+
+function pegaCustomerServiceIntegrationCredentials(
+  options: PegaCustomerServiceTicketingIntegrationOptions,
+): PegaCustomerServiceJsonObject {
+  return stripUndefined({
+    providerClientConfigured: Boolean(options.providerClient ?? options.client) || undefined,
+    baseUrl: options.baseUrl,
+    apiBasePath: options.apiBasePath,
+    apiAccessConfigured: hasPegaCustomerServiceAuthConfiguration(options) || undefined,
+    fetchConfigured: options.fetch ? true : undefined,
+    signalConfigured: options.signal ? true : undefined,
+    timeoutMs: options.timeoutMs,
+    retry: options.retry,
+    headersConfigured: options.headers ? true : undefined,
+  });
 }
 
 function hasPegaCustomerServiceRestConfiguration(options: PegaCustomerServiceTicketingClientOptions) {

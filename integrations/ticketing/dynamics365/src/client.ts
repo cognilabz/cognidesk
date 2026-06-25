@@ -21,15 +21,7 @@ export type Dynamics365ProviderQuery = Record<string, Dynamics365ProviderExtensi
 export interface Dynamics365ProviderResponse extends Dynamics365JsonObject {}
 export interface Dynamics365ProviderExtensionFields extends Dynamics365JsonObject {}
 
-export interface Dynamics365RawClient {
-  create(request: any): Promise<any>;
-  retrieve(request: any): Promise<any>;
-  update(request: any): Promise<any>;
-  retrieveMultiple(request: any, nextPageLink?: string): Promise<any>;
-  retrieveEntity(request: any): Promise<any>;
-  callAction(request: any): Promise<any>;
-  callFunction(request: any): Promise<any>;
-}
+export type Dynamics365RawClient = DynamicsWebApi;
 
 export interface Dynamics365TicketingClientOptions {
   instanceUrl?: string;
@@ -97,6 +89,7 @@ export interface Dynamics365TicketingOperationsClient {
 
 export interface Dynamics365TicketingClient extends Dynamics365TicketingOperationsClient {
   rawClient: Dynamics365RawClient;
+  getRawClient(): Dynamics365RawClient;
   integration: ReturnType<typeof defineIntegration>;
 }
 
@@ -114,13 +107,19 @@ export function createDynamics365TicketingClient(
   const rawClient = options.rawClient ?? createDynamics365RawClient(options);
   const client = {
     rawClient,
+    getRawClient() {
+      return rawClient;
+    },
     async createCase(input) {
+      const customerId = input.customerId
+        ? dataverseGuid(input.customerId, "customerId")
+        : undefined;
       return rawClient.create({
         collection: "incidents",
         data: stripUndefined({
           title: input.title,
           description: input.description,
-          ...(input.customerId ? { "customerid_account@odata.bind": `/accounts(${input.customerId})` } : {}),
+          ...(customerId ? { "customerid_account@odata.bind": `/accounts(${customerId})` } : {}),
           prioritycode: input.priorityCode,
           ...(input.additionalFields ?? {}),
         }),
@@ -153,11 +152,12 @@ export function createDynamics365TicketingClient(
       }) as Promise<Dynamics365ProviderResponse>;
     },
     async createCaseNote(input) {
+      const caseId = dataverseGuid(input.caseId, "caseId");
       return rawClient.create({
         collection: "annotations",
         data: stripUndefined({
           ...(input.additionalFields ?? {}),
-          "objectid_incident@odata.bind": `/incidents(${input.caseId})`,
+          "objectid_incident@odata.bind": `/incidents(${caseId})`,
           notetext: input.text,
           subject: input.subject,
           filename: input.filename,
@@ -167,7 +167,8 @@ export function createDynamics365TicketingClient(
       }) as Promise<Dynamics365ProviderResponse>;
     },
     async listCaseNotes(caseId, input = {}) {
-      const filter = `_objectid_value eq ${caseId}`;
+      const normalizedCaseId = dataverseGuid(caseId, "caseId");
+      const filter = `_objectid_value eq ${normalizedCaseId}`;
       return rawClient.retrieveMultiple({
         collection: "annotations",
         ...searchRequest({
@@ -177,13 +178,19 @@ export function createDynamics365TicketingClient(
       }) as unknown as Promise<Dynamics365ProviderResponse>;
     },
     async addToQueue(input) {
+      const queueId = dataverseGuid(input.queueId, "queueId");
+      const targetId = dataverseGuid(input.targetId, "targetId");
+      const sourceQueueId = input.sourceQueueId
+        ? dataverseGuid(input.sourceQueueId, "sourceQueueId")
+        : undefined;
+      const targetEntitySetName = dataverseEntitySetName(input.targetEntitySetName ?? "incidents", "targetEntitySetName");
       return rawClient.callAction({
         collection: "queues",
-        key: input.queueId,
+        key: queueId,
         actionName: "Microsoft.Dynamics.CRM.AddToQueue",
         action: stripUndefined({
-          Target: { "@odata.id": `${input.targetEntitySetName ?? "incidents"}(${input.targetId})` },
-          ...(input.sourceQueueId ? { SourceQueue: { "@odata.id": `queues(${input.sourceQueueId})` } } : {}),
+          Target: { "@odata.id": `${targetEntitySetName}(${targetId})` },
+          ...(sourceQueueId ? { SourceQueue: { "@odata.id": `queues(${sourceQueueId})` } } : {}),
           ...(input.queueItemProperties ? { QueueItemProperties: input.queueItemProperties } : {}),
         }),
       }) as Promise<Dynamics365ProviderResponse>;
@@ -214,12 +221,12 @@ export function createDynamics365TicketingClient(
   };
 }
 
-export function createDynamics365TicketingIntegration(options: Dynamics365TicketingIntegrationOptions) {
+export function createDynamics365TicketingIntegration(options: Dynamics365TicketingIntegrationOptions = {}) {
   const client = options.client ?? createDynamics365TicketingClient(options);
   return defineIntegration({
     manifest: dynamics365TicketingProviderManifest,
     operations: createDynamics365TicketingOperationHandlers(client),
-    credentials: options,
+    credentials: dynamics365IntegrationCredentials(options),
   });
 }
 
@@ -316,7 +323,7 @@ interface Dynamics365ListCaseNotesOperationInput extends Dynamics365ReadOperatio
   query?: Dynamics365SearchInput;
 }
 
-function createDynamics365RawClient(options: Dynamics365TicketingClientOptions): Dynamics365RawClient {
+export function createDynamics365RawClient(options: Dynamics365TicketingClientOptions): Dynamics365RawClient {
   return new DynamicsWebApi({
     serverUrl: normalizeInstanceUrl(options.instanceUrl),
     propagateErrors: true,
@@ -384,6 +391,33 @@ function searchFields(input: Dynamics365ListCaseNotesOperationInput): Dynamics36
     ...(input.top !== undefined ? { top: input.top } : {}),
     ...(input.orderBy ? { orderBy: input.orderBy } : {}),
   };
+}
+
+function dynamics365IntegrationCredentials(
+  options: Dynamics365TicketingIntegrationOptions,
+): Dynamics365JsonObject {
+  return stripUndefined({
+    clientConfigured: options.client ? true : undefined,
+    rawClientConfigured: options.rawClient ? true : undefined,
+    instanceUrl: options.instanceUrl,
+    apiVersion: options.apiVersion,
+    apiAccessConfigured: options.accessToken ? true : undefined,
+  });
+}
+
+function dataverseGuid(value: string, label: string): string {
+  const trimmed = value.trim();
+  const match = trimmed.match(/^\{?([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})\}?$/);
+  if (!match) throw new Error(`Dynamics 365 ${label} must be a GUID.`);
+  return match[1]!;
+}
+
+function dataverseEntitySetName(value: string, label: string): string {
+  const trimmed = value.trim();
+  if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(trimmed)) {
+    throw new Error(`Dynamics 365 ${label} must be a Dataverse entity-set name.`);
+  }
+  return trimmed;
 }
 
 function stripUndefined<T extends Record<string, unknown>>(input: T): T {

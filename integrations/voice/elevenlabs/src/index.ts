@@ -8,6 +8,7 @@ import {
   pcm16WavBlob,
   type SpeechPipelineVoiceProviderOptions,
 } from "@cognidesk/integration-kit/speech";
+import type { ElevenLabsClient as ElevenLabsSdkClient } from "@elevenlabs/elevenlabs-js";
 import { elevenLabsVoiceProviderManifest } from "./manifest.js";
 
 export { elevenLabsVoiceProviderManifest } from "./manifest.js";
@@ -20,25 +21,24 @@ export interface ElevenLabsVoiceClientOptions {
 
 export interface ElevenLabsRawClient {
   textToSpeech?: {
-    convert(voiceId: string, request: Record<string, unknown>, requestOptions?: Record<string, unknown>): Promise<unknown>;
-    stream?(voiceId: string, request: Record<string, unknown>, requestOptions?: Record<string, unknown>): Promise<unknown>;
-    convertWithTimestamps?(voiceId: string, request: Record<string, unknown>, requestOptions?: Record<string, unknown>): Promise<unknown>;
+    convert(...args: Parameters<ElevenLabsSdkClient["textToSpeech"]["convert"]>): Promise<unknown>;
+    stream?(...args: Parameters<ElevenLabsSdkClient["textToSpeech"]["stream"]>): Promise<unknown>;
+    convertWithTimestamps?(
+      ...args: Parameters<ElevenLabsSdkClient["textToSpeech"]["convertWithTimestamps"]>
+    ): Promise<unknown>;
   };
   speechToText?: {
-    convert(request: Record<string, unknown>, requestOptions?: Record<string, unknown>): Promise<unknown>;
-    transcripts?: {
-      get(transcriptionId: string, requestOptions?: Record<string, unknown>): Promise<unknown>;
-      delete(transcriptionId: string, requestOptions?: Record<string, unknown>): Promise<unknown>;
-    };
+    convert(...args: Parameters<ElevenLabsSdkClient["speechToText"]["convert"]>): Promise<unknown>;
+    transcripts?: Partial<Pick<ElevenLabsSdkClient["speechToText"]["transcripts"], "get" | "delete">>;
   };
   conversationalAi?: {
     conversations?: {
-      getSignedUrl?(
-        request: ElevenLabsConversationSignedUrlRequest,
-        requestOptions?: Record<string, unknown>,
+      getSignedUrl(
+        ...args: Parameters<ElevenLabsSdkClient["conversationalAi"]["conversations"]["getSignedUrl"]>
       ): Promise<ElevenLabsConversationSignedUrlResponse | string>;
     };
   };
+  fetch?: ElevenLabsSdkClient["fetch"];
 }
 
 export interface ElevenLabsConversationSignedUrlRequest {
@@ -74,9 +74,12 @@ export interface ElevenLabsCreateTranscriptInput {
 
 export interface ElevenLabsTranscriptResponse {
   transcription_id?: string;
+  transcriptionId?: string;
   text?: string;
   language_code?: string;
+  languageCode?: string;
   language_probability?: number;
+  languageProbability?: number;
   [key: string]: unknown;
 }
 
@@ -100,20 +103,22 @@ export interface ElevenLabsVoiceProviderOptions
   outputFormat?: string;
 }
 
+const elevenLabsVoiceOperationHandlers = {
+  "voice.speak": async (input: unknown, context: IntegrationOperationContext) =>
+    metadataClient<ElevenLabsVoiceClient>(context).createSpeech(input as ElevenLabsCreateSpeechInput),
+  "voice.turn.finalize": async (input: unknown, context: IntegrationOperationContext) =>
+    metadataClient<ElevenLabsVoiceClient>(context).createTranscript(input as ElevenLabsCreateTranscriptInput),
+  "elevenlabs.conversation.authorize": async (
+    input: unknown,
+    context: IntegrationOperationContext,
+  ) => metadataClient<ElevenLabsVoiceClient>(context).createConversationSignedUrl(
+    input as { agentId: string; signal?: AbortSignal },
+  ),
+} as const;
+
 export const elevenLabsVoiceIntegration = defineIntegration({
   manifest: elevenLabsVoiceProviderManifest,
-  operations: {
-    "voice.speak": async (input: unknown, context: IntegrationOperationContext) =>
-      metadataClient<ElevenLabsVoiceClient>(context).createSpeech(input as ElevenLabsCreateSpeechInput),
-    "voice.turn.finalize": async (input: unknown, context: IntegrationOperationContext) =>
-      metadataClient<ElevenLabsVoiceClient>(context).createTranscript(input as ElevenLabsCreateTranscriptInput),
-    "elevenlabs.conversation.authorize": async (
-      input: unknown,
-      context: IntegrationOperationContext,
-    ) => metadataClient<ElevenLabsVoiceClient>(context).createConversationSignedUrl(
-      input as { agentId: string; signal?: AbortSignal },
-    ),
-  },
+  operations: elevenLabsVoiceOperationHandlers,
 });
 
 function metadataClient<Client>(context: IntegrationOperationContext): Client {
@@ -147,13 +152,16 @@ export function createElevenLabsVoiceProvider(options: ElevenLabsVoiceProviderOp
         timestampsGranularity: "word",
         signal: input.signal,
       });
+      const transcriptionId = transcript.transcription_id ?? transcript.transcriptionId;
+      const languageCode = transcript.language_code ?? transcript.languageCode;
+      const languageProbability = transcript.language_probability ?? transcript.languageProbability;
       return {
         text: transcript.text ?? "",
-        ...(transcript.transcription_id ? { itemId: transcript.transcription_id } : {}),
+        ...(transcriptionId ? { itemId: transcriptionId } : {}),
         metadata: compact({
           provider: "elevenlabs",
-          ...(transcript.language_code ? { languageCode: transcript.language_code } : {}),
-          ...(transcript.language_probability !== undefined ? { languageProbability: transcript.language_probability } : {}),
+          ...(languageCode ? { languageCode } : {}),
+          ...(languageProbability !== undefined ? { languageProbability } : {}),
         }) as Record<string, string | number | boolean | null>,
       };
     },
@@ -191,11 +199,11 @@ export function createElevenLabsVoiceClient(options: ElevenLabsVoiceClientOption
     getRawClient,
     async createSpeech(input) {
       const rawClient = await getRawClient();
-      const response = await rawClient.textToSpeech?.convert(input.voiceId, compact({
-        text: input.text,
-        model_id: input.modelId,
-        output_format: input.outputFormat,
-      }), compact({ abortSignal: input.signal }));
+      const response = await rawClient.textToSpeech?.convert(
+        input.voiceId,
+        textToSpeechConvertRequest(input),
+        requestOptions(input.signal),
+      );
       return responseToArrayBuffer(response);
     },
     async createTranscript(input) {
@@ -206,21 +214,17 @@ export function createElevenLabsVoiceClient(options: ElevenLabsVoiceClientOption
         throw new Error("Only one of file or sourceUrl can be used to create an ElevenLabs transcript.");
       }
       const rawClient = await getRawClient();
-      const response = await rawClient.speechToText?.convert(compact({
-        file: input.file,
-        filename: input.fileName,
-        url: input.sourceUrl,
-        model_id: input.modelId,
-        language_code: input.languageCode,
-        timestamps_granularity: input.timestampsGranularity,
-      }), compact({ abortSignal: input.signal }));
+      const response = await rawClient.speechToText?.convert(
+        speechToTextConvertRequest(input),
+        requestOptions(input.signal),
+      );
       return normalizeTranscript(response);
     },
     async createConversationSignedUrl(input) {
       const rawClient = await getRawClient();
       const response = await rawClient.conversationalAi?.conversations?.getSignedUrl?.(
         { agentId: input.agentId },
-        compact({ abortSignal: input.signal }),
+        requestOptions(input.signal),
       );
       if (typeof response === "string") return response;
       if (isRecord(response) && typeof response.signed_url === "string") return response.signed_url;
@@ -229,6 +233,10 @@ export function createElevenLabsVoiceClient(options: ElevenLabsVoiceClientOption
     },
   };
 }
+
+type TextToSpeechConvertRequest = Parameters<ElevenLabsSdkClient["textToSpeech"]["convert"]>[1];
+type SpeechToTextConvertRequest = Parameters<ElevenLabsSdkClient["speechToText"]["convert"]>[0];
+type ElevenLabsRequestOptions = Parameters<ElevenLabsSdkClient["textToSpeech"]["convert"]>[2];
 
 export function elevenLabsVoiceCredentialStatuses(input: { apiKey?: string }): ProviderCredentialStatusInput[] {
   const configured = Boolean(input.apiKey);
@@ -268,8 +276,54 @@ function arrayBufferFromBytes(bytes: Uint8Array) {
 }
 
 function normalizeTranscript(response: unknown): ElevenLabsTranscriptResponse {
-  if (isRecord(response)) return response as ElevenLabsTranscriptResponse;
+  if (isRecord(response)) {
+    return {
+      ...response,
+      ...(typeof response.transcription_id === "string" || typeof response.transcriptionId !== "string"
+        ? {}
+        : { transcription_id: response.transcriptionId }),
+      ...(typeof response.language_code === "string" || typeof response.languageCode !== "string"
+        ? {}
+        : { language_code: response.languageCode }),
+      ...(typeof response.language_probability === "number" || typeof response.languageProbability !== "number"
+        ? {}
+        : { language_probability: response.languageProbability }),
+    } as ElevenLabsTranscriptResponse;
+  }
   return {};
+}
+
+function uploadableFile(input: ElevenLabsCreateTranscriptInput) {
+  if (!input.file) return undefined;
+  return input.fileName ? { data: input.file, filename: input.fileName } : input.file;
+}
+
+function textToSpeechConvertRequest(input: ElevenLabsCreateSpeechInput): TextToSpeechConvertRequest {
+  const request: Partial<TextToSpeechConvertRequest> & { text: string } = { text: input.text };
+  if (input.modelId !== undefined) request.modelId = input.modelId as NonNullable<TextToSpeechConvertRequest["modelId"]>;
+  if (input.outputFormat !== undefined) {
+    request.outputFormat = input.outputFormat as NonNullable<TextToSpeechConvertRequest["outputFormat"]>;
+  }
+  return request as TextToSpeechConvertRequest;
+}
+
+function speechToTextConvertRequest(input: ElevenLabsCreateTranscriptInput): SpeechToTextConvertRequest {
+  const request: Partial<SpeechToTextConvertRequest> & Pick<SpeechToTextConvertRequest, "modelId"> = {
+    modelId: (input.modelId ?? "scribe_v1") as NonNullable<SpeechToTextConvertRequest["modelId"]>,
+  };
+  const file = uploadableFile(input);
+  if (file !== undefined) request.file = file as SpeechToTextConvertRequest["file"];
+  if (input.sourceUrl !== undefined) request.sourceUrl = input.sourceUrl;
+  if (input.languageCode !== undefined) request.languageCode = input.languageCode;
+  if (input.timestampsGranularity !== undefined) {
+    request.timestampsGranularity =
+      input.timestampsGranularity as NonNullable<SpeechToTextConvertRequest["timestampsGranularity"]>;
+  }
+  return request as SpeechToTextConvertRequest;
+}
+
+function requestOptions(signal: AbortSignal | undefined): ElevenLabsRequestOptions {
+  return compact({ abortSignal: signal }) as ElevenLabsRequestOptions;
 }
 
 async function streamToArrayBuffer(stream: ReadableStream<Uint8Array>) {

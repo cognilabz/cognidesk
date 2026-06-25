@@ -33,6 +33,15 @@ export function validateMessengerWebhookSignature(input: {
   signature: string;
   appSecret: string;
 }): boolean {
+  if (
+    typeof input.rawBody !== "string"
+    || typeof input.signature !== "string"
+    || typeof input.appSecret !== "string"
+    || input.appSecret.trim().length === 0
+    || !input.signature.startsWith("sha256=")
+  ) {
+    return false;
+  }
   const expected = `sha256=${createHmac("sha256", input.appSecret).update(input.rawBody).digest("hex")}`;
   const expectedBuffer = Buffer.from(expected);
   const actualBuffer = Buffer.from(input.signature);

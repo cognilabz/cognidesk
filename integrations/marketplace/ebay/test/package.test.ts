@@ -1,9 +1,13 @@
+import { createHash, generateKeyPairSync } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import { describe, expect, it, vi } from "vitest";
 import {
   EBAY_SELECTED_API_OPERATION_COUNT,
+  createEbayDigitalSignatureHeaders,
   createEbayMarketplaceClient,
   createEbayMarketplaceIntegration,
+  createEbayNotificationChallengeResponse,
   createUnconfiguredEbayMarketplaceProviderClient,
   ebayMarketplaceIntegration,
   ebayMarketplaceOperationAlias,
@@ -45,16 +49,100 @@ describe("@cognidesk/integration-marketplace-ebay", () => {
     expect(ebayMarketplaceProviderManifest.metadata?.providerClient).toMatchObject({
       interface: "EbayMarketplaceProviderClient",
       importPolicy: "optional-host-override",
-      defaultClientPolicy: "built-in-rest-with-oauth-tokens",
-      transportPolicy: "package-owned-provider-rest-adapter",
+      defaultClientPolicy: "built-in-rest-with-oauth-tokens-fail-closed",
+      transportPolicy: "package-owned-typed-provider-rest-adapter",
+      failClosedPolicy: "credential-missing-without-token-or-host-client",
     });
 
     const implementationMetadata = JSON.stringify(ebayMarketplaceProviderManifest.metadata?.implementation);
-    expect(implementationMetadata).toContain("no-official-sdk-rest-adapter");
-    expect(implementationMetadata).toContain("providerJsonRequest");
-    expect(implementationMetadata).toContain("local-helper-retained-for-signature-header-creation-only");
-    expect(implementationMetadata).toContain("local-helper-retained-for-webhook-parsing-only");
-    expect(implementationMetadata).toContain("non-official-package-not-used-as-default-provider-client");
+    expect(implementationMetadata).toContain("provider-owned-utility-sdks-plus-selected-rest-adapter");
+    expect(implementationMetadata).toContain("provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk");
+    expect(implementationMetadata).toContain("2026-06-25");
+    expect(implementationMetadata).toContain("providerJsonRequest-for-selected-rest-operations");
+    expect(implementationMetadata).toContain("provider-owned-runtime-used-for-default-digital-signature-headers");
+    expect(implementationMetadata).toContain("provider-owned-runtime-used-for-endpoint-challenge");
+    expect(implementationMetadata).toContain("provider-owned-oauth-helper-not-selected-rest-runtime");
+    expect(implementationMetadata).toContain("community-wrapper-rejected-not-provider-owned");
+    expect(implementationMetadata).toContain("ebay-api");
+    expect(implementationMetadata).toContain("@tradebuddyhq/ebay-wrapper");
+  });
+
+  it("declares and imports provider-owned eBay utility SDKs at runtime", async () => {
+    const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")) as {
+      dependencies?: Record<string, string>;
+      cognidesk?: {
+        providerSdkDependencies?: string[];
+        providerRestAdapterException?: {
+          result?: string;
+          typedClientOverride?: string;
+          packagesRejected?: Array<{ package?: string; reason?: string }>;
+        };
+      };
+    };
+    const signingSource = await readFile(new URL("../src/signing.ts", import.meta.url), "utf8");
+    const webhookSource = await readFile(new URL("../src/webhook.ts", import.meta.url), "utf8");
+
+    expect(packageJson.dependencies ?? {}).toHaveProperty("digital-signature-nodejs-sdk");
+    expect(packageJson.dependencies ?? {}).toHaveProperty("event-notification-nodejs-sdk");
+    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([
+      "digital-signature-nodejs-sdk",
+      "event-notification-nodejs-sdk",
+    ]);
+    expect(packageJson.cognidesk?.providerRestAdapterException).toMatchObject({
+      result: "no-provider-owned-general-ebay-rest-sdk",
+      typedClientOverride: "EbayMarketplaceProviderClient",
+    });
+    expect(packageJson.cognidesk?.providerRestAdapterException?.packagesRejected)
+      .toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          package: "ebay-api",
+          reason: expect.stringContaining("not eBay/provider-owned"),
+        }),
+        expect.objectContaining({
+          package: "ebay-oauth-nodejs-client",
+          reason: expect.stringContaining("OAuth helper only"),
+        }),
+      ]));
+    expect(signingSource).toContain("from \"digital-signature-nodejs-sdk\"");
+    expect(signingSource).toContain("generateDigestHeader");
+    expect(signingSource).toContain("generateSignatureInput");
+    expect(signingSource).toContain("generateSignature");
+    expect(webhookSource).toContain("from \"event-notification-nodejs-sdk\"");
+    expect(webhookSource).toContain("validateEbayNotificationEndpoint");
+  });
+
+  it("uses eBay provider-owned utility SDKs for challenge and default signature headers", () => {
+    const challengeCode = "challenge-code";
+    const verificationToken = "verification_token_123456789012345";
+    const endpoint = "https://example.test/ebay/webhook";
+    const challenge = createEbayNotificationChallengeResponse({
+      challengeCode,
+      verificationToken,
+      endpoint,
+    });
+    expect(challenge).toEqual({
+      challengeResponse: createHash("sha256")
+        .update(challengeCode)
+        .update(verificationToken)
+        .update(endpoint)
+        .digest("hex"),
+    });
+
+    const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const headers = createEbayDigitalSignatureHeaders({
+      method: "POST",
+      url: "https://api.ebay.com/sell/fulfillment/v1/order/order-1/issue_refund",
+      body: JSON.stringify({ reasonForRefund: "BUYER_CANCELLED" }),
+      privateKey: privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+      publicKeyJwe: "jwe-header-from-ebay",
+    });
+
+    expect(headers["content-digest"]).toBe(`sha-256=:${createHash("sha256")
+      .update(JSON.stringify({ reasonForRefund: "BUYER_CANCELLED" }))
+      .digest("base64")}:`);
+    expect(headers["x-ebay-signature-key"]).toBe("jwe-header-from-ebay");
+    expect(headers["signature-input"]).toMatch(/^sig1=\("content-digest" "x-ebay-signature-key" "@method" "@path" "@authority"\);created=\d+$/);
+    expect(headers.signature).toMatch(/^sig1=:.+:$/);
   });
 
   it("keeps manifest imports runtime-light", async () => {
@@ -160,8 +248,42 @@ describe("@cognidesk/integration-marketplace-ebay", () => {
     const client = createEbayMarketplaceClient();
     const providerClient = createUnconfiguredEbayMarketplaceProviderClient();
 
-    await expect(client.getOrder("order-1")).rejects.toThrow("accessToken");
-    await expect(providerClient.getUser()).rejects.toThrow("accessToken");
+    await expect(client.getOrder("order-1")).rejects.toMatchObject({
+      name: "IntegrationError",
+      code: "credential-missing",
+      providerPackageId: "marketplace.ebay",
+      provider: "ebay",
+      message: expect.stringContaining("accessToken"),
+      details: {
+        functionName: "getOrder",
+        providerClientInterface: "EbayMarketplaceProviderClient",
+      },
+    });
+    await expect(providerClient.getUser()).rejects.toMatchObject({
+      name: "IntegrationError",
+      code: "credential-missing",
+      details: {
+        functionName: "getUser",
+        requiredCredentials: ["accessToken", "applicationAccessToken"],
+      },
+    });
+  });
+
+  it("fails closed when an injected provider client omits a selected operation", async () => {
+    const client = createEbayMarketplaceClient({
+      providerClient: { getUser: vi.fn(async () => ({ userId: "user-1" })) } as unknown as EbayMarketplaceProviderClient,
+    });
+
+    await expect(client.getOrder("order-1")).rejects.toMatchObject({
+      name: "IntegrationError",
+      code: "contract-violation",
+      providerPackageId: "marketplace.ebay",
+      provider: "ebay",
+      details: {
+        functionName: "getOrder",
+        providerClientInterface: "EbayMarketplaceProviderClient",
+      },
+    });
   });
 
   it("builds integration handlers around an injected provider client", async () => {
@@ -214,7 +336,17 @@ describe("@cognidesk/integration-marketplace-ebay", () => {
         provider: ebayMarketplaceProviderManifest.provider,
         operationAlias: ebayMarketplaceOperationAlias("getOrder"),
       },
-    )).rejects.toThrow("eBay marketplace client does not implement operation 'getOrder'");
+    )).rejects.toMatchObject({
+      name: "IntegrationError",
+      code: "contract-violation",
+      providerPackageId: ebayMarketplaceProviderManifest.id,
+      provider: ebayMarketplaceProviderManifest.provider,
+      operationAlias: ebayMarketplaceOperationAlias("getOrder"),
+      details: {
+        functionName: "getOrder",
+        clientInterface: "EbayMarketplaceClient",
+      },
+    });
   });
 
   it("records selected source metadata for each allowed operation", () => {

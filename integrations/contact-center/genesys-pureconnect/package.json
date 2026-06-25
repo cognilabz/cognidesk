@@ -60,6 +60,39 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-maintained-official-pureconnect-icws-npm-sdk",
+      "defaultRestPolicy": "fail-closed-icws-rest-adapter-with-typed-provider-client-override",
+      "typedClientOverride": "GenesysPureConnectProviderClient",
+      "checkedPackages": [
+        {
+          "package": "genesys-pureconnect",
+          "result": "not-published",
+          "reason": "No npm package with this official PureConnect runtime SDK name was found."
+        },
+        {
+          "package": "pureconnect",
+          "result": "not-published",
+          "reason": "No npm package with this official PureConnect runtime SDK name was found."
+        },
+        {
+          "package": "machinepack-ic",
+          "checkedVersion": "0.1.0",
+          "license": "MIT",
+          "result": "third-party-unmaintained-icws-package",
+          "reason": "Third-party ICWS wrapper, not an official maintained Genesys PureConnect runtime SDK."
+        },
+        {
+          "package": "purecloud-platform-client-v2",
+          "checkedVersion": "255.1.0",
+          "license": "MIT",
+          "result": "genesys-cloud-sdk-not-pureconnect-icws",
+          "reason": "Maintained SDK targets Genesys Cloud Platform APIs, not PureConnect ICWS."
+        }
+      ]
     }
   }
 }

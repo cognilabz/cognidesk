@@ -103,8 +103,6 @@ function createMissingGorgiasProviderClient(): GorgiasTicketingProviderClient {
   };
 }
 
-const gorgiasDefaultBaseUrl = "https://api.gorgias.com";
-
 function hasGorgiasRestConfig(options: GorgiasTicketingClientOptions): boolean {
   return Boolean(options.baseUrl || options.accessToken || options.apiKey || options.fetch);
 }
@@ -182,7 +180,7 @@ async function gorgiasRequest<T = JsonObject>(
   },
 ): Promise<T> {
   return providerJsonRequestWithControls<T>({
-    baseUrl: options.baseUrl ?? gorgiasDefaultBaseUrl,
+    baseUrl: gorgiasBaseUrl(options),
     path: request.path,
     method: request.method ?? "GET",
     pathParams: request.pathParams,
@@ -208,11 +206,18 @@ function providerJsonRequestWithControls<T = unknown>(input: ProviderJsonRequest
   return providerJsonRequest<T>(input as Parameters<typeof providerJsonRequest>[0]);
 }
 
+function gorgiasBaseUrl(options: GorgiasTicketingClientOptions): string {
+  if (!options.baseUrl) {
+    throw new Error("Gorgias REST adapter requires baseUrl for the account-specific API endpoint.");
+  }
+  return options.baseUrl.replace(/\/+$/, "").replace(/\/api$/i, "");
+}
+
 function gorgiasAuthorization(options: GorgiasTicketingClientOptions): string {
   if (options.accessToken) return `Bearer ${options.accessToken}`;
   if (!options.apiKey) throw new Error("Gorgias REST adapter requires accessToken or apiKey.");
   const username = options.apiEmail ?? options.apiUsername;
-  if (!username) return `Basic ${options.apiKey}`;
+  if (!username) throw new Error("Gorgias Basic auth requires apiEmail or apiUsername with apiKey.");
   return `Basic ${Buffer.from(`${username}:${options.apiKey}`).toString("base64")}`;
 }
 
@@ -246,9 +251,10 @@ function asHeadersRecord(value: unknown): Record<string, string | undefined> | u
 }
 
 function providerMethod(value: unknown): ProviderHttpMethod | undefined {
-  return ["GET", "POST", "PUT", "PATCH", "DELETE"].includes(String(value))
-    ? String(value) as ProviderHttpMethod
-    : undefined;
+  if (value === undefined) return undefined;
+  const method = String(value).toUpperCase();
+  if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(method)) return method as ProviderHttpMethod;
+  throw new Error(`Unsupported Gorgias HTTP method: ${String(value)}`);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

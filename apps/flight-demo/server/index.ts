@@ -39,11 +39,16 @@ import {
 } from "@cognidesk/integration-messaging-whatsapp";
 import {
   createAwsSpeechVoiceProvider,
+  type AwsPollyVoiceId,
   type AwsPollySynthesizeCommandInput,
   type AwsSdkCommandConstructor,
+  type AwsTranscribeLanguageCode,
   type AwsTranscribeStreamingCommandInput,
 } from "@cognidesk/integration-voice-aws-speech";
-import { createAzureSpeechVoiceProvider } from "@cognidesk/integration-voice-azure-speech";
+import {
+  createAzureSpeechVoiceProvider,
+  type AzureSpeechSynthesisOutputFormat,
+} from "@cognidesk/integration-voice-azure-speech";
 import { createDeepgramVoiceProvider } from "@cognidesk/integration-voice-deepgram";
 import { createElevenLabsVoiceProvider } from "@cognidesk/integration-voice-elevenlabs";
 import { createGoogleSpeechVoiceProvider } from "@cognidesk/integration-voice-google-speech";
@@ -1485,7 +1490,7 @@ function createConfiguredVoiceProvider(
         region: secrets.region,
         voiceName: config.voice.voiceName,
         ...(config.voice.language ? { language: config.voice.language } : {}),
-        ...(config.voice.outputFormat ? { outputFormat: config.voice.outputFormat } : {}),
+        ...(config.voice.outputFormat ? { outputFormat: config.voice.outputFormat as AzureSpeechSynthesisOutputFormat } : {}),
       });
     }
     case "aws-speech": {
@@ -1509,8 +1514,8 @@ function createConfiguredVoiceProvider(
         StartStreamTranscriptionCommand: startStreamTranscriptionCommand,
         pollyClient: new PollyClient(awsClientOptions),
         SynthesizeSpeechCommand: synthesizeSpeechCommand,
-        voiceId: config.voice.voiceId,
-        languageCode: config.voice.languageCode,
+        voiceId: config.voice.voiceId as AwsPollyVoiceId,
+        languageCode: config.voice.languageCode as AwsTranscribeLanguageCode,
         ...(config.voice.engine ? { engine: config.voice.engine } : {}),
         ...(config.voice.outputFormat ? { outputFormat: config.voice.outputFormat } : {}),
       });

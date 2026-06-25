@@ -8,7 +8,15 @@ import { nextivaProviderManifest, nextivaProviderManifestInput, nextivaSupportSl
 
 export { nextivaProviderManifest, nextivaProviderManifestInput, nextivaSupportSlice } from "./manifest.js";
 
-export type ProviderJsonObject = Record<string, unknown>;
+export type NextivaJsonPrimitive = string | number | boolean | null;
+export type NextivaJsonValue =
+  | NextivaJsonPrimitive
+  | NextivaJsonObject
+  | readonly NextivaJsonValue[];
+export interface NextivaJsonObject {
+  [key: string]: NextivaJsonValue;
+}
+export type ProviderJsonObject = NextivaJsonObject;
 
 export interface ProviderRestRetryOptions {
   attempts?: number | undefined;
@@ -48,7 +56,7 @@ export interface NextivaIntegrationOptions extends NextivaClientOptions {
 }
 
 export interface ConfiguredHandoffInput {
-  payload?: unknown;
+  payload?: ProviderJsonObject;
   query?: Record<string, ProviderQueryValue> | undefined;
   idempotencyKey?: string | undefined;
 }
@@ -56,7 +64,7 @@ export interface ConfiguredHandoffInput {
 export interface NextivaOperationInput {
   pathParams?: Record<string, string | number | boolean | undefined> | undefined;
   query?: Record<string, ProviderQueryValue> | undefined;
-  body?: unknown;
+  body?: NextivaJsonValue;
   headers?: Record<string, string | undefined> | undefined;
   idempotencyKey?: string | undefined;
 }
@@ -118,6 +126,7 @@ export function createNextivaIntegration(options: NextivaIntegrationOptions = {}
 
 const supportedRequestMethods = new Set<ProviderHttpMethod>(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 const mutatingRequestMethods = new Set<ProviderHttpMethod>(["POST", "PUT", "PATCH", "DELETE"]);
+const absoluteUrlPattern = /^[a-z][a-z0-9+.-]*:\/\//i;
 
 function createNextivaRestProviderClient(options: NextivaClientOptions): NextivaProviderClient {
   const request = (method: ProviderHttpMethod, path: string, input: NextivaOperationInput = {}) => providerRestRequest<ProviderJsonObject>({
@@ -164,21 +173,23 @@ function validateNextivaProviderRequest(input: ProviderExtensionRequestInput): P
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new Error("Nextiva Contact Center request input object is required.");
   }
-  const operation = input.operationId
-    ? nextivaSupportSlice.allowedOperations.find((candidate) => candidate.id === input.operationId)
+  const normalized = normalizeNextivaOperationInput(input, "Nextiva Contact Center request");
+  const operation = normalized.operationId
+    ? reviewedOperation(normalized.operationId)
     : undefined;
-  const method = providerHttpMethod(input.method ?? operationMethod(operation) ?? "GET", "Nextiva Contact Center");
-  const path = input.path ?? operationPath(operation);
+  const method = providerHttpMethod(normalized.method ?? operationMethod(operation) ?? "GET", "Nextiva Contact Center");
+  const path = normalized.path ?? operationPath(operation);
   if (!path || path === "host-configured") {
     throw new Error("Nextiva Contact Center request path or reviewed operationId is required.");
   }
-  if (mutatingRequestMethods.has(method) && (input.allowMutation !== true || !hasPolicyClassification(input.classification))) {
+  const restPath = providerRestPath(path, "Nextiva Contact Center request path");
+  if (mutatingRequestMethods.has(method) && (normalized.allowMutation !== true || !hasPolicyClassification(normalized.classification))) {
     throw new Error("Nextiva Contact Center mutating extension requests require allowMutation=true and host policy classification.");
   }
   return {
-    ...input,
+    ...normalized,
     method,
-    path,
+    path: restPath,
   };
 }
 
@@ -195,11 +206,33 @@ function providerHttpMethod(value: unknown, providerName: string): ProviderHttpM
 }
 
 function normalizeConfiguredHandoffInput(input: ConfiguredHandoffInput): ConfiguredHandoffInput {
+  if (!isRecord(input)) {
+    throw new Error("Nextiva Contact Center handoff input object is required.");
+  }
+  const payload = input.payload ?? {};
+  assertNextivaJsonObject(payload, "Nextiva Contact Center handoff payload");
   return {
-    ...(input.payload !== undefined ? { payload: input.payload } : {}),
-    ...(input.query !== undefined ? { query: input.query } : {}),
-    ...(input.idempotencyKey !== undefined ? { idempotencyKey: input.idempotencyKey } : {}),
+    payload,
+    ...(input.query !== undefined ? { query: providerQuery(input.query, "Nextiva Contact Center handoff query") } : {}),
+    ...(input.idempotencyKey !== undefined ? { idempotencyKey: nonEmptyHeaderValue(input.idempotencyKey, "Nextiva Contact Center idempotencyKey") } : {}),
   };
+}
+
+function normalizeNextivaOperationInput<T extends NextivaOperationInput>(input: T, label: string): T {
+  if (input.pathParams !== undefined) pathParams(input.pathParams, `${label} pathParams`);
+  if (input.query !== undefined) providerQuery(input.query, `${label} query`);
+  if (input.body !== undefined) assertNextivaJsonValue(input.body, `${label} body`);
+  if (input.headers !== undefined) providerHeaders(input.headers, `${label} headers`);
+  if (input.idempotencyKey !== undefined) nonEmptyHeaderValue(input.idempotencyKey, `${label} idempotencyKey`);
+  return input;
+}
+
+function reviewedOperation(operationId: string): NextivaAllowedOperation {
+  const operation = nextivaSupportSlice.allowedOperations.find((candidate) => candidate.id === operationId);
+  if (!operation) {
+    throw new Error(`Nextiva Contact Center operationId '${operationId}' is not in the reviewed allowlist.`);
+  }
+  return operation;
 }
 
 function operationMethod(operation: NextivaAllowedOperation | undefined): ProviderHttpMethod | undefined {
@@ -218,7 +251,92 @@ function configuredBaseUrl(options: Pick<NextivaClientOptions, "apiBaseUrl" | "b
 
 function configuredPath(path: string | undefined, label: string): string {
   if (!path) throw new Error(`${label} must be configured to use the built-in REST adapter.`);
-  return path;
+  return providerRestPath(path, label);
 }
 
 type NextivaAllowedOperation = typeof nextivaSupportSlice.allowedOperations[number];
+
+function providerRestPath(value: string, label: string): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${label} must be a non-empty relative path.`);
+  }
+  if (value !== value.trim() || value.includes("\r") || value.includes("\n")) {
+    throw new Error(`${label} must not contain surrounding whitespace or newlines.`);
+  }
+  if (!value.startsWith("/") || value.startsWith("//") || absoluteUrlPattern.test(value)) {
+    throw new Error(`${label} must be a relative API path beginning with '/'.`);
+  }
+  return value;
+}
+
+function pathParams(value: unknown, label: string): asserts value is Record<string, string | number | boolean | undefined> {
+  if (!isRecord(value)) throw new Error(`${label} must be an object.`);
+  for (const [key, item] of Object.entries(value)) {
+    if (item === undefined || typeof item === "string" || typeof item === "boolean") continue;
+    if (typeof item === "number" && Number.isFinite(item)) continue;
+    throw new Error(`${label}.${key} must be a string, finite number, boolean, or undefined.`);
+  }
+}
+
+function providerQuery(value: unknown, label: string): Record<string, ProviderQueryValue> {
+  if (!isRecord(value)) throw new Error(`${label} must be an object.`);
+  for (const [key, item] of Object.entries(value)) assertProviderQueryValue(item, `${label}.${key}`);
+  return value as Record<string, ProviderQueryValue>;
+}
+
+function assertProviderQueryValue(value: unknown, label: string): asserts value is ProviderQueryValue {
+  if (value === null || value === undefined || typeof value === "string" || typeof value === "boolean") return;
+  if (typeof value === "number" && Number.isFinite(value)) return;
+  if (Array.isArray(value)) {
+    for (const [index, item] of value.entries()) {
+      if (typeof item === "string" || typeof item === "boolean" || (typeof item === "number" && Number.isFinite(item))) continue;
+      throw new Error(`${label}[${index}] must be a string, finite number, or boolean.`);
+    }
+    return;
+  }
+  throw new Error(`${label} must be a provider query value.`);
+}
+
+function providerHeaders(value: unknown, label: string): asserts value is Record<string, string | undefined> {
+  if (!isRecord(value)) throw new Error(`${label} must be an object.`);
+  for (const [key, item] of Object.entries(value)) {
+    if (!key || key.includes("\r") || key.includes("\n")) throw new Error(`${label} keys must be non-empty header names.`);
+    if (item === undefined) continue;
+    nonEmptyHeaderValue(item, `${label}.${key}`);
+  }
+}
+
+function nonEmptyHeaderValue(value: unknown, label: string): string {
+  if (typeof value !== "string" || value.trim().length === 0 || value.includes("\r") || value.includes("\n")) {
+    throw new Error(`${label} must be a non-empty string without newlines.`);
+  }
+  return value;
+}
+
+function assertNextivaJsonObject(value: unknown, label: string): asserts value is NextivaJsonObject {
+  if (!isJsonObject(value)) throw new Error(`${label} must be a JSON object.`);
+  for (const [key, item] of Object.entries(value)) assertNextivaJsonValue(item, `${label}.${key}`);
+}
+
+function assertNextivaJsonValue(value: unknown, label: string): asserts value is NextivaJsonValue {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return;
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new Error(`${label} must be a finite JSON number.`);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const [index, item] of value.entries()) assertNextivaJsonValue(item, `${label}[${index}]`);
+    return;
+  }
+  assertNextivaJsonObject(value, label);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  if (!isRecord(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}

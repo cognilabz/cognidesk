@@ -8,7 +8,23 @@
   "cognidesk": {
     "kind": "provider-package",
     "providerPackage": true,
-    "release": "independent-provider"
+    "release": "independent-provider",
+    "providerSdkDependencies": [
+      "baileys"
+    ],
+    "providerRuntimeExceptions": [
+      {
+        "packageName": "baileys",
+        "provider": "whatsapp-web",
+        "scope": "community-linked-device-runtime",
+        "officialProviderSdk": false,
+        "checkedAt": "2026-06-25",
+        "evidence": [
+          "https://baileys.wiki/docs/intro/",
+          "https://github.com/WhiskeySockets/Baileys"
+        ]
+      }
+    ]
   },
   "exports": {
     ".": {

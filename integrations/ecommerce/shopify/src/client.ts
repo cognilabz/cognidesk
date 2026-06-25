@@ -8,6 +8,7 @@ import type {
   ShopifyEcommerceClient,
   ShopifyEcommerceClientOptions,
   ShopifyGraphqlInput,
+  ShopifyGraphqlRequestOptions,
   ShopifyGraphqlResponse,
   ShopifySearchResult,
   ShopifyWebhookParseInput,
@@ -22,10 +23,7 @@ export function createShopifyEcommerceClient(options: ShopifyEcommerceClientOpti
   });
 
   const graphql = <TData = Record<string, unknown>>(input: ShopifyGraphqlInput) => {
-    return rawClient.request<TData>(input.query, {
-      ...(input.variables ? { variables: input.variables } : {}),
-      ...(input.operationName ? { operationName: input.operationName } : {}),
-    }) as Promise<ShopifyGraphqlResponse<TData>>;
+    return rawClient.request<TData>(input.query, adminGraphqlRequestOptions(input)) as Promise<ShopifyGraphqlResponse<TData>>;
   };
 
   return {
@@ -182,6 +180,17 @@ function connectionResult<TNode>(connection?: ShopifyConnection<TNode>): Shopify
 function stripTypename<TNode extends { __typename?: string }>(node: TNode): Omit<TNode, "__typename"> {
   const { __typename: _typename, ...rest } = node;
   return rest;
+}
+
+function adminGraphqlRequestOptions(input: ShopifyGraphqlInput): ShopifyGraphqlRequestOptions | undefined {
+  const options: ShopifyGraphqlRequestOptions = {
+    ...(input.variables ? { variables: input.variables } : {}),
+    ...(input.apiVersion ? { apiVersion: input.apiVersion } : {}),
+    ...(input.headers ? { headers: input.headers } : {}),
+    ...(input.retries !== undefined ? { retries: input.retries } : {}),
+    ...(input.signal ? { signal: input.signal } : {}),
+  };
+  return Object.keys(options).length > 0 ? options : undefined;
 }
 
 function required(value: string | undefined, message: string) {

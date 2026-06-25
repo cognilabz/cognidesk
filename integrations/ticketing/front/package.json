@@ -51,6 +51,40 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerRestAdapterException": {
+      "checkedAt": "2026-06-25",
+      "result": "no-maintained-provider-core-api-runtime-sdk",
+      "reason": "Front's provider-maintained JavaScript packages cover plugin UI and Front Chat runtimes, while the deprecated front-sdk and generated @utdk/front package are not viable maintained backend Core/Channel API clients for the conversation, message, comment, search, update, and teammate operations exposed by this package.",
+      "defaultClientPolicy": "built-in-front-core-channel-rest-adapter",
+      "typedClientOverride": "FrontTicketingProviderClient",
+      "rejectedSdkPackages": [
+        {
+          "packageName": "front-sdk",
+          "checkedVersion": "0.8.2",
+          "license": "Apache-2.0",
+          "reason": "Deprecated and archived; npm deprecation says it is no longer maintained."
+        },
+        {
+          "packageName": "@frontapp/plugin-sdk",
+          "checkedVersion": "1.10.0",
+          "license": "MIT",
+          "reason": "Official Front plugin UI SDK, not a backend Core/Channel API ticketing runtime client."
+        },
+        {
+          "packageName": "front-chat-sdk",
+          "checkedVersion": "1.2.1",
+          "license": "Apache-2.0",
+          "reason": "Official Front Chat widget SDK, not a backend support ticketing Core/Channel API client."
+        },
+        {
+          "packageName": "@utdk/front",
+          "checkedVersion": "1.0.0-20260530.2-dev.646adf4",
+          "license": "not-declared",
+          "reason": "Third-party generated preview client; not provider-maintained and previously verified as incomplete for this package's runtime contract."
+        }
+      ]
     }
   },
   "files": [

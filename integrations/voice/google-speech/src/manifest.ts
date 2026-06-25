@@ -1,5 +1,13 @@
-import { defineIntegration } from "@cognidesk/integration-kit";
+import {
+  defineIntegration,
+  type IntegrationOperationContext,
+} from "@cognidesk/integration-kit";
 import type { ProviderManifestInput } from "@cognidesk/integration-kit";
+import type {
+  GoogleSpeechClient,
+  GoogleSpeechToTextInput,
+  GoogleTextToSpeechInput,
+} from "./contracts.js";
 
 export const googleSpeechManifestInput = {
   id: "voice.google-speech",
@@ -139,10 +147,19 @@ export const googleSpeechManifestInput = {
 export const googleSpeechIntegration = defineIntegration({
   manifest: googleSpeechManifestInput,
   operations: {
-    "voice.session.start": async (input: unknown) => input,
-    "voice.turn.finalize": async (input: unknown) => input,
-    "voice.speak": async (input: unknown) => input,
-  } as never,
+    "voice.session.start": async (input: unknown, context: IntegrationOperationContext) =>
+      metadataClient<GoogleSpeechClient>(context).transcribeSpeech(input as GoogleSpeechToTextInput),
+    "voice.turn.finalize": async (input: unknown, context: IntegrationOperationContext) =>
+      metadataClient<GoogleSpeechClient>(context).transcribeSpeech(input as GoogleSpeechToTextInput),
+    "voice.speak": async (input: unknown, context: IntegrationOperationContext) =>
+      metadataClient<GoogleSpeechClient>(context).synthesizeSpeech(input as GoogleTextToSpeechInput),
+  },
 });
 
 export const googleSpeechProviderManifest = googleSpeechIntegration.manifest;
+
+function metadataClient<Client>(context: IntegrationOperationContext): Client {
+  const client = context.metadata?.client;
+  if (!client) throw new Error("Pass a Google Speech client as context.metadata.client.");
+  return client as Client;
+}

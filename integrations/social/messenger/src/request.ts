@@ -12,9 +12,37 @@ export interface MessengerGraphRequestOptions {
   retry?: number | ProviderJsonRetryOptions;
 }
 
+export function normalizeMessengerGraphApiBaseUrl(baseUrl: string) {
+  let parsed: URL;
+  try {
+    parsed = new URL(baseUrl);
+  } catch {
+    throw new Error("Messenger built-in Graph API adapter requires an absolute graphApiBaseUrl.");
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new Error("Messenger built-in Graph API adapter requires an HTTPS graphApiBaseUrl.");
+  }
+  if (parsed.hostname !== "graph.facebook.com") {
+    throw new Error("Messenger built-in Graph API adapter only supports graph.facebook.com; pass providerClient for custom transport.");
+  }
+  if (parsed.username || parsed.password || parsed.pathname !== "/" || parsed.search || parsed.hash) {
+    throw new Error("Messenger built-in Graph API adapter graphApiBaseUrl must be the bare Graph API origin.");
+  }
+  return parsed.origin;
+}
+
+export function normalizeMessengerGraphApiVersion(version: string) {
+  const normalizedVersion = version.trim();
+  if (!/^v\d+\.\d+$/.test(normalizedVersion)) {
+    throw new Error("Messenger built-in Graph API adapter requires a Graph API version like v25.0.");
+  }
+  return normalizedVersion;
+}
+
 export function messengerGraphUrl(baseUrl: string, version: string, pathSegments: readonly string[], suffix = "") {
-  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
-  const normalizedVersion = version.replace(/^\/+|\/+$/g, "");
+  const normalizedBaseUrl = normalizeMessengerGraphApiBaseUrl(baseUrl);
+  const normalizedVersion = normalizeMessengerGraphApiVersion(version);
   const encodedPath = pathSegments.map((segment) => encodeURIComponent(segment)).join("/");
   return new URL(`/${normalizedVersion}/${encodedPath}${suffix}`, normalizedBaseUrl);
 }

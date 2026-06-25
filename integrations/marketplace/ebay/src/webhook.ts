@@ -1,4 +1,5 @@
-import { createHash, createVerify } from "node:crypto";
+import { createVerify } from "node:crypto";
+import { validateEndpoint as validateEbayNotificationEndpoint } from "event-notification-nodejs-sdk";
 import type {
   EbayMarketplaceJsonObject,
   EbayNotificationSignatureHeader,
@@ -15,11 +16,11 @@ export function createEbayNotificationChallengeResponse(input: {
   if (!isValidEbayVerificationToken(input.verificationToken)) {
     throw new Error("eBay verification token must be 32-80 characters and contain only letters, numbers, underscores, or hyphens.");
   }
-  const challengeResponse = createHash("sha256")
-    .update(input.challengeCode)
-    .update(input.verificationToken)
-    .update(input.endpoint)
-    .digest("hex");
+  const challengeResponse = validateEbayNotificationEndpoint(input.challengeCode, {
+    endpoint: input.endpoint,
+    verificationToken: input.verificationToken,
+  });
+  if (!challengeResponse) throw new Error("eBay Event Notification SDK did not return a challenge response.");
   return { challengeResponse };
 }
 

@@ -1,11 +1,10 @@
-import { Client, GatewayIntentBits, REST } from "discord.js";
+import { Client, GatewayIntentBits, REST, Routes } from "discord.js";
 import type {
   DiscordApplicationResource,
   DiscordChannelResource,
   DiscordMessagingClient,
   DiscordMessagingClientOptions,
   DiscordMessagingJsonObject,
-  DiscordMessagingProviderPayload,
   DiscordCreateForumPostInput,
   DiscordCreateThreadInput,
   DiscordExecuteWebhookInput,
@@ -20,18 +19,23 @@ import type {
 export function createDiscordMessagingClient(options: DiscordMessagingClientOptions): DiscordMessagingClient {
   const apiBaseUrl = (options.apiBaseUrl ?? "https://discord.com/api").replace(/\/+$/, "");
   const apiVersion = options.apiVersion ?? "10";
-  const rest: DiscordRestLike = options.rest ?? (new REST({ version: apiVersion }).setToken(options.botToken) as unknown as DiscordRestLike);
-  const fetchImpl = options.fetch ?? fetch;
+  const rest = options.rest ?? createDiscordRest({ ...options, apiBaseUrl, apiVersion });
+  const authenticatedRest = (operation: string) => {
+    if (!options.rest && !options.botToken) {
+      throw new Error(`Discord botToken is required for ${operation}; pass botToken or a discord.js REST-compatible client.`);
+    }
+    return rest;
+  };
 
   return {
     rest,
     async sendChannelMessage(input) {
-      return rest.post(`/channels/${encodePath(input.channelId)}/messages`, {
+      return authenticatedRest("discord.message.send").post(Routes.channelMessages(input.channelId), {
         body: discordMessageBody(input),
       }) as Promise<DiscordMessageResource>;
     },
     async createThread(input) {
-      return rest.post(`/channels/${encodePath(input.channelId)}/threads`, {
+      return authenticatedRest("discord.thread.create").post(Routes.threads(input.channelId), {
         body: stripUndefined({
           name: input.name,
           auto_archive_duration: input.autoArchiveDuration,
@@ -43,7 +47,7 @@ export function createDiscordMessagingClient(options: DiscordMessagingClientOpti
       }) as Promise<DiscordChannelResource>;
     },
     async createForumPost(input: DiscordCreateForumPostInput) {
-      return rest.post(`/channels/${encodePath(input.channelId)}/threads`, {
+      return authenticatedRest("discord.forum-post.create").post(Routes.threads(input.channelId), {
         body: stripUndefined({
           name: input.name,
           auto_archive_duration: input.autoArchiveDuration,
@@ -55,30 +59,27 @@ export function createDiscordMessagingClient(options: DiscordMessagingClientOpti
       }) as Promise<DiscordChannelResource>;
     },
     async executeWebhook(input) {
-      const url = discordWebhookUrl(input.webhookUrl, apiBaseUrl);
-      if (input.wait !== undefined) url.searchParams.set("wait", String(input.wait));
-      if (input.threadId) url.searchParams.set("thread_id", input.threadId);
-      const response = await fetchImpl(url.toString(), {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(discordMessageBody(input)),
-      });
-      return parseDiscordFetchResponse<DiscordMessageResource | Record<string, never>>(response);
+      const webhook = parseDiscordWebhookUrl(input.webhookUrl, apiBaseUrl);
+      const query = new URLSearchParams();
+      if (input.wait !== undefined) query.set("wait", String(input.wait));
+      if (input.threadId) query.set("thread_id", input.threadId);
+      return rest.post(Routes.webhook(webhook.id, webhook.token), {
+        auth: false,
+        body: discordMessageBody(input),
+        ...(query.size > 0 ? { query } : {}),
+      }) as Promise<DiscordMessageResource | Record<string, never>>;
     },
     async getCurrentBot() {
-      return rest.get("/users/@me") as Promise<DiscordUserResource>;
+      return authenticatedRest("discord.bot.read").get(Routes.user()) as Promise<DiscordUserResource>;
     },
     async getCurrentApplication() {
-      return rest.get("/oauth2/applications/@me") as Promise<DiscordApplicationResource>;
+      return authenticatedRest("discord.application.read").get(Routes.oauth2CurrentApplication()) as Promise<DiscordApplicationResource>;
     },
     async getGuild(guildId) {
-      return rest.get(`/guilds/${encodePath(guildId)}`) as Promise<DiscordGuildResource>;
+      return authenticatedRest("discord.guild.read").get(Routes.guild(guildId)) as Promise<DiscordGuildResource>;
     },
     async getChannel(channelId) {
-      return rest.get(`/channels/${encodePath(channelId)}`) as Promise<DiscordChannelResource>;
+      return authenticatedRest("discord.channel.read").get(Routes.channel(channelId)) as Promise<DiscordChannelResource>;
     },
     async listChannelMessages(input) {
       const query = new URLSearchParams();
@@ -86,8 +87,9 @@ export function createDiscordMessagingClient(options: DiscordMessagingClientOpti
       setOptionalQuery(query, "before", input.before);
       setOptionalQuery(query, "after", input.after);
       if (input.limit !== undefined) query.set("limit", String(input.limit));
-      const suffix = query.size > 0 ? `?${query}` : "";
-      return rest.get(`/channels/${encodePath(input.channelId)}/messages${suffix}`) as Promise<DiscordMessageResource[]>;
+      return authenticatedRest("discord.channel-messages.list").get(Routes.channelMessages(input.channelId), {
+        ...(query.size > 0 ? { query } : {}),
+      }) as Promise<DiscordMessageResource[]>;
     },
     createGatewayClient(input: DiscordGatewayClientOptions = {}) {
       return new Client(input.clientOptions ?? { intents: [GatewayIntentBits.Guilds] });
@@ -111,6 +113,30 @@ export function discordMessageBody(input: DiscordMessageInput) {
 }
 
 export function discordWebhookUrl(webhookUrl: string, apiBaseUrl: string) {
+  return parseDiscordWebhookUrl(webhookUrl, apiBaseUrl).url;
+}
+
+export function encodePath(value: string | number) {
+  return encodeURIComponent(String(value));
+}
+
+export function stripUndefined<T extends DiscordMessagingJsonObject>(input: T): T {
+  return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as T;
+}
+
+function createDiscordRest(options: DiscordMessagingClientOptions & { apiBaseUrl: string; apiVersion: string }) {
+  const rest = new REST({
+    api: discordRestApiBaseUrl(options.apiBaseUrl),
+    version: options.apiVersion,
+  });
+  return (options.botToken ? rest.setToken(options.botToken) : rest) as unknown as DiscordRestLike;
+}
+
+function discordRestApiBaseUrl(apiBaseUrl: string) {
+  return apiBaseUrl.replace(/\/v\d+$/, "");
+}
+
+function parseDiscordWebhookUrl(webhookUrl: string, apiBaseUrl: string) {
   const url = new URL(webhookUrl);
   const apiUrl = new URL(apiBaseUrl);
   const apiPath = apiUrl.pathname.replace(/\/+$/, "");
@@ -126,36 +152,11 @@ export function discordWebhookUrl(webhookUrl: string, apiBaseUrl: string) {
   if (!id || !token || parts.length !== webhooksIndex + 3) {
     throw new Error("Discord webhookUrl must be a Discord webhook execution URL for the configured Discord API origin.");
   }
-  return url;
-}
-
-export function encodePath(value: string | number) {
-  return encodeURIComponent(String(value));
-}
-
-export function stripUndefined<T extends DiscordMessagingJsonObject>(input: T): T {
-  return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as T;
+  return { url, id, token };
 }
 
 function setOptionalQuery(query: URLSearchParams, key: string, value?: string) {
   if (value) query.set(key, value);
-}
-
-async function parseDiscordFetchResponse<T>(response: Response): Promise<T> {
-  const text = await response.text();
-  const body = text ? JSON.parse(text) as T & DiscordErrorResponse : {} as T & DiscordErrorResponse;
-  if (!response.ok) {
-    const message = typeof body.message === "string" ? body.message : `Discord API request failed with status ${response.status}.`;
-    const code = typeof body.code === "number" || typeof body.code === "string" ? ` (${body.code})` : "";
-    throw new Error(`${message}${code}`);
-  }
-  return body as T;
-}
-
-interface DiscordErrorResponse {
-  message?: string;
-  code?: number | string;
-  errors?: DiscordMessagingProviderPayload;
 }
 
 export type { DiscordRestLike };

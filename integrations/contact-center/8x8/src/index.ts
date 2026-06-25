@@ -51,26 +51,49 @@ export interface ConfiguredHandoffInput {
   idempotencyKey?: string | undefined;
 }
 
-export interface EightByEightStartContactInput {
+export type EightByEightPhoneNumberValue = string | number;
+
+export interface EightByEightUserParam {
+  name: string;
+  value: string;
+}
+
+export interface EightByEightPhoneInteraction {
+  agentId: string;
+  prefix: EightByEightPhoneNumberValue;
+  number: EightByEightPhoneNumberValue;
+  callerId: EightByEightPhoneNumberValue;
+  dialplanId?: EightByEightPhoneNumberValue | undefined;
+  queueId?: EightByEightPhoneNumberValue | undefined;
+  extTransactionData?: readonly EightByEightUserParam[] | undefined;
+  ctlUserData?: readonly EightByEightUserParam[] | undefined;
+  forceCall?: boolean | undefined;
+}
+
+export interface EightByEightStartContactInput extends EightByEightPhoneInteraction {
   tenantId: string;
-  contact?: EightByEightProviderPayload;
-  routing?: EightByEightProviderPayload;
   idempotencyKey?: string | undefined;
 }
 
 export interface EightByEightEndContactInput {
   tenantId: string;
   interactionId: string;
-  reason?: string | undefined;
-  metadata?: EightByEightProviderPayload;
+  endPostProcessing?: boolean | undefined;
   idempotencyKey?: string | undefined;
 }
 
-export interface EightByEightUpdateAgentStatusInput {
+export type EightByEightAgentStatus = 1 | 3 | 4 | 5;
+
+export interface EightByEightAgentStatusRequest {
+  "agent-status": EightByEightAgentStatus;
+  "status-code-list-id"?: number | undefined;
+  "status-code-item-id"?: number | undefined;
+  "status-code-item-short-code"?: string | undefined;
+}
+
+export interface EightByEightUpdateAgentStatusInput extends EightByEightAgentStatusRequest {
   tenantId: string;
   agentId: string;
-  status: EightByEightProviderPayload;
-  metadata?: EightByEightProviderPayload;
   idempotencyKey?: string | undefined;
 }
 
@@ -193,21 +216,21 @@ function createEightByEightRestRawClient(options: EightByEightClientOptions): Ei
     startContact(input) {
       return requestAllowedOperation("placePhoneCall", {
         pathParams: { tenantId: input.tenantId },
-        body: { contact: input.contact, routing: input.routing },
+        body: phoneInteractionBody(input),
         idempotencyKey: input.idempotencyKey,
       });
     },
     endContact(input) {
       return requestAllowedOperation("deletePhoneInteraction", {
         pathParams: { tenantId: input.tenantId, interactionId: input.interactionId },
-        body: input.reason || input.metadata ? { reason: input.reason, metadata: input.metadata } : undefined,
+        query: input.endPostProcessing === undefined ? undefined : { endPostProcessing: input.endPostProcessing },
         idempotencyKey: input.idempotencyKey,
       });
     },
     updateAgentStatus(input) {
-      return requestAllowedOperation("setAgentStatus", {
+      return requestAllowedOperation("setagentstatus", {
         pathParams: { tenantId: input.tenantId, agentId: input.agentId },
-        body: { status: input.status, metadata: input.metadata },
+        body: agentStatusBody(input),
         idempotencyKey: input.idempotencyKey,
       });
     },
@@ -249,7 +272,8 @@ function configuredPath(path: string | undefined, label: string): string {
 }
 
 function configuredHandoffInput(input: ConfiguredHandoffInput | undefined): ConfiguredHandoffInput {
-  const value = input ?? {};
+  if (!input) return {};
+  const value = requireInputObject(input, "createHandoff");
   return {
     ...(value.payload !== undefined ? { payload: value.payload } : {}),
     ...(value.query !== undefined ? { query: value.query } : {}),
@@ -261,6 +285,7 @@ function configuredHandoffInput(input: ConfiguredHandoffInput | undefined): Conf
 function startContactInput(input: EightByEightStartContactInput | undefined): EightByEightStartContactInput {
   const value = requireInputObject(input, "startContact");
   requireNonEmptyString(value.tenantId, "startContact.tenantId");
+  phoneInteractionBody(value);
   return value;
 }
 
@@ -268,6 +293,9 @@ function endContactInput(input: EightByEightEndContactInput | undefined): EightB
   const value = requireInputObject(input, "endContact");
   requireNonEmptyString(value.tenantId, "endContact.tenantId");
   requireNonEmptyString(value.interactionId, "endContact.interactionId");
+  if (value.endPostProcessing !== undefined && typeof value.endPostProcessing !== "boolean") {
+    throw new Error("8x8 Contact Center endContact.endPostProcessing must be a boolean.");
+  }
   return value;
 }
 
@@ -275,9 +303,7 @@ function updateAgentStatusInput(input: EightByEightUpdateAgentStatusInput | unde
   const value = requireInputObject(input, "updateAgentStatus");
   requireNonEmptyString(value.tenantId, "updateAgentStatus.tenantId");
   requireNonEmptyString(value.agentId, "updateAgentStatus.agentId");
-  if (value.status === undefined) {
-    throw new Error("8x8 Contact Center updateAgentStatus.status is required.");
-  }
+  agentStatusBody(value);
   return value;
 }
 
@@ -302,8 +328,103 @@ function requireNonEmptyString(value: unknown, field: string): asserts value is 
   }
 }
 
+function requireString(value: unknown, field: string): asserts value is string {
+  if (typeof value !== "string") {
+    throw new Error(`8x8 Contact Center ${field} must be a string.`);
+  }
+}
+
+function requirePhoneNumberValue(
+  value: unknown,
+  field: string,
+  options: { allowEmptyString?: boolean | undefined } = {},
+): asserts value is EightByEightPhoneNumberValue {
+  if (typeof value === "number") {
+    if (Number.isFinite(value)) return;
+  } else if (typeof value === "string" && (options.allowEmptyString || value.length > 0)) {
+    return;
+  }
+  throw new Error(`8x8 Contact Center ${field} must be a string or finite number.`);
+}
+
+function requireOptionalPhoneNumberValue(value: unknown, field: string): asserts value is EightByEightPhoneNumberValue | undefined {
+  if (value === undefined) return;
+  requirePhoneNumberValue(value, field);
+}
+
+function requireOptionalNumber(value: unknown, field: string): asserts value is number | undefined {
+  if (value === undefined) return;
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`8x8 Contact Center ${field} must be a finite number.`);
+  }
+}
+
+function requireOptionalString(value: unknown, field: string): asserts value is string | undefined {
+  if (value === undefined) return;
+  requireString(value, field);
+}
+
 function handoffBody(input: ConfiguredHandoffInput) {
   if (input.payload !== undefined) return input.payload;
   if (input.routing !== undefined) return { routing: input.routing };
   return {};
+}
+
+function phoneInteractionBody(input: EightByEightStartContactInput): EightByEightPhoneInteraction {
+  requireNonEmptyString(input.agentId, "startContact.agentId");
+  requirePhoneNumberValue(input.prefix, "startContact.prefix", { allowEmptyString: true });
+  requirePhoneNumberValue(input.number, "startContact.number");
+  requirePhoneNumberValue(input.callerId, "startContact.callerId", { allowEmptyString: true });
+  requireOptionalPhoneNumberValue(input.dialplanId, "startContact.dialplanId");
+  requireOptionalPhoneNumberValue(input.queueId, "startContact.queueId");
+  if (input.forceCall !== undefined && typeof input.forceCall !== "boolean") {
+    throw new Error("8x8 Contact Center startContact.forceCall must be a boolean.");
+  }
+
+  return {
+    agentId: input.agentId,
+    prefix: input.prefix,
+    number: input.number,
+    callerId: input.callerId,
+    ...(input.dialplanId !== undefined ? { dialplanId: input.dialplanId } : {}),
+    ...(input.queueId !== undefined ? { queueId: input.queueId } : {}),
+    ...(input.extTransactionData !== undefined ? {
+      extTransactionData: userParams(input.extTransactionData, "startContact.extTransactionData"),
+    } : {}),
+    ...(input.ctlUserData !== undefined ? {
+      ctlUserData: userParams(input.ctlUserData, "startContact.ctlUserData"),
+    } : {}),
+    ...(input.forceCall !== undefined ? { forceCall: input.forceCall } : {}),
+  };
+}
+
+function userParams(input: readonly EightByEightUserParam[], field: string): EightByEightUserParam[] {
+  if (!Array.isArray(input)) {
+    throw new Error(`8x8 Contact Center ${field} must be an array.`);
+  }
+  return input.map((item, index) => {
+    const value = requireInputObject(item, `${field}[${index}]`);
+    requireNonEmptyString(value.name, `${field}[${index}].name`);
+    requireString(value.value, `${field}[${index}].value`);
+    return { name: value.name, value: value.value };
+  });
+}
+
+const allowedAgentStatuses = new Set<number>([1, 3, 4, 5]);
+
+function agentStatusBody(input: EightByEightUpdateAgentStatusInput): EightByEightAgentStatusRequest {
+  const agentStatus = input["agent-status"];
+  if (typeof agentStatus !== "number" || !allowedAgentStatuses.has(agentStatus)) {
+    throw new Error("8x8 Contact Center updateAgentStatus.agent-status must be one of 1, 3, 4, or 5.");
+  }
+  requireOptionalNumber(input["status-code-list-id"], "updateAgentStatus.status-code-list-id");
+  requireOptionalNumber(input["status-code-item-id"], "updateAgentStatus.status-code-item-id");
+  requireOptionalString(input["status-code-item-short-code"], "updateAgentStatus.status-code-item-short-code");
+
+  return {
+    "agent-status": agentStatus as EightByEightAgentStatus,
+    ...(input["status-code-list-id"] !== undefined ? { "status-code-list-id": input["status-code-list-id"] } : {}),
+    ...(input["status-code-item-id"] !== undefined ? { "status-code-item-id": input["status-code-item-id"] } : {}),
+    ...(input["status-code-item-short-code"] !== undefined ? { "status-code-item-short-code": input["status-code-item-short-code"] } : {}),
+  };
 }

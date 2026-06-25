@@ -6,7 +6,7 @@ export function rcsMessagingCredentialStatuses(input: RcsCredentialStatusInput):
   const transportConfigured = Boolean(
     input.providerClientConfigured
       || input.accessToken
-      || input.apiKey
+      || input.tokenProviderConfigured
       || input.serviceAccountConfigured,
   );
   return [
@@ -26,7 +26,7 @@ export function rcsMessagingCredentialStatuses(input: RcsCredentialStatusInput):
       ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
       message: transportConfigured
         ? "RCS provider transport is configured."
-        : "RCS built-in REST adapter requires accessToken, apiKey, service account, token provider, or providerClient.",
+        : "RCS built-in REST adapter requires accessToken, token provider, service account, or providerClient.",
     },
     {
       providerPackageId: rcsMessagingProviderManifest.id,

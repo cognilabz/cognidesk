@@ -15,7 +15,7 @@ export const salesforceTicketingProviderManifest = defineIntegrationProviderPack
     scope: "provider-api-subset",
     notes: [
       "Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.",
-      "Implementation uses maintained jsforce v3. Broader Salesforce APIs and org-specific sObjects remain accessible through rawClient, but are not Cognidesk adapter coverage.",
+      "Implementation uses maintained jsforce v3. Broader Salesforce APIs and org-specific sObjects remain accessible through rawClient/getRawClient(), but are not Cognidesk adapter coverage.",
       "Generated or direct raw Salesforce slices should stay scoped to reviewed Service Cloud support workflows.",
     ],
     evidence: [
@@ -56,7 +56,7 @@ export const salesforceTicketingProviderManifest = defineIntegrationProviderPack
       strategy: "maintained-library",
       sdkPackage: "jsforce",
       sdkVersionRange: "^3.10.16",
-      rawClientEscapeHatch: "SalesforceTicketingClient.rawClient",
+      rawClientEscapeHatch: "SalesforceTicketingClient.rawClient and getRawClient()",
       manifestImport: "no-sdk-client-initialization",
     },
     channelCoverage: {

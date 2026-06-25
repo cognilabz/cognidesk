@@ -60,6 +60,22 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-suitable-server-side-public-api-sdk",
+      "defaultRestPolicy": "fail-closed-aircall-public-api-rest-adapter-with-typed-raw-client-override",
+      "typedClientOverride": "AircallRawClient",
+      "checkedPackages": [
+        {
+          "package": "aircall-everywhere",
+          "checkedVersion": "2.0.6",
+          "license": "ISC",
+          "result": "browser-workspace-iframe-sdk-not-public-api-client",
+          "reason": "Maintained official package embeds and communicates with Aircall Workspace in a browser; it does not expose server-side Public API transfer operations."
+        }
+      ]
     }
   }
 }

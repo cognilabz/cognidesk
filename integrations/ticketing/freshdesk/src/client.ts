@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import FreshdeskSdk, { type FreshdeskSdkClient, type FreshdeskSdkJsonObject } from "@freshworks/freshdesk";
 import {
   providerJsonRequest,
   type ProviderHttpMethod,
@@ -74,6 +75,42 @@ export function createFreshdeskRestProviderClient(options: FreshdeskTicketingCli
   };
 }
 
+export function createFreshworksFreshdeskProviderClient(options: FreshdeskTicketingClientOptions): FreshdeskTicketingProviderClient {
+  if (!options.apiKey) {
+    throw new Error("Freshdesk SDK adapter requires apiKey.");
+  }
+  const sdkClient = new FreshdeskSdk({
+    domain: freshdeskSdkDomain(options),
+    api_key: options.apiKey,
+  });
+  const restFallback = createFreshdeskRestProviderClient(options);
+
+  return createFreshworksFreshdeskSdkProviderClient(sdkClient, restFallback);
+}
+
+export function createFreshworksFreshdeskSdkProviderClient(
+  sdkClient: FreshdeskSdkClient,
+  restFallback: FreshdeskTicketingProviderClient,
+): FreshdeskTicketingProviderClient {
+  return {
+    createTicket: (input) => freshdeskSdkJson(sdkClient.tickets.createTicket(freshdeskSdkPayload(input))),
+    getTicket: (ticketId) => freshdeskSdkJson(sdkClient.tickets.getTicket(ticketId)),
+    updateTicket: (ticketId, patch) => freshdeskSdkJson(sdkClient.tickets.updateTicket(ticketId, freshdeskSdkPayload(patch))),
+    searchTickets: (query) => {
+      const sdkQuery = freshdeskSdkSearchQuery(query);
+      if (sdkQuery) return freshdeskSdkJson(sdkClient.tickets.searchTicket(sdkQuery));
+      return restFallback.searchTickets(query);
+    },
+    createReply: (ticketId, body) => freshdeskSdkJson(sdkClient.tickets.replyTicket(ticketId, freshdeskSdkPayload(body))),
+    createNote: (ticketId, body) => freshdeskSdkJson(sdkClient.tickets.addNotes(ticketId, freshdeskSdkPayload(body))),
+    getContact: (contactId) => freshdeskSdkJson(sdkClient.contacts.getContact(contactId)),
+    searchContacts: (query) => freshdeskSdkJson(sdkClient.contacts.searchContacts(freshdeskSdkContactSearchOptions(query))),
+    getAgent: (agentId) => restFallback.getAgent(agentId),
+    getGroup: (groupId) => restFallback.getGroup(groupId),
+    readiness: () => restFallback.readiness(),
+  };
+}
+
 export function createFreshdeskUnavailableClient(message = "Freshdesk REST adapter requires domain and apiKey, or an injected FreshdeskTicketingProviderClient."): FreshdeskTicketingProviderClient {
   return {
     createTicket: () => unavailable("createTicket"),
@@ -115,14 +152,59 @@ type FreshdeskQueryInput = Record<string, FreshdeskJsonValue | object | undefine
 
 function createDefaultFreshdeskProviderClient(options: FreshdeskTicketingClientOptions): FreshdeskTicketingProviderClient {
   if ((options.domain || options.apiBaseUrl) && options.apiKey) {
+    if (shouldUseFreshworksFreshdeskSdk(options)) {
+      return createFreshworksFreshdeskProviderClient(options);
+    }
     return createFreshdeskRestProviderClient(options);
   }
   return createFreshdeskUnavailableClient();
 }
 
+function shouldUseFreshworksFreshdeskSdk(options: FreshdeskTicketingClientOptions): boolean {
+  return Boolean(
+    options.domain
+      && options.apiKey
+      && !options.apiBaseUrl
+      && !options.fetch
+      && !options.signal
+      && options.timeoutMs === undefined
+      && options.retry === undefined
+      && options.headers === undefined,
+  );
+}
+
+function freshdeskSdkDomain(options: Pick<FreshdeskTicketingClientOptions, "domain">): string {
+  const domain = options.domain?.trim();
+  if (!domain) throw new Error("Freshdesk SDK adapter requires domain.");
+  const url = new URL(/^https?:\/\//i.test(domain) ? domain : `https://${domain}`);
+  return url.hostname.includes(".") ? url.hostname : `${url.hostname}.freshdesk.com`;
+}
+
 function freshdeskSearchQuery(query: string | FreshdeskJsonObject): FreshdeskQueryInput {
   if (typeof query === "string") return { query };
   return query;
+}
+
+function freshdeskSdkSearchQuery(query: string | FreshdeskJsonObject): string | undefined {
+  if (typeof query === "string") return query;
+  const entries = Object.entries(query).filter(([, value]) => value !== undefined);
+  const [entry] = entries;
+  return entries.length === 1 && entry?.[0] === "query" && typeof entry[1] === "string"
+    ? entry[1]
+    : undefined;
+}
+
+function freshdeskSdkContactSearchOptions(query: string | FreshdeskJsonObject): FreshdeskSdkJsonObject {
+  if (typeof query === "string") return { query };
+  return freshdeskSdkPayload(query);
+}
+
+function freshdeskSdkPayload(value: FreshdeskJsonObject): FreshdeskSdkJsonObject {
+  return value as FreshdeskSdkJsonObject;
+}
+
+async function freshdeskSdkJson(value: Promise<unknown>): Promise<FreshdeskJsonObject> {
+  return asFreshdeskJsonObject(await value);
 }
 
 function freshdeskProviderQuery(query: FreshdeskQueryInput | undefined): Record<string, ProviderQueryValue> | undefined {

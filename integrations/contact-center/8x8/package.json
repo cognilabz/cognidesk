@@ -60,6 +60,22 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-suitable-server-side-contact-center-sdk",
+      "defaultRestPolicy": "fail-closed-built-in-rest-adapter-with-typed-raw-client-override",
+      "typedClientOverride": "EightByEightRawClient",
+      "checkedPackages": [
+        {
+          "package": "@8x8/pui-partner-comm",
+          "checkedVersion": "0.15.0",
+          "license": "SEE LICENSE IN LICENSE.md",
+          "result": "browser-partner-iframe-sdk-not-contact-center-api-client",
+          "reason": "Official package is for 8x8 platform-ui partner iframe communication and does not expose server-side Contact Center REST operations."
+        }
+      ]
     }
   }
 }

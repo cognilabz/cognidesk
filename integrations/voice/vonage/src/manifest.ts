@@ -112,7 +112,7 @@ export const vonageVoiceProviderManifest = defineIntegrationProviderPackage({
     },
     {
       alias: "voice.call.transfer",
-      providerOperation: "updateCall",
+      providerOperation: "transferCallWithURL",
       capability: "transfer",
       label: "Transfer call",
       providerObject: "vonageCall",

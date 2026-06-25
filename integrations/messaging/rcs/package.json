@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "@google/rcsbusinessmessaging": "^1.0.10"
   },
   "devDependencies": {
     "@cognidesk/test-harness": "workspace:*",
@@ -41,6 +42,9 @@
     "release": "independent-provider",
     "category": "messaging",
     "provider": "rcs",
+    "providerSdkDependencies": [
+      "@google/rcsbusinessmessaging"
+    ],
     "manifestOnlyExports": [
       "./manifest"
     ]

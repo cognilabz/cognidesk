@@ -51,6 +51,40 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerRestAdapterException": {
+      "checkedAt": "2026-06-25",
+      "result": "no-official-maintained-ticketing-runtime-sdk",
+      "reason": "No Gorgias-maintained JavaScript/TypeScript backend ticketing SDK was verified. The available npm clients are third-party, framework, frontend, MCP, or automation component packages rather than a provider-owned runtime SDK for the ticket, message, account-readiness, and raw request operations exposed by this package.",
+      "defaultClientPolicy": "built-in-gorgias-rest-adapter",
+      "typedClientOverride": "GorgiasTicketingProviderClient",
+      "rejectedSdkPackages": [
+        {
+          "packageName": "gorgias-client",
+          "checkedVersion": "2.0.4",
+          "license": "MIT",
+          "reason": "Typed and recent, but maintained outside Gorgias; not a provider-owned SDK dependency for this package default runtime."
+        },
+        {
+          "packageName": "@friggframework/api-module-gorgias",
+          "checkedVersion": "0.10.1",
+          "license": "MIT",
+          "reason": "Frigg framework API module, not a standalone official Gorgias backend SDK for this runtime package."
+        },
+        {
+          "packageName": "@frontend-sdk/gorgias",
+          "checkedVersion": "0.26.0",
+          "license": "MIT",
+          "reason": "Frontend integration package, not a maintained backend ticketing runtime SDK."
+        },
+        {
+          "packageName": "@pipedream/gorgias",
+          "checkedVersion": "0.6.0",
+          "license": "not-declared",
+          "reason": "Pipedream component package rather than a typed provider runtime SDK suitable as this package's default."
+        }
+      ]
     }
   },
   "files": [

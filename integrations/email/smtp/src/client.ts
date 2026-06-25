@@ -86,11 +86,17 @@ export interface SmtpEmailClient {
 }
 
 type NodemailerModule = {
-  createTransport(options: SmtpTransportOptions): SmtpRawTransport;
+  createTransport(options: SmtpTransportOptions): unknown;
 };
 
 export function createSmtpEmailClient(options: SmtpEmailClientOptions): SmtpEmailClient {
-  const rawTransport = options.rawTransport ?? createNodemailerTransport(options.transport);
+  assertSmtpTransportOptions(options.transport);
+  const rawTransportCandidate: unknown = options.rawTransport ?? createNodemailerTransport(options.transport);
+  assertSmtpRawTransport(
+    rawTransportCandidate,
+    options.rawTransport ? "rawTransport" : "nodemailer.createTransport() result",
+  );
+  const rawTransport = rawTransportCandidate;
   const call = async <T>(operation: () => Promise<T>) => {
     try {
       return await operation();
@@ -116,6 +122,7 @@ export function createSmtpEmailClient(options: SmtpEmailClientOptions): SmtpEmai
       ...(input.attachments ? { attachments: input.attachments } : {}),
     };
     const info = await rawTransport.sendMail(message);
+    if (!isRecord(info)) throw new Error("SMTP transport sendMail() must resolve to a delivery info object.");
     return {
       provider: "smtp" as const,
       ...(typeof info.messageId === "string" ? { messageId: info.messageId } : {}),
@@ -133,6 +140,9 @@ export function createSmtpEmailClient(options: SmtpEmailClientOptions): SmtpEmai
     async checkTransport() {
       return call(async () => {
         const verified = rawTransport.verify ? await rawTransport.verify() : true;
+        if (typeof verified !== "boolean") {
+          throw new Error("SMTP transport verify() must resolve to a boolean.");
+        }
         return {
           ready: Boolean(verified),
           verified: Boolean(rawTransport.verify ? verified : false),
@@ -172,8 +182,75 @@ export function htmlEmailFromText(text: string) {
 }
 
 function createNodemailerTransport(options: SmtpTransportOptions) {
-  const nodemailer = require("nodemailer") as NodemailerModule;
-  return nodemailer.createTransport(options);
+  const nodemailer = requireNodemailerModule();
+  const transport = nodemailer.createTransport(options);
+  assertSmtpRawTransport(transport, "nodemailer.createTransport() result");
+  return transport;
+}
+
+function requireNodemailerModule(): NodemailerModule {
+  const loaded = require("nodemailer") as unknown;
+  if (isNodemailerModule(loaded)) return loaded;
+  if (isRecord(loaded) && isNodemailerModule(loaded.default)) return loaded.default;
+  throw new Error("SMTP runtime requires nodemailer.createTransport.");
+}
+
+function isNodemailerModule(value: unknown): value is NodemailerModule {
+  return isRecord(value) && typeof value.createTransport === "function";
+}
+
+function assertSmtpTransportOptions(value: unknown): asserts value is SmtpTransportOptions {
+  if (!isRecord(value)) throw new Error("SMTP transport options must be an object.");
+  if (typeof value.host !== "string" || value.host.trim() === "") {
+    throw new Error("SMTP transport requires a non-empty host.");
+  }
+  if (typeof value.port !== "number" || !Number.isInteger(value.port) || value.port < 1 || value.port > 65_535) {
+    throw new Error("SMTP transport requires a port between 1 and 65535.");
+  }
+  if (typeof value.secure !== "boolean") {
+    throw new Error("SMTP transport requires secure to be a boolean.");
+  }
+  if (value.auth !== undefined) {
+    if (!isRecord(value.auth) || typeof value.auth.user !== "string" || typeof value.auth.pass !== "string") {
+      throw new Error("SMTP transport auth requires string user and pass values.");
+    }
+  }
+  if (value.requireTLS !== undefined && typeof value.requireTLS !== "boolean") {
+    throw new Error("SMTP transport requireTLS must be a boolean when provided.");
+  }
+  assertOptionalString(value.name, "name");
+  assertOptionalString(value.localAddress, "localAddress");
+  assertOptionalNonNegativeNumber(value.connectionTimeout, "connectionTimeout");
+  assertOptionalNonNegativeNumber(value.greetingTimeout, "greetingTimeout");
+  assertOptionalNonNegativeNumber(value.socketTimeout, "socketTimeout");
+}
+
+function assertOptionalString(value: unknown, field: string) {
+  if (value !== undefined && typeof value !== "string") {
+    throw new Error(`SMTP transport ${field} must be a string when provided.`);
+  }
+}
+
+function assertOptionalNonNegativeNumber(value: unknown, field: string) {
+  if (value !== undefined && (typeof value !== "number" || !Number.isFinite(value) || value < 0)) {
+    throw new Error(`SMTP transport ${field} must be a non-negative number when provided.`);
+  }
+}
+
+function assertSmtpRawTransport(value: unknown, source: string): asserts value is SmtpRawTransport {
+  if (!isRecord(value) || typeof value.sendMail !== "function") {
+    throw new Error(`SMTP runtime requires ${source} to provide sendMail().`);
+  }
+  if (value.verify !== undefined && typeof value.verify !== "function") {
+    throw new Error(`SMTP runtime requires ${source}.verify to be a function when provided.`);
+  }
+  if (value.close !== undefined && typeof value.close !== "function") {
+    throw new Error(`SMTP runtime requires ${source}.close to be a function when provided.`);
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 function stringArray(value: unknown) {

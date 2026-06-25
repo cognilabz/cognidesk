@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   createShopifyEcommerceLiveChecks,
@@ -11,6 +11,7 @@ import {
   shopifyEcommerceProviderManifest,
   validateShopifyWebhookSignature,
 } from "../src/index.js";
+import type { ShopifyAdminApiClient } from "../src/index.js";
 
 describe("@cognidesk/integration-ecommerce-shopify", () => {
   it("binds every manifest operation to exactly one handler", () => {
@@ -49,6 +50,65 @@ describe("@cognidesk/integration-ecommerce-shopify", () => {
       url: "https://example.myshopify.com/admin/api/2026-04/graphql.json",
     });
     expect(calls[0]?.headers["x-shopify-access-token"]).toBe("shpat_test");
+  });
+
+  it("translates GraphQL-backed operations to the Admin API SDK request function", async () => {
+    const sdk = mockShopifyAdminApiClient();
+    const client = createShopifyEcommerceClient({
+      shopDomain: "example.myshopify.com",
+      adminAccessToken: "shpat_test",
+      rawClient: sdk.rawClient,
+    });
+    const integration = createShopifyEcommerceIntegrationFromClient(client) as any;
+
+    await expect(integration.run("ecommerce.order.read", { id: "gid://shopify/Order/1" }))
+      .resolves.toMatchObject({ id: "gid://shopify/Order/1", name: "#1001" });
+    await expect(integration.run("ecommerce.order.search", {
+      first: 2,
+      after: "order-cursor",
+      query: "email:customer@example.test",
+    })).resolves.toMatchObject({ nodes: [{ id: "gid://shopify/Order/2" }], endCursor: "next-order" });
+    await expect(integration.run("ecommerce.customer.read", { id: "gid://shopify/Customer/1" }))
+      .resolves.toMatchObject({ id: "gid://shopify/Customer/1" });
+    await expect(integration.run("ecommerce.customer.search", { first: 1, query: "email:customer@example.test" }))
+      .resolves.toMatchObject({ nodes: [{ id: "gid://shopify/Customer/2" }] });
+    await expect(integration.run("ecommerce.product.read", { id: "gid://shopify/Product/1" }))
+      .resolves.toMatchObject({ id: "gid://shopify/Product/1", title: "Desk" });
+    await expect(integration.run("ecommerce.product.search", { first: 1, query: "title:Desk" }))
+      .resolves.toMatchObject({ nodes: [{ id: "gid://shopify/Product/2" }] });
+    await expect(integration.run("ecommerce.draftOrder.create", { input: { lineItems: [] } }))
+      .resolves.toMatchObject({ draftOrder: { id: "gid://shopify/DraftOrder/1" }, userErrors: [] });
+    await expect(integration.run("shopify.adminGraphql", {
+      query: "query CognideskRaw($id: ID!) { shop { id } }",
+      variables: { id: "gid://shopify/Shop/1" },
+      apiVersion: "2025-10",
+      headers: { "X-Cognidesk-Test": "1" },
+      retries: 1,
+      operationName: "IgnoredByShopifySdk",
+    })).resolves.toMatchObject({ data: { shop: { id: "gid://shopify/Shop/1" } } });
+
+    expect(sdk.fetch).not.toHaveBeenCalled();
+    expect(sdk.request.mock.calls.map(([operation]) => operation)).toEqual([
+      expect.stringContaining("query CognideskShopifyOrder"),
+      expect.stringContaining("query CognideskShopifyOrders"),
+      expect.stringContaining("query CognideskShopifyCustomer"),
+      expect.stringContaining("query CognideskShopifyCustomers"),
+      expect.stringContaining("query CognideskShopifyProduct"),
+      expect.stringContaining("query CognideskShopifyProducts"),
+      expect.stringContaining("mutation CognideskShopifyDraftOrderCreate"),
+      "query CognideskRaw($id: ID!) { shop { id } }",
+    ]);
+    expect(sdk.request.mock.calls[0]?.[1]).toEqual({ variables: { id: "gid://shopify/Order/1" } });
+    expect(sdk.request.mock.calls[1]?.[1]).toEqual({
+      variables: { first: 2, after: "order-cursor", query: "email:customer@example.test" },
+    });
+    expect(sdk.request.mock.calls.at(-1)?.[1]).toEqual({
+      variables: { id: "gid://shopify/Shop/1" },
+      apiVersion: "2025-10",
+      headers: { "X-Cognidesk-Test": "1" },
+      retries: 1,
+    });
+    expect(sdk.request.mock.calls.at(-1)?.[1]).not.toHaveProperty("operationName");
   });
 
   it("trims Shopify shop domains before stripping protocol and paths", () => {
@@ -136,6 +196,81 @@ describe("@cognidesk/integration-ecommerce-shopify", () => {
     });
   });
 });
+
+function mockShopifyAdminApiClient() {
+  const request = vi.fn(async (operation: string, _options?: unknown) => shopifyAdminGraphqlResponse(operation));
+  const fetch = vi.fn(async () => {
+    throw new Error("Shopify GraphQL operations should use the Admin API SDK request function.");
+  });
+  const rawClient = {
+    config: {
+      storeDomain: "https://example.myshopify.com",
+      apiVersion: "2026-04",
+      apiUrl: "https://example.myshopify.com/admin/api/2026-04/graphql.json",
+      accessToken: "shpat_test",
+      headers: {},
+    },
+    getHeaders: (headers = {}) => headers,
+    getApiUrl: () => "https://example.myshopify.com/admin/api/2026-04/graphql.json",
+    fetch,
+    request,
+  } as unknown as ShopifyAdminApiClient;
+
+  return { rawClient, fetch, request };
+}
+
+function shopifyAdminGraphqlResponse(operation: string) {
+  if (operation.includes("CognideskShopifyOrder(")) {
+    return { data: { node: { __typename: "Order", id: "gid://shopify/Order/1", name: "#1001" } } };
+  }
+  if (operation.includes("CognideskShopifyOrders")) {
+    return {
+      data: {
+        orders: {
+          edges: [{ node: { id: "gid://shopify/Order/2", name: "#1002" } }],
+          pageInfo: { hasNextPage: true, endCursor: "next-order" },
+        },
+      },
+    };
+  }
+  if (operation.includes("CognideskShopifyCustomer(")) {
+    return { data: { customer: { id: "gid://shopify/Customer/1", email: "customer@example.test" } } };
+  }
+  if (operation.includes("CognideskShopifyCustomers")) {
+    return {
+      data: {
+        customers: {
+          edges: [{ node: { id: "gid://shopify/Customer/2", email: "customer@example.test" } }],
+          pageInfo: { hasNextPage: false, endCursor: null },
+        },
+      },
+    };
+  }
+  if (operation.includes("CognideskShopifyProduct(")) {
+    return { data: { node: { __typename: "Product", id: "gid://shopify/Product/1", title: "Desk" } } };
+  }
+  if (operation.includes("CognideskShopifyProducts")) {
+    return {
+      data: {
+        products: {
+          edges: [{ node: { id: "gid://shopify/Product/2", title: "Desk Lamp" } }],
+          pageInfo: { hasNextPage: false, endCursor: null },
+        },
+      },
+    };
+  }
+  if (operation.includes("CognideskShopifyDraftOrderCreate")) {
+    return {
+      data: {
+        draftOrderCreate: {
+          draftOrder: { id: "gid://shopify/DraftOrder/1", name: "#D1" },
+          userErrors: [],
+        },
+      },
+    };
+  }
+  return { data: { shop: { id: "gid://shopify/Shop/1" } } };
+}
 
 function mockShopifyFetch(calls: Array<{ url: string; headers: Record<string, string>; body: string }> = []) {
   return async (url: RequestInfo | URL, init?: RequestInit) => {

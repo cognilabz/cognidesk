@@ -13,6 +13,30 @@ export const oracleServiceProviderClientOperationTargets = [
   },
 ] as const;
 
+export const oracleServiceRejectedProviderSdkCandidates = [
+  {
+    packageName: "oci-fusionapps",
+    version: "2.135.1",
+    source: "npm",
+    result: "not-used-as-runtime-ticketing-sdk",
+    reason: "Oracle-maintained OCI SDK package for Fusion Apps Service administration, not a typed Oracle Fusion Service serviceRequests or B2C Service incident data client.",
+  },
+  {
+    packageName: "oci-sdk",
+    version: "2.135.1",
+    source: "npm",
+    result: "not-used-as-runtime-ticketing-sdk",
+    reason: "Oracle-maintained OCI SDK aggregate, but it does not expose the Oracle Fusion Service serviceRequests or Oracle B2C Service incident ticketing runtime surface used by this package.",
+  },
+  {
+    packageName: "osvc_node",
+    version: "1.0.0",
+    source: "npm",
+    result: "rejected-unofficial-stale-wrapper",
+    reason: "Unofficial Oracle Service Cloud REST wrapper last published years ago, not a maintained Oracle runtime SDK suitable for Cognidesk provider-client ownership.",
+  },
+] as const;
+
 export const oracleServiceTicketingProviderManifest = defineProviderPackage({
   id: "ticketing.oracle-service",
   name: "Oracle Service",
@@ -54,15 +78,19 @@ export const oracleServiceTicketingProviderManifest = defineProviderPackage({
       id: "oracle-service-instance",
       label: "Oracle Fusion Service instance URL",
       description: "The Oracle Fusion Service base URL, for example https://example.fa.oraclecloud.com, used by the built-in REST adapter or supplied by a host provider client override.",
-      required: true,
+      required: false,
+      metadata: {
+        requiredWhen: "built-in-provider-rest-adapter",
+      },
     },
     {
       id: "oracle-service-api-access",
       label: "Oracle Fusion Service API access",
       description: "Server-side Oracle Fusion Service access for serviceRequests and child messages, supplied as accessToken, basic auth, auth headers, or encapsulated in a host provider client.",
       scopes: ["serviceRequests:read", "serviceRequests:write"],
-      required: true,
+      required: false,
       metadata: {
+        requiredWhen: "built-in-provider-rest-adapter",
         scopeKind: "internal-capability-labels",
         privilegeGuidance: "These strings are Cognidesk capability labels, not official Oracle OAuth scope names. Oracle access depends on Fusion Service roles and privileges for service request read/create/update/search and message creation.",
       },
@@ -195,15 +223,24 @@ export const oracleServiceTicketingProviderManifest = defineProviderPackage({
     },
     implementationStrategy: {
       strategy: "no-official-sdk-rest-adapter",
-      reason: "No suitable official JavaScript SDK was verified for Oracle Fusion Service serviceRequests; Oracle documents this surface as Fusion Cloud Applications REST APIs, while the official OCI TypeScript/JavaScript SDK manages OCI resources including Fusion Apps as a Service rather than service request records.",
+      result: "no-suitable-maintained-runtime-provider-sdk",
+      exception: "provider-rest-adapter",
+      reason: "No suitable maintained npm runtime SDK was verified for Oracle Fusion Service serviceRequests or Oracle Service Cloud/B2C Service incidents; Oracle documents these ticketing surfaces as REST APIs, while the official OCI TypeScript/JavaScript SDK manages OCI resources including Fusion Apps as a Service rather than service request records.",
       checkedAt: "2026-06-25",
-      rejectedLibraries: [
-        {
-          packageName: "oci-sdk / oci-fusionapps",
-          version: "2.135.1",
-          reason: "Official Oracle-maintained OCI SDK family for OCI resources and Fusion Apps as a Service administration, but not a Fusion Service service request data client.",
-        },
+      rejectedLibraries: oracleServiceRejectedProviderSdkCandidates,
+    },
+    sdkDecision: {
+      result: "provider-rest-adapter-exception",
+      providerRestAdapterException: true,
+      viableMaintainedRuntimeProviderSdk: false,
+      acceptedRuntimeProviderSdk: null,
+      checkedAt: "2026-06-25",
+      checkedSources: [
+        "Oracle Fusion Service serviceRequests REST API documentation",
+        "Oracle B2C Service incidents REST API documentation",
+        "npm registry package metadata and search results",
       ],
+      rejectedLibraries: oracleServiceRejectedProviderSdkCandidates,
     },
     providerClient: {
       package: "optional-host-provided",

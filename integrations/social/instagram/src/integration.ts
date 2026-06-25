@@ -61,10 +61,10 @@ export function defineInstagramSocialIntegration(options: InstagramSocialIntegra
       },
     },
     metadata: {
-      implementationStrategy: options.providerClient ? "provider-client-override" : "provider-rest-adapter",
+      implementationStrategy: options.providerClient ? "provider-client-override" : "facebook-nodejs-business-sdk",
       providerClient: {
         interface: "InstagramMetaProviderClient",
-        defaultClientPolicy: "provider-rest-adapter-when-configured",
+        defaultClientPolicy: "facebook-nodejs-business-sdk-when-configured",
       },
     },
   });

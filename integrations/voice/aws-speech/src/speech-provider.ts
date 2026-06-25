@@ -67,12 +67,22 @@ export function createAwsSpeechVoiceProvider(options: AwsSpeechVoiceProviderOpti
         ...(options.languageOptions !== undefined ? { languageOptions: options.languageOptions } : {}),
         ...(options.preferredLanguage !== undefined ? { preferredLanguage: options.preferredLanguage } : {}),
         ...(options.vocabularyName !== undefined ? { vocabularyName: options.vocabularyName } : {}),
+        ...(options.vocabularyNames !== undefined ? { vocabularyNames: options.vocabularyNames } : {}),
         ...(options.vocabularyFilterName !== undefined ? { vocabularyFilterName: options.vocabularyFilterName } : {}),
+        ...(options.vocabularyFilterNames !== undefined ? { vocabularyFilterNames: options.vocabularyFilterNames } : {}),
         ...(options.vocabularyFilterMethod !== undefined ? { vocabularyFilterMethod: options.vocabularyFilterMethod } : {}),
+        ...(options.showSpeakerLabel !== undefined ? { showSpeakerLabel: options.showSpeakerLabel } : {}),
+        ...(options.enableChannelIdentification !== undefined ? { enableChannelIdentification: options.enableChannelIdentification } : {}),
+        ...(options.numberOfChannels !== undefined ? { numberOfChannels: options.numberOfChannels } : {}),
         ...(options.enablePartialResultsStabilization !== undefined
           ? { enablePartialResultsStabilization: options.enablePartialResultsStabilization }
           : {}),
         ...(options.partialResultsStability !== undefined ? { partialResultsStability: options.partialResultsStability } : {}),
+        ...(options.contentIdentificationType !== undefined ? { contentIdentificationType: options.contentIdentificationType } : {}),
+        ...(options.contentRedactionType !== undefined ? { contentRedactionType: options.contentRedactionType } : {}),
+        ...(options.piiEntityTypes !== undefined ? { piiEntityTypes: options.piiEntityTypes } : {}),
+        ...(options.languageModelName !== undefined ? { languageModelName: options.languageModelName } : {}),
+        ...(options.sessionResumeWindow !== undefined ? { sessionResumeWindow: options.sessionResumeWindow } : {}),
       });
       if (!transcript) return null;
       return {
@@ -90,7 +100,7 @@ export function createAwsSpeechVoiceProvider(options: AwsSpeechVoiceProviderOpti
       };
     },
     async synthesize(input) {
-      const voiceId = input.profile?.modelSet?.voice ?? options.voiceId;
+      const voiceId = (input.profile?.modelSet?.voice ?? options.voiceId) as AwsSpeechVoiceProviderOptions["voiceId"];
       const outputFormat = options.outputFormat ?? "pcm";
       const pollySampleRate = options.pollySampleRate
         ?? (outputFormat === "pcm" ? DEFAULT_POLLY_PCM_SAMPLE_RATE : undefined);
@@ -102,6 +112,7 @@ export function createAwsSpeechVoiceProvider(options: AwsSpeechVoiceProviderOpti
         ...(options.engine !== undefined ? { engine: options.engine } : {}),
         ...(options.pollyLanguageCode !== undefined ? { languageCode: options.pollyLanguageCode } : {}),
         ...(pollySampleRate !== undefined ? { sampleRate: pollySampleRate } : {}),
+        ...(options.speechMarkTypes !== undefined ? { speechMarkTypes: options.speechMarkTypes } : {}),
         ...(options.textType !== undefined ? { textType: options.textType } : {}),
         ...(options.lexiconNames !== undefined ? { lexiconNames: options.lexiconNames } : {}),
       });

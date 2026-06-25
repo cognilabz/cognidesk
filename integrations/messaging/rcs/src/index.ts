@@ -8,6 +8,7 @@ export {
   createRcsMediaMessage,
   createRcsMessagingClient,
   createRcsRestProviderClient,
+  createRcsSdkProviderClient,
   createRcsTextMessage,
 } from "./client.js";
 export { rcsMessagingCredentialStatuses } from "./credentials.js";

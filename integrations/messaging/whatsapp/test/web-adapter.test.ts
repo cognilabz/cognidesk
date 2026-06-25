@@ -1,9 +1,11 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   createWhatsAppWebMessagingClient,
   defineWhatsAppWebMessagingIntegration,
   toWhatsAppWebJid,
+  whatsappWebLinkedDeviceRuntimeException,
   whatsappWebMessagingProviderManifest,
   type WhatsAppWebSessionProvider,
 } from "../src/index.js";
@@ -42,6 +44,63 @@ describe("WhatsApp Web linked-device adapter", () => {
       },
     });
     expect(() => assertIntegrationConformance(integration)).not.toThrow();
+  });
+
+  it("declares and genuinely imports the Baileys community runtime package", async () => {
+    const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
+    expect(packageJson.cognidesk.providerSdkDependencies).toEqual(["baileys"]);
+    expect(packageJson.cognidesk.providerRuntimeExceptions).toEqual([
+      expect.objectContaining({
+        packageName: "baileys",
+        provider: "whatsapp-web",
+        scope: "community-linked-device-runtime",
+        officialProviderSdk: false,
+        checkedAt: "2026-06-25",
+      }),
+    ]);
+
+    const webClientSource = await readFile(new URL("../src/web-client.ts", import.meta.url), "utf8");
+    expect(webClientSource).toContain("from \"baileys\"");
+
+    const manifestSource = await readFile(new URL("../src/web-manifest.ts", import.meta.url), "utf8");
+    expect(manifestSource).not.toContain("from \"baileys\"");
+    expect(whatsappWebMessagingProviderManifest.metadata?.runtimeLibrary).toMatchObject({
+      name: "baileys",
+      packageName: "baileys",
+      declaredProviderSdkDependency: true,
+    });
+    expect(whatsappWebMessagingProviderManifest.metadata?.runtimeException).toMatchObject(
+      whatsappWebLinkedDeviceRuntimeException,
+    );
+
+    const integration = defineWhatsAppWebMessagingIntegration({
+      client: {
+        async sendText(input) {
+          return {
+            provider: "whatsapp-web",
+            sent: true,
+            to: input.to,
+            jid: toWhatsAppWebJid(input.to),
+          };
+        },
+        async checkReadiness() {
+          return {
+            provider: "whatsapp-web",
+            ok: true,
+            authenticated: true,
+            authStateDir: ".data/wa",
+          };
+        },
+      },
+    });
+    expect(integration.metadata).toMatchObject({
+      runtimeLibrary: {
+        name: "baileys",
+        packageName: "baileys",
+        declaredProviderSdkDependency: true,
+      },
+      runtimeException: whatsappWebLinkedDeviceRuntimeException,
+    });
   });
 
   it("sends through an injected linked-device session provider", async () => {

@@ -1,5 +1,5 @@
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createFrontTicketingClient,
   createFrontTicketingIntegration,
@@ -19,6 +19,32 @@ describe("@cognidesk/integration-ticketing-front", () => {
       providerClientInterface: "FrontTicketingProviderClient",
       packageOwnedRestClient: true,
     });
+    expect(manifestOnly.metadata?.checkedProviderSdk).toMatchObject({
+      checkedAt: "2026-06-25",
+      candidates: expect.arrayContaining([
+        expect.objectContaining({
+          package: "front-sdk",
+          result: "rejected-deprecated-archived",
+        }),
+        expect.objectContaining({
+          package: "@frontapp/plugin-sdk",
+          result: "not-runtime-core-api-client",
+        }),
+        expect.objectContaining({
+          package: "front-chat-sdk",
+          result: "not-ticketing-core-api-client",
+        }),
+        expect.objectContaining({
+          package: "@utdk/front",
+          result: "rejected-generated-preview-incomplete-runtime-client",
+        }),
+      ]),
+    });
+    const checkedProviderSdk = manifestOnly.metadata?.checkedProviderSdk as unknown as {
+      candidates?: readonly { result?: string }[];
+    } | undefined;
+    expect(checkedProviderSdk?.candidates).toHaveLength(4);
+    expect(checkedProviderSdk?.candidates?.some((candidate) => candidate.result?.startsWith("accepted"))).toBe(false);
   });
 
   it("binds declared operations to handlers", () => {
@@ -58,6 +84,26 @@ describe("@cognidesk/integration-ticketing-front", () => {
 
     await expect(client.readiness()).rejects.toThrow("configure baseUrl with accessToken/apiKey");
   });
+
+  it("normalizes raw REST methods and rejects unsupported methods", async () => {
+    const requestInits: RequestInit[] = [];
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      requestInits.push(init ?? {});
+      return jsonResponse({ ok: true });
+    });
+    const client = createFrontTicketingClient({
+      baseUrl: "https://front.example.test",
+      accessToken: "front-token",
+      fetch: fetchMock as typeof fetch,
+    });
+
+    await expect(client.rawRequest?.("/custom/path", { method: "post" })).resolves.toEqual({ ok: true });
+    expect(requestInits[0]?.method).toBe("POST");
+
+    await expect(client.rawRequest?.("/custom/path", { method: "TRACE" }))
+      .rejects.toThrow("Unsupported Front HTTP method");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 function createStubFrontProviderClient(
@@ -76,4 +122,12 @@ function createStubFrontProviderClient(
     readiness: json,
     ...overrides,
   };
+}
+
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+    ...init,
+  });
 }

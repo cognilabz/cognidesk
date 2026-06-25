@@ -30,16 +30,20 @@ const EBAY_API_BASE_PATHS: Record<EbaySelectedApiOperation["api"], string> = {
   "developer.key-management": "/developer/key_management/v1",
   "commerce.identity": "/commerce/identity/v1",
 };
+const EBAY_PROVIDER_ERROR_CONTEXT = {
+  providerPackageId: "marketplace.ebay",
+  provider: "ebay",
+} as const;
 
 export function createEbayMarketplaceClient(options: EbayMarketplaceClientOptions = {}): EbayMarketplaceClient {
   const providerClient = options.providerClient ?? createEbayRestMarketplaceProviderClient(options);
   const delegatedOperations = Object.fromEntries(
     ebaySelectedApiFunctionCatalog.map((functionName) => [
       functionName,
-      (...args: unknown[]) => {
+      async (...args: unknown[]) => {
         const method = providerClient[functionName] as unknown;
         if (typeof method !== "function") {
-          throw new Error(`eBay marketplace provider client must implement ${String(functionName)}().`);
+          throw missingEbayProviderClientOperationError(functionName);
         }
         return (method as (...args: unknown[]) => Promise<unknown>).apply(providerClient, args);
       },
@@ -65,14 +69,43 @@ export function createEbayRestMarketplaceProviderClient(
 }
 
 export function createUnconfiguredEbayMarketplaceProviderClient(): EbayMarketplaceProviderClient {
-  const fail = async () => {
-    throw new Error(
-      "Pass eBay OAuth tokens to createEbayMarketplaceClient({ accessToken }) or a host-provided eBay marketplace providerClient.",
-    );
-  };
   return Object.fromEntries(
-    ebaySelectedApiFunctionCatalog.map((functionName) => [functionName, fail]),
+    ebaySelectedApiFunctionCatalog.map((functionName) => [
+      functionName,
+      async () => {
+        throw missingEbayRuntimeConfigurationError(functionName);
+      },
+    ]),
   ) as unknown as EbayMarketplaceProviderClient;
+}
+
+function missingEbayRuntimeConfigurationError(functionName: keyof EbayMarketplaceProviderClient) {
+  return new IntegrationError(
+    "credential-missing",
+    "Pass eBay OAuth tokens to createEbayMarketplaceClient({ accessToken }) or a host-provided eBay marketplace providerClient.",
+    {
+      ...EBAY_PROVIDER_ERROR_CONTEXT,
+      details: {
+        functionName,
+        requiredCredentials: ["accessToken", "applicationAccessToken"],
+        providerClientInterface: "EbayMarketplaceProviderClient",
+      },
+    },
+  );
+}
+
+function missingEbayProviderClientOperationError(functionName: keyof EbayMarketplaceProviderClient) {
+  return new IntegrationError(
+    "contract-violation",
+    `eBay marketplace provider client must implement ${String(functionName)}().`,
+    {
+      ...EBAY_PROVIDER_ERROR_CONTEXT,
+      details: {
+        functionName,
+        providerClientInterface: "EbayMarketplaceProviderClient",
+      },
+    },
+  );
 }
 
 async function invokeEbayRestOperation(

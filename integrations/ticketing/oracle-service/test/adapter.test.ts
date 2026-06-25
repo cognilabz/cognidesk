@@ -207,9 +207,9 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
 
   it("requires either providerClient or REST credentials before executing operations", async () => {
     const client = createOracleServiceTicketingClient();
-    await expect(client.searchServiceRequests()).rejects.toThrow("baseUrl/instanceUrl plus accessToken");
+    await expect(client.searchServiceRequests()).rejects.toThrow("baseUrl/instanceUrl plus access credentials");
     await expect(createOracleServiceTicketingLiveChecks({})[0]?.run({})).rejects.toThrow(
-      "baseUrl/instanceUrl plus accessToken",
+      "baseUrl/instanceUrl plus access credentials",
     );
   });
 

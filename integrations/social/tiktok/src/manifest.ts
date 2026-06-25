@@ -216,5 +216,6 @@ export const tiktokSocialProviderManifest = defineIntegrationProviderPackage({
       importPolicy: "provider-client-override-supported",
       defaultClientPolicy: "provider-rest-adapter-when-configured",
     },
+    providerRestAdapterException: TIKTOK_HOST_CLIENT_SUPPORT_SLICE.providerRestAdapterException,
   },
 });

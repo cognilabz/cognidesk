@@ -12,6 +12,59 @@ export const wherebyHostClientSupportSlice = {
   verifiedAt: "2026-06-25",
   providerClientInterface: "WherebyVideoProviderClient",
   defaultClientPolicy: "built-in-rest-with-api-key",
+  restAdapterException: {
+    result: "no-official-maintained-server-rest-sdk",
+    checkedAt: "2026-06-25",
+    reason: "Whereby's official npm SDK packages are browser/WebRTC, React Native, or headless assistant clients; none provide the server-side REST resource management client needed for meetings, recordings, transcriptions, summaries, insights, room theme operations, and webhooks.",
+    defaultClientPolicy: "built-in-whereby-rest-adapter-with-api-key",
+    typedClientOverride: "WherebyVideoProviderClient",
+    rejectedSdkPackages: [
+      {
+        packageName: "@whereby.com/browser-sdk",
+        checkedVersion: "3.26.0",
+        license: "MIT",
+        reason: "Official browser SDK for embedded/custom video UI, not a server REST API client.",
+      },
+      {
+        packageName: "@whereby.com/core",
+        checkedVersion: "1.15.0",
+        license: "MIT",
+        reason: "Official low-level browser/WebRTC core SDK; exported RoomService covers claimed-room/client state operations, not Embedded REST resources such as meetings, recordings, transcriptions, summaries, insights, or webhooks.",
+      },
+      {
+        packageName: "@whereby.com/assistant-sdk",
+        checkedVersion: "1.2.89",
+        license: "MIT",
+        reason: "Official Node assistant/media SDK for joining rooms headlessly, not REST resource management.",
+      },
+      {
+        packageName: "@whereby.com/react-native-sdk",
+        checkedVersion: "0.8.113",
+        license: "MIT",
+        reason: "Official React Native SDK for mobile video experiences, not server REST operations.",
+      },
+      {
+        packageName: "@whereby.com/media",
+        checkedVersion: "9.2.6",
+        license: "MIT",
+        reason: "Official WebRTC media library used by Whereby room clients; it does not expose server-side Embedded REST resource management operations.",
+      },
+    ],
+    missingServerRestSdkPackages: [
+      {
+        packageName: "@whereby.com/rest-sdk",
+        npmStatus: "404",
+      },
+      {
+        packageName: "whereby",
+        npmStatus: "404",
+      },
+      {
+        packageName: "whereby-api",
+        npmStatus: "404",
+      },
+    ],
+  },
 } as const;
 
 export const wherebyVideoProviderManifest = defineProviderPackage({
@@ -226,6 +279,7 @@ export const wherebyVideoProviderManifest = defineProviderPackage({
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     implementation: wherebyHostClientSupportSlice,
+    providerRestAdapterException: wherebyHostClientSupportSlice.restAdapterException,
     providerClient: {
       package: "host-provided",
       interface: "WherebyVideoProviderClient",

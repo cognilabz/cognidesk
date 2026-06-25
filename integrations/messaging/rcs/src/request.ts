@@ -18,8 +18,8 @@ export async function rcsRequest<T>(input: {
   contentType?: string;
   scopes?: string[];
 }): Promise<T> {
-  const token = await resolveAccessToken(input.options, input.fetch, input.scopes);
-  const url = appendApiKey(input.url, input.options.apiKey);
+  const token = await resolveRcsAccessToken(input.options, input.fetch, input.scopes);
+  const url = input.url;
   if (!input.rawBody) {
     try {
       return await providerJsonRequest<T>({
@@ -93,7 +93,7 @@ export function stripUndefined(input: RcsMessagingJsonObject) {
   return Object.fromEntries(Object.entries(input).filter((entry) => entry[1] !== undefined)) as RcsMessagingJsonObject;
 }
 
-async function resolveAccessToken(
+export async function resolveRcsAccessToken(
   options: RcsMessagingClientOptions,
   fetchImpl: typeof fetch,
   scopes = [RCS_MESSAGING_SCOPE],
@@ -101,8 +101,7 @@ async function resolveAccessToken(
   if (options.accessToken) return options.accessToken;
   if (options.tokenProvider) return options.tokenProvider({ scopes, fetch: fetchImpl });
   if (options.serviceAccount) return serviceAccountAccessToken(options.serviceAccount, fetchImpl, scopes);
-  if (options.apiKey) return undefined;
-  throw new Error("RCS built-in REST adapter requires accessToken, tokenProvider, serviceAccount, apiKey, or providerClient.");
+  throw new Error("RCS built-in REST adapter requires accessToken, tokenProvider, serviceAccount, or providerClient.");
 }
 
 async function serviceAccountAccessToken(
@@ -137,13 +136,6 @@ async function serviceAccountAccessToken(
     throw new Error(token.error_description ?? token.error ?? `Google OAuth token endpoint returned ${response.status}.`);
   }
   return token.access_token;
-}
-
-function appendApiKey(url: URL, apiKey: string | undefined) {
-  if (!apiKey) return url;
-  const next = new URL(url.toString());
-  next.searchParams.set("key", apiKey);
-  return next;
 }
 
 function base64Url(input: string | Buffer) {

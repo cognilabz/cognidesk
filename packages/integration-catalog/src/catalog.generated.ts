@@ -261,6 +261,22 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "local-protocol",
+        "sdkPackage": "@cognidesk/integration-cobrowsing-cognidesk",
+        "runtimePackage": "@cognidesk/integration-cobrowsing-cognidesk",
+        "protocolSource": "Cognidesk local cobrowsing protocol",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented",
+        "externalProviderSdk": "not-applicable-internal-provider",
+        "checkedAt": "2026-06-25",
+        "providerSdkDecision": "internal-provider/local-runtime/no-provider-SDK",
+        "providerSdkDependencies": [],
+        "defaultClientPolicy": "sdk-user-provided-cobrowsing-session-client",
+        "typedClientOverride": "CognideskCobrowsingIntegrationClient",
+        "reason": "Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization rather than a named external cobrowsing provider SDK.",
+        "rejectedSdkPackages": []
+      },
       "docs": "https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk",
       "channelCoverage": {
         "sessions": "typed-create-read-update",
@@ -470,6 +486,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "Coverage is limited to a built-in Discourse-compatible REST adapter for forum topic/post/search/current-user workflows, optional provider client overrides, and X-Discourse-Event-Signature webhook validation.",
+        "No applicable official JavaScript or TypeScript Discourse provider SDK was verified on 2026-06-25; Discourse's documented client-library path is the discourse_api Ruby gem, so this package uses a constrained REST adapter.",
         "The package does not implement broader Discourse administration for categories, tags, users/groups, moderation actions, uploads, badges, notifications, private messages, plugin endpoints, site settings, or non-Discourse forum APIs."
       ],
       "evidence": [
@@ -491,7 +508,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "provider-rest-adapter",
       "sdkPackage": "@cognidesk/integration-community-forum",
-      "runtimePackage": "@cognidesk/integration-community-forum",
+      "runtimePackage": "@cognidesk/integration-community-forum/runtime",
       "providerModule": "integrations/community/forum/dist/manifest.js",
       "manifestExport": "forumCommunityProviderManifest",
       "manifestSource": "integrations/community/forum/src/manifest.ts",
@@ -557,9 +574,76 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "docs": "https://docs.discourse.org/",
+      "implementation": {
+        "strategy": "no-official-js-ts-sdk-rest-adapter",
+        "defaultClientPolicy": "provider-rest-adapter-when-configured",
+        "officialJsSdkAvailable": false,
+        "packageOwnedRestClient": true,
+        "verifiedAt": "2026-06-25",
+        "runtimePackage": "@cognidesk/integration-community-forum/runtime",
+        "providerClient": "ForumCommunityProviderClient",
+        "sdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-applicable-official-js-ts-sdk",
+          "rejectedSdkPackages": [
+            {
+              "packageName": "discourse_api",
+              "ecosystem": "ruby",
+              "reason": "Discourse documentation recommends the official discourse_api Ruby gem for Ruby consumers; it is not a JavaScript or TypeScript runtime SDK for this provider package."
+            },
+            {
+              "packageName": "discourse-api-sdk",
+              "ecosystem": "npm",
+              "reason": "Third-party npm publisher and repository; not published by the Discourse npm organization, despite package description text."
+            },
+            {
+              "packageName": "@discourse/mcp",
+              "ecosystem": "npm",
+              "reason": "Official Discourse MCP CLI server, not an in-process JavaScript or TypeScript provider API client for this runtime package."
+            },
+            {
+              "packageName": "discourse-sdk",
+              "ecosystem": "npm",
+              "reason": "Unofficial, old, and untyped npm package surface; unsuitable as the strict provider SDK dependency for this package."
+            }
+          ]
+        }
+      },
       "implementationStrategy": "provider-rest-adapter",
       "concreteProvider": "discourse-compatible-rest-adapter-or-provider-client",
       "supportedForumApi": "built-in-discourse-rest-adapter-and-discourse-webhooks",
+      "providerClient": {
+        "package": "built-in-or-host-provided",
+        "interface": "ForumCommunityProviderClient",
+        "importPolicy": "provider-client-override-supported",
+        "defaultClientPolicy": "provider-rest-adapter-when-configured",
+        "sdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-applicable-official-js-ts-sdk",
+          "rejectedSdkPackages": [
+            {
+              "packageName": "discourse_api",
+              "ecosystem": "ruby",
+              "reason": "Discourse documentation recommends the official discourse_api Ruby gem for Ruby consumers; it is not a JavaScript or TypeScript runtime SDK for this provider package."
+            },
+            {
+              "packageName": "discourse-api-sdk",
+              "ecosystem": "npm",
+              "reason": "Third-party npm publisher and repository; not published by the Discourse npm organization, despite package description text."
+            },
+            {
+              "packageName": "@discourse/mcp",
+              "ecosystem": "npm",
+              "reason": "Official Discourse MCP CLI server, not an in-process JavaScript or TypeScript provider API client for this runtime package."
+            },
+            {
+              "packageName": "discourse-sdk",
+              "ecosystem": "npm",
+              "reason": "Unofficial, old, and untyped npm package surface; unsuitable as the strict provider SDK dependency for this package."
+            }
+          ]
+        }
+      },
       "apiCoverage": {
         "operationCatalog": "docs/provider-coverage/discourse-selected-api-2026-06-18.operations.json",
         "generatedFromOfficialSpec": false,
@@ -680,7 +764,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "No suitable official server-side JavaScript Contact Center SDK was verified.",
-        "The runtime constructs a built-in REST adapter from baseUrl/API credentials and keeps rawClient available as an override.",
+        "The official @8x8/pui-partner-comm package is a partner iframe communication SDK, not a backend Contact Center API client.",
+        "The runtime constructs a fail-closed built-in REST adapter from baseUrl/API credentials and keeps rawClient available as an override.",
         "OpenAPI operation IDs are retained as the reviewed path allowlist for package-owned REST calls."
       ],
       "evidence": [
@@ -787,10 +872,40 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-suitable-server-side-contact-center-sdk",
+        "defaultRestPolicy": "fail-closed-built-in-rest-adapter-with-typed-raw-client-override",
+        "typedClientOverride": "EightByEightRawClient",
+        "checkedPackages": [
+          {
+            "package": "@8x8/pui-partner-comm",
+            "checkedVersion": "0.15.0",
+            "license": "SEE LICENSE IN LICENSE.md",
+            "result": "browser-partner-iframe-sdk-not-contact-center-api-client",
+            "reason": "Official package is for 8x8 platform-ui partner iframe communication and does not expose server-side Contact Center REST operations."
+          }
+        ]
+      },
       "implementation": {
         "implementationStrategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "sdkDecision": "No suitable official server-side JavaScript Contact Center SDK was verified; this package provides a built-in REST adapter while keeping rawClient as an override.",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-suitable-server-side-contact-center-sdk",
+          "defaultRestPolicy": "fail-closed-built-in-rest-adapter-with-typed-raw-client-override",
+          "typedClientOverride": "EightByEightRawClient",
+          "checkedPackages": [
+            {
+              "package": "@8x8/pui-partner-comm",
+              "checkedVersion": "0.15.0",
+              "license": "SEE LICENSE IN LICENSE.md",
+              "result": "browser-partner-iframe-sdk-not-contact-center-api-client",
+              "reason": "Official package is for 8x8 platform-ui partner iframe communication and does not expose server-side Contact Center REST operations."
+            }
+          ]
+        },
+        "sdkDecision": "No suitable official server-side JavaScript Contact Center SDK was verified. The official @8x8/pui-partner-comm SDK is for iframe partner integrations, so this package provides a fail-closed REST adapter with a rawClient override.",
         "verifiedAt": "2026-06-25",
         "runtimePolicy": {
           "defaultClient": "built-in-provider-rest-adapter",
@@ -805,7 +920,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "signal",
             "timeoutMs",
             "retry"
-          ]
+          ],
+          "failClosed": true
         },
         "allowedOperations": [
           {
@@ -833,7 +949,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
           },
           {
-            "id": "setAgentStatus",
+            "id": "setagentstatus",
             "alias": "contact-center.agent.status.update",
             "method": "PUT",
             "path": "/tenants/{tenantId}/agentstatus/agents/{agentId}",
@@ -846,7 +962,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "providerRestAdapter": {
         "strategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "rawClientOverride": "EightByEightClient.rawClient"
+        "rawClientOverride": "EightByEightClient.rawClient",
+        "failClosed": true
       },
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
@@ -922,8 +1039,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "audiences": [],
         "providerObjects": [
           {
-            "kind": "contactTransfer",
-            "label": "contactTransfer"
+            "kind": "callTransfer",
+            "label": "Aircall call transfer"
           }
         ],
         "requiresCredential": true,
@@ -937,7 +1054,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client.",
-        "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with AircallRawClient available as an override."
+        "Runtime calls use Aircall Public API REST for documented call transfer and ping endpoints, with AircallRawClient available as the host-client override."
       ],
       "evidence": [
         {
@@ -947,6 +1064,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Aircall Everywhere SDK",
           "url": "https://github.com/aircall/aircall-everywhere"
+        },
+        {
+          "label": "aircall-everywhere npm package",
+          "url": "https://www.npmjs.com/package/aircall-everywhere"
         }
       ]
     },
@@ -958,15 +1079,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [
-          "contact-center.handoff.request"
-        ],
+        "matchedOperations": [],
         "missingRequiredOperations": [
           "contact-center.contact.read",
           "contact-center.queue.list",
           "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
+          "contact-center.handoff.request",
           "contact-center.contact.start",
           "contact-center.contact.end",
           "contact-center.queue.status.read",
@@ -1003,22 +1123,22 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "mode": "credential-configuration",
       "requiresCredentials": true,
       "requiredCredentialIds": [
-        "aircall-api-base",
         "aircall-api-access"
       ],
       "optionalCredentialIds": [
+        "aircall-api-base",
         "aircall-routing"
       ],
       "credentialRequirements": [
         {
           "id": "aircall-api-base",
-          "label": "Aircall API base URL",
+          "label": "Aircall Public API base URL",
           "scopes": [],
-          "required": true
+          "required": false
         },
         {
           "id": "aircall-api-access",
-          "label": "Aircall API access",
+          "label": "Aircall OAuth bearer token or Basic authorization header",
           "scopes": [],
           "required": true
         },
@@ -1039,26 +1159,61 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-suitable-server-side-public-api-sdk",
+        "defaultRestPolicy": "fail-closed-aircall-public-api-rest-adapter-with-typed-raw-client-override",
+        "typedClientOverride": "AircallRawClient",
+        "checkedPackages": [
+          {
+            "package": "aircall-everywhere",
+            "checkedVersion": "2.0.6",
+            "license": "ISC",
+            "result": "browser-workspace-iframe-sdk-not-public-api-client",
+            "reason": "Maintained official package embeds and communicates with Aircall Workspace in a browser; it does not expose server-side Public API transfer operations."
+          }
+        ]
+      },
       "implementation": {
-        "implementationStrategy": "provider-rest-adapter",
-        "adapterKind": "no-official-sdk-rest-adapter",
-        "sdkDecision": "aircall-everywhere is a maintained Workspace iframe SDK, not a server-side Public API client; this package provides a built-in REST adapter with rawClient override.",
+        "implementationStrategy": "no-official-sdk-rest-adapter",
+        "adapterKind": "aircall-public-api-rest-adapter",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-suitable-server-side-public-api-sdk",
+          "defaultRestPolicy": "fail-closed-aircall-public-api-rest-adapter-with-typed-raw-client-override",
+          "typedClientOverride": "AircallRawClient",
+          "checkedPackages": [
+            {
+              "package": "aircall-everywhere",
+              "checkedVersion": "2.0.6",
+              "license": "ISC",
+              "result": "browser-workspace-iframe-sdk-not-public-api-client",
+              "reason": "Maintained official package embeds and communicates with Aircall Workspace in a browser; it does not expose server-side Public API transfer operations."
+            }
+          ]
+        },
+        "sdkDecision": "No maintained official backend/runtime SDK was found. aircall-everywhere is maintained, but it embeds the Workspace iframe in a browser; runtime support uses Aircall Public API REST with a strict rawClient override.",
         "verifiedAt": "2026-06-25",
+        "defaultBaseUrl": "https://api.aircall.io/v1",
+        "failClosed": "Built-in REST calls require Aircall credentials and documented transfer inputs before fetch; rawClient overrides must implement transferCall().",
         "allowedOperations": [
           {
-            "id": "configuredHandoff",
+            "id": "transferCall",
             "alias": "contact-center.handoff.request",
             "method": "POST",
-            "path": "host-configured",
+            "path": "/calls/{callId}/transfers",
             "source": "provider-rest-adapter",
-            "checksum": "not-applicable-host-configured"
+            "checksum": "aircall-public-api-transfer-call-2026-06-25"
           }
         ]
       },
       "manifestOnlySafe": true,
       "providerRestAdapter": {
-        "strategy": "provider-rest-adapter",
-        "adapterKind": "no-official-sdk-rest-adapter",
+        "strategy": "no-official-sdk-rest-adapter",
+        "adapterKind": "aircall-public-api-rest-adapter",
+        "defaultBaseUrl": "https://api.aircall.io/v1",
+        "defaultClientPolicy": "provider-rest-adapter-when-configured",
+        "failClosed": true,
         "rawClientOverride": "AircallRawClient"
       },
       "categoryProfileId": "contact-center",
@@ -1067,15 +1222,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [
-          "contact-center.handoff.request"
-        ],
+        "matchedOperations": [],
         "missingRequiredOperations": [
           "contact-center.contact.read",
           "contact-center.queue.list",
           "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
+          "contact-center.handoff.request",
           "contact-center.contact.start",
           "contact-center.contact.end",
           "contact-center.queue.status.read",
@@ -1401,7 +1555,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Five9",
-      "summary": "No suitable official server-side JavaScript SDK was verified.",
+      "summary": "No suitable official backend JavaScript/TypeScript SDK was verified.",
       "tags": [
         "contact-center",
         "five9",
@@ -1429,8 +1583,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "No suitable official server-side JavaScript SDK was verified.",
-        "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with Five9RawClient available as an override."
+        "No suitable official backend JavaScript/TypeScript SDK was verified.",
+        "Runtime calls use a built-in REST adapter only when baseUrl/API credentials and host-configured operation paths are supplied, with Five9ProviderClient available as a typed host-client override."
       ],
       "evidence": [
         {
@@ -1438,8 +1592,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://www.five9.com/products/capabilities/call-center-apis-and-sdks"
         },
         {
-          "label": "Five9 CRM SDK",
-          "url": "https://documentation.five9.com/bundle/crmsdk/page/index.html"
+          "label": "Five9 CRM SDK JSDoc",
+          "url": "https://cdn.prod.us.five9.net/stable/crm-sdk-lib/doc/index.html"
+        },
+        {
+          "label": "npm five9 package",
+          "url": "https://www.npmjs.com/package/five9"
         }
       ]
     },
@@ -1532,11 +1690,67 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-suitable-official-server-side-sdk",
+        "defaultRestPolicy": "fail-closed-configured-rest-adapter-with-typed-provider-client-override",
+        "typedClientOverride": "Five9ProviderClient",
+        "checkedPackages": [
+          {
+            "package": "five9",
+            "checkedVersion": "0.1.3",
+            "result": "third-party-stale-node-module",
+            "reason": "Third-party package last published years ago, not an official maintained Five9 runtime SDK."
+          },
+          {
+            "package": "uniphore-five9-messaging-api-client-library",
+            "checkedVersion": "7.2.0",
+            "license": "ISC",
+            "result": "third-party-messaging-specific-client",
+            "reason": "Uniphore-maintained messaging client, not an official Five9 contact-center runtime SDK for the declared handoff surface."
+          },
+          {
+            "package": "Five9 CRM SDK",
+            "result": "browser-agent-desktop-cdn-sdk-not-node-runtime",
+            "reason": "Five9 JavaScript CRM SDK is loaded from Five9 CDN for browser pages integrated with Agent Desktop Toolkit."
+          }
+        ]
+      },
       "implementation": {
         "implementationStrategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "sdkDecision": "No suitable official server-side JavaScript SDK was verified; npm five9 is third-party and stale, while Five9 CRM SDK is browser/ADT-oriented.",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-suitable-official-server-side-sdk",
+          "defaultRestPolicy": "fail-closed-configured-rest-adapter-with-typed-provider-client-override",
+          "typedClientOverride": "Five9ProviderClient",
+          "checkedPackages": [
+            {
+              "package": "five9",
+              "checkedVersion": "0.1.3",
+              "result": "third-party-stale-node-module",
+              "reason": "Third-party package last published years ago, not an official maintained Five9 runtime SDK."
+            },
+            {
+              "package": "uniphore-five9-messaging-api-client-library",
+              "checkedVersion": "7.2.0",
+              "license": "ISC",
+              "result": "third-party-messaging-specific-client",
+              "reason": "Uniphore-maintained messaging client, not an official Five9 contact-center runtime SDK for the declared handoff surface."
+            },
+            {
+              "package": "Five9 CRM SDK",
+              "result": "browser-agent-desktop-cdn-sdk-not-node-runtime",
+              "reason": "Five9 JavaScript CRM SDK is loaded from Five9 CDN for browser pages integrated with Agent Desktop Toolkit."
+            }
+          ]
+        },
+        "sdkDecision": "No suitable official backend JavaScript/TypeScript SDK was verified; five9@0.1.3 is third-party and stale, Uniphore's package is third-party and messaging-specific, and Five9 CRM SDK is browser/ADT-oriented.",
         "verifiedAt": "2026-06-25",
+        "providerClientInterface": "Five9ProviderClient",
+        "defaultClientPolicy": "configured-rest-default-with-host-client-override",
+        "officialRuntimeSdkAvailable": false,
+        "failClosedWithoutHostConfig": true,
         "allowedOperations": [
           {
             "id": "configuredHandoff",
@@ -1548,10 +1762,67 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           }
         ]
       },
+      "manifestOnlySafe": true,
+      "providerClient": {
+        "package": "built-in-provider-rest-adapter",
+        "interface": "Five9ProviderClient",
+        "rawClientAlias": "Five9RawClient",
+        "importPolicy": "runtime-entrypoint-only",
+        "defaultClientPolicy": "configured-rest-default-with-host-client-override",
+        "sdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-official-sdk-rest-adapter"
+        }
+      },
       "providerRestAdapter": {
         "strategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "rawClientOverride": "Five9RawClient"
+        "providerClientOverride": "Five9ProviderClient",
+        "rawClientOverride": "Five9RawClient",
+        "defaultClientPolicy": "configured-rest-default-with-host-client-override",
+        "failClosedWithoutBaseUrl": true,
+        "failClosedWithoutConfiguredPath": true
+      },
+      "providerRestAdapterException": {
+        "status": "accepted",
+        "reviewedAt": "2026-06-25",
+        "adapterKind": "no-official-sdk-rest-adapter",
+        "reason": "No maintained official Five9 Node/TypeScript backend runtime SDK was verified for the declared contact-center handoff workflow; documented Five9 JavaScript SDK surfaces are browser/ADT-oriented.",
+        "allowedDefaultRuntime": "built-in-rest-adapter",
+        "hostSdkPath": "Five9ProviderClient",
+        "failClosed": true,
+        "guardrails": [
+          "Keep Five9 calls behind Five9ProviderClient or the built-in REST adapter until an official maintained Node/TypeScript Five9 runtime SDK exists.",
+          "Require baseUrl and host-configured operation paths before the built-in REST adapter can call fetch.",
+          "If an official maintained runtime SDK is adopted later, switch implementationStrategy away from provider-rest-adapter and declare cognidesk.providerSdkDependencies."
+        ]
+      },
+      "checkedProviderSdk": {
+        "checkedAt": "2026-06-25",
+        "verdict": "no-official-sdk-rest-adapter",
+        "officialRuntimeSdkAvailable": false,
+        "candidates": [
+          {
+            "package": "five9",
+            "checkedVersion": "0.1.3",
+            "result": "third-party-stale",
+            "reason": "The npm package is a third-party Node module last published in 2017, not an official maintained Five9 backend SDK.",
+            "source": "https://www.npmjs.com/package/five9"
+          },
+          {
+            "package": "uniphore-five9-messaging-api-client-library",
+            "checkedVersion": "7.2.0",
+            "result": "third-party-messaging-specific",
+            "reason": "The npm package is maintained by Uniphore and targets a messaging API client surface rather than an official Five9 contact-center runtime SDK.",
+            "source": "https://www.npmjs.com/package/uniphore-five9-messaging-api-client-library"
+          },
+          {
+            "package": "Five9 CRM SDK",
+            "result": "not-backend-runtime-sdk",
+            "reason": "Five9's JavaScript CRM SDK is loaded from Five9's CDN and integrates browser pages with Agent Desktop Toolkit through window.Five9.CrmSdk.",
+            "source": "https://cdn.prod.us.five9.net/stable/crm-sdk-lib/doc/index.html"
+          }
+        ]
       },
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
@@ -1913,7 +2184,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Genesys Engage / GMS",
-      "summary": "PureEngage Node client libraries exist for other Engage APIs, but no suitable GMS Chat API v2 or Callback Services SDK was verified.",
+      "summary": "No suitable maintained backend/runtime JavaScript SDK was verified for GMS Chat API v2 or Callback Services.",
       "tags": [
         "contact-center",
         "genesys-engage",
@@ -1966,12 +2237,28 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "exposesSensitiveData": true,
         "changesWorkflow": false,
         "extension": false
+      },
+      {
+        "capability": "read-provider-object",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "contact",
+            "label": "contact"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": false,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
       }
     ],
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "PureEngage Node client libraries exist for other Engage APIs, but no suitable GMS Chat API v2 or Callback Services SDK was verified.",
+        "No suitable maintained backend/runtime JavaScript SDK was verified for GMS Chat API v2 or Callback Services.",
+        "The maintained Genesys Cloud Platform SDK targets Genesys Cloud, while the PureEngage Engagement Node client targets the Engagement API surface rather than GMS Chat API v2 or GMS Callback Services.",
         "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with GenesysEngageProviderClient available as an override."
       ],
       "evidence": [
@@ -1982,6 +2269,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Genesys GMS Chat API v2",
           "url": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2"
+        },
+        {
+          "label": "Genesys Cloud Platform SDK for JavaScript",
+          "url": "https://github.com/MyPureCloud/platform-client-sdk-javascript"
         },
         {
           "label": "PureEngage Engagement Client Library",
@@ -2026,7 +2317,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
-          "genesys-engage.chat.send"
+          "genesys-engage.chat.send",
+          "genesys-engage.gms.request"
         ]
       }
     },
@@ -2080,10 +2372,68 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-suitable-genesys-engage-gms-runtime-sdk",
+        "defaultRestPolicy": "fail-closed-gms-rest-adapter-with-typed-provider-client-override",
+        "typedClientOverride": "GenesysEngageProviderClient",
+        "checkedPackages": [
+          {
+            "package": "engagement-client-js",
+            "checkedVersion": "9.0.83",
+            "license": "MIT",
+            "result": "pureengage-engagement-api-not-gms-chat-callback-client",
+            "reason": "Official PureEngage Engagement client is a different API surface and does not expose the package-owned GMS Chat API v2 or Callback Services operations."
+          },
+          {
+            "package": "genesys-workspace-client-js",
+            "checkedVersion": "9.0.95",
+            "license": "MIT",
+            "result": "workspace-web-edition-api-not-gms-runtime-client",
+            "reason": "Workspace Web Edition client targets workspace voice/call controls rather than GMS Chat API v2 and GMS callback endpoints."
+          },
+          {
+            "package": "purecloud-platform-client-v2",
+            "checkedVersion": "255.1.0",
+            "license": "MIT",
+            "result": "genesys-cloud-sdk-not-genesys-engage-gms",
+            "reason": "Maintained SDK targets Genesys Cloud Platform APIs, not Genesys Engage GMS Chat/Callback endpoints."
+          }
+        ]
+      },
       "implementation": {
         "implementationStrategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "sdkDecision": "PureEngage Node client libraries exist for other Engage APIs, but no suitable GMS Chat API v2 or Callback Services SDK was verified; this package provides a built-in REST adapter with providerClient override.",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-suitable-genesys-engage-gms-runtime-sdk",
+          "defaultRestPolicy": "fail-closed-gms-rest-adapter-with-typed-provider-client-override",
+          "typedClientOverride": "GenesysEngageProviderClient",
+          "checkedPackages": [
+            {
+              "package": "engagement-client-js",
+              "checkedVersion": "9.0.83",
+              "license": "MIT",
+              "result": "pureengage-engagement-api-not-gms-chat-callback-client",
+              "reason": "Official PureEngage Engagement client is a different API surface and does not expose the package-owned GMS Chat API v2 or Callback Services operations."
+            },
+            {
+              "package": "genesys-workspace-client-js",
+              "checkedVersion": "9.0.95",
+              "license": "MIT",
+              "result": "workspace-web-edition-api-not-gms-runtime-client",
+              "reason": "Workspace Web Edition client targets workspace voice/call controls rather than GMS Chat API v2 and GMS callback endpoints."
+            },
+            {
+              "package": "purecloud-platform-client-v2",
+              "checkedVersion": "255.1.0",
+              "license": "MIT",
+              "result": "genesys-cloud-sdk-not-genesys-engage-gms",
+              "reason": "Maintained SDK targets Genesys Cloud Platform APIs, not Genesys Engage GMS Chat/Callback endpoints."
+            }
+          ]
+        },
+        "sdkDecision": "No suitable maintained backend/runtime JavaScript SDK was verified for GMS Chat API v2 or Callback Services; Genesys Cloud and PureEngage Engagement SDKs target different APIs, so this package provides a built-in REST adapter with providerClient override.",
         "verifiedAt": "2026-06-25",
         "allowedOperations": [
           {
@@ -2117,6 +2467,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "path": "/genesys/2/chat/{serviceName}/{chatId}/send",
             "source": "https://docs.genesys.com/Documentation/GMS/latest/API/ChatAPIv2",
             "checksum": "not-available-html-doc"
+          },
+          {
+            "id": "providerExtensionRequest",
+            "alias": "genesys-engage.gms.request",
+            "method": "GET",
+            "path": "host-configured",
+            "source": "provider-rest-adapter",
+            "checksum": "not-applicable-host-configured"
           }
         ]
       },
@@ -2161,7 +2519,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contact-center.analytics.queueMetrics.read"
         ],
         "extensionOperations": [
-          "genesys-engage.chat.send"
+          "genesys-engage.chat.send",
+          "genesys-engage.gms.request"
         ]
       }
     }
@@ -2188,7 +2547,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Genesys PureConnect / ICWS",
-      "summary": "No suitable maintained npm JavaScript SDK was verified for PureConnect ICWS.",
+      "summary": "No maintained Genesys PureConnect ICWS npm runtime SDK was verified.",
       "tags": [
         "contact-center",
         "genesys-pureconnect",
@@ -2246,8 +2605,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "No suitable maintained npm JavaScript SDK was verified for PureConnect ICWS.",
-        "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with GenesysPureConnectProviderClient available as an override."
+        "No maintained Genesys PureConnect ICWS npm runtime SDK was verified.",
+        "Official PureConnect ICWS SDK documentation describes a REST API and API documentation rather than a maintained npm runtime client.",
+        "Runtime calls use a typed REST adapter for reviewed endpoints when baseUrl/API credentials are supplied, with GenesysPureConnectProviderClient available as a host-client override.",
+        "Host-configured ICWS session paths require explicit hostReviewedPath=true and a host policy classification before requests are dispatched."
       ],
       "evidence": [
         {
@@ -2261,6 +2622,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "PureConnect ICWS SDK",
           "url": "https://help.genesys.com/pureconnect/mergedprojects/wh_tr/mergedprojects/wh_tr_installation_and_configuration/desktop/interaction_center_web_services_icws_sdk.htm"
+        },
+        {
+          "label": "NPM ICWS candidate machinepack-ic",
+          "url": "https://www.npmjs.com/package/machinepack-ic"
         }
       ]
     },
@@ -2356,11 +2721,99 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-maintained-official-pureconnect-icws-npm-sdk",
+        "defaultRestPolicy": "fail-closed-icws-rest-adapter-with-typed-provider-client-override",
+        "typedClientOverride": "GenesysPureConnectProviderClient",
+        "checkedPackages": [
+          {
+            "package": "genesys-pureconnect",
+            "result": "not-published",
+            "reason": "No npm package with this official PureConnect runtime SDK name was found."
+          },
+          {
+            "package": "pureconnect",
+            "result": "not-published",
+            "reason": "No npm package with this official PureConnect runtime SDK name was found."
+          },
+          {
+            "package": "machinepack-ic",
+            "checkedVersion": "0.1.0",
+            "license": "MIT",
+            "result": "third-party-unmaintained-icws-package",
+            "reason": "Third-party ICWS wrapper, not an official maintained Genesys PureConnect runtime SDK."
+          },
+          {
+            "package": "purecloud-platform-client-v2",
+            "checkedVersion": "255.1.0",
+            "license": "MIT",
+            "result": "genesys-cloud-sdk-not-pureconnect-icws",
+            "reason": "Maintained SDK targets Genesys Cloud Platform APIs, not PureConnect ICWS."
+          }
+        ]
+      },
       "implementation": {
         "implementationStrategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "sdkDecision": "No suitable maintained npm JavaScript SDK was verified for PureConnect ICWS; this package provides a built-in REST adapter with providerClient override.",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-maintained-official-pureconnect-icws-npm-sdk",
+          "defaultRestPolicy": "fail-closed-icws-rest-adapter-with-typed-provider-client-override",
+          "typedClientOverride": "GenesysPureConnectProviderClient",
+          "checkedPackages": [
+            {
+              "package": "genesys-pureconnect",
+              "result": "not-published",
+              "reason": "No npm package with this official PureConnect runtime SDK name was found."
+            },
+            {
+              "package": "pureconnect",
+              "result": "not-published",
+              "reason": "No npm package with this official PureConnect runtime SDK name was found."
+            },
+            {
+              "package": "machinepack-ic",
+              "checkedVersion": "0.1.0",
+              "license": "MIT",
+              "result": "third-party-unmaintained-icws-package",
+              "reason": "Third-party ICWS wrapper, not an official maintained Genesys PureConnect runtime SDK."
+            },
+            {
+              "package": "purecloud-platform-client-v2",
+              "checkedVersion": "255.1.0",
+              "license": "MIT",
+              "result": "genesys-cloud-sdk-not-pureconnect-icws",
+              "reason": "Maintained SDK targets Genesys Cloud Platform APIs, not PureConnect ICWS."
+            }
+          ]
+        },
+        "sdkDecision": "No maintained Genesys PureConnect ICWS npm runtime SDK was verified; the official ICWS SDK page describes a REST API/docs, so this package provides a typed REST adapter with providerClient override.",
         "verifiedAt": "2026-06-25",
+        "sdkAudit": {
+          "registry": "npm",
+          "maintainedRuntimeSdk": false,
+          "checkedPackages": [
+            {
+              "name": "genesys-pureconnect",
+              "result": "not-published"
+            },
+            {
+              "name": "pureconnect",
+              "result": "not-published"
+            },
+            {
+              "name": "purecloud-platform-client-v2",
+              "result": "maintained-genesys-cloud-sdk-not-pureconnect-icws"
+            },
+            {
+              "name": "machinepack-ic",
+              "result": "third-party-unmaintained-icws-package",
+              "latest": "0.1.0",
+              "publishedAt": "2015-08-11"
+            }
+          ]
+        },
         "allowedOperations": [
           {
             "id": "createConnection",
@@ -2376,7 +2829,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "method": "GET",
             "path": "host-configured-icws-session-path",
             "source": "host-configured",
-            "checksum": "not-applicable-host-configured"
+            "checksum": "not-applicable-host-configured",
+            "requiresHostReviewedPath": true
           }
         ]
       },
@@ -2449,7 +2903,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Nextiva Contact Center",
-      "summary": "ncx-sdk is stale and needs API-fit review before adoption.",
+      "summary": "No suitable public server-side Nextiva JavaScript SDK was verified for this provider runtime.",
       "tags": [
         "contact-center",
         "nextiva",
@@ -2492,8 +2946,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "ncx-sdk is stale and needs API-fit review before adoption.",
-        "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with NextivaProviderClient available as an override."
+        "No suitable public server-side Nextiva JavaScript SDK was verified for this provider runtime.",
+        "Runtime calls use a strict typed REST adapter when baseUrl/API credentials are supplied, with NextivaProviderClient available as a host-client override.",
+        "Nextiva's current SDK documentation describes frontend SDKs; public npm packages checked for NCX were frontend/session-oriented, dev/unlicensed, unavailable under documented scoped names, or too loosely typed for package-owned server runtime calls."
       ],
       "evidence": [
         {
@@ -2505,8 +2960,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer.nextiva.com/nextiva/docs/workitem-service"
         },
         {
+          "label": "Nextiva Frontend SDKs",
+          "url": "https://developer.nextiva.com/nextiva/docs/overview-of-sdks"
+        },
+        {
+          "label": "Nextiva SDK Installation",
+          "url": "https://developer.nextiva.com/nextiva/docs/sdk-installation"
+        },
+        {
           "label": "Nextiva ncx-sdk",
           "url": "https://github.com/Nextiva/ncx-sdk"
+        },
+        {
+          "label": "Nextiva ncx-web-sdk",
+          "url": "https://github.com/Nextiva/ncx-web-sdk"
         }
       ]
     },
@@ -2601,10 +3068,97 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-suitable-server-side-sdk",
+        "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+        "typedClientOverride": "NextivaProviderClient",
+        "checkedPackages": [
+          {
+            "package": "ncx-sdk",
+            "checkedVersion": "1.5.8",
+            "license": "MIT",
+            "result": "not-used-as-runtime-rest-client",
+            "reason": "Session/frontend-oriented client with broad any-typed services and socket/session initialization, not a strict server-side REST client for Cognidesk handoff operations."
+          },
+          {
+            "package": "ncx-web-sdk",
+            "checkedVersion": "0.0.1-dev.6",
+            "license": "UNLICENSED",
+            "result": "not-used-as-runtime-rest-client",
+            "reason": "Dev-tagged browser Web SDK with browser telephony/UI peer surface and no suitable redistributable server-side runtime contract."
+          },
+          {
+            "package": "ncx-react-sdk",
+            "checkedVersion": "0.0.1-dev.10",
+            "license": "UNLICENSED",
+            "result": "not-used-as-runtime-rest-client",
+            "reason": "React frontend SDK is not appropriate for this provider runtime package."
+          }
+        ]
+      },
       "implementation": {
         "implementationStrategy": "provider-rest-adapter",
-        "adapterKind": "no-official-sdk-rest-adapter",
-        "sdkDecision": "ncx-sdk is stale and needs API-fit review before adoption; this package provides a built-in REST adapter with providerClient override.",
+        "adapterKind": "no-suitable-runtime-sdk-rest-adapter",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-suitable-server-side-sdk",
+          "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+          "typedClientOverride": "NextivaProviderClient",
+          "checkedPackages": [
+            {
+              "package": "ncx-sdk",
+              "checkedVersion": "1.5.8",
+              "license": "MIT",
+              "result": "not-used-as-runtime-rest-client",
+              "reason": "Session/frontend-oriented client with broad any-typed services and socket/session initialization, not a strict server-side REST client for Cognidesk handoff operations."
+            },
+            {
+              "package": "ncx-web-sdk",
+              "checkedVersion": "0.0.1-dev.6",
+              "license": "UNLICENSED",
+              "result": "not-used-as-runtime-rest-client",
+              "reason": "Dev-tagged browser Web SDK with browser telephony/UI peer surface and no suitable redistributable server-side runtime contract."
+            },
+            {
+              "package": "ncx-react-sdk",
+              "checkedVersion": "0.0.1-dev.10",
+              "license": "UNLICENSED",
+              "result": "not-used-as-runtime-rest-client",
+              "reason": "React frontend SDK is not appropriate for this provider runtime package."
+            }
+          ]
+        },
+        "packageOwnedRestClient": true,
+        "hostClientOverride": true,
+        "hostClientEscapeHatch": "NextivaClientOptions.providerClient",
+        "sdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-suitable-server-side-sdk",
+          "checkedPackages": [
+            {
+              "package": "ncx-sdk",
+              "checkedVersion": "1.5.8",
+              "license": "MIT",
+              "result": "not-used-as-runtime-rest-client",
+              "reason": "Public package is a session/frontend-oriented client with broad any-typed WorkitemsService methods and socket/session initialization, not a strict server-side REST client for Cognidesk handoff operations."
+            },
+            {
+              "package": "ncx-web-sdk",
+              "checkedVersion": "0.0.1-dev.6",
+              "license": "UNLICENSED",
+              "result": "not-used-as-runtime-rest-client",
+              "reason": "Public npm package is a dev-tagged browser Web SDK with peer dependencies for browser telephony/UI runtime and a tiny exported type surface; the scoped package documented by Nextiva was not available on the public npm registry during this check."
+            },
+            {
+              "package": "ncx-react-sdk",
+              "checkedVersion": "0.0.1-dev.10",
+              "license": "UNLICENSED",
+              "result": "not-used-as-runtime-rest-client",
+              "reason": "React frontend SDK depends on React and NCX core dev packages, so it is not appropriate for this provider runtime package."
+            }
+          ]
+        },
         "verifiedAt": "2026-06-25",
         "allowedOperations": [
           {
@@ -2620,8 +3174,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestOnlySafe": true,
       "providerRestAdapter": {
         "strategy": "provider-rest-adapter",
-        "adapterKind": "no-official-sdk-rest-adapter",
-        "providerClientOverride": "NextivaProviderClient"
+        "adapterKind": "no-suitable-runtime-sdk-rest-adapter",
+        "providerClientOverride": "NextivaProviderClient",
+        "packageOwnedRestClient": true,
+        "requestValidation": "json-path-query-header-validated"
       },
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
@@ -2685,7 +3241,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "NICE CXone",
-      "summary": "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital surfaces.",
+      "summary": "Maintained NICE @nice-devone SDK packages exist, but the closest ACD runtime package is UNLICENSED and documented for CXone Agent/app-bundler use.",
       "tags": [
         "contact-center",
         "nice-cxone",
@@ -2773,8 +3329,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital surfaces.",
-        "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with NiceCxoneProviderClient available as an override."
+        "Maintained NICE @nice-devone SDK packages exist, but the closest ACD runtime package is UNLICENSED and documented for CXone Agent/app-bundler use.",
+        "Runtime calls use a fail-closed built-in REST adapter when baseUrl/API credentials are supplied, with NiceCxoneProviderClient available as a typed host override."
       ],
       "evidence": [
         {
@@ -2782,7 +3338,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developer.niceincontact.com/API"
         },
         {
-          "label": "NICE CXone Agent SDK",
+          "label": "NICE CXone ACD SDK package",
+          "url": "https://www.npmjs.com/package/@nice-devone/acd-sdk"
+        },
+        {
+          "label": "NICE CXone Agent SDK repository",
           "url": "https://github.com/nice-devone/nice-cxone-agent-sdk"
         }
       ]
@@ -2878,10 +3438,68 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-redistributable-server-side-cxone-sdk",
+        "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+        "typedClientOverride": "NiceCxoneProviderClient",
+        "checkedPackages": [
+          {
+            "package": "@nice-devone/acd-sdk",
+            "checkedVersion": "26.2.1",
+            "license": "UNLICENSED",
+            "result": "official-sdk-not-redistributable-server-rest-client",
+            "reason": "Closest ACD package is unlicensed and documented for CXone Agent/app-bundler use rather than a redistributable server-side REST client."
+          },
+          {
+            "package": "@nice-devone/agent-sdk",
+            "checkedVersion": "26.2.1",
+            "license": "UNLICENSED",
+            "result": "agent-app-sdk-not-server-rest-client",
+            "reason": "Agent SDK is unlicensed and coupled to CXone Agent/browser app runtime."
+          },
+          {
+            "package": "@nice-devone/nice-cxone-chat-web-sdk",
+            "checkedVersion": "3.3.0",
+            "license": "UNLICENSED",
+            "result": "browser-dfo-chat-sdk-not-contact-center-server-client",
+            "reason": "Web SDK targets browser DFO chat rather than package-owned Contact Center server operations."
+          }
+        ]
+      },
       "implementation": {
         "implementationStrategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "sdkDecision": "Maintained NICE @nice-devone SDKs exist but are UNLICENSED and focus on agent/browser/digital surfaces; this package provides a built-in REST adapter with providerClient override.",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-redistributable-server-side-cxone-sdk",
+          "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+          "typedClientOverride": "NiceCxoneProviderClient",
+          "checkedPackages": [
+            {
+              "package": "@nice-devone/acd-sdk",
+              "checkedVersion": "26.2.1",
+              "license": "UNLICENSED",
+              "result": "official-sdk-not-redistributable-server-rest-client",
+              "reason": "Closest ACD package is unlicensed and documented for CXone Agent/app-bundler use rather than a redistributable server-side REST client."
+            },
+            {
+              "package": "@nice-devone/agent-sdk",
+              "checkedVersion": "26.2.1",
+              "license": "UNLICENSED",
+              "result": "agent-app-sdk-not-server-rest-client",
+              "reason": "Agent SDK is unlicensed and coupled to CXone Agent/browser app runtime."
+            },
+            {
+              "package": "@nice-devone/nice-cxone-chat-web-sdk",
+              "checkedVersion": "3.3.0",
+              "license": "UNLICENSED",
+              "result": "browser-dfo-chat-sdk-not-contact-center-server-client",
+              "reason": "Web SDK targets browser DFO chat rather than package-owned Contact Center server operations."
+            }
+          ]
+        },
+        "sdkDecision": "Maintained NICE @nice-devone SDK packages exist, but the closest ACD runtime package is UNLICENSED and designed for CXone Agent/app-bundler use rather than a redistributable server-side REST client; this package provides a fail-closed built-in REST adapter with providerClient override.",
         "verifiedAt": "2026-06-25",
         "allowedOperations": [
           {
@@ -2927,10 +3545,23 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         ]
       },
       "manifestOnlySafe": true,
+      "sdkDecision": {
+        "checkedAt": "2026-06-25",
+        "package": "@nice-devone/acd-sdk",
+        "checkedVersion": "26.2.1",
+        "license": "UNLICENSED",
+        "result": "official-sdk-not-redistributable-server-rest-client",
+        "reason": "@nice-devone/acd-sdk is the closest NICE CXone ACD npm package, but it is published as UNLICENSED and documented for CXone Agent/app-bundler use with browser and agent SDK dependencies."
+      },
       "providerRestAdapter": {
         "strategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "providerClientOverride": "NiceCxoneProviderClient"
+        "providerClientOverride": "NiceCxoneProviderClient",
+        "packageOwnedRestClient": true,
+        "hostClientOverride": true,
+        "hostClientEscapeHatch": "NiceCxoneClient.providerClient",
+        "failureMode": "fail-closed",
+        "reviewedOperationAllowlist": true
       },
       "categoryProfileId": "contact-center",
       "integrationCategoryProfileId": "contact-center",
@@ -2994,7 +3625,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "RingCentral RingCX",
-      "summary": "Runtime uses @ringcentral/sdk for authentication and SDK-dispatched contact-center operations.",
+      "summary": "Runtime uses @ringcentral/sdk for authentication and SDK.platform()-dispatched contact-center operations.",
       "tags": [
         "contact-center",
         "ringcentral",
@@ -3039,9 +3670,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Runtime uses @ringcentral/sdk for authentication and SDK-dispatched contact-center operations.",
+        "Runtime uses @ringcentral/sdk for authentication and SDK.platform()-dispatched contact-center operations.",
         "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation.",
-        "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness through an injected SDK-backed client.",
+        "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness through an injected SDK platform client.",
         "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk."
       ],
       "evidence": [
@@ -3163,11 +3794,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "sdkPackage": "@ringcentral/sdk",
         "sdkPackages": [
           "@ringcentral/sdk"
-        ]
+        ],
+        "sdkRuntimeSurface": "SDK.platform()",
+        "operationMethodMap": {
+          "contact-center.handoff.request": "SDK.platform().post",
+          "contact-center.handoff.status.read": "SDK.platform().get"
+        }
       },
       "channelCoverage": {
-        "configuredHttpHandoff": "sdk-dispatched",
-        "configuredReadiness": "sdk-dispatched",
+        "configuredHttpHandoff": "SDK.platform().post",
+        "configuredReadiness": "SDK.platform().get",
         "sdkBackedClient": "injected-client",
         "currentVoiceRestApiOperations": "provider-supported-not-typed",
         "digitalRestApiOperations": "provider-supported-not-typed",
@@ -3393,9 +4029,55 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-official-npm-rest-sdk",
+        "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+        "typedClientOverride": "TalkdeskProviderClient",
+        "checkedPackages": [
+          {
+            "package": "@talkdesk/td-sdk",
+            "result": "not-published",
+            "reason": "No public npm package exists under this likely official SDK name."
+          },
+          {
+            "package": "@talkdesk/client-sdk",
+            "result": "not-published",
+            "reason": "No public npm package exists under this likely official SDK name."
+          },
+          {
+            "package": "@talkdesk/app-connect",
+            "result": "not-published",
+            "reason": "No public npm package exists under this likely official SDK name."
+          }
+        ]
+      },
       "implementation": {
         "implementationStrategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-official-npm-rest-sdk",
+          "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+          "typedClientOverride": "TalkdeskProviderClient",
+          "checkedPackages": [
+            {
+              "package": "@talkdesk/td-sdk",
+              "result": "not-published",
+              "reason": "No public npm package exists under this likely official SDK name."
+            },
+            {
+              "package": "@talkdesk/client-sdk",
+              "result": "not-published",
+              "reason": "No public npm package exists under this likely official SDK name."
+            },
+            {
+              "package": "@talkdesk/app-connect",
+              "result": "not-published",
+              "reason": "No public npm package exists under this likely official SDK name."
+            }
+          ]
+        },
         "sdkDecision": "No suitable official npm REST SDK was verified; this package provides a built-in REST adapter with providerClient override.",
         "verifiedAt": "2026-06-25",
         "allowedOperations": [
@@ -3491,7 +4173,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Zoom Contact Center",
-      "summary": "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center server SDK.",
+      "summary": "No maintained official server-side JavaScript SDK was verified for Zoom Contact Center management APIs.",
       "tags": [
         "contact-center",
         "zoom",
@@ -3549,8 +4231,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center server SDK.",
-        "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with ZoomContactCenterProviderClient available as an override."
+        "No maintained official server-side JavaScript SDK was verified for Zoom Contact Center management APIs.",
+        "@zoom/appssdk is an embedded Zoom Apps SDK, @zoom/rtms is media-streaming, and the Contact Center SDK is a browser/client integration surface.",
+        "Runtime calls use a built-in REST adapter for reviewed operation IDs only, with ZoomContactCenterProviderClient.request available as a host-client exception."
       ],
       "evidence": [
         {
@@ -3562,8 +4245,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "url": "https://developers.zoom.us/api-hub/contact-center/events/webhooks.json"
         },
         {
+          "label": "Zoom Contact Center SDK for web",
+          "url": "https://developers.zoom.us/docs/contact-center/web/get-started/"
+        },
+        {
           "label": "Zoom Apps SDK",
           "url": "https://github.com/zoom/appssdk"
+        },
+        {
+          "label": "Zoom RTMS SDK",
+          "url": "https://github.com/zoom/rtms"
         }
       ]
     },
@@ -3658,11 +4349,99 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "providerSdkDecision": {
+        "checkedAt": "2026-06-25",
+        "result": "no-suitable-contact-center-management-sdk",
+        "defaultRestPolicy": "fail-closed-reviewed-contact-center-rest-adapter-with-typed-provider-client-override",
+        "typedClientOverride": "ZoomContactCenterProviderClient",
+        "checkedPackages": [
+          {
+            "package": "@zoom/rivet",
+            "checkedVersion": "0.4.0",
+            "license": "SEE LICENSE IN LICENSE.md",
+            "result": "server-sdk-without-contact-center-management-namespace",
+            "reason": "Official server-side API wrapper exports meetings/users/phone/etc., but no contact-center export or /contact_center engagement endpoints for this package surface."
+          },
+          {
+            "package": "@zoom/appssdk",
+            "checkedVersion": "0.16.38",
+            "license": "MIT",
+            "result": "embedded-zoom-apps-sdk-not-contact-center-management-client",
+            "reason": "Browser Zoom Apps SDK, not server-side Contact Center management API client."
+          },
+          {
+            "package": "@zoom/rtms",
+            "checkedVersion": "1.1.0",
+            "license": "MIT",
+            "result": "media-streaming-sdk-not-contact-center-management-client",
+            "reason": "Node wrapper for Zoom RTMS media streaming C SDK, not Contact Center REST management operations."
+          },
+          {
+            "package": "@zoom/contact-center",
+            "result": "not-published",
+            "reason": "No public npm package exists under this likely official Contact Center SDK name."
+          }
+        ]
+      },
       "implementation": {
         "implementationStrategy": "provider-rest-adapter",
         "adapterKind": "no-official-sdk-rest-adapter",
-        "sdkDecision": "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center server SDK; this package provides a built-in REST adapter with providerClient override.",
+        "providerSdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-suitable-contact-center-management-sdk",
+          "defaultRestPolicy": "fail-closed-reviewed-contact-center-rest-adapter-with-typed-provider-client-override",
+          "typedClientOverride": "ZoomContactCenterProviderClient",
+          "checkedPackages": [
+            {
+              "package": "@zoom/rivet",
+              "checkedVersion": "0.4.0",
+              "license": "SEE LICENSE IN LICENSE.md",
+              "result": "server-sdk-without-contact-center-management-namespace",
+              "reason": "Official server-side API wrapper exports meetings/users/phone/etc., but no contact-center export or /contact_center engagement endpoints for this package surface."
+            },
+            {
+              "package": "@zoom/appssdk",
+              "checkedVersion": "0.16.38",
+              "license": "MIT",
+              "result": "embedded-zoom-apps-sdk-not-contact-center-management-client",
+              "reason": "Browser Zoom Apps SDK, not server-side Contact Center management API client."
+            },
+            {
+              "package": "@zoom/rtms",
+              "checkedVersion": "1.1.0",
+              "license": "MIT",
+              "result": "media-streaming-sdk-not-contact-center-management-client",
+              "reason": "Node wrapper for Zoom RTMS media streaming C SDK, not Contact Center REST management operations."
+            },
+            {
+              "package": "@zoom/contact-center",
+              "result": "not-published",
+              "reason": "No public npm package exists under this likely official Contact Center SDK name."
+            }
+          ]
+        },
+        "sdkDecision": "No maintained official server-side JavaScript SDK was verified for Zoom Contact Center management APIs; @zoom/appssdk is embedded Zoom Apps and @zoom/rtms is media-streaming, so this package uses reviewed REST operations with a providerClient host exception.",
         "verifiedAt": "2026-06-25",
+        "runtimePolicy": {
+          "defaultClient": "built-in-provider-rest-adapter",
+          "reviewedRestOperations": [
+            "Startworkitemengagement",
+            "getEngagement"
+          ],
+          "extensionRequests": "built-in REST rejects unreviewed paths; injected providerClient.request may handle host-reviewed extensions after method and mutation-policy validation",
+          "failClosed": true,
+          "requestOptions": [
+            "baseUrl",
+            "accessToken",
+            "authorizationHeader",
+            "apiKey",
+            "apiKeyHeaderName",
+            "fetch",
+            "signal",
+            "timeoutMs",
+            "retry"
+          ]
+        },
         "allowedOperations": [
           {
             "id": "configuredHandoff",
@@ -3678,7 +4457,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "method": "POST",
             "path": "/contact_center/engagement",
             "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
-            "checksum": "sha256:56456cf010ca13ab7edefa0212372d191e10192dfd4cd8f0c5ffb50fa5d2c1c7"
+            "checksum": "sha256:3a3127360fbe7ef88d7398e62795b502fb1f3b2ebc507b3fbf0d3ba6645a963b"
           },
           {
             "id": "getEngagement",
@@ -3686,7 +4465,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "method": "GET",
             "path": "/contact_center/engagements/{engagementId}",
             "source": "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
-            "checksum": "sha256:56456cf010ca13ab7edefa0212372d191e10192dfd4cd8f0c5ffb50fa5d2c1c7"
+            "checksum": "sha256:3a3127360fbe7ef88d7398e62795b502fb1f3b2ebc507b3fbf0d3ba6645a963b"
           },
           {
             "id": "providerExtensionRequest",
@@ -6009,7 +6788,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send SES email",
-        "description": "Sends support email through AWS SDK v3 SESv2.",
+        "description": "Sends support email through AWS SDK v3 SESv2 and raw MIME through classic SES.",
         "audiences": [
           "customer-facing"
         ],
@@ -6142,6 +6921,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "mailbox.watch"
         ],
         "extensionOperations": [
+          "ses.rawEmail.send",
           "ses.snsNotification.receive",
           "ses.account.read",
           "ses.identities.list",
@@ -6176,6 +6956,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "description": "AWS credentials resolved by the AWS SDK default chain or explicitly supplied by the SDK user.",
           "scopes": [
             "ses:SendEmail",
+            "ses:SendRawEmail",
             "ses:GetAccount",
             "ses:ListEmailIdentities",
             "ses:DeleteSuppressedDestination"
@@ -6272,6 +7053,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "mailbox.watch"
         ],
         "extensionOperations": [
+          "ses.rawEmail.send",
           "ses.snsNotification.receive",
           "ses.account.read",
           "ses.identities.list",
@@ -6674,6 +7456,30 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "protocol-local-runtime",
+        "providerSdkDecision": "internal-provider/local-runtime/no-provider-SDK",
+        "providerSdkDependencies": [],
+        "checkedAt": "2026-06-25",
+        "checkedSurface": "package.json dependencies and src runtime imports",
+        "runtime": "SDK-user-configured Cognidesk form registry and signed webhook parser",
+        "protocolSource": "Cognidesk local form submission protocol",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented",
+        "externalProviderSdk": "not-applicable-internal-provider",
+        "reason": "Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK.",
+        "guardrails": [
+          "Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced.",
+          "Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package.",
+          "If an external forms provider SDK is adopted later, route runtime operations through it and declare cognidesk.providerSdkDependencies."
+        ]
+      },
+      "checkedProviderSdk": {
+        "checkedAt": "2026-06-25",
+        "verdict": "internal-provider/local-runtime/no-provider-SDK",
+        "packageSurfaceRuntimeSdkAvailable": false,
+        "providerSdkDependencies": []
+      },
       "channelCoverage": {
         "formDefinitions": "typed-read-validate",
         "formSubmissions": "typed-validate-normalize",
@@ -6858,6 +7664,22 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "local-protocol",
+        "sdkPackage": "@cognidesk/integration-help-center-cognidesk",
+        "runtimePackage": "@cognidesk/integration-help-center-cognidesk",
+        "protocolSource": "Cognidesk local help-center source protocol",
+        "manifestImport": "no-sdk-client-initialization",
+        "integrationKitStatus": "implemented",
+        "externalProviderSdk": "not-applicable-internal-provider",
+        "checkedAt": "2026-06-25",
+        "providerSdkDecision": "internal-provider/local-runtime/no-provider-SDK",
+        "providerSdkDependencies": [],
+        "defaultClientPolicy": "built-in-http-source-when-base-url-configured",
+        "typedClientOverride": "HelpCenterProviderClient",
+        "reason": "Cognidesk Help Center is an internal local/HTTP-source protocol and host-client adapter rather than a named external help-center provider SDK.",
+        "rejectedSdkPackages": []
+      },
       "channelCoverage": {
         "articles": "typed-read-search",
         "readiness": "typed-local-or-http-source-readiness-or-provider-client-delegation",
@@ -7562,7 +8384,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.",
         "The selected eBay OpenAPI slice documents the provider-client contract for every currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource group operation, and this package ships a built-in REST adapter for those operations.",
         "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces.",
-        "Runtime provider-data operations use the built-in eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override.",
+        "Runtime provider-data operations use the built-in typed eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override and must implement the selected operation contract.",
         "Local helpers for eBay notification challenge/signature parsing and HTTP Message Signature header creation remain available for host clients and webhook handlers.",
         "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, retention decisions, and optional provider-client override runtime."
       ],
@@ -7631,7 +8453,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-marketplace-ebay",
       "runtimePackage": "@cognidesk/integration-marketplace-ebay",
       "providerModule": "integrations/marketplace/ebay/dist/manifest.js",
@@ -7735,7 +8557,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "limitations": [
       "The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction.",
       "Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes a typed REST/provider-client contract and does not decide whether a seller is eligible for a specific action.",
-      "Provider-data operations require OAuth tokens for the built-in REST adapter or an injected EbayMarketplaceProviderClient override.",
+      "Provider-data operations fail closed unless OAuth tokens are provided for the built-in typed REST adapter or an injected EbayMarketplaceProviderClient implements the selected operation.",
       "The local issueRefund signature helper is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay signing key material is configured.",
       "Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation."
     ],
@@ -7748,31 +8570,54 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "docs": "https://developer.ebay.com/api-docs",
       "implementation": {
-        "strategy": "no-official-sdk-rest-adapter",
+        "strategy": "provider-owned-utility-sdks-plus-selected-rest-adapter",
         "selectedApiCount": 5,
         "checkedAt": "2026-06-18",
-        "defaultHttpClient": "providerJsonRequest",
+        "sdkAuditCheckedAt": "2026-06-25",
+        "sdkDecision": "provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk",
+        "sdkDecisionReason": "eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned.",
+        "defaultHttpClient": "providerJsonRequest-for-selected-rest-operations",
         "providerClientOverride": true,
         "officialUtilityPackagesChecked": [
           {
             "package": "digital-signature-nodejs-sdk",
             "version": "3.0.1",
+            "modifiedAt": "2023-07-31T23:11:34.276Z",
             "repository": "https://github.com/eBay/digital-signature-nodejs-sdk",
-            "decision": "local-helper-retained-for-signature-header-creation-only"
+            "decision": "provider-owned-runtime-used-for-default-digital-signature-headers",
+            "runtimeUse": "generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation."
           },
           {
             "package": "event-notification-nodejs-sdk",
             "version": "1.0.3",
+            "modifiedAt": "2023-06-15T21:52:53.428Z",
             "repository": "https://github.com/eBay/event-notification-nodejs-sdk",
-            "decision": "local-helper-retained-for-webhook-parsing-only"
+            "decision": "provider-owned-runtime-used-for-endpoint-challenge",
+            "runtimeUse": "validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes."
+          },
+          {
+            "package": "ebay-oauth-nodejs-client",
+            "version": "1.2.2",
+            "modifiedAt": "2023-06-15T21:52:53.428Z",
+            "repository": "https://github.com/eBay/ebay-oauth-nodejs-client",
+            "decision": "provider-owned-oauth-helper-not-selected-rest-runtime",
+            "reason": "OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations."
           }
         ],
-        "communityPackagesChecked": [
+        "communityRestPackagesChecked": [
           {
             "package": "ebay-api",
             "version": "9.5.2",
+            "modifiedAt": "2026-05-11T08:17:20.577Z",
             "repository": "https://github.com/hendt/ebay-api",
-            "decision": "non-official-package-not-used-as-default-provider-client"
+            "decision": "community-wrapper-rejected-not-provider-owned"
+          },
+          {
+            "package": "@tradebuddyhq/ebay-wrapper",
+            "version": "2.0.0",
+            "modifiedAt": "2026-03-13T20:45:46.135Z",
+            "repository": "https://github.com/tradebuddyhq/ebay-wrapper",
+            "decision": "community-wrapper-rejected-not-provider-owned"
           }
         ]
       },
@@ -7780,8 +8625,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "package": "host-provided",
         "interface": "EbayMarketplaceProviderClient",
         "importPolicy": "optional-host-override",
-        "defaultClientPolicy": "built-in-rest-with-oauth-tokens",
-        "transportPolicy": "package-owned-provider-rest-adapter"
+        "defaultClientPolicy": "built-in-rest-with-oauth-tokens-fail-closed",
+        "transportPolicy": "package-owned-typed-provider-rest-adapter",
+        "failClosedPolicy": "credential-missing-without-token-or-host-client"
       },
       "supportSlice": {
         "source": "official-ebay-openapi-selected-provider-contracts",
@@ -8200,7 +9046,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Discord Messaging Support",
-      "summary": "Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.",
+      "summary": "Coverage is a Cognidesk support workflow adapter backed by discord.js REST, discord.js Routes helpers, and an optional discord.js Gateway service for live support-thread handoff.",
       "tags": [
         "messaging",
         "discord",
@@ -8232,7 +9078,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Discord channel messages",
-        "description": "Sends bot-token-authenticated Discord channel messages through discord.js REST helpers.",
+        "description": "Sends bot-token-authenticated Discord channel messages through discord.js REST.post(Routes.channelMessages).",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -8316,7 +9162,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "notify",
         "label": "Notify Discord moderators",
-        "description": "Uses SDK-user-selected Discord channels, threads, or Discord webhook URLs for moderator notification and messaging escalation workflows.",
+        "description": "Uses SDK-user-selected Discord channels, threads, or validated Discord webhook URLs through discord.js REST dispatch.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -8360,8 +9206,8 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Coverage is a Cognidesk support workflow adapter backed by discord.js, selected discord.js REST helpers, and an optional discord.js Gateway service for live support-thread handoff.",
-        "Typed operations cover channel messages, text/forum/media-channel threads, webhook execution, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.",
+        "Coverage is a Cognidesk support workflow adapter backed by discord.js REST, discord.js Routes helpers, and an optional discord.js Gateway service for live support-thread handoff.",
+        "Typed operations cover channel messages, text/forum/media-channel threads, webhook execution with strict Discord webhook URL validation, selected bot/application/guild/channel reads, channel message listing, and Ed25519 interaction signature verification.",
         "The runtime export includes a Discord Gateway service that creates or reuses Discord threads, ingests customer messages through messageCreate events, mirrors Cognidesk runtime messages into threads, and records idempotency state through the bundled SQLite store.",
         "This package intentionally removes the generated Discord HTTP API clone and does not claim full Discord platform coverage.",
         "Discord bot installation, Gateway intents policy, channel permissions, moderation policy, retention, deletion, command registration lifecycle, voice/media transport, broad moderation/admin APIs, and Discord Webhook Events subscriptions remain SDK-user-owned configuration or future package surfaces."
@@ -8415,7 +9261,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "official-sdk-plus-support-slice",
+      "strategy": "official-sdk",
       "sdkPackage": "discord.js",
       "runtimePackage": "@cognidesk/integration-messaging-discord",
       "providerModule": "integrations/messaging/discord/dist/manifest.js",
@@ -8441,7 +9287,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "discord-bot-token",
           "label": "Discord bot token",
-          "description": "Server-side Discord bot token used by discord.js REST helpers for channel, guild, bot, and application calls.",
+          "description": "Server-side Discord bot token used by discord.js REST and Routes SDK helpers for channel, guild, bot, and application calls.",
           "scopes": [
             "bot",
             "applications.commands"
@@ -8521,7 +9367,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "channelMessages": "sdk-owned-rest-send-list",
         "threads": "sdk-owned-rest-create",
         "forumPosts": "sdk-owned-rest-create",
-        "webhookExecution": "typed-fetch-send",
+        "webhookExecution": "sdk-owned-rest-webhook-execute",
         "interactionsEndpoint": "typed-verify-parse",
         "botApplicationGuildChannelReads": "sdk-owned-rest-read",
         "gatewayEvents": "sdk-owned-discord-js-gateway-service",
@@ -8538,6 +9384,30 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "package": "discord.js",
         "versionRange": "^14.26.4",
         "importPolicy": "runtime-entrypoint-only"
+      },
+      "implementation": {
+        "strategy": "official-sdk-support-slice",
+        "sdkPackage": "discord.js",
+        "sdkVersionRange": "^14.26.4",
+        "sdkRuntimeSurface": "REST + Routes + Client gateway",
+        "operationMethodMap": {
+          "discord.message.send": "REST.post(Routes.channelMessages)",
+          "discord.thread.create": "REST.post(Routes.threads)",
+          "discord.forum-post.create": "REST.post(Routes.threads)",
+          "discord.webhook.execute": "REST.post(Routes.webhook)",
+          "discord.bot.read": "REST.get(Routes.user)",
+          "discord.application.read": "REST.get(Routes.oauth2CurrentApplication)",
+          "discord.guild.read": "REST.get(Routes.guild)",
+          "discord.channel.read": "REST.get(Routes.channel)",
+          "discord.channel-messages.list": "REST.get(Routes.channelMessages)",
+          "discord.interaction.receive": "parseDiscordInteractionRequest",
+          "discord.interaction-signature.verify": "validateDiscordInteractionSignature"
+        },
+        "strictExceptions": {
+          "discord.webhook.execute": "Webhook URLs are validated against the configured Discord API origin, parsed into webhook id/token, dispatched through discord.js REST with auth disabled, and rejected before dispatch when the URL is not a Discord webhook execution URL.",
+          "discord.interaction.receive": "Interaction parsing and Ed25519 signature verification are local protocol handling, not outbound provider SDK calls.",
+          "discord.interaction-signature.verify": "Signature verification is local Ed25519 protocol handling, not an outbound provider SDK call."
+        }
       }
     }
   },
@@ -8562,7 +9432,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Google RCS for Business",
-      "summary": "Runtime coverage uses a built-in provider REST adapter for selected RCS for Business support workflows: agentMessages text/media/card sends, agent events, phone capability checks, agent readiness, file create/upload helpers, webhook challenge handling, and X-Goog-Signature validation.",
+      "summary": "Runtime coverage uses the official @google/rcsbusinessmessaging SDK for selected RCS for Business support workflows: agentMessages text/media/card sends, agent events, phone capability checks, and file create/upload helpers.",
       "tags": [
         "messaging",
         "rcs",
@@ -8731,9 +9601,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Runtime coverage uses a built-in provider REST adapter for selected RCS for Business support workflows: agentMessages text/media/card sends, agent events, phone capability checks, agent readiness, file create/upload helpers, webhook challenge handling, and X-Goog-Signature validation.",
-        "Launch and verification coverage is read-only readiness via getLaunch/getVerification; launch and verification request/update workflows remain outside this adapter.",
-        "This package accepts accessToken, apiKey, tokenProvider, serviceAccount, baseUrl, messagingApiBaseUrl, and managementApiBaseUrl options; hosts may still provide an injected provider client backed by an approved SDK or runtime.",
+        "Runtime coverage uses the official @google/rcsbusinessmessaging SDK for selected RCS for Business support workflows: agentMessages text/media/card sends, agent events, phone capability checks, and file create/upload helpers.",
+        "Agent readiness, launch, and verification coverage is read-only via the Business Communications REST API because @google/rcsbusinessmessaging does not expose the brands.agents API.",
+        "This package accepts accessToken, tokenProvider, serviceAccount, baseUrl, messagingApiBaseUrl, and managementApiBaseUrl options; hosts may still provide an injected provider client backed by an approved SDK or runtime.",
         "This is not full RCS for Business API coverage; brand/agent lifecycle management, launch and verification mutation workflows, tester management, integrations, analytics, user batch APIs, Dialogflow messages, revoke/delete breadth, and broader event catalogs remain outside this adapter."
       ],
       "evidence": [
@@ -8800,7 +9670,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-messaging-rcs",
       "runtimePackage": "@cognidesk/integration-messaging-rcs",
       "providerModule": "integrations/messaging/rcs/dist/manifest.js",
@@ -8829,7 +9699,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "rcs-provider-client",
           "label": "RCS provider transport",
-          "description": "Built-in REST adapter credentials or host-owned RcsMessagingProviderClient that encapsulates Google SDK/provider transport, OAuth, token refresh, retries, and regional endpoint configuration.",
+          "description": "Built-in Google RCS SDK/Business Communications REST credentials or host-owned RcsMessagingProviderClient that encapsulates Google SDK/provider transport, token refresh, retries, and regional endpoint configuration.",
           "scopes": [
             "https://www.googleapis.com/auth/rcsbusinessmessaging",
             "https://www.googleapis.com/auth/businesscommunications"
@@ -8860,7 +9730,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "RCS for Business access, agent creation, brand verification, carrier launch, tester setup, webhook configuration, and production throughput require the SDK user's Google RBM partner or provider approval.",
       "Recipient reachability and feature support depend on the user's device, carrier, region, agent launch state, tester status, and capability checks; unsupported recipients or features may return NOT_FOUND or INVALID_ARGUMENT.",
       "Host applications may inject an RcsMessagingProviderClient backed by an approved SDK, provider package, or host-owned transport.",
-      "The built-in REST adapter requires accessToken, apiKey, tokenProvider, serviceAccount, or providerClient plus agent identifiers; it does not silently invent credentials.",
+      "The built-in Google RCS SDK/Business Communications REST adapter requires accessToken, tokenProvider, serviceAccount, or providerClient plus agent identifiers; API key-only transport is rejected because Google RCS for Business documents service-account/OAuth authentication for RBM APIs.",
       "Media upload behavior is delegated to the host provider client; callers must satisfy Google-hosted/external media, file-size, caching, and approval requirements for their deployment."
     ],
     "maintainers": [
@@ -8890,11 +9760,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "implementedOperationCount": 8,
         "fullProviderApi": false
       },
-      "implementationStrategy": "provider-rest-adapter",
+      "implementationStrategy": "provider-sdk-hybrid",
       "implementation": {
-        "strategy": "provider-rest-adapter",
+        "strategy": "provider-sdk-hybrid",
         "checkedAt": "2026-06-25",
-        "source": "official Google RCS for Business REST reference plus provider REST adapter contract",
+        "source": "official Google RCS for Business SDK plus Business Communications REST reference",
         "sourceVersion": "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-25",
         "allowlistChecksumAlgorithm": "sha256",
         "allowlistChecksum": "7900131140a8ced55b584bb3216d637e21c1e35fee9e86de265cab0d55c97ce3",
@@ -8970,25 +9840,46 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "operationCatalog": "package:src/selected-operations.ts"
         },
         "sdkDecision": {
-          "viableOfficialSdk": false,
-          "defaultClient": "provider-rest-adapter",
+          "officialRuntimeSdk": {
+            "packageName": "@google/rcsbusinessmessaging",
+            "versionChecked": "1.0.10",
+            "npmModifiedAt": "2025-04-30T16:44:00.722Z",
+            "docsUrl": "https://developers.google.com/business-communications/rcs-business-messaging/reference/libraries",
+            "status": "real-maintained-rbm-runtime"
+          },
+          "viableAsSoleDefaultRuntime": false,
+          "viableForRbmMessagingRuntime": true,
+          "selectedDefaultClient": "google-rcsbusinessmessaging-sdk-plus-businesscommunications-rest",
+          "failClosedWithoutCredentialedTransport": true,
           "notes": [
-            "@google/rcsbusinessmessaging is an official Google Node.js client for RBM messaging, but the selected support slice also includes Business Communications readiness operations and SDK-tunable REST/base URL options.",
-            "This package ships a built-in REST adapter for the selected RCS and Business Communications operations, including accessToken, apiKey, tokenProvider, and service-account credential paths.",
-            "Hosts may still inject RcsMessagingProviderClient when they want to wrap Google's SDK or another approved provider runtime."
+            "@google/rcsbusinessmessaging is the default runtime for RBM agentMessages, agentEvents, files, and phone capabilities.",
+            "The package does not expose the Business Communications brands.agents readiness API used by this support slice, so those read-only checks use a strict typed REST adapter.",
+            "Both runtime paths share the same accessToken, tokenProvider, and service-account credential handling.",
+            "API key-only transport is rejected; hosts may inject RcsMessagingProviderClient when they want to wrap Google's SDK or another approved provider runtime."
           ]
         },
         "providerClientInterface": "RcsMessagingProviderClient",
+        "defaultProviderSdk": "@google/rcsbusinessmessaging",
         "defaultHttpClient": "providerJsonRequest",
-        "defaultFetchClient": "provider-rest-adapter",
+        "defaultFetchClient": "businesscommunications-rest-adapter",
         "failClosedWithoutProviderClient": false,
+        "failClosedWithoutCredentialedTransport": true,
+        "acceptedAuthModes": [
+          "accessToken",
+          "tokenProvider",
+          "serviceAccount",
+          "providerClient"
+        ],
+        "rejectedAuthModes": [
+          "apiKey-only"
+        ],
         "manifestImport": "no-client-initialization"
       },
       "providerClient": {
         "interface": "RcsMessagingProviderClient",
         "injectionPolicy": "override-supported",
         "importPolicy": "provider-client-override-supported",
-        "defaultClient": "provider-rest-adapter-when-configured"
+        "defaultClient": "google-rcsbusinessmessaging-sdk-when-configured"
       },
       "categoryProfileId": "messaging",
       "integrationCategoryProfileId": "messaging",
@@ -9311,7 +10202,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "implementation": {
       "strategy": "provider-rest-adapter",
       "sdkPackage": "@cognidesk/integration-messaging-whatsapp",
-      "runtimePackage": "@cognidesk/integration-messaging-whatsapp",
+      "runtimePackage": "@cognidesk/integration-messaging-whatsapp/runtime",
       "providerModule": "integrations/messaging/whatsapp/dist/manifest.js",
       "manifestExport": "whatsappMessagingProviderManifest",
       "manifestSource": "integrations/messaging/whatsapp/src/manifest.ts",
@@ -9391,6 +10282,29 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "no-official-maintained-server-sdk-rest-adapter",
+        "defaultClientPolicy": "provider-rest-adapter-when-configured",
+        "officialMaintainedServerSdkAvailable": false,
+        "packageOwnedRestClient": true,
+        "verifiedAt": "2026-06-25",
+        "runtimePackage": "@cognidesk/integration-messaging-whatsapp/runtime",
+        "providerClient": "WhatsAppMessagingProviderClient",
+        "sdkDecision": {
+          "checkedAt": "2026-06-25",
+          "result": "no-maintained-official-sdk-rest-adapter-selected",
+          "rejectedSdkPackages": [
+            {
+              "packageName": "whatsapp",
+              "reason": "Official Meta WhatsApp Business Platform Node.js SDK for Cloud API, but the upstream repository and documentation mark the project archived/read-only."
+            },
+            {
+              "packageName": "facebook-nodejs-business-sdk",
+              "reason": "Official Meta Business SDK for broader Graph/Marketing API surfaces, not a maintained WhatsApp Cloud API messaging client."
+            }
+          ]
+        }
+      },
       "providerClient": {
         "package": "built-in-or-host-provided",
         "interface": "WhatsAppMessagingProviderClient",
@@ -9399,10 +10313,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "sdkDecision": {
           "checkedAt": "2026-06-25",
           "result": "no-maintained-official-sdk-rest-adapter-selected",
-          "notes": [
-            "facebook-nodejs-business-sdk is Marketing API oriented rather than a WhatsApp Cloud API messaging client.",
-            "Meta's WhatsApp Node.js SDK documentation now marks the project archived, so this package uses a built-in Graph API REST adapter instead of adding that dependency.",
-            "Hosts may wrap an approved maintained SDK behind WhatsAppMessagingProviderClient when desired."
+          "rejectedSdkPackages": [
+            {
+              "packageName": "whatsapp",
+              "reason": "Official Meta WhatsApp Business Platform Node.js SDK for Cloud API, but the upstream repository and documentation mark the project archived/read-only."
+            },
+            {
+              "packageName": "facebook-nodejs-business-sdk",
+              "reason": "Official Meta Business SDK for broader Graph/Marketing API surfaces, not a maintained WhatsApp Cloud API messaging client."
+            }
           ]
         }
       },
@@ -9623,7 +10542,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.",
-        "No official Apple JavaScript or TypeScript SDK for App Store Connect customer reviews was found on 2026-06-25; this package uses a constrained built-in REST adapter with ES256 JWT auth.",
+        "No Apple-owned JavaScript or TypeScript SDK for App Store Connect customer reviews was found on 2026-06-25; this package uses appstore-connect-sdk for typed App Store Connect review calls by default.",
         "Apple's official @apple/app-store-server-library Node package targets App Store Server APIs, not App Store Connect customer review resources."
       ],
       "evidence": [
@@ -9642,6 +10561,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Apple App Store Server Node.js Library",
           "url": "https://github.com/apple/app-store-server-library-node"
+        },
+        {
+          "label": "appstore-connect-sdk package",
+          "url": "https://github.com/isaced/appstore-connect-sdk"
         }
       ]
     },
@@ -9651,7 +10574,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-review-appstore",
       "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
       "providerModule": "integrations/review/appstore/dist/manifest.js",
@@ -9712,14 +10635,78 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "implementation": {
-        "strategy": "no-official-sdk-rest-adapter",
-        "defaultClientPolicy": "built-in-rest-with-jwt",
+        "strategy": "third-party-app-store-connect-sdk-default-with-typed-domain-adapter",
+        "defaultClientPolicy": "appstore-connect-sdk-with-jwt",
         "officialJsSdkAvailable": false,
+        "providerOwnedSdkAvailable": false,
         "verifiedAt": "2026-06-25",
         "runtimePackage": "@cognidesk/integration-review-appstore/runtime",
         "providerClient": "AppStoreReviewsProviderClient",
         "providerClientOverride": true,
-        "packageOwnedRestClient": true
+        "packageOwnedRestClient": "custom-transport-fallback-only",
+        "providerSdk": {
+          "package": "appstore-connect-sdk",
+          "version": "2.0.0",
+          "license": "MIT",
+          "providerOwned": false,
+          "runtimeFunctions": [
+            "appsCustomerReviewsGetToManyRelated",
+            "customerReviewsGetInstance",
+            "customerReviewResponsesCreateInstance",
+            "customerReviewResponsesDeleteInstance",
+            "appsGetInstance"
+          ]
+        }
+      },
+      "providerRestFallback": {
+        "status": "narrow-custom-transport-fallback",
+        "reviewedAt": "2026-06-25",
+        "reason": "The default runtime uses appstore-connect-sdk. The package-owned REST adapter remains only when callers provide custom transport options such as fetch, timeoutMs, retry, or signal, because those options are part of Cognidesk's provider-client contract and are not App Store Connect SDK primitives.",
+        "allowedFallbackRuntime": "built-in-app-store-connect-rest-adapter-for-custom-transport",
+        "hostSdkPath": "AppStoreReviewsProviderClient",
+        "guardrails": [
+          "Keep package-owned REST fallback calls limited to appStoreConnectReviewedOperationAllowlist.",
+          "Keep App Store Connect JWTs and app IDs mandatory for both SDK and REST fallback clients; missing or blank credentials must fail closed before provider calls.",
+          "Keep appstore-connect-sdk as the default runtime unless an Apple-owned App Store Connect customer review SDK becomes available."
+        ]
+      },
+      "checkedProviderSdk": {
+        "checkedAt": "2026-06-25",
+        "verdict": "third-party-app-store-connect-sdk-default-runtime",
+        "reason": "Apple's maintained Node package covers App Store Server APIs, not App Store Connect customer review endpoints. appstore-connect-sdk is a typed generated App Store Connect client and exposes the exact customer review and review response functions used by this package, so it is the default runtime while documenting that it is not Apple-owned.",
+        "candidates": [
+          {
+            "package": "@apple/app-store-server-library",
+            "checkedVersion": "3.1.0",
+            "result": "official-wrong-api-family",
+            "reason": "Apple-maintained Node library for App Store Server API, App Store Server Notifications, Retention Messaging API, and Advanced Commerce API; it is not an App Store Connect customer reviews client."
+          },
+          {
+            "package": "@rage-against-the-pixel/app-store-connect-api",
+            "checkedVersion": "4.4.0",
+            "result": "third-party-generated-not-selected",
+            "reason": "Real maintained generated App Store Connect TypeScript client, but appstore-connect-sdk was selected because its exported functions map directly to this package's review allowlist."
+          },
+          {
+            "package": "appstore-connect-sdk",
+            "checkedVersion": "2.0.0",
+            "result": "third-party-generated-default-runtime",
+            "reason": "Exports typed App Store Connect functions for apps customerReviews, customerReviews get, customerReviewResponses create/delete, and apps get; used by default with strict Cognidesk domain types."
+          },
+          {
+            "package": "node-app-store-connect-api",
+            "checkedVersion": "5.0.6",
+            "result": "third-party-not-default-runtime",
+            "reason": "Real third-party App Store Connect API client, but not Apple-maintained and not adopted as this package's default runtime dependency."
+          }
+        ],
+        "sources": [
+          "https://developer.apple.com/documentation/appstoreconnectapi",
+          "https://github.com/apple/app-store-server-library-node",
+          "https://github.com/RageAgainstThePixel/app-store-connect-api",
+          "https://github.com/isaced/appstore-connect-sdk",
+          "https://github.com/dfabulich/node-app-store-connect-api"
+        ]
       },
       "reviewedSource": {
         "source": "Apple App Store Connect OpenAPI specification",
@@ -9806,6 +10793,72 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "appstore.reviews.get",
           "appstore.reviewResponses.createOrUpdate",
           "appstore.reviewResponses.delete"
+        ]
+      },
+      "providerRestAdapterSupportSurface": {
+        "source": "Built-in App Store Connect REST adapter fallback",
+        "adapterKind": "custom-transport-fallback",
+        "operations": [
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}/customerReviews",
+            "aliases": [
+              "appstore.reviews.list"
+            ],
+            "clientMethods": [
+              "listReviews"
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}/customerReviews",
+            "aliases": [
+              "appstore.reviews.page"
+            ],
+            "clientMethods": [
+              "listReviewsPage"
+            ],
+            "source": "links.next for the configured app customerReviews collection"
+          },
+          {
+            "method": "GET",
+            "path": "/v1/customerReviews/{id}",
+            "aliases": [
+              "appstore.reviews.get"
+            ],
+            "clientMethods": [
+              "getReview"
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customerReviewResponses",
+            "aliases": [
+              "appstore.reviewResponses.createOrUpdate"
+            ],
+            "clientMethods": [
+              "createOrUpdateReviewResponse"
+            ]
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customerReviewResponses/{id}",
+            "aliases": [
+              "appstore.reviewResponses.delete"
+            ],
+            "clientMethods": [
+              "deleteReviewResponse"
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/v1/apps/{id}",
+            "aliases": [],
+            "clientMethods": [
+              "getApp"
+            ],
+            "purpose": "configured app check through the built-in App Store Connect REST adapter or provider client override"
+          }
         ]
       }
     }
@@ -10320,11 +11373,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       "sdkClient": {
         "export": "getSdkClient",
-        "coverage": "upstream-sdk"
+        "coverage": "deprecated-raw-client-alias"
       },
       "rawClient": {
         "export": "getRawClient",
-        "coverage": "legacy-upstream-sdk-alias"
+        "coverage": "upstream-sdk"
       },
       "categoryProfileId": "sms",
       "integrationCategoryProfileId": "sms",
@@ -10416,7 +11469,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "send",
         "label": "Send Instagram DM messages",
-        "description": "Sends Instagram direct messages through the configured Graph API adapter or provider client inside policy windows selected by the SDK user.",
+        "description": "Sends Instagram direct messages through the configured Meta SDK-backed Graph adapter or provider client inside policy windows selected by the SDK user.",
         "audiences": [
           "customer-facing"
         ],
@@ -10479,7 +11532,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Instagram account and messages",
-        "description": "Reads Instagram professional account, page, conversation, and message resources through the configured Graph API adapter or provider client.",
+        "description": "Reads Instagram professional account, page, conversation, and message resources through the configured Meta SDK-backed Graph adapter or provider client.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -10511,7 +11564,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "search-provider-object",
         "label": "List Instagram conversations",
-        "description": "Lists Instagram conversations with SDK-user-supplied fields and pagination through the configured Graph API adapter or provider client.",
+        "description": "Lists Instagram conversations with SDK-user-supplied fields and pagination through the configured Meta SDK-backed Graph adapter or provider client.",
         "audiences": [
           "internal-support",
           "mixed"
@@ -10553,7 +11606,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "notes": [
         "Coverage is limited to Instagram Messaging send payloads, conversations/messages reads, account/page reads, webhook challenge handling, and X-Hub-Signature-256 validation for SDK-user-owned support messaging.",
         "This package uses the Meta Business Messaging / Page access token model for Instagram Messaging; it does not implement the separate Instagram API with Instagram Login messaging surface.",
-        "Runtime provider calls use the built-in Graph API REST adapter when credentials are configured; hosts may inject an Instagram/Meta provider client override.",
+        "Runtime provider calls use Meta's facebook-nodejs-business-sdk when credentials are configured; hosts may inject an Instagram/Meta provider client override.",
         "The package does not implement the broader Instagram Platform for media publishing, comments/moderation, mentions, insights, content discovery, account management, or full Graph API coverage."
       ],
       "evidence": [
@@ -10585,7 +11638,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-social-instagram",
       "runtimePackage": "@cognidesk/integration-social-instagram",
       "providerModule": "integrations/social/instagram/dist/manifest.js",
@@ -10612,7 +11665,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "instagram-page-access-token",
           "label": "Meta Page access token",
-          "description": "Server-side Page access token used by the built-in Graph API adapter or an injected Instagram/Meta provider client.",
+          "description": "Server-side Page access token used by the Meta SDK-backed Graph adapter or an injected Instagram/Meta provider client.",
           "scopes": [
             "instagram_manage_messages",
             "instagram_basic",
@@ -10664,7 +11717,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "instagram-permissions",
           "label": "Instagram Graph permissions",
-          "description": "SDK-user-reviewed permissions granted to the Meta app and enforced by the configured Graph API adapter or provider client.",
+          "description": "SDK-user-reviewed permissions granted to the Meta app and enforced by the configured Meta SDK-backed Graph adapter or provider client.",
           "scopes": [
             "instagram_manage_messages",
             "instagram_basic",
@@ -10687,7 +11740,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "Available operations depend on the SDK user's Meta app review, Page ownership, Instagram professional account link, granted permissions, webhook field subscriptions, messaging windows, HUMAN_AGENT review, rate limits, and regional policy.",
       "Instagram does not inherit general Messenger message tags as safe defaults; SDK users must configure Instagram-specific outbound policy and HUMAN_AGENT review where needed.",
       "Consent, outbound-contact policy, conversation continuity across channels, human escalation, retention, redaction, and deletion behavior are SDK-user configuration.",
-      "This package provides typed operation contracts, webhook primitives, and a built-in Graph API REST adapter; providerClient injection remains available as an override."
+      "This package provides typed operation contracts, webhook primitives, and a Meta SDK-backed Graph adapter; providerClient injection remains available as an override."
     ],
     "maintainers": [
       {
@@ -10697,11 +11750,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "channelCoverage": {
-        "directMessages": "provider-rest-adapter-send",
-        "conversations": "provider-rest-adapter-list-read",
-        "messageDetails": "provider-rest-adapter-read",
-        "accountPageReadiness": "provider-rest-adapter-read",
+        "directMessages": "facebook-nodejs-business-sdk-call",
+        "conversations": "facebook-nodejs-business-sdk-call",
+        "messageDetails": "facebook-nodejs-business-sdk-call",
+        "accountPageReadiness": "facebook-nodejs-business-sdk-call",
         "webhooks": "typed-challenge-verify-parse",
+        "customTransportFallback": "package-owned-rest-adapter",
         "humanAgentWindow": "sdk-owned-policy",
         "commentsPublishingInsights": "not-covered"
       },
@@ -10721,53 +11775,61 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "fullMetaGraphCoverage": false
       },
       "implementation": {
-        "implementationStrategy": "no-official-sdk-rest-adapter",
-        "sdkDecision": "Meta's official facebook-nodejs-business-sdk exists, but it is published as a broad Marketing/Business SDK and does not provide a dedicated typed Instagram Messaging client surface for this support slice. This package therefore ships a built-in Graph API REST adapter and still accepts an injected Instagram/Meta provider client override.",
+        "implementationStrategy": "provider-sdk-default-with-typed-domain-adapter",
+        "sdkDecision": "Meta's official facebook-nodejs-business-sdk@24.0.1 is provider-owned and exposes FacebookAdsApi.call(method, path, params). This package maps its strict Instagram Messaging support slice onto that SDK call surface by default; the package-owned REST adapter is retained only for explicit custom transport options such as fetch, graphApiBaseUrl, graphApiVersion, signal, timeoutMs, or retry.",
         "verifiedAt": "2026-06-25",
+        "providerSdk": {
+          "package": "facebook-nodejs-business-sdk",
+          "version": "24.0.1",
+          "license": "Platform License",
+          "runtimeEntry": "FacebookAdsApi",
+          "runtimeCall": "FacebookAdsApi.call"
+        },
         "allowedOperations": [
           {
             "id": "sendMessage",
             "alias": "instagram.message.send",
-            "target": "providerRestAdapter.sendMessage",
-            "source": "provider-rest-adapter"
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk"
           },
           {
             "id": "listConversations",
             "alias": "instagram.conversations.list",
-            "target": "providerRestAdapter.listConversations",
-            "source": "provider-rest-adapter"
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk"
           },
           {
             "id": "listConversationMessages",
             "alias": "instagram.conversationMessages.list",
-            "target": "providerRestAdapter.listConversationMessages",
-            "source": "provider-rest-adapter"
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk"
           },
           {
             "id": "getMessage",
             "alias": "instagram.message.read",
-            "target": "providerRestAdapter.getMessage",
-            "source": "provider-rest-adapter"
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk"
           },
           {
             "id": "getInstagramBusinessAccount",
             "alias": "instagram.account.read",
-            "target": "providerRestAdapter.getInstagramBusinessAccount",
-            "source": "provider-rest-adapter"
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk"
           },
           {
             "id": "getPage",
             "alias": "instagram.page.read",
-            "target": "providerRestAdapter.getPage",
-            "source": "provider-rest-adapter"
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk"
           }
         ]
       },
       "providerClient": {
-        "package": "built-in-or-host-provided",
+        "package": "facebook-nodejs-business-sdk-or-host-provided",
         "interface": "InstagramMetaProviderClient",
         "importPolicy": "provider-client-override-supported",
-        "defaultClientPolicy": "provider-rest-adapter-when-configured"
+        "defaultClientPolicy": "facebook-nodejs-business-sdk-when-configured",
+        "customTransportFallbackPolicy": "package-owned-rest-adapter-for-fetch-base-version-signal-timeout-retry"
       }
     }
   },
@@ -10867,7 +11929,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "thread",
         "label": "Use Messenger conversations",
-        "description": "Reads Messenger conversation and message metadata through the configured Graph API adapter or provider client with SDK-user-governed access and retention.",
+        "description": "Reads Messenger conversation and message metadata through the configured Meta SDK-backed Graph adapter or provider client with SDK-user-governed access and retention.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -10895,7 +11957,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "read-provider-object",
         "label": "Read Messenger conversations",
-        "description": "Reads Messenger conversation messages and metadata through the configured Graph API adapter or provider client.",
+        "description": "Reads Messenger conversation messages and metadata through the configured Meta SDK-backed Graph adapter or provider client.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -10919,7 +11981,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       {
         "capability": "search-provider-object",
         "label": "List Messenger conversations",
-        "description": "Lists Messenger Page conversations through the configured Graph API adapter or provider client with SDK-user-supplied filters such as user ID, fields, limits, and cursors.",
+        "description": "Lists Messenger Page conversations through the configured Meta SDK-backed Graph adapter or provider client with SDK-user-supplied filters such as user ID, fields, limits, and cursors.",
         "audiences": [
           "customer-facing",
           "mixed"
@@ -10980,7 +12042,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "Coverage is typed for selected Messenger Platform support workflows: Page messages send, text payloads, sender actions, attachment payload/upload helpers, conversation/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation.",
-        "Runtime provider operations use the built-in Graph API REST adapter when credentials are configured; hosts may inject a Messenger/Meta provider client override.",
+        "Runtime provider operations use Meta's facebook-nodejs-business-sdk when credentials are configured; hosts may inject a Messenger/Meta provider client override.",
         "Meta's current Messenger routing surface is Conversation Routing; deprecated Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package.",
         "This is not full Messenger Platform coverage; Messenger profile, persistent menu, personas, discovery and engagement tools, account linking, NLP, analytics, marketing messages, conversation routing configuration, and broader Page/Graph administration remain outside this adapter."
       ],
@@ -11008,6 +12070,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Messenger conversation routing",
           "url": "https://developers.facebook.com/documentation/business-messaging/messenger-platform/conversation-routing"
+        },
+        {
+          "label": "Meta Business SDK for NodeJS",
+          "url": "https://github.com/facebook/facebook-nodejs-business-sdk"
         }
       ]
     },
@@ -11017,7 +12083,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-social-messenger",
       "runtimePackage": "@cognidesk/integration-social-messenger",
       "providerModule": "integrations/social/messenger/dist/manifest.js",
@@ -11049,13 +12115,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "metadata": {
             "interface": "MessengerSocialProviderClient",
             "importPolicy": "provider-client-override-supported",
-            "defaultClientPolicy": "provider-rest-adapter-when-configured"
+            "defaultClientPolicy": "facebook-nodejs-business-sdk-when-configured"
           }
         },
         {
           "id": "messenger-page-access-token",
           "label": "Messenger Page access token",
-          "description": "Server-side Meta Page access token used by the built-in Graph API adapter or an injected Messenger/Meta provider client.",
+          "description": "Server-side Meta Page access token used by the Meta SDK-backed Graph adapter or an injected Messenger/Meta provider client.",
           "scopes": [
             "pages_messaging",
             "pages_show_list",
@@ -11115,9 +12181,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "implementation": {
-        "implementationStrategy": "no-official-sdk-rest-adapter",
-        "sdkDecision": "No viable official Messenger Platform server-side JavaScript SDK was verified for this support workflow slice. The Meta Business SDK is Business/Marketing/Pages oriented, so this package ships a built-in Graph API REST adapter and still accepts a host-provided Messenger/Meta provider client override.",
+        "implementationStrategy": "provider-sdk-default-with-typed-domain-adapter",
+        "sdkDecision": "Meta's maintained facebook-nodejs-business-sdk@24.0.1 is provider-owned and exposes FacebookAdsApi.call(method, path, params). This package maps its strict Messenger support slice onto that SDK call surface by default; the package-owned REST adapter is retained only for explicit custom transport options such as fetch, graphApiBaseUrl, graphApiVersion, signal, timeoutMs, or retry.",
         "verifiedAt": "2026-06-25",
+        "providerSdk": {
+          "package": "facebook-nodejs-business-sdk",
+          "version": "24.0.1",
+          "license": "Platform License",
+          "runtimeEntry": "FacebookAdsApi",
+          "runtimeCall": "FacebookAdsApi.call"
+        },
         "allowedOperations": [
           {
             "id": "parseMessengerWebhook",
@@ -11129,43 +12202,43 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           {
             "id": "sendMessage",
             "alias": "messenger.message.send",
-            "target": "providerRestAdapter.sendMessage",
-            "source": "provider-rest-adapter",
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk",
             "checksum": "not-applicable-rest-adapter"
           },
           {
             "id": "sendSenderAction",
             "alias": "messenger.senderAction.send",
-            "target": "providerRestAdapter.sendMessage",
-            "source": "provider-rest-adapter",
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk",
             "checksum": "not-applicable-rest-adapter"
           },
           {
             "id": "uploadAttachment",
             "alias": "messenger.attachment.upload",
-            "target": "providerRestAdapter.uploadAttachment",
-            "source": "provider-rest-adapter",
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk",
             "checksum": "not-applicable-rest-adapter"
           },
           {
             "id": "listConversations",
             "alias": "messenger.conversations.list",
-            "target": "providerRestAdapter.listConversations",
-            "source": "provider-rest-adapter",
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk",
             "checksum": "not-applicable-rest-adapter"
           },
           {
             "id": "getConversationMessages",
             "alias": "messenger.conversationMessages.list",
-            "target": "providerRestAdapter.getConversationMessages",
-            "source": "provider-rest-adapter",
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk",
             "checksum": "not-applicable-rest-adapter"
           },
           {
             "id": "getPage",
             "alias": "messenger.page.read",
-            "target": "providerRestAdapter.getPage",
-            "source": "provider-rest-adapter",
+            "target": "facebookBusinessSdk.FacebookAdsApi.call",
+            "source": "provider-sdk",
             "checksum": "not-applicable-rest-adapter"
           },
           {
@@ -11179,18 +12252,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       "manifestOnlySafe": true,
       "providerClient": {
-        "package": "built-in-or-host-provided",
+        "package": "facebook-nodejs-business-sdk-or-host-provided",
         "interface": "MessengerSocialProviderClient",
         "importPolicy": "provider-client-override-supported",
-        "defaultClientPolicy": "provider-rest-adapter-when-configured"
+        "defaultClientPolicy": "facebook-nodejs-business-sdk-when-configured",
+        "customTransportFallbackPolicy": "package-owned-rest-adapter-for-fetch-base-version-signal-timeout-retry"
       },
       "channelCoverage": {
-        "messages": "provider-rest-adapter-send",
-        "senderActions": "provider-rest-adapter-send",
-        "attachments": "provider-rest-adapter-upload-send",
-        "conversations": "provider-rest-adapter-list-read",
-        "pageReadiness": "provider-rest-adapter-read",
+        "messages": "facebook-nodejs-business-sdk-call",
+        "senderActions": "facebook-nodejs-business-sdk-call",
+        "attachments": "facebook-nodejs-business-sdk-call",
+        "conversations": "facebook-nodejs-business-sdk-call",
+        "pageReadiness": "facebook-nodejs-business-sdk-call",
         "webhooks": "typed-challenge-verify-parse",
+        "customTransportFallback": "package-owned-rest-adapter",
         "handoverProtocolThreadControl": "provider-supported-deprecated-typed-thread-control",
         "conversationRouting": "provider-supported-not-typed"
       },
@@ -11736,11 +12811,30 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "checkedAt": "2026-06-25",
           "operationCatalog": "package:src/selected-operations.ts"
         },
+        "providerRestAdapterException": {
+          "sdkPackage": "tiktok-business-api-sdk-official",
+          "checkedAt": "2026-06-25",
+          "checkedVersion": "1.1.3",
+          "license": "Unlicense",
+          "result": "sdk-not-suitable-for-mixed-social-surface",
+          "reason": "The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package.",
+          "defaultClientPolicy": "built-in-tiktok-rest-adapter",
+          "typedClientOverride": "TikTokSocialProviderClient"
+        },
         "sdkDecision": {
           "viableOfficialSdk": false,
+          "auditedPackages": [
+            {
+              "package": "tiktok-business-api-sdk-official",
+              "version": "1.1.3",
+              "source": "npm + tiktok/tiktok-business-api-sdk",
+              "status": "not-suitable",
+              "reason": "CommentsApi covers a Business comment surface, but the package does not expose the full mixed TikTok Developers/Business support surface selected by this adapter."
+            }
+          ],
           "notes": [
             "TikTok OpenSDK is an official mobile Login/Share Kit, not a server-side JavaScript/TypeScript client for this selected support surface.",
-            "The official TikTok Business API SDK is a broad Business API package; it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface.",
+            "The official TikTok Business API SDK is a broad Business API package with comment helpers, but it does not cover TikTok Developers Open API Display, Research API, Content Posting status, or webhook verification for this mixed adapter surface.",
             "This package therefore ships a built-in REST adapter for the selected operations and still accepts an injected TikTok provider client override."
           ]
         }
@@ -11750,6 +12844,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "interface": "TikTokSocialProviderClient",
         "importPolicy": "provider-client-override-supported",
         "defaultClientPolicy": "provider-rest-adapter-when-configured"
+      },
+      "providerRestAdapterException": {
+        "sdkPackage": "tiktok-business-api-sdk-official",
+        "checkedAt": "2026-06-25",
+        "checkedVersion": "1.1.3",
+        "license": "Unlicense",
+        "result": "sdk-not-suitable-for-mixed-social-surface",
+        "reason": "The official JavaScript SDK only targets TikTok Business API generated clients. Its CommentsApi exposes the Business comment list/post surface, but it does not cover TikTok Developers Open API Display reads, Research API comment reads, Content Posting status reads, webhook verification, or the full mixed selected support surface required by this package.",
+        "defaultClientPolicy": "built-in-tiktok-rest-adapter",
+        "typedClientOverride": "TikTokSocialProviderClient"
       }
     }
   },
@@ -12121,7 +13225,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "sdk-backed",
         "sdkPackage": "dynamics-web-api",
         "sdkVersionRange": "2.5.0",
-        "rawClientEscapeHatch": "Dynamics365TicketingClient.rawClient",
+        "rawClientEscapeHatch": "Dynamics365TicketingClient.rawClient/getRawClient()",
         "runtimePackage": "@cognidesk/integration-ticketing-dynamics365",
         "manifestImport": "no-sdk-client-initialization"
       },
@@ -12225,7 +13329,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Freshdesk Ticketing",
-      "summary": "Implementation uses a built-in Freshdesk v2 REST adapter when domain and apiKey are configured, with FreshdeskTicketingProviderClient injection as an override for host-owned SDK/client adapters.",
+      "summary": "Implementation uses the official @freshworks/freshdesk JavaScript SDK by default when domain and apiKey are configured.",
       "tags": [
         "ticketing",
         "freshdesk",
@@ -12360,14 +13464,18 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Implementation uses a built-in Freshdesk v2 REST adapter when domain and apiKey are configured, with FreshdeskTicketingProviderClient injection as an override for host-owned SDK/client adapters.",
-        "Freshworks API SDK 0.3.0 does not expose a first-class Freshdesk ticketing surface for these operations, so this package owns a constrained provider REST adapter instead of requiring host-injected-only runtime wiring.",
+        "Implementation uses the official @freshworks/freshdesk JavaScript SDK by default when domain and apiKey are configured.",
+        "A constrained Freshdesk v2 REST fallback remains only for SDK gaps such as agents, groups, readiness, and explicit low-level host controls like custom fetch, retry, timeout, headers, or apiBaseUrl.",
         "Coverage is limited to Freshdesk v2 tickets, contacts, conversations, replies, notes, handoff updates, agents, groups, current-agent readiness, and SDK-user shared-secret webhook validation."
       ],
       "evidence": [
         {
           "label": "Freshdesk API v2 reference",
           "url": "https://developers.freshdesk.com/api/"
+        },
+        {
+          "label": "Freshworks Freshdesk SDK",
+          "url": "https://www.npmjs.com/package/@freshworks/freshdesk"
         },
         {
           "label": "Freshworks API SDK",
@@ -12428,7 +13536,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "provider-api-subset",
       "sdkPackage": "@cognidesk/integration-ticketing-freshdesk",
       "runtimePackage": "@cognidesk/integration-ticketing-freshdesk",
       "providerModule": "integrations/ticketing/freshdesk/dist/manifest.js",
@@ -12490,21 +13598,39 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "issue": 35,
       "implementation": {
-        "strategy": "provider-rest-adapter",
+        "strategy": "provider-sdk-adapter",
+        "runtimePackage": "@cognidesk/integration-ticketing-freshdesk",
         "providerClient": "FreshdeskTicketingProviderClient",
-        "defaultClientPolicy": "use-built-in-rest-adapter-when-domain-and-apiKey-are-configured",
-        "packageOwnedRestClient": true,
+        "providerClientInterface": "FreshdeskTicketingProviderClient",
+        "rawClientEscapeHatch": "FreshdeskTicketingClient.providerClient",
+        "providerSdkPackage": "@freshworks/freshdesk",
+        "defaultClientPolicy": "use-official-freshworks-freshdesk-sdk-when-domain-and-apiKey-are-configured",
+        "packageOwnedRestClient": false,
+        "packageOwnedRestFallback": true,
         "providerClientOverride": true,
+        "rawClientOverride": true,
         "sdkDecision": {
           "checkedAt": "2026-06-25",
-          "result": "no-official-sdk-rest-adapter",
-          "packageChecked": "@freshworks/api-sdk",
+          "package": "@freshworks/freshdesk",
+          "checkedVersion": "0.0.1",
+          "license": "freshdesk",
+          "result": "accepted-runtime-sdk",
+          "reason": "@freshworks/freshdesk exposes Freshdesk tickets, contacts, and conversations runtime clients. Agents, groups, and current-agent readiness are not exposed by that package and stay behind the narrow REST fallback.",
+          "packageChecked": "@freshworks/freshdesk",
           "notes": [
-            "Freshworks API SDK 0.3.0 documents Freshteam support and partial Freshservice support, but no Freshdesk ticketing client surface.",
-            "Freshdesk v2 ticketing, contacts, conversations, agents, groups, and current-agent readiness remain REST API operations in this package."
+            "@freshworks/freshdesk 0.0.1 exposes tickets.createTicket/getTicket/updateTicket/searchTicket/replyTicket/addNotes and contacts.getContact/searchContacts.",
+            "The package does not expose agents/groups/readiness helpers; those remain REST fallback operations."
           ]
         },
-        "delegatedOperationTarget": "built-in Freshdesk v2 REST adapter or injected Freshdesk provider client"
+        "delegatedOperationTarget": "official Freshdesk SDK, REST fallback for SDK gaps, or injected Freshdesk provider client"
+      },
+      "sdkDecision": {
+        "checkedAt": "2026-06-25",
+        "package": "@freshworks/freshdesk",
+        "checkedVersion": "0.0.1",
+        "license": "freshdesk",
+        "result": "accepted-runtime-sdk",
+        "reason": "@freshworks/freshdesk is the official Freshdesk JavaScript SDK and is used for the ticket/contact operations it exposes."
       },
       "freshdeskV2Coverage": {
         "source": "Freshdesk API v2",
@@ -12586,7 +13712,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Front",
-      "summary": "Runtime calls use the built-in Front REST adapter by default because no viable official maintained backend Core/Channel API JavaScript client was verified.",
+      "summary": "Runtime calls use the built-in Front REST adapter by default because no viable maintained backend Core/Channel API JavaScript client was verified.",
       "tags": [
         "ticketing",
         "front",
@@ -12698,7 +13824,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Runtime calls use the built-in Front REST adapter by default because no viable official maintained backend Core/Channel API JavaScript client was verified.",
+        "Runtime calls use the built-in Front REST adapter by default because no viable maintained backend Core/Channel API JavaScript client was verified.",
         "Coverage is limited to selected Front conversation, message, comment, search, update, and teammate readiness operations for support workflows.",
         "A host-provided FrontTicketingProviderClient can still override the built-in REST adapter.",
         "This package intentionally does not copy the old generated full Front Core/Channel API clone."
@@ -12854,6 +13980,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "checkedVersion": "1.2.1",
             "result": "not-ticketing-core-api-client",
             "reason": "The package targets Front Chat SDK use cases rather than Core/Channel API ticketing operations."
+          },
+          {
+            "package": "@utdk/front",
+            "checkedVersion": "1.0.0-20260530.2-dev.646adf4",
+            "result": "rejected-generated-preview-incomplete-runtime-client",
+            "reason": "The package is a third-party generated preview from Front's OpenAPI spec; the packed types expose an empty FrontClient and its source imports ../client.js outside the package contents, so it is not a viable maintained typed runtime client dependency."
           }
         ]
       },
@@ -13172,6 +14304,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "providerClientInterface": "GorgiasTicketingProviderClient",
         "defaultHttpClient": "providerJsonRequest",
         "defaultFetchClient": "runtime-fetch-or-configured-fetch",
+        "defaultBaseUrl": "none-account-base-url-required",
         "providerClientOverride": true,
         "manifestImport": "no-client-initialization"
       },
@@ -13183,20 +14316,55 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       "sdkEvaluation": {
         "checkedAt": "2026-06-25",
-        "officialBackendJavaScriptSdk": "not-verified",
+        "result": "no-official-maintained-runtime-sdk",
+        "officialBackendJavaScriptSdk": false,
+        "officialDocsSurface": "Gorgias documents REST API and OAuth/API-key authentication against each account subdomain; no official maintained npm JavaScript runtime SDK was verified.",
         "reviewedPackages": [
           {
             "package": "gorgias-client",
             "version": "2.0.4",
             "result": "not-used-as-package-default",
-            "reason": "Unofficial package; its public GorgiasClient constructs a FetchHttpClient and does not expose constructor-level HTTP client injection."
+            "reason": "Typed and recent, but maintained outside Gorgias and its public client is Basic-auth/subdomain oriented; it does not expose a Bearer OAuth default path or account-readiness resource for this package's runtime contract."
           },
           {
             "package": "@friggframework/api-module-gorgias",
             "version": "0.10.1",
             "result": "not-used-as-package-default",
             "reason": "Framework module rather than a standalone official Gorgias backend SDK for this runtime package."
+          },
+          {
+            "package": "@frontend-sdk/gorgias",
+            "version": "0.26.0",
+            "result": "not-runtime-ticketing-sdk",
+            "reason": "Frontend/Shogun integration package, not a maintained Gorgias ticketing REST SDK."
+          },
+          {
+            "package": "@pipedream/gorgias",
+            "version": "0.6.0",
+            "result": "not-runtime-ticketing-sdk",
+            "reason": "Pipedream component package rather than a typed raw client suitable as this package's default runtime SDK."
           }
+        ]
+      },
+      "providerRestAdapterException": {
+        "strict": true,
+        "reason": "No official maintained Gorgias JavaScript/TypeScript runtime SDK was verified; this package owns a narrow REST adapter until a suitable provider SDK exists.",
+        "providerSdkDependencyPolicy": "do-not-add-third-party-gorgias-sdk-as-default-runtime-dependency",
+        "baseUrlPolicy": "required-account-subdomain-url; accepts https://{subdomain}.gorgias.com or the Gorgias Base API URL ending in /api",
+        "authSchemes": [
+          "bearer-oauth-access-token",
+          "basic-email-or-username-api-key"
+        ],
+        "defaultClient": "built-in-rest-adapter",
+        "rawClientEscapeHatch": "GorgiasTicketingProviderClient.rawRequest",
+        "allowlistedOperations": [
+          "POST /api/tickets",
+          "GET /api/tickets/{ticket_id}",
+          "PUT /api/tickets/{ticket_id}",
+          "GET /api/tickets",
+          "POST /api/tickets/{ticket_id}/messages",
+          "GET /api/messages",
+          "GET /api/account"
         ]
       },
       "delegatedSupportSurface": {
@@ -13272,7 +14440,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Help Scout",
-      "summary": "No official maintained backend JavaScript Inbox API client was verified; Help Scout's official JavaScript SDK is for Apps UI context.",
+      "summary": "No official maintained backend JavaScript Inbox API client was verified; Help Scout's official Inbox SDK is PHP, and the official JavaScript SDK is for Apps UI context.",
       "tags": [
         "ticketing",
         "help-scout",
@@ -13376,11 +14544,15 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "No official maintained backend JavaScript Inbox API client was verified; Help Scout's official JavaScript SDK is for Apps UI context.",
+        "No official maintained backend JavaScript Inbox API client was verified; Help Scout's official Inbox SDK is PHP, and the official JavaScript SDK is for Apps UI context.",
         "Coverage is implemented by the built-in Help Scout REST adapter for conversation create/read/list/update, thread list, reply/note thread creation, and mailbox-list readiness.",
         "A host-provided HelpScoutTicketingProviderClient can still override the built-in REST adapter."
       ],
       "evidence": [
+        {
+          "label": "Help Scout Inbox API",
+          "url": "https://developer.helpscout.com/mailbox-api/"
+        },
         {
           "label": "Help Scout JavaScript SDK",
           "url": "https://developer.helpscout.com/apps/javascript-sdk/"
@@ -13388,10 +14560,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "Help Scout open-source clients",
           "url": "https://developer.helpscout.com/open-source/"
-        },
-        {
-          "label": "Help Scout Inbox API",
-          "url": "https://developer.helpscout.com/mailbox-api/"
         }
       ]
     },
@@ -13439,13 +14607,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "provider-rest-adapter",
-      "sdkPackage": "optional-override",
+      "sdkPackage": "@cognidesk/integration-ticketing-help-scout",
       "runtimePackage": "@cognidesk/integration-ticketing-help-scout",
       "providerModule": "integrations/ticketing/help-scout/dist/manifest.js",
       "manifestExport": "helpScoutTicketingProviderManifest",
       "manifestSource": "integrations/ticketing/help-scout/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developer.helpscout.com/apps/javascript-sdk/"
+      "documentationPath": "https://developer.helpscout.com/mailbox-api/"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -13486,57 +14654,110 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "issue": 35,
       "implementation": {
-        "implementationStrategy": "provider-rest-adapter",
+        "strategy": "provider-rest-adapter",
+        "adapterKind": "no-official-sdk-rest-adapter",
+        "defaultHttpClient": "providerJsonRequest",
+        "packageOwnedRestClient": true,
+        "providerClientOverride": true,
         "providerSdkDecision": "no-official-sdk-rest-adapter",
         "verifiedAt": "2026-06-25",
+        "sdkEvaluation": {
+          "checkedAt": "2026-06-25",
+          "result": "no-official-maintained-runtime-sdk",
+          "requiredRuntimeSurface": "server-side Help Scout Inbox API 2.0 ticketing client",
+          "candidates": [
+            {
+              "package": "@helpscout/javascript-sdk",
+              "checkedVersion": "0.10.0",
+              "result": "not-runtime-inbox-api-client",
+              "reason": "Official Help Scout JavaScript SDK is for Apps UI context, contextual data, and interface actions rather than backend Inbox API ticketing operations."
+            },
+            {
+              "package": "helpscout",
+              "checkedVersion": "0.0.1",
+              "result": "rejected-unofficial-legacy",
+              "reason": "Community Node wrapper; not listed by Help Scout as an official supported Inbox API client."
+            },
+            {
+              "package": "helpscout-v2",
+              "checkedVersion": "0.0.2",
+              "result": "rejected-unofficial",
+              "reason": "Community Help Scout API v2 wrapper; not an official or maintained provider runtime SDK."
+            },
+            {
+              "package": "@bufferapp/helpscout",
+              "checkedVersion": "0.1.2",
+              "result": "rejected-unofficial-legacy",
+              "reason": "Third-party/legacy Node wrapper; not an official Help Scout-maintained runtime SDK."
+            }
+          ]
+        },
         "allowedOperations": [
           {
             "id": "conversations.create",
             "alias": "ticket.create",
-            "target": "restAdapter.createConversation"
+            "target": "restAdapter.createConversation",
+            "source": "provider-rest-adapter"
           },
           {
             "id": "conversations.read",
             "alias": "ticket.read",
-            "target": "restAdapter.getConversation"
+            "target": "restAdapter.getConversation",
+            "source": "provider-rest-adapter"
           },
           {
             "id": "conversations.update",
             "alias": "ticket.update",
-            "target": "restAdapter.updateConversation"
+            "target": "restAdapter.updateConversation",
+            "source": "provider-rest-adapter"
           },
           {
             "id": "conversations.list",
             "alias": "ticket.search",
-            "target": "restAdapter.listConversations"
+            "target": "restAdapter.listConversations",
+            "source": "provider-rest-adapter"
           },
           {
             "id": "reply.create",
             "alias": "ticket.comment.create",
-            "target": "restAdapter.createReply"
+            "target": "restAdapter.createReply",
+            "source": "provider-rest-adapter"
           },
           {
             "id": "note.create",
             "alias": "ticket.internalNote.create",
-            "target": "restAdapter.createNote"
+            "target": "restAdapter.createNote",
+            "source": "provider-rest-adapter"
           },
           {
             "id": "threads.list",
             "alias": "help-scout.thread.list",
-            "target": "restAdapter.listThreads"
+            "target": "restAdapter.listThreads",
+            "source": "provider-rest-adapter"
           },
           {
             "id": "mailboxes.list",
             "alias": "help-scout.readiness",
-            "target": "restAdapter.readiness"
+            "target": "restAdapter.readiness",
+            "source": "provider-rest-adapter"
           }
         ]
       },
       "manifestOnlySafe": true,
-      "implementationStrategy": "provider-rest-adapter",
       "sdkDecision": "no-official-sdk-rest-adapter",
+      "providerRestAdapterException": {
+        "status": "accepted",
+        "adapterKind": "no-official-sdk-rest-adapter",
+        "allowedDefaultRuntime": "built-in-help-scout-inbox-rest-adapter",
+        "hostSdkPath": "HelpScoutTicketingProviderClient",
+        "guardrails": [
+          "Do not add @helpscout/javascript-sdk as a runtime dependency for Inbox API ticketing; it is an Apps UI SDK.",
+          "Only the allowlisted Help Scout Inbox API operations in metadata.implementation.allowedOperations are package-owned.",
+          "Use a host-injected HelpScoutTicketingProviderClient for unsupported operations or for any future official maintained backend SDK."
+        ]
+      },
       "providerClient": {
-        "package": "optional-override",
+        "package": "host-provided",
         "interface": "HelpScoutTicketingProviderClient",
         "importPolicy": "runtime-override",
         "defaultClientPolicy": "built-in-rest-adapter"
@@ -13870,7 +15091,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "official-sdk",
         "sdkPackage": "@hubspot/api-client",
         "sdkVersionRange": "^13.5.0",
-        "rawClientEscapeHatch": "HubSpotTicketingClient.rawClient",
+        "rawClientEscapeHatch": "HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()",
         "manifestImport": "no-sdk-client-initialization"
       },
       "channelCoverage": {
@@ -14077,7 +15298,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.",
-        "Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient.",
+        "Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient/getRawClient().",
         "Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."
       ],
       "evidence": [
@@ -14189,7 +15410,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "official-sdk",
         "sdkPackage": "intercom-client",
         "sdkVersionRange": "7.0.3",
-        "rawClientEscapeHatch": "IntercomTicketingClient.rawClient",
+        "rawClientEscapeHatch": "IntercomTicketingClient.rawClient/getRawClient()",
         "manifestImport": "no-sdk-client-initialization",
         "supplyChainNote": "7.0.3 is pinned; do not allow compromised 7.0.4."
       },
@@ -14370,6 +15591,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "Kustomer's developer surface separates REST APIs for backend systems from Apps Platform and Chat SDK packages.",
         "Support workflow calls use the built-in Kustomer REST adapter when baseUrl and accessToken/apiKey are configured.",
         "A host-provided KustomerTicketingProviderClient can still override the built-in REST adapter.",
+        "The package declares an explicit REST-adapter exception because the checked Kustomer npm SDK packages do not provide a suitable backend support/ticketing REST client.",
         "Coverage is limited to Kustomer conversation create/read/update/list, message list/create, customer draft creation, and org readiness for support workflows.",
         "This package intentionally does not copy the old generated full Kustomer public API clone."
       ],
@@ -14385,6 +15607,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "@kustomer/apps-server npm package",
           "url": "https://www.npmjs.com/package/@kustomer/apps-server"
+        },
+        {
+          "label": "@kustomer/apps-server-sdk npm package",
+          "url": "https://www.npmjs.com/package/@kustomer/apps-server-sdk"
+        },
+        {
+          "label": "@kustomer/chat-react-native npm package",
+          "url": "https://www.npmjs.com/package/@kustomer/chat-react-native"
         },
         {
           "label": "Kustomer API keys",
@@ -14519,9 +15749,36 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "@kustomer/apps-server-sdk",
             "@kustomer/chat-react-native"
           ],
+          "checkedAt": "2026-06-25",
           "verdict": "no-official-sdk-rest-adapter",
-          "reason": "Kustomer's maintained JavaScript SDK packages target Apps Platform or Chat runtimes; no official package was verified that fully covers backend public REST ticketing operations for conversations, messages, and customer drafts.",
-          "checkedAt": "2026-06-25"
+          "result": "no-official-maintained-ticketing-rest-sdk",
+          "reason": "Kustomer's maintained JavaScript packages cover Apps Platform and Chat SDK runtimes, but do not provide a backend support/ticketing REST client for the conversation, message, customer draft, and readiness operations exposed by this package.",
+          "rejectedSdkPackages": [
+            {
+              "packageName": "@kustomer/apps-server",
+              "checkedVersion": "3.0.5",
+              "license": "MIT",
+              "reason": "Official Apps Platform server SDK for building Kustomer apps, not a backend public REST ticketing client."
+            },
+            {
+              "packageName": "@kustomer/apps-client",
+              "checkedVersion": "3.0.5",
+              "license": "MIT",
+              "reason": "Official Apps Platform client SDK for Kustomer app UI/runtime behavior, not backend support ticketing operations."
+            },
+            {
+              "packageName": "@kustomer/apps-server-sdk",
+              "checkedVersion": "0.0.60",
+              "license": "not-declared",
+              "reason": "Legacy app-building SDK with limited app API helpers, not a maintained public REST ticketing client for this support surface."
+            },
+            {
+              "packageName": "@kustomer/chat-react-native",
+              "checkedVersion": "5.3.4",
+              "license": "SEE LICENSE AT https://www.kustomer.com/legal/supplemental-terms/",
+              "reason": "React Native Chat SDK for customer-facing chat UI, not a server-side support ticketing REST client."
+            }
+          ]
         },
         "allowedOperations": [
           {
@@ -14576,7 +15833,77 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       "manifestOnlySafe": true,
       "implementationStrategy": "provider-rest-adapter",
-      "sdkDecision": "no-official-sdk-rest-adapter",
+      "sdkDecision": {
+        "candidates": [
+          "@kustomer/apps-server",
+          "@kustomer/apps-client",
+          "@kustomer/apps-server-sdk",
+          "@kustomer/chat-react-native"
+        ],
+        "checkedAt": "2026-06-25",
+        "verdict": "no-official-sdk-rest-adapter",
+        "result": "no-official-maintained-ticketing-rest-sdk",
+        "reason": "Kustomer's maintained JavaScript packages cover Apps Platform and Chat SDK runtimes, but do not provide a backend support/ticketing REST client for the conversation, message, customer draft, and readiness operations exposed by this package.",
+        "rejectedSdkPackages": [
+          {
+            "packageName": "@kustomer/apps-server",
+            "checkedVersion": "3.0.5",
+            "license": "MIT",
+            "reason": "Official Apps Platform server SDK for building Kustomer apps, not a backend public REST ticketing client."
+          },
+          {
+            "packageName": "@kustomer/apps-client",
+            "checkedVersion": "3.0.5",
+            "license": "MIT",
+            "reason": "Official Apps Platform client SDK for Kustomer app UI/runtime behavior, not backend support ticketing operations."
+          },
+          {
+            "packageName": "@kustomer/apps-server-sdk",
+            "checkedVersion": "0.0.60",
+            "license": "not-declared",
+            "reason": "Legacy app-building SDK with limited app API helpers, not a maintained public REST ticketing client for this support surface."
+          },
+          {
+            "packageName": "@kustomer/chat-react-native",
+            "checkedVersion": "5.3.4",
+            "license": "SEE LICENSE AT https://www.kustomer.com/legal/supplemental-terms/",
+            "reason": "React Native Chat SDK for customer-facing chat UI, not a server-side support ticketing REST client."
+          }
+        ]
+      },
+      "providerRestAdapterException": {
+        "checkedAt": "2026-06-25",
+        "result": "no-official-maintained-ticketing-rest-sdk",
+        "reason": "Kustomer's maintained JavaScript packages cover Apps Platform and Chat SDK runtimes, but do not provide a backend support/ticketing REST client for the conversation, message, customer draft, and readiness operations exposed by this package.",
+        "defaultClientPolicy": "built-in-kustomer-rest-adapter-with-access-token",
+        "typedClientOverride": "KustomerTicketingProviderClient",
+        "rejectedSdkPackages": [
+          {
+            "packageName": "@kustomer/apps-server",
+            "checkedVersion": "3.0.5",
+            "license": "MIT",
+            "reason": "Official Apps Platform server SDK for building Kustomer apps, not a backend public REST ticketing client."
+          },
+          {
+            "packageName": "@kustomer/apps-client",
+            "checkedVersion": "3.0.5",
+            "license": "MIT",
+            "reason": "Official Apps Platform client SDK for Kustomer app UI/runtime behavior, not backend support ticketing operations."
+          },
+          {
+            "packageName": "@kustomer/apps-server-sdk",
+            "checkedVersion": "0.0.60",
+            "license": "not-declared",
+            "reason": "Legacy app-building SDK with limited app API helpers, not a maintained public REST ticketing client for this support surface."
+          },
+          {
+            "packageName": "@kustomer/chat-react-native",
+            "checkedVersion": "5.3.4",
+            "license": "SEE LICENSE AT https://www.kustomer.com/legal/supplemental-terms/",
+            "reason": "React Native Chat SDK for customer-facing chat UI, not a server-side support ticketing REST client."
+          }
+        ]
+      },
       "providerClient": {
         "package": "optional-override",
         "interface": "KustomerTicketingProviderClient",
@@ -14861,13 +16188,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "readiness": {
       "mode": "credential-and-live-check",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
+      "requiresCredentials": false,
+      "requiredCredentialIds": [],
+      "optionalCredentialIds": [
+        "oracle-service-provider-client",
         "oracle-service-instance",
         "oracle-service-api-access"
-      ],
-      "optionalCredentialIds": [
-        "oracle-service-provider-client"
       ],
       "credentialRequirements": [
         {
@@ -14887,7 +16213,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "label": "Oracle Fusion Service instance URL",
           "description": "The Oracle Fusion Service base URL, for example https://example.fa.oraclecloud.com, used by the built-in REST adapter or supplied by a host provider client override.",
           "scopes": [],
-          "required": true
+          "required": false,
+          "metadata": {
+            "requiredWhen": "built-in-provider-rest-adapter"
+          }
         },
         {
           "id": "oracle-service-api-access",
@@ -14897,8 +16226,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "serviceRequests:read",
             "serviceRequests:write"
           ],
-          "required": true,
+          "required": false,
           "metadata": {
+            "requiredWhen": "built-in-provider-rest-adapter",
             "scopeKind": "internal-capability-labels",
             "privilegeGuidance": "These strings are Cognidesk capability labels, not official Oracle OAuth scope names. Oracle access depends on Fusion Service roles and privileges for service request read/create/update/search and message creation."
           }
@@ -14930,13 +16260,66 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       "implementationStrategy": {
         "strategy": "no-official-sdk-rest-adapter",
-        "reason": "No suitable official JavaScript SDK was verified for Oracle Fusion Service serviceRequests; Oracle documents this surface as Fusion Cloud Applications REST APIs, while the official OCI TypeScript/JavaScript SDK manages OCI resources including Fusion Apps as a Service rather than service request records.",
+        "result": "no-suitable-maintained-runtime-provider-sdk",
+        "exception": "provider-rest-adapter",
+        "reason": "No suitable maintained npm runtime SDK was verified for Oracle Fusion Service serviceRequests or Oracle Service Cloud/B2C Service incidents; Oracle documents these ticketing surfaces as REST APIs, while the official OCI TypeScript/JavaScript SDK manages OCI resources including Fusion Apps as a Service rather than service request records.",
         "checkedAt": "2026-06-25",
         "rejectedLibraries": [
           {
-            "packageName": "oci-sdk / oci-fusionapps",
+            "packageName": "oci-fusionapps",
             "version": "2.135.1",
-            "reason": "Official Oracle-maintained OCI SDK family for OCI resources and Fusion Apps as a Service administration, but not a Fusion Service service request data client."
+            "source": "npm",
+            "result": "not-used-as-runtime-ticketing-sdk",
+            "reason": "Oracle-maintained OCI SDK package for Fusion Apps Service administration, not a typed Oracle Fusion Service serviceRequests or B2C Service incident data client."
+          },
+          {
+            "packageName": "oci-sdk",
+            "version": "2.135.1",
+            "source": "npm",
+            "result": "not-used-as-runtime-ticketing-sdk",
+            "reason": "Oracle-maintained OCI SDK aggregate, but it does not expose the Oracle Fusion Service serviceRequests or Oracle B2C Service incident ticketing runtime surface used by this package."
+          },
+          {
+            "packageName": "osvc_node",
+            "version": "1.0.0",
+            "source": "npm",
+            "result": "rejected-unofficial-stale-wrapper",
+            "reason": "Unofficial Oracle Service Cloud REST wrapper last published years ago, not a maintained Oracle runtime SDK suitable for Cognidesk provider-client ownership."
+          }
+        ]
+      },
+      "sdkDecision": {
+        "result": "provider-rest-adapter-exception",
+        "providerRestAdapterException": true,
+        "viableMaintainedRuntimeProviderSdk": false,
+        "acceptedRuntimeProviderSdk": null,
+        "checkedAt": "2026-06-25",
+        "checkedSources": [
+          "Oracle Fusion Service serviceRequests REST API documentation",
+          "Oracle B2C Service incidents REST API documentation",
+          "npm registry package metadata and search results"
+        ],
+        "rejectedLibraries": [
+          {
+            "packageName": "oci-fusionapps",
+            "version": "2.135.1",
+            "source": "npm",
+            "result": "not-used-as-runtime-ticketing-sdk",
+            "reason": "Oracle-maintained OCI SDK package for Fusion Apps Service administration, not a typed Oracle Fusion Service serviceRequests or B2C Service incident data client."
+          },
+          {
+            "packageName": "oci-sdk",
+            "version": "2.135.1",
+            "source": "npm",
+            "result": "not-used-as-runtime-ticketing-sdk",
+            "reason": "Oracle-maintained OCI SDK aggregate, but it does not expose the Oracle Fusion Service serviceRequests or Oracle B2C Service incident ticketing runtime surface used by this package."
+          },
+          {
+            "packageName": "osvc_node",
+            "version": "1.0.0",
+            "source": "npm",
+            "result": "rejected-unofficial-stale-wrapper",
+            "reason": "Unofficial Oracle Service Cloud REST wrapper last published years ago, not a maintained Oracle runtime SDK suitable for Cognidesk provider-client ownership."
           }
         ]
       },
@@ -15249,6 +16632,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "label": "@pega/constellationjs package",
           "url": "https://www.npmjs.com/package/@pega/constellationjs"
+        },
+        {
+          "label": "@pega/auth package",
+          "url": "https://www.npmjs.com/package/@pega/auth"
         }
       ]
     },
@@ -15306,13 +16693,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "readiness": {
       "mode": "credential-and-live-check",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
+      "requiresCredentials": false,
+      "requiredCredentialIds": [],
+      "optionalCredentialIds": [
+        "pega-customer-service-provider-client",
         "pega-customer-service-instance",
         "pega-customer-service-api-access"
-      ],
-      "optionalCredentialIds": [
-        "pega-customer-service-provider-client"
       ],
       "credentialRequirements": [
         {
@@ -15334,7 +16720,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "label": "Pega Customer Service base URL",
           "description": "Pega application base URL used by the built-in DX REST adapter, or supplied by a host provider client override.",
           "scopes": [],
-          "required": true
+          "required": false,
+          "metadata": {
+            "requiredWhen": "built-in-dx-rest-adapter"
+          }
         },
         {
           "id": "pega-customer-service-api-access",
@@ -15345,8 +16734,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "cases:write",
             "assignments:write"
           ],
-          "required": true,
+          "required": false,
           "metadata": {
+            "requiredWhen": "built-in-dx-rest-adapter",
             "scopeKind": "internal-capability-labels",
             "privilegeGuidance": "These strings are Cognidesk capability labels, not official Pega OAuth scope names. Pega access depends on application OAuth/client configuration, roles, privileges, and case security."
           }
@@ -15387,6 +16777,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "packageName": "@pega/constellationjs",
             "result": "not-used-as-package-default",
             "reason": "Pega-maintained package, but it delivers ConstellationJS engine files rather than a server-side Customer Service case client."
+          },
+          {
+            "packageName": "@pega/auth",
+            "result": "not-used-as-package-default",
+            "reason": "Pega-maintained OAuth client infrastructure for Infinity and Launchpad, but not a typed Customer Service or DX case operations client."
           },
           {
             "packageName": "pegasystems/react-sdk",
@@ -15651,7 +17046,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "provider-api-subset",
       "notes": [
         "Coverage is scoped to Service Cloud Case support workflows implemented by typed handlers.",
-        "Implementation uses maintained jsforce v3. Broader Salesforce APIs and org-specific sObjects remain accessible through rawClient, but are not Cognidesk adapter coverage.",
+        "Implementation uses maintained jsforce v3. Broader Salesforce APIs and org-specific sObjects remain accessible through rawClient/getRawClient(), but are not Cognidesk adapter coverage.",
         "Generated or direct raw Salesforce slices should stay scoped to reviewed Service Cloud support workflows."
       ],
       "evidence": [
@@ -15776,7 +17171,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "maintained-library",
         "sdkPackage": "jsforce",
         "sdkVersionRange": "^3.10.16",
-        "rawClientEscapeHatch": "SalesforceTicketingClient.rawClient",
+        "rawClientEscapeHatch": "SalesforceTicketingClient.rawClient and getRawClient()",
         "manifestImport": "no-sdk-client-initialization"
       },
       "channelCoverage": {
@@ -15846,7 +17241,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "SAP Service Cloud",
-      "summary": "Runtime coverage uses the built-in SAP Service Cloud OData adapter for selected ServiceRequestCollection create, read by ObjectID, update, search, and readiness workflows when baseUrl plus access credentials are provided.",
+      "summary": "Runtime coverage uses the built-in SAP Service Cloud OData adapter backed by the official SAP Cloud SDK HTTP client for selected ServiceRequestCollection create, read by ObjectID, update, search, and readiness workflows when baseUrl plus access credentials are provided.",
       "tags": [
         "ticketing",
         "sap-service-cloud",
@@ -15968,7 +17363,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "support-workflow-subset",
       "notes": [
-        "Runtime coverage uses the built-in SAP Service Cloud OData adapter for selected ServiceRequestCollection create, read by ObjectID, update, search, and readiness workflows when baseUrl plus access credentials are provided.",
+        "Runtime coverage uses the built-in SAP Service Cloud OData adapter backed by the official SAP Cloud SDK HTTP client for selected ServiceRequestCollection create, read by ObjectID, update, search, and readiness workflows when baseUrl plus access credentials are provided.",
         "A host-injected SapServiceCloudTicketingProviderClient remains available as an override for SDK-user-owned generated clients, destination handling, authentication, retries, or endpoint policy.",
         "This is not full SAP Service Cloud API coverage; notes, descriptions, attachments, involved parties, service categories, code-list discovery, custom OData services, communication arrangements, workflow actions, v2 migration policy, and broader SAP Cloud for Customer APIs remain outside this adapter."
       ],
@@ -16031,7 +17426,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "support-workflow-adapter",
       "sdkPackage": "@cognidesk/integration-ticketing-sap-service-cloud",
       "runtimePackage": "@cognidesk/integration-ticketing-sap-service-cloud",
       "providerModule": "integrations/ticketing/sap-service-cloud/dist/manifest.js",
@@ -16042,13 +17437,12 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "readiness": {
       "mode": "credential-and-live-check",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
+      "requiresCredentials": false,
+      "requiredCredentialIds": [],
+      "optionalCredentialIds": [
+        "sap-service-cloud-provider-client",
         "sap-service-cloud-instance",
         "sap-service-cloud-api-access"
-      ],
-      "optionalCredentialIds": [
-        "sap-service-cloud-provider-client"
       ],
       "credentialRequirements": [
         {
@@ -16060,7 +17454,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "metadata": {
             "injectionInterface": "SapServiceCloudTicketingProviderClient",
             "credentialOwnership": "host-managed-override",
-            "defaultClientPolicy": "built-in-odata-rest-adapter"
+            "defaultClientPolicy": "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client"
           }
         },
         {
@@ -16068,7 +17462,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "label": "SAP Service Cloud base URL",
           "description": "SAP Service Cloud tenant base URL used by the built-in OData adapter, or supplied by a host provider client override.",
           "scopes": [],
-          "required": true
+          "required": false,
+          "metadata": {
+            "requiredWhen": "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client"
+          }
         },
         {
           "id": "sap-service-cloud-api-access",
@@ -16078,8 +17475,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "ServiceRequestCollection:read",
             "ServiceRequestCollection:write"
           ],
-          "required": true,
+          "required": false,
           "metadata": {
+            "requiredWhen": "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client",
             "scopeKind": "internal-capability-labels",
             "privilegeGuidance": "These strings are Cognidesk capability labels for ServiceRequestCollection access, not official SAP OAuth scope names. SAP authorization depends on the host client's communication arrangements, destination/auth configuration, business user permissions, and exposed services."
           }
@@ -16103,56 +17501,75 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "metadata": {
       "implementation": {
-        "strategy": "provider-rest-adapter",
-        "adapterKind": "no-official-service-sdk-odata-rest-adapter",
+        "strategy": "provider-sdk-http-client-odata-adapter",
+        "adapterKind": "sap-cloud-sdk-http-client-odata-adapter",
         "providerClientInterface": "SapServiceCloudTicketingProviderClient",
-        "defaultHttpClient": "built-in-fetch",
-        "defaultFetchClient": "built-in-provider-rest-adapter",
-        "packageOwnedRestClient": true,
+        "providerSdkPackage": "@sap-cloud-sdk/http-client",
+        "defaultHttpClient": "executeHttpRequest",
+        "defaultFetchClient": "host-fetch-override-only",
+        "packageOwnedRestClient": false,
+        "packageOwnedODataMapping": true,
         "providerClientOverride": true,
         "manifestImport": "no-client-initialization"
       },
-      "implementationStrategy": "no-official-service-sdk-odata-rest-adapter",
+      "implementationStrategy": "sap-cloud-sdk-http-client-odata-adapter",
       "providerClient": {
         "interface": "SapServiceCloudTicketingProviderClient",
         "injectionPolicy": "optional-runtime-override",
         "importPolicy": "optional-host-override",
-        "defaultClient": "built-in-odata-rest-adapter"
+        "defaultClient": "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client"
+      },
+      "providerSdkRuntime": {
+        "package": "@sap-cloud-sdk/http-client",
+        "checkedVersion": "4.7.0",
+        "license": "Apache-2.0",
+        "importedRuntimeFunction": "executeHttpRequest",
+        "importedRuntimeTypes": [
+          "HttpRequestConfig",
+          "HttpResponse",
+          "Method"
+        ],
+        "defaultRuntime": "SAP Cloud SDK HTTP client executes the package-owned ServiceRequestCollection OData mapping.",
+        "compatibilityFallback": "Explicit host fetch or retry options keep the legacy integration-kit JSON transport for callers that require fetch injection or integration-kit retry semantics."
       },
       "checkedProviderSdk": {
         "checkedAt": "2026-06-25",
-        "verdict": "no-official-service-sdk-rest-adapter",
-        "reason": "SAP Cloud SDK for JavaScript is official and viable as a generic OData/generator toolkit, but no redistributable SAP Service Cloud ServiceRequestCollection JavaScript client/EDMX artifact is pinned by this package; the package therefore ships a small built-in OData REST adapter for the selected support workflow surface.",
+        "verdict": "sdk-backed-generic-odata-http-client",
+        "reason": "SAP Cloud SDK for JavaScript is official and current. No generated ServiceRequestCollection client is bundled here, so this package owns the typed OData path/body mapping while delegating runtime HTTP execution to @sap-cloud-sdk/http-client.",
         "candidates": [
+          {
+            "package": "@sap-cloud-sdk/http-client",
+            "checkedVersion": "4.7.0",
+            "license": "Apache-2.0",
+            "result": "accepted-runtime-http-client",
+            "reason": "Official SAP Cloud SDK HTTP client provides executeHttpRequest and typed request/response surfaces suitable for the package's existing ServiceRequestCollection OData mapping."
+          },
           {
             "package": "@sap-cloud-sdk/odata-v2",
             "checkedVersion": "4.7.0",
-            "result": "not-used-as-package-default",
+            "license": "Apache-2.0",
+            "result": "not-generated-client-in-this-package",
             "reason": "Official generic SAP Cloud SDK OData v2 runtime; requires generated service client metadata and host destination/auth setup rather than providing a SAP Service Cloud ServiceRequestCollection client."
           },
           {
             "package": "@sap-cloud-sdk/generator",
             "checkedVersion": "4.7.0",
+            "license": "Apache-2.0",
             "result": "not-runtime-client",
             "reason": "Official generator for EDMX-based clients; this package does not own or redistribute tenant/version-specific SAP Service Cloud metadata."
-          },
-          {
-            "package": "@sap-cloud-sdk/http-client",
-            "checkedVersion": "4.7.0",
-            "result": "not-used-as-package-default",
-            "reason": "Generic HTTP transport does not provide a ServiceRequestCollection-specific client; this package uses integration-kit providerJsonRequest for its selected OData REST operations."
           }
         ],
         "sources": [
           "https://sap.github.io/cloud-sdk/docs/js/overview",
           "https://sap.github.io/cloud-sdk/docs/js/features/odata/overview",
           "https://sap.github.io/cloud-sdk/docs/js/features/odata/generate-client",
+          "https://www.npmjs.com/package/@sap-cloud-sdk/http-client",
           "https://www.npmjs.com/package/@sap-cloud-sdk/odata-v2"
         ]
       },
       "providerRestAdapterSupportSurface": {
-        "source": "Built-in SAP Service Cloud OData adapter",
-        "adapterKind": "no-official-service-sdk-odata-rest-adapter",
+        "source": "Built-in SAP Service Cloud OData mapping executed through SAP Cloud SDK HTTP client",
+        "adapterKind": "sap-cloud-sdk-http-client-odata-adapter",
         "operations": [
           {
             "alias": "ticket.create",
@@ -16362,6 +17779,67 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
+        "capability": "send",
+        "label": "Send customer-visible updates",
+        "description": "Posts customer-visible comments to ServiceNow incident records.",
+        "audiences": [
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "servicenowIncident",
+            "label": "ServiceNow Incident",
+            "schemaName": "incident"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "draft",
+        "label": "Create internal notes",
+        "description": "Creates internal work notes on ServiceNow incident records.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "servicenowIncident",
+            "label": "ServiceNow Incident",
+            "schemaName": "incident"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "attach",
+        "label": "Attach files to ServiceNow records",
+        "description": "Uploads attachments to ServiceNow records.",
+        "audiences": [
+          "internal-support",
+          "mixed"
+        ],
+        "providerObjects": [
+          {
+            "kind": "servicenowAttachment",
+            "label": "ServiceNow Attachment"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
         "capability": "handoff",
         "label": "Attach record handoff to ServiceNow",
         "description": "Provides Table API incident, attachment, and import-set operations used by SDK-user-configured record handoff workflows; this is not native Virtual Agent or Live Agent Chat transfer coverage.",
@@ -16471,7 +17949,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "provider-rest-adapter",
-      "sdkPackage": "@cognidesk/integration-ticketing-servicenow",
+      "sdkPackage": "@servicenow/sdk-api",
       "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
       "providerModule": "integrations/ticketing/servicenow/dist/manifest.js",
       "manifestExport": "serviceNowTicketingProviderManifest",
@@ -16529,25 +18007,27 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "provider-rest-adapter",
         "runtimePackage": "@cognidesk/integration-ticketing-servicenow",
         "rawClientEscapeHatch": "ServiceNowTicketingClient.rawClient",
+        "sdkPackage": "@servicenow/sdk-api",
+        "sdkRuntimeSurface": "Connector.fetch and Connector.queryTable",
         "manifestImport": "no-sdk-client-initialization",
-        "defaultClientPolicy": "use-built-in-rest-adapter-when-instance-and-auth-are-configured",
+        "defaultClientPolicy": "use-official-servicenow-sdk-api-connector-for-oauth-runtime-transport; use Basic Auth REST fallback only when username/password are configured",
         "rawClientOverride": true,
-        "packageOwnedRestClient": true
+        "packageOwnedRestClient": false
       },
       "sdkDecision": {
         "checkedAt": "2026-06-25",
-        "package": "@servicenow/sdk",
+        "package": "@servicenow/sdk-api",
         "checkedVersion": "4.8.0",
         "license": "MIT",
-        "result": "official-sdk-not-runtime-rest-client",
-        "reason": "The package exports Fluent/application metadata authoring, CLI, LSP, and project orchestration APIs. Its Record, RestApi, and ImportSet APIs generate ServiceNow app metadata; they do not provide a runtime Table API, Attachment API, or Import Set API client for Cognidesk support operations."
+        "result": "official-sdk-runtime-connector-not-ticketing-client",
+        "reason": "The official ServiceNow SDK API exports Connector.fetch and Connector.queryTable as runtime instance transport. It does not provide a ticketing-specific Table/Attachment/Import Set client, so Cognidesk translates ticketing operations into the official connector transport and retains typed rawClient injection for host-owned clients."
       },
       "checkedProviderSdk": {
-        "package": "@servicenow/sdk",
+        "package": "@servicenow/sdk-api",
         "checkedVersion": "4.8.0",
         "license": "MIT",
-        "result": "not-used-as-runtime-rest-client",
-        "reason": "Retained compatibility metadata for catalog consumers; see sdkDecision for the runtime-client decision."
+        "result": "used-as-runtime-connector",
+        "reason": "OAuth default runtime uses Connector.fetch for create/read/update/attachment/import-set calls and Connector.queryTable for compatible table search calls. Username/password credentials use the Basic Auth REST fallback because the SDK connector credential API exposes OAuth bearer tokens and user-token/cookie auth, not Basic Auth credentials."
       },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
@@ -16886,7 +18366,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "strategy": "provider-sdk-backed-client",
         "sdkPackage": "node-zendesk",
         "sdkVersionRange": "^6.0.1",
-        "rawClientEscapeHatch": "ZendeskTicketingClient.rawClient",
+        "rawClientEscapeHatch": "ZendeskTicketingClient.rawClient / getRawClient()",
         "manifestImport": "no-sdk-client-initialization"
       },
       "providerClient": {
@@ -17233,12 +18713,16 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "metadata": {
       "implementation": {
         "strategy": "provider-rest-adapter",
+        "adapterKind": "no-official-sdk-rest-adapter",
         "runtimePackage": "@cognidesk/integration-ticketing-zoho-desk",
+        "providerClientInterface": "ZohoDeskProviderClient",
         "defaultClientPolicy": "use-built-in-rest-adapter-when-orgId-and-accessToken-are-configured",
         "providerClientOverride": true,
         "packageOwnedRestClient": true,
+        "officialRuntimeSdkAvailable": false,
         "manifestImport": "no-client-initialization"
       },
+      "implementationStrategy": "no-official-sdk-rest-adapter",
       "providerClient": {
         "package": "built-in-provider-rest-adapter",
         "interface": "ZohoDeskProviderClient",
@@ -17253,6 +18737,58 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "Zoho Desk ASAP/Web SDK documentation targets embedded help-center or extension widgets, not backend ticketing provider operations."
           ]
         }
+      },
+      "providerRestAdapterException": {
+        "status": "accepted",
+        "reviewedAt": "2026-06-25",
+        "adapterKind": "no-official-sdk-rest-adapter",
+        "reason": "No maintained official Zoho Desk Node/TypeScript runtime SDK was verified for backend ticketing operations; Zoho's official Desk SDK documentation is Java- or browser/widget-oriented for the surfaces checked.",
+        "allowedDefaultRuntime": "built-in-rest-adapter",
+        "hostSdkPath": "ZohoDeskProviderClient",
+        "guardrails": [
+          "Keep backend ticketing calls behind ZohoDeskProviderClient and the built-in REST adapter until an official maintained Node/TypeScript Zoho Desk runtime SDK exists.",
+          "Do not add @zohodesk/js-api-creator as the default provider SDK; it is a generic API builder, not a typed Zoho Desk ticketing client.",
+          "If an official maintained runtime SDK is adopted later, switch implementation.strategy away from provider-rest-adapter and declare cognidesk.providerSdkDependencies."
+        ]
+      },
+      "checkedProviderSdk": {
+        "checkedAt": "2026-06-25",
+        "verdict": "no-official-sdk-rest-adapter",
+        "officialRuntimeSdkAvailable": false,
+        "candidates": [
+          {
+            "package": "Zoho Desk Java SDK",
+            "result": "not-node-typescript-runtime",
+            "reason": "Official SDK for Java applications; it is not a runtime package this Node/TypeScript provider package can import.",
+            "source": "https://www.zoho.com/desk/developers/javasdk/"
+          },
+          {
+            "package": "@zohodesk/js-api-creator",
+            "checkedVersion": "1.0.25",
+            "result": "not-provider-ticketing-sdk",
+            "reason": "Maintained JavaScript package, but its README describes a generic API builder rather than a dedicated Zoho Desk typed raw client.",
+            "source": "https://www.npmjs.com/package/@zohodesk/js-api-creator"
+          },
+          {
+            "package": "Zoho Desk extension JS SDK bundle",
+            "result": "not-backend-runtime-sdk",
+            "reason": "Extension widget SDK loaded from Zoho-hosted browser script after ZOHODESK.extension.onload(); it is not a server-side REST client dependency.",
+            "source": "https://help.zoho.com/portal/en/community/topic/building-extensions-8-create-widgets-using-the-js-sdk-bundle-in-the-zoho-desk-platform-part-1"
+          },
+          {
+            "package": "Zoho Desk ASAP JavaScript APIs",
+            "result": "not-backend-runtime-sdk",
+            "reason": "ASAP JavaScript APIs target embedded help-widget behavior in website pages, not backend ticket create/read/update/reply operations.",
+            "source": "https://www.zoho.com/desk/developers/asap/"
+          }
+        ],
+        "sources": [
+          "https://www.zoho.com/desk/developers/",
+          "https://www.zoho.com/desk/developers/javasdk/",
+          "https://www.npmjs.com/package/@zohodesk/js-api-creator",
+          "https://help.zoho.com/portal/en/community/topic/building-extensions-8-create-widgets-using-the-js-sdk-bundle-in-the-zoho-desk-platform-part-1",
+          "https://www.zoho.com/desk/developers/asap/"
+        ]
       },
       "checkedProviderApiCoverage": {
         "verifiedAt": "2026-06-18",
@@ -17645,7 +19181,113 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "sdkDecision": "No viable official maintained server-side Whereby REST SDK was verified; browser/core SDKs target live media/browser runtimes and the assistant SDK targets headless assistants, so provider operations default to this package's REST adapter.",
         "verifiedAt": "2026-06-25",
         "providerClientInterface": "WherebyVideoProviderClient",
-        "defaultClientPolicy": "built-in-rest-with-api-key"
+        "defaultClientPolicy": "built-in-rest-with-api-key",
+        "restAdapterException": {
+          "result": "no-official-maintained-server-rest-sdk",
+          "checkedAt": "2026-06-25",
+          "reason": "Whereby's official npm SDK packages are browser/WebRTC, React Native, or headless assistant clients; none provide the server-side REST resource management client needed for meetings, recordings, transcriptions, summaries, insights, room theme operations, and webhooks.",
+          "defaultClientPolicy": "built-in-whereby-rest-adapter-with-api-key",
+          "typedClientOverride": "WherebyVideoProviderClient",
+          "rejectedSdkPackages": [
+            {
+              "packageName": "@whereby.com/browser-sdk",
+              "checkedVersion": "3.26.0",
+              "license": "MIT",
+              "reason": "Official browser SDK for embedded/custom video UI, not a server REST API client."
+            },
+            {
+              "packageName": "@whereby.com/core",
+              "checkedVersion": "1.15.0",
+              "license": "MIT",
+              "reason": "Official low-level browser/WebRTC core SDK; exported RoomService covers claimed-room/client state operations, not Embedded REST resources such as meetings, recordings, transcriptions, summaries, insights, or webhooks."
+            },
+            {
+              "packageName": "@whereby.com/assistant-sdk",
+              "checkedVersion": "1.2.89",
+              "license": "MIT",
+              "reason": "Official Node assistant/media SDK for joining rooms headlessly, not REST resource management."
+            },
+            {
+              "packageName": "@whereby.com/react-native-sdk",
+              "checkedVersion": "0.8.113",
+              "license": "MIT",
+              "reason": "Official React Native SDK for mobile video experiences, not server REST operations."
+            },
+            {
+              "packageName": "@whereby.com/media",
+              "checkedVersion": "9.2.6",
+              "license": "MIT",
+              "reason": "Official WebRTC media library used by Whereby room clients; it does not expose server-side Embedded REST resource management operations."
+            }
+          ],
+          "missingServerRestSdkPackages": [
+            {
+              "packageName": "@whereby.com/rest-sdk",
+              "npmStatus": "404"
+            },
+            {
+              "packageName": "whereby",
+              "npmStatus": "404"
+            },
+            {
+              "packageName": "whereby-api",
+              "npmStatus": "404"
+            }
+          ]
+        }
+      },
+      "providerRestAdapterException": {
+        "result": "no-official-maintained-server-rest-sdk",
+        "checkedAt": "2026-06-25",
+        "reason": "Whereby's official npm SDK packages are browser/WebRTC, React Native, or headless assistant clients; none provide the server-side REST resource management client needed for meetings, recordings, transcriptions, summaries, insights, room theme operations, and webhooks.",
+        "defaultClientPolicy": "built-in-whereby-rest-adapter-with-api-key",
+        "typedClientOverride": "WherebyVideoProviderClient",
+        "rejectedSdkPackages": [
+          {
+            "packageName": "@whereby.com/browser-sdk",
+            "checkedVersion": "3.26.0",
+            "license": "MIT",
+            "reason": "Official browser SDK for embedded/custom video UI, not a server REST API client."
+          },
+          {
+            "packageName": "@whereby.com/core",
+            "checkedVersion": "1.15.0",
+            "license": "MIT",
+            "reason": "Official low-level browser/WebRTC core SDK; exported RoomService covers claimed-room/client state operations, not Embedded REST resources such as meetings, recordings, transcriptions, summaries, insights, or webhooks."
+          },
+          {
+            "packageName": "@whereby.com/assistant-sdk",
+            "checkedVersion": "1.2.89",
+            "license": "MIT",
+            "reason": "Official Node assistant/media SDK for joining rooms headlessly, not REST resource management."
+          },
+          {
+            "packageName": "@whereby.com/react-native-sdk",
+            "checkedVersion": "0.8.113",
+            "license": "MIT",
+            "reason": "Official React Native SDK for mobile video experiences, not server REST operations."
+          },
+          {
+            "packageName": "@whereby.com/media",
+            "checkedVersion": "9.2.6",
+            "license": "MIT",
+            "reason": "Official WebRTC media library used by Whereby room clients; it does not expose server-side Embedded REST resource management operations."
+          }
+        ],
+        "missingServerRestSdkPackages": [
+          {
+            "packageName": "@whereby.com/rest-sdk",
+            "npmStatus": "404"
+          },
+          {
+            "packageName": "whereby",
+            "npmStatus": "404"
+          },
+          {
+            "packageName": "whereby-api",
+            "npmStatus": "404"
+          }
+        ]
       },
       "providerClient": {
         "package": "host-provided",
@@ -17753,7 +19395,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     ],
     "display": {
       "label": "Zoom Meetings",
-      "summary": "Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec, executed through a built-in REST adapter when accessToken/getAccessToken/account OAuth/baseUrl/fetch options are provided.",
+      "summary": "Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec. Runtime uses Zoom's official @zoom/rivet Meetings SDK for mapped SDK operations when accessToken/getAccessToken/account OAuth credentials are provided.",
       "tags": [
         "video",
         "zoom",
@@ -17913,12 +19555,21 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     "coverage": {
       "scope": "provider-api-subset",
       "notes": [
-        "Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec, executed through a built-in REST adapter when accessToken/getAccessToken/account OAuth/baseUrl/fetch options are provided.",
-        "Typed convenience helpers remain available for meetings create/list/read/update/delete, current-user readiness, webhook URL-validation handling, and x-zm-signature verification; providerClient remains available as a host override.",
+        "Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec. Runtime uses Zoom's official @zoom/rivet Meetings SDK for mapped SDK operations when accessToken/getAccessToken/account OAuth credentials are provided.",
+        "Typed convenience helpers remain available for meetings create/list/read/update/delete through @zoom/rivet, current-user readiness through @zoom/rivet/users, webhook URL-validation handling, and x-zm-signature verification; providerClient remains available as a host override.",
+        "The built-in typed REST adapter remains only for explicit REST exceptions: @zoom/rivet 0.4.0 does not expose GET /report/disclaimer or GET /report/remote_support, and low-level fetch/signal/retry/oauthBaseUrl options intentionally request the package-owned REST transport.",
         "This package is a generated Zoom Meetings API domain slice, not full Zoom platform coverage. Zoom Phone, Contact Center, Team Chat, Rooms, Marketplace app management outside the Meetings API Hub, account administration beyond this spec, and full webhook/event catalogs remain separate Zoom surfaces.",
         "The SDK user owns OAuth scopes, host delegation, account plan/admin settings, meeting lifecycle policy, recording/transcript consent, retention, deletion, and participant disclosure decisions."
       ],
       "evidence": [
+        {
+          "label": "Zoom Rivet for JavaScript",
+          "url": "https://developers.zoom.us/docs/rivet/javascript/"
+        },
+        {
+          "label": "Zoom Rivet JavaScript repository",
+          "url": "https://github.com/zoom/rivet-javascript"
+        },
         {
           "label": "Zoom Meetings API Hub OpenAPI",
           "url": "https://developers.zoom.us/api-hub/meetings/methods/endpoints.json"
@@ -17943,14 +19594,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "conformant": null
     },
     "implementation": {
-      "strategy": "provider-rest-adapter",
+      "strategy": "provider-api-subset",
       "sdkPackage": "@cognidesk/integration-video-zoom",
       "runtimePackage": "@cognidesk/integration-video-zoom",
       "providerModule": "integrations/video/zoom/dist/manifest.js",
       "manifestExport": "zoomVideoProviderManifest",
       "manifestSource": "integrations/video/zoom/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "https://developers.zoom.us/api-hub/meetings/methods/endpoints.json"
+      "documentationPath": "https://developers.zoom.us/docs/rivet/javascript/"
     },
     "readiness": {
       "mode": "credential-configuration",
@@ -17966,19 +19617,19 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         {
           "id": "zoom-video-provider-client",
           "label": "Optional Zoom video provider client override",
-          "description": "Optional host-managed Zoom provider client backed by an approved SDK, provider package, or host-owned transport when overriding the built-in REST adapter.",
+          "description": "Optional host-managed Zoom provider client backed by an approved SDK, provider package, or host-owned transport when overriding the built-in @zoom/rivet runtime.",
           "scopes": [],
           "required": false,
           "metadata": {
             "injectionInterface": "ZoomVideoProviderClient",
             "credentialOwnership": "sdk-user-or-host-managed",
-            "defaultClientPolicy": "built-in-rest-with-oauth"
+            "defaultClientPolicy": "official-rivet-sdk-with-reviewed-rest-exceptions"
           }
         },
         {
           "id": "zoom-oauth-access-token",
           "label": "Zoom OAuth access token",
-          "description": "Server-side OAuth access token used by the built-in Zoom REST adapter or host provider client for meeting and user endpoints.",
+          "description": "Server-side OAuth access token used by @zoom/rivet, the reviewed REST exceptions, or a host provider client for meeting and user endpoints.",
           "scopes": [
             "meeting:write",
             "meeting:read",
@@ -18011,11 +19662,11 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "User consent, meeting disclosure, recording enablement, transcript use, retention, and deletion are owned by the SDK user's Zoom account configuration and application policy."
     ],
     "limitations": [
-      "Runtime provider API calls use the built-in Zoom REST adapter when OAuth credentials are supplied, or an optional host-injected ZoomVideoProviderClient override.",
-      "Missing OAuth credentials and missing providerClient fail closed; SDK users own token lifecycle, retries, and account authorization policy.",
+      "Runtime provider API calls use Zoom's official @zoom/rivet SDK when OAuth credentials are supplied, except for documented REST exceptions or explicit low-level REST transport options.",
+      "Missing OAuth credentials and missing providerClient fail closed; SDK users own token lifecycle, retry policy, and account authorization policy.",
       "Available meeting operations depend on the SDK user's Zoom OAuth scopes, account plan, account-level settings, admin policy, and delegated host permissions.",
       "This package does not choose whether a video workflow is inbound, outbound, customer-facing, internal, recorded, retained, or escalated; those decisions remain SDK-user configuration.",
-      "Live meeting media transport, captions, cloud recording retrieval, and telephony dial-out are outside this package's delegated provider-client and webhook foundation."
+      "Live meeting media transport, captions, cloud recording retrieval, and telephony dial-out are outside this package's delegated SDK/provider-client and webhook foundation."
     ],
     "maintainers": [
       {
@@ -18070,26 +19721,51 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "Webinars"
         ]
       },
-      "implementationStrategy": "provider-rest-adapter",
+      "implementationStrategy": "official-sdk-with-reviewed-rest-exceptions",
       "implementation": {
-        "strategy": "provider-rest-adapter",
+        "strategy": "official-sdk-with-reviewed-rest-exceptions",
+        "officialSdk": {
+          "packageName": "@zoom/rivet",
+          "checkedVersion": "0.4.0",
+          "meetingsModule": "@zoom/rivet/meetings",
+          "usersModule": "@zoom/rivet/users",
+          "mappedMeetingsOperationCount": 182
+        },
         "providerClientInterface": "ZoomVideoProviderClient",
-        "defaultHttpClient": "fetch",
-        "defaultFetchClient": "globalThis.fetch-or-options.fetch",
-        "failClosedWithoutProviderClient": false,
+        "defaultClient": "official-zoom-rivet-sdk",
+        "restAdapterException": {
+          "adapterKind": "reviewed-rest-exception",
+          "operationUids": [
+            "GET /report/disclaimer",
+            "GET /report/remote_support"
+          ],
+          "transportOptions": [
+            "fetch",
+            "signal",
+            "retry",
+            "oauthBaseUrl"
+          ]
+        },
+        "failClosedWithoutProviderClientOrOAuthCredentials": true,
         "failClosedWithoutOAuthCredentials": true,
         "manifestImport": "no-client-initialization",
-        "generatedMeetingsApiRuntime": "built-in-rest-requestOperation-with-host-provider-client-override"
+        "generatedMeetingsApiRuntime": "zoom-rivet-operation-dispatch-with-reviewed-rest-exception-fallback-and-host-provider-client-override"
       },
       "providerClient": {
         "interface": "ZoomVideoProviderClient",
         "injectionPolicy": "optional-runtime-override",
         "importPolicy": "optional-host-override",
-        "defaultClient": "built-in-rest-adapter"
+        "defaultClient": "official-zoom-rivet-sdk"
       },
       "sdkViability": {
-        "decision": "no-official-maintained-server-rest-sdk-found",
+        "decision": "official-provider-sdk-selected",
         "checkedAt": "2026-06-25",
+        "selectedSdkPackage": {
+          "packageName": "@zoom/rivet",
+          "checkedVersion": "0.4.0",
+          "reason": "Official Zoom Node.js toolkit with Meetings API wrappers, server-to-server OAuth support, and webhook/event tooling.",
+          "source": "https://developers.zoom.us/docs/rivet/javascript/"
+        },
         "rejectedSdkPackages": [
           {
             "packageName": "@zoom/meetingsdk",
@@ -18103,6 +19779,25 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "packageName": "@zoom/rtms",
             "reason": "Official Node real-time media streams SDK, not scheduling/resource REST management."
           }
+        ]
+      },
+      "providerRestAdapterException": {
+        "status": "accepted",
+        "reviewedAt": "2026-06-25",
+        "adapterKind": "reviewed-rest-exception",
+        "reason": "@zoom/rivet 0.4.0 covers 182 of this package's 184 generated Zoom Meetings API operations; the package-owned typed REST adapter is retained for the two missing report endpoints and explicit low-level transport options the SDK cannot honor.",
+        "operationUids": [
+          "GET /report/disclaimer",
+          "GET /report/remote_support"
+        ],
+        "allowedDefaultRuntime": "official-zoom-rivet-sdk",
+        "fallbackRuntime": "built-in-typed-rest-adapter",
+        "hostSdkPath": "ZoomVideoProviderClient",
+        "failClosed": true,
+        "guardrails": [
+          "Keep generated operation IDs resolved against the local Zoom Meetings API catalog before SDK dispatch or REST fallback.",
+          "Use @zoom/rivet for mapped operations whenever fetch/signal/retry/oauthBaseUrl are not explicitly requested.",
+          "Only use the REST adapter for documented @zoom/rivet gaps, per-request headers, or transport options the SDK cannot represent."
         ]
       }
     }
@@ -19389,7 +21084,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "implementation": {
       "strategy": "official-sdk",
-      "sdkPackage": "@cognidesk/integration-voice-openai",
+      "sdkPackage": "openai",
       "runtimePackage": "@cognidesk/integration-voice-openai",
       "providerModule": "integrations/voice/openai/dist/manifest.js",
       "manifestExport": "openAIVoiceManifestInput",
@@ -19454,15 +21149,24 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       },
       "implementation": {
         "strategy": "official-sdk",
+        "sdkPackage": "openai",
         "sdkPackages": [
           "openai"
         ],
+        "verifiedVersion": "6.44.0",
+        "verifiedAt": "2026-06-25",
         "adapterCoverage": [
           "OpenAIRealtimeWS.create",
           "session.update",
+          "input_audio_buffer.commit",
           "response.create"
         ],
         "rawClientEscapeHatch": true
+      },
+      "rawClient": {
+        "option": "rawClient",
+        "export": "getRawClient",
+        "coverage": "upstream-sdk"
       }
     }
   },
@@ -19641,10 +21345,20 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "local-protocol",
       "notes": [
         "Defines a Cognidesk SIP stack gateway contract and callback normalizer for SDK-user-owned SIP/SBC/BYOC infrastructure.",
-        "Does not implement a SIP transaction/dialog stack, registrar, SBC, RTP/SRTP media engine, or any specific provider's SIP/Voice REST API.",
-        "Provider-specific SIP registration, INVITE/REFER/re-INVITE execution, media anchoring, recording, transcription, routing, consent, and retention remain SDK-user/provider gateway responsibilities."
+        "Ships a drachtio-srf-backed gateway adapter for outbound UAC and dialog-level BYE, REFER, INFO DTMF, and re-INVITE media update operations when a drachtio Srf instance or server connection is configured.",
+        "Does not implement a registrar, SBC, RTP/SRTP media engine, recording/transcription media services, or any specific provider's SIP/Voice REST API.",
+        "Provider-specific SIP registration, inbound request/response acceptance, media anchoring, recording, transcription, routing, consent, and retention remain SDK-user/provider gateway responsibilities."
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "label": "drachtio-srf npm package",
+          "url": "https://www.npmjs.com/package/drachtio-srf"
+        },
+        {
+          "label": "drachtio-srf repository",
+          "url": "https://github.com/drachtio/drachtio-srf"
+        }
+      ]
     },
     "adapterCoverage": {
       "scope": "local-protocol",
@@ -19701,7 +21415,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "manifestExport": "sipVoiceProviderManifest",
       "manifestSource": "integrations/voice/sip/src/manifest.ts",
       "manifestSourceKind": "manifest-only",
-      "documentationPath": "website/guides/provider-integrations-catalog.md#generic-sip-voice-connection"
+      "documentationPath": "https://www.npmjs.com/package/drachtio-srf"
     },
     "readiness": {
       "mode": "credential-and-live-check",
@@ -19774,8 +21488,9 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "This package does not implement a SIP stack or expose SIP credentials to browsers; SDK users supply and operate the SIP/SBC bridge."
     ],
     "limitations": [
-      "A full SIP transaction/dialog stack is intentionally out of scope for this package.",
-      "SDK users must bridge these contracts to their chosen SIP stack, SBC, PBX, or BYOC voice provider.",
+      "A full SIP platform, registrar, SBC, and RTP/SRTP media engine are intentionally out of scope for this package.",
+      "The drachtio-srf gateway adapter requires a configured drachtio Srf instance or reachable drachtio server for live SIP signaling.",
+      "SDK users can still bridge these contracts to their chosen SIP stack, SBC, PBX, or BYOC voice provider through SipStackGateway.",
       "Conversation routing, consent, recording policy, retention, and handoff remain SDK-user configuration."
     ],
     "maintainers": [
@@ -19785,6 +21500,65 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       }
     ],
     "metadata": {
+      "implementation": {
+        "strategy": "protocol-runtime-sdk-gateway",
+        "providerSdkDecision": "provider-protocol-lib/drachtio-srf",
+        "providerSdkDependencies": [
+          "drachtio-srf"
+        ],
+        "checkedAt": "2026-06-25",
+        "checkedSurface": "npm view drachtio-srf/sip.js/jssip and package runtime imports",
+        "runtime": "createDrachtioSipStackGateway backed by drachtio-srf Srf, createUAC, and Dialog call-control methods",
+        "selectedSdkPackage": "drachtio-srf",
+        "reason": "drachtio-srf is a maintained, typed, server-side SIP signaling resource framework suitable for this package's outbound UAC and dialog-level call-control gateway operations.",
+        "defaultClientPolicy": "drachtio-srf-gateway-when-configured-or-host-injected-SipStackGateway",
+        "typedClientOverride": "SipStackGateway",
+        "rejectedSdkPackages": [
+          {
+            "packageName": "sip.js",
+            "ecosystem": "npm",
+            "reason": "Typed SIP library, but the current package surface needs server-side SIP gateway/dialog control rather than a browser/WebRTC User-Agent-first stack."
+          },
+          {
+            "packageName": "jssip",
+            "ecosystem": "npm",
+            "reason": "Typed and maintained SIP library, but its browser/User-Agent-oriented runtime surface is not the best fit for server-side BYOC SIP gateway operations."
+          }
+        ],
+        "guardrails": [
+          "Keep inbound SIP request/response acceptance behind host-provided gateway code until the operation surface carries concrete drachtio request/response objects.",
+          "Do not report live SIP readiness as healthy unless a drachtio Srf instance/server connection or host gateway readiness implementation is configured.",
+          "Keep media, recording, transcription, routing, consent, and retention decisions outside the drachtio signaling adapter."
+        ]
+      },
+      "checkedProviderSdk": {
+        "checkedAt": "2026-06-25",
+        "verdict": "provider-protocol-lib-selected",
+        "packageSurfaceRuntimeSdkAvailable": true,
+        "providerSdkDependencies": [
+          "drachtio-srf"
+        ],
+        "selectedPackage": {
+          "packageName": "drachtio-srf",
+          "ecosystem": "npm",
+          "versionChecked": "5.0.24",
+          "reason": "Maintained typed server-side SIP signaling resource framework with Srf.createUAC and Dialog methods."
+        },
+        "candidates": [
+          {
+            "package": "drachtio-srf",
+            "result": "selected-runtime-protocol-lib"
+          },
+          {
+            "package": "sip.js",
+            "result": "rejected-browser-user-agent-oriented-for-this-server-gateway-surface"
+          },
+          {
+            "package": "jssip",
+            "result": "rejected-browser-user-agent-oriented-for-this-server-gateway-surface"
+          }
+        ]
+      },
       "bridgeContract": "sip-stack-gateway",
       "secureMedia": [
         "tls",
@@ -19797,14 +21571,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "transcription"
       ],
       "channelCoverage": {
-        "sipGatewayContract": "sdk-owned-local-protocol",
-        "inboundInviteEvents": "sdk-owned-bridge-contract",
-        "outboundInvite": "sdk-owned-bridge-contract",
-        "sdpMedia": "sdk-owned-bridge-contract",
-        "transfer": "sdk-owned-bridge-contract",
+        "sipGatewayContract": "drachtio-srf-gateway-or-host-gateway",
+        "inboundInviteEvents": "host-gateway-contract",
+        "outboundInvite": "drachtio-srf-createUAC-or-host-gateway",
+        "sdpMedia": "drachtio-srf-dialog-modify-or-host-gateway",
+        "transfer": "drachtio-srf-dialog-REFER-or-host-gateway",
         "recordingCallbacks": "sdk-owned-bridge-contract",
         "transcriptionCallbacks": "sdk-owned-bridge-contract",
-        "sipStack": "not-covered"
+        "sipStack": "drachtio-srf-signaling-adapter-for-selected-dialog-operations"
       },
       "categoryProfileId": "voice",
       "integrationCategoryProfileId": "voice",
@@ -20114,6 +21888,10 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "sdkPackage": "twilio",
         "verifiedVersion": "6.0.2",
         "verifiedAt": "2026-06-21"
+      },
+      "sdkClient": {
+        "export": "getSdkClient",
+        "coverage": "deprecated-raw-client-alias"
       },
       "rawClient": {
         "export": "getRawClient",

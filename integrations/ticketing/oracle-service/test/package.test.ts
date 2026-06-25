@@ -9,7 +9,10 @@ import {
   createOracleServiceTicketingOperationHandlers,
   oracleServiceTicketingProviderManifest,
 } from "../src/index.js";
-import { oracleServiceProviderClientOperationTargets } from "../src/manifest.js";
+import {
+  oracleServiceProviderClientOperationTargets,
+  oracleServiceRejectedProviderSdkCandidates,
+} from "../src/manifest.js";
 
 describe("@cognidesk/integration-ticketing-oracle-service", () => {
   it("keeps the manifest-only entry metadata-only and scoped", async () => {
@@ -20,7 +23,18 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       packageName: "@cognidesk/integration-ticketing-oracle-service",
       coverage: { scope: "support-workflow-subset" },
       metadata: {
-        implementationStrategy: { strategy: "no-official-sdk-rest-adapter" },
+        implementationStrategy: {
+          strategy: "no-official-sdk-rest-adapter",
+          result: "no-suitable-maintained-runtime-provider-sdk",
+          exception: "provider-rest-adapter",
+        },
+        sdkDecision: {
+          result: "provider-rest-adapter-exception",
+          providerRestAdapterException: true,
+          viableMaintainedRuntimeProviderSdk: false,
+          acceptedRuntimeProviderSdk: null,
+          rejectedLibraries: oracleServiceRejectedProviderSdkCandidates,
+        },
         implementation: {
           strategy: "provider-rest-adapter",
           adapterKind: "no-official-sdk-rest-adapter",
@@ -42,6 +56,11 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       "ticket.update",
       "ticket.search",
       "oracle-service.serviceRequestMessage.create",
+    ]);
+    expect(oracleServiceRejectedProviderSdkCandidates.map((candidate) => candidate.packageName)).toEqual([
+      "oci-fusionapps",
+      "oci-sdk",
+      "osvc_node",
     ]);
   });
 
@@ -76,5 +95,6 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       "@cognidesk/core": "workspace:*",
       "@cognidesk/integration-kit": "workspace:*",
     });
+    expect(packageJson.cognidesk.providerSdkDependencies).toEqual([]);
   });
 });

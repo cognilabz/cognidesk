@@ -1,12 +1,50 @@
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
+import { DynamicsWebApi } from "dynamics-web-api";
 import {
+  createDynamics365RawClient,
   createDynamics365TicketingClient,
+  createDynamics365TicketingIntegration,
   createDynamics365TicketingLiveChecks,
   dynamics365TicketingCredentialStatuses,
   dynamics365TicketingProviderManifest,
   type Dynamics365RawClient,
 } from "../src/index.js";
+
+const accountId = "00000000-0000-4000-8000-000000000001";
+const caseId = "00000000-0000-4000-8000-000000000002";
+const queueId = "00000000-0000-4000-8000-000000000003";
+const sourceQueueId = "00000000-0000-4000-8000-000000000004";
+const dynamicsInstanceUrl = "https://example.crm.dynamics.com";
+
+const dynamicsWebApiMethodNames = [
+  "create",
+  "retrieve",
+  "update",
+  "retrieveMultiple",
+  "retrieveEntity",
+  "callAction",
+  "callFunction",
+] as const satisfies readonly (keyof Dynamics365RawClient)[];
+
+const sdkBackedOperationMappings = [
+  { alias: "ticket.create", method: "create", providerOperation: "create(incidents)" },
+  { alias: "ticket.read", method: "retrieve", providerOperation: "retrieve(incidents)" },
+  { alias: "ticket.update", method: "update", providerOperation: "update(incidents)" },
+  { alias: "ticket.search", method: "retrieveMultiple", providerOperation: "retrieveMultiple(incidents)" },
+  { alias: "ticket.internalNote.create", method: "create", providerOperation: "create(annotations)" },
+  { alias: "dynamics365.entity-definition.read", method: "retrieveEntity", providerOperation: "retrieveEntity(EntityDefinitions)" },
+  { alias: "dynamics365.case-note.create", method: "create", providerOperation: "create(annotations)" },
+  { alias: "dynamics365.case-notes.list", method: "retrieveMultiple", providerOperation: "retrieveMultiple(annotations)" },
+  { alias: "dynamics365.queue.addToQueue", method: "callAction", providerOperation: "callAction(Microsoft.Dynamics.CRM.AddToQueue)" },
+  { alias: "dynamics365.queues.list", method: "retrieveMultiple", providerOperation: "retrieveMultiple(queues)" },
+  { alias: "dynamics365.activities.list", method: "retrieveMultiple", providerOperation: "retrieveMultiple(activitypointers)" },
+  { alias: "dynamics365.whoami", method: "callFunction", providerOperation: "callFunction(WhoAmI)" },
+] as const satisfies readonly {
+  alias: string;
+  method: (typeof dynamicsWebApiMethodNames)[number];
+  providerOperation: string;
+}[];
 
 describe("@cognidesk/integration-ticketing-dynamics365", () => {
   it("exports an official provider manifest", () => {
@@ -24,7 +62,7 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
           strategy: "sdk-backed",
           sdkPackage: "dynamics-web-api",
           sdkVersionRange: "2.5.0",
-          rawClientEscapeHatch: "Dynamics365TicketingClient.rawClient",
+          rawClientEscapeHatch: "Dynamics365TicketingClient.rawClient/getRawClient()",
           manifestImport: "no-sdk-client-initialization",
         },
       },
@@ -82,6 +120,42 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
       .toEqual(["dynamics365Incident"]);
   });
 
+  it("creates and exposes the dynamics-web-api runtime client", () => {
+    const rawClient = createDynamics365RawClient({
+      instanceUrl: dynamicsInstanceUrl,
+      accessToken: "configured",
+      apiVersion: "v9.2",
+    });
+    const client = createDynamics365TicketingClient({
+      instanceUrl: dynamicsInstanceUrl,
+      accessToken: "configured",
+      apiVersion: "v9.2",
+    });
+
+    expect(rawClient).toBeInstanceOf(DynamicsWebApi);
+    expect(client.rawClient).toBeInstanceOf(DynamicsWebApi);
+    expect(client.getRawClient()).toBe(client.rawClient);
+    for (const method of dynamicsWebApiMethodNames) {
+      expect(rawClient[method]).toEqual(expect.any(Function));
+      expect(client.getRawClient()[method]).toEqual(expect.any(Function));
+    }
+  });
+
+  it("declares Cognidesk operations as concrete dynamics-web-api SDK methods", () => {
+    const rawClient = createDynamics365RawClient({
+      instanceUrl: dynamicsInstanceUrl,
+      accessToken: "configured",
+    });
+    const operationByAlias = new Map(
+      dynamics365TicketingProviderManifest.operations.map((operation) => [operation.alias, operation]),
+    );
+
+    for (const { alias, method, providerOperation } of sdkBackedOperationMappings) {
+      expect(operationByAlias.get(alias)?.providerOperation).toBe(providerOperation);
+      expect(rawClient[method]).toEqual(expect.any(Function));
+    }
+  });
+
   it("creates Dataverse incident records through dynamics-web-api", async () => {
     const rawClient = createRawClient({
       create: vi.fn(async () => ({ incidentid: "case-1" })),
@@ -91,7 +165,7 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
     await expect(client.createCase({
       title: "Flight disruption",
       description: "Customer needs manual rebooking.",
-      customerId: "account-1",
+      customerId: accountId,
     })).resolves.toMatchObject({ incidentid: "case-1" });
 
     expect(rawClient.create).toHaveBeenCalledWith({
@@ -99,7 +173,7 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
       data: {
         title: "Flight disruption",
         description: "Customer needs manual rebooking.",
-        "customerid_account@odata.bind": "/accounts(account-1)",
+        "customerid_account@odata.bind": `/accounts(${accountId})`,
       },
     });
   });
@@ -121,14 +195,14 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
       select: ["DisplayName", "EntitySetName"],
     })).resolves.toMatchObject({ EntitySetName: "incidents" });
     await expect(client.createCaseNote({
-      caseId: "case-1",
+      caseId,
       subject: "Handoff",
       text: "Internal handoff context.",
       filename: "handoff.txt",
       documentBody: "SGFuZG9mZg==",
       mimeType: "text/plain",
     })).resolves.toMatchObject({ annotationid: "note-1" });
-    await expect(client.listCaseNotes("case-1", { select: ["annotationid", "subject"] })).resolves.toMatchObject({
+    await expect(client.listCaseNotes(caseId, { select: ["annotationid", "subject"] })).resolves.toMatchObject({
       value: [{ annotationid: "note-1" }],
     });
     await expect(client.listQueues({ select: ["queueid", "name"], top: 5 })).resolves.toMatchObject({
@@ -145,7 +219,7 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
     expect(rawClient.create).toHaveBeenCalledWith({
       collection: "annotations",
       data: {
-        "objectid_incident@odata.bind": "/incidents(case-1)",
+        "objectid_incident@odata.bind": `/incidents(${caseId})`,
         notetext: "Internal handoff context.",
         subject: "Handoff",
         filename: "handoff.txt",
@@ -156,7 +230,7 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
     expect(rawClient.retrieveMultiple).toHaveBeenCalledWith({
       collection: "annotations",
       select: ["annotationid", "subject"],
-      filter: "_objectid_value eq case-1",
+      filter: `_objectid_value eq ${caseId}`,
     });
   });
 
@@ -167,19 +241,19 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
     const client = createDynamics365TicketingClient({ rawClient });
 
     await expect(client.addToQueue({
-      queueId: "queue-1",
-      targetId: "case-1",
-      sourceQueueId: "queue-0",
+      queueId,
+      targetId: caseId,
+      sourceQueueId,
       queueItemProperties: { title: "Escalated case" },
     })).resolves.toMatchObject({ QueueItemId: "queue-item-1" });
 
     expect(rawClient.callAction).toHaveBeenCalledWith({
       collection: "queues",
-      key: "queue-1",
+      key: queueId,
       actionName: "Microsoft.Dynamics.CRM.AddToQueue",
       action: {
-        Target: { "@odata.id": "incidents(case-1)" },
-        SourceQueue: { "@odata.id": "queues(queue-0)" },
+        Target: { "@odata.id": `incidents(${caseId})` },
+        SourceQueue: { "@odata.id": `queues(${sourceQueueId})` },
         QueueItemProperties: { title: "Escalated case" },
       },
     });
@@ -201,26 +275,110 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
     await expect(client.integration.run("ticket.create", { title: "A" })).resolves.toMatchObject({
       created: { collection: "incidents", data: { title: "A" } },
     });
-    await expect(client.integration.run("ticket.internalNote.create", { caseId: "case-1", body: "private" }))
+    await expect(client.integration.run("ticket.read", { ticketId: caseId })).resolves.toMatchObject({
+      retrieved: { collection: "incidents", key: caseId },
+    });
+    await expect(client.integration.run("ticket.update", { ticketId: caseId, patch: { title: "B" } }))
+      .resolves.toMatchObject({
+        updated: { collection: "incidents", key: caseId, data: { title: "B" } },
+      });
+    await expect(client.integration.run("ticket.search", { top: 1 })).resolves.toMatchObject({
+      listed: { collection: "incidents", top: 1 },
+    });
+    await expect(client.integration.run("ticket.internalNote.create", { caseId, body: "private" }))
       .resolves.toMatchObject({
         created: {
           collection: "annotations",
           data: {
-            "objectid_incident@odata.bind": "/incidents(case-1)",
+            "objectid_incident@odata.bind": `/incidents(${caseId})`,
             notetext: "private",
           },
         },
       });
+    await expect(client.integration.run("dynamics365.entity-definition.read", { logicalName: "incident" }))
+      .resolves.toMatchObject({
+        entity: { key: "LogicalName='incident'" },
+      });
+    await expect(client.integration.run("dynamics365.case-note.create", { caseId, text: "extension note" }))
+      .resolves.toMatchObject({
+        created: {
+          collection: "annotations",
+          data: {
+            "objectid_incident@odata.bind": `/incidents(${caseId})`,
+            notetext: "extension note",
+          },
+        },
+      });
+    await expect(client.integration.run("dynamics365.case-notes.list", { caseId, top: 2 }))
+      .resolves.toMatchObject({
+        listed: {
+          collection: "annotations",
+          filter: `_objectid_value eq ${caseId}`,
+          top: 2,
+        },
+      });
     await expect(client.integration.run("dynamics365.queue.addToQueue", {
-      queueId: "queue-1",
-      targetId: "case-1",
+      queueId,
+      targetId: caseId,
     })).resolves.toMatchObject({
       action: {
         collection: "queues",
-        key: "queue-1",
+        key: queueId,
         actionName: "Microsoft.Dynamics.CRM.AddToQueue",
       },
     });
+    await expect(client.integration.run("dynamics365.queues.list", { top: 3 })).resolves.toMatchObject({
+      listed: { collection: "queues", top: 3 },
+    });
+    await expect(client.integration.run("dynamics365.activities.list", { top: 4 })).resolves.toMatchObject({
+      listed: { collection: "activitypointers", top: 4 },
+    });
+    await expect(client.integration.run("dynamics365.whoami", undefined)).resolves.toMatchObject({
+      function: "WhoAmI",
+    });
+  });
+
+  it("rejects unsafe Dataverse identifiers before building OData strings", async () => {
+    const rawClient = createRawClient();
+    const client = createDynamics365TicketingClient({ rawClient });
+
+    await expect(client.createCase({
+      title: "Flight disruption",
+      customerId: "account-1",
+    })).rejects.toThrow("customerId must be a GUID");
+    await expect(client.listCaseNotes("case-1")).rejects.toThrow("caseId must be a GUID");
+    await expect(client.addToQueue({
+      queueId,
+      targetId: caseId,
+      targetEntitySetName: "incidents)($expand=ownerid",
+    })).rejects.toThrow("targetEntitySetName must be a Dataverse entity-set name");
+    expect(rawClient.create).not.toHaveBeenCalled();
+    expect(rawClient.retrieveMultiple).not.toHaveBeenCalled();
+    expect(rawClient.callAction).not.toHaveBeenCalled();
+  });
+
+  it("redacts Dynamics integration credentials before passing operation context", async () => {
+    const integration = createDynamics365TicketingIntegration({
+      instanceUrl: "https://example.crm.dynamics.com",
+      accessToken: "secret-token",
+      apiVersion: "v9.2",
+      rawClient: createRawClient(),
+    });
+    const capturedCredentials: unknown[] = [];
+    (integration.operations as Record<string, unknown>)["ticket.search"] = async (_input: unknown, context: { credentials?: unknown }) => {
+      capturedCredentials.push(context.credentials);
+      return {};
+    };
+
+    await integration.run("ticket.search", {});
+
+    expect(capturedCredentials[0]).toMatchObject({
+      apiAccessConfigured: true,
+      apiVersion: "v9.2",
+      instanceUrl: "https://example.crm.dynamics.com",
+      rawClientConfigured: true,
+    });
+    expect(JSON.stringify(capturedCredentials[0])).not.toContain("secret-token");
   });
 
   it("passes provider conformance", async () => {

@@ -15,6 +15,9 @@ import {
   ZOOM_MEETINGS_API_GENERATED_FUNCTION_COUNT,
   ZOOM_MEETINGS_API_OPERATION_COUNT,
   ZOOM_MEETINGS_API_PATH_COUNT,
+  ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS,
+  ZOOM_RIVET_MEETINGS_SDK_OPERATION_COUNT,
+  ZOOM_RIVET_SDK_PACKAGE_NAME,
   zoomVideoCredentialStatuses,
   zoomVideoProviderManifest,
 } from "../src/index.js";
@@ -45,7 +48,7 @@ describe("@cognidesk/integration-video-zoom", () => {
       required: false,
       metadata: {
         injectionInterface: "ZoomVideoProviderClient",
-        defaultClientPolicy: "built-in-rest-with-oauth",
+        defaultClientPolicy: "official-rivet-sdk-with-reviewed-rest-exceptions",
       },
     });
     const tokenRequirement = zoomVideoProviderManifest.credentialRequirements
@@ -67,14 +70,42 @@ describe("@cognidesk/integration-video-zoom", () => {
     expect(zoomVideoProviderManifest.coverage.notes.join(" "))
       .toContain("every operation in Zoom's official Meetings API Hub OpenAPI spec");
     expect(zoomVideoProviderManifest.metadata).toMatchObject({
-      implementationStrategy: "provider-rest-adapter",
+      implementationStrategy: "official-sdk-with-reviewed-rest-exceptions",
       providerClient: {
         interface: "ZoomVideoProviderClient",
-        defaultClient: "built-in-rest-adapter",
+        defaultClient: "official-zoom-rivet-sdk",
       },
+      sdkViability: {
+        decision: "official-provider-sdk-selected",
+        selectedSdkPackage: {
+          packageName: "@zoom/rivet",
+          checkedVersion: "0.4.0",
+        },
+      },
+    });
+    expect(zoomVideoProviderManifest.metadata?.implementation).toMatchObject({
+      officialSdk: {
+        packageName: ZOOM_RIVET_SDK_PACKAGE_NAME,
+        checkedVersion: "0.4.0",
+        mappedMeetingsOperationCount: ZOOM_RIVET_MEETINGS_SDK_OPERATION_COUNT,
+      },
+      restAdapterException: {
+        operationUids: ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS,
+      },
+    });
+    expect(zoomVideoProviderManifest.metadata?.providerRestAdapterException).toMatchObject({
+      status: "accepted",
+      adapterKind: "reviewed-rest-exception",
+      operationUids: [
+        "GET /report/disclaimer",
+        "GET /report/remote_support",
+      ],
+      failClosed: true,
     });
     expect(zoomVideoProviderManifest.coverage.evidence.map((evidence) => evidence.url))
       .toEqual(expect.arrayContaining([
+        "https://developers.zoom.us/docs/rivet/javascript/",
+        "https://github.com/zoom/rivet-javascript",
         "https://developers.zoom.us/api-hub/meetings/methods/endpoints.json",
         "https://developers.zoom.us/docs/api/meetings/",
         "https://developers.zoom.us/docs/api/rest/webhook-reference/",
@@ -90,9 +121,14 @@ describe("@cognidesk/integration-video-zoom", () => {
     expect(ZOOM_MEETINGS_API_PATH_COUNT).toBe(129);
     expect(ZOOM_MEETINGS_API_OPERATION_COUNT).toBe(184);
     expect(ZOOM_MEETINGS_API_GENERATED_FUNCTION_COUNT).toBe(184);
+    expect(ZOOM_RIVET_MEETINGS_SDK_OPERATION_COUNT).toBe(182);
+    expect(ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS).toEqual([
+      "GET /report/disclaimer",
+      "GET /report/remote_support",
+    ]);
   });
 
-  it("creates Zoom meetings through the built-in REST adapter when accessToken is configured", async () => {
+  it("creates Zoom meetings through the built-in REST adapter when explicit fetch transport is configured", async () => {
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({
         id: 987654321,

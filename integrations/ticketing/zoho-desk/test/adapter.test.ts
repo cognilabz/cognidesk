@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import {
@@ -54,11 +55,15 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
     expect(zohoDeskTicketingProviderManifest.metadata).toMatchObject({
       implementation: {
         strategy: "provider-rest-adapter",
+        adapterKind: "no-official-sdk-rest-adapter",
+        providerClientInterface: "ZohoDeskProviderClient",
         defaultClientPolicy: "use-built-in-rest-adapter-when-orgId-and-accessToken-are-configured",
         packageOwnedRestClient: true,
         providerClientOverride: true,
+        officialRuntimeSdkAvailable: false,
         manifestImport: "no-client-initialization",
       },
+      implementationStrategy: "no-official-sdk-rest-adapter",
       providerClient: {
         interface: "ZohoDeskProviderClient",
         importPolicy: "runtime-entrypoint-only",
@@ -66,6 +71,36 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
         sdkDecision: {
           result: "no-official-sdk-rest-adapter",
         },
+      },
+      providerRestAdapterException: {
+        status: "accepted",
+        reviewedAt: "2026-06-25",
+        adapterKind: "no-official-sdk-rest-adapter",
+        allowedDefaultRuntime: "built-in-rest-adapter",
+        hostSdkPath: "ZohoDeskProviderClient",
+      },
+      checkedProviderSdk: {
+        checkedAt: "2026-06-25",
+        verdict: "no-official-sdk-rest-adapter",
+        officialRuntimeSdkAvailable: false,
+        candidates: expect.arrayContaining([
+          expect.objectContaining({
+            package: "Zoho Desk Java SDK",
+            result: "not-node-typescript-runtime",
+          }),
+          expect.objectContaining({
+            package: "@zohodesk/js-api-creator",
+            result: "not-provider-ticketing-sdk",
+          }),
+          expect.objectContaining({
+            package: "Zoho Desk extension JS SDK bundle",
+            result: "not-backend-runtime-sdk",
+          }),
+          expect.objectContaining({
+            package: "Zoho Desk ASAP JavaScript APIs",
+            result: "not-backend-runtime-sdk",
+          }),
+        ]),
       },
       checkedProviderApiCoverage: {
         coverageArtifact: "docs/provider-coverage/zoho-desk-checked-rest-api-2026-06-18.inventory.json",
@@ -77,6 +112,18 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       },
     });
     expect(JSON.stringify(zohoDeskTicketingProviderManifest.metadata)).not.toContain("direct-http-support-slice");
+  });
+
+  it("declares no runtime provider SDK dependency for the REST-adapter exception", async () => {
+    const packageJson = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8"),
+    ) as {
+      cognidesk?: { providerSdkDependencies?: unknown };
+      dependencies?: Record<string, string>;
+    };
+
+    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([]);
+    expect(packageJson.dependencies).not.toHaveProperty("@zohodesk/js-api-creator");
   });
 
   it("delegates Zoho Desk ticket creation to the host-injected provider client", async () => {

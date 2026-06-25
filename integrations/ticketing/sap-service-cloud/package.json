@@ -26,6 +26,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@sap-cloud-sdk/http-client": "^4.7.0",
     "@cognidesk/core": "workspace:*",
     "@cognidesk/integration-kit": "workspace:*"
   },
@@ -48,7 +49,10 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
-    }
+    },
+    "providerSdkDependencies": [
+      "@sap-cloud-sdk/http-client"
+    ]
   },
   "publishConfig": {
     "access": "public",

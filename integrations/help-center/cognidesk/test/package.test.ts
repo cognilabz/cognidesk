@@ -64,4 +64,56 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
     expect(source).not.toContain("helpCenterRequest");
     expect(source).not.toContain("joinUrl");
   });
+
+  it("documents the internal help-center runtime without an external provider SDK", async () => {
+    const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
+      dependencies?: Record<string, string>;
+      exports?: Record<string, { import?: string; types?: string }>;
+      scripts?: Record<string, string>;
+      cognidesk?: {
+        providerPackage?: boolean;
+        release?: string;
+        providerSdkDependencies?: string[];
+        manifestOnlyExports?: string[];
+      };
+    };
+    const integration = createCognideskHelpCenterIntegration({
+      source: {
+        id: "local-docs",
+        type: "local",
+        articles: [{ id: "reset", title: "Reset password" }],
+      },
+    });
+
+    expect(cognideskHelpCenterProviderManifest.metadata).toMatchObject({
+      implementation: {
+        strategy: "local-protocol",
+        sdkPackage: "@cognidesk/integration-help-center-cognidesk",
+        runtimePackage: "@cognidesk/integration-help-center-cognidesk",
+        manifestImport: "no-sdk-client-initialization",
+        externalProviderSdk: "not-applicable-internal-provider",
+        defaultClientPolicy: "built-in-http-source-when-base-url-configured",
+        typedClientOverride: "HelpCenterProviderClient",
+      },
+    });
+    expect(integration.metadata).toMatchObject({
+      implementationStrategy: "local-source-or-host-injected-help-center-client",
+      providerClient: "HelpCenterProviderClient",
+    });
+    expect(Object.keys(packageJson.dependencies ?? {}).sort()).toEqual([
+      "@cognidesk/core",
+      "@cognidesk/integration-kit",
+    ]);
+    expect(packageJson.cognidesk).toMatchObject({
+      providerPackage: true,
+      release: "independent-provider",
+      providerSdkDependencies: [],
+      manifestOnlyExports: ["./manifest"],
+    });
+    expect(packageJson.exports?.["./runtime"]).toMatchObject({
+      import: "./dist/runtime.js",
+      types: "./dist/runtime.d.ts",
+    });
+    expect(packageJson.scripts?.build).toContain("src/runtime.ts");
+  });
 });

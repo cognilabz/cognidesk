@@ -1,5 +1,6 @@
 import {
   defineIntegration,
+  IntegrationError,
   type IntegrationOperationContext,
   type IntegrationOperationHandler,
 } from "@cognidesk/integration-kit";
@@ -42,7 +43,19 @@ export function createEbayMarketplaceIntegrationOperationHandlers(
         const client = clientFor(operationInput, context, configuredClient);
         const method = client[operation.functionName] as unknown;
         if (typeof method !== "function") {
-          throw new Error(`eBay marketplace client does not implement operation '${operation.functionName}'.`);
+          throw new IntegrationError(
+            "contract-violation",
+            `eBay marketplace client does not implement operation '${operation.functionName}'.`,
+            {
+              providerPackageId: context.providerPackageId ?? ebayMarketplaceProviderManifest.id,
+              provider: context.provider ?? ebayMarketplaceProviderManifest.provider,
+              operationAlias: context.operationAlias ?? ebayMarketplaceOperationAlias(operation.functionName),
+              details: {
+                functionName: operation.functionName,
+                clientInterface: "EbayMarketplaceClient",
+              },
+            },
+          );
         }
         return (method as (...args: unknown[]) => Promise<unknown>).apply(client, operationInput.args ?? []);
       },
@@ -56,9 +69,9 @@ export function createEbayMarketplaceIntegration(options: EbayMarketplaceIntegra
     operations: createEbayMarketplaceIntegrationOperationHandlers(options),
     credentials: options,
     metadata: {
-      implementationStrategy: "no-official-sdk-rest-adapter",
+      implementationStrategy: "provider-owned-utility-sdks-plus-selected-rest-adapter",
       providerClientAccess: "createEbayMarketplaceClient({ providerClient })",
-      defaultClientPolicy: "built-in-rest-with-oauth-tokens",
+      defaultClientPolicy: "built-in-rest-with-oauth-tokens-fail-closed",
     },
   });
 }

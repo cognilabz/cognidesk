@@ -69,6 +69,7 @@ export const gorgiasTicketingProviderManifestInput = {
       providerClientInterface: "GorgiasTicketingProviderClient",
       defaultHttpClient: "providerJsonRequest",
       defaultFetchClient: "runtime-fetch-or-configured-fetch",
+      defaultBaseUrl: "none-account-base-url-required",
       providerClientOverride: true,
       manifestImport: "no-client-initialization",
     },
@@ -80,13 +81,15 @@ export const gorgiasTicketingProviderManifestInput = {
     },
     sdkEvaluation: {
       checkedAt: "2026-06-25",
-      officialBackendJavaScriptSdk: "not-verified",
+      result: "no-official-maintained-runtime-sdk",
+      officialBackendJavaScriptSdk: false,
+      officialDocsSurface: "Gorgias documents REST API and OAuth/API-key authentication against each account subdomain; no official maintained npm JavaScript runtime SDK was verified.",
       reviewedPackages: [
         {
           package: "gorgias-client",
           version: "2.0.4",
           result: "not-used-as-package-default",
-          reason: "Unofficial package; its public GorgiasClient constructs a FetchHttpClient and does not expose constructor-level HTTP client injection.",
+          reason: "Typed and recent, but maintained outside Gorgias and its public client is Basic-auth/subdomain oriented; it does not expose a Bearer OAuth default path or account-readiness resource for this package's runtime contract.",
         },
         {
           package: "@friggframework/api-module-gorgias",
@@ -94,7 +97,29 @@ export const gorgiasTicketingProviderManifestInput = {
           result: "not-used-as-package-default",
           reason: "Framework module rather than a standalone official Gorgias backend SDK for this runtime package.",
         },
+        {
+          package: "@frontend-sdk/gorgias",
+          version: "0.26.0",
+          result: "not-runtime-ticketing-sdk",
+          reason: "Frontend/Shogun integration package, not a maintained Gorgias ticketing REST SDK.",
+        },
+        {
+          package: "@pipedream/gorgias",
+          version: "0.6.0",
+          result: "not-runtime-ticketing-sdk",
+          reason: "Pipedream component package rather than a typed raw client suitable as this package's default runtime SDK.",
+        },
       ],
+    },
+    providerRestAdapterException: {
+      strict: true,
+      reason: "No official maintained Gorgias JavaScript/TypeScript runtime SDK was verified; this package owns a narrow REST adapter until a suitable provider SDK exists.",
+      providerSdkDependencyPolicy: "do-not-add-third-party-gorgias-sdk-as-default-runtime-dependency",
+      baseUrlPolicy: "required-account-subdomain-url; accepts https://{subdomain}.gorgias.com or the Gorgias Base API URL ending in /api",
+      authSchemes: ["bearer-oauth-access-token", "basic-email-or-username-api-key"],
+      defaultClient: "built-in-rest-adapter",
+      rawClientEscapeHatch: "GorgiasTicketingProviderClient.rawRequest",
+      allowlistedOperations: ["POST /api/tickets", "GET /api/tickets/{ticket_id}", "PUT /api/tickets/{ticket_id}", "GET /api/tickets", "POST /api/tickets/{ticket_id}/messages", "GET /api/messages", "GET /api/account"],
     },
     delegatedSupportSurface: {
       source: "Built-in Gorgias REST adapter",

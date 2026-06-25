@@ -64,6 +64,7 @@ export interface ZendeskTicketingClientOptions {
 
 export interface ZendeskTicketingClient {
   rawClient: ZendeskTicketingRawClient;
+  getRawClient(): ZendeskTicketingRawClient;
   rawRequest<T = JsonValue>(path: string, init?: RequestInit): Promise<T>;
   createTicket(input: JsonObject): Promise<JsonObject>;
   getTicket(ticketId: string | number): Promise<JsonObject>;

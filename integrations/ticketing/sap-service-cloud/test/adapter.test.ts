@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { executeHttpRequest } from "@sap-cloud-sdk/http-client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import {
   createSapServiceCloudTicketingClient,
@@ -8,6 +9,10 @@ import {
   sapServiceCloudTicketingProviderManifest,
   type SapServiceCloudTicketingProviderClient,
 } from "../src/index.js";
+
+vi.mock("@sap-cloud-sdk/http-client", () => ({
+  executeHttpRequest: vi.fn(),
+}));
 
 function createProviderClient(): SapServiceCloudTicketingProviderClient {
   return {
@@ -20,6 +25,10 @@ function createProviderClient(): SapServiceCloudTicketingProviderClient {
 }
 
 describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
+  beforeEach(() => {
+    vi.mocked(executeHttpRequest).mockReset();
+  });
+
   it("exports an official provider manifest for SAP Service Cloud ticketing", () => {
     expect(sapServiceCloudTicketingProviderManifest).toMatchObject({
       id: "ticketing.sap-service-cloud",
@@ -45,13 +54,14 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       expect.objectContaining({ kind: "sapServiceRequest", schemaName: "ServiceRequestCollection" }),
     ]));
     expect(sapServiceCloudTicketingProviderManifest.metadata).toMatchObject({
-      implementationStrategy: "no-official-service-sdk-odata-rest-adapter",
+      implementationStrategy: "sap-cloud-sdk-http-client-odata-adapter",
       implementation: {
-        strategy: "provider-rest-adapter",
-        adapterKind: "no-official-service-sdk-odata-rest-adapter",
-        defaultHttpClient: "built-in-fetch",
-        defaultFetchClient: "built-in-provider-rest-adapter",
-        packageOwnedRestClient: true,
+        strategy: "provider-sdk-http-client-odata-adapter",
+        adapterKind: "sap-cloud-sdk-http-client-odata-adapter",
+        providerSdkPackage: "@sap-cloud-sdk/http-client",
+        defaultHttpClient: "executeHttpRequest",
+        defaultFetchClient: "host-fetch-override-only",
+        packageOwnedODataMapping: true,
       },
       checkedProviderApiCoverage: {
         coverageArtifact: "docs/provider-coverage/sap-service-cloud-checked-c4c-odata-2026-06-18.inventory.json",
@@ -64,7 +74,47 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     expect(JSON.stringify(sapServiceCloudTicketingProviderManifest.metadata)).not.toContain("direct-http-support-slice");
   });
 
-  it("uses the built-in SAP Service Cloud OData adapter when credentials are provided", async () => {
+  it("uses the official SAP Cloud SDK HTTP client by default when credentials are provided", async () => {
+    vi.mocked(executeHttpRequest).mockResolvedValueOnce({
+      data: { d: { ObjectID: "object-1", ID: "8000001", Name: "Damaged baggage" } },
+      status: 201,
+      headers: {},
+      request: {},
+    } as Awaited<ReturnType<typeof executeHttpRequest>>);
+    const client = createSapServiceCloudTicketingClient({
+      baseUrl: "https://tenant.crm.ondemand.com/",
+      accessToken: "sap-token",
+      csrfToken: "csrf-token",
+    });
+
+    await expect(client.createServiceRequest({
+      name: "Damaged baggage",
+      processingTypeCode: "SRRQ",
+      servicePriorityCode: "3",
+      fields: { DataOriginTypeCode: "4" },
+    })).resolves.toMatchObject({ ID: "8000001" });
+
+    expect(executeHttpRequest).toHaveBeenCalledWith(
+      { url: "https://tenant.crm.ondemand.com" },
+      expect.objectContaining({
+        method: "POST",
+        url: "/sap/c4c/odata/v1/c4codataapi/ServiceRequestCollection",
+        headers: expect.objectContaining({
+          Authorization: "Bearer sap-token",
+          "x-csrf-token": "csrf-token",
+        }),
+        data: {
+          Name: "Damaged baggage",
+          ProcessingTypeCode: "SRRQ",
+          ServicePriorityCode: "3",
+          DataOriginTypeCode: "4",
+        },
+      }),
+      { fetchCsrfToken: false },
+    );
+  });
+
+  it("keeps the explicit fetch override path for host-controlled OData transport", async () => {
     const fetchMock = vi.fn(async () =>
       jsonResponse({ d: { ObjectID: "object-1", ID: "8000001", Name: "Damaged baggage" } })
     );
@@ -92,6 +142,7 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       ServicePriorityCode: "3",
       DataOriginTypeCode: "4",
     });
+    expect(executeHttpRequest).not.toHaveBeenCalled();
   });
 
   it("encodes SAP OData keys and query parameters for built-in operations", async () => {
@@ -158,6 +209,29 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       status: 404,
       message: "Invalid ObjectID.",
       body: expect.objectContaining({ error: expect.any(Object) }),
+    });
+  });
+
+  it("surfaces SAP Cloud SDK HTTP errors with status and payload", async () => {
+    vi.mocked(executeHttpRequest).mockRejectedValueOnce({
+      response: {
+        status: 404,
+        statusText: "Not Found",
+        headers: { "x-correlationid": "correlation-1" },
+        data: { error: { code: "NOT_FOUND", message: { value: "Invalid ObjectID." } } },
+      },
+    });
+    const client = createSapServiceCloudTicketingClient({
+      baseUrl: "https://tenant.crm.ondemand.com",
+      accessToken: "sap-token",
+    });
+
+    await expect(client.getServiceRequest("missing")).rejects.toMatchObject({
+      name: "SapServiceCloudProviderApiError",
+      status: 404,
+      message: "Invalid ObjectID.",
+      body: expect.objectContaining({ error: expect.any(Object) }),
+      response: expect.objectContaining({ requestId: "correlation-1" }),
     });
   });
 

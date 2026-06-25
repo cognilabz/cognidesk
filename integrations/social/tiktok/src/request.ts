@@ -52,7 +52,7 @@ export async function tiktokRequest<T>(input: {
   body?: TikTokSocialProviderPayload;
 }): Promise<T> {
   try {
-    const body = await providerJsonRequest<T & TikTokApiResponse>({
+    const body = assertTikTokApiResponse(await providerJsonRequest<unknown>({
       baseUrl: input.url.origin,
       path: `${input.url.pathname}${input.url.search}`,
       method: input.method,
@@ -65,8 +65,8 @@ export async function tiktokRequest<T>(input: {
       timeoutMs: input.options.timeoutMs,
       retry: input.options.retry,
       providerName: input.providerName,
-    });
-    if (body.error?.code && body.error.code !== "ok") {
+    }), input.providerName);
+    if (hasTikTokError(body)) {
       throw tiktokPayloadError(body, 200);
     }
     return body as T;
@@ -91,8 +91,11 @@ function tiktokPayloadError(body: TikTokApiResponse, status: number) {
 }
 
 function tiktokErrorMessage(body: TikTokApiResponse, status: number) {
-  const code = body.error?.code && body.error.code !== "ok" ? ` (${body.error.code})` : "";
-  return body.error?.message ? `${body.error.message}${code}` : `TikTok API returned ${status}.`;
+  const openCode = body.error?.code && body.error.code !== "ok" ? ` (${body.error.code})` : "";
+  if (body.error?.message) return `${body.error.message}${openCode}`;
+  const businessCode = body.code !== undefined && !isTikTokSuccessCode(body.code) ? ` (${body.code})` : "";
+  if (body.message) return `${body.message}${businessCode}`;
+  return `TikTok API returned ${status}.`;
 }
 
 function tiktokProviderJsonErrorMessage(error: unknown) {
@@ -105,4 +108,31 @@ function tiktokProviderJsonErrorMessage(error: unknown) {
   const providerStatus = typeof status === "number" && Number.isFinite(status) ? status : 0;
   if (payload) return tiktokErrorMessage(payload, providerStatus);
   return error instanceof Error ? error.message : String(error);
+}
+
+function assertTikTokApiResponse(payload: unknown, providerName: string): TikTokApiResponse {
+  if (!isRecord(payload)) {
+    throw new TikTokRequestError(`${providerName} returned an invalid JSON object response.`);
+  }
+  if ("error" in payload && payload.error !== undefined && !isRecord(payload.error)) {
+    throw new TikTokRequestError(`${providerName} returned an invalid TikTok error envelope.`);
+  }
+  if (!("data" in payload) && !("error" in payload) && !("code" in payload) && !("request_id" in payload)) {
+    throw new TikTokRequestError(`${providerName} response did not include a TikTok response envelope.`);
+  }
+  return payload as TikTokApiResponse;
+}
+
+function hasTikTokError(body: TikTokApiResponse): boolean {
+  const openCode = body.error?.code;
+  if (openCode !== undefined && openCode.toLowerCase() !== "ok") return true;
+  return body.code !== undefined && !isTikTokSuccessCode(body.code);
+}
+
+function isTikTokSuccessCode(code: string | number): boolean {
+  return typeof code === "number" ? code === 0 : ["0", "ok"].includes(code.toLowerCase());
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

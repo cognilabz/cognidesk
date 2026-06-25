@@ -27,6 +27,41 @@ describe("@cognidesk/integration-community-forum", () => {
     expect(forumCommunityProviderManifest.metadata).toMatchObject({
       concreteProvider: "discourse-compatible-rest-adapter-or-provider-client",
       supportedForumApi: "built-in-discourse-rest-adapter-and-discourse-webhooks",
+      implementation: {
+        strategy: "no-official-js-ts-sdk-rest-adapter",
+        defaultClientPolicy: "provider-rest-adapter-when-configured",
+        officialJsSdkAvailable: false,
+        verifiedAt: "2026-06-25",
+        providerClient: "ForumCommunityProviderClient",
+        sdkDecision: {
+          result: "no-applicable-official-js-ts-sdk",
+          rejectedSdkPackages: expect.arrayContaining([
+            expect.objectContaining({
+              packageName: "discourse_api",
+              ecosystem: "ruby",
+            }),
+            expect.objectContaining({
+              packageName: "discourse-api-sdk",
+              ecosystem: "npm",
+            }),
+            expect.objectContaining({
+              packageName: "@discourse/mcp",
+              ecosystem: "npm",
+            }),
+            expect.objectContaining({
+              packageName: "discourse-sdk",
+              ecosystem: "npm",
+            }),
+          ]),
+        },
+      },
+      providerClient: {
+        interface: "ForumCommunityProviderClient",
+        defaultClientPolicy: "provider-rest-adapter-when-configured",
+        sdkDecision: {
+          result: "no-applicable-official-js-ts-sdk",
+        },
+      },
       apiCoverage: {
         operationCatalog: "docs/provider-coverage/discourse-selected-api-2026-06-18.operations.json",
         generatedFromOfficialSpec: false,
@@ -57,6 +92,8 @@ describe("@cognidesk/integration-community-forum", () => {
     });
     expect(forumCommunityProviderManifest.coverage.notes.join(" "))
       .toContain("built-in Discourse-compatible REST adapter");
+    expect(forumCommunityProviderManifest.coverage.notes.join(" "))
+      .toContain("No applicable official JavaScript or TypeScript Discourse provider SDK");
     expect(forumCommunityProviderManifest.coverage.notes.join(" "))
       .toContain("does not implement broader Discourse administration");
     expect(forumCommunityProviderManifest.coverage.notes.join(" "))

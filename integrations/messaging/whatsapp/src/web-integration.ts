@@ -5,7 +5,10 @@ import type {
   WhatsAppWebMessagingClientOptions,
   WhatsAppWebSendTextInput,
 } from "./web-contracts.js";
-import { whatsappWebMessagingProviderManifest } from "./web-manifest.js";
+import {
+  whatsappWebLinkedDeviceRuntimeException,
+  whatsappWebMessagingProviderManifest,
+} from "./web-manifest.js";
 
 export interface WhatsAppWebMessagingIntegrationOptions extends WhatsAppWebMessagingClientOptions {
   client?: WhatsAppWebMessagingClient;
@@ -30,7 +33,13 @@ export function defineWhatsAppWebMessagingIntegration(
     metadata: {
       implementationStrategy: "linked-device-websocket",
       protocol: "whatsapp-web-linked-device",
-      runtimeLibrary: "baileys",
+      runtimeLibrary: {
+        name: "baileys",
+        packageName: "baileys",
+        source: "WhiskeySockets/Baileys",
+        declaredProviderSdkDependency: true,
+      },
+      runtimeException: whatsappWebLinkedDeviceRuntimeException,
     },
   });
 }

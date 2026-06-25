@@ -48,6 +48,34 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerRestAdapterException": {
+      "checkedAt": "2026-06-25",
+      "result": "no-official-dx-case-runtime-sdk",
+      "reason": "Pega-maintained JavaScript packages verified on npm cover OAuth and Constellation UI/runtime assets, not the server-side DX case, case type, assignment action, and readiness operations exposed by this package.",
+      "defaultClientPolicy": "built-in-pega-dx-rest-adapter",
+      "typedClientOverride": "PegaCustomerServiceProviderClient",
+      "rejectedSdkPackages": [
+        {
+          "packageName": "@pega/auth",
+          "checkedVersion": "0.2.41",
+          "license": "Apache-2.0",
+          "reason": "Official Pega OAuth client library for Infinity and Launchpad, but not a typed Customer Service/DX case operations client."
+        },
+        {
+          "packageName": "@pega/constellationjs",
+          "checkedVersion": "25.1.3",
+          "license": "See LICENSE in LICENSE file or 'ConstellationJS Engine License.pdf' in dist/",
+          "reason": "Official Pega ConstellationJS engine package, not a server-side DX case/ticketing runtime client."
+        },
+        {
+          "packageName": "@pega/react-sdk-components",
+          "checkedVersion": "25.1.11",
+          "license": "SEE LICENCE IN LICENSE",
+          "reason": "Official Pega React SDK infrastructure for UI bridge/components, not backend ticketing provider operations."
+        }
+      ]
     }
   },
   "publishConfig": {

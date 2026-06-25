@@ -15,6 +15,14 @@ describe("@cognidesk/integration-ticketing-intercom/manifest", () => {
         strategy: "official-sdk",
         manifestImport: "no-sdk-client-initialization",
       });
+      expect(Object.fromEntries(
+        intercomTicketingProviderManifest.operations.map((operation) => [operation.alias, operation.providerOperation]),
+      )).toMatchObject({
+        "ticket.read": "tickets.get",
+        "ticket.comment.create": "tickets.reply",
+        "ticket.internalNote.create": "tickets.reply",
+        "intercom.conversation.read": "conversations.find",
+      });
     } finally {
       vi.doUnmock("intercom-client");
     }

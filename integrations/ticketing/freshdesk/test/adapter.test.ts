@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createFreshdeskUnavailableClient,
   createFreshdeskTicketingClient,
@@ -11,20 +11,53 @@ import {
   type FreshdeskTicketingClientOptions,
   type FreshdeskTicketingProviderClient,
 } from "../src/index.js";
+import packageJson from "../package.json";
 import { freshdeskTicketingProviderManifest as manifestOnly } from "../src/manifest.js";
 
+const freshdeskSdkFactory = vi.hoisted(() => vi.fn());
+
+vi.mock("@freshworks/freshdesk", () => ({
+  default: freshdeskSdkFactory,
+}));
+
 describe("@cognidesk/integration-ticketing-freshdesk", () => {
+  beforeEach(() => {
+    freshdeskSdkFactory.mockReset();
+  });
+
   it("exports host-injected provider metadata", () => {
     expect(manifestOnly.packageName).toBe("@cognidesk/integration-ticketing-freshdesk");
     expect(manifestOnly.metadata?.implementation).toMatchObject({
-      strategy: "provider-rest-adapter",
+      strategy: "provider-sdk-adapter",
+      runtimePackage: "@cognidesk/integration-ticketing-freshdesk",
+      providerSdkPackage: "@freshworks/freshdesk",
       providerClient: "FreshdeskTicketingProviderClient",
-      defaultClientPolicy: "use-built-in-rest-adapter-when-domain-and-apiKey-are-configured",
-      packageOwnedRestClient: true,
+      rawClientEscapeHatch: "FreshdeskTicketingClient.providerClient",
+      defaultClientPolicy: "use-official-freshworks-freshdesk-sdk-when-domain-and-apiKey-are-configured",
+      packageOwnedRestClient: false,
+      packageOwnedRestFallback: true,
       providerClientOverride: true,
+      rawClientOverride: true,
       sdkDecision: {
-        result: "no-official-sdk-rest-adapter",
+        package: "@freshworks/freshdesk",
+        checkedVersion: "0.0.1",
+        license: "freshdesk",
+        result: "accepted-runtime-sdk",
       },
+    });
+    expect(manifestOnly.metadata?.sdkDecision).toMatchObject({
+      package: "@freshworks/freshdesk",
+      checkedVersion: "0.0.1",
+      license: "freshdesk",
+      result: "accepted-runtime-sdk",
+    });
+    expect(packageJson.cognidesk.providerSdkDependencies).toEqual(["@freshworks/freshdesk"]);
+    expect(packageJson.cognidesk.providerSdkRuntime).toMatchObject({
+      sdkPackage: "@freshworks/freshdesk",
+      checkedVersion: "0.0.1",
+      license: "freshdesk",
+      result: "accepted-default-runtime-sdk",
+      typedClientOverride: "FreshdeskTicketingProviderClient",
     });
   });
 
@@ -55,6 +88,59 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
       operation: "createReply",
       args: [42, { body: "Hello" }],
     });
+  });
+
+  it("uses the official Freshworks Freshdesk SDK by default for covered operations", async () => {
+    const sdkClient = {
+      tickets: {
+        createTicket: vi.fn(async (input: unknown) => ({ ok: true, id: 42, input })),
+        getTicket: vi.fn(async () => ({ id: 42 })),
+        updateTicket: vi.fn(async () => ({ id: 42, updated: true })),
+        searchTicket: vi.fn(async () => ({ results: [] })),
+        replyTicket: vi.fn(async () => ({ replied: true })),
+        addNotes: vi.fn(async () => ({ noted: true })),
+      },
+      contacts: {
+        getContact: vi.fn(async () => ({ id: 7 })),
+        searchContacts: vi.fn(async () => ({ results: [] })),
+      },
+      conversations: {
+        getAllTicketConversations: vi.fn(async () => []),
+      },
+    };
+    freshdeskSdkFactory.mockImplementation(function FreshdeskSdkMock() {
+      return sdkClient;
+    });
+    const client = createFreshdeskTicketingClient({
+      domain: "acme",
+      apiKey: "fd-key",
+    });
+
+    await expect(client.createTicket({
+      subject: "Flight disruption",
+      email: "ada@example.test",
+    })).resolves.toMatchObject({ ok: true, id: 42 });
+    await client.getTicket(42);
+    await client.searchTickets("\"email:ada@example.test\"");
+    await client.createReply(42, { body: "Hello" });
+    await client.createNote(42, { body: "Internal" });
+    await client.getContact(7);
+    await client.searchContacts({ query: "\"email:ada@example.test\"" });
+
+    expect(freshdeskSdkFactory).toHaveBeenCalledWith({
+      domain: "acme.freshdesk.com",
+      api_key: "fd-key",
+    });
+    expect(sdkClient.tickets.createTicket).toHaveBeenCalledWith({
+      subject: "Flight disruption",
+      email: "ada@example.test",
+    });
+    expect(sdkClient.tickets.getTicket).toHaveBeenCalledWith(42);
+    expect(sdkClient.tickets.searchTicket).toHaveBeenCalledWith("\"email:ada@example.test\"");
+    expect(sdkClient.tickets.replyTicket).toHaveBeenCalledWith(42, { body: "Hello" });
+    expect(sdkClient.tickets.addNotes).toHaveBeenCalledWith(42, { body: "Internal" });
+    expect(sdkClient.contacts.getContact).toHaveBeenCalledWith(7);
+    expect(sdkClient.contacts.searchContacts).toHaveBeenCalledWith({ query: "\"email:ada@example.test\"" });
   });
 
   it("uses the built-in Freshdesk REST adapter when credentials are configured", async () => {
@@ -92,6 +178,7 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
     expect(searchUrl.pathname).toBe("/api/v2/search/tickets");
     expect(searchUrl.searchParams.get("query")).toBe("\"email:ada@example.test\"");
     expect(searchUrl.searchParams.get("page")).toBe("2");
+    expect(freshdeskSdkFactory).not.toHaveBeenCalled();
   });
 
   it("surfaces Freshdesk REST JSON errors", async () => {
@@ -126,12 +213,12 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
   });
 
   it("delegates Freshdesk replies and parses shared-secret webhooks", async () => {
-    const calls: Array<{ operation: string; args: unknown[] }> = [];
+    const webhookCalls: Array<{ operation: string; args: unknown[] }> = [];
     const integration = createFreshdeskTicketingIntegration({
-      providerClient: fakeFreshdeskProviderClient(calls),
+      providerClient: fakeFreshdeskProviderClient(webhookCalls),
     });
     await integration.run("ticket.comment.create", { ticketId: 42, reply: { body: "Hello" } });
-    expect(calls[0]).toEqual({
+    expect(webhookCalls[0]).toEqual({
       operation: "createReply",
       args: [42, { body: "Hello" }],
     });
@@ -143,6 +230,48 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
     });
     await expect(parseFreshdeskWebhookRequest(request, { webhookSecret: "secret" }))
       .resolves.toMatchObject({ verified: true, event: { provider: "freshdesk" } });
+  });
+
+  it("keeps construction-time Freshdesk webhook credentials authoritative", async () => {
+    const integration = createFreshdeskTicketingIntegration({
+      providerClient: fakeFreshdeskProviderClient(),
+      webhookSecret: "instance-secret",
+      webhookHeaderName: "x-instance-secret",
+    });
+    const request = new Request("https://example.test/webhook", {
+      method: "POST",
+      headers: { "x-instance-secret": "instance-secret" },
+      body: JSON.stringify({ ticket_id: 42 }),
+    });
+
+    await expect(integration.run("freshdesk.webhook.parse", {
+      request,
+      options: {
+        webhookSecret: "attacker-secret",
+        headerName: "x-attacker-secret",
+      },
+    })).resolves.toMatchObject({ verified: true, event: { provider: "freshdesk" } });
+  });
+
+  it("rejects unsigned Freshdesk webhooks before parsing the request body", async () => {
+    const unsignedRequest = new Request("https://example.test/webhook", {
+      method: "POST",
+      body: "{not-json",
+    });
+
+    await expect(parseFreshdeskWebhookRequest(unsignedRequest))
+      .rejects.toThrow("Freshdesk webhook shared secret mismatch");
+  });
+
+  it("rejects non-object Freshdesk webhook payloads", async () => {
+    const request = new Request("https://example.test/webhook", {
+      method: "POST",
+      headers: { "x-cognidesk-freshdesk-webhook-secret": "secret" },
+      body: JSON.stringify(["not", "an", "object"]),
+    });
+
+    await expect(parseFreshdeskWebhookRequest(request, { webhookSecret: "secret" }))
+      .rejects.toThrow("Freshdesk webhook payload must be a JSON object");
   });
 });
 

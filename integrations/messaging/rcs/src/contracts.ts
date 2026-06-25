@@ -19,10 +19,10 @@ export interface RcsMessagingProviderExtensionFields extends RcsMessagingJsonObj
 
 export interface RcsMessagingClientOptions {
   providerClient?: RcsMessagingProviderClient;
+  sdkClient?: RcsBusinessMessagingSdkClient;
   agentId?: string;
   agentName?: string;
   accessToken?: string;
-  apiKey?: string;
   tokenProvider?: RcsAccessTokenProvider;
   serviceAccount?: RcsServiceAccountCredentials;
   messagingApiBaseUrl?: string;
@@ -41,8 +41,8 @@ export interface RcsCredentialStatusInput {
   agentName?: string;
   providerClientConfigured?: boolean;
   accessToken?: string;
-  apiKey?: string;
   serviceAccountConfigured?: boolean;
+  tokenProviderConfigured?: boolean;
   webhookClientToken?: string;
   scopes?: string[];
   expiresAt?: string;
@@ -210,6 +210,64 @@ export interface RcsMessagingClient extends RcsMessagingProviderClient {
   sendCard(input: RcsSendCardInput): Promise<RcsAgentMessage>;
   sendReadReceipt(input: { phoneNumber: string; messageId: string; eventId?: string }): Promise<RcsAgentEvent>;
   sendTyping(input: { phoneNumber: string; eventId?: string }): Promise<RcsAgentEvent>;
+}
+
+export interface RcsBusinessMessagingSdkResponse<T> {
+  data?: T;
+}
+
+export interface RcsBusinessMessagingSdkRequestOptions {
+  rootUrl?: string;
+  signal?: AbortSignal;
+}
+
+export interface RcsBusinessMessagingSdkClient {
+  files: {
+    create(
+      params: RcsMessagingJsonObject & {
+        access_token?: string;
+        agentId?: string;
+        requestBody?: RcsCreateFileInput;
+        media?: { mimeType?: string; body?: unknown };
+      },
+      options?: RcsBusinessMessagingSdkRequestOptions,
+    ): Promise<RcsBusinessMessagingSdkResponse<RcsFileResource>>;
+  };
+  phones: {
+    agentEvents: {
+      create(
+        params: RcsMessagingJsonObject & {
+          access_token?: string;
+          agentId?: string;
+          eventId?: string;
+          parent: string;
+          requestBody: RcsAgentEvent;
+        },
+        options?: RcsBusinessMessagingSdkRequestOptions,
+      ): Promise<RcsBusinessMessagingSdkResponse<RcsAgentEvent>>;
+    };
+    agentMessages: {
+      create(
+        params: RcsMessagingJsonObject & {
+          access_token?: string;
+          agentId?: string;
+          messageId: string;
+          parent: string;
+          requestBody: RcsAgentMessage;
+        },
+        options?: RcsBusinessMessagingSdkRequestOptions,
+      ): Promise<RcsBusinessMessagingSdkResponse<RcsAgentMessage>>;
+    };
+    getCapabilities(
+      params: RcsMessagingJsonObject & {
+        access_token?: string;
+        agentId?: string;
+        name: string;
+        requestId?: string;
+      },
+      options?: RcsBusinessMessagingSdkRequestOptions,
+    ): Promise<RcsBusinessMessagingSdkResponse<RcsCapabilityResponse>>;
+  };
 }
 
 export interface RcsLiveCheckOptions extends RcsMessagingClientOptions {

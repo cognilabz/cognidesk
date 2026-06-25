@@ -1,13 +1,53 @@
 import { defineIntegrationProviderPackage, type ProviderManifestInput } from "@cognidesk/integration-kit";
 
+export const kustomerRejectedSdkPackages = [
+  {
+    packageName: "@kustomer/apps-server",
+    checkedVersion: "3.0.5",
+    license: "MIT",
+    reason: "Official Apps Platform server SDK for building Kustomer apps, not a backend public REST ticketing client.",
+  },
+  {
+    packageName: "@kustomer/apps-client",
+    checkedVersion: "3.0.5",
+    license: "MIT",
+    reason: "Official Apps Platform client SDK for Kustomer app UI/runtime behavior, not backend support ticketing operations.",
+  },
+  {
+    packageName: "@kustomer/apps-server-sdk",
+    checkedVersion: "0.0.60",
+    license: "not-declared",
+    reason: "Legacy app-building SDK with limited app API helpers, not a maintained public REST ticketing client for this support surface.",
+  },
+  {
+    packageName: "@kustomer/chat-react-native",
+    checkedVersion: "5.3.4",
+    license: "SEE LICENSE AT https://www.kustomer.com/legal/supplemental-terms/",
+    reason: "React Native Chat SDK for customer-facing chat UI, not a server-side support ticketing REST client.",
+  },
+] as const;
+
+export const kustomerSdkDecision = {
+  candidates: kustomerRejectedSdkPackages.map((sdkPackage) => sdkPackage.packageName),
+  checkedAt: "2026-06-25",
+  verdict: "no-official-sdk-rest-adapter",
+  result: "no-official-maintained-ticketing-rest-sdk",
+  reason: "Kustomer's maintained JavaScript packages cover Apps Platform and Chat SDK runtimes, but do not provide a backend support/ticketing REST client for the conversation, message, customer draft, and readiness operations exposed by this package.",
+  rejectedSdkPackages: kustomerRejectedSdkPackages,
+} as const;
+
+export const kustomerProviderRestAdapterException = {
+  checkedAt: kustomerSdkDecision.checkedAt,
+  result: kustomerSdkDecision.result,
+  reason: kustomerSdkDecision.reason,
+  defaultClientPolicy: "built-in-kustomer-rest-adapter-with-access-token",
+  typedClientOverride: "KustomerTicketingProviderClient",
+  rejectedSdkPackages: kustomerRejectedSdkPackages,
+} as const;
+
 export const kustomerHostClientSupportSlice = {
   implementationStrategy: "provider-rest-adapter",
-  sdkDecision: {
-    candidates: ["@kustomer/apps-server", "@kustomer/apps-client", "@kustomer/apps-server-sdk", "@kustomer/chat-react-native"],
-    verdict: "no-official-sdk-rest-adapter",
-    reason: "Kustomer's maintained JavaScript SDK packages target Apps Platform or Chat runtimes; no official package was verified that fully covers backend public REST ticketing operations for conversations, messages, and customer drafts.",
-    checkedAt: "2026-06-25",
-  },
+  sdkDecision: kustomerSdkDecision,
   allowedOperations: [
     { id: "conversations.create", alias: "ticket.create", target: "restAdapter.createConversation", source: "provider-rest-adapter" },
     { id: "conversations.read", alias: "ticket.read", target: "restAdapter.getConversation", source: "provider-rest-adapter" },
@@ -56,6 +96,7 @@ export const kustomerTicketingProviderManifestInput = {
       "Kustomer's developer surface separates REST APIs for backend systems from Apps Platform and Chat SDK packages.",
       "Support workflow calls use the built-in Kustomer REST adapter when baseUrl and accessToken/apiKey are configured.",
       "A host-provided KustomerTicketingProviderClient can still override the built-in REST adapter.",
+      "The package declares an explicit REST-adapter exception because the checked Kustomer npm SDK packages do not provide a suitable backend support/ticketing REST client.",
       "Coverage is limited to Kustomer conversation create/read/update/list, message list/create, customer draft creation, and org readiness for support workflows.",
       "This package intentionally does not copy the old generated full Kustomer public API clone.",
     ],
@@ -63,6 +104,8 @@ export const kustomerTicketingProviderManifestInput = {
       { label: "Kustomer developer portal", url: "https://developer.kustomer.com/" },
       { label: "Kustomer REST APIs portal", url: "https://developer.kustomer.com/kustomer-api-docs/reference" },
       { label: "@kustomer/apps-server npm package", url: "https://www.npmjs.com/package/@kustomer/apps-server" },
+      { label: "@kustomer/apps-server-sdk npm package", url: "https://www.npmjs.com/package/@kustomer/apps-server-sdk" },
+      { label: "@kustomer/chat-react-native npm package", url: "https://www.npmjs.com/package/@kustomer/chat-react-native" },
       { label: "Kustomer API keys", url: "https://help.kustomer.com/api-keys-SJs5YTIWX" },
       { label: "Kustomer create message", url: "https://developer.kustomer.com/kustomer-api-docs/reference/createmessage" },
     ],
@@ -91,7 +134,8 @@ export const kustomerTicketingProviderManifestInput = {
     implementation: kustomerHostClientSupportSlice,
     manifestOnlySafe: true,
     implementationStrategy: "provider-rest-adapter",
-    sdkDecision: "no-official-sdk-rest-adapter",
+    sdkDecision: kustomerSdkDecision,
+    providerRestAdapterException: kustomerProviderRestAdapterException,
     providerClient: {
       package: "optional-override",
       interface: "KustomerTicketingProviderClient",

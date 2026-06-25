@@ -81,9 +81,9 @@ export const RCS_SELECTED_OPERATIONS = [
 export const RCS_SELECTED_OPERATION_COUNT = RCS_SELECTED_OPERATIONS.length;
 
 export const RCS_HOST_CLIENT_METADATA = {
-  strategy: "provider-rest-adapter",
+  strategy: "provider-sdk-hybrid",
   checkedAt: "2026-06-25",
-  source: "official Google RCS for Business REST reference plus provider REST adapter contract",
+  source: "official Google RCS for Business SDK plus Business Communications REST reference",
   sourceVersion: "rcsbusinessmessaging.v1 + businesscommunications.v1 public docs checked 2026-06-25",
   allowlistChecksumAlgorithm: "sha256",
   allowlistChecksum: selectedOperationsChecksum(RCS_SELECTED_OPERATIONS),
@@ -93,12 +93,22 @@ export const RCS_HOST_CLIENT_METADATA = {
     operationCatalog: "package:src/selected-operations.ts",
   },
   sdkDecision: {
-    viableOfficialSdk: false,
-    defaultClient: "provider-rest-adapter",
+    officialRuntimeSdk: {
+      packageName: "@google/rcsbusinessmessaging",
+      versionChecked: "1.0.10",
+      npmModifiedAt: "2025-04-30T16:44:00.722Z",
+      docsUrl: "https://developers.google.com/business-communications/rcs-business-messaging/reference/libraries",
+      status: "real-maintained-rbm-runtime",
+    },
+    viableAsSoleDefaultRuntime: false,
+    viableForRbmMessagingRuntime: true,
+    selectedDefaultClient: "google-rcsbusinessmessaging-sdk-plus-businesscommunications-rest",
+    failClosedWithoutCredentialedTransport: true,
     notes: [
-      "@google/rcsbusinessmessaging is an official Google Node.js client for RBM messaging, but the selected support slice also includes Business Communications readiness operations and SDK-tunable REST/base URL options.",
-      "This package ships a built-in REST adapter for the selected RCS and Business Communications operations, including accessToken, apiKey, tokenProvider, and service-account credential paths.",
-      "Hosts may still inject RcsMessagingProviderClient when they want to wrap Google's SDK or another approved provider runtime.",
+      "@google/rcsbusinessmessaging is the default runtime for RBM agentMessages, agentEvents, files, and phone capabilities.",
+      "The package does not expose the Business Communications brands.agents readiness API used by this support slice, so those read-only checks use a strict typed REST adapter.",
+      "Both runtime paths share the same accessToken, tokenProvider, and service-account credential handling.",
+      "API key-only transport is rejected; hosts may inject RcsMessagingProviderClient when they want to wrap Google's SDK or another approved provider runtime.",
     ],
   },
 } as const;

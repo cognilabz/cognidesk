@@ -6,7 +6,7 @@ import {
   createRingCentralContactCenterOperationHandlers,
   ringCentralContactCenterManifest,
 } from "../src/index.js";
-import type { RingCentralSdkClient } from "../src/index.js";
+import type { RingCentralSdkClient, RingCentralSdkPlatform } from "../src/index.js";
 
 describe("@cognidesk/integration-contact-center-ringcentral", () => {
   it("keeps the manifest metadata-only", async () => {
@@ -35,11 +35,12 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
 
   it("routes configured handoff and readiness through @ringcentral/sdk methods", async () => {
     const authSetData = vi.fn(async () => undefined);
-    const sdk = fakeRingCentralSdk({
+    const platform = fakeRingCentralSdkPlatform({
       authSetData,
       post: vi.fn(async () => jsonResponse({ id: "handoff-1" })),
       get: vi.fn(async () => jsonResponse({ id: "extension-1" })),
     });
+    const sdk = fakeRingCentralSdk({ platform });
     const client = createRingCentralContactCenterClient({
       server: "https://platform.ringcentral.com",
       sdk,
@@ -56,16 +57,18 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
       access_token: "ringcentral-access-token",
       token_type: "bearer",
     });
-    expect(sdk.post).toHaveBeenCalledWith("/restapi/ringcx/handoff", { conversationId: "conversation-1" });
-    expect(sdk.get).toHaveBeenCalledWith("/restapi/v1.0/account/~/extension/~");
+    expect(platform.post).toHaveBeenCalledWith("/restapi/ringcx/handoff", { conversationId: "conversation-1" });
+    expect(platform.get).toHaveBeenCalledWith("/restapi/v1.0/account/~/extension/~");
+    expect(sdk.platform).toHaveBeenCalledTimes(1);
     expect(client.sdk).toBe(sdk);
   });
 
   it("accepts injected SDK clients without requiring server", async () => {
-    const sdk = fakeRingCentralSdk({
+    const platform = fakeRingCentralSdkPlatform({
       post: vi.fn(async () => jsonResponse({ id: "handoff-1" })),
       get: vi.fn(async () => jsonResponse({ id: "extension-1" })),
     });
+    const sdk = fakeRingCentralSdk({ platform });
     const client = createRingCentralContactCenterClient({
       sdk,
       defaultHandoffPath: "/restapi/ringcx/handoff",
@@ -74,7 +77,7 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
 
     await expect(client.createHandoff({ payload: { conversationId: "conversation-1" } }))
       .resolves.toEqual({ id: "handoff-1" });
-    expect(sdk.post).toHaveBeenCalledWith("/restapi/ringcx/handoff", { conversationId: "conversation-1" });
+    expect(platform.post).toHaveBeenCalledWith("/restapi/ringcx/handoff", { conversationId: "conversation-1" });
   });
 
   it("requires server when constructing a RingCentral SDK client", () => {
@@ -87,10 +90,11 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
     const authSetData = vi.fn()
       .mockRejectedValueOnce(new Error("temporary auth failure"))
       .mockResolvedValueOnce(undefined);
-    const sdk = fakeRingCentralSdk({
+    const platform = fakeRingCentralSdkPlatform({
       authSetData,
       post: vi.fn(async () => jsonResponse({ id: "handoff-1" })),
     });
+    const sdk = fakeRingCentralSdk({ platform });
     const client = createRingCentralContactCenterClient({
       sdk,
       accessToken: "ringcentral-access-token",
@@ -103,7 +107,7 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
       .resolves.toEqual({ id: "handoff-1" });
 
     expect(authSetData).toHaveBeenCalledTimes(2);
-    expect(sdk.post).toHaveBeenCalledTimes(1);
+    expect(platform.post).toHaveBeenCalledTimes(1);
   });
 
   it("exports operation handlers that delegate to the injected SDK-backed client", async () => {
@@ -133,6 +137,11 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
       implementation: {
         strategy: "official-sdk-backed-client-plus-reviewed-slices",
         sdkPackages: ["@ringcentral/sdk"],
+        sdkRuntimeSurface: "SDK.platform()",
+        operationMethodMap: {
+          "contact-center.handoff.request": "SDK.platform().post",
+          "contact-center.handoff.status.read": "SDK.platform().get",
+        },
       },
     });
   });
@@ -151,11 +160,13 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
       expect.objectContaining({
         alias: "contact-center.handoff.request",
         capability: "handoff",
+        providerOperation: "SDK.platform().post",
         providerObject: "ringcxHandoff",
       }),
       expect.objectContaining({
         alias: "contact-center.handoff.status.read",
         capability: "read-provider-object",
+        providerOperation: "SDK.platform().get",
         providerObject: "ringcentralReadiness",
       }),
     ]));
@@ -163,16 +174,25 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
 });
 
 function fakeRingCentralSdk(input: {
-  authSetData?: (data: unknown) => Promise<void>;
-  get?: RingCentralSdkClient["get"];
-  post?: RingCentralSdkClient["post"];
+  platform?: RingCentralSdkPlatform;
 } = {}): RingCentralSdkClient {
+  const platform = input.platform ?? fakeRingCentralSdkPlatform();
   return {
-    platform: vi.fn(() => ({
-      auth: () => ({
-        setData: input.authSetData ?? vi.fn(async () => undefined),
-      }),
-    })) as RingCentralSdkClient["platform"],
+    platform: vi.fn(() => platform),
+  };
+}
+
+function fakeRingCentralSdkPlatform(input: {
+  authSetData?: (data: unknown) => Promise<void>;
+  get?: RingCentralSdkPlatform["get"];
+  post?: RingCentralSdkPlatform["post"];
+} = {}): RingCentralSdkPlatform {
+  const auth = vi.fn(() => ({
+    setData: input.authSetData ?? vi.fn(async () => undefined),
+  })) as RingCentralSdkPlatform["auth"];
+
+  return {
+    auth,
     get: input.get ?? vi.fn(async () => ({ ok: true })),
     post: input.post ?? vi.fn(async () => ({ ok: true })),
   };

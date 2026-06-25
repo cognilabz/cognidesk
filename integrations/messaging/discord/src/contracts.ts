@@ -15,6 +15,7 @@ export interface DiscordMessagingJsonObject {
 export type DiscordMessagingProviderPayload = DiscordMessagingJsonObject | object;
 
 export interface DiscordRestOptions {
+  auth?: boolean;
   body?: DiscordMessagingProviderPayload;
   query?: URLSearchParams;
   reason?: string;
@@ -26,11 +27,10 @@ export interface DiscordRestLike {
 }
 
 export interface DiscordMessagingClientOptions {
-  botToken: string;
+  botToken?: string;
   apiBaseUrl?: string;
   apiVersion?: string;
   rest?: DiscordRestLike;
-  fetch?: typeof fetch;
 }
 
 export interface DiscordGatewayClientOptions {

@@ -27,6 +27,9 @@ function providerRestRequest<T = unknown>(input: ProviderRestRequestInput): Prom
   return providerJsonRequest<T>(input as Parameters<typeof providerJsonRequest>[0]);
 }
 
+export type NiceCxoneProviderMethod = ProviderHttpMethod;
+export type NiceCxoneQueryValue = ProviderQueryValue;
+
 export interface NiceCxoneClientOptions {
   baseUrl?: string | undefined;
   apiBaseUrl?: string | undefined;
@@ -87,6 +90,19 @@ export interface NiceCxoneClient {
   request(input: ProviderExtensionRequestInput): Promise<ProviderJsonObject>;
   readiness(): Promise<ProviderJsonObject>;
 }
+
+type NiceCxoneAllowedOperationInput = NiceCxoneOperationInput & {
+  method: ProviderHttpMethod;
+  path: string;
+};
+
+type NiceCxoneValidatedProviderRequestInput = NiceCxoneOperationInput & {
+  operationId?: string | undefined;
+  method: ProviderHttpMethod;
+  path: string;
+  allowMutation?: boolean | undefined;
+  classification?: string | undefined;
+};
 
 export interface NiceCxoneIntegrationOptions extends NiceCxoneClientOptions {
   niceCxoneClient?: NiceCxoneClient | undefined;
@@ -199,37 +215,43 @@ function createNiceCxoneRestProviderClient(options: NiceCxoneClientOptions): Nic
   }
 }
 
-function validateNiceCxoneAllowedOperation(operationId: string, input: NiceCxoneOperationInput = {}) {
+function validateNiceCxoneAllowedOperation(operationId: string, input: NiceCxoneOperationInput = {}): NiceCxoneAllowedOperationInput {
   const operation = niceCxoneSupportSlice.allowedOperations.find((candidate) => candidate.id === operationId);
   if (!operation || String(operation.path) === "host-configured") {
     throw new Error(`NICE CXone operation '${operationId}' is not in the reviewed allowlist.`);
   }
+  const value = normalizeOperationInput(input);
   return {
-    ...input,
+    ...value,
     method: operation.method as ProviderHttpMethod,
     path: operation.path,
   };
 }
 
-function validateNiceCxoneProviderRequest(input: ProviderExtensionRequestInput): ProviderExtensionRequestInput & { method: ProviderHttpMethod; path: string } {
-  if (!input || typeof input !== "object" || Array.isArray(input)) {
-    throw new Error("NICE CXone request input object is required.");
-  }
-  const operation = input.operationId
-    ? niceCxoneSupportSlice.allowedOperations.find((candidate) => candidate.id === input.operationId)
+function validateNiceCxoneProviderRequest(input: ProviderExtensionRequestInput): NiceCxoneValidatedProviderRequestInput {
+  const raw = inputObject(input, "NICE CXone request input object is required.");
+  const operationId = optionalStringProperty(raw, "operationId", "NICE CXone operationId");
+  const operation = operationId
+    ? niceCxoneSupportSlice.allowedOperations.find((candidate) => candidate.id === operationId)
     : undefined;
-  const method = providerHttpMethod(input.method ?? operationMethod(operation) ?? "GET", "NICE CXone");
-  const path = input.path ?? operationPath(operation);
+  const method = providerHttpMethod(raw.method ?? operationMethod(operation) ?? "GET", "NICE CXone");
+  const path = optionalStringProperty(raw, "path", "NICE CXone request path") ?? operationPath(operation);
+  const allowMutation = optionalBooleanProperty(raw, "allowMutation", "NICE CXone allowMutation");
+  const classification = optionalStringProperty(raw, "classification", "NICE CXone policy classification");
+
   if (!path || path === "host-configured") {
     throw new Error("NICE CXone request path or reviewed operationId is required.");
   }
-  if (mutatingRequestMethods.has(method) && (input.allowMutation !== true || !hasPolicyClassification(input.classification))) {
+  if (mutatingRequestMethods.has(method) && (allowMutation !== true || !hasPolicyClassification(classification))) {
     throw new Error("NICE CXone mutating extension requests require allowMutation=true and host policy classification.");
   }
   return {
-    ...input,
+    ...normalizeOperationInput(input),
+    ...(operationId !== undefined ? { operationId } : {}),
     method,
     path,
+    ...(allowMutation !== undefined ? { allowMutation } : {}),
+    ...(classification !== undefined ? { classification } : {}),
   };
 }
 
@@ -238,6 +260,9 @@ function hasPolicyClassification(value: unknown): value is string {
 }
 
 function providerHttpMethod(value: unknown, providerName: string): ProviderHttpMethod {
+  if (typeof value !== "string") {
+    throw new Error(`${providerName} request method must be a string.`);
+  }
   const method = String(value).toUpperCase();
   if (!supportedRequestMethods.has(method as ProviderHttpMethod)) {
     throw new Error(`${providerName} request method '${method}' is not supported.`);
@@ -246,11 +271,60 @@ function providerHttpMethod(value: unknown, providerName: string): ProviderHttpM
 }
 
 function normalizeConfiguredHandoffInput(input: ConfiguredHandoffInput): ConfiguredHandoffInput {
+  const raw = inputObject(input, "NICE CXone handoff input object is required.");
   return {
-    ...(input.payload !== undefined ? { payload: input.payload } : {}),
-    ...(input.query !== undefined ? { query: input.query } : {}),
-    ...(input.idempotencyKey !== undefined ? { idempotencyKey: input.idempotencyKey } : {}),
+    ...(raw.payload !== undefined ? { payload: raw.payload } : {}),
+    ...(raw.query !== undefined ? { query: recordProperty(raw, "query", "NICE CXone handoff query") as Record<string, ProviderQueryValue> } : {}),
+    ...(raw.idempotencyKey !== undefined ? { idempotencyKey: stringProperty(raw, "idempotencyKey", "NICE CXone idempotencyKey") } : {}),
   };
+}
+
+function normalizeOperationInput(input: NiceCxoneOperationInput): NiceCxoneOperationInput {
+  const raw = inputObject(input, "NICE CXone operation input object is required.");
+  return {
+    ...(raw.pathParams !== undefined ? { pathParams: recordProperty(raw, "pathParams", "NICE CXone pathParams") as Record<string, string | number | boolean | undefined> } : {}),
+    ...(raw.query !== undefined ? { query: recordProperty(raw, "query", "NICE CXone query") as Record<string, ProviderQueryValue> } : {}),
+    ...(raw.body !== undefined ? { body: raw.body } : {}),
+    ...(raw.headers !== undefined ? { headers: recordProperty(raw, "headers", "NICE CXone headers") as Record<string, string | undefined> } : {}),
+    ...(raw.idempotencyKey !== undefined ? { idempotencyKey: stringProperty(raw, "idempotencyKey", "NICE CXone idempotencyKey") } : {}),
+  };
+}
+
+function inputObject(input: unknown, message: string): Record<string, unknown> {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error(message);
+  }
+  return input as Record<string, unknown>;
+}
+
+function recordProperty(input: Record<string, unknown>, key: string, label: string): Record<string, unknown> {
+  const value = input[key];
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be an object.`);
+  }
+  return value as Record<string, unknown>;
+}
+
+function optionalStringProperty(input: Record<string, unknown>, key: string, label: string): string | undefined {
+  if (input[key] === undefined) return undefined;
+  return stringProperty(input, key, label);
+}
+
+function stringProperty(input: Record<string, unknown>, key: string, label: string): string {
+  const value = input[key];
+  if (typeof value !== "string") {
+    throw new Error(`${label} must be a string.`);
+  }
+  return value;
+}
+
+function optionalBooleanProperty(input: Record<string, unknown>, key: string, label: string): boolean | undefined {
+  const value = input[key];
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") {
+    throw new Error(`${label} must be a boolean.`);
+  }
+  return value;
 }
 
 function operationMethod(operation: NiceCxoneAllowedOperation | undefined): ProviderHttpMethod | undefined {

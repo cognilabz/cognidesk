@@ -1,5 +1,10 @@
 export type * from "./contracts.js";
-export { createAzureSpeechClient } from "./client.js";
+export {
+  createAzureSpeechClient,
+  createAzureSpeechIntegration,
+  createAzureSpeechOperationHandlers,
+  createAzureSpeechRawConfigHandles,
+} from "./client.js";
 export { azureSpeechCredentialStatuses } from "./credentials.js";
 export {
   azureSpeechIntegration,

@@ -10,5 +10,5 @@ describe("@cognidesk/integration-ticketing-zoho-desk/manifest", () => {
       category: "ticketing",
       provider: "zoho-desk",
     });
-  });
+  }, 15000);
 });

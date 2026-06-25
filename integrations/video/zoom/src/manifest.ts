@@ -4,6 +4,11 @@ const ZOOM_MEETINGS_API_SPEC_VERSION = "2";
 const ZOOM_MEETINGS_API_PATH_COUNT = 129;
 const ZOOM_MEETINGS_API_OPERATION_COUNT = 184;
 const ZOOM_MEETINGS_API_GENERATED_FUNCTION_COUNT = 184;
+const ZOOM_RIVET_MEETINGS_SDK_OPERATION_COUNT = 182;
+const ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS = [
+  "GET /report/disclaimer",
+  "GET /report/remote_support",
+] as const;
 
 export const zoomVideoProviderManifest = defineProviderPackage({
   id: "video.zoom",
@@ -17,12 +22,15 @@ export const zoomVideoProviderManifest = defineProviderPackage({
   coverage: {
     scope: "provider-api-subset",
     notes: [
-      "Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec, executed through a built-in REST adapter when accessToken/getAccessToken/account OAuth/baseUrl/fetch options are provided.",
-      "Typed convenience helpers remain available for meetings create/list/read/update/delete, current-user readiness, webhook URL-validation handling, and x-zm-signature verification; providerClient remains available as a host override.",
+      "Coverage includes generated per-operation functions for every operation in Zoom's official Meetings API Hub OpenAPI spec. Runtime uses Zoom's official @zoom/rivet Meetings SDK for mapped SDK operations when accessToken/getAccessToken/account OAuth credentials are provided.",
+      "Typed convenience helpers remain available for meetings create/list/read/update/delete through @zoom/rivet, current-user readiness through @zoom/rivet/users, webhook URL-validation handling, and x-zm-signature verification; providerClient remains available as a host override.",
+      "The built-in typed REST adapter remains only for explicit REST exceptions: @zoom/rivet 0.4.0 does not expose GET /report/disclaimer or GET /report/remote_support, and low-level fetch/signal/retry/oauthBaseUrl options intentionally request the package-owned REST transport.",
       "This package is a generated Zoom Meetings API domain slice, not full Zoom platform coverage. Zoom Phone, Contact Center, Team Chat, Rooms, Marketplace app management outside the Meetings API Hub, account administration beyond this spec, and full webhook/event catalogs remain separate Zoom surfaces.",
       "The SDK user owns OAuth scopes, host delegation, account plan/admin settings, meeting lifecycle policy, recording/transcript consent, retention, deletion, and participant disclosure decisions.",
     ],
     evidence: [
+      { label: "Zoom Rivet for JavaScript", url: "https://developers.zoom.us/docs/rivet/javascript/" },
+      { label: "Zoom Rivet JavaScript repository", url: "https://github.com/zoom/rivet-javascript" },
       { label: "Zoom Meetings API Hub OpenAPI", url: "https://developers.zoom.us/api-hub/meetings/methods/endpoints.json" },
       { label: "Zoom Meetings API reference", url: "https://developers.zoom.us/docs/api/meetings/" },
       { label: "Zoom webhooks reference", url: "https://developers.zoom.us/docs/api/rest/webhook-reference/" },
@@ -33,18 +41,18 @@ export const zoomVideoProviderManifest = defineProviderPackage({
     {
       id: "zoom-video-provider-client",
       label: "Optional Zoom video provider client override",
-      description: "Optional host-managed Zoom provider client backed by an approved SDK, provider package, or host-owned transport when overriding the built-in REST adapter.",
+      description: "Optional host-managed Zoom provider client backed by an approved SDK, provider package, or host-owned transport when overriding the built-in @zoom/rivet runtime.",
       required: false,
       metadata: {
         injectionInterface: "ZoomVideoProviderClient",
         credentialOwnership: "sdk-user-or-host-managed",
-        defaultClientPolicy: "built-in-rest-with-oauth",
+        defaultClientPolicy: "official-rivet-sdk-with-reviewed-rest-exceptions",
       },
     },
     {
       id: "zoom-oauth-access-token",
       label: "Zoom OAuth access token",
-      description: "Server-side OAuth access token used by the built-in Zoom REST adapter or host provider client for meeting and user endpoints.",
+      description: "Server-side OAuth access token used by @zoom/rivet, the reviewed REST exceptions, or a host provider client for meeting and user endpoints.",
       scopes: [
         "meeting:write",
         "meeting:read",
@@ -196,7 +204,7 @@ export const zoomVideoProviderManifest = defineProviderPackage({
       extension: true,
       metadata: {
         supportSliceEscapeHatch: true,
-        execution: "provider-rest-adapter-or-host-provider-client",
+        execution: "official-rivet-sdk-or-reviewed-rest-exception-or-host-provider-client",
       },
     },
     {
@@ -213,11 +221,11 @@ export const zoomVideoProviderManifest = defineProviderPackage({
     "User consent, meeting disclosure, recording enablement, transcript use, retention, and deletion are owned by the SDK user's Zoom account configuration and application policy.",
   ],
   limitations: [
-    "Runtime provider API calls use the built-in Zoom REST adapter when OAuth credentials are supplied, or an optional host-injected ZoomVideoProviderClient override.",
-    "Missing OAuth credentials and missing providerClient fail closed; SDK users own token lifecycle, retries, and account authorization policy.",
+    "Runtime provider API calls use Zoom's official @zoom/rivet SDK when OAuth credentials are supplied, except for documented REST exceptions or explicit low-level REST transport options.",
+    "Missing OAuth credentials and missing providerClient fail closed; SDK users own token lifecycle, retry policy, and account authorization policy.",
     "Available meeting operations depend on the SDK user's Zoom OAuth scopes, account plan, account-level settings, admin policy, and delegated host permissions.",
     "This package does not choose whether a video workflow is inbound, outbound, customer-facing, internal, recorded, retained, or escalated; those decisions remain SDK-user configuration.",
-    "Live meeting media transport, captions, cloud recording retrieval, and telephony dial-out are outside this package's delegated provider-client and webhook foundation.",
+    "Live meeting media transport, captions, cloud recording retrieval, and telephony dial-out are outside this package's delegated SDK/provider-client and webhook foundation.",
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
@@ -267,26 +275,43 @@ export const zoomVideoProviderManifest = defineProviderPackage({
         "Webinars",
       ],
     },
-    implementationStrategy: "provider-rest-adapter",
+    implementationStrategy: "official-sdk-with-reviewed-rest-exceptions",
     implementation: {
-      strategy: "provider-rest-adapter",
+      strategy: "official-sdk-with-reviewed-rest-exceptions",
+      officialSdk: {
+        packageName: "@zoom/rivet",
+        checkedVersion: "0.4.0",
+        meetingsModule: "@zoom/rivet/meetings",
+        usersModule: "@zoom/rivet/users",
+        mappedMeetingsOperationCount: ZOOM_RIVET_MEETINGS_SDK_OPERATION_COUNT,
+      },
       providerClientInterface: "ZoomVideoProviderClient",
-      defaultHttpClient: "fetch",
-      defaultFetchClient: "globalThis.fetch-or-options.fetch",
-      failClosedWithoutProviderClient: false,
+      defaultClient: "official-zoom-rivet-sdk",
+      restAdapterException: {
+        adapterKind: "reviewed-rest-exception",
+        operationUids: ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS,
+        transportOptions: ["fetch", "signal", "retry", "oauthBaseUrl"],
+      },
+      failClosedWithoutProviderClientOrOAuthCredentials: true,
       failClosedWithoutOAuthCredentials: true,
       manifestImport: "no-client-initialization",
-      generatedMeetingsApiRuntime: "built-in-rest-requestOperation-with-host-provider-client-override",
+      generatedMeetingsApiRuntime: "zoom-rivet-operation-dispatch-with-reviewed-rest-exception-fallback-and-host-provider-client-override",
     },
     providerClient: {
       interface: "ZoomVideoProviderClient",
       injectionPolicy: "optional-runtime-override",
       importPolicy: "optional-host-override",
-      defaultClient: "built-in-rest-adapter",
+      defaultClient: "official-zoom-rivet-sdk",
     },
     sdkViability: {
-      decision: "no-official-maintained-server-rest-sdk-found",
+      decision: "official-provider-sdk-selected",
       checkedAt: "2026-06-25",
+      selectedSdkPackage: {
+        packageName: "@zoom/rivet",
+        checkedVersion: "0.4.0",
+        reason: "Official Zoom Node.js toolkit with Meetings API wrappers, server-to-server OAuth support, and webhook/event tooling.",
+        source: "https://developers.zoom.us/docs/rivet/javascript/",
+      },
       rejectedSdkPackages: [
         {
           packageName: "@zoom/meetingsdk",
@@ -300,6 +325,22 @@ export const zoomVideoProviderManifest = defineProviderPackage({
           packageName: "@zoom/rtms",
           reason: "Official Node real-time media streams SDK, not scheduling/resource REST management.",
         },
+      ],
+    },
+    providerRestAdapterException: {
+      status: "accepted",
+      reviewedAt: "2026-06-25",
+      adapterKind: "reviewed-rest-exception",
+      reason: "@zoom/rivet 0.4.0 covers 182 of this package's 184 generated Zoom Meetings API operations; the package-owned typed REST adapter is retained for the two missing report endpoints and explicit low-level transport options the SDK cannot honor.",
+      operationUids: ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS,
+      allowedDefaultRuntime: "official-zoom-rivet-sdk",
+      fallbackRuntime: "built-in-typed-rest-adapter",
+      hostSdkPath: "ZoomVideoProviderClient",
+      failClosed: true,
+      guardrails: [
+        "Keep generated operation IDs resolved against the local Zoom Meetings API catalog before SDK dispatch or REST fallback.",
+        "Use @zoom/rivet for mapped operations whenever fetch/signal/retry/oauthBaseUrl are not explicitly requested.",
+        "Only use the REST adapter for documented @zoom/rivet gaps, per-request headers, or transport options the SDK cannot represent.",
       ],
     },
   },

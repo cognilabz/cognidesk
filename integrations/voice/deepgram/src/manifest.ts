@@ -68,7 +68,7 @@ export const deepgramVoiceProviderManifest = defineIntegrationProviderPackage({
   operations: [
     {
       alias: "voice.turn.finalize",
-      providerOperation: "transcribeAudio",
+      providerOperation: "listen.v1.media.transcribeFile",
       capability: "receive",
       label: "Transcribe speech",
       providerObject: "voiceTranscript",
@@ -77,7 +77,7 @@ export const deepgramVoiceProviderManifest = defineIntegrationProviderPackage({
     },
     {
       alias: "voice.speak",
-      providerOperation: "synthesizeSpeech",
+      providerOperation: "speak.v1.audio.generate",
       capability: "send",
       label: "Synthesize speech",
       providerObject: "voiceAudio",

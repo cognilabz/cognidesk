@@ -39,6 +39,7 @@ export const pegaCustomerServiceTicketingProviderManifestInput = {
       { label: "Pega DX API PATCH /assignments/{assignmentID}/actions/{actionID}", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-patch-assignments-assignmentid-actions-actionid.html" },
       { label: "Pega React SDK", url: "https://github.com/pegasystems/react-sdk" },
       { label: "@pega/constellationjs package", url: "https://www.npmjs.com/package/@pega/constellationjs" },
+      { label: "@pega/auth package", url: "https://www.npmjs.com/package/@pega/auth" },
     ],
   },
   credentialRequirements: [
@@ -59,15 +60,19 @@ export const pegaCustomerServiceTicketingProviderManifestInput = {
       id: "pega-customer-service-instance",
       label: "Pega Customer Service base URL",
       description: "Pega application base URL used by the built-in DX REST adapter, or supplied by a host provider client override.",
-      required: true,
+      required: false,
+      metadata: {
+        requiredWhen: "built-in-dx-rest-adapter",
+      },
     },
     {
       id: "pega-customer-service-api-access",
       label: "Pega Customer Service DX API access",
       description: "Server-side Pega DX API access supplied as accessToken, auth headers, or encapsulated in a host provider client override.",
       scopes: ["cases:read", "cases:write", "assignments:write"],
-      required: true,
+      required: false,
       metadata: {
+        requiredWhen: "built-in-dx-rest-adapter",
         scopeKind: "internal-capability-labels",
         privilegeGuidance: "These strings are Cognidesk capability labels, not official Pega OAuth scope names. Pega access depends on application OAuth/client configuration, roles, privileges, and case security.",
       },
@@ -218,6 +223,11 @@ export const pegaCustomerServiceTicketingProviderManifestInput = {
           packageName: "@pega/constellationjs",
           result: "not-used-as-package-default",
           reason: "Pega-maintained package, but it delivers ConstellationJS engine files rather than a server-side Customer Service case client.",
+        },
+        {
+          packageName: "@pega/auth",
+          result: "not-used-as-package-default",
+          reason: "Pega-maintained OAuth client infrastructure for Infinity and Launchpad, but not a typed Customer Service or DX case operations client.",
         },
         {
           packageName: "pegasystems/react-sdk",

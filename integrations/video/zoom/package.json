@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "@zoom/rivet": "^0.4.0"
   },
   "devDependencies": {
     "@cognidesk/test-harness": "workspace:*",
@@ -53,6 +54,9 @@
     "providerPackage": true,
     "category": "video",
     "provider": "zoom",
+    "providerSdkDependencies": [
+      "@zoom/rivet"
+    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

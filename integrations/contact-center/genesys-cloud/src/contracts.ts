@@ -1,48 +1,28 @@
+import type * as GenesysCloudPlatformClient from "purecloud-platform-client-v2";
+
+export type GenesysCloudPlatformSdk = typeof GenesysCloudPlatformClient;
+export type GenesysCloudSdkApiClient = typeof GenesysCloudPlatformClient.ApiClient;
+export type GenesysCloudConversationsApi = InstanceType<typeof GenesysCloudPlatformClient.ConversationsApi>;
+export type GenesysCloudRoutingApi = InstanceType<typeof GenesysCloudPlatformClient.RoutingApi>;
+export type GenesysCloudUsersApi = InstanceType<typeof GenesysCloudPlatformClient.UsersApi>;
+export type GenesysCloudCallbackBody = Parameters<GenesysCloudConversationsApi["postConversationsCallbacks"]>[0];
+export type GenesysCloudOpenMessageBody =
+  Parameters<GenesysCloudConversationsApi["postConversationsMessageInboundOpenMessage"]>[1];
+export type GenesysCloudSdkCallOptions =
+  NonNullable<Parameters<GenesysCloudConversationsApi["postConversationsCallbacks"]>[1]>;
+export type GenesysCloudOpenMessageSdkCallOptions =
+  NonNullable<Parameters<GenesysCloudConversationsApi["postConversationsMessageInboundOpenMessage"]>[2]>;
+export type GenesysCloudListQueuesSdkOptions =
+  NonNullable<Parameters<GenesysCloudRoutingApi["getRoutingQueues"]>[0]>;
+
 export type GenesysCloudJsonObject = Record<string, unknown>;
 
-export interface GenesysCloudSdkApiClient {
-  setEnvironment?: (environment: string) => void;
-  setAccessToken?: (token: string) => void;
-}
-
-export interface GenesysCloudSdkCallOptions {
-  customHeaders?: Record<string, string>;
-}
-
-export interface GenesysCloudOpenMessageSdkCallOptions extends GenesysCloudSdkCallOptions {
-  prefetchConversationId?: boolean;
-}
-
-export interface GenesysCloudConversationsApi {
-  postConversationsCallbacks(body: unknown, opts?: GenesysCloudSdkCallOptions): Promise<unknown>;
-  postConversationsMessageInboundOpenMessage(
-    integrationId: string,
-    body: unknown,
-    opts?: GenesysCloudOpenMessageSdkCallOptions,
-  ): Promise<unknown>;
-  getConversation(conversationId: string, opts?: GenesysCloudSdkCallOptions): Promise<unknown>;
-}
-
-export interface GenesysCloudRoutingApi {
-  getRoutingQueues(opts?: GenesysCloudListQueuesInput & GenesysCloudSdkCallOptions): Promise<unknown>;
-}
-
-export interface GenesysCloudUsersApi {
-  getUsersMe(opts?: GenesysCloudSdkCallOptions): Promise<unknown>;
-}
-
 export interface GenesysCloudSdkClient {
+  platformClient: GenesysCloudPlatformSdk;
   apiClient: GenesysCloudSdkApiClient;
   conversationsApi: GenesysCloudConversationsApi;
   routingApi: GenesysCloudRoutingApi;
   usersApi: GenesysCloudUsersApi;
-}
-
-export interface GenesysCloudPlatformSdk {
-  ApiClient: new () => GenesysCloudSdkApiClient;
-  ConversationsApi: new (apiClient?: GenesysCloudSdkApiClient) => GenesysCloudConversationsApi;
-  RoutingApi: new (apiClient?: GenesysCloudSdkApiClient) => GenesysCloudRoutingApi;
-  UsersApi: new (apiClient?: GenesysCloudSdkApiClient) => GenesysCloudUsersApi;
 }
 
 export interface GenesysCloudContactCenterOptions {

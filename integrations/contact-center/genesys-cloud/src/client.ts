@@ -1,11 +1,14 @@
 import type {
   GenesysCloudContactCenterClient,
   GenesysCloudContactCenterOptions,
+  GenesysCloudCallbackBody,
   GenesysCloudCreateCallbackInput,
   GenesysCloudCreateOpenMessageInput,
   GenesysCloudGetConversationInput,
   GenesysCloudHandoffInput,
   GenesysCloudListQueuesInput,
+  GenesysCloudListQueuesSdkOptions,
+  GenesysCloudOpenMessageBody,
   GenesysCloudOpenMessageSdkCallOptions,
   GenesysCloudPlatformSdk,
   GenesysCloudSdkCallOptions,
@@ -32,14 +35,17 @@ export async function createGenesysCloudContactCenterClient(
     },
     createCallback(input) {
       assertBody(input.callback, "Genesys Cloud callback");
-      return sdkClient.conversationsApi.postConversationsCallbacks(input.callback, sdkOptions(input));
+      return sdkClient.conversationsApi.postConversationsCallbacks(
+        input.callback as GenesysCloudCallbackBody,
+        sdkOptions(input),
+      );
     },
     createOpenMessage(input) {
       requireIntegrationId(input.integrationId);
       assertBody(input.message, "Genesys Cloud Open Messaging message");
       return sdkClient.conversationsApi.postConversationsMessageInboundOpenMessage(
         input.integrationId,
-        input.message,
+        input.message as GenesysCloudOpenMessageBody,
         openMessageSdkOptions(input),
       );
     },
@@ -62,11 +68,12 @@ export async function createGenesysCloudSdkClient(
   options: Pick<GenesysCloudContactCenterOptions, "apiBaseUrl" | "accessToken" | "sdk">,
 ): Promise<GenesysCloudSdkClient> {
   const sdk = options.sdk ?? await loadGenesysCloudSdk();
-  const apiClient = new sdk.ApiClient();
-  apiClient.setEnvironment?.(options.apiBaseUrl);
-  if (options.accessToken) apiClient.setAccessToken?.(options.accessToken);
+  const apiClient = sdk.ApiClient;
+  apiClient.setEnvironment(options.apiBaseUrl);
+  if (options.accessToken) apiClient.setAccessToken(options.accessToken);
 
   return {
+    platformClient: sdk,
     apiClient,
     conversationsApi: new sdk.ConversationsApi(apiClient),
     routingApi: new sdk.RoutingApi(apiClient),
@@ -76,7 +83,7 @@ export async function createGenesysCloudSdkClient(
 
 async function loadGenesysCloudSdk(): Promise<GenesysCloudPlatformSdk> {
   const sdkModule = await import("purecloud-platform-client-v2");
-  return ((sdkModule as { default?: unknown }).default ?? sdkModule) as GenesysCloudPlatformSdk;
+  return ((sdkModule as { default?: GenesysCloudPlatformSdk }).default ?? sdkModule) as GenesysCloudPlatformSdk;
 }
 
 function handoffOpenMessage(input: GenesysCloudHandoffInput): GenesysCloudCreateOpenMessageInput | undefined {
@@ -106,8 +113,8 @@ function openMessageSdkOptions(input: GenesysCloudCreateOpenMessageInput): Genes
   return Object.keys(options).length > 0 ? options : undefined;
 }
 
-function listQueuesSdkOptions(input: GenesysCloudListQueuesInput) {
-  const options: GenesysCloudListQueuesInput = {};
+function listQueuesSdkOptions(input: GenesysCloudListQueuesInput): GenesysCloudListQueuesSdkOptions | undefined {
+  const options: GenesysCloudListQueuesSdkOptions = {};
   if (input.pageSize !== undefined) options.pageSize = input.pageSize;
   if (input.pageNumber !== undefined) options.pageNumber = input.pageNumber;
   if (input.name !== undefined) options.name = input.name;

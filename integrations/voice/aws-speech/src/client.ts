@@ -11,6 +11,7 @@ import {
 import type {
   AwsPollySynthesizeCommandInput,
   AwsSpeechClientOptions,
+  AwsSpeechRawClients,
   AwsSdkSpeechClientOptions,
   AwsSpeechClient,
 } from "./contracts.js";
@@ -23,7 +24,7 @@ import {
   collectAwsTranscript,
 } from "./transcription.js";
 
-export function createAwsSpeechRawClients(options: AwsSpeechClientOptions) {
+export function createAwsSpeechRawClients(options: AwsSpeechClientOptions): AwsSpeechRawClients {
   const credentials = options.accessKeyId && options.secretAccessKey
     ? {
         accessKeyId: options.accessKeyId,
@@ -47,18 +48,26 @@ export function createAwsSpeechRawClients(options: AwsSpeechClientOptions) {
   };
 }
 
-export function createAwsSpeechClient(options: AwsSpeechClientOptions): AwsSpeechClient {
+export function createAwsSpeechClient(options: AwsSpeechClientOptions): AwsSpeechClient<AwsSpeechRawClients> {
   const rawClients = createAwsSpeechRawClients(options);
   return createAwsSdkSpeechClient({
     transcribeStreamingClient: rawClients.transcribeStreamingClient,
-    StartStreamTranscriptionCommand: StartStreamTranscriptionCommand as never,
+    StartStreamTranscriptionCommand,
     pollyClient: rawClients.pollyClient,
-    SynthesizeSpeechCommand: SynthesizeSpeechCommand as never,
-  });
+    SynthesizeSpeechCommand,
+  }) as AwsSpeechClient<AwsSpeechRawClients>;
 }
 
 export function createAwsSdkSpeechClient(options: AwsSdkSpeechClientOptions): AwsSpeechClient {
+  const rawClients = {
+    transcribeStreamingClient: options.transcribeStreamingClient,
+    pollyClient: options.pollyClient,
+  };
   return {
+    rawClients,
+    getRawClient() {
+      return rawClients;
+    },
     async transcribeSpeech(input) {
       const commandInput = awsTranscribeStreamingCommandInput(input);
       const command = new options.StartStreamTranscriptionCommand(commandInput);
@@ -77,6 +86,7 @@ export function createAwsSdkSpeechClient(options: AwsSdkSpeechClientOptions): Aw
         ...(input.engine !== undefined ? { Engine: input.engine } : {}),
         ...(input.languageCode !== undefined ? { LanguageCode: input.languageCode } : {}),
         ...(input.sampleRate !== undefined ? { SampleRate: input.sampleRate } : defaultPollyCommandSampleRate(outputFormat)),
+        ...(input.speechMarkTypes !== undefined ? { SpeechMarkTypes: input.speechMarkTypes } : {}),
         ...(input.textType !== undefined ? { TextType: input.textType } : {}),
         ...(input.lexiconNames !== undefined ? { LexiconNames: input.lexiconNames } : {}),
       };

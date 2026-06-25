@@ -101,6 +101,80 @@ describe("@cognidesk/integration-email-mailgun", () => {
       .toHaveBeenCalledWith("mg.example.test", "storage-key");
   });
 
+  it("creates the default runtime client through mailgun.js and binds SDK methods", async () => {
+    vi.resetModules();
+    const TestFormData = class TestFormData {};
+    const rawClient = createMailgunRawClientStub();
+    const clientFactory = vi.fn(() => rawClient);
+    const MailgunConstructor = vi.fn(function MailgunMock(this: { client?: typeof clientFactory }) {
+      this.client = clientFactory;
+    });
+    vi.doMock("mailgun.js", () => ({ default: MailgunConstructor }));
+
+    try {
+      const { createMailgunEmailIntegration } = await import("../src/index.js");
+      const integration = createMailgunEmailIntegration({
+        apiKey: "key",
+        domain: "mg.example.test",
+        region: "eu",
+        formData: TestFormData,
+      });
+
+      await integration.operations["email.send"]?.({
+        from: "support@example.test",
+        to: "customer@example.test",
+        subject: "Hello",
+        text: "Body",
+      });
+      await integration.operations["email.deliveryStatus.read"]?.({ event: "delivered" });
+      await integration.operations["mailgun.storedMessage.read"]?.({ storageKey: "storage-key" });
+      await integration.operations["mailgun.domain.read"]?.();
+      await integration.operations["mailgun.webhooks.list"]?.();
+
+      expect(MailgunConstructor).toHaveBeenCalledWith(TestFormData);
+      expect(clientFactory).toHaveBeenCalledWith({
+        username: "api",
+        key: "key",
+        url: "https://api.eu.mailgun.net",
+        useFetch: true,
+      });
+      expect(rawClient.messages.create).toHaveBeenCalledWith("mg.example.test", expect.objectContaining({
+        from: "support@example.test",
+        to: "customer@example.test",
+      }));
+      expect(rawClient.events.get).toHaveBeenCalledWith("mg.example.test", { event: "delivered" });
+      expect(rawClient.messages.retrieveStoredEmail).toHaveBeenCalledWith("mg.example.test", "storage-key");
+      expect(rawClient.domains.get).toHaveBeenCalledWith("mg.example.test");
+      expect(rawClient.webhooks.list).toHaveBeenCalledWith("mg.example.test", {});
+    } finally {
+      vi.doUnmock("mailgun.js");
+      vi.resetModules();
+    }
+  });
+
+  it("fails closed if the mailgun.js runtime client does not expose stored-message retrieval", async () => {
+    vi.resetModules();
+    const rawClient = createMailgunRawClientStub();
+    delete (rawClient.messages as { retrieveStoredEmail?: unknown }).retrieveStoredEmail;
+    const clientFactory = vi.fn(() => rawClient);
+    const MailgunConstructor = vi.fn(function MailgunMock(this: { client?: typeof clientFactory }) {
+      this.client = clientFactory;
+    });
+    vi.doMock("mailgun.js", () => ({ default: MailgunConstructor }));
+
+    try {
+      const { createMailgunEmailClient } = await import("../src/index.js");
+
+      expect(() => createMailgunEmailClient({
+        apiKey: "key",
+        domain: "mg.example.test",
+      })).toThrow("mailgun.js runtime client is missing messages.retrieveStoredEmail.");
+    } finally {
+      vi.doUnmock("mailgun.js");
+      vi.resetModules();
+    }
+  });
+
   it("binds email.receive to the Mailgun webhook parser", async () => {
     const signingKey = "signing-key";
     const timestamp = "1710000000";

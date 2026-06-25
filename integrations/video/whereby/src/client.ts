@@ -36,6 +36,16 @@ import type {
 } from "./contracts.js";
 
 const WHEREBY_DEFAULT_API_BASE_URL = "https://api.whereby.dev/v1";
+const WHEREBY_FORM_DATA_OPERATION_UIDS = new Set([
+  "PUT /rooms/{roomName}/theme/logo",
+  "PUT /rooms/{roomName}/theme/room-background",
+  "PUT /rooms/{roomName}/theme/room-knock-page-background",
+]);
+const WHEREBY_REQUIRED_QUERY_PARAMETERS_BY_OPERATION = new Map<string, readonly string[]>([
+  ["GET /insights/room-sessions", ["roomName"]],
+  ["GET /insights/participants", ["roomSessionId"]],
+  ["GET /insights/participant", ["roomSessionId", "participantId"]],
+]);
 
 export function createWherebyVideoClient(options: WherebyVideoClientOptions = {}): WherebyVideoClient {
   const providerClient = requireWherebyVideoProviderClient(
@@ -168,8 +178,8 @@ export function createWherebyRestProviderClient(options: Omit<WherebyVideoClient
   return {
     requestOperation(operationUidOrId, input) {
       const operation = resolveWherebyFullApiOperation(operationUidOrId);
-      validateWherebyOperationPathParams(operation, input);
-      return requestWherebyRestOperation(operation, input, options);
+      const validatedInput = validateWherebyOperationInput(operation, input);
+      return requestWherebyRestOperation(operation, validatedInput, options);
     },
   };
 }
@@ -196,11 +206,11 @@ function requireWherebyVideoProviderClient(client: WherebyVideoProviderClient): 
 function createProviderOperationCaller(providerClient: WherebyVideoProviderClient): WherebyGeneratedOperationCaller {
   return (async (operationUidOrId: WherebyFullApiOperationUid | string, input?: WherebyOperationRequestInput) => {
     const operation = resolveWherebyFullApiOperation(operationUidOrId);
-    validateWherebyOperationPathParams(operation, input);
-    if (input === undefined) {
+    const validatedInput = validateWherebyOperationInput(operation, input);
+    if (validatedInput === undefined) {
       return providerClient.requestOperation(operation.uid as WherebyFullApiOperationKey);
     }
-    return providerClient.requestOperation(operation.uid as WherebyFullApiOperationKey, input);
+    return providerClient.requestOperation(operation.uid as WherebyFullApiOperationKey, validatedInput);
   }) as WherebyGeneratedOperationCaller;
 }
 
@@ -215,12 +225,153 @@ function validateWherebyOperationPathParams(
   operation: WherebyFullApiOperation,
   input: WherebyOperationRequestInput | undefined,
 ) {
-  for (const key of operation.path.matchAll(/\{([^}]+)\}/g)) {
-    const parameterName = key[1];
-    if (!parameterName) continue;
-    const value = input?.pathParams?.[parameterName];
-    if (value === undefined) throw new Error(`Missing Whereby path parameter '${parameterName}'.`);
+  const expectedPathParams = wherebyOperationPathParameterNames(operation);
+  const providedPathParams = input?.pathParams;
+  if (expectedPathParams.length === 0) {
+    const providedKeys = Object.keys(providedPathParams ?? {});
+    if (providedKeys.length > 0) {
+      throw wherebyValidationError(`Whereby operation '${operation.uid}' does not accept path parameters.`);
+    }
+    return;
   }
+
+  for (const parameterName of expectedPathParams) {
+    if (!parameterName) continue;
+    const value = providedPathParams?.[parameterName];
+    if (value === undefined) throw wherebyValidationError(`Missing Whereby path parameter '${parameterName}'.`);
+    if (!isValidWherebyPathParameterValue(value)) {
+      throw wherebyValidationError(`Invalid Whereby path parameter '${parameterName}'.`);
+    }
+  }
+
+  const unexpectedPathParam = Object.keys(providedPathParams ?? {})
+    .find((parameterName) => !expectedPathParams.includes(parameterName));
+  if (unexpectedPathParam) {
+    throw wherebyValidationError(
+      `Unknown Whereby path parameter '${unexpectedPathParam}' for operation '${operation.uid}'.`,
+    );
+  }
+}
+
+function validateWherebyOperationInput(
+  operation: WherebyFullApiOperation,
+  input: WherebyOperationRequestInput | undefined,
+): WherebyOperationRequestInput | undefined {
+  if (input !== undefined && !isPlainRecord(input)) {
+    throw wherebyValidationError("Whereby operation input must be an object.");
+  }
+  const typedInput = input as WherebyOperationRequestInput | undefined;
+  validateWherebyRecordInput("pathParams", typedInput?.pathParams);
+  validateWherebyRecordInput("query", typedInput?.query);
+  validateWherebyHeaders(typedInput?.headers);
+  validateWherebyOperationPathParams(operation, typedInput);
+  validateWherebyRequiredQueryParameters(operation, typedInput);
+  validateWherebyQueryValues(typedInput?.query);
+  validateWherebyOperationBody(operation, typedInput?.body);
+  return typedInput;
+}
+
+function validateWherebyRecordInput(
+  field: "pathParams" | "query",
+  value: unknown,
+) {
+  if (value !== undefined && !isPlainRecord(value)) {
+    throw wherebyValidationError(`Whereby operation ${field} must be an object.`);
+  }
+}
+
+function validateWherebyRequiredQueryParameters(
+  operation: WherebyFullApiOperation,
+  input: WherebyOperationRequestInput | undefined,
+) {
+  const requiredQueryParameters = WHEREBY_REQUIRED_QUERY_PARAMETERS_BY_OPERATION.get(operation.uid) ?? [];
+  for (const parameterName of requiredQueryParameters) {
+    const value = input?.query?.[parameterName];
+    if (value === undefined || value === null || value === "") {
+      throw wherebyValidationError(`Missing Whereby query parameter '${parameterName}'.`);
+    }
+  }
+}
+
+function validateWherebyHeaders(headers: Record<string, string> | undefined) {
+  if (headers === undefined) return;
+  if (!isPlainRecord(headers)) throw wherebyValidationError("Whereby operation headers must be an object.");
+  for (const [headerName, headerValue] of Object.entries(headers)) {
+    if (headerName.trim() === "") throw wherebyValidationError("Whereby operation headers must not be empty.");
+    if (typeof headerValue !== "string") {
+      throw wherebyValidationError(`Whereby operation header '${headerName}' must be a string.`);
+    }
+  }
+}
+
+function validateWherebyQueryValues(query: WherebyVideoProviderQuery | undefined) {
+  for (const [key, value] of Object.entries(query ?? {})) {
+    validateWherebyQueryValue(value, `query.${key}`);
+  }
+}
+
+function validateWherebyQueryValue(value: unknown, path: string) {
+  if (value === undefined || value === null) return;
+  const valueType = typeof value;
+  if (valueType === "string" || valueType === "number" || valueType === "boolean") return;
+  if (Array.isArray(value)) {
+    for (const [index, item] of value.entries()) {
+      validateWherebyQueryValue(item, `${path}[${index}]`);
+    }
+    return;
+  }
+  if (isPlainRecord(value)) {
+    for (const [key, nestedValue] of Object.entries(value)) {
+      validateWherebyQueryValue(nestedValue, `${path}.${key}`);
+    }
+    return;
+  }
+  throw wherebyValidationError(`Whereby operation ${path} must be JSON-serializable query data.`);
+}
+
+function validateWherebyOperationBody(
+  operation: WherebyFullApiOperation,
+  body: WherebyOperationRequestInput["body"] | undefined,
+) {
+  if (body === undefined) return;
+  if (operation.method === "GET" || operation.method === "DELETE") {
+    throw wherebyValidationError(`Whereby operation '${operation.uid}' does not accept a request body.`);
+  }
+  if (isWherebyFormData(body)) {
+    if (!WHEREBY_FORM_DATA_OPERATION_UIDS.has(operation.uid)) {
+      throw wherebyValidationError(`Whereby operation '${operation.uid}' does not accept a FormData body.`);
+    }
+    return;
+  }
+  if (!isPlainRecord(body)) {
+    throw wherebyValidationError(
+      "Whereby operation body must be a JSON object or FormData for supported theme media operations.",
+    );
+  }
+}
+
+function wherebyOperationPathParameterNames(operation: WherebyFullApiOperation) {
+  return [...operation.path.matchAll(/\{([^}]+)\}/g)]
+    .map((match) => match[1])
+    .filter((parameterName): parameterName is string => Boolean(parameterName));
+}
+
+function isValidWherebyPathParameterValue(value: unknown) {
+  if (value === null || value === "") return false;
+  const valueType = typeof value;
+  return valueType === "string" || valueType === "number" || valueType === "boolean";
+}
+
+function isWherebyFormData(value: unknown): value is FormData {
+  return typeof FormData !== "undefined" && value instanceof FormData;
+}
+
+function wherebyValidationError(message: string) {
+  return new IntegrationError(
+    "provider-validation",
+    message,
+    { providerPackageId: "video.whereby", provider: "whereby" },
+  );
 }
 
 async function requestWherebyRestOperation(
@@ -385,6 +536,10 @@ function readErrorPayload(error: unknown) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && !Array.isArray(value) && !isWherebyFormData(value);
 }
 
 async function parseWherebyResponsePayload(response: Response): Promise<unknown> {

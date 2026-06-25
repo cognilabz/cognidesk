@@ -109,6 +109,22 @@ export const cognideskHelpCenterProviderManifest = defineProviderPackage({
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
+    implementation: {
+      strategy: "local-protocol",
+      sdkPackage: "@cognidesk/integration-help-center-cognidesk",
+      runtimePackage: "@cognidesk/integration-help-center-cognidesk",
+      protocolSource: "Cognidesk local help-center source protocol",
+      manifestImport: "no-sdk-client-initialization",
+      integrationKitStatus: "implemented",
+      externalProviderSdk: "not-applicable-internal-provider",
+      checkedAt: "2026-06-25",
+      providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK",
+      providerSdkDependencies: [],
+      defaultClientPolicy: "built-in-http-source-when-base-url-configured",
+      typedClientOverride: "HelpCenterProviderClient",
+      reason: "Cognidesk Help Center is an internal local/HTTP-source protocol and host-client adapter rather than a named external help-center provider SDK.",
+      rejectedSdkPackages: [],
+    },
     channelCoverage: {
       articles: "typed-read-search",
       readiness: "typed-local-or-http-source-readiness-or-provider-client-delegation",

@@ -85,6 +85,40 @@ export function registerWherebyGeneratedApiTests() {
       },
     );
   });
+
+  it("fails closed on malformed generated operation input before host provider delegation", async () => {
+    const providerClient = createProviderClient(() => ({}));
+    const client = createWherebyVideoClient({ providerClient });
+
+    await expect(client.requestOperation("GET /meetings", "not-an-input-object" as never))
+      .rejects.toThrow("Whereby operation input must be an object");
+    await expect(client.requestOperation("GET /insights/participant", {
+      query: { roomSessionId: "session_1" },
+    } as never)).rejects.toThrow("Missing Whereby query parameter 'participantId'");
+    await expect(client.requestOperation("GET /meetings", {
+      body: { unexpected: true },
+    } as never)).rejects.toThrow("does not accept a request body");
+
+    expect(providerClient.requestOperation).not.toHaveBeenCalled();
+  });
+
+  it("fails closed on malformed built-in REST input before fetch", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true })));
+    const client = createWherebyVideoClient({
+      apiKey: "whereby-api-key",
+      baseUrl: "https://api.whereby.test/v1",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    await expect(client.requestOperation("GET /meetings/{meetingId}", {
+      pathParams: { meetingId: "" },
+    })).rejects.toThrow("Invalid Whereby path parameter 'meetingId'");
+    await expect(client.requestOperation("POST /meetings", {
+      body: new FormData(),
+    } as never)).rejects.toThrow("does not accept a FormData body");
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 }
 
 function createProviderClient(

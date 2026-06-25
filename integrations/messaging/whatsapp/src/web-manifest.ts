@@ -1,5 +1,21 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
 
+export const whatsappWebLinkedDeviceRuntimeException = {
+  strategy: "community-linked-device-runtime",
+  provider: "whatsapp-web",
+  runtimePackage: "baileys",
+  runtimePackageSource: "WhiskeySockets/Baileys",
+  officialProviderSdk: false,
+  officialWhatsAppBusinessApi: false,
+  verifiedAt: "2026-06-25",
+  scope: "send-only WhatsApp Web linked-device adapter",
+  reason: "Baileys is deliberately scoped to the community WhatsApp Web linked-device adapter; it is not an official Meta WhatsApp Business Platform SDK and does not use the WhatsApp Business API.",
+  evidence: [
+    { label: "Baileys introduction", url: "https://baileys.wiki/docs/intro/" },
+    { label: "WhiskeySockets/Baileys", url: "https://github.com/WhiskeySockets/Baileys" },
+  ],
+} as const;
+
 export const whatsappWebMessagingProviderManifest = defineProviderPackage({
   id: "messaging.whatsapp-web",
   name: "WhatsApp Web Linked Device",
@@ -103,7 +119,10 @@ export const whatsappWebMessagingProviderManifest = defineProviderPackage({
     protocol: "whatsapp-web-linked-device",
     runtimeLibrary: {
       name: "baileys",
+      packageName: "baileys",
       source: "WhiskeySockets/Baileys",
+      declaredProviderSdkDependency: true,
     },
+    runtimeException: whatsappWebLinkedDeviceRuntimeException,
   },
 });

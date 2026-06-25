@@ -1,4 +1,4 @@
-import { defineIntegration } from "@cognidesk/integration-kit";
+import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 import type { ProviderManifestInput } from "@cognidesk/integration-kit";
 
 export const OPENAI_REALTIME_V1_MODEL = "gpt-realtime-2";
@@ -88,7 +88,7 @@ export const openAIVoiceManifestInput = {
       providerObject: "voiceSession",
       requiresCredential: true,
       exposesSensitiveData: true,
-      providerOperation: "realtime.session.update",
+      providerOperation: "OpenAIRealtimeWS.create + OpenAIRealtimeWS.send(session.update)",
     },
     {
       alias: "voice.turn.finalize",
@@ -96,7 +96,7 @@ export const openAIVoiceManifestInput = {
       providerObject: "voiceTurn",
       requiresCredential: true,
       exposesSensitiveData: true,
-      providerOperation: "realtime.conversation.item.input_audio_transcription.completed",
+      providerOperation: "OpenAIRealtimeWS.send(input_audio_buffer.commit)",
     },
     {
       alias: "voice.speak",
@@ -105,7 +105,7 @@ export const openAIVoiceManifestInput = {
       requiresCredential: true,
       sideEffect: true,
       externallyVisible: true,
-      providerOperation: "realtime.response.create",
+      providerOperation: "OpenAIRealtimeWS.send(response.create)",
     },
   ],
   privacyNotes: [
@@ -134,25 +134,25 @@ export const openAIVoiceManifestInput = {
     },
     implementation: {
       strategy: "official-sdk",
+      sdkPackage: "openai",
       sdkPackages: ["openai"],
+      verifiedVersion: "6.44.0",
+      verifiedAt: "2026-06-25",
       adapterCoverage: [
         "OpenAIRealtimeWS.create",
         "session.update",
+        "input_audio_buffer.commit",
         "response.create",
       ],
       rawClientEscapeHatch: true,
+    },
+    rawClient: {
+      option: "rawClient",
+      export: "getRawClient",
+      coverage: "upstream-sdk",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],
 } satisfies ProviderManifestInput;
 
-export const openAIVoiceIntegration = defineIntegration({
-  manifest: openAIVoiceManifestInput,
-  operations: {
-    "voice.session.start": async (input: unknown) => input,
-    "voice.turn.finalize": async (input: unknown) => input,
-    "voice.speak": async (input: unknown) => input,
-  },
-});
-
-export const openAIVoiceProviderManifest = openAIVoiceIntegration.manifest;
+export const openAIVoiceProviderManifest = defineIntegrationProviderPackage(openAIVoiceManifestInput);

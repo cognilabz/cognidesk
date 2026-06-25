@@ -1,8 +1,33 @@
 import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 
+export const talkdeskProviderSdkDecision = {
+  "checkedAt": "2026-06-25",
+  "result": "no-official-npm-rest-sdk",
+  "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+  "typedClientOverride": "TalkdeskProviderClient",
+  "checkedPackages": [
+    {
+      "package": "@talkdesk/td-sdk",
+      "result": "not-published",
+      "reason": "No public npm package exists under this likely official SDK name."
+    },
+    {
+      "package": "@talkdesk/client-sdk",
+      "result": "not-published",
+      "reason": "No public npm package exists under this likely official SDK name."
+    },
+    {
+      "package": "@talkdesk/app-connect",
+      "result": "not-published",
+      "reason": "No public npm package exists under this likely official SDK name."
+    }
+  ]
+} as const;
+
 export const talkdeskSupportSlice = {
   implementationStrategy: "provider-rest-adapter",
   adapterKind: "no-official-sdk-rest-adapter",
+  providerSdkDecision: talkdeskProviderSdkDecision,
   sdkDecision: "No suitable official npm REST SDK was verified; this package provides a built-in REST adapter with providerClient override.",
   verifiedAt: "2026-06-25",
   allowedOperations: [
@@ -69,6 +94,7 @@ export const talkdeskProviderManifestInput = {
     { alias: "contact-center.task.create", capability: "create-provider-object", providerObject: "contact-center-task" },
   ],
   metadata: {
+    providerSdkDecision: talkdeskProviderSdkDecision,
     implementation: talkdeskSupportSlice,
     manifestOnlySafe: true,
     providerRestAdapter: {

@@ -87,7 +87,7 @@ export const zendeskTicketingProviderManifestInput = {
       strategy: "provider-sdk-backed-client",
       sdkPackage: "node-zendesk",
       sdkVersionRange: "^6.0.1",
-      rawClientEscapeHatch: "ZendeskTicketingClient.rawClient",
+      rawClientEscapeHatch: "ZendeskTicketingClient.rawClient / getRawClient()",
       manifestImport: "no-sdk-client-initialization",
     },
     providerClient: {

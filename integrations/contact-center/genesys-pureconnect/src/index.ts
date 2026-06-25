@@ -65,6 +65,7 @@ export interface ProviderExtensionRequestInput extends GenesysPureConnectOperati
   operationId?: string | undefined;
   method?: ProviderHttpMethod | undefined;
   path?: string | undefined;
+  hostReviewedPath?: boolean | undefined;
   allowMutation?: boolean | undefined;
   classification?: string | undefined;
 }
@@ -170,7 +171,7 @@ function createGenesysPureConnectRestProviderClient(options: GenesysPureConnectC
 
   function requestAllowedOperation(operationId: string, input: GenesysPureConnectOperationInput = {}) {
     const operation = genesysPureConnectSupportSlice.allowedOperations.find((candidate) => candidate.id === operationId);
-    if (!operation || String(operation.path) === "host-configured") {
+    if (!operation || isHostConfiguredOperationPath(operation.path)) {
       throw new Error(`Genesys PureConnect / ICWS operation '${operationId}' is not in the reviewed allowlist.`);
     }
     return request(operation.method as ProviderHttpMethod, operation.path, input);
@@ -179,7 +180,7 @@ function createGenesysPureConnectRestProviderClient(options: GenesysPureConnectC
 
 function validateGenesysPureConnectAllowedOperation(operationId: string, input: GenesysPureConnectOperationInput = {}) {
   const operation = genesysPureConnectSupportSlice.allowedOperations.find((candidate) => candidate.id === operationId);
-  if (!operation || String(operation.path) === "host-configured") {
+  if (!operation || isHostConfiguredOperationPath(operation.path)) {
     throw new Error(`Genesys PureConnect / ICWS operation '${operationId}' is not in the reviewed allowlist.`);
   }
   return {
@@ -193,13 +194,14 @@ function validateGenesysPureConnectProviderRequest(input: ProviderExtensionReque
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new Error("Genesys PureConnect / ICWS request input object is required.");
   }
-  const operation = input.operationId
-    ? genesysPureConnectSupportSlice.allowedOperations.find((candidate) => candidate.id === input.operationId)
-    : undefined;
+  const operation = resolveGenesysPureConnectOperation(input.operationId);
   const method = providerHttpMethod(input.method ?? operationMethod(operation) ?? "GET", "Genesys PureConnect / ICWS");
   const path = input.path ?? operationPath(operation);
-  if (!path || path === "host-configured") {
-    throw new Error("Genesys PureConnect / ICWS request path or reviewed operationId is required.");
+  if (!path || isHostConfiguredOperationPath(path)) {
+    throw new Error("Genesys PureConnect / ICWS request path or concrete reviewed operationId is required.");
+  }
+  if (!usesReviewedOperationPath(path, operation)) {
+    assertHostReviewedPath(input);
   }
   if (mutatingRequestMethods.has(method) && (input.allowMutation !== true || !hasPolicyClassification(input.classification))) {
     throw new Error("Genesys PureConnect / ICWS mutating extension requests require allowMutation=true and host policy classification.");
@@ -209,6 +211,30 @@ function validateGenesysPureConnectProviderRequest(input: ProviderExtensionReque
     method,
     path,
   };
+}
+
+function resolveGenesysPureConnectOperation(operationId: string | undefined): GenesysPureConnectAllowedOperation | undefined {
+  if (!operationId) return undefined;
+  const operation = genesysPureConnectSupportSlice.allowedOperations.find((candidate) => candidate.id === operationId);
+  if (!operation) {
+    throw new Error(`Genesys PureConnect / ICWS operation '${operationId}' is not in the reviewed allowlist.`);
+  }
+  return operation;
+}
+
+function usesReviewedOperationPath(path: string, operation: GenesysPureConnectAllowedOperation | undefined): boolean {
+  const reviewedPath = operationPath(operation);
+  return reviewedPath !== undefined && !isHostConfiguredOperationPath(reviewedPath) && path === reviewedPath;
+}
+
+function assertHostReviewedPath(input: ProviderExtensionRequestInput): void {
+  if (input.hostReviewedPath !== true || !hasPolicyClassification(input.classification)) {
+    throw new Error("Genesys PureConnect / ICWS host-configured extension paths require hostReviewedPath=true and host policy classification.");
+  }
+}
+
+function isHostConfiguredOperationPath(path: string | undefined): boolean {
+  return path === undefined || path === "host-configured" || path.startsWith("host-configured-");
 }
 
 function hasPolicyClassification(value: unknown): value is string {

@@ -5,7 +5,7 @@ import type {
   SipVoiceClientOptions,
   SipVoiceConfig,
 } from "./contracts.js";
-import { buildSipConfigReadiness, sipGatewayContext } from "./readiness.js";
+import { buildSipLocalRuntimeMissingReadiness, sipGatewayContext } from "./readiness.js";
 
 export function createSipVoiceClient(options: SipVoiceClientOptions): SipVoiceClient {
   return {
@@ -13,7 +13,7 @@ export function createSipVoiceClient(options: SipVoiceClientOptions): SipVoiceCl
       if (context.signal?.aborted) throw new Error("SIP readiness check aborted.");
       return options.gateway?.checkReadiness
         ? options.gateway.checkReadiness(sipGatewayContext(options.config, context.signal))
-        : buildSipConfigReadiness(options.config);
+        : buildSipLocalRuntimeMissingReadiness(options.config);
     },
     createOutboundCall(input, context = {}) {
       return invokeGateway(options, "createOutboundCall", input, context);

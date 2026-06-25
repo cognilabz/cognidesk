@@ -54,7 +54,7 @@ export const appStoreReviewsProviderManifestInput = {
     scope: "support-workflow-subset",
     notes: [
       "Cognidesk adapter coverage is scoped to App Store Connect customer review list/read/response workflows.",
-      "No official Apple JavaScript or TypeScript SDK for App Store Connect customer reviews was found on 2026-06-25; this package uses a constrained built-in REST adapter with ES256 JWT auth.",
+      "No Apple-owned JavaScript or TypeScript SDK for App Store Connect customer reviews was found on 2026-06-25; this package uses appstore-connect-sdk for typed App Store Connect review calls by default.",
       "Apple's official @apple/app-store-server-library Node package targets App Store Server APIs, not App Store Connect customer review resources.",
     ],
     evidence: [
@@ -65,6 +65,7 @@ export const appStoreReviewsProviderManifestInput = {
       },
       { label: "App Store Connect JWT tokens", url: "https://developer.apple.com/documentation/appstoreconnectapi/generating-tokens-for-api-requests" },
       { label: "Apple App Store Server Node.js Library", url: "https://github.com/apple/app-store-server-library-node" },
+      { label: "appstore-connect-sdk package", url: "https://github.com/isaced/appstore-connect-sdk" },
     ],
   },
   credentialRequirements: [
@@ -211,14 +212,78 @@ export const appStoreReviewsProviderManifestInput = {
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     implementation: {
-      strategy: "no-official-sdk-rest-adapter",
-      defaultClientPolicy: "built-in-rest-with-jwt",
+      strategy: "third-party-app-store-connect-sdk-default-with-typed-domain-adapter",
+      defaultClientPolicy: "appstore-connect-sdk-with-jwt",
       officialJsSdkAvailable: false,
+      providerOwnedSdkAvailable: false,
       verifiedAt: "2026-06-25",
       runtimePackage: "@cognidesk/integration-review-appstore/runtime",
       providerClient: "AppStoreReviewsProviderClient",
       providerClientOverride: true,
-      packageOwnedRestClient: true,
+      packageOwnedRestClient: "custom-transport-fallback-only",
+      providerSdk: {
+        package: "appstore-connect-sdk",
+        version: "2.0.0",
+        license: "MIT",
+        providerOwned: false,
+        runtimeFunctions: [
+          "appsCustomerReviewsGetToManyRelated",
+          "customerReviewsGetInstance",
+          "customerReviewResponsesCreateInstance",
+          "customerReviewResponsesDeleteInstance",
+          "appsGetInstance",
+        ],
+      },
+    },
+    providerRestFallback: {
+      status: "narrow-custom-transport-fallback",
+      reviewedAt: "2026-06-25",
+      reason: "The default runtime uses appstore-connect-sdk. The package-owned REST adapter remains only when callers provide custom transport options such as fetch, timeoutMs, retry, or signal, because those options are part of Cognidesk's provider-client contract and are not App Store Connect SDK primitives.",
+      allowedFallbackRuntime: "built-in-app-store-connect-rest-adapter-for-custom-transport",
+      hostSdkPath: "AppStoreReviewsProviderClient",
+      guardrails: [
+        "Keep package-owned REST fallback calls limited to appStoreConnectReviewedOperationAllowlist.",
+        "Keep App Store Connect JWTs and app IDs mandatory for both SDK and REST fallback clients; missing or blank credentials must fail closed before provider calls.",
+        "Keep appstore-connect-sdk as the default runtime unless an Apple-owned App Store Connect customer review SDK becomes available.",
+      ],
+    },
+    checkedProviderSdk: {
+      checkedAt: "2026-06-25",
+      verdict: "third-party-app-store-connect-sdk-default-runtime",
+      reason: "Apple's maintained Node package covers App Store Server APIs, not App Store Connect customer review endpoints. appstore-connect-sdk is a typed generated App Store Connect client and exposes the exact customer review and review response functions used by this package, so it is the default runtime while documenting that it is not Apple-owned.",
+      candidates: [
+        {
+          package: "@apple/app-store-server-library",
+          checkedVersion: "3.1.0",
+          result: "official-wrong-api-family",
+          reason: "Apple-maintained Node library for App Store Server API, App Store Server Notifications, Retention Messaging API, and Advanced Commerce API; it is not an App Store Connect customer reviews client.",
+        },
+        {
+          package: "@rage-against-the-pixel/app-store-connect-api",
+          checkedVersion: "4.4.0",
+          result: "third-party-generated-not-selected",
+          reason: "Real maintained generated App Store Connect TypeScript client, but appstore-connect-sdk was selected because its exported functions map directly to this package's review allowlist.",
+        },
+        {
+          package: "appstore-connect-sdk",
+          checkedVersion: "2.0.0",
+          result: "third-party-generated-default-runtime",
+          reason: "Exports typed App Store Connect functions for apps customerReviews, customerReviews get, customerReviewResponses create/delete, and apps get; used by default with strict Cognidesk domain types.",
+        },
+        {
+          package: "node-app-store-connect-api",
+          checkedVersion: "5.0.6",
+          result: "third-party-not-default-runtime",
+          reason: "Real third-party App Store Connect API client, but not Apple-maintained and not adopted as this package's default runtime dependency.",
+        },
+      ],
+      sources: [
+        "https://developer.apple.com/documentation/appstoreconnectapi",
+        "https://github.com/apple/app-store-server-library-node",
+        "https://github.com/RageAgainstThePixel/app-store-connect-api",
+        "https://github.com/isaced/appstore-connect-sdk",
+        "https://github.com/dfabulich/node-app-store-connect-api",
+      ],
     },
     reviewedSource: {
       source: "Apple App Store Connect OpenAPI specification",
@@ -245,6 +310,11 @@ export const appStoreReviewsProviderManifestInput = {
         "appstore.reviewResponses.createOrUpdate",
         "appstore.reviewResponses.delete",
       ],
+    },
+    providerRestAdapterSupportSurface: {
+      source: "Built-in App Store Connect REST adapter fallback",
+      adapterKind: "custom-transport-fallback",
+      operations: appStoreConnectReviewedOperationAllowlist,
     },
   },
 } as const;

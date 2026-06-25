@@ -36,6 +36,14 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
         },
       },
     });
+    expect(pegaCustomerServiceTicketingProviderManifest.metadata?.implementationStrategy).toMatchObject({
+      strategy: "no-official-sdk-rest-adapter",
+      rejectedLibraries: expect.arrayContaining([
+        expect.objectContaining({ packageName: "@pega/constellationjs", result: "not-used-as-package-default" }),
+        expect.objectContaining({ packageName: "@pega/auth", result: "not-used-as-package-default" }),
+        expect.objectContaining({ packageName: "pegasystems/react-sdk", result: "not-used-as-package-default" }),
+      ]),
+    });
     expect(pegaCustomerServiceDelegatedOperationAllowlist.map((operation) => operation.alias)).toEqual([
       "ticket.create",
       "ticket.read",

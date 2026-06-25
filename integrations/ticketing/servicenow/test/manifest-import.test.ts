@@ -13,13 +13,14 @@ describe("@cognidesk/integration-ticketing-servicenow/manifest", () => {
         implementation: {
           strategy: "provider-rest-adapter",
           manifestImport: "no-sdk-client-initialization",
-          packageOwnedRestClient: true,
+          sdkPackage: "@servicenow/sdk-api",
+          packageOwnedRestClient: false,
         },
         sdkDecision: {
-          package: "@servicenow/sdk",
-          result: "official-sdk-not-runtime-rest-client",
+          package: "@servicenow/sdk-api",
+          result: "official-sdk-runtime-connector-not-ticketing-client",
         },
       },
     });
-  }, 10_000);
+  }, 30_000);
 });

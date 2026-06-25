@@ -1,9 +1,11 @@
+import type * as MicrosoftSpeechSdk from "microsoft-cognitiveservices-speech-sdk";
 import type { SpeechPipelineVoiceProviderOptions } from "./speech-pipeline.js";
 
 export interface AzureSpeechClientOptions {
   speechKey: string;
   region: string;
   sdk?: AzureSpeechSdk;
+  createSpeechConfig?: AzureSpeechConfigFactory;
 }
 
 export interface AzureSpeechCredentialStatusInput {
@@ -30,13 +32,50 @@ export interface AzureTextToSpeechInput {
   text: string;
   voiceName: string;
   language?: string;
-  outputFormat?: string;
+  outputFormat?: AzureSpeechSynthesisOutputFormat;
   signal?: AbortSignal;
 }
 
+export type AzureSpeechOperationAlias =
+  | "voice.session.start"
+  | "voice.turn.finalize"
+  | "voice.speak";
+
+export interface AzureSpeechOperationInputMap {
+  "voice.session.start": AzureSpeechToTextInput;
+  "voice.turn.finalize": AzureSpeechToTextInput;
+  "voice.speak": AzureTextToSpeechInput;
+}
+
+export interface AzureSpeechOperationOutputMap {
+  "voice.session.start": AzureSpeechToTextResult;
+  "voice.turn.finalize": AzureSpeechToTextResult;
+  "voice.speak": ArrayBuffer;
+}
+
+export type AzureSpeechOperationHandler<K extends AzureSpeechOperationAlias> = (
+  input: AzureSpeechOperationInputMap[K],
+) => Promise<AzureSpeechOperationOutputMap[K]>;
+
+export type AzureSpeechOperationHandlers = {
+  [K in AzureSpeechOperationAlias]: AzureSpeechOperationHandler<K>;
+};
+
 export interface AzureSpeechClient {
+  rawSdk: AzureSpeechSdk;
+  rawHandles: AzureSpeechRawConfigHandles;
+  createSpeechConfig: AzureSpeechConfigFactory;
+  handlers: AzureSpeechOperationHandlers;
+  execute<K extends AzureSpeechOperationAlias>(
+    alias: K,
+    input: AzureSpeechOperationInputMap[K],
+  ): Promise<AzureSpeechOperationOutputMap[K]>;
   transcribeSpeech(input: AzureSpeechToTextInput): Promise<AzureSpeechToTextResult>;
   synthesizeSpeech(input: AzureTextToSpeechInput): Promise<ArrayBuffer>;
+}
+
+export interface AzureSpeechIntegrationOptions extends Partial<AzureSpeechClientOptions> {
+  client?: AzureSpeechClient;
 }
 
 export interface AzureSpeechVoiceProviderOptions
@@ -47,7 +86,19 @@ export interface AzureSpeechVoiceProviderOptions
   sdk?: AzureSpeechSdk;
   language?: string;
   voiceName: string;
-  outputFormat?: string;
+  outputFormat?: AzureSpeechSynthesisOutputFormat;
+}
+
+export type AzureSpeechSynthesisOutputFormatName = keyof typeof MicrosoftSpeechSdk.SpeechSynthesisOutputFormat;
+export type AzureSpeechSynthesisOutputFormat =
+  | AzureSpeechSynthesisOutputFormatName
+  | MicrosoftSpeechSdk.SpeechSynthesisOutputFormat;
+
+export type AzureSpeechConfigFactory = () => AzureSpeechConfig;
+
+export interface AzureSpeechRawConfigHandles {
+  sdk: AzureSpeechSdk;
+  createSpeechConfig: AzureSpeechConfigFactory;
 }
 
 export interface AzureSpeechSdk {
@@ -55,7 +106,7 @@ export interface AzureSpeechSdk {
     fromSubscription(speechKey: string, region: string): AzureSpeechConfig;
   };
   AudioConfig: {
-    fromStreamInput(stream: unknown): unknown;
+    fromStreamInput(stream: AzurePushAudioInputStream): AzureAudioConfig;
   };
   AudioInputStream: {
     createPushStream(format?: unknown): AzurePushAudioInputStream;
@@ -63,18 +114,20 @@ export interface AzureSpeechSdk {
   AudioStreamFormat: {
     getWaveFormatPCM(samplesPerSec: number, bitsPerSample: number, channels: number): unknown;
   };
-  SpeechRecognizer: new(speechConfig: AzureSpeechConfig, audioConfig: unknown) => AzureSpeechRecognizer;
-  SpeechSynthesizer: new(speechConfig: AzureSpeechConfig, audioConfig?: unknown) => AzureSpeechSynthesizer;
-  ResultReason?: Record<string, number | string>;
-  SpeechSynthesisOutputFormat?: Record<string, number | string>;
+  SpeechRecognizer: new(speechConfig: AzureSpeechConfig, audioConfig?: AzureAudioConfig) => AzureSpeechRecognizer;
+  SpeechSynthesizer: new(speechConfig: AzureSpeechConfig, audioConfig?: AzureAudioConfig | null) => AzureSpeechSynthesizer;
+  ResultReason?: Record<string, number | string | undefined>;
+  SpeechSynthesisOutputFormat: Partial<Record<AzureSpeechSynthesisOutputFormatName, MicrosoftSpeechSdk.SpeechSynthesisOutputFormat>>
+    & Record<string, number | string | undefined>;
 }
+
+export type AzureAudioConfig = MicrosoftSpeechSdk.AudioConfig | Record<string, unknown>;
 
 export interface AzureSpeechConfig {
   speechRecognitionLanguage?: string;
   speechSynthesisVoiceName?: string;
   speechSynthesisLanguage?: string;
-  speechSynthesisOutputFormat?: unknown;
-  setSpeechSynthesisOutputFormat?(format: unknown): void;
+  speechSynthesisOutputFormat?: AzureSpeechSynthesisOutputFormat;
 }
 
 export interface AzurePushAudioInputStream {
@@ -87,16 +140,14 @@ export interface AzureSpeechRecognizer {
     success: (result: AzureSpeechRecognitionResult) => void,
     error: (error: string) => void,
   ): void;
-  close?(): void;
+  close?(success?: () => void, error?: (error: string) => void): void;
 }
 
-export interface AzureSpeechRecognitionResult {
-  text?: string;
-  reason?: unknown;
-  duration?: number;
-  offset?: number;
-  errorDetails?: string;
-}
+export interface AzureSpeechRecognitionResult
+  extends Partial<Pick<
+    MicrosoftSpeechSdk.SpeechRecognitionResult,
+    "text" | "reason" | "duration" | "offset" | "errorDetails"
+  >> {}
 
 export interface AzureSpeechSynthesizer {
   speakTextAsync(
@@ -104,11 +155,11 @@ export interface AzureSpeechSynthesizer {
     success: (result: AzureSpeechSynthesisResult) => void,
     error: (error: string) => void,
   ): void;
-  close?(): void;
+  close?(success?: () => void, error?: (error: string) => void): void;
 }
 
-export interface AzureSpeechSynthesisResult {
-  audioData?: ArrayBuffer;
-  reason?: unknown;
-  errorDetails?: string;
-}
+export interface AzureSpeechSynthesisResult
+  extends Partial<Pick<
+    MicrosoftSpeechSdk.SpeechSynthesisResult,
+    "audioData" | "reason" | "errorDetails"
+  >> {}

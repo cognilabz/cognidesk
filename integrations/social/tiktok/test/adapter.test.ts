@@ -73,7 +73,17 @@ describe("@cognidesk/integration-social-tiktok", () => {
     });
     expect(tiktokSocialProviderManifest.metadata?.implementation).toMatchObject({
       implementationStrategy: "no-official-sdk-rest-adapter",
-      sdkDecision: { viableOfficialSdk: false },
+      sdkDecision: {
+        viableOfficialSdk: false,
+        auditedPackages: [expect.objectContaining({
+          package: "tiktok-business-api-sdk-official",
+          status: "not-suitable",
+        })],
+      },
+      providerRestAdapterException: expect.objectContaining({
+        sdkPackage: "tiktok-business-api-sdk-official",
+        result: "sdk-not-suitable-for-mixed-social-surface",
+      }),
     });
     expect(tiktokSocialProviderManifest.metadata?.providerClient).toMatchObject({
       package: "built-in-or-host-provided",
@@ -89,6 +99,30 @@ describe("@cognidesk/integration-social-tiktok", () => {
       ]));
     expect(tiktokSocialProviderManifest.coverage.evidence.map((evidence) => evidence.url))
       .not.toContain("https://developers.tiktok.com/doc/content-posting-api-reference-direct-post");
+  });
+
+  it("marks the package as an explicit REST exception instead of declaring a provider SDK dependency", async () => {
+    const packageJson = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8"),
+    ) as {
+      cognidesk?: {
+        providerSdkDependencies?: string[];
+        providerRestAdapterException?: {
+          sdkPackage?: string;
+          result?: string;
+          defaultClientPolicy?: string;
+          typedClientOverride?: string;
+        };
+      };
+    };
+
+    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([]);
+    expect(packageJson.cognidesk?.providerRestAdapterException).toMatchObject({
+      sdkPackage: "tiktok-business-api-sdk-official",
+      result: "sdk-not-suitable-for-mixed-social-surface",
+      defaultClientPolicy: "built-in-tiktok-rest-adapter",
+      typedClientOverride: "TikTokSocialProviderClient",
+    });
   });
 
   it("reports SDK-user-owned TikTok credential and scope readiness", () => {
@@ -136,6 +170,71 @@ describe("@cognidesk/integration-social-tiktok", () => {
     expect(() => createTikTokSocialClient({
       providerClient: { getUserInfo: vi.fn() } as unknown as TikTokSocialProviderClient,
     })).toThrow("listVideos");
+  });
+
+  it("uses the built-in REST adapter for TikTok Open API requests when no provider client is injected", async () => {
+    const fetchMock = vi.fn(async (_input: Parameters<typeof fetch>[0], _init?: Parameters<typeof fetch>[1]) =>
+      new Response(JSON.stringify({
+        data: { user: { open_id: "open_1", username: "support" } },
+        error: { code: "ok", message: "" },
+      }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    );
+    const client = createTikTokSocialClient({
+      accessToken: "access-token",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    await expect(client.getUserInfo(["open_id", "username"]))
+      .resolves.toMatchObject({ data: { user: { open_id: "open_1" } } });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe("https://open.tiktokapis.com/v2/user/info/?fields=open_id%2Cusername");
+    expect(init).toMatchObject({
+      method: "GET",
+      headers: expect.objectContaining({
+        authorization: "Bearer access-token",
+        accept: "application/json",
+      }),
+    });
+  });
+
+  it("fails closed for malformed REST envelopes and TikTok Business API error codes", async () => {
+    const malformedFetch = vi.fn(async () =>
+      new Response(JSON.stringify({ unexpected: true }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    );
+    const malformedClient = createTikTokSocialClient({
+      accessToken: "access-token",
+      fetch: malformedFetch as unknown as typeof fetch,
+    });
+
+    await expect(malformedClient.getUserInfo())
+      .rejects.toThrow("response did not include a TikTok response envelope");
+
+    const businessErrorFetch = vi.fn(async () =>
+      new Response(JSON.stringify({
+        code: 40100,
+        message: "Invalid access token.",
+        request_id: "request_1",
+      }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    );
+    const businessClient = createTikTokSocialClient({
+      accessToken: "access-token",
+      businessId: "business_1",
+      fetch: businessErrorFetch as unknown as typeof fetch,
+    });
+
+    await expect(businessClient.listBusinessComments({ videoId: "video_1" }))
+      .rejects.toThrow("Invalid access token. (40100)");
   });
 
   it("delegates TikTok profile and video reads through the host-injected provider client", async () => {

@@ -76,6 +76,16 @@ describe("@cognidesk/integration-community-forum", () => {
     const runtimeSource = await readFile(resolve(packageRoot, "src/index.ts"), "utf8");
     const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      cognidesk?: {
+        providerSdkDependencies?: string[];
+        providerRestAdapterException?: {
+          result?: string;
+          defaultClientPolicy?: string;
+          typedClientOverride?: string;
+          rejectedSdkPackages?: { packageName?: string; ecosystem?: string }[];
+        };
+      };
     };
 
     expect(forumCommunityProviderManifest.packageName).toBe("@cognidesk/integration-community-forum");
@@ -85,6 +95,43 @@ describe("@cognidesk/integration-community-forum", () => {
     expect(runtimeSource).toContain("Api-Key");
     expect(runtimeSource).toContain("posts.json");
     expect(runtimeSource).not.toContain("URLSearchParams");
+    expect(Object.keys(packageJson.dependencies ?? {}).sort()).toEqual([
+      "@cognidesk/core",
+      "@cognidesk/integration-kit",
+    ]);
+    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([]);
+    expect(packageJson.cognidesk?.providerRestAdapterException).toMatchObject({
+      result: "no-applicable-official-js-ts-sdk",
+      defaultClientPolicy: "built-in-discourse-rest-adapter-when-configured",
+      typedClientOverride: "ForumCommunityProviderClient",
+      rejectedSdkPackages: expect.arrayContaining([
+        expect.objectContaining({
+          packageName: "discourse_api",
+          ecosystem: "ruby",
+        }),
+        expect.objectContaining({
+          packageName: "discourse-api-sdk",
+          ecosystem: "npm",
+        }),
+        expect.objectContaining({
+          packageName: "@discourse/mcp",
+          ecosystem: "npm",
+        }),
+        expect.objectContaining({
+          packageName: "discourse-sdk",
+          ecosystem: "npm",
+        }),
+      ]),
+    });
     expect(packageJson.dependencies).not.toHaveProperty("discourse2");
+    expect(packageJson.dependencies).not.toHaveProperty("discourse_api");
+    expect(packageJson.dependencies).not.toHaveProperty("discourse-api-sdk");
+    expect(packageJson.dependencies).not.toHaveProperty("@discourse/mcp");
+    expect(packageJson.dependencies).not.toHaveProperty("discourse-sdk");
+    expect(packageJson.devDependencies).not.toHaveProperty("discourse2");
+    expect(packageJson.devDependencies).not.toHaveProperty("discourse_api");
+    expect(packageJson.devDependencies).not.toHaveProperty("discourse-api-sdk");
+    expect(packageJson.devDependencies).not.toHaveProperty("@discourse/mcp");
+    expect(packageJson.devDependencies).not.toHaveProperty("discourse-sdk");
   });
 });

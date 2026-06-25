@@ -1,5 +1,11 @@
 export type * from "./contracts.js";
 export { createSipVoiceClient } from "./client.js";
+export {
+  createDrachtioSrfSipStackGateway,
+  createDrachtioSrfSipStackGateway as createDrachtioSipStackGateway,
+  type DrachtioSrfSipGateway,
+  type DrachtioSrfSipStackGatewayOptions,
+} from "./drachtio.js";
 export { createSipVoiceIntegration } from "./integration.js";
 export type {
   ParseSipVoiceWebhookOperationInput,

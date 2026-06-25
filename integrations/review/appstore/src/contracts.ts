@@ -1,4 +1,5 @@
-import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
+import type { ProviderJsonRetryOptions, ProviderQueryValue } from "@cognidesk/integration-kit";
+import type { Client as AppStoreConnectSdkClient } from "appstore-connect-sdk";
 
 export type AppStoreReviewsJsonPrimitive = string | number | boolean | null;
 export type AppStoreReviewsJsonValue =
@@ -10,7 +11,7 @@ export interface AppStoreReviewsJsonObject {
   [key: string]: AppStoreReviewsProviderExtensionValue;
 }
 export type AppStoreReviewsProviderPayload = AppStoreReviewsJsonObject | object;
-export type AppStoreReviewsProviderQuery = Record<string, AppStoreReviewsProviderExtensionValue>;
+export type AppStoreReviewsProviderQuery = Record<string, ProviderQueryValue>;
 
 export interface AppStoreReviewsClientOptions {
   appId: string;
@@ -20,6 +21,7 @@ export interface AppStoreReviewsClientOptions {
   privateKey?: string;
   accessToken?: string;
   getJwt?: () => string | Promise<string>;
+  sdkClient?: AppStoreConnectSdkClient;
   baseUrl?: string;
   fetch?: typeof fetch;
   signal?: AbortSignal;

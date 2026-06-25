@@ -1,14 +1,32 @@
 import { defineIntegrationProviderPackage } from "@cognidesk/integration-kit";
 
+export const eightByEightProviderSdkDecision = {
+  "checkedAt": "2026-06-25",
+  "result": "no-suitable-server-side-contact-center-sdk",
+  "defaultRestPolicy": "fail-closed-built-in-rest-adapter-with-typed-raw-client-override",
+  "typedClientOverride": "EightByEightRawClient",
+  "checkedPackages": [
+    {
+      "package": "@8x8/pui-partner-comm",
+      "checkedVersion": "0.15.0",
+      "license": "SEE LICENSE IN LICENSE.md",
+      "result": "browser-partner-iframe-sdk-not-contact-center-api-client",
+      "reason": "Official package is for 8x8 platform-ui partner iframe communication and does not expose server-side Contact Center REST operations."
+    }
+  ]
+} as const;
+
 export const eightByEightSupportSlice = {
   implementationStrategy: "provider-rest-adapter",
   adapterKind: "no-official-sdk-rest-adapter",
-  sdkDecision: "No suitable official server-side JavaScript Contact Center SDK was verified; this package provides a built-in REST adapter while keeping rawClient as an override.",
+  providerSdkDecision: eightByEightProviderSdkDecision,
+  sdkDecision: "No suitable official server-side JavaScript Contact Center SDK was verified. The official @8x8/pui-partner-comm SDK is for iframe partner integrations, so this package provides a fail-closed REST adapter with a rawClient override.",
   verifiedAt: "2026-06-25",
   runtimePolicy: {
     defaultClient: "built-in-provider-rest-adapter",
     override: "createEightByEightClient({ rawClient })",
     requestOptions: ["baseUrl", "accessToken", "authorizationHeader", "apiKey", "apiKeyHeaderName", "fetch", "signal", "timeoutMs", "retry"],
+    failClosed: true,
   },
   allowedOperations: [
     {
@@ -36,7 +54,7 @@ export const eightByEightSupportSlice = {
       checksum: "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62",
     },
     {
-      id: "setAgentStatus",
+      id: "setagentstatus",
       alias: "contact-center.agent.status.update",
       method: "PUT",
       path: "/tenants/{tenantId}/agentstatus/agents/{agentId}",
@@ -64,7 +82,8 @@ export const eightByEightProviderManifestInput = {
     scope: "support-workflow-subset",
     notes: [
       "No suitable official server-side JavaScript Contact Center SDK was verified.",
-      "The runtime constructs a built-in REST adapter from baseUrl/API credentials and keeps rawClient available as an override.",
+      "The official @8x8/pui-partner-comm package is a partner iframe communication SDK, not a backend Contact Center API client.",
+      "The runtime constructs a fail-closed built-in REST adapter from baseUrl/API credentials and keeps rawClient available as an override.",
       "OpenAPI operation IDs are retained as the reviewed path allowlist for package-owned REST calls.",
     ],
     evidence: [
@@ -86,12 +105,14 @@ export const eightByEightProviderManifestInput = {
     { alias: "contact-center.agent.status.update", capability: "update-provider-object", providerObject: "agent" },
   ],
   metadata: {
+    providerSdkDecision: eightByEightProviderSdkDecision,
     implementation: eightByEightSupportSlice,
     manifestOnlySafe: true,
     providerRestAdapter: {
       strategy: "provider-rest-adapter",
       adapterKind: "no-official-sdk-rest-adapter",
       rawClientOverride: "EightByEightClient.rawClient",
+      failClosed: true,
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

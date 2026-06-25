@@ -29,9 +29,9 @@ export const ringCentralContactCenterManifestInput = {
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Runtime uses @ringcentral/sdk for authentication and SDK-dispatched contact-center operations.",
+      "Runtime uses @ringcentral/sdk for authentication and SDK.platform()-dispatched contact-center operations.",
       "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation.",
-      "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness through an injected SDK-backed client.",
+      "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness through an injected SDK platform client.",
       "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk.",
     ],
     evidence: [
@@ -62,7 +62,7 @@ export const ringCentralContactCenterManifestInput = {
     {
       alias: "contact-center.handoff.request",
       capability: "handoff",
-      providerOperation: "sdk-client-handoff-create",
+      providerOperation: "SDK.platform().post",
       providerObject: "ringcxHandoff",
       sideEffect: true,
       exposesSensitiveData: true,
@@ -71,7 +71,7 @@ export const ringCentralContactCenterManifestInput = {
     {
       alias: "contact-center.handoff.status.read",
       capability: "read-provider-object",
-      providerOperation: "sdk-client-readiness-read",
+      providerOperation: "SDK.platform().get",
       providerObject: "ringcentralReadiness",
       exposesSensitiveData: true,
     },
@@ -89,10 +89,15 @@ export const ringCentralContactCenterManifestInput = {
       strategy: "official-sdk-backed-client-plus-reviewed-slices",
       sdkPackage: "@ringcentral/sdk",
       sdkPackages: ["@ringcentral/sdk"],
+      sdkRuntimeSurface: "SDK.platform()",
+      operationMethodMap: {
+        "contact-center.handoff.request": "SDK.platform().post",
+        "contact-center.handoff.status.read": "SDK.platform().get",
+      },
     },
     channelCoverage: {
-      configuredHttpHandoff: "sdk-dispatched",
-      configuredReadiness: "sdk-dispatched",
+      configuredHttpHandoff: "SDK.platform().post",
+      configuredReadiness: "SDK.platform().get",
       sdkBackedClient: "injected-client",
       currentVoiceRestApiOperations: "provider-supported-not-typed",
       digitalRestApiOperations: "provider-supported-not-typed",

@@ -1,5 +1,41 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
 
+const discourseForumProviderSdkDecision = {
+  strategy: "no-official-js-ts-sdk-rest-adapter",
+  defaultClientPolicy: "provider-rest-adapter-when-configured",
+  officialJsSdkAvailable: false,
+  packageOwnedRestClient: true,
+  verifiedAt: "2026-06-25",
+  runtimePackage: "@cognidesk/integration-community-forum/runtime",
+  providerClient: "ForumCommunityProviderClient",
+  sdkDecision: {
+    checkedAt: "2026-06-25",
+    result: "no-applicable-official-js-ts-sdk",
+    rejectedSdkPackages: [
+      {
+        packageName: "discourse_api",
+        ecosystem: "ruby",
+        reason: "Discourse documentation recommends the official discourse_api Ruby gem for Ruby consumers; it is not a JavaScript or TypeScript runtime SDK for this provider package.",
+      },
+      {
+        packageName: "discourse-api-sdk",
+        ecosystem: "npm",
+        reason: "Third-party npm publisher and repository; not published by the Discourse npm organization, despite package description text.",
+      },
+      {
+        packageName: "@discourse/mcp",
+        ecosystem: "npm",
+        reason: "Official Discourse MCP CLI server, not an in-process JavaScript or TypeScript provider API client for this runtime package.",
+      },
+      {
+        packageName: "discourse-sdk",
+        ecosystem: "npm",
+        reason: "Unofficial, old, and untyped npm package surface; unsuitable as the strict provider SDK dependency for this package.",
+      },
+    ],
+  },
+} as const;
+
 export const forumCommunityProviderManifest = defineProviderPackage({
   id: "community.forum",
   name: "Discourse Forum",
@@ -39,6 +75,7 @@ export const forumCommunityProviderManifest = defineProviderPackage({
     scope: "support-workflow-subset",
     notes: [
       "Coverage is limited to a built-in Discourse-compatible REST adapter for forum topic/post/search/current-user workflows, optional provider client overrides, and X-Discourse-Event-Signature webhook validation.",
+      "No applicable official JavaScript or TypeScript Discourse provider SDK was verified on 2026-06-25; Discourse's documented client-library path is the discourse_api Ruby gem, so this package uses a constrained REST adapter.",
       "The package does not implement broader Discourse administration for categories, tags, users/groups, moderation actions, uploads, badges, notifications, private messages, plugin endpoints, site settings, or non-Discourse forum APIs.",
     ],
     evidence: [
@@ -199,9 +236,17 @@ export const forumCommunityProviderManifest = defineProviderPackage({
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     docs: "https://docs.discourse.org/",
+    implementation: discourseForumProviderSdkDecision,
     implementationStrategy: "provider-rest-adapter",
     concreteProvider: "discourse-compatible-rest-adapter-or-provider-client",
     supportedForumApi: "built-in-discourse-rest-adapter-and-discourse-webhooks",
+    providerClient: {
+      package: "built-in-or-host-provided",
+      interface: "ForumCommunityProviderClient",
+      importPolicy: "provider-client-override-supported",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
+      sdkDecision: discourseForumProviderSdkDecision.sdkDecision,
+    },
     apiCoverage: {
       operationCatalog: "docs/provider-coverage/discourse-selected-api-2026-06-18.operations.json",
       generatedFromOfficialSpec: false,

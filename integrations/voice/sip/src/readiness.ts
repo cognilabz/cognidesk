@@ -17,7 +17,7 @@ export function createSipVoiceLiveChecks(options: SipLiveCheckOptions) {
       if (context.signal?.aborted) throw new Error("SIP live readiness check aborted.");
       const readiness = options.gateway?.checkReadiness
         ? await options.gateway.checkReadiness(sipGatewayContext(options.config, context.signal))
-        : buildSipConfigReadiness(options.config);
+        : buildSipLocalRuntimeMissingReadiness(options.config);
       if (!readiness.ok) {
         throw new Error(`SIP readiness check failed: ${(readiness.missing ?? ["unknown"]).join(", ")}`);
       }
@@ -56,6 +56,25 @@ export function buildSipConfigReadiness(config: SipVoiceConfig): SipReadinessRes
       proxyUri: config.proxyUri ?? config.outboundProxyUri,
       transport: config.transport,
       userAgent: config.userAgent,
+    },
+  };
+}
+
+export function buildSipLocalRuntimeMissingReadiness(config: SipVoiceConfig): SipReadinessResult {
+  const configReadiness = buildSipConfigReadiness(config);
+  return {
+    ...configReadiness,
+    ok: false,
+    registrarReachable: false,
+    registered: false,
+    proxyReachable: false,
+    missing: [...new Set([...(configReadiness.missing ?? []), "sip-stack-gateway"])],
+    details: {
+      ...configReadiness.details,
+      providerSdkDecision: "provider-protocol-lib/drachtio-srf",
+      providerSdkDependencies: ["drachtio-srf"],
+      gatewayRequired: true,
+      reason: "No drachtio-srf gateway configuration or host SipStackGateway was supplied; this package cannot establish SIP registration, proxy reachability, or call-control readiness by itself.",
     },
   };
 }

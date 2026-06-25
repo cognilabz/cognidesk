@@ -302,7 +302,7 @@ export function createOracleServiceRestProviderClient(
 export function createUnconfiguredOracleServiceTicketingProviderClient(): OracleServiceTicketingProviderClient {
   const fail = async (..._args: unknown[]): Promise<never> => {
     throw new Error(
-      "Configure Oracle Service with a host-provided providerClient or with baseUrl/instanceUrl plus accessToken, basic auth, or auth headers.",
+      "Configure Oracle Service with a host-provided providerClient or with baseUrl/instanceUrl plus access credentials.",
     );
   };
   return {

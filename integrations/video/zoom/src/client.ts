@@ -17,6 +17,7 @@ import type {
   ZoomCreateMeetingInput,
   ZoomDeleteMeetingInput,
   ZoomGetMeetingInput,
+  ZoomOperationRequestInput,
   ZoomVideoClient,
   ZoomVideoClientOptions,
   ZoomVideoProviderQuery,
@@ -24,13 +25,17 @@ import type {
   ZoomVideoProviderPayload,
   ZoomUpdateMeetingInput,
 } from "./contracts.js";
+import {
+  createZoomOfficialSdkRuntime,
+  shouldUseZoomOfficialSdkRuntime,
+} from "./official-sdk.js";
 
 const ZOOM_DEFAULT_API_BASE_URL = "https://api.zoom.us/v2";
 const ZOOM_DEFAULT_OAUTH_BASE_URL = "https://zoom.us";
 const ZOOM_DEFAULT_USER_ID = "me";
 
 export function createZoomVideoClient(options: ZoomVideoClientOptions = {}): ZoomVideoClient {
-  const providerClient = options.providerClient ?? createZoomRestVideoProviderClient(options);
+  const providerClient = options.providerClient ?? createZoomDefaultVideoProviderClient(options);
   const requestOperation = createProviderBackedMeetingsOperationCaller(providerClient);
   const meetingsApi = createZoomMeetingsApiGeneratedClient(requestOperation);
 
@@ -56,6 +61,62 @@ export function createZoomVideoClient(options: ZoomVideoClientOptions = {}): Zoo
     getCurrentUser() {
       return providerClient.getCurrentUser();
     },
+  };
+}
+
+function createZoomDefaultVideoProviderClient(
+  options: Omit<ZoomVideoClientOptions, "providerClient"> = {},
+): ZoomVideoProviderClient {
+  if (shouldUseZoomOfficialSdkRuntime(options)) return createZoomOfficialSdkVideoProviderClient(options);
+  return createZoomRestVideoProviderClient(options);
+}
+
+export function createZoomOfficialSdkVideoProviderClient(
+  options: Omit<ZoomVideoClientOptions, "providerClient"> = {},
+): ZoomVideoProviderClient {
+  if (!hasZoomRestCredentials(options)) return createMissingZoomVideoProviderClient();
+  const runtime = createZoomOfficialSdkRuntime({
+    ...options,
+    resolveAccessToken: () => resolveZoomAccessToken(options),
+    restFallback: (operation, input) =>
+      requestZoomRestOperation(operation, input as ZoomRestOperationInput | undefined, options),
+  });
+  const requestOperation = runtime.requestOperation;
+
+  return {
+    rawClient: runtime.rawClient,
+    requestOperation,
+    async createMeeting(input) {
+      return requestOperation("POST /users/{userId}/meetings", {
+        pathParams: { userId: options.userId ?? ZOOM_DEFAULT_USER_ID },
+        body: zoomMeetingBody(input),
+      }) as ReturnType<ZoomVideoProviderClient["createMeeting"]>;
+    },
+    async listMeetings(input = {}) {
+      return requestOperation("GET /users/{userId}/meetings", {
+        pathParams: { userId: options.userId ?? ZOOM_DEFAULT_USER_ID },
+        query: zoomListMeetingsQuery(input),
+      }) as ReturnType<ZoomVideoProviderClient["listMeetings"]>;
+    },
+    async getMeeting(meetingId, input = {}) {
+      return requestOperation("GET /meetings/{meetingId}", {
+        pathParams: { meetingId },
+        query: zoomGetMeetingQuery(input),
+      }) as ReturnType<ZoomVideoProviderClient["getMeeting"]>;
+    },
+    async updateMeeting(meetingId, input) {
+      return await requestOperation("PATCH /meetings/{meetingId}", {
+        pathParams: { meetingId },
+        body: zoomMeetingBody(input),
+      }) as unknown as Awaited<ReturnType<ZoomVideoProviderClient["updateMeeting"]>>;
+    },
+    async deleteMeeting(meetingId, input = {}) {
+      return await requestOperation("DELETE /meetings/{meetingId}", {
+        pathParams: { meetingId },
+        query: zoomDeleteMeetingQuery(input),
+      }) as unknown as Awaited<ReturnType<ZoomVideoProviderClient["deleteMeeting"]>>;
+    },
+    getCurrentUser: runtime.getCurrentUser,
   };
 }
 
@@ -139,12 +200,7 @@ export function createMissingZoomVideoProviderClient(): ZoomVideoProviderClient 
   };
 }
 
-type ZoomRestOperationInput = {
-  pathParams?: Record<string, string | number | boolean | undefined> | undefined;
-  query?: ZoomVideoProviderQuery | undefined;
-  body?: ZoomVideoProviderPayload | undefined;
-  headers?: Record<string, string> | undefined;
-};
+type ZoomRestOperationInput = ZoomOperationRequestInput;
 
 function resolveZoomMeetingsOperation(operationUidOrId: string) {
   const operation = ZOOM_MEETINGS_API_OPERATION_BY_UID.get(operationUidOrId)

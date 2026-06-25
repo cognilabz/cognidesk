@@ -1,7 +1,7 @@
 import {
+  IntegrationError,
   defineIntegration,
   providerJsonRequest,
-  type ProviderQueryValue,
 } from "@cognidesk/integration-kit";
 import { aircallProviderManifestInput } from "./manifest.js";
 
@@ -31,9 +31,6 @@ export interface AircallClientOptions {
   apiBaseUrl?: string | undefined;
   accessToken?: string | undefined;
   authorizationHeader?: string | undefined;
-  apiKey?: string | undefined;
-  apiKeyHeaderName?: string | undefined;
-  defaultHandoffPath?: string | undefined;
   readinessPath?: string | undefined;
   fetch?: typeof fetch | undefined;
   signal?: AbortSignal | undefined;
@@ -42,26 +39,31 @@ export interface AircallClientOptions {
   rawClient?: AircallRawClient | undefined;
 }
 
-export interface ConfiguredHandoffInput {
-  payload?: unknown;
-  query?: Record<string, ProviderQueryValue> | undefined;
-  routing?: ProviderJsonObject | undefined;
-  metadata?: ProviderJsonObject | undefined;
-  idempotencyKey?: string | undefined;
+export type AircallDispatchingStrategy = "random" | "simultaneous" | "longest_idle";
+
+export interface AircallTransferCallInput {
+  callId: string | number;
+  userId?: string | number | undefined;
+  teamId?: string | number | undefined;
+  number?: string | undefined;
+  dispatchingStrategy?: AircallDispatchingStrategy | undefined;
 }
 
+export type ConfiguredHandoffInput = AircallTransferCallInput;
+
 export interface AircallReadinessInput {
-  metadata?: ProviderJsonObject | undefined;
+  path?: string | undefined;
 }
 
 export interface AircallRawClient {
-  createHandoff(input?: ConfiguredHandoffInput): Promise<ProviderJsonObject>;
+  transferCall(input: AircallTransferCallInput): Promise<ProviderJsonObject>;
   readiness?(input?: AircallReadinessInput): Promise<ProviderJsonObject>;
 }
 
 export interface AircallClient {
   rawClient: AircallRawClient;
   createHandoff(input?: ConfiguredHandoffInput): Promise<ProviderJsonObject>;
+  transferCall(input: AircallTransferCallInput): Promise<ProviderJsonObject>;
   readiness(input?: AircallReadinessInput): Promise<ProviderJsonObject>;
 }
 
@@ -70,16 +72,19 @@ export interface AircallIntegrationOptions extends AircallClientOptions {
 }
 
 export function createAircallClient(options: AircallClientOptions = {}): AircallClient {
-  const rawClient = options.rawClient ?? createAircallRestRawClient(options);
+  const rawClient = requireAircallRawClient(options.rawClient ?? createAircallRestRawClient(options));
 
   return {
     rawClient,
-    createHandoff(input = {}) {
-      return rawClient.createHandoff(normalizeConfiguredHandoffInput(input));
+    createHandoff(input) {
+      return rawClient.transferCall(parseConfiguredHandoffInput(input));
+    },
+    transferCall(input) {
+      return rawClient.transferCall(parseAircallTransferCallInput(input));
     },
     readiness(input = {}) {
       if (typeof rawClient.readiness !== "function") {
-        throw new Error("Aircall rawClient does not expose readiness().");
+        throw aircallError("contract-violation", "Aircall rawClient must implement readiness() for live readiness checks.");
       }
       return rawClient.readiness(input);
     },
@@ -103,35 +108,27 @@ export function createAircallIntegration(options: AircallIntegrationOptions = {}
 
 function createAircallRestRawClient(options: AircallClientOptions): AircallRawClient {
   return {
-    createHandoff(input = {}) {
-      const path = configuredPath(options.defaultHandoffPath, "Aircall handoff path");
+    transferCall(input) {
+      const value = parseAircallTransferCallInput(input);
       return providerRestRequest<ProviderJsonObject>({
         baseUrl: configuredBaseUrl(options),
         method: "POST",
-        path,
-        query: input.query,
-        body: handoffBody(input),
-        accessToken: options.accessToken,
-        authorizationHeader: options.authorizationHeader,
-        apiKey: options.apiKey,
-        apiKeyHeaderName: options.apiKeyHeaderName,
-        idempotencyKey: input.idempotencyKey,
+        path: "/calls/{callId}/transfers",
+        pathParams: { callId: value.callId },
+        body: aircallTransferCallBody(value),
+        authorizationHeader: configuredAuthorizationHeader(options),
         fetch: options.fetch,
         signal: options.signal,
         timeoutMs: options.timeoutMs,
-        retry: input.idempotencyKey ? options.retry : undefined,
         providerName: "Aircall",
       });
     },
-    readiness() {
+    readiness(input = {}) {
       return providerRestRequest<ProviderJsonObject>({
         baseUrl: configuredBaseUrl(options),
         method: "GET",
-        path: options.readinessPath ?? "/v1/ping",
-        accessToken: options.accessToken,
-        authorizationHeader: options.authorizationHeader,
-        apiKey: options.apiKey,
-        apiKeyHeaderName: options.apiKeyHeaderName,
+        path: input.path ?? options.readinessPath ?? "/ping",
+        authorizationHeader: configuredAuthorizationHeader(options),
         fetch: options.fetch,
         signal: options.signal,
         timeoutMs: options.timeoutMs,
@@ -142,46 +139,111 @@ function createAircallRestRawClient(options: AircallClientOptions): AircallRawCl
   };
 }
 
+const AIRCALL_DEFAULT_API_BASE_URL = "https://api.aircall.io/v1";
+const AIRCALL_DISPATCHING_STRATEGIES = new Set<AircallDispatchingStrategy>([
+  "random",
+  "simultaneous",
+  "longest_idle",
+]);
+const AIRCALL_E164_PHONE_NUMBER = /^\+[1-9]\d{1,14}$/;
+
 function configuredBaseUrl(options: Pick<AircallClientOptions, "apiBaseUrl" | "baseUrl">): string {
-  const baseUrl = options.baseUrl ?? options.apiBaseUrl;
-  if (!baseUrl) throw new Error("Aircall baseUrl is required to use the built-in REST adapter.");
-  return baseUrl;
+  return options.baseUrl ?? options.apiBaseUrl ?? AIRCALL_DEFAULT_API_BASE_URL;
 }
 
-function configuredPath(path: string | undefined, label: string): string {
-  if (!path) throw new Error(`${label} must be configured to use the built-in REST adapter.`);
-  return path;
+function configuredAuthorizationHeader(options: Pick<AircallClientOptions, "accessToken" | "authorizationHeader">): string {
+  if (options.authorizationHeader) return options.authorizationHeader;
+  if (options.accessToken) return `Bearer ${options.accessToken}`;
+  throw aircallError(
+    "credential-missing",
+    "Aircall built-in REST adapter requires accessToken or authorizationHeader; pass rawClient for host-managed execution.",
+  );
 }
 
-function normalizeConfiguredHandoffInput(input: ConfiguredHandoffInput): ConfiguredHandoffInput {
-  return {
-    ...(input.payload !== undefined ? { payload: input.payload } : {}),
-    ...(input.query !== undefined ? { query: input.query } : {}),
-    ...(input.routing !== undefined ? { routing: input.routing } : {}),
-    ...(input.metadata !== undefined ? { metadata: input.metadata } : {}),
-    ...(input.idempotencyKey !== undefined ? { idempotencyKey: input.idempotencyKey } : {}),
-  };
+function parseConfiguredHandoffInput(input: unknown): AircallTransferCallInput {
+  if (input === undefined) {
+    throw aircallError("provider-validation", "Aircall handoff requires a documented call transfer input.");
+  }
+  return parseAircallTransferCallInput(input);
 }
 
-function parseConfiguredHandoffInput(input: unknown): ConfiguredHandoffInput {
-  if (input === undefined) return {};
+function parseAircallTransferCallInput(input: unknown): AircallTransferCallInput {
   if (!isPlainObject(input)) {
-    throw new Error("Aircall handoff input object is required.");
+    throw aircallError("provider-validation", "Aircall transfer call input object is required.");
   }
-  return normalizeConfiguredHandoffInput(input as ConfiguredHandoffInput);
+  const callId = positiveIntegerId(input.callId, "callId");
+  const userId = input.userId === undefined ? undefined : nonEmptyProviderId(input.userId, "userId");
+  const teamId = input.teamId === undefined ? undefined : nonEmptyProviderId(input.teamId, "teamId");
+  const number = input.number === undefined ? undefined : e164PhoneNumber(input.number);
+  const destinationCount = [userId, teamId, number].filter((value) => value !== undefined).length;
+  if (destinationCount !== 1) {
+    throw aircallError("provider-validation", "Aircall transfer requires exactly one of userId, teamId, or number.");
+  }
+  const dispatchingStrategy = aircallDispatchingStrategy(input.dispatchingStrategy);
+  if (input.dispatchingStrategy !== undefined && dispatchingStrategy === undefined) {
+    throw aircallError("provider-validation", "Aircall dispatchingStrategy must be random, simultaneous, or longest_idle.");
+  }
+  if (dispatchingStrategy !== undefined && teamId === undefined) {
+    throw aircallError("provider-validation", "Aircall dispatchingStrategy is only valid for team transfers.");
+  }
+  return {
+    callId,
+    ...(userId !== undefined ? { userId } : {}),
+    ...(teamId !== undefined ? { teamId } : {}),
+    ...(number !== undefined ? { number } : {}),
+    ...(dispatchingStrategy !== undefined ? { dispatchingStrategy } : {}),
+  };
 }
 
-function handoffBody(input: ConfiguredHandoffInput) {
-  const extraFields = {
-    ...(input.routing !== undefined ? { routing: input.routing } : {}),
-    ...(input.metadata !== undefined ? { metadata: input.metadata } : {}),
+function aircallTransferCallBody(input: AircallTransferCallInput): ProviderJsonObject {
+  return {
+    ...(input.userId !== undefined ? { user_id: input.userId } : {}),
+    ...(input.teamId !== undefined ? { team_id: input.teamId } : {}),
+    ...(input.number !== undefined ? { number: input.number } : {}),
+    ...(input.dispatchingStrategy !== undefined ? { dispatching_strategy: input.dispatchingStrategy } : {}),
   };
-  if (input.payload === undefined) return extraFields;
-  if (Object.keys(extraFields).length === 0) return input.payload;
-  if (!isPlainObject(input.payload)) {
-    throw new Error("Aircall handoff payload must be an object when routing or metadata are provided.");
+}
+
+function positiveIntegerId(value: unknown, label: string): string | number {
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (/^[1-9]\d*$/.test(trimmed)) return trimmed;
   }
-  return { ...input.payload, ...extraFields };
+  throw aircallError("provider-validation", `Aircall ${label} must be a positive integer.`);
+}
+
+function nonEmptyProviderId(value: unknown, label: string): string | number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) return value.trim();
+  throw aircallError("provider-validation", `Aircall ${label} must be a non-empty provider identifier.`);
+}
+
+function e164PhoneNumber(value: unknown): string {
+  if (typeof value === "string" && AIRCALL_E164_PHONE_NUMBER.test(value.trim())) return value.trim();
+  throw aircallError("provider-validation", "Aircall transfer number must be an E.164 phone number.");
+}
+
+function aircallDispatchingStrategy(value: unknown): AircallDispatchingStrategy | undefined {
+  if (typeof value !== "string") return undefined;
+  if (AIRCALL_DISPATCHING_STRATEGIES.has(value as AircallDispatchingStrategy)) {
+    return value as AircallDispatchingStrategy;
+  }
+  return undefined;
+}
+
+function requireAircallRawClient(rawClient: AircallRawClient): AircallRawClient {
+  if (!rawClient || typeof rawClient.transferCall !== "function") {
+    throw aircallError("contract-violation", "Aircall rawClient must implement transferCall().");
+  }
+  return rawClient;
+}
+
+function aircallError(code: ConstructorParameters<typeof IntegrationError>[0], message: string): IntegrationError {
+  return new IntegrationError(code, message, {
+    providerPackageId: "contact-center.aircall",
+    provider: "aircall",
+  });
 }
 
 function isPlainObject(value: unknown): value is ProviderJsonObject {

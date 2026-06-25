@@ -29,6 +29,19 @@ describe("@cognidesk/integration-form-cognidesk", () => {
     });
     expect(cognideskFormsProviderManifest.coverage.notes.join(" "))
       .toContain("does not implement a named external forms provider API");
+    expect(cognideskFormsProviderManifest.metadata).toMatchObject({
+      implementation: {
+        strategy: "protocol-local-runtime",
+        providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK",
+        providerSdkDependencies: [],
+        externalProviderSdk: "not-applicable-internal-provider",
+      },
+      checkedProviderSdk: {
+        verdict: "internal-provider/local-runtime/no-provider-SDK",
+        packageSurfaceRuntimeSdkAvailable: false,
+        providerSdkDependencies: [],
+      },
+    });
   });
 
   it("defines forms and validates submissions structurally", () => {

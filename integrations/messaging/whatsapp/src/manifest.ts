@@ -1,5 +1,29 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
 
+const whatsappBusinessPlatformServerSdkException = {
+  strategy: "no-official-maintained-server-sdk-rest-adapter",
+  defaultClientPolicy: "provider-rest-adapter-when-configured",
+  officialMaintainedServerSdkAvailable: false,
+  packageOwnedRestClient: true,
+  verifiedAt: "2026-06-25",
+  runtimePackage: "@cognidesk/integration-messaging-whatsapp/runtime",
+  providerClient: "WhatsAppMessagingProviderClient",
+  sdkDecision: {
+    checkedAt: "2026-06-25",
+    result: "no-maintained-official-sdk-rest-adapter-selected",
+    rejectedSdkPackages: [
+      {
+        packageName: "whatsapp",
+        reason: "Official Meta WhatsApp Business Platform Node.js SDK for Cloud API, but the upstream repository and documentation mark the project archived/read-only.",
+      },
+      {
+        packageName: "facebook-nodejs-business-sdk",
+        reason: "Official Meta Business SDK for broader Graph/Marketing API surfaces, not a maintained WhatsApp Cloud API messaging client.",
+      },
+    ],
+  },
+} as const;
+
 export const whatsappMessagingProviderManifest = defineProviderPackage({
   id: "messaging.whatsapp",
   name: "WhatsApp Business Platform",
@@ -276,20 +300,13 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
     "This package provides a built-in Graph API REST adapter when accessToken and phoneNumberId are configured; hosts may still inject an approved WhatsApp/Meta provider client and own automation, promotional messaging, consent, retry, and rate-limit policies.",
   ],
   metadata: {
+    implementation: whatsappBusinessPlatformServerSdkException,
     providerClient: {
       package: "built-in-or-host-provided",
       interface: "WhatsAppMessagingProviderClient",
       importPolicy: "provider-client-override-supported",
       defaultClientPolicy: "provider-rest-adapter-when-configured",
-      sdkDecision: {
-        checkedAt: "2026-06-25",
-        result: "no-maintained-official-sdk-rest-adapter-selected",
-        notes: [
-          "facebook-nodejs-business-sdk is Marketing API oriented rather than a WhatsApp Cloud API messaging client.",
-          "Meta's WhatsApp Node.js SDK documentation now marks the project archived, so this package uses a built-in Graph API REST adapter instead of adding that dependency.",
-          "Hosts may wrap an approved maintained SDK behind WhatsAppMessagingProviderClient when desired.",
-        ],
-      },
+      sdkDecision: whatsappBusinessPlatformServerSdkException.sdkDecision,
     },
     channelCoverage: {
       cloudApiMessages: "provider-rest-adapter-send",

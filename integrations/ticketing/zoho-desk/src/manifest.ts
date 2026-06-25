@@ -62,12 +62,16 @@ export const zohoDeskTicketingProviderManifest = defineProviderPackage({
   metadata: {
     implementation: {
       strategy: "provider-rest-adapter",
+      adapterKind: "no-official-sdk-rest-adapter",
       runtimePackage: "@cognidesk/integration-ticketing-zoho-desk",
+      providerClientInterface: "ZohoDeskProviderClient",
       defaultClientPolicy: "use-built-in-rest-adapter-when-orgId-and-accessToken-are-configured",
       providerClientOverride: true,
       packageOwnedRestClient: true,
+      officialRuntimeSdkAvailable: false,
       manifestImport: "no-client-initialization",
     },
+    implementationStrategy: "no-official-sdk-rest-adapter",
     providerClient: {
       package: "built-in-provider-rest-adapter",
       interface: "ZohoDeskProviderClient",
@@ -82,6 +86,58 @@ export const zohoDeskTicketingProviderManifest = defineProviderPackage({
           "Zoho Desk ASAP/Web SDK documentation targets embedded help-center or extension widgets, not backend ticketing provider operations.",
         ],
       },
+    },
+    providerRestAdapterException: {
+      status: "accepted",
+      reviewedAt: "2026-06-25",
+      adapterKind: "no-official-sdk-rest-adapter",
+      reason: "No maintained official Zoho Desk Node/TypeScript runtime SDK was verified for backend ticketing operations; Zoho's official Desk SDK documentation is Java- or browser/widget-oriented for the surfaces checked.",
+      allowedDefaultRuntime: "built-in-rest-adapter",
+      hostSdkPath: "ZohoDeskProviderClient",
+      guardrails: [
+        "Keep backend ticketing calls behind ZohoDeskProviderClient and the built-in REST adapter until an official maintained Node/TypeScript Zoho Desk runtime SDK exists.",
+        "Do not add @zohodesk/js-api-creator as the default provider SDK; it is a generic API builder, not a typed Zoho Desk ticketing client.",
+        "If an official maintained runtime SDK is adopted later, switch implementation.strategy away from provider-rest-adapter and declare cognidesk.providerSdkDependencies.",
+      ],
+    },
+    checkedProviderSdk: {
+      checkedAt: "2026-06-25",
+      verdict: "no-official-sdk-rest-adapter",
+      officialRuntimeSdkAvailable: false,
+      candidates: [
+        {
+          package: "Zoho Desk Java SDK",
+          result: "not-node-typescript-runtime",
+          reason: "Official SDK for Java applications; it is not a runtime package this Node/TypeScript provider package can import.",
+          source: "https://www.zoho.com/desk/developers/javasdk/",
+        },
+        {
+          package: "@zohodesk/js-api-creator",
+          checkedVersion: "1.0.25",
+          result: "not-provider-ticketing-sdk",
+          reason: "Maintained JavaScript package, but its README describes a generic API builder rather than a dedicated Zoho Desk typed raw client.",
+          source: "https://www.npmjs.com/package/@zohodesk/js-api-creator",
+        },
+        {
+          package: "Zoho Desk extension JS SDK bundle",
+          result: "not-backend-runtime-sdk",
+          reason: "Extension widget SDK loaded from Zoho-hosted browser script after ZOHODESK.extension.onload(); it is not a server-side REST client dependency.",
+          source: "https://help.zoho.com/portal/en/community/topic/building-extensions-8-create-widgets-using-the-js-sdk-bundle-in-the-zoho-desk-platform-part-1",
+        },
+        {
+          package: "Zoho Desk ASAP JavaScript APIs",
+          result: "not-backend-runtime-sdk",
+          reason: "ASAP JavaScript APIs target embedded help-widget behavior in website pages, not backend ticket create/read/update/reply operations.",
+          source: "https://www.zoho.com/desk/developers/asap/",
+        },
+      ],
+      sources: [
+        "https://www.zoho.com/desk/developers/",
+        "https://www.zoho.com/desk/developers/javasdk/",
+        "https://www.npmjs.com/package/@zohodesk/js-api-creator",
+        "https://help.zoho.com/portal/en/community/topic/building-extensions-8-create-widgets-using-the-js-sdk-bundle-in-the-zoho-desk-platform-part-1",
+        "https://www.zoho.com/desk/developers/asap/",
+      ],
     },
     checkedProviderApiCoverage: {
       verifiedAt: "2026-06-18",

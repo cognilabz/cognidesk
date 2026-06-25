@@ -1,6 +1,12 @@
 import { Buffer } from "node:buffer";
 import type { ProviderCredentialStatusInput } from "@cognidesk/core";
 import {
+  Connector as ServiceNowSdkConnectorClass,
+  type Credential as ServiceNowSdkCredential,
+  type IConnector as ServiceNowSdkConnector,
+  type QueryDisplayValue as ServiceNowSdkQueryDisplayValue,
+} from "@servicenow/sdk-api";
+import {
   defineIntegration,
   providerJsonRequest,
   providerRequestUrl,
@@ -37,6 +43,7 @@ export interface ServiceNowJsonRetryOptions {
 
 export interface ServiceNowTicketingClientOptions {
   rawClient?: ServiceNowRawClient;
+  connector?: ServiceNowSdkConnector;
   instance?: string;
   instanceUrl?: string;
   baseUrl?: string;
@@ -232,7 +239,7 @@ export function createServiceNowTicketingClient(
 }
 
 export function createServiceNowTicketingOperationHandlers(
-  options: ServiceNowTicketingIntegrationOptions,
+  options: ServiceNowTicketingIntegrationOptions = {},
 ): IntegrationOperationHandlers {
   const client = options.ticketingClient ?? createServiceNowTicketingClient(options);
 
@@ -263,7 +270,7 @@ export function createServiceNowTicketingOperationHandlers(
   };
 }
 
-export function createServiceNowTicketingIntegration(options: ServiceNowTicketingIntegrationOptions) {
+export function createServiceNowTicketingIntegration(options: ServiceNowTicketingIntegrationOptions = {}) {
   return defineIntegration({
     manifest: serviceNowTicketingProviderManifest,
     operations: createServiceNowTicketingOperationHandlers(options),
@@ -421,12 +428,23 @@ function serviceNowAttachmentListQuery(input: ServiceNowListAttachmentsOperation
   } = input;
   const scopedSysId = tableSysId ?? sysId ?? ticketId ?? id;
   const scopedQuery = scopedSysId
-    ? [query, `table_name=${tableName ?? "incident"}^table_sys_id=${scopedSysId}`].filter(Boolean).join("^")
+    ? [
+        query,
+        serviceNowEncodedQueryTerm("table_name", tableName ?? "incident"),
+        serviceNowEncodedQueryTerm("table_sys_id", scopedSysId),
+      ].filter(Boolean).join("^")
     : query;
   return {
     ...tableQuery,
     ...(scopedQuery ? { query: scopedQuery } : {}),
   };
+}
+
+function serviceNowEncodedQueryTerm(field: string, value: string): string {
+  if (/[=^]/.test(value)) {
+    throw new Error(`ServiceNow encoded query value for ${field} cannot contain '=' or '^'.`);
+  }
+  return `${field}=${value}`;
 }
 
 function serviceNowStagingTableName(input: { stagingTableName?: string; tableName?: string }): string {
@@ -505,6 +523,116 @@ export function createServiceNowRestRawClient(options: ServiceNowTicketingClient
           file_name: input.fileName,
         },
         ...(options.signal ? { signal: options.signal } : {}),
+        ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+      })));
+    },
+    async listAttachments(query) {
+      const result = serviceNowResult(await request("GET", "attachment", {
+        query: serviceNowTableQueryParams(query),
+      }));
+      return (Array.isArray(result) ? result : []) as ServiceNowJsonObject[];
+    },
+    async importSet(stagingTableName, record) {
+      return asServiceNowObject(serviceNowResult(await request("POST", `import/${pathSegment(stagingTableName)}`, { body: record })));
+    },
+    async getImportSetResult(stagingTableName, sysId) {
+      return asServiceNowObject(serviceNowResult(await request("GET", `import/${pathSegment(stagingTableName)}/${pathSegment(sysId)}`)));
+    },
+  };
+}
+
+export function createServiceNowSdkConnector(
+  options: Pick<ServiceNowTicketingClientOptions, "accessToken" | "baseUrl" | "instance" | "instanceUrl">,
+): ServiceNowSdkConnector {
+  if (!options.accessToken) {
+    throw new Error("ServiceNow SDK connector requires accessToken.");
+  }
+  const credential: ServiceNowSdkCredential = {
+    instanceUrl: serviceNowInstanceOriginUrl(options),
+    type: "oauth",
+    token: options.accessToken,
+  };
+  return new ServiceNowSdkConnectorClass(credential);
+}
+
+export function createServiceNowSdkConnectorRawClient(
+  options: ServiceNowTicketingClientOptions,
+): ServiceNowRawClient {
+  const connector = options.connector ?? createServiceNowSdkConnector(options);
+  const apiRoot = serviceNowConnectorApiRoot(options);
+
+  const request = (method: ProviderHttpMethod, path: string, input?: {
+    body?: ServiceNowProviderPayload;
+    query?: Record<string, ProviderQueryValue>;
+  }) => serviceNowConnectorJsonRequest(connector, {
+    method,
+    path: `${apiRoot}/${path}`,
+    ...(options.headers ? { headers: options.headers } : {}),
+    ...(input?.body !== undefined ? { body: input.body } : {}),
+    ...(input?.query !== undefined ? { query: input.query } : {}),
+    ...(options.signal ? { signal: options.signal } : {}),
+    ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+  });
+
+  return {
+    async createRecord<T extends ServiceNowRecord = ServiceNowRecord>(
+      tableName: string,
+      record: ServiceNowProviderPayload,
+    ): Promise<T> {
+      return serviceNowResult(await request("POST", `table/${pathSegment(tableName)}`, { body: record })) as T;
+    },
+    async getRecord<T extends ServiceNowRecord = ServiceNowRecord>(
+      tableName: string,
+      sysId: string,
+      query?: Omit<ServiceNowTableQuery, "query" | "limit" | "offset">,
+    ): Promise<T> {
+      return serviceNowResult(await request("GET", `table/${pathSegment(tableName)}/${pathSegment(sysId)}`, {
+        query: serviceNowTableQueryParams(query),
+      })) as T;
+    },
+    async updateRecord<T extends ServiceNowRecord = ServiceNowRecord>(
+      tableName: string,
+      sysId: string,
+      patch: ServiceNowProviderPayload,
+    ): Promise<T> {
+      return serviceNowResult(await request("PATCH", `table/${pathSegment(tableName)}/${pathSegment(sysId)}`, { body: patch })) as T;
+    },
+    async searchRecords<T extends ServiceNowRecord = ServiceNowRecord>(
+      tableName: string,
+      query?: ServiceNowTableQuery,
+    ): Promise<T[]> {
+      if (canUseServiceNowSdkQueryTable(options, connector)) {
+        const result = await connector.queryTable({
+          table: tableName,
+          encodedQuery: query?.query ?? "",
+          ...(query?.limit !== undefined ? { limit: query.limit } : {}),
+          ...(query?.offset !== undefined ? { offset: query.offset } : {}),
+          ...(query?.fields?.length ? { fields: query.fields.join(",") } : {}),
+          ...(query?.displayValue !== undefined ? { displayValue: serviceNowSdkDisplayValue(query.displayValue) } : {}),
+          ...(query?.excludeReferenceLink !== undefined ? { excludeReferenceLink: query.excludeReferenceLink } : {}),
+          ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+        });
+        return result.records as T[];
+      }
+      const result = serviceNowResult(await request("GET", `table/${pathSegment(tableName)}`, {
+        query: serviceNowTableQueryParams(query),
+      }));
+      return (Array.isArray(result) ? result : []) as T[];
+    },
+    async uploadAttachment(input) {
+      return asServiceNowObject(serviceNowResult(await serviceNowConnectorRawRequest(connector, {
+        path: `${apiRoot}/attachment/file`,
+        method: "POST",
+        ...(options.headers ? { headers: options.headers } : {}),
+        body: input.data,
+        contentType: input.contentType ?? "application/octet-stream",
+        query: {
+          table_name: input.tableName,
+          table_sys_id: input.tableSysId,
+          file_name: input.fileName,
+        },
+        ...(options.signal ? { signal: options.signal } : {}),
+        ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
       })));
     },
     async listAttachments(query) {
@@ -523,7 +651,7 @@ export function createServiceNowRestRawClient(options: ServiceNowTicketingClient
 }
 
 export function createUnconfiguredServiceNowRawClient(
-  message = "ServiceNow REST adapter requires instanceUrl/baseUrl plus accessToken or username/password, or an injected ServiceNowRawClient.",
+  message = "ServiceNow integration requires an injected ServiceNowRawClient, an injected ServiceNow SDK connector, accessToken with instanceUrl/baseUrl, or username/password for the Basic Auth REST fallback.",
 ): ServiceNowRawClient {
   const fail = async (): Promise<never> => {
     throw new Error(message);
@@ -557,6 +685,24 @@ export function serviceNowApiBaseUrl(options: Pick<ServiceNowTicketingClientOpti
   return `${url.origin}/api/now${serviceNowApiVersionPath(options.apiVersion)}`;
 }
 
+function serviceNowInstanceOriginUrl(options: Pick<ServiceNowTicketingClientOptions, "baseUrl" | "instance" | "instanceUrl">): URL {
+  const input = options.instanceUrl ?? options.instance ?? options.baseUrl;
+  if (!input) {
+    throw new Error("ServiceNow SDK connector requires instanceUrl or baseUrl.");
+  }
+  const url = new URL(/^https?:\/\//i.test(input) ? input : `https://${input}`);
+  return new URL(`${url.origin}/`);
+}
+
+function serviceNowConnectorApiRoot(options: Pick<ServiceNowTicketingClientOptions, "baseUrl" | "apiVersion">): string {
+  if (options.baseUrl) {
+    const baseUrl = new URL(/^https?:\/\//i.test(options.baseUrl) ? options.baseUrl : `https://${options.baseUrl}`);
+    const pathname = baseUrl.pathname.replace(/\/+$/, "");
+    if (pathname && pathname !== "/") return pathname;
+  }
+  return `/api/now${serviceNowApiVersionPath(options.apiVersion)}`;
+}
+
 class ServiceNowRestError extends Error {
   readonly status: number;
   readonly statusText: string;
@@ -568,6 +714,63 @@ class ServiceNowRestError extends Error {
     this.status = response.status;
     this.statusText = response.statusText;
     this.payload = payload;
+  }
+}
+
+async function serviceNowConnectorJsonRequest(
+  connector: ServiceNowSdkConnector,
+  input: {
+    method: ProviderHttpMethod;
+    path: string;
+    headers?: Record<string, string>;
+    body?: ServiceNowProviderPayload;
+    query?: Record<string, ProviderQueryValue>;
+    signal?: AbortSignal;
+    timeoutMs?: number;
+  },
+): Promise<unknown> {
+  return serviceNowConnectorRawRequest(connector, {
+    method: input.method,
+    path: input.path,
+    ...(input.headers ? { headers: input.headers } : {}),
+    ...(input.body !== undefined ? { body: JSON.stringify(input.body), contentType: "application/json" } : {}),
+    ...(input.query ? { query: input.query } : {}),
+    ...(input.signal ? { signal: input.signal } : {}),
+    ...(input.timeoutMs !== undefined ? { timeoutMs: input.timeoutMs } : {}),
+  });
+}
+
+async function serviceNowConnectorRawRequest(
+  connector: ServiceNowSdkConnector,
+  input: {
+    method: ProviderHttpMethod;
+    path: string;
+    headers?: Record<string, string>;
+    body?: BodyInit;
+    contentType?: string;
+    query?: Record<string, ProviderQueryValue>;
+    signal?: AbortSignal;
+    timeoutMs?: number;
+  },
+): Promise<unknown> {
+  const { signal, cleanup } = serviceNowAbortSignal(input.signal, input.timeoutMs);
+  try {
+    const response = await connector.fetch(input.path, {
+      method: input.method,
+      headers: serviceNowConnectorHeaders({
+        ...(input.contentType ? { contentType: input.contentType } : {}),
+        ...(input.headers ? { headers: input.headers } : {}),
+      }),
+      ...(input.body !== undefined ? { body: input.body } : {}),
+      ...(signal ? { signal } : {}),
+    }, serviceNowSearchParams(input.query));
+    const payload = await parseServiceNowResponseBody(response);
+    if (!response.ok) {
+      throw new ServiceNowRestError(response, payload);
+    }
+    return payload;
+  } finally {
+    cleanup();
   }
 }
 
@@ -583,34 +786,43 @@ async function serviceNowRawRequest(
     contentType?: string;
     query?: Record<string, ProviderQueryValue>;
     signal?: AbortSignal;
+    timeoutMs?: number;
   },
 ): Promise<unknown> {
   if (typeof fetchImpl !== "function") {
     throw new Error("ServiceNow REST adapter requires a fetch implementation.");
   }
-  const response = await fetchImpl(providerRequestUrl({
-    baseUrl: input.baseUrl,
-    path: input.path,
-    query: input.query,
-  }), {
-    method: input.method,
-    headers: serviceNowHeaders({
-      authorization: input.authorization,
-      contentType: input.contentType ?? "application/octet-stream",
-      ...(input.headers ? { headers: input.headers } : {}),
-    }),
-    body: input.body,
-    ...(input.signal ? { signal: input.signal } : {}),
-  });
-  const payload = await parseServiceNowResponseBody(response);
-  if (!response.ok) {
-    throw new ServiceNowRestError(response, payload);
+  const { signal, cleanup } = serviceNowAbortSignal(input.signal, input.timeoutMs);
+  try {
+    const response = await fetchImpl(providerRequestUrl({
+      baseUrl: input.baseUrl,
+      path: input.path,
+      query: input.query,
+    }), {
+      method: input.method,
+      headers: serviceNowHeaders({
+        authorization: input.authorization,
+        contentType: input.contentType ?? "application/octet-stream",
+        ...(input.headers ? { headers: input.headers } : {}),
+      }),
+      body: input.body,
+      ...(signal ? { signal } : {}),
+    });
+    const payload = await parseServiceNowResponseBody(response);
+    if (!response.ok) {
+      throw new ServiceNowRestError(response, payload);
+    }
+    return payload;
+  } finally {
+    cleanup();
   }
-  return payload;
 }
 
 function createDefaultServiceNowRawClient(options: ServiceNowTicketingClientOptions): ServiceNowRawClient {
-  if ((options.baseUrl || options.instanceUrl || options.instance) && (options.accessToken || (options.username && options.password))) {
+  if (options.connector || ((options.baseUrl || options.instanceUrl || options.instance) && options.accessToken)) {
+    return createServiceNowSdkConnectorRawClient(options);
+  }
+  if ((options.baseUrl || options.instanceUrl || options.instance) && options.username && options.password) {
     return createServiceNowRestRawClient(options);
   }
   return createUnconfiguredServiceNowRawClient();
@@ -639,6 +851,17 @@ function serviceNowHeaders(input: {
   };
 }
 
+function serviceNowConnectorHeaders(input: {
+  headers?: Record<string, string>;
+  contentType?: string;
+}): Record<string, string> {
+  return {
+    Accept: "application/json",
+    ...(input.contentType ? { "Content-Type": input.contentType } : {}),
+    ...(input.headers ?? {}),
+  };
+}
+
 function serviceNowTableQueryParams(query?: ServiceNowTableQuery): Record<string, ProviderQueryValue> {
   const params: Record<string, ProviderQueryValue> = {};
   if (!query) return params;
@@ -649,6 +872,62 @@ function serviceNowTableQueryParams(query?: ServiceNowTableQuery): Record<string
   if (query.displayValue !== undefined) params.sysparm_display_value = String(query.displayValue);
   if (query.excludeReferenceLink !== undefined) params.sysparm_exclude_reference_link = query.excludeReferenceLink;
   return params;
+}
+
+function serviceNowSearchParams(query?: Record<string, ProviderQueryValue>): URLSearchParams | undefined {
+  if (!query) return undefined;
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    appendServiceNowSearchParam(params, key, value);
+  }
+  return params;
+}
+
+function appendServiceNowSearchParam(params: URLSearchParams, key: string, value: ProviderQueryValue): void {
+  if (value === undefined || value === null) return;
+  if (Array.isArray(value)) {
+    for (const item of value) appendServiceNowSearchParam(params, key, item as ProviderQueryValue);
+    return;
+  }
+  params.append(key, String(value));
+}
+
+function canUseServiceNowSdkQueryTable(
+  options: ServiceNowTicketingClientOptions,
+  connector: ServiceNowSdkConnector,
+): connector is ServiceNowSdkConnector & { queryTable: ServiceNowSdkConnector["queryTable"] } {
+  return typeof connector.queryTable === "function"
+    && serviceNowConnectorApiRoot(options) === "/api/now"
+    && options.headers === undefined
+    && options.signal === undefined
+    && options.retry === undefined;
+}
+
+function serviceNowSdkDisplayValue(displayValue: boolean | "all"): ServiceNowSdkQueryDisplayValue {
+  if (displayValue === "all") return "all";
+  return displayValue ? "true" : "false";
+}
+
+function serviceNowAbortSignal(
+  signal: AbortSignal | undefined,
+  timeoutMs: number | undefined,
+): { signal?: AbortSignal; cleanup(): void } {
+  if (timeoutMs === undefined) return { ...(signal ? { signal } : {}), cleanup() {} };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const abort = () => controller.abort();
+  if (signal?.aborted) {
+    controller.abort();
+  } else {
+    signal?.addEventListener("abort", abort, { once: true });
+  }
+  return {
+    signal: controller.signal,
+    cleanup() {
+      clearTimeout(timeout);
+      signal?.removeEventListener("abort", abort);
+    },
+  };
 }
 
 async function parseServiceNowResponseBody(response: Response): Promise<unknown> {

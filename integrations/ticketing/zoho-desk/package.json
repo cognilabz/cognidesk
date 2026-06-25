@@ -45,6 +45,40 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "zoho-desk",
+    "providerSdkDependencies": [],
+    "providerRestAdapterException": {
+      "checkedAt": "2026-06-25",
+      "result": "no-official-maintained-zoho-desk-node-runtime-sdk",
+      "reason": "No maintained official Zoho Desk Node/TypeScript backend ticketing SDK was verified. Zoho-official npm packages found target CRM, Catalyst, SalesIQ, Desk UI/extension/client packages, or generic API building, while the direct zoho-desk-sdk package is third-party and stale.",
+      "defaultClientPolicy": "built-in-zoho-desk-rest-adapter",
+      "typedClientOverride": "ZohoDeskProviderClient",
+      "rejectedSdkPackages": [
+        {
+          "packageName": "zoho-desk-sdk",
+          "checkedVersion": "0.1.7",
+          "license": "MIT",
+          "reason": "Third-party Node SDK for Zoho Desk, not Zoho-maintained and last published years ago."
+        },
+        {
+          "packageName": "@zohodesk/client_packages_group",
+          "checkedVersion": "1.0.3",
+          "license": "ISC",
+          "reason": "Zoho Desk client package group/UI surface, not a server-side ticketing REST runtime SDK."
+        },
+        {
+          "packageName": "@zohodesk/js-api-creator",
+          "checkedVersion": "1.0.25",
+          "license": "MIT",
+          "reason": "Generic API-call builder, not a dedicated typed Zoho Desk ticketing provider client."
+        },
+        {
+          "packageName": "@zohocrm/typescript-sdk-8.0",
+          "checkedVersion": "3.0.0",
+          "license": "Apache-2.0",
+          "reason": "Zoho-maintained CRM SDK, not Zoho Desk ticketing."
+        }
+      ]
+    },
     "manifestOnlyExports": [
       "./manifest"
     ],

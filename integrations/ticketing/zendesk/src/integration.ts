@@ -60,11 +60,16 @@ export function createZendeskTicketingOperationHandlers(
 }
 
 export function createZendeskTicketingIntegration(options: ZendeskTicketingIntegrationOptions) {
-  return defineIntegration({
-    manifest: zendeskTicketingProviderManifestInput,
-    metadata: { manifest: zendeskTicketingProviderManifest },
-    operations: createZendeskTicketingOperationHandlers(options),
-  });
+  const client = options.ticketingClient ?? createZendeskTicketingClient(options);
+  return {
+    ...defineIntegration({
+      manifest: zendeskTicketingProviderManifestInput,
+      metadata: { manifest: zendeskTicketingProviderManifest },
+      operations: createZendeskTicketingOperationHandlers({ ...options, ticketingClient: client }),
+    }),
+    client,
+    getRawClient: () => client.getRawClient(),
+  };
 }
 
 export const createZendeskIntegration = createZendeskTicketingIntegration;

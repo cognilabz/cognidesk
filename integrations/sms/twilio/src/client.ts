@@ -5,49 +5,51 @@ import type {
   TwilioSendSmsInput,
   TwilioSmsClient,
   TwilioSmsClientOptions,
-  TwilioSmsSdkClient,
+  TwilioSmsRawClient,
   TwilioSmsSdkMessageCreateOptions,
   TwilioSmsSdkMessageListOptions,
 } from "./contracts.js";
 
 export function createTwilioSmsClient(options: TwilioSmsClientOptions): TwilioSmsClient {
-  let sdkClientPromise: Promise<TwilioSmsSdkClient> | undefined;
-  const getSdkClient = () => {
-    sdkClientPromise ??= options.sdkClient || options.rawClient
-      ? Promise.resolve((options.sdkClient ?? options.rawClient) as TwilioSmsSdkClient)
-      : createTwilioSdkClient(options);
-    return sdkClientPromise;
+  let rawClientPromise: Promise<TwilioSmsRawClient> | undefined;
+  const getRawClient = () => {
+    rawClientPromise ??= options.rawClient
+      ? Promise.resolve(options.rawClient)
+      : options.sdkClient
+        ? Promise.resolve(options.sdkClient)
+        : createTwilioRawClient(options);
+    return rawClientPromise;
   };
   return {
-    getSdkClient,
-    getRawClient: getSdkClient,
+    getRawClient,
+    getSdkClient: getRawClient,
     async sendMessage(input) {
-      const sdkClient = await getSdkClient();
-      return sdkClient.messages.create(sendMessageBody(input));
+      const rawClient = await getRawClient();
+      return rawClient.messages.create(sendMessageBody(input));
     },
     async fetchMessage(messageSid) {
-      return (await getSdkClient()).messages.get(messageSid).fetch();
+      return (await getRawClient()).messages.get(messageSid).fetch();
     },
     async listMessages(input = {}) {
-      return { messages: await (await getSdkClient()).messages.list(messageListQuery(input)) };
+      return { messages: await (await getRawClient()).messages.list(messageListQuery(input)) };
     },
     async updateMessageStatus(messageSid, status) {
-      return (await getSdkClient()).messages.get(messageSid).update({ status: normalizeMessageStatus(status) });
+      return (await getRawClient()).messages.get(messageSid).update({ status: normalizeMessageStatus(status) });
     },
     async fetchAccount() {
-      return (await getSdkClient()).api.accounts(options.accountSid).fetch();
+      return (await getRawClient()).api.accounts(options.accountSid).fetch();
     },
     async listIncomingPhoneNumbers(input = {}) {
-      return (await getSdkClient()).incomingPhoneNumbers.list(input.phoneNumber ? { phoneNumber: input.phoneNumber } : {});
+      return (await getRawClient()).incomingPhoneNumbers.list(input.phoneNumber ? { phoneNumber: input.phoneNumber } : {});
     },
   };
 }
 
-async function createTwilioSdkClient(options: TwilioSmsClientOptions): Promise<TwilioSmsSdkClient> {
+async function createTwilioRawClient(options: TwilioSmsClientOptions): Promise<TwilioSmsRawClient> {
   const mod = await import("twilio");
   type TwilioFactory = (accountSid?: string, authToken?: string) => TwilioSDK.Twilio;
   const createClient = ((mod as { default?: unknown }).default ?? mod) as TwilioFactory;
-  return createClient(options.accountSid, options.authToken) as unknown as TwilioSmsSdkClient;
+  return createClient(options.accountSid, options.authToken) as unknown as TwilioSmsRawClient;
 }
 
 function sendMessageBody(input: TwilioSendSmsInput): TwilioSmsSdkMessageCreateOptions {

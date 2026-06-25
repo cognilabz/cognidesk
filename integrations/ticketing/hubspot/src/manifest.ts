@@ -56,7 +56,7 @@ export const hubSpotTicketingProviderManifest = defineIntegrationProviderPackage
       strategy: "official-sdk",
       sdkPackage: "@hubspot/api-client",
       sdkVersionRange: "^13.5.0",
-      rawClientEscapeHatch: "HubSpotTicketingClient.rawClient",
+      rawClientEscapeHatch: "HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()",
       manifestImport: "no-sdk-client-initialization",
     },
     channelCoverage: {

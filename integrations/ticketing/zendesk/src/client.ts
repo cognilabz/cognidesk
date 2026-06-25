@@ -19,6 +19,7 @@ export function createZendeskTicketingClient(options: ZendeskTicketingClientOpti
 
   return {
     rawClient,
+    getRawClient: () => rawClient,
     async rawRequest<T = JsonValue>(path: string, init: RequestInit = {}): Promise<T> {
       const method = init.method ?? "GET";
       const body = requestBody(init.body);
@@ -26,7 +27,7 @@ export function createZendeskTicketingClient(options: ZendeskTicketingClientOpti
       return unwrapZendeskResponse(response) as T;
     },
     async createTicket(input) {
-      const response = await requiredResourceMethod(rawClient.tickets, "create")(input);
+      const response = await requiredResourceMethod(rawClient.tickets, "create")(zendeskTicketPayload(input));
       return asObject(unwrapZendeskResponse(response)) ?? asObject(response) ?? {};
     },
     async getTicket(ticketId) {
@@ -34,7 +35,7 @@ export function createZendeskTicketingClient(options: ZendeskTicketingClientOpti
       return asObject(unwrapZendeskResponse(response)) ?? asObject(response) ?? {};
     },
     async updateTicket(ticketId, patch) {
-      const response = await requiredResourceMethod(rawClient.tickets, "update")(toZendeskId(ticketId), patch);
+      const response = await requiredResourceMethod(rawClient.tickets, "update")(toZendeskId(ticketId), zendeskTicketPayload(patch));
       return asObject(unwrapZendeskResponse(response)) ?? asObject(response) ?? {};
     },
     async searchTickets(query) {
@@ -43,9 +44,11 @@ export function createZendeskTicketingClient(options: ZendeskTicketingClientOpti
     },
     async createComment(ticketId, comment, publicComment = true) {
       const ticketPatch = {
-        comment: {
-          ...comment,
-          public: publicComment,
+        ticket: {
+          comment: {
+            ...comment,
+            public: publicComment,
+          },
         },
       };
       const response = await requiredResourceMethod(rawClient.tickets, "update")(toZendeskId(ticketId), ticketPatch);
@@ -167,7 +170,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function toZendeskId(value: string | number): number {
   const id = Number(value);
-  if (!Number.isSafeInteger(id)) {
+  if (!Number.isSafeInteger(id) || id <= 0) {
     throw new Error(`Zendesk id must be a safe integer: ${String(value)}`);
   }
   return id;
@@ -175,11 +178,45 @@ function toZendeskId(value: string | number): number {
 
 function searchQuery(query: string | JsonObject): string {
   if (typeof query === "string") return query;
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined) params.set(key, String(value));
+  const explicitQuery = query.query;
+  if (typeof explicitQuery === "string") return explicitQuery;
+
+  const terms = Object.entries(query).flatMap(([key, value]) => {
+    if (value === undefined) return [];
+    return `${key}:${zendeskSearchValue(value)}`;
+  });
+  if (terms.length === 0) {
+    throw new Error("Zendesk search query must be a string or object with searchable fields.");
   }
-  return params.toString();
+  return terms.join(" ");
+}
+
+function zendeskSearchValue(value: JsonValue): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return value.map(zendeskSearchArrayValue).join(",");
+  if (typeof value === "object") {
+    throw new Error("Zendesk search field values must be primitives or arrays of primitives.");
+  }
+  return quoteZendeskSearchValue(String(value));
+}
+
+function zendeskSearchArrayValue(value: JsonValue): string {
+  if (typeof value === "object" && value !== null) {
+    throw new Error("Zendesk search array values must be primitives.");
+  }
+  return zendeskSearchValue(value);
+}
+
+function quoteZendeskSearchValue(value: string): string {
+  return /\s/.test(value)
+    ? `"${value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`
+    : value;
+}
+
+function zendeskTicketPayload(input: JsonObject): JsonObject {
+  return isRecord(input.ticket) && !Array.isArray(input.ticket)
+    ? input
+    : { ticket: input };
 }
 
 function requestBody(body: BodyInit | null | undefined): unknown {

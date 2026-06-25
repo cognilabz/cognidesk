@@ -278,9 +278,10 @@ function asHeadersRecord(value: unknown): Record<string, string | undefined> | u
 }
 
 function providerMethod(value: unknown): ProviderHttpMethod | undefined {
-  return ["GET", "POST", "PUT", "PATCH", "DELETE"].includes(String(value))
-    ? String(value) as ProviderHttpMethod
-    : undefined;
+  if (value === undefined) return undefined;
+  const method = String(value).toUpperCase();
+  if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(method)) return method as ProviderHttpMethod;
+  throw new Error(`Unsupported Front HTTP method: ${String(value)}`);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

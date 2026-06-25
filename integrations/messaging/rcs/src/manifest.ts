@@ -16,9 +16,9 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Runtime coverage uses a built-in provider REST adapter for selected RCS for Business support workflows: agentMessages text/media/card sends, agent events, phone capability checks, agent readiness, file create/upload helpers, webhook challenge handling, and X-Goog-Signature validation.",
-      "Launch and verification coverage is read-only readiness via getLaunch/getVerification; launch and verification request/update workflows remain outside this adapter.",
-      "This package accepts accessToken, apiKey, tokenProvider, serviceAccount, baseUrl, messagingApiBaseUrl, and managementApiBaseUrl options; hosts may still provide an injected provider client backed by an approved SDK or runtime.",
+      "Runtime coverage uses the official @google/rcsbusinessmessaging SDK for selected RCS for Business support workflows: agentMessages text/media/card sends, agent events, phone capability checks, and file create/upload helpers.",
+      "Agent readiness, launch, and verification coverage is read-only via the Business Communications REST API because @google/rcsbusinessmessaging does not expose the brands.agents API.",
+      "This package accepts accessToken, tokenProvider, serviceAccount, baseUrl, messagingApiBaseUrl, and managementApiBaseUrl options; hosts may still provide an injected provider client backed by an approved SDK or runtime.",
       "This is not full RCS for Business API coverage; brand/agent lifecycle management, launch and verification mutation workflows, tester management, integrations, analytics, user batch APIs, Dialogflow messages, revoke/delete breadth, and broader event catalogs remain outside this adapter.",
     ],
     evidence: [
@@ -40,7 +40,7 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
     {
       id: "rcs-provider-client",
       label: "RCS provider transport",
-      description: "Built-in REST adapter credentials or host-owned RcsMessagingProviderClient that encapsulates Google SDK/provider transport, OAuth, token refresh, retries, and regional endpoint configuration.",
+      description: "Built-in Google RCS SDK/Business Communications REST credentials or host-owned RcsMessagingProviderClient that encapsulates Google SDK/provider transport, token refresh, retries, and regional endpoint configuration.",
       scopes: [
         "https://www.googleapis.com/auth/rcsbusinessmessaging",
         "https://www.googleapis.com/auth/businesscommunications",
@@ -148,7 +148,7 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
     "RCS for Business access, agent creation, brand verification, carrier launch, tester setup, webhook configuration, and production throughput require the SDK user's Google RBM partner or provider approval.",
     "Recipient reachability and feature support depend on the user's device, carrier, region, agent launch state, tester status, and capability checks; unsupported recipients or features may return NOT_FOUND or INVALID_ARGUMENT.",
     "Host applications may inject an RcsMessagingProviderClient backed by an approved SDK, provider package, or host-owned transport.",
-    "The built-in REST adapter requires accessToken, apiKey, tokenProvider, serviceAccount, or providerClient plus agent identifiers; it does not silently invent credentials.",
+    "The built-in Google RCS SDK/Business Communications REST adapter requires accessToken, tokenProvider, serviceAccount, or providerClient plus agent identifiers; API key-only transport is rejected because Google RCS for Business documents service-account/OAuth authentication for RBM APIs.",
     "Media upload behavior is delegated to the host provider client; callers must satisfy Google-hosted/external media, file-size, caching, and approval requirements for their deployment.",
   ],
   metadata: {
@@ -171,20 +171,24 @@ export const rcsMessagingProviderManifest = defineIntegrationProviderPackage({
       implementedOperationCount: RCS_SELECTED_OPERATION_COUNT,
       fullProviderApi: false,
     },
-    implementationStrategy: "provider-rest-adapter",
+    implementationStrategy: "provider-sdk-hybrid",
     implementation: {
       ...RCS_HOST_CLIENT_METADATA,
       providerClientInterface: "RcsMessagingProviderClient",
+      defaultProviderSdk: "@google/rcsbusinessmessaging",
       defaultHttpClient: "providerJsonRequest",
-      defaultFetchClient: "provider-rest-adapter",
+      defaultFetchClient: "businesscommunications-rest-adapter",
       failClosedWithoutProviderClient: false,
+      failClosedWithoutCredentialedTransport: true,
+      acceptedAuthModes: ["accessToken", "tokenProvider", "serviceAccount", "providerClient"],
+      rejectedAuthModes: ["apiKey-only"],
       manifestImport: "no-client-initialization",
     },
     providerClient: {
       interface: "RcsMessagingProviderClient",
       injectionPolicy: "override-supported",
       importPolicy: "provider-client-override-supported",
-      defaultClient: "provider-rest-adapter-when-configured",
+      defaultClient: "google-rcsbusinessmessaging-sdk-when-configured",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

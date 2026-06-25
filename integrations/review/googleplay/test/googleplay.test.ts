@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import {
   createGooglePlayReviewsClient,
+  createGooglePlayReviewsIntegration,
   createGooglePlayReviewsLiveChecks,
   googlePlayReviewsCredentialStatuses,
   googlePlayReviewsIntegration,
@@ -23,6 +24,11 @@ function firstCallParams(mock: { mock: { calls: readonly unknown[] } }) {
 
 describe("@cognidesk/integration-review-googleplay", () => {
   it("declares SDK-backed adapter coverage without full-provider clone claims", () => {
+    const client = createGooglePlayReviewsClient({
+      packageName: "com.example.app",
+      rawClient: { reviews: { list: vi.fn(), get: vi.fn(), reply: vi.fn() } } as any,
+    });
+
     expect(googlePlayReviewsProviderManifest).toMatchObject({
       id: "review.googleplay",
       packageName: "@cognidesk/integration-review-googleplay",
@@ -35,6 +41,7 @@ describe("@cognidesk/integration-review-googleplay", () => {
       "googleplay.reviews.get",
       "googleplay.reviews.reply",
     ]);
+    expect(Object.keys(client.handlers)).toEqual(googlePlayReviewsProviderManifest.operations.map((operation) => operation.alias));
     expect(googlePlayReviewsIntegration.bindingReport).toMatchObject({
       missingHandlerAliases: [],
       extraHandlerAliases: [],
@@ -93,6 +100,49 @@ describe("@cognidesk/integration-review-googleplay", () => {
     expectOAuthAccessTokenAuth(firstCallParams(list).auth, "access-token");
     expectOAuthAccessTokenAuth(firstCallParams(get).auth, "access-token");
     expectOAuthAccessTokenAuth(firstCallParams(reply).auth, "access-token");
+  });
+
+  it("creates translated operation handlers and exposes the official raw client on configured integrations", async () => {
+    const list = vi.fn(async () => ({ data: { reviews: [{ reviewId: "review-2" }] } }));
+    const get = vi.fn(async () => ({ data: { reviewId: "review-2", authorName: "Grace" } }));
+    const reply = vi.fn(async () => ({ data: { result: { replyText: "Appreciated." } } }));
+    const rawClient = { reviews: { list, get, reply } };
+    const integration = createGooglePlayReviewsIntegration({
+      packageName: "com.example.app",
+      accessToken: "token",
+      rawClient: rawClient as any,
+    });
+
+    expect(integration.bindingReport).toMatchObject({
+      missingHandlerAliases: [],
+      extraHandlerAliases: [],
+      invalidExtensionOperationAliases: [],
+    });
+    expect(integration.operationAliases).toEqual([
+      "googleplay.reviews.list",
+      "googleplay.reviews.get",
+      "googleplay.reviews.reply",
+    ]);
+    expect(integration.metadata?.rawClient).toBe(rawClient);
+
+    await expect(integration.run("googleplay.reviews.list", { maxResults: 1 }))
+      .resolves.toMatchObject({ reviews: [{ reviewId: "review-2" }] });
+    await expect(integration.run("googleplay.reviews.get", { reviewId: "review-2", translationLanguage: "en" }))
+      .resolves.toMatchObject({ authorName: "Grace" });
+    await expect(integration.run("googleplay.reviews.reply", { reviewId: "review-2", replyText: "Appreciated." }))
+      .resolves.toMatchObject({ result: { replyText: "Appreciated." } });
+
+    expect(list).toHaveBeenCalledWith(expect.objectContaining({ packageName: "com.example.app", maxResults: 1 }));
+    expect(get).toHaveBeenCalledWith(expect.objectContaining({
+      packageName: "com.example.app",
+      reviewId: "review-2",
+      translationLanguage: "en",
+    }));
+    expect(reply).toHaveBeenCalledWith(expect.objectContaining({
+      packageName: "com.example.app",
+      reviewId: "review-2",
+      requestBody: { replyText: "Appreciated." },
+    }));
   });
 
   it("passes supplied access tokens as OAuth bearer auth objects, not API-key auth strings", async () => {

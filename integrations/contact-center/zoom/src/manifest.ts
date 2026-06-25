@@ -3,6 +3,41 @@ import {
   type ProviderManifestInput,
 } from "@cognidesk/integration-kit";
 
+export const zoomContactCenterProviderSdkDecision = {
+  "checkedAt": "2026-06-25",
+  "result": "no-suitable-contact-center-management-sdk",
+  "defaultRestPolicy": "fail-closed-reviewed-contact-center-rest-adapter-with-typed-provider-client-override",
+  "typedClientOverride": "ZoomContactCenterProviderClient",
+  "checkedPackages": [
+    {
+      "package": "@zoom/rivet",
+      "checkedVersion": "0.4.0",
+      "license": "SEE LICENSE IN LICENSE.md",
+      "result": "server-sdk-without-contact-center-management-namespace",
+      "reason": "Official server-side API wrapper exports meetings/users/phone/etc., but no contact-center export or /contact_center engagement endpoints for this package surface."
+    },
+    {
+      "package": "@zoom/appssdk",
+      "checkedVersion": "0.16.38",
+      "license": "MIT",
+      "result": "embedded-zoom-apps-sdk-not-contact-center-management-client",
+      "reason": "Browser Zoom Apps SDK, not server-side Contact Center management API client."
+    },
+    {
+      "package": "@zoom/rtms",
+      "checkedVersion": "1.1.0",
+      "license": "MIT",
+      "result": "media-streaming-sdk-not-contact-center-management-client",
+      "reason": "Node wrapper for Zoom RTMS media streaming C SDK, not Contact Center REST management operations."
+    },
+    {
+      "package": "@zoom/contact-center",
+      "result": "not-published",
+      "reason": "No public npm package exists under this likely official Contact Center SDK name."
+    }
+  ]
+} as const;
+
 export const zoomContactCenterOperationAliases = [
   "contact-center.handoff.request",
   "contact-center.contact.start",
@@ -13,8 +48,16 @@ export const zoomContactCenterOperationAliases = [
 export const zoomContactCenterRestSupportSlice = {
   implementationStrategy: "provider-rest-adapter",
   adapterKind: "no-official-sdk-rest-adapter",
-  sdkDecision: "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center server SDK; this package provides a built-in REST adapter with providerClient override.",
+  providerSdkDecision: zoomContactCenterProviderSdkDecision,
+  sdkDecision: "No maintained official server-side JavaScript SDK was verified for Zoom Contact Center management APIs; @zoom/appssdk is embedded Zoom Apps and @zoom/rtms is media-streaming, so this package uses reviewed REST operations with a providerClient host exception.",
   verifiedAt: "2026-06-25",
+  runtimePolicy: {
+    defaultClient: "built-in-provider-rest-adapter",
+    reviewedRestOperations: ["Startworkitemengagement", "getEngagement"],
+    extensionRequests: "built-in REST rejects unreviewed paths; injected providerClient.request may handle host-reviewed extensions after method and mutation-policy validation",
+    failClosed: true,
+    requestOptions: ["baseUrl", "accessToken", "authorizationHeader", "apiKey", "apiKeyHeaderName", "fetch", "signal", "timeoutMs", "retry"],
+  },
   allowedOperations: [
     {
       id: "configuredHandoff",
@@ -30,7 +73,7 @@ export const zoomContactCenterRestSupportSlice = {
       method: "POST",
       path: "/contact_center/engagement",
       source: "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
-      checksum: "sha256:56456cf010ca13ab7edefa0212372d191e10192dfd4cd8f0c5ffb50fa5d2c1c7",
+      checksum: "sha256:3a3127360fbe7ef88d7398e62795b502fb1f3b2ebc507b3fbf0d3ba6645a963b",
     },
     {
       id: "getEngagement",
@@ -38,7 +81,7 @@ export const zoomContactCenterRestSupportSlice = {
       method: "GET",
       path: "/contact_center/engagements/{engagementId}",
       source: "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json",
-      checksum: "sha256:56456cf010ca13ab7edefa0212372d191e10192dfd4cd8f0c5ffb50fa5d2c1c7",
+      checksum: "sha256:3a3127360fbe7ef88d7398e62795b502fb1f3b2ebc507b3fbf0d3ba6645a963b",
     },
     {
       id: "providerExtensionRequest",
@@ -70,13 +113,16 @@ export const zoomContactCenterProviderManifestInput = {
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "@zoom/appssdk is an embedded Zoom Apps SDK, not a Contact Center server SDK.",
-      "Runtime calls use a built-in REST adapter when baseUrl/API credentials are supplied, with ZoomContactCenterProviderClient available as an override.",
+      "No maintained official server-side JavaScript SDK was verified for Zoom Contact Center management APIs.",
+      "@zoom/appssdk is an embedded Zoom Apps SDK, @zoom/rtms is media-streaming, and the Contact Center SDK is a browser/client integration surface.",
+      "Runtime calls use a built-in REST adapter for reviewed operation IDs only, with ZoomContactCenterProviderClient.request available as a host-client exception.",
     ],
     evidence: [
       { label: "Zoom Contact Center REST OpenAPI", url: "https://developers.zoom.us/api-hub/contact-center/methods/endpoints.json" },
       { label: "Zoom Contact Center Webhooks OpenAPI", url: "https://developers.zoom.us/api-hub/contact-center/events/webhooks.json" },
+      { label: "Zoom Contact Center SDK for web", url: "https://developers.zoom.us/docs/contact-center/web/get-started/" },
       { label: "Zoom Apps SDK", url: "https://github.com/zoom/appssdk" },
+      { label: "Zoom RTMS SDK", url: "https://github.com/zoom/rtms" },
     ],
   },
   capabilities: [
@@ -91,6 +137,7 @@ export const zoomContactCenterProviderManifestInput = {
     { alias: "zoom.request", capability: "read-provider-object", providerObject: "contact", extension: true },
   ],
   metadata: {
+    providerSdkDecision: zoomContactCenterProviderSdkDecision,
     implementation: zoomContactCenterRestSupportSlice,
     manifestOnlySafe: true,
     providerRestAdapter: {

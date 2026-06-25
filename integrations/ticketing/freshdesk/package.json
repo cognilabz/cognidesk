@@ -26,6 +26,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@freshworks/freshdesk": "^0.0.1",
     "@cognidesk/core": "workspace:*",
     "@cognidesk/integration-kit": "workspace:*"
   },
@@ -44,7 +45,19 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "freshdesk",
-    "providerSdkDependencies": [],
+    "providerSdkDependencies": [
+      "@freshworks/freshdesk"
+    ],
+    "providerSdkRuntime": {
+      "sdkPackage": "@freshworks/freshdesk",
+      "checkedAt": "2026-06-25",
+      "checkedVersion": "0.0.1",
+      "license": "freshdesk",
+      "result": "accepted-default-runtime-sdk",
+      "reason": "@freshworks/freshdesk is the official Freshdesk JavaScript SDK package and exposes tickets, contacts, and conversations runtime clients used by this package.",
+      "defaultClientPolicy": "official-sdk-for-covered-operations-with-rest-fallback-for-agents-groups-readiness-and-host-overrides",
+      "typedClientOverride": "FreshdeskTicketingProviderClient"
+    },
     "manifestOnlyExports": [
       "./manifest"
     ],

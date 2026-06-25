@@ -60,6 +60,36 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-suitable-genesys-engage-gms-runtime-sdk",
+      "defaultRestPolicy": "fail-closed-gms-rest-adapter-with-typed-provider-client-override",
+      "typedClientOverride": "GenesysEngageProviderClient",
+      "checkedPackages": [
+        {
+          "package": "engagement-client-js",
+          "checkedVersion": "9.0.83",
+          "license": "MIT",
+          "result": "pureengage-engagement-api-not-gms-chat-callback-client",
+          "reason": "Official PureEngage Engagement client is a different API surface and does not expose the package-owned GMS Chat API v2 or Callback Services operations."
+        },
+        {
+          "package": "genesys-workspace-client-js",
+          "checkedVersion": "9.0.95",
+          "license": "MIT",
+          "result": "workspace-web-edition-api-not-gms-runtime-client",
+          "reason": "Workspace Web Edition client targets workspace voice/call controls rather than GMS Chat API v2 and GMS callback endpoints."
+        },
+        {
+          "package": "purecloud-platform-client-v2",
+          "checkedVersion": "255.1.0",
+          "license": "MIT",
+          "result": "genesys-cloud-sdk-not-genesys-engage-gms",
+          "reason": "Maintained SDK targets Genesys Cloud Platform APIs, not Genesys Engage GMS Chat/Callback endpoints."
+        }
+      ]
     }
   }
 }

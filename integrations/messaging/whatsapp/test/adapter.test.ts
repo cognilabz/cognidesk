@@ -100,6 +100,33 @@ describe("@cognidesk/integration-messaging-whatsapp", () => {
     expect(runtimeSource).not.toContain("rawClientAccess");
   });
 
+  it("documents the no-maintained-official-server-SDK exception for Graph API runtime", () => {
+    const implementation = whatsappMessagingProviderManifest.metadata?.implementation as unknown as {
+      sdkDecision?: {
+        rejectedSdkPackages?: ReadonlyArray<{ packageName?: string; reason?: string }>;
+      };
+    } | undefined;
+
+    expect(whatsappMessagingProviderManifest.metadata?.implementation).toMatchObject({
+      strategy: "no-official-maintained-server-sdk-rest-adapter",
+      officialMaintainedServerSdkAvailable: false,
+      packageOwnedRestClient: true,
+      verifiedAt: "2026-06-25",
+      providerClient: "WhatsAppMessagingProviderClient",
+    });
+    expect(implementation?.sdkDecision?.rejectedSdkPackages)
+      .toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          packageName: "whatsapp",
+          reason: expect.stringContaining("archived"),
+        }),
+        expect.objectContaining({
+          packageName: "facebook-nodejs-business-sdk",
+          reason: expect.stringContaining("not a maintained WhatsApp Cloud API messaging client"),
+        }),
+      ]));
+  });
+
   it("normalizes inbound message and delivery webhook events", () => {
     const change = {
       value: {

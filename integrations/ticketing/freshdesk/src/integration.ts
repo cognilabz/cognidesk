@@ -56,8 +56,8 @@ function webhookOptions(
   inputOptions: FreshdeskWebhookOptions | undefined,
 ): FreshdeskWebhookOptions {
   return {
+    ...(inputOptions ?? {}),
     ...(options.webhookSecret ? { webhookSecret: options.webhookSecret } : {}),
     ...(options.webhookHeaderName ? { headerName: options.webhookHeaderName } : {}),
-    ...(inputOptions ?? {}),
   };
 }

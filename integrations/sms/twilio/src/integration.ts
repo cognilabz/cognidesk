@@ -28,7 +28,13 @@ export type TwilioReadMessageInput = string | { messageSid: string };
 
 export function createTwilioSmsIntegrationOperationHandlers(options: TwilioSmsIntegrationOptions) {
   const client = options.smsClient ?? createTwilioSmsClient(options);
+  return createTwilioSmsIntegrationOperationHandlersForClient(client, options);
+}
 
+function createTwilioSmsIntegrationOperationHandlersForClient(
+  client: TwilioSmsClient,
+  options: TwilioSmsIntegrationOptions,
+) {
   return {
     "sms.message.receive": async (
       input: Request | ParseTwilioSmsWebhookRequestInput,
@@ -59,10 +65,15 @@ export function createTwilioSmsIntegrationOperationHandlers(options: TwilioSmsIn
 }
 
 export function createTwilioSmsIntegration(options: TwilioSmsIntegrationOptions) {
-  return defineIntegration({
-    manifest: twilioSmsProviderManifest,
-    operations: createTwilioSmsIntegrationOperationHandlers(options),
-  });
+  const client = options.smsClient ?? createTwilioSmsClient(options);
+  return {
+    ...defineIntegration({
+      manifest: twilioSmsProviderManifest,
+      operations: createTwilioSmsIntegrationOperationHandlersForClient(client, options),
+    }),
+    client,
+    getRawClient: () => client.getRawClient(),
+  };
 }
 
 export const createTwilioIntegration = createTwilioSmsIntegration;

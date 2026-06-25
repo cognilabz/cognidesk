@@ -86,7 +86,7 @@ export function createHelpScoutTicketingIntegration(
 
 function createMissingHelpScoutProviderClient(): HelpScoutTicketingProviderClient {
   const missingClient = async (): Promise<JsonObject> => {
-    throw new Error("Help Scout provider client is required. Pass a HelpScoutTicketingProviderClient or configure baseUrl with accessToken/apiKey for the built-in REST adapter.");
+    throw new Error("Help Scout provider client is required. Pass a HelpScoutTicketingProviderClient or configure accessToken/apiKey for the built-in REST adapter.");
   };
   return {
     createConversation: missingClient,
@@ -249,9 +249,10 @@ function asHeadersRecord(value: unknown): Record<string, string | undefined> | u
 }
 
 function providerMethod(value: unknown): ProviderHttpMethod | undefined {
-  return ["GET", "POST", "PUT", "PATCH", "DELETE"].includes(String(value))
-    ? String(value) as ProviderHttpMethod
-    : undefined;
+  if (value === undefined) return undefined;
+  const method = String(value).toUpperCase();
+  if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(method)) return method as ProviderHttpMethod;
+  throw new Error(`Unsupported Help Scout HTTP method: ${String(value)}`);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -157,11 +157,11 @@ export const twilioSmsProviderManifest = defineIntegrationProviderPackage({
     },
     sdkClient: {
       export: "getSdkClient",
-      coverage: "upstream-sdk",
+      coverage: "deprecated-raw-client-alias",
     },
     rawClient: {
       export: "getRawClient",
-      coverage: "legacy-upstream-sdk-alias",
+      coverage: "upstream-sdk",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

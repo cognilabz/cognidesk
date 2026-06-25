@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "@servicenow/sdk-api": "^4.8.0"
   },
   "devDependencies": {
     "@cognidesk/test-harness": "workspace:*",
@@ -45,6 +46,9 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "servicenow",
+    "providerSdkDependencies": [
+      "@servicenow/sdk-api"
+    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

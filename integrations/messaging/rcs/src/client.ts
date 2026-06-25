@@ -1,11 +1,17 @@
+import { rcsbusinessmessaging_v1 } from "@google/rcsbusinessmessaging/src/rcsbusinessmessaging/v1.js";
 import {
   RCS_BUSINESS_COMMUNICATIONS_SCOPE,
+  RCS_MESSAGING_SCOPE,
   type RcsAgentEvent,
   type RcsAgentMessage,
   type RcsAgentResource,
+  type RcsBusinessMessagingSdkClient,
+  type RcsBusinessMessagingSdkRequestOptions,
+  type RcsBusinessMessagingSdkResponse,
   type RcsCapabilityResponse,
-  type RcsMessagingJsonObject,
+  type RcsCreateFileInput,
   type RcsFileResource,
+  type RcsMessagingJsonObject,
   type RcsMessagingClient,
   type RcsMessagingClientOptions,
   type RcsMessagingProviderClient,
@@ -21,6 +27,7 @@ import {
   rcsPhonePath,
   rcsRequest,
   rcsUrl,
+  resolveRcsAccessToken,
   requireAgentId,
   requireAgentName,
   stripUndefined,
@@ -28,7 +35,7 @@ import {
 
 export function createRcsMessagingClient(options: RcsMessagingClientOptions = {}): RcsMessagingClient {
   const providerClient = requireRcsMessagingProviderClient(
-    options.providerClient ?? createRcsRestProviderClient(options),
+    options.providerClient ?? createRcsSdkProviderClient(options),
   );
 
   const client: RcsMessagingClient = {
@@ -97,6 +104,73 @@ export function createRcsMessagingClient(options: RcsMessagingClientOptions = {}
   return client;
 }
 
+export function createRcsSdkProviderClient(options: RcsMessagingClientOptions): RcsMessagingProviderClient {
+  requireRcsRestTransport(options);
+  const fetchImpl = options.fetch ?? fetch;
+  const sdkClient = options.sdkClient ?? createRcsBusinessMessagingSdkClient();
+
+  return {
+    rawClient: sdkClient,
+    async sendMessage(input) {
+      const response = await sdkClient.phones.agentMessages.create({
+        ...rcsSdkAuthParams(await resolveRcsAccessToken(options, fetchImpl, [RCS_MESSAGING_SCOPE])),
+        agentId: requireAgentId(options.agentId),
+        parent: `phones/${input.phoneNumber}`,
+        messageId: input.messageId,
+        requestBody: input.message,
+      }, rcsSdkRequestOptions(options));
+      return sdkResponseData<RcsAgentMessage>(response);
+    },
+    async sendAgentEvent(input) {
+      const response = await sdkClient.phones.agentEvents.create({
+        ...rcsSdkAuthParams(await resolveRcsAccessToken(options, fetchImpl, [RCS_MESSAGING_SCOPE])),
+        agentId: requireAgentId(options.agentId),
+        parent: `phones/${input.phoneNumber}`,
+        ...(input.eventId ? { eventId: input.eventId } : {}),
+        requestBody: input.event,
+      }, rcsSdkRequestOptions(options));
+      return sdkResponseData<RcsAgentEvent>(response);
+    },
+    async createFile(input) {
+      const response = await sdkClient.files.create({
+        ...rcsSdkAuthParams(await resolveRcsAccessToken(options, fetchImpl, [RCS_MESSAGING_SCOPE])),
+        agentId: requireAgentId(options.agentId),
+        requestBody: rcsCreateFileRequest(input),
+      }, rcsSdkRequestOptions(options));
+      return sdkResponseData<RcsFileResource>(response);
+    },
+    async uploadFile(input) {
+      const response = await sdkClient.files.create({
+        ...rcsSdkAuthParams(await resolveRcsAccessToken(options, fetchImpl, [RCS_MESSAGING_SCOPE])),
+        agentId: requireAgentId(options.agentId),
+        media: {
+          mimeType: input.contentType,
+          body: input.body,
+        },
+      }, rcsSdkRequestOptions(options));
+      return sdkResponseData<RcsFileResource>(response);
+    },
+    async getCapabilities(input) {
+      const response = await sdkClient.phones.getCapabilities({
+        ...rcsSdkAuthParams(await resolveRcsAccessToken(options, fetchImpl, [RCS_MESSAGING_SCOPE])),
+        agentId: requireAgentId(options.agentId),
+        name: `phones/${input.phoneNumber}`,
+        ...(input.requestId ? { requestId: input.requestId } : {}),
+      }, rcsSdkRequestOptions(options));
+      return sdkResponseData<RcsCapabilityResponse>(response);
+    },
+    getAgent(agentName = options.agentName) {
+      return rcsBusinessCommunicationsRequest<RcsAgentResource>(options, fetchImpl, agentName, "");
+    },
+    getAgentLaunch(agentName = options.agentName) {
+      return rcsBusinessCommunicationsRequest<RcsMessagingProviderResponse>(options, fetchImpl, agentName, "/launch");
+    },
+    getAgentVerification(agentName = options.agentName) {
+      return rcsBusinessCommunicationsRequest<RcsMessagingProviderResponse>(options, fetchImpl, agentName, "/verification");
+    },
+  };
+}
+
 export function createRcsTextMessage(input: Omit<RcsSendTextInput, "phoneNumber" | "messageId">): RcsAgentMessage {
   return stripUndefined({
     contentMessage: stripUndefined({
@@ -138,6 +212,7 @@ export function createRcsCardMessage(input: Omit<RcsSendCardInput, "phoneNumber"
 }
 
 export function createRcsRestProviderClient(options: RcsMessagingClientOptions): RcsMessagingProviderClient {
+  requireRcsRestTransport(options);
   const fetchImpl = options.fetch ?? fetch;
   const messagingApiBaseUrl = rcsMessagingBaseUrl(options);
   const managementApiBaseUrl = rcsManagementBaseUrl(options);
@@ -222,6 +297,48 @@ export function createRcsRestProviderClient(options: RcsMessagingClientOptions):
   };
 }
 
+function createRcsBusinessMessagingSdkClient(): RcsBusinessMessagingSdkClient {
+  return new rcsbusinessmessaging_v1.Rcsbusinessmessaging({}) as unknown as RcsBusinessMessagingSdkClient;
+}
+
+function rcsSdkAuthParams(accessToken: string | undefined): RcsMessagingJsonObject {
+  return accessToken ? { access_token: accessToken } : {};
+}
+
+function rcsSdkRequestOptions(options: RcsMessagingClientOptions): RcsBusinessMessagingSdkRequestOptions {
+  return stripUndefined({
+    rootUrl: rcsMessagingBaseUrl(options),
+    signal: options.signal,
+  });
+}
+
+function sdkResponseData<T>(response: RcsBusinessMessagingSdkResponse<T>): T {
+  return (response.data ?? {}) as T;
+}
+
+function rcsCreateFileRequest(input: RcsCreateFileInput): RcsCreateFileInput {
+  return stripUndefined({
+    fileUrl: input.fileUrl,
+    thumbnailUrl: input.thumbnailUrl,
+  }) as unknown as RcsCreateFileInput;
+}
+
+function rcsBusinessCommunicationsRequest<T>(
+  options: RcsMessagingClientOptions,
+  fetchImpl: typeof fetch,
+  agentName: string | undefined,
+  suffix: "" | "/launch" | "/verification",
+) {
+  const name = requireAgentName(agentName);
+  return rcsRequest<T>({
+    url: rcsUrl(rcsManagementBaseUrl(options), `/v1/${name}${suffix}`),
+    method: "GET",
+    options,
+    fetch: fetchImpl,
+    scopes: [RCS_BUSINESS_COMMUNICATIONS_SCOPE],
+  });
+}
+
 function requireRcsMessagingProviderClient(client: RcsMessagingProviderClient) {
   for (const method of requiredProviderClientMethods) {
     if (typeof client[method] !== "function") {
@@ -229,6 +346,11 @@ function requireRcsMessagingProviderClient(client: RcsMessagingProviderClient) {
     }
   }
   return client;
+}
+
+function requireRcsRestTransport(options: RcsMessagingClientOptions) {
+  if (options.accessToken || options.tokenProvider || options.serviceAccount) return;
+  throw new Error("RCS built-in REST adapter requires accessToken, tokenProvider, serviceAccount, or providerClient.");
 }
 
 const requiredProviderClientMethods = [

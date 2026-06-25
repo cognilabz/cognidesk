@@ -13,11 +13,12 @@ export type TwilioSmsSdkIncomingPhoneNumberListOptions =
 export interface TwilioSmsClientOptions {
   accountSid: string;
   authToken: string;
-  sdkClient?: TwilioSmsSdkClient;
-  rawClient?: TwilioSmsSdkClient;
+  rawClient?: TwilioSmsRawClient;
+  /** @deprecated Use rawClient. */
+  sdkClient?: TwilioSmsRawClient;
 }
 
-export interface TwilioSmsSdkClient {
+export interface TwilioSmsRawClient {
   messages: {
     create(input: TwilioSmsSdkMessageCreateOptions): Promise<TwilioMessageResource>;
     get(sid: string): {
@@ -34,7 +35,7 @@ export interface TwilioSmsSdkClient {
   };
 }
 
-export type TwilioSmsRawClient = TwilioSmsSdkClient;
+export type TwilioSmsSdkClient = TwilioSmsRawClient;
 
 export interface TwilioSendSmsInput {
   to: string;
@@ -120,8 +121,9 @@ export interface TwilioAccountResource {
 }
 
 export interface TwilioSmsClient {
-  getSdkClient(): Promise<TwilioSmsSdkClient>;
-  getRawClient(): Promise<TwilioSmsSdkClient>;
+  getRawClient(): Promise<TwilioSmsRawClient>;
+  /** @deprecated Use getRawClient. */
+  getSdkClient(): Promise<TwilioSmsRawClient>;
   sendMessage(input: TwilioSendSmsInput): Promise<TwilioMessageResource>;
   fetchMessage(messageSid: string): Promise<TwilioMessageResource>;
   listMessages(input?: TwilioListMessagesInput): Promise<TwilioMessageListResource>;

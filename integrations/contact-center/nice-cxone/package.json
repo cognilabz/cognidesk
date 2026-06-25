@@ -60,6 +60,36 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDependencies": [],
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-redistributable-server-side-cxone-sdk",
+      "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+      "typedClientOverride": "NiceCxoneProviderClient",
+      "checkedPackages": [
+        {
+          "package": "@nice-devone/acd-sdk",
+          "checkedVersion": "26.2.1",
+          "license": "UNLICENSED",
+          "result": "official-sdk-not-redistributable-server-rest-client",
+          "reason": "Closest ACD package is unlicensed and documented for CXone Agent/app-bundler use rather than a redistributable server-side REST client."
+        },
+        {
+          "package": "@nice-devone/agent-sdk",
+          "checkedVersion": "26.2.1",
+          "license": "UNLICENSED",
+          "result": "agent-app-sdk-not-server-rest-client",
+          "reason": "Agent SDK is unlicensed and coupled to CXone Agent/browser app runtime."
+        },
+        {
+          "package": "@nice-devone/nice-cxone-chat-web-sdk",
+          "checkedVersion": "3.3.0",
+          "license": "UNLICENSED",
+          "result": "browser-dfo-chat-sdk-not-contact-center-server-client",
+          "reason": "Web SDK targets browser DFO chat rather than package-owned Contact Center server operations."
+        }
+      ]
     }
   }
 }

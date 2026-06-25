@@ -46,6 +46,36 @@
   "cognidesk": {
     "providerPackage": true,
     "release": "independent-provider",
+    "providerSdkDependencies": [],
+    "providerRestAdapterException": {
+      "checkedAt": "2026-06-25",
+      "result": "no-applicable-official-js-ts-sdk",
+      "reason": "Discourse documentation recommends the official discourse_api Ruby gem for Ruby consumers, but no applicable official JavaScript or TypeScript Discourse provider SDK was verified for this package's server-side support workflow surface.",
+      "defaultClientPolicy": "built-in-discourse-rest-adapter-when-configured",
+      "typedClientOverride": "ForumCommunityProviderClient",
+      "rejectedSdkPackages": [
+        {
+          "packageName": "discourse_api",
+          "ecosystem": "ruby",
+          "reason": "Officially documented Ruby client library; not a JavaScript or TypeScript runtime SDK."
+        },
+        {
+          "packageName": "discourse-api-sdk",
+          "ecosystem": "npm",
+          "reason": "Third-party npm publisher and repository; not published by the Discourse npm organization, despite package description text."
+        },
+        {
+          "packageName": "@discourse/mcp",
+          "ecosystem": "npm",
+          "reason": "Official Discourse MCP CLI server, not an in-process JavaScript or TypeScript provider API client for this runtime package."
+        },
+        {
+          "packageName": "discourse-sdk",
+          "ecosystem": "npm",
+          "reason": "Unofficial, old, and untyped npm package surface; unsuitable as the strict provider SDK dependency for this package."
+        }
+      ]
+    },
     "manifestOnlyExports": [
       "./manifest"
     ],

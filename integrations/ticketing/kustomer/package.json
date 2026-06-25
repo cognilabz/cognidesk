@@ -44,6 +44,40 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "kustomer",
+    "providerSdkDependencies": [],
+    "providerRestAdapterException": {
+      "checkedAt": "2026-06-25",
+      "result": "no-official-maintained-ticketing-rest-sdk",
+      "reason": "Kustomer's maintained JavaScript packages cover Apps Platform and Chat SDK runtimes, but do not provide a backend support/ticketing REST client for the conversation, message, customer draft, and readiness operations exposed by this package.",
+      "defaultClientPolicy": "built-in-kustomer-rest-adapter-with-access-token",
+      "typedClientOverride": "KustomerTicketingProviderClient",
+      "rejectedSdkPackages": [
+        {
+          "packageName": "@kustomer/apps-server",
+          "checkedVersion": "3.0.5",
+          "license": "MIT",
+          "reason": "Official Apps Platform server SDK for building Kustomer apps, not a backend public REST ticketing client."
+        },
+        {
+          "packageName": "@kustomer/apps-client",
+          "checkedVersion": "3.0.5",
+          "license": "MIT",
+          "reason": "Official Apps Platform client SDK for Kustomer app UI/runtime behavior, not backend support ticketing operations."
+        },
+        {
+          "packageName": "@kustomer/apps-server-sdk",
+          "checkedVersion": "0.0.60",
+          "license": "not-declared",
+          "reason": "Legacy app-building SDK with limited app API helpers, not a maintained public REST ticketing client for this support surface."
+        },
+        {
+          "packageName": "@kustomer/chat-react-native",
+          "checkedVersion": "5.3.4",
+          "license": "SEE LICENSE AT https://www.kustomer.com/legal/supplemental-terms/",
+          "reason": "React Native Chat SDK for customer-facing chat UI, not a server-side support ticketing REST client."
+        }
+      ]
+    },
     "manifestOnlyExports": [
       "./manifest"
     ],

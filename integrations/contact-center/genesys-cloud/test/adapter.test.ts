@@ -104,13 +104,9 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
       getUsersMe: vi.fn(async () => ({ id: "user-1" })),
     };
     const sdk = {
-      ApiClient: class {
-        setEnvironment = vi.fn();
-        setAccessToken = vi.fn();
-
-        constructor() {
-          apiClients.push(this);
-        }
+      ApiClient: {
+        setEnvironment: vi.fn(),
+        setAccessToken: vi.fn(),
       },
       ConversationsApi: class {
         constructor(receivedApiClient: unknown) {
@@ -131,6 +127,7 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
         }
       },
     };
+    apiClients.push(sdk.ApiClient);
 
     const sdkClient = await createGenesysCloudSdkClient({
       apiBaseUrl: "https://api.mypurecloud.ie",
@@ -146,6 +143,20 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
     expect(sdkClient.conversationsApi).toBe(conversationsApi);
     expect(sdkClient.routingApi).toBe(routingApi);
     expect(sdkClient.usersApi).toBe(usersApi);
+    expect(sdkClient.platformClient).toBe(sdk);
+  });
+
+  it("loads purecloud-platform-client-v2 as the runtime SDK raw surface", async () => {
+    const sdkClient = await createGenesysCloudSdkClient({
+      apiBaseUrl: "https://api.mypurecloud.ie",
+      accessToken: "token",
+    });
+
+    expect(sdkClient.apiClient).toBe(sdkClient.platformClient.ApiClient);
+    expect(sdkClient.conversationsApi).toBeInstanceOf(sdkClient.platformClient.ConversationsApi);
+    expect(sdkClient.routingApi).toBeInstanceOf(sdkClient.platformClient.RoutingApi);
+    expect(sdkClient.usersApi).toBeInstanceOf(sdkClient.platformClient.UsersApi);
+    sdkClient.apiClient.clearAccessToken();
   });
 
   it("verifies Open Messaging webhook signatures locally", () => {
@@ -196,7 +207,14 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
 });
 
 function createSdkClient() {
+  const platformClient = {
+    ApiClient: {},
+    ConversationsApi: vi.fn(),
+    RoutingApi: vi.fn(),
+    UsersApi: vi.fn(),
+  };
   return {
+    platformClient,
     apiClient: {},
     conversationsApi: {
       postConversationsCallbacks: vi.fn(async () => ({ ok: true })),

@@ -5,7 +5,7 @@ import {
 } from "@cognidesk/integration-kit";
 import { five9ProviderManifest, five9ProviderManifestInput, five9RestSupportSlice } from "./manifest.js";
 
-export { five9ProviderManifest, five9ProviderManifestInput, five9RestSupportSlice } from "./manifest.js";
+export { five9CheckedProviderSdk, five9ProviderManifest, five9ProviderManifestInput, five9RestSupportSlice } from "./manifest.js";
 
 export type ProviderJsonObject = Record<string, unknown>;
 
@@ -39,6 +39,7 @@ export interface Five9ClientOptions {
   signal?: AbortSignal | undefined;
   timeoutMs?: number | undefined;
   retry?: number | ProviderRestRetryOptions | undefined;
+  providerClient?: Five9ProviderClient | undefined;
   rawClient?: Five9RawClient | undefined;
 }
 
@@ -61,24 +62,28 @@ export interface Five9RawClient {
   readiness?(input?: Five9ReadinessInput): Promise<ProviderJsonObject>;
 }
 
+export type Five9ProviderClient = Five9RawClient;
+
 export interface Five9Client {
+  providerClient: Five9ProviderClient;
   rawClient: Five9RawClient;
   createHandoff(input?: ConfiguredHandoffInput): Promise<ProviderJsonObject>;
   readiness(input?: Five9ReadinessInput): Promise<ProviderJsonObject>;
 }
 
 export function createFive9Client(options: Five9ClientOptions = {}): Five9Client {
-  const rawClient = options.rawClient ?? createFive9RestRawClient(options);
+  const providerClient = resolveFive9ProviderClient(options);
   return {
-    rawClient,
+    providerClient,
+    rawClient: providerClient,
     createHandoff(input = {}) {
-      return rawClient.createHandoff(normalizeConfiguredHandoffInput(input));
+      return providerClient.createHandoff(normalizeConfiguredHandoffInput(input));
     },
     readiness(input) {
-      if (!rawClient.readiness) {
-        throw new Error("Five9 rawClient.readiness implementation is required for readiness checks.");
+      if (!providerClient.readiness) {
+        throw new Error("Five9 providerClient.readiness implementation is required for readiness checks.");
       }
-      return rawClient.readiness(input);
+      return providerClient.readiness(input);
     },
   };
 }
@@ -98,7 +103,19 @@ export function createFive9Integration(options: Five9IntegrationOptions = {}) {
   });
 }
 
-function createFive9RestRawClient(options: Five9ClientOptions): Five9RawClient {
+function resolveFive9ProviderClient(options: Five9ClientOptions): Five9ProviderClient {
+  const providerClient = options.providerClient ?? options.rawClient;
+  return providerClient ? requireFive9ProviderClient(providerClient) : createFive9RestProviderClient(options);
+}
+
+function requireFive9ProviderClient(providerClient: Five9ProviderClient): Five9ProviderClient {
+  if (!providerClient || typeof providerClient.createHandoff !== "function") {
+    throw new Error("Five9 requires a providerClient implementing createHandoff() or configured baseUrl/defaultHandoffPath for the built-in REST adapter.");
+  }
+  return providerClient;
+}
+
+function createFive9RestProviderClient(options: Five9ClientOptions): Five9ProviderClient {
   return {
     createHandoff(input = {}) {
       const path = configuredPath(options.defaultHandoffPath, "Five9 handoff path");

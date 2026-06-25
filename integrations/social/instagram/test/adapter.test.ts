@@ -1,15 +1,18 @@
 import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { FacebookAdsApi } from "facebook-nodejs-business-sdk";
 import { describe, expect, it, vi } from "vitest";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   createInstagramSocialClient,
+  createInstagramTextMessage,
   defineInstagramSocialIntegration,
   instagramHostClientSupportSlice,
   instagramSocialProviderManifest,
   instagramSocialSupportSlice,
   normalizeInstagramWebhookEvents,
   parseInstagramWebhook,
+  type InstagramMetaProviderClient,
   validateInstagramWebhookSignature,
 } from "../src/index.js";
 
@@ -27,10 +30,13 @@ describe("@cognidesk/integration-social-instagram", () => {
     expect(instagramSocialProviderManifest.metadata?.providerClient).toMatchObject({
       interface: "InstagramMetaProviderClient",
       importPolicy: "provider-client-override-supported",
-      defaultClientPolicy: "provider-rest-adapter-when-configured",
+      defaultClientPolicy: "facebook-nodejs-business-sdk-when-configured",
     });
     expect(instagramHostClientSupportSlice).toBe(instagramSocialSupportSlice);
-    expect(instagramHostClientSupportSlice.implementationStrategy).toBe("no-official-sdk-rest-adapter");
+    expect(instagramHostClientSupportSlice.implementationStrategy)
+      .toBe("provider-sdk-default-with-typed-domain-adapter");
+    expect(instagramHostClientSupportSlice.sdkDecision).toContain("facebook-nodejs-business-sdk");
+    expect(instagramHostClientSupportSlice.sdkDecision).toContain("FacebookAdsApi.call");
     const integration = defineInstagramSocialIntegration({
       pageId: "page_1",
       instagramBusinessAccountId: "ig_1",
@@ -38,6 +44,24 @@ describe("@cognidesk/integration-social-instagram", () => {
       providerClient: fakeProviderClient(),
     });
     expect(() => assertIntegrationConformance(integration)).not.toThrow();
+  });
+
+  it("declares and imports the Meta Business SDK as the default runtime dependency", async () => {
+    const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      cognidesk?: { providerSdkDependencies?: string[] };
+    };
+    const clientSource = await readFile(new URL("../src/client.ts", import.meta.url), "utf8");
+
+    expect(packageJson.dependencies ?? {}).toHaveProperty("facebook-nodejs-business-sdk");
+    expect(packageJson.devDependencies ?? {}).not.toHaveProperty("facebook-nodejs-business-sdk");
+    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual(["facebook-nodejs-business-sdk"]);
+    expect(clientSource).toContain("from \"facebook-nodejs-business-sdk\"");
+    expect(clientSource).toContain("FacebookAdsApi.init");
+    expect(clientSource).toContain("api.call");
+    expect(instagramSocialProviderManifest.coverage.evidence.map((evidence) => evidence.url))
+      .toContain("https://github.com/facebook/facebook-nodejs-business-sdk");
   });
 
   it("keeps the manifest entry metadata-only", async () => {
@@ -100,11 +124,116 @@ describe("@cognidesk/integration-social-instagram", () => {
       .resolves.toMatchObject({ payload: { object: "instagram" } });
   });
 
+  it("uses facebook-nodejs-business-sdk for built-in Graph calls by default", async () => {
+    const sdkCall = vi.fn(async () => ({ data: [] }));
+    const initSpy = vi.spyOn(FacebookAdsApi, "init")
+      .mockReturnValue({ call: sdkCall } as unknown as FacebookAdsApi);
+
+    try {
+      const client = createInstagramSocialClient({
+        pageAccessToken: "page-token",
+        pageId: "page_1",
+        instagramBusinessAccountId: "ig_1",
+      });
+
+      await client.sendTextMessage({ recipientId: "igsid_1", text: "Hello" });
+      await client.listConversations({ limit: 2, after: "cursor_1" });
+
+      expect(initSpy).toHaveBeenCalledWith("page-token", "en_US", false);
+      expect(sdkCall).toHaveBeenCalledWith("POST", ["page_1", "messages"], {
+        recipient: { id: "igsid_1" },
+        message: { text: "Hello" },
+      });
+      expect(sdkCall).toHaveBeenCalledWith("GET", ["ig_1", "conversations"], expect.objectContaining({
+        platform: "instagram",
+        limit: 2,
+        after: "cursor_1",
+      }));
+    } finally {
+      initSpy.mockRestore();
+    }
+  });
+
+  it("uses the typed REST adapter when callers provide custom transport options", async () => {
+    const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      const requestUrl = String(url);
+      const body = requestUrl.endsWith("/messages")
+        ? { message_id: "mid.1", recipient_id: "igsid_1" }
+        : { data: [] };
+      return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    });
+    const client = createInstagramSocialClient({
+      pageAccessToken: "page-token",
+      pageId: "page/1",
+      instagramBusinessAccountId: "ig_1",
+      graphApiBaseUrl: "https://graph.example.test/",
+      graphApiVersion: "/v99.0/",
+      fetch: fetchMock,
+    });
+
+    await expect(client.sendTextMessage({ recipientId: "igsid_1", text: "Hello" }))
+      .resolves.toMatchObject({ message_id: "mid.1" });
+    await expect(client.listConversations({ limit: 10, after: "cursor_1" }))
+      .resolves.toMatchObject({ data: [] });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const sendUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
+    const sendInit = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(sendUrl.href).toBe("https://graph.example.test/v99.0/page%2F1/messages");
+    expect(sendInit.method).toBe("POST");
+    expect(sendInit.headers).toMatchObject({
+      accept: "application/json",
+      authorization: "Bearer page-token",
+      "content-type": "application/json",
+    });
+    expect(JSON.parse(String(sendInit.body))).toEqual({
+      recipient: { id: "igsid_1" },
+      message: { text: "Hello" },
+    });
+
+    const conversationsUrl = new URL(String(fetchMock.mock.calls[1]?.[0]));
+    expect(conversationsUrl.pathname).toBe("/v99.0/ig_1/conversations");
+    expect(conversationsUrl.searchParams.get("platform")).toBe("instagram");
+    expect(conversationsUrl.searchParams.get("limit")).toBe("10");
+    expect(conversationsUrl.searchParams.get("after")).toBe("cursor_1");
+    expect(conversationsUrl.searchParams.get("fields")).toContain("messages.limit(10)");
+  });
+
   it("ships a Graph API adapter but fails closed without credentials", () => {
     expect(() => createInstagramSocialClient({ pageId: "page_1" }))
       .toThrow("Instagram built-in Graph API adapter requires accessToken");
     expect(() => defineInstagramSocialIntegration({ appSecret: "secret" }))
       .toThrow("Instagram built-in Graph API adapter requires accessToken");
+  });
+
+  it("fails closed before Graph requests for malformed provider clients and missing identifiers", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({}), { status: 200 }));
+    expect(() => createInstagramSocialClient({
+      providerClient: { sendMessage: vi.fn() } as unknown as InstagramMetaProviderClient,
+    })).toThrow("listConversations");
+    const client = createInstagramSocialClient({
+      pageAccessToken: "page-token",
+      pageId: "page_1",
+      instagramBusinessAccountId: "ig_1",
+      fetch: fetchMock,
+    });
+
+    expect(() => createInstagramTextMessage({ recipientId: "", text: "Hi" }))
+      .toThrow("Instagram recipient ID is required to build a text message.");
+    expect(() => createInstagramTextMessage({ recipientId: "igsid_1", text: " " }))
+      .toThrow("Instagram message text is required to build a text message.");
+    await expect(client.listConversationMessages(""))
+      .rejects.toThrow("Instagram conversation ID is required to list conversation messages.");
+    await expect(client.getMessage(" "))
+      .rejects.toThrow("Instagram message ID is required to read a message.");
+    await expect(client.sendMessage({ recipient: { id: "" }, message: { text: "Hi" } }))
+      .rejects.toThrow("Instagram recipient ID is required to send messages.");
+    await expect(client.sendMessage({ recipient: { id: "igsid_1" }, message: [] as never }))
+      .rejects.toThrow("Instagram message payload is required to send messages.");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("normalizes inbound message webhook events", () => {

@@ -12,9 +12,16 @@ export const messengerSocialOperationAliases = [
 ] as const;
 
 export const messengerSocialProviderClientSupportSlice = {
-  implementationStrategy: "no-official-sdk-rest-adapter",
-  sdkDecision: "No viable official Messenger Platform server-side JavaScript SDK was verified for this support workflow slice. The Meta Business SDK is Business/Marketing/Pages oriented, so this package ships a built-in Graph API REST adapter and still accepts a host-provided Messenger/Meta provider client override.",
+  implementationStrategy: "provider-sdk-default-with-typed-domain-adapter",
+  sdkDecision: "Meta's maintained facebook-nodejs-business-sdk@24.0.1 is provider-owned and exposes FacebookAdsApi.call(method, path, params). This package maps its strict Messenger support slice onto that SDK call surface by default; the package-owned REST adapter is retained only for explicit custom transport options such as fetch, graphApiBaseUrl, graphApiVersion, signal, timeoutMs, or retry.",
   verifiedAt: "2026-06-25",
+  providerSdk: {
+    package: "facebook-nodejs-business-sdk",
+    version: "24.0.1",
+    license: "Platform License",
+    runtimeEntry: "FacebookAdsApi",
+    runtimeCall: "FacebookAdsApi.call",
+  },
   allowedOperations: [
     {
       id: "parseMessengerWebhook",
@@ -26,43 +33,43 @@ export const messengerSocialProviderClientSupportSlice = {
     {
       id: "sendMessage",
       alias: "messenger.message.send",
-      target: "providerRestAdapter.sendMessage",
-      source: "provider-rest-adapter",
+      target: "facebookBusinessSdk.FacebookAdsApi.call",
+      source: "provider-sdk",
       checksum: "not-applicable-rest-adapter",
     },
     {
       id: "sendSenderAction",
       alias: "messenger.senderAction.send",
-      target: "providerRestAdapter.sendMessage",
-      source: "provider-rest-adapter",
+      target: "facebookBusinessSdk.FacebookAdsApi.call",
+      source: "provider-sdk",
       checksum: "not-applicable-rest-adapter",
     },
     {
       id: "uploadAttachment",
       alias: "messenger.attachment.upload",
-      target: "providerRestAdapter.uploadAttachment",
-      source: "provider-rest-adapter",
+      target: "facebookBusinessSdk.FacebookAdsApi.call",
+      source: "provider-sdk",
       checksum: "not-applicable-rest-adapter",
     },
     {
       id: "listConversations",
       alias: "messenger.conversations.list",
-      target: "providerRestAdapter.listConversations",
-      source: "provider-rest-adapter",
+      target: "facebookBusinessSdk.FacebookAdsApi.call",
+      source: "provider-sdk",
       checksum: "not-applicable-rest-adapter",
     },
     {
       id: "getConversationMessages",
       alias: "messenger.conversationMessages.list",
-      target: "providerRestAdapter.getConversationMessages",
-      source: "provider-rest-adapter",
+      target: "facebookBusinessSdk.FacebookAdsApi.call",
+      source: "provider-sdk",
       checksum: "not-applicable-rest-adapter",
     },
     {
       id: "getPage",
       alias: "messenger.page.read",
-      target: "providerRestAdapter.getPage",
-      source: "provider-rest-adapter",
+      target: "facebookBusinessSdk.FacebookAdsApi.call",
+      source: "provider-sdk",
       checksum: "not-applicable-rest-adapter",
     },
     {
@@ -90,7 +97,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
     scope: "support-workflow-subset",
     notes: [
       "Coverage is typed for selected Messenger Platform support workflows: Page messages send, text payloads, sender actions, attachment payload/upload helpers, conversation/message reads, Page readiness, webhook challenge handling, and X-Hub-Signature-256 validation.",
-      "Runtime provider operations use the built-in Graph API REST adapter when credentials are configured; hosts may inject a Messenger/Meta provider client override.",
+      "Runtime provider operations use Meta's facebook-nodejs-business-sdk when credentials are configured; hosts may inject a Messenger/Meta provider client override.",
       "Meta's current Messenger routing surface is Conversation Routing; deprecated Handover Protocol thread-control helpers are not advertised as a current handoff capability by this package.",
       "This is not full Messenger Platform coverage; Messenger profile, persistent menu, personas, discovery and engagement tools, account linking, NLP, analytics, marketing messages, conversation routing configuration, and broader Page/Graph administration remain outside this adapter.",
     ],
@@ -101,6 +108,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
       { label: "Messenger sender actions", url: "https://developers.facebook.com/docs/messenger-platform/send-messages/sender-actions" },
       { label: "Messenger attachment upload", url: "https://developers.facebook.com/docs/messenger-platform/reference/attachment-upload-api" },
       { label: "Messenger conversation routing", url: "https://developers.facebook.com/documentation/business-messaging/messenger-platform/conversation-routing" },
+      { label: "Meta Business SDK for NodeJS", url: "https://github.com/facebook/facebook-nodejs-business-sdk" },
     ],
   },
   credentialRequirements: [
@@ -112,13 +120,13 @@ export const messengerSocialProviderManifest = defineProviderPackage({
       metadata: {
         interface: "MessengerSocialProviderClient",
         importPolicy: "provider-client-override-supported",
-        defaultClientPolicy: "provider-rest-adapter-when-configured",
+        defaultClientPolicy: "facebook-nodejs-business-sdk-when-configured",
       },
     },
     {
       id: "messenger-page-access-token",
       label: "Messenger Page access token",
-      description: "Server-side Meta Page access token used by the built-in Graph API adapter or an injected Messenger/Meta provider client.",
+      description: "Server-side Meta Page access token used by the Meta SDK-backed Graph adapter or an injected Messenger/Meta provider client.",
       scopes: ["pages_messaging", "pages_show_list", "pages_read_engagement", "pages_manage_metadata"],
       required: true,
       metadata: { scopeKind: "provider-permission-labels" },
@@ -182,7 +190,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
     {
       capability: "thread",
       label: "Use Messenger conversations",
-      description: "Reads Messenger conversation and message metadata through the configured Graph API adapter or provider client with SDK-user-governed access and retention.",
+      description: "Reads Messenger conversation and message metadata through the configured Meta SDK-backed Graph adapter or provider client with SDK-user-governed access and retention.",
       audiences: ["customer-facing", "mixed"],
       providerObjects: [
         { kind: "messengerConversation", label: "Messenger Conversation" },
@@ -195,7 +203,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
     {
       capability: "read-provider-object",
       label: "Read Messenger conversations",
-      description: "Reads Messenger conversation messages and metadata through the configured Graph API adapter or provider client.",
+      description: "Reads Messenger conversation messages and metadata through the configured Meta SDK-backed Graph adapter or provider client.",
       audiences: ["customer-facing", "mixed"],
       providerObjects: [
         { kind: "messengerConversation", label: "Messenger Conversation" },
@@ -207,7 +215,7 @@ export const messengerSocialProviderManifest = defineProviderPackage({
     {
       capability: "search-provider-object",
       label: "List Messenger conversations",
-      description: "Lists Messenger Page conversations through the configured Graph API adapter or provider client with SDK-user-supplied filters such as user ID, fields, limits, and cursors.",
+      description: "Lists Messenger Page conversations through the configured Meta SDK-backed Graph adapter or provider client with SDK-user-supplied filters such as user ID, fields, limits, and cursors.",
       audiences: ["customer-facing", "mixed"],
       providerObjects: [{ kind: "messengerConversation", label: "Messenger Conversation" }],
       requiresCredential: true,
@@ -353,18 +361,20 @@ export const messengerSocialProviderManifest = defineProviderPackage({
     implementation: messengerSocialSupportSlice,
     manifestOnlySafe: true,
     providerClient: {
-      package: "built-in-or-host-provided",
+      package: "facebook-nodejs-business-sdk-or-host-provided",
       interface: "MessengerSocialProviderClient",
       importPolicy: "provider-client-override-supported",
-      defaultClientPolicy: "provider-rest-adapter-when-configured",
+      defaultClientPolicy: "facebook-nodejs-business-sdk-when-configured",
+      customTransportFallbackPolicy: "package-owned-rest-adapter-for-fetch-base-version-signal-timeout-retry",
     },
     channelCoverage: {
-      messages: "provider-rest-adapter-send",
-      senderActions: "provider-rest-adapter-send",
-      attachments: "provider-rest-adapter-upload-send",
-      conversations: "provider-rest-adapter-list-read",
-      pageReadiness: "provider-rest-adapter-read",
+      messages: "facebook-nodejs-business-sdk-call",
+      senderActions: "facebook-nodejs-business-sdk-call",
+      attachments: "facebook-nodejs-business-sdk-call",
+      conversations: "facebook-nodejs-business-sdk-call",
+      pageReadiness: "facebook-nodejs-business-sdk-call",
       webhooks: "typed-challenge-verify-parse",
+      customTransportFallback: "package-owned-rest-adapter",
       handoverProtocolThreadControl: "provider-supported-deprecated-typed-thread-control",
       conversationRouting: "provider-supported-not-typed",
     },

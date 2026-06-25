@@ -48,6 +48,35 @@ export interface KustomerTicketingProviderClient {
   readiness(): Promise<JsonObject>;
 }
 
+export type KustomerCreateConversationInput = JsonObject;
+
+export interface KustomerReadConversationInput extends JsonObject {
+  conversationId: string;
+}
+
+export interface KustomerUpdateConversationInput extends JsonObject {
+  conversationId: string;
+  patch: JsonObject;
+}
+
+export interface KustomerListConversationsInput extends JsonObject {
+  query?: JsonObject;
+}
+
+export interface KustomerCreateMessageInput extends JsonObject {
+  message: JsonObject;
+}
+
+export interface KustomerListMessagesInput extends JsonObject {
+  query?: JsonObject;
+}
+
+export interface KustomerCreateCustomerDraftInput extends JsonObject {
+  customerId: string;
+  draft: JsonObject;
+  query?: JsonObject;
+}
+
 const documentedMessageChannels = new Set([
   "email",
   "sms",
@@ -59,6 +88,8 @@ const documentedMessageChannels = new Set([
   "instagram",
   "whatsapp",
 ]);
+
+const supportedKustomerRawMethods = new Set<ProviderHttpMethod>(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
 export interface KustomerTicketingIntegrationOptions extends KustomerTicketingClientOptions {}
 
@@ -76,18 +107,42 @@ export function createKustomerTicketingOperationHandlers(
   const client = createKustomerTicketingClient(options);
 
   return {
-    "ticket.create": (input: JsonObject) => client.createConversation(input),
-    "ticket.read": (input: { conversationId: string }) => client.getConversation(input.conversationId),
-    "ticket.update": (input: { conversationId: string; patch: JsonObject }) => client.updateConversation(input.conversationId, input.patch),
-    "ticket.search": (input: { query?: JsonObject } = {}) => client.listConversations(input.query),
-    "ticket.comment.create": (input: { message: JsonObject }) => {
-      assertDocumentedChannel(input.message.channel);
-      return client.createMessage(input.message);
+    "ticket.create": (input: KustomerCreateConversationInput) =>
+      client.createConversation(assertJsonObject(input, "ticket.create input")),
+    "ticket.read": (input: KustomerReadConversationInput) => {
+      const request = assertJsonObject(input, "ticket.read input") as KustomerReadConversationInput;
+      return client.getConversation(assertNonEmptyString(request.conversationId, "Kustomer conversationId"));
     },
-    "kustomer.message.list": (input: { query?: JsonObject } = {}) => client.listMessages(input.query),
-    "kustomer.customerDraft.create": (input: { customerId: string; draft: JsonObject; query?: JsonObject }) => {
-      if (input.draft.channel !== undefined) assertDocumentedChannel(input.draft.channel);
-      return client.createCustomerDraft(input.customerId, input.draft, input.query);
+    "ticket.update": (input: KustomerUpdateConversationInput) => {
+      const request = assertJsonObject(input, "ticket.update input") as KustomerUpdateConversationInput;
+      return client.updateConversation(
+        assertNonEmptyString(request.conversationId, "Kustomer conversationId"),
+        assertJsonObject(request.patch, "ticket.update patch"),
+      );
+    },
+    "ticket.search": (input: KustomerListConversationsInput = {}) => {
+      const request = assertJsonObject(input, "ticket.search input") as KustomerListConversationsInput;
+      return client.listConversations(optionalJsonObject(request.query, "ticket.search query"));
+    },
+    "ticket.comment.create": (input: KustomerCreateMessageInput) => {
+      const request = assertJsonObject(input, "ticket.comment.create input") as KustomerCreateMessageInput;
+      const message = assertJsonObject(request.message, "ticket.comment.create message");
+      assertDocumentedChannel(message.channel);
+      return client.createMessage(message);
+    },
+    "kustomer.message.list": (input: KustomerListMessagesInput = {}) => {
+      const request = assertJsonObject(input, "kustomer.message.list input") as KustomerListMessagesInput;
+      return client.listMessages(optionalJsonObject(request.query, "kustomer.message.list query"));
+    },
+    "kustomer.customerDraft.create": (input: KustomerCreateCustomerDraftInput) => {
+      const request = assertJsonObject(input, "kustomer.customerDraft.create input") as KustomerCreateCustomerDraftInput;
+      const draft = assertJsonObject(request.draft, "kustomer.customerDraft.create draft");
+      if (draft.channel !== undefined) assertDocumentedChannel(draft.channel);
+      return client.createCustomerDraft(
+        assertNonEmptyString(request.customerId, "Kustomer customerId"),
+        draft,
+        optionalJsonObject(request.query, "kustomer.customerDraft.create query"),
+      );
     },
     "kustomer.readiness": () => client.readiness(),
   } as const;
@@ -137,62 +192,72 @@ function hasKustomerRestConfig(options: KustomerTicketingClientOptions): boolean
 function createKustomerRestProviderClient(options: KustomerTicketingClientOptions): KustomerTicketingProviderClient {
   return {
     async rawRequest<T = JsonValue>(operation: string, input?: unknown) {
-      const request = isRecord(input) ? input : {};
+      const request = input === undefined
+        ? {}
+        : assertJsonObject(input, "Kustomer raw request input");
       return kustomerRequest<T>(options, {
-        path: operation,
-        method: providerMethod(request.method),
-        query: asJsonObject(request.query),
+        path: assertRelativeRestPath(operation, "Kustomer raw request path"),
+        method: request.method === undefined
+          ? undefined
+          : assertProviderMethod(request.method, "Kustomer raw request method"),
+        query: optionalJsonObject(request.query, "Kustomer raw request query"),
         body: request.body,
         headers: asHeadersRecord(request.headers),
       });
     },
     createConversation(payload) {
+      const body = assertJsonObject(payload, "Kustomer conversation payload");
       return kustomerRequest(options, {
         method: "POST",
         path: "/v1/conversations",
-        body: stripUndefined(payload),
+        body: stripUndefined(body),
       });
     },
     getConversation(conversationId) {
       return kustomerRequest(options, {
         path: "/v1/conversations/{conversationId}",
-        pathParams: { conversationId },
+        pathParams: { conversationId: assertNonEmptyString(conversationId, "Kustomer conversationId") },
       });
     },
     updateConversation(conversationId, patch) {
+      const body = assertJsonObject(patch, "Kustomer conversation patch");
       return kustomerRequest(options, {
         method: "PATCH",
         path: "/v1/conversations/{conversationId}",
-        pathParams: { conversationId },
-        body: stripUndefined(patch),
+        pathParams: { conversationId: assertNonEmptyString(conversationId, "Kustomer conversationId") },
+        body: stripUndefined(body),
       });
     },
     listConversations(query) {
       return kustomerRequest(options, {
         path: "/v1/conversations",
-        query,
+        query: optionalJsonObject(query, "Kustomer conversation query"),
       });
     },
     listMessages(query) {
       return kustomerRequest(options, {
         path: "/v1/messages",
-        query,
+        query: optionalJsonObject(query, "Kustomer message query"),
       });
     },
     createMessage(payload) {
+      const body = assertJsonObject(payload, "Kustomer message payload");
+      assertDocumentedChannel(body.channel);
       return kustomerRequest(options, {
         method: "POST",
         path: "/v1/messages",
-        body: stripUndefined(payload),
+        body: stripUndefined(body),
       });
     },
     createCustomerDraft(customerId, payload, query) {
+      const body = assertJsonObject(payload, "Kustomer customer draft payload");
+      if (body.channel !== undefined) assertDocumentedChannel(body.channel);
       return kustomerRequest(options, {
         method: "POST",
         path: "/v1/customers/{customerId}/drafts",
-        pathParams: { customerId },
-        query,
-        body: stripUndefined(payload),
+        pathParams: { customerId: assertNonEmptyString(customerId, "Kustomer customerId") },
+        query: optionalJsonObject(query, "Kustomer customer draft query"),
+        body: stripUndefined(body),
       });
     },
     readiness() {
@@ -244,13 +309,16 @@ function providerJsonRequestWithControls<T = unknown>(input: ProviderJsonRequest
 
 function kustomerAccessToken(options: KustomerTicketingClientOptions): string {
   const token = options.accessToken ?? options.apiKey;
-  if (!token) throw new Error("Kustomer REST adapter requires accessToken or apiKey.");
+  if (typeof token !== "string" || token.trim().length === 0) {
+    throw new Error("Kustomer REST adapter requires non-empty accessToken or apiKey.");
+  }
   return token;
 }
 
 function providerQuery(query?: JsonObject): Record<string, ProviderQueryValue> | undefined {
   if (!query) return undefined;
-  const entries = Object.entries(query)
+  const normalized = assertJsonObject(query, "Kustomer query");
+  const entries = Object.entries(normalized)
     .filter(([, value]) => value !== undefined)
     .map(([key, value]) => [key, providerQueryValue(value as JsonValue)] as const);
   return Object.fromEntries(entries);
@@ -266,8 +334,29 @@ function providerQueryValue(value: JsonValue): ProviderQueryValue {
   return value;
 }
 
-function asJsonObject(value: unknown): JsonObject | undefined {
-  return isRecord(value) ? value as JsonObject : undefined;
+function optionalJsonObject(value: unknown, label: string): JsonObject | undefined {
+  if (value === undefined) return undefined;
+  return assertJsonObject(value, label);
+}
+
+function assertJsonObject(value: unknown, label: string): JsonObject {
+  if (!isRecord(value)) throw new Error(`${label} must be a JSON object.`);
+  return value as JsonObject;
+}
+
+function assertNonEmptyString(value: unknown, label: string): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return value;
+}
+
+function assertRelativeRestPath(value: unknown, label: string): string {
+  const path = assertNonEmptyString(value, label);
+  if (!path.startsWith("/") || path.startsWith("//") || path.includes("://")) {
+    throw new Error(`${label} must be a relative REST path starting with '/'.`);
+  }
+  return path;
 }
 
 function asHeadersRecord(value: unknown): Record<string, string | undefined> | undefined {
@@ -277,10 +366,11 @@ function asHeadersRecord(value: unknown): Record<string, string | undefined> | u
   ) as Record<string, string>;
 }
 
-function providerMethod(value: unknown): ProviderHttpMethod | undefined {
-  return ["GET", "POST", "PUT", "PATCH", "DELETE"].includes(String(value))
-    ? String(value) as ProviderHttpMethod
-    : undefined;
+function assertProviderMethod(value: unknown, label: string): ProviderHttpMethod {
+  if (typeof value === "string" && supportedKustomerRawMethods.has(value as ProviderHttpMethod)) {
+    return value as ProviderHttpMethod;
+  }
+  throw new Error(`${label} must be one of GET, POST, PUT, PATCH, DELETE.`);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -177,6 +177,22 @@ export const cognideskCobrowsingProviderManifest = defineProviderPackage({
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
+    implementation: {
+      strategy: "local-protocol",
+      sdkPackage: "@cognidesk/integration-cobrowsing-cognidesk",
+      runtimePackage: "@cognidesk/integration-cobrowsing-cognidesk",
+      protocolSource: "Cognidesk local cobrowsing protocol",
+      manifestImport: "no-sdk-client-initialization",
+      integrationKitStatus: "implemented",
+      externalProviderSdk: "not-applicable-internal-provider",
+      checkedAt: "2026-06-25",
+      providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK",
+      providerSdkDependencies: [],
+      defaultClientPolicy: "sdk-user-provided-cobrowsing-session-client",
+      typedClientOverride: "CognideskCobrowsingIntegrationClient",
+      reason: "Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization rather than a named external cobrowsing provider SDK.",
+      rejectedSdkPackages: [],
+    },
     docs: "https://github.com/cognilabz/cognidesk/tree/main/integrations/cobrowsing/cognidesk",
     channelCoverage: {
       sessions: "typed-create-read-update",

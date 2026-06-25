@@ -7,6 +7,7 @@ import {
   parseTwilioSmsWebhook,
   twilioSmsCredentialStatuses,
   twilioSmsProviderManifest,
+  type TwilioSmsRawClient,
 } from "../src/index.js";
 
 describe("@cognidesk/integration-sms-twilio", () => {
@@ -18,11 +19,17 @@ describe("@cognidesk/integration-sms-twilio", () => {
       sdkPackage: "twilio",
       verifiedVersion: "6.0.2",
     });
+    expect(twilioSmsProviderManifest.metadata?.rawClient).toMatchObject({
+      export: "getRawClient",
+      coverage: "upstream-sdk",
+    });
+    const rawClient = fakeTwilioSmsRawClient();
     const integration = createTwilioSmsIntegration({
       accountSid: "AC123",
       authToken: "token",
-      smsClient: fakeTwilioSmsClient(),
+      rawClient,
     });
+    await expect(integration.getRawClient()).resolves.toBe(rawClient);
     expect(integration.operationAliases).toEqual([
       "sms.message.receive",
       "sms.message.send",
@@ -42,46 +49,44 @@ describe("@cognidesk/integration-sms-twilio", () => {
       .resolves.not.toMatch(/from\s+["']twilio["']/);
   });
 
-  it("uses injected Twilio SDK clients for SMS operations", async () => {
+  it("creates the official Twilio helper client for runtime SMS operations", async () => {
     const client = createTwilioSmsClient({
       accountSid: "AC123",
       authToken: "token",
-      sdkClient: {
-        messages: {
-          async create(input) {
-            expect(input).toMatchObject({ to: "+15550100", from: "+15550999", body: "Hello" });
-            return { sid: "SM123", status: "queued" };
-          },
-          get(sid) {
-            return {
-              async fetch() {
-                return { sid, status: "sent" };
-              },
-              async update(input) {
-                expect(input).toEqual({ status: "canceled" });
-                return { sid, status: "canceled" };
-              },
-            };
-          },
-          async list(input) {
-            expect(input).toMatchObject({ to: "+15550100", pageSize: 10 });
-            return [{ sid: "SM123" }];
-          },
-        },
-        incomingPhoneNumbers: {
-          async list(input) {
-            expect(input).toEqual({ phoneNumber: "+15550999" });
-            return [{ sid: "PN123", capabilities: { sms: true } }];
-          },
-        },
-        api: {
-          accounts(accountSid) {
-            return { async fetch() { return { sid: accountSid, status: "active" }; } };
-          },
-        },
+    });
+    const rawClient = await client.getRawClient();
+
+    expect(await client.getSdkClient()).toBe(rawClient);
+    expect(typeof rawClient.messages.create).toBe("function");
+    expect(typeof rawClient.messages.get("SM00000000000000000000000000000000").fetch).toBe("function");
+    expect(typeof rawClient.messages.list).toBe("function");
+    expect(typeof rawClient.incomingPhoneNumbers.list).toBe("function");
+    expect(typeof rawClient.api.accounts("AC123").fetch).toBe("function");
+  });
+
+  it("uses injected raw Twilio helper clients for SMS operations", async () => {
+    const rawClient = fakeTwilioSmsRawClient({
+      assertCreateInput(input) {
+        expect(input).toMatchObject({ to: "+15550100", from: "+15550999", body: "Hello" });
+      },
+      assertListInput(input) {
+        expect(input).toMatchObject({ to: "+15550100", pageSize: 10 });
+      },
+      assertIncomingPhoneNumberInput(input) {
+        expect(input).toEqual({ phoneNumber: "+15550999" });
+      },
+      assertUpdateInput(input) {
+        expect(input).toEqual({ status: "canceled" });
       },
     });
+    const client = createTwilioSmsClient({
+      accountSid: "AC123",
+      authToken: "token",
+      rawClient,
+    });
 
+    await expect(client.getRawClient()).resolves.toBe(rawClient);
+    await expect(client.getSdkClient()).resolves.toBe(rawClient);
     await expect(client.sendMessage({ to: "+15550100", from: "+15550999", body: "Hello" }))
       .resolves.toMatchObject({ sid: "SM123" });
     await expect(client.fetchMessage("SM123")).resolves.toMatchObject({ status: "sent" });
@@ -128,41 +133,46 @@ describe("@cognidesk/integration-sms-twilio", () => {
   });
 });
 
-function fakeTwilioSmsClient() {
-  return createTwilioSmsClient({
-    accountSid: "AC123",
-    authToken: "token",
-    sdkClient: {
-      messages: {
-        async create() {
-          return { sid: "SM123", status: "queued" };
-        },
-        get(sid) {
-          return {
-            async fetch() {
-              return { sid, status: "sent" };
-            },
-            async update() {
-              return { sid, status: "canceled" };
-            },
-          };
-        },
-        async list() {
-          return [{ sid: "SM123" }];
-        },
+function fakeTwilioSmsRawClient(assertions: {
+  assertCreateInput?: (input: unknown) => void;
+  assertListInput?: (input: unknown) => void;
+  assertIncomingPhoneNumberInput?: (input: unknown) => void;
+  assertUpdateInput?: (input: unknown) => void;
+} = {}): TwilioSmsRawClient {
+  return {
+    messages: {
+      async create(input) {
+        assertions.assertCreateInput?.(input);
+        return { sid: "SM123", status: "queued" };
       },
-      incomingPhoneNumbers: {
-        async list() {
-          return [{ sid: "PN123", capabilities: { sms: true } }];
-        },
+      get(sid) {
+        return {
+          async fetch() {
+            return { sid, status: "sent" };
+          },
+          async update(input) {
+            assertions.assertUpdateInput?.(input);
+            return { sid, status: "canceled" };
+          },
+        };
       },
-      api: {
-        accounts(accountSid) {
-          return { async fetch() { return { sid: accountSid, status: "active" }; } };
-        },
+      async list(input) {
+        assertions.assertListInput?.(input);
+        return [{ sid: "SM123" }];
       },
     },
-  });
+    incomingPhoneNumbers: {
+      async list(input) {
+        assertions.assertIncomingPhoneNumberInput?.(input);
+        return [{ sid: "PN123", capabilities: { sms: true } }];
+      },
+    },
+    api: {
+      accounts(accountSid) {
+        return { async fetch() { return { sid: accountSid, status: "active" }; } };
+      },
+    },
+  };
 }
 
 function signTwilio(url: string, params: Record<string, string>, authToken: string) {

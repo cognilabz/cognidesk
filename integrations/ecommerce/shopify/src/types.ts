@@ -1,7 +1,10 @@
-import type { createAdminApiClient } from "@shopify/admin-api-client";
+import type { AdminApiClient, ApiClientRequestOptions } from "@shopify/admin-api-client";
 
-export type ShopifyAdminApiClient = ReturnType<typeof createAdminApiClient>;
+export type ShopifyAdminApiClient = AdminApiClient;
 export type ShopifyGraphqlVariables = Record<string, unknown>;
+export type ShopifyGraphqlRequestOptions = Pick<ApiClientRequestOptions, "apiVersion" | "headers" | "retries" | "signal"> & {
+  variables?: ShopifyGraphqlVariables;
+};
 
 export interface ShopifyEcommerceClientOptions {
   shopDomain: string;
@@ -18,9 +21,8 @@ export interface ShopifyCredentialStatusInput {
   scopes?: string[];
 }
 
-export interface ShopifyGraphqlInput {
+export interface ShopifyGraphqlInput extends ShopifyGraphqlRequestOptions {
   query: string;
-  variables?: ShopifyGraphqlVariables;
   operationName?: string;
 }
 

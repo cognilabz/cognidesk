@@ -43,6 +43,7 @@ const providerSdkPackages = new Set([
   "@elevenlabs/elevenlabs-js",
   "@google-cloud/speech",
   "@google-cloud/text-to-speech",
+  "@google/rcsbusinessmessaging",
   "@googleapis/androidpublisher",
   "@googleapis/gmail",
   "@hubspot/api-client",
@@ -57,6 +58,7 @@ const providerSdkPackages = new Set([
   "@shopify/shopify-api",
   "@slack/web-api",
   "@vonage/server-sdk",
+  "@zoom/rivet",
   "discord.js",
   "googleapis",
   "mailgun.js",
@@ -67,6 +69,7 @@ const providerSdkPackages = new Set([
   "twilio",
   "@freshworks/api-sdk",
   "@servicenow/sdk",
+  "@servicenow/sdk-api",
   "dynamics-web-api",
 ]);
 const infrastructurePackageNames = new Set([
@@ -111,6 +114,8 @@ async function main() {
   await checkManifestOnlyEntrypoints();
   await checkSdkBackedGeneratedClones(splitProviderPackages);
   checkProviderSdkDependencyMetadata(splitProviderPackages);
+  await checkNoProviderSdkDecisionMetadata(splitProviderPackages);
+  await checkProviderSdkDependenciesAreUsedAtRuntime(splitProviderPackages);
   await checkNoDirectHttpSupportSlice(splitProviderPackages);
   await checkFullProviderApiClaimsUseAdapterVerification(splitProviderPackages);
   await checkProviderCoverageArtifactReferences(splitProviderPackages);
@@ -134,6 +139,8 @@ async function main() {
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
   console.log("  SDK-backed provider packages declare provider SDK dependency metadata");
+  console.log("  non-SDK provider packages declare an explicit REST/protocol/internal decision");
+  console.log("  declared provider SDK dependencies are imported by runtime source");
   console.log("  provider packages do not use retired direct-http support slices");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
   console.log("  provider coverage artifact references resolve under docs/provider-coverage");
@@ -515,6 +522,93 @@ function checkProviderSdkDependencyMetadata(packages) {
   }
 }
 
+async function checkNoProviderSdkDecisionMetadata(packages) {
+  for (const pkg of packages) {
+    for (const failure of await noProviderSdkDecisionMetadataFailuresForPackage(pkg)) {
+      failures.push(failure);
+    }
+  }
+}
+
+async function checkProviderSdkDependenciesAreUsedAtRuntime(packages) {
+  for (const pkg of packages) {
+    for (const failure of await providerSdkRuntimeUsageFailuresForPackage(pkg)) {
+      failures.push(failure);
+    }
+  }
+}
+
+export async function providerSdkRuntimeUsageFailuresForPackage(pkg) {
+  const declaredRaw = pkg.packageJson.cognidesk?.providerSdkDependencies;
+  const declared = Array.isArray(declaredRaw)
+    ? declaredRaw.filter((value) => typeof value === "string" && value.length > 0)
+    : [];
+  if (declared.length === 0) return [];
+
+  const sourceFiles = (await sourceFilesForPackage(pkg))
+    .filter((file) => file.endsWith(".ts"))
+    .filter((file) => !isGeneratedSourceFile(file))
+    .filter((file) => !isManifestOnlySourceFile(file));
+  const runtimeSource = (await Promise.all(sourceFiles.map((file) => readFile(file, "utf8")))).join("\n");
+  const failures = [];
+  const packageJsonPath = pkg.packageJsonPath
+    ? path.relative(repoRoot, pkg.packageJsonPath)
+    : `${pkg.name}/package.json`;
+
+  for (const dependencyName of declared) {
+    if (!sourceUsesRuntimePackage(runtimeSource, dependencyName)) {
+      failures.push(
+        `${packageJsonPath}: cognidesk.providerSdkDependencies declares ${dependencyName}, but runtime source does not import it`,
+      );
+    }
+  }
+
+  return failures;
+}
+
+function sourceUsesRuntimePackage(source, dependencyName) {
+  const escaped = escapeRegExp(dependencyName);
+  const directImport = new RegExp(`(^|\\n)\\s*import\\s+(?!type\\b)(?:([\\s\\S]*?)\\s+from\\s+)?["']${escaped}(?:/[^"']*)?["']`, "g");
+  const directExport = new RegExp(`(^|\\n)\\s*export\\s+(?!type\\b)([\\s\\S]*?\\s+from\\s+)["']${escaped}(?:/[^"']*)?["']`, "g");
+  const dynamicImport = new RegExp(`\\bimport\\s*\\(\\s*["']${escaped}(?:/[^"']*)?["']\\s*\\)`);
+  const requireCall = new RegExp(`\\brequire\\s*\\(\\s*["']${escaped}(?:/[^"']*)?["']\\s*\\)`);
+  const importEqualsRequire = new RegExp(`(^|\\n)\\s*import\\s+\\w+\\s*=\\s*require\\s*\\(\\s*["']${escaped}(?:/[^"']*)?["']\\s*\\)`);
+
+  if (dynamicImport.test(source) || requireCall.test(source) || importEqualsRequire.test(source)) {
+    return true;
+  }
+
+  let match;
+  while ((match = directImport.exec(source))) {
+    const importClause = match[2]?.trim();
+    if (importClause === undefined || importClause === "") return true;
+    if (importClauseHasRuntimeBinding(importClause)) return true;
+  }
+
+  while ((match = directExport.exec(source))) {
+    const exportClause = match[2]?.replace(/\s+from\s+$/u, "").trim();
+    if (exportClause === undefined || exportClause === "") continue;
+    if (exportClause.startsWith("*")) return true;
+    if (importClauseHasRuntimeBinding(exportClause)) return true;
+  }
+
+  return false;
+}
+
+function importClauseHasRuntimeBinding(clause) {
+  const trimmed = clause.trim();
+  if (trimmed === "" || trimmed.startsWith("type ")) return false;
+
+  if (!trimmed.startsWith("{")) return true;
+
+  const namedSpecifiers = trimmed.replace(/^\{\s*/u, "").replace(/\s*\}$/u, "");
+  return namedSpecifiers
+    .split(",")
+    .map((specifier) => specifier.trim())
+    .filter(Boolean)
+    .some((specifier) => !specifier.startsWith("type "));
+}
+
 export function providerSdkDependencyMetadataFailuresForPackage(pkg) {
   const failures = [];
   const declaredRaw = pkg.packageJson.cognidesk?.providerSdkDependencies;
@@ -536,6 +630,12 @@ export function providerSdkDependencyMetadataFailuresForPackage(pkg) {
     ? path.relative(repoRoot, pkg.packageJsonPath)
     : `${pkg.name}/package.json`;
 
+  if (declaredRaw === undefined) {
+    failures.push(
+      `${packageJsonPath}: provider packages must declare cognidesk.providerSdkDependencies as an array; use [] only with an explicit REST/protocol/internal no-SDK decision`,
+    );
+  }
+
   if (invalidDeclared.length > 0) {
     failures.push(
       `${packageJsonPath}: cognidesk.providerSdkDependencies must be an array of package names`,
@@ -555,6 +655,93 @@ export function providerSdkDependencyMetadataFailuresForPackage(pkg) {
   }
 
   return failures;
+}
+
+export async function noProviderSdkDecisionMetadataFailuresForPackage(pkg) {
+  const declaredRaw = pkg.packageJson.cognidesk?.providerSdkDependencies;
+  if (!Array.isArray(declaredRaw) || declaredRaw.length > 0) return [];
+
+  const packageJsonPath = pkg.packageJsonPath
+    ? path.relative(repoRoot, pkg.packageJsonPath)
+    : `${pkg.name}/package.json`;
+
+  if (packageJsonDeclaresNoProviderSdkDecision(pkg.packageJson)) return [];
+
+  return [
+    `${packageJsonPath}: cognidesk.providerSdkDependencies is [], but no explicit REST/protocol/internal provider SDK decision was found in package metadata`,
+  ];
+}
+
+function packageJsonDeclaresNoProviderSdkDecision(packageJson) {
+  const metadata = packageJson.cognidesk ?? {};
+  if (
+    metadata.providerRestAdapterException === true
+    || metadata.providerSdkException === true
+  ) {
+    return true;
+  }
+
+  return [
+    metadata.providerRestAdapterException,
+    metadata.providerSdkException,
+    metadata.providerSdkDecision,
+    metadata.sdkDecision,
+    metadata.implementationStrategy,
+  ].some(hasMeaningfulNoProviderSdkDecision);
+}
+
+function sourceDeclaresNoProviderSdkDecision(source) {
+  const normalizedSource = source.toLowerCase();
+  return [
+    "providerRestAdapterException",
+    "providerSdkException",
+    "sdkDecision",
+    "providerSdkDecision",
+    "officialRuntimeSdkAvailable: false",
+    "no-official-sdk",
+    "no-suitable",
+    "no-provider-sdk",
+    "no-provider-SDK",
+    "not-applicable-internal-provider",
+    "internal-provider/local-runtime",
+    "local-protocol",
+    "protocol-local-runtime",
+    "protocol/local-runtime",
+  ].some((marker) => normalizedSource.includes(marker.toLowerCase()));
+}
+
+function hasMeaningfulNoProviderSdkDecision(value) {
+  if (value === true) return true;
+  if (typeof value === "string") return noProviderSdkDecisionPattern.test(value);
+  if (!value || typeof value !== "object") return false;
+
+  return Object.values(value).some((childValue) => hasMeaningfulNoProviderSdkDecision(childValue));
+}
+
+const noProviderSdkDecisionPattern = /\b(?:rest|protocol|internal|no[- ]?sdk|no[- ]?official|no[- ]?suitable|sdk[- ]?not[- ]?suitable|not[- ]?suitable|local[-/]runtime|local[-/]protocol)\b/iu;
+
+function sourceHasProperty(source, key) {
+  return new RegExp(`["']?${escapeRegExp(key)}["']?\\s*:`).test(source);
+}
+
+function sourceHasStringProperty(source, key, value) {
+  return new RegExp(`["']?${escapeRegExp(key)}["']?\\s*:\\s*["']${escapeRegExp(value)}["']`).test(source);
+}
+
+function sourceHasBooleanProperty(source, key, value) {
+  return new RegExp(`["']?${escapeRegExp(key)}["']?\\s*:\\s*${value ? "true" : "false"}\\b`).test(source);
+}
+
+function sourceDeclaresType(source, typeName) {
+  return new RegExp(`\\b(?:interface|type)\\s+${escapeRegExp(typeName)}\\b`).test(source);
+}
+
+function sourceHasRawClientProperty(source, rawClientType) {
+  return new RegExp(`\\brawClient\\??\\s*:\\s*${escapeRegExp(rawClientType)}\\b`).test(source);
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 async function checkNoDirectHttpSupportSlice(packages) {

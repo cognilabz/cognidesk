@@ -6,10 +6,10 @@ export type FreshdeskJsonValue =
   | FreshdeskJsonObject
   | FreshdeskJsonValue[];
 export interface FreshdeskJsonObject {
-  [key: string]: FreshdeskJsonValue | object | undefined;
+  [key: string]: FreshdeskJsonValue | undefined;
 }
 
-export type FreshdeskProviderPayload = FreshdeskJsonObject | object;
+export type FreshdeskProviderPayload = FreshdeskJsonObject;
 
 export interface FreshdeskJsonRetryOptions {
   attempts?: number;

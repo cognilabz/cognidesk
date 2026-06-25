@@ -98,6 +98,30 @@ export const cognideskFormsProviderManifest = defineProviderPackage({
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
+    implementation: {
+      strategy: "protocol-local-runtime",
+      providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK",
+      providerSdkDependencies: [],
+      checkedAt: "2026-06-25",
+      checkedSurface: "package.json dependencies and src runtime imports",
+      runtime: "SDK-user-configured Cognidesk form registry and signed webhook parser",
+      protocolSource: "Cognidesk local form submission protocol",
+      manifestImport: "no-sdk-client-initialization",
+      integrationKitStatus: "implemented",
+      externalProviderSdk: "not-applicable-internal-provider",
+      reason: "Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK.",
+      guardrails: [
+        "Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced.",
+        "Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package.",
+        "If an external forms provider SDK is adopted later, route runtime operations through it and declare cognidesk.providerSdkDependencies.",
+      ],
+    },
+    checkedProviderSdk: {
+      checkedAt: "2026-06-25",
+      verdict: "internal-provider/local-runtime/no-provider-SDK",
+      packageSurfaceRuntimeSdkAvailable: false,
+      providerSdkDependencies: [],
+    },
     channelCoverage: {
       formDefinitions: "typed-read-validate",
       formSubmissions: "typed-validate-normalize",

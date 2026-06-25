@@ -22,7 +22,7 @@ export const frontTicketingProviderManifestInput = {
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Runtime calls use the built-in Front REST adapter by default because no viable official maintained backend Core/Channel API JavaScript client was verified.",
+      "Runtime calls use the built-in Front REST adapter by default because no viable maintained backend Core/Channel API JavaScript client was verified.",
       "Coverage is limited to selected Front conversation, message, comment, search, update, and teammate readiness operations for support workflows.",
       "A host-provided FrontTicketingProviderClient can still override the built-in REST adapter.",
       "This package intentionally does not copy the old generated full Front Core/Channel API clone.",
@@ -86,6 +86,12 @@ export const frontTicketingProviderManifestInput = {
           checkedVersion: "1.2.1",
           result: "not-ticketing-core-api-client",
           reason: "The package targets Front Chat SDK use cases rather than Core/Channel API ticketing operations.",
+        },
+        {
+          package: "@utdk/front",
+          checkedVersion: "1.0.0-20260530.2-dev.646adf4",
+          result: "rejected-generated-preview-incomplete-runtime-client",
+          reason: "The package is a third-party generated preview from Front's OpenAPI spec; the packed types expose an empty FrontClient and its source imports ../client.js outside the package contents, so it is not a viable maintained typed runtime client dependency.",
         },
       ],
     },
