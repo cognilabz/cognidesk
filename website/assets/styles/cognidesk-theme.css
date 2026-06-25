@@ -41,10 +41,26 @@
   --cd-code-header-border: oklch(82% 0.04 270 / 0.65);
   --cd-code-border: oklch(78% 0.055 270 / 0.7);
   --cd-code-title: oklch(30% 0.028 282);
+  --cd-page-bg: linear-gradient(135deg, var(--cd-bg), var(--cd-bg-warm) 72%, oklch(93% 0.028 296));
+  --cd-page-grid-line: var(--cd-line);
+  --cd-page-grid-opacity: 0.28;
 }
 
 [data-md-color-scheme="slate"] {
   color-scheme: dark;
+  --cd-bg: oklch(14% 0.026 286);
+  --cd-bg-warm: oklch(18% 0.034 286);
+  --cd-paper: oklch(20% 0.038 286);
+  --cd-paper-strong: oklch(24% 0.04 286);
+  --cd-ink: oklch(91% 0.012 285);
+  --cd-ink-soft: oklch(78% 0.018 285);
+  --cd-muted: oklch(66% 0.018 285);
+  --cd-line: oklch(36% 0.035 282 / 0.72);
+  --cd-line-strong: oklch(46% 0.045 282 / 0.78);
+  --cd-light-blue: oklch(24% 0.07 252);
+  --cd-light-violet: oklch(24% 0.075 292);
+  --cd-shadow: 0 24px 70px oklch(6% 0.02 286 / 0.46);
+  --cd-shadow-soft: 0 14px 34px oklch(6% 0.02 286 / 0.34);
   --md-default-bg-color: var(--cd-dark);
   --md-default-fg-color: oklch(91% 0.012 285);
   --md-default-fg-color--light: oklch(77% 0.018 285);
@@ -60,6 +76,9 @@
   --cd-code-header-border: oklch(34% 0.04 282 / 0.72);
   --cd-code-border: oklch(58% 0.04 270 / 0.78);
   --cd-code-title: oklch(88% 0.012 285);
+  --cd-page-bg: linear-gradient(135deg, var(--cd-bg), var(--cd-bg-warm) 70%, oklch(16% 0.032 252));
+  --cd-page-grid-line: oklch(36% 0.035 282 / 0.42);
+  --cd-page-grid-opacity: 0.34;
 }
 
 html {
@@ -68,8 +87,12 @@ html {
 }
 
 body {
-  background:
-    linear-gradient(135deg, var(--cd-bg), var(--cd-bg-warm) 72%, oklch(93% 0.028 296));
+  min-height: 100vh;
+  background-color: var(--cd-bg);
+  background-image: var(--cd-page-bg);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: 100vw 100vh;
   color: var(--cd-ink);
   text-rendering: optimizeLegibility;
 }
@@ -81,37 +104,11 @@ body::before {
   pointer-events: none;
   content: "";
   background-image:
-    linear-gradient(var(--cd-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--cd-line) 1px, transparent 1px);
+    linear-gradient(var(--cd-page-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cd-page-grid-line) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: linear-gradient(to bottom, black, transparent 62%);
-  opacity: 0.28;
-}
-
-body[data-md-color-scheme="slate"] {
-  --cd-bg: oklch(14% 0.026 286);
-  --cd-bg-warm: oklch(18% 0.034 286);
-  --cd-paper: oklch(20% 0.038 286);
-  --cd-paper-strong: oklch(24% 0.04 286);
-  --cd-ink: oklch(91% 0.012 285);
-  --cd-ink-soft: oklch(78% 0.018 285);
-  --cd-muted: oklch(66% 0.018 285);
-  --cd-line: oklch(36% 0.035 282 / 0.72);
-  --cd-line-strong: oklch(46% 0.045 282 / 0.78);
-  --cd-light-blue: oklch(24% 0.07 252);
-  --cd-light-violet: oklch(24% 0.075 292);
-  --cd-shadow: 0 24px 70px oklch(6% 0.02 286 / 0.46);
-  --cd-shadow-soft: 0 14px 34px oklch(6% 0.02 286 / 0.34);
-  background:
-    linear-gradient(135deg, oklch(14% 0.026 286), oklch(18% 0.034 286) 70%, oklch(16% 0.032 252));
-  color: var(--cd-ink);
-}
-
-body[data-md-color-scheme="slate"]::before {
-  background-image:
-    linear-gradient(oklch(36% 0.035 282 / 0.42) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(36% 0.035 282 / 0.42) 1px, transparent 1px);
-  opacity: 0.34;
+  opacity: var(--cd-page-grid-opacity);
 }
 
 .md-header {
@@ -169,8 +166,10 @@ body[data-md-color-scheme="slate"]::before {
   color: var(--cd-blue);
 }
 
-.md-main {
-  background: transparent;
+.md-container,
+.md-main,
+.md-content {
+  background: transparent !important;
 }
 
 .md-grid {
