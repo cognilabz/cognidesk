@@ -6,8 +6,6 @@ describe("@cognidesk/integration-contact-center-nextiva", () => {
   it("records the package-level provider SDK decision", async () => {
     const manifestModule = await import("../src/manifest.js");
     const packageJson = readPackageJson();
-
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual([]);
     expect(packageJson.cognidesk.providerSdkDecision).toMatchObject({
       checkedAt: "2026-06-25",
       typedClientOverride: "NextivaProviderClient",
@@ -192,7 +190,6 @@ function fakeProviderClient(): NextivaProviderClient {
 function readPackageJson() {
   return JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
     cognidesk: {
-      providerSdkDependencies: string[];
       providerSdkDecision: {
         checkedAt: string;
         typedClientOverride: string;

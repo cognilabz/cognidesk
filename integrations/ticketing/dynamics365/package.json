@@ -46,9 +46,6 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "dynamics365",
-    "providerSdkDependencies": [
-      "dynamics-web-api"
-    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

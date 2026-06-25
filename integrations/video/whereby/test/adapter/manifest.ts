@@ -84,7 +84,6 @@ export function registerWherebyManifestTests() {
         expect.objectContaining({ packageName: "whereby-api", npmStatus: "404" }),
       ]),
     });
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual([]);
     expect(packageJson.cognidesk.providerRestAdapterException).toMatchObject({
       result: "no-official-maintained-server-rest-sdk",
       checkedAt: "2026-06-25",

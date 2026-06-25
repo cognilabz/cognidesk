@@ -45,7 +45,6 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "zoho-desk",
-    "providerSdkDependencies": [],
     "providerRestAdapterException": {
       "checkedAt": "2026-06-25",
       "result": "no-official-maintained-zoho-desk-node-runtime-sdk",

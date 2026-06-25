@@ -46,7 +46,6 @@
   "cognidesk": {
     "providerPackage": true,
     "release": "independent-provider",
-    "providerSdkDependencies": [],
     "providerSdkDecision": {
       "checkedAt": "2026-06-25",
       "result": "not-applicable-internal-provider",

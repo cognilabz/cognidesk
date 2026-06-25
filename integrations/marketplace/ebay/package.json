@@ -64,10 +64,6 @@
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
     },
-    "providerSdkDependencies": [
-      "digital-signature-nodejs-sdk",
-      "event-notification-nodejs-sdk"
-    ],
     "providerRestAdapterException": {
       "checkedAt": "2026-06-25",
       "result": "no-provider-owned-general-ebay-rest-sdk",

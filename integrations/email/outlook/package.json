@@ -39,9 +39,6 @@
   "cognidesk": {
     "kind": "provider-package",
     "providerPackage": true,
-    "providerSdkDependencies": [
-      "@microsoft/microsoft-graph-client"
-    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,
       "unpackedSizeBytes": 41943040,

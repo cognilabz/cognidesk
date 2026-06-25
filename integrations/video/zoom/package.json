@@ -54,9 +54,6 @@
     "providerPackage": true,
     "category": "video",
     "provider": "zoom",
-    "providerSdkDependencies": [
-      "@zoom/rivet"
-    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

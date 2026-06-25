@@ -46,8 +46,9 @@
     "release": "independent-provider",
     "category": "voice",
     "provider": "openai",
-    "manifestOnlyExports": ["./manifest"],
-    "providerSdkDependencies": ["openai"],
+    "manifestOnlyExports": [
+      "./manifest"
+    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,
       "unpackedSizeBytes": 41943040,

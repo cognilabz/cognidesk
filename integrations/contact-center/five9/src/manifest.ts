@@ -144,7 +144,7 @@ export const five9ProviderManifestInput = {
       guardrails: [
         "Keep Five9 calls behind Five9ProviderClient or the built-in REST adapter until an official maintained Node/TypeScript Five9 runtime SDK exists.",
         "Require baseUrl and host-configured operation paths before the built-in REST adapter can call fetch.",
-        "If an official maintained runtime SDK is adopted later, switch implementationStrategy away from provider-rest-adapter and declare cognidesk.providerSdkDependencies.",
+        "If an official maintained runtime SDK is adopted later, switch implementationStrategy away from provider-rest-adapter and add a normal package.json runtime dependency.",
       ],
     },
     checkedProviderSdk: five9CheckedProviderSdk,

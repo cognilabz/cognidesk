@@ -49,10 +49,7 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
-    },
-    "providerSdkDependencies": [
-      "@sap-cloud-sdk/http-client"
-    ]
+    }
   },
   "publishConfig": {
     "access": "public",

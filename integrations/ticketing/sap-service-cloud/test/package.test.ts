@@ -82,7 +82,6 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       "@cognidesk/core": "workspace:*",
       "@cognidesk/integration-kit": "workspace:*",
     });
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual(["@sap-cloud-sdk/http-client"]);
     expect(sapServiceCloudTicketingProviderManifest.metadata?.checkedProviderSdk).toMatchObject({
       verdict: "sdk-backed-generic-odata-http-client",
       candidates: expect.arrayContaining([

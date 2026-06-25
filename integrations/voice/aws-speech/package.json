@@ -47,10 +47,8 @@
     "release": "independent-provider",
     "category": "voice",
     "provider": "aws-speech",
-    "manifestOnlyExports": ["./manifest"],
-    "providerSdkDependencies": [
-      "@aws-sdk/client-polly",
-      "@aws-sdk/client-transcribe-streaming"
+    "manifestOnlyExports": [
+      "./manifest"
     ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,

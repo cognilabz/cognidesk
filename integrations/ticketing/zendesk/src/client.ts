@@ -10,6 +10,7 @@ import type {
   ZendeskTicketingClientOptions,
   ZendeskTicketingProviderPayload,
   ZendeskTicketingRawClient,
+  ZendeskTicketAttachmentInput,
   ZendeskUploadFileInput,
 } from "./contracts.js";
 
@@ -40,7 +41,7 @@ export function createZendeskTicketingClient(options: ZendeskTicketingClientOpti
     },
     async searchTickets(query) {
       const response = await requiredResourceMethod(rawClient.search, "query")(searchQuery(query));
-      return unwrapZendeskResponse(response) as ZendeskTicketingProviderPayload;
+      return zendeskSearchResults(unwrapZendeskResponse(response));
     },
     async createComment(ticketId, comment, publicComment = true) {
       const ticketPatch = {
@@ -55,14 +56,25 @@ export function createZendeskTicketingClient(options: ZendeskTicketingClientOpti
       return asObject(unwrapZendeskResponse(response)) ?? asObject(response) ?? {};
     },
     async uploadFile(input) {
-      const uploadOptions = {
-        filename: input.filename,
-        binary: input.binary ?? true,
-        ...(input.token ? { token: input.token } : {}),
+      return uploadZendeskFile(rawClient, input);
+    },
+    async addTicketAttachment(input) {
+      const upload = await uploadZendeskFile(rawClient, input);
+      const token = getStringField(upload, "token");
+      if (!token) throw new Error("Zendesk attachment upload did not return an upload token.");
+      const response = await requiredResourceMethod(rawClient.tickets, "update")(toZendeskId(input.ticketId), {
+        ticket: {
+          comment: {
+            ...(input.comment ?? {}),
+            public: input.public ?? true,
+            uploads: [token],
+          },
+        },
+      });
+      return {
+        upload,
+        ticket: asObject(unwrapZendeskResponse(response)) ?? asObject(response) ?? {},
       };
-      const response = await requiredResourceMethod(rawClient.attachments, "upload")(zendeskUploadData(input.data), uploadOptions);
-      const body = unwrapZendeskResponse(response);
-      return asObject(getObjectField(body, "upload")) ?? asObject(body) ?? {};
     },
     async getUser(userId) {
       const response = await requiredResourceMethod(rawClient.users, "show")(toZendeskId(userId));
@@ -156,12 +168,23 @@ function unwrapZendeskResponse(value: unknown): unknown {
   return value;
 }
 
+function zendeskSearchResults(value: unknown): ZendeskTicketingProviderPayload {
+  const object = asObject(value);
+  const results = object ? object.results : undefined;
+  return Array.isArray(results) ? results : value as ZendeskTicketingProviderPayload;
+}
+
 function asObject(value: unknown): JsonObject | undefined {
   return isRecord(value) && !Array.isArray(value) ? value as JsonObject : undefined;
 }
 
 function getObjectField(value: unknown, field: string): unknown {
   return isRecord(value) ? value[field] : undefined;
+}
+
+function getStringField(value: unknown, field: string): string | undefined {
+  const fieldValue = getObjectField(value, field);
+  return typeof fieldValue === "string" ? fieldValue : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -242,6 +265,17 @@ function zendeskUploadData(data: ZendeskUploadFileInput["data"]): ZendeskUploadF
   return data;
 }
 
+async function uploadZendeskFile(rawClient: ZendeskTicketingRawClient, input: ZendeskUploadFileInput): Promise<JsonObject> {
+  const uploadOptions = {
+    filename: input.filename,
+    binary: input.binary ?? true,
+    ...(input.token ? { token: input.token } : {}),
+  };
+  const response = await requiredResourceMethod(rawClient.attachments, "upload")(zendeskUploadData(input.data), uploadOptions);
+  const body = unwrapZendeskResponse(response);
+  return asObject(getObjectField(body, "upload")) ?? asObject(body) ?? {};
+}
+
 function rawRequestUrl(endpointUri: string, path: string): string {
   if (/^https?:\/\//i.test(path)) return path;
   const relativePath = path.replace(/^\/+/, "").replace(/^api\/v2\/?/, "");
@@ -252,5 +286,6 @@ export type {
   ZendeskTicketingClient,
   ZendeskTicketingClientOptions,
   ZendeskTicketingRawClient,
+  ZendeskTicketAttachmentInput,
   ZendeskUploadFileInput,
 };

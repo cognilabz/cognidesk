@@ -41,7 +41,6 @@
     "release": "independent-provider",
     "category": "social",
     "provider": "tiktok",
-    "providerSdkDependencies": [],
     "providerRestAdapterException": {
       "sdkPackage": "tiktok-business-api-sdk-official",
       "checkedAt": "2026-06-25",

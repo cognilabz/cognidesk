@@ -75,9 +75,7 @@ describe("@cognidesk/integration-ticketing-zendesk", () => {
       ticketId: 123,
       patch: { priority: "high" },
     })).resolves.toMatchObject({ id: 123, priority: "high" });
-    await expect(integration.run("ticket.search", { query: { type: "ticket", status: "open" } })).resolves.toMatchObject({
-      results: [{ id: 123 }],
-    });
+    await expect(integration.run("ticket.search", { query: { type: "ticket", status: "open" } })).resolves.toEqual([{ id: 123 }]);
     await expect(integration.run("ticket.comment.create", {
       ticketId: 123,
       comment: { body: "We can help." },
@@ -87,10 +85,15 @@ describe("@cognidesk/integration-ticketing-zendesk", () => {
       note: { body: "Agent-only note." },
     })).resolves.toMatchObject({ comment: { public: false } });
     await expect(integration.run("ticket.attachments.add", {
+      ticketId: 123,
       filename: "trace.txt",
       data: "hello",
       token: "upload-token",
-    })).resolves.toMatchObject({ token: "upload-token" });
+      comment: { body: "Trace attached." },
+    })).resolves.toMatchObject({
+      upload: { token: "upload-token" },
+      ticket: { comment: { body: "Trace attached.", public: true, uploads: ["upload-token"] } },
+    });
     await expect(integration.run("customer.read", { userId: 456 })).resolves.toMatchObject({ id: 456 });
     await expect(integration.run("zendesk.organization.read", { organizationId: 789 })).resolves.toMatchObject({ id: 789 });
     await expect(integration.run("zendesk.webhook.list", undefined)).resolves.toEqual([{ id: "webhook_1" }]);
@@ -104,6 +107,7 @@ describe("@cognidesk/integration-ticketing-zendesk", () => {
       { method: "tickets.update", args: [123, { ticket: { comment: { body: "We can help.", public: true } } }] },
       { method: "tickets.update", args: [123, { ticket: { comment: { body: "Agent-only note.", public: false } } }] },
       { method: "attachments.upload", args: ["readable-stream", { filename: "trace.txt", binary: true, token: "upload-token" }] },
+      { method: "tickets.update", args: [123, { ticket: { comment: { body: "Trace attached.", public: true, uploads: ["upload-token"] } } }] },
       { method: "users.show", args: [456] },
       { method: "organizations.show", args: [789] },
       { method: "webhooks.list", args: [] },
@@ -143,10 +147,15 @@ describe("@cognidesk/integration-ticketing-zendesk", () => {
       note: { body: "Agent note" },
     })).resolves.toMatchObject({ comment: { body: "Agent note", public: false } });
     await expect(integration.run("ticket.attachments.add", {
+      ticketId: 123,
       filename: "trace.txt",
       data: "hello",
       token: "upload-token",
-    })).resolves.toMatchObject({ token: "upload-token" });
+      comment: { body: "Trace attached." },
+    })).resolves.toMatchObject({
+      upload: { token: "upload-token" },
+      ticket: { comment: { body: "Trace attached.", public: true, uploads: ["upload-token"] } },
+    });
     await expect(integration.run("customer.read", { userId: 456 })).resolves.toMatchObject({ id: 456 });
     await expect(integration.run("zendesk.organization.read", { organizationId: 789 })).resolves.toMatchObject({ id: 789 });
     await expect(integration.run("zendesk.webhook.list", undefined)).resolves.toEqual([{ id: "webhook_1" }]);
@@ -190,6 +199,11 @@ describe("@cognidesk/integration-ticketing-zendesk", () => {
         body: "readable-stream",
       }),
       expect.objectContaining({
+        method: "PUT",
+        url: "https://example.zendesk.com/api/v2/tickets/123.json",
+        body: "{\"ticket\":{\"comment\":{\"body\":\"Trace attached.\",\"public\":true,\"uploads\":[\"upload-token\"]}}}",
+      }),
+      expect.objectContaining({
         method: "GET",
         url: "https://example.zendesk.com/api/v2/users/456.json",
       }),
@@ -218,6 +232,21 @@ describe("@cognidesk/integration-ticketing-zendesk", () => {
     await expect(integration.run("ticket.read", { ticketId: 0 })).rejects.toThrow("Zendesk id must be a safe integer");
     await expect(integration.run("customer.read", { userId: -1 })).rejects.toThrow("Zendesk id must be a safe integer");
     expect(calls).toEqual([]);
+  });
+
+  it("rejects Zendesk attachment association when the SDK upload does not return a token", async () => {
+    const rawClient = fakeZendeskRawClient();
+    rawClient.attachments.upload = async () => ({ response: {}, result: { upload: {} } });
+    const integration = createZendeskTicketingIntegration({
+      instanceUrl: "https://example.zendesk.com",
+      rawClient,
+    });
+
+    await expect(integration.run("ticket.attachments.add", {
+      ticketId: 123,
+      filename: "trace.txt",
+      data: "hello",
+    })).rejects.toThrow("Zendesk attachment upload did not return an upload token.");
   });
 
   it("keeps a rawRequest escape hatch on the node-zendesk raw client", async () => {

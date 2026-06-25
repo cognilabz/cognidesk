@@ -54,7 +54,6 @@ describe("@cognidesk/integration-voice-sip", () => {
       implementation: {
         strategy: "protocol-runtime-sdk-gateway",
         providerSdkDecision: "provider-protocol-lib/drachtio-srf",
-        providerSdkDependencies: ["drachtio-srf"],
       },
     });
   });
@@ -196,7 +195,6 @@ describe("@cognidesk/integration-voice-sip", () => {
       missing: ["sip-stack-gateway"],
       details: {
         providerSdkDecision: "provider-protocol-lib/drachtio-srf",
-        providerSdkDependencies: ["drachtio-srf"],
         gatewayRequired: true,
       },
     });

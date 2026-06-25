@@ -16,8 +16,6 @@ describe("@cognidesk/integration-contact-center-aircall", () => {
   it("records the package-level provider SDK decision", async () => {
     const manifestModule = await import("../src/manifest.js");
     const packageJson = readPackageJson();
-
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual([]);
     expect(packageJson.cognidesk.providerSdkDecision).toMatchObject({
       checkedAt: "2026-06-25",
       typedClientOverride: "AircallRawClient",
@@ -202,7 +200,6 @@ describe("@cognidesk/integration-contact-center-aircall", () => {
 function readPackageJson() {
   return JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
     cognidesk: {
-      providerSdkDependencies: string[];
       providerSdkDecision: {
         checkedAt: string;
         typedClientOverride: string;

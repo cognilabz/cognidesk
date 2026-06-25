@@ -45,9 +45,6 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "zendesk",
-    "providerSdkDependencies": [
-      "node-zendesk"
-    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

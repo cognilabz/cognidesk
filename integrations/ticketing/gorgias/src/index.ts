@@ -65,12 +65,24 @@ export function createGorgiasTicketingOperationHandlers(
   const client = createGorgiasTicketingClient(options);
 
   return {
-    "ticket.create": (input: JsonObject) => client.createTicket(input),
-    "ticket.read": (input: { ticketId: string | number }) => client.getTicket(input.ticketId),
-    "ticket.update": (input: { ticketId: string | number; patch: JsonObject }) => client.updateTicket(input.ticketId, input.patch),
-    "ticket.search": (input: { query?: JsonObject } = {}) => client.listTickets(input.query),
-    "ticket.comment.create": (input: { ticketId: string | number; message: JsonObject }) => client.createTicketMessage(input.ticketId, input.message),
-    "gorgias.message.list": (input: { query?: JsonObject } = {}) => client.listMessages(input.query),
+    "ticket.create": (input: unknown) => client.createTicket(assertJsonObject(input, "ticket.create")),
+    "ticket.read": (input: unknown) => client.getTicket(gorgiasTicketId(input, "ticket.read")),
+    "ticket.update": (input: unknown) => {
+      const object = assertJsonObject(input, "ticket.update");
+      return client.updateTicket(gorgiasTicketId(object, "ticket.update"), assertJsonObject(object.patch, "ticket.update.patch"));
+    },
+    "ticket.search": (input: unknown = {}) => {
+      const object = assertJsonObject(input, "ticket.search");
+      return client.listTickets(optionalJsonObject(object.query, "ticket.search.query"));
+    },
+    "ticket.comment.create": (input: unknown) => {
+      const object = assertJsonObject(input, "ticket.comment.create");
+      return client.createTicketMessage(gorgiasTicketId(object, "ticket.comment.create"), assertJsonObject(object.message, "ticket.comment.create.message"));
+    },
+    "gorgias.message.list": (input: unknown = {}) => {
+      const object = assertJsonObject(input, "gorgias.message.list");
+      return client.listMessages(optionalJsonObject(object.query, "gorgias.message.list.query"));
+    },
     "gorgias.readiness": () => client.readiness(),
   } as const;
 }
@@ -241,6 +253,23 @@ function providerQueryValue(value: JsonValue): ProviderQueryValue {
 
 function asJsonObject(value: unknown): JsonObject | undefined {
   return isRecord(value) ? value as JsonObject : undefined;
+}
+
+function assertJsonObject(value: unknown, label: string): JsonObject {
+  if (isRecord(value)) return value as JsonObject;
+  throw new Error(`Gorgias ${label} requires a JSON object input.`);
+}
+
+function optionalJsonObject(value: unknown, label: string): JsonObject | undefined {
+  if (value === undefined) return undefined;
+  return assertJsonObject(value, label);
+}
+
+function gorgiasTicketId(input: unknown, label: string): string | number {
+  const object = assertJsonObject(input, label);
+  const ticketId = object.ticketId;
+  if (typeof ticketId === "string" || typeof ticketId === "number") return ticketId;
+  throw new Error(`Gorgias ${label}.ticketId is required.`);
 }
 
 function asHeadersRecord(value: unknown): Record<string, string | undefined> | undefined {

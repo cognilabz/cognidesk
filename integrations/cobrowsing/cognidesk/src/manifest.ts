@@ -187,7 +187,6 @@ export const cognideskCobrowsingProviderManifest = defineProviderPackage({
       externalProviderSdk: "not-applicable-internal-provider",
       checkedAt: "2026-06-25",
       providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK",
-      providerSdkDependencies: [],
       defaultClientPolicy: "sdk-user-provided-cobrowsing-session-client",
       typedClientOverride: "CognideskCobrowsingIntegrationClient",
       reason: "Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization rather than a named external cobrowsing provider SDK.",

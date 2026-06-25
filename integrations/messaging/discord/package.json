@@ -43,9 +43,6 @@
     "release": "independent-provider",
     "category": "messaging",
     "provider": "discord",
-    "providerSdkDependencies": [
-      "discord.js"
-    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,
       "unpackedSizeBytes": 41943040,

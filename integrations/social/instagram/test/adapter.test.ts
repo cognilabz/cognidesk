@@ -50,13 +50,11 @@ describe("@cognidesk/integration-social-instagram", () => {
     const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")) as {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
-      cognidesk?: { providerSdkDependencies?: string[] };
     };
     const clientSource = await readFile(new URL("../src/client.ts", import.meta.url), "utf8");
 
     expect(packageJson.dependencies ?? {}).toHaveProperty("facebook-nodejs-business-sdk");
     expect(packageJson.devDependencies ?? {}).not.toHaveProperty("facebook-nodejs-business-sdk");
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual(["facebook-nodejs-business-sdk"]);
     expect(clientSource).toContain("from \"facebook-nodejs-business-sdk\"");
     expect(clientSource).toContain("FacebookAdsApi.init");
     expect(clientSource).toContain("api.call");

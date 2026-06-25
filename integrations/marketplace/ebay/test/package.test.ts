@@ -71,7 +71,6 @@ describe("@cognidesk/integration-marketplace-ebay", () => {
     const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")) as {
       dependencies?: Record<string, string>;
       cognidesk?: {
-        providerSdkDependencies?: string[];
         providerRestAdapterException?: {
           result?: string;
           typedClientOverride?: string;
@@ -84,10 +83,6 @@ describe("@cognidesk/integration-marketplace-ebay", () => {
 
     expect(packageJson.dependencies ?? {}).toHaveProperty("digital-signature-nodejs-sdk");
     expect(packageJson.dependencies ?? {}).toHaveProperty("event-notification-nodejs-sdk");
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([
-      "digital-signature-nodejs-sdk",
-      "event-notification-nodejs-sdk",
-    ]);
     expect(packageJson.cognidesk?.providerRestAdapterException).toMatchObject({
       result: "no-provider-owned-general-ebay-rest-sdk",
       typedClientOverride: "EbayMarketplaceProviderClient",

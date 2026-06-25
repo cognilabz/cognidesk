@@ -32,18 +32,33 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
     {
       id: "servicenow-instance",
       label: "ServiceNow instance URL",
-      description: "The SDK user's ServiceNow instance URL, for example https://example.service-now.com.",
-      required: true,
+      description: "The SDK user's ServiceNow instance URL for the built-in official @servicenow/sdk-api Connector transport, for example https://example.service-now.com. Not required when the host injects a ServiceNowRawClient.",
+      required: false,
+      metadata: {
+        requiredWhen: "built-in-servicenow-sdk-connector",
+      },
     },
     {
       id: "servicenow-api-access",
       label: "ServiceNow API access",
-      description: "Server-side Basic Auth or OAuth bearer access for ServiceNow REST APIs; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes.",
+      description: "Server-side OAuth bearer or Basic Auth access for the built-in official @servicenow/sdk-api Connector transport and Basic Auth fallback; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes. Not required when the host injects a ServiceNowRawClient.",
       scopes: ["table_api"],
-      required: true,
+      required: false,
       metadata: {
+        requiredWhen: "built-in-servicenow-sdk-connector",
         scopeKind: "internal-capability-labels",
         privilegeGuidance: "The table_api value is Cognidesk capability guidance, not a universal ServiceNow OAuth scope. The credential must be authorized for Table API, Attachment API, Import Set API, and configured target tables.",
+      },
+    },
+    {
+      id: "servicenow-raw-client",
+      label: "Host-provided ServiceNow raw client",
+      description: "Optional ServiceNowRawClient override supplied by the host application. When configured, Cognidesk delegates operations to that client instead of constructing the built-in @servicenow/sdk-api Connector transport.",
+      required: false,
+      metadata: {
+        credentialKind: "host-client-override",
+        clientInterface: "ServiceNowRawClient",
+        satisfies: ["servicenow-instance", "servicenow-api-access"],
       },
     },
   ],

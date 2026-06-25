@@ -43,14 +43,12 @@ describe("@cognidesk/integration-form-cognidesk", () => {
     const source = await readFile(resolve(packageRoot, "src/manifest.ts"), "utf8");
     const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
-      cognidesk?: { providerSdkDependencies?: unknown };
     };
 
     expect(cognideskFormsProviderManifest.packageName).toBe("@cognidesk/integration-form-cognidesk");
     expect(cognideskFormsProviderManifest.metadata).toMatchObject({
       implementation: {
         providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK",
-        providerSdkDependencies: [],
         runtime: "SDK-user-configured Cognidesk form registry and signed webhook parser",
         externalProviderSdk: "not-applicable-internal-provider",
       },
@@ -59,7 +57,6 @@ describe("@cognidesk/integration-form-cognidesk", () => {
         packageSurfaceRuntimeSdkAvailable: false,
       },
     });
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([]);
     expect(Object.keys(packageJson.dependencies ?? {}).every((dependency) => dependency.startsWith("@cognidesk/")))
       .toBe(true);
     expect(source).not.toContain("node:crypto");

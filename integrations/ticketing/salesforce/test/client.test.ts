@@ -115,6 +115,27 @@ describe("@cognidesk/integration-ticketing-salesforce", () => {
       { method: "query", args: ["SELECT Id FROM Case LIMIT 1"] },
     ]);
   });
+
+  it("rejects malformed Salesforce writes before SDK calls and normalizes invalid search limits", async () => {
+    const calls: SdkCall[] = [];
+    const rawClient = createRawClient(calls);
+    const client = createSalesforceTicketingClient({ rawClient });
+
+    await expect(client.integration.run("ticket.comment.create", { body: "missing id" }))
+      .rejects.toThrow("Salesforce Case id is required.");
+    await expect(client.integration.run("ticket.comment.create", { caseId: "500-comment" }))
+      .rejects.toThrow("Salesforce CaseComment body is required.");
+    await expect(client.integration.run("ticket.internalNote.create", { ticketId: "500-note" }))
+      .rejects.toThrow("Salesforce internal note body is required.");
+    await client.integration.run("ticket.search", { where: "Status = 'New'", limit: -3 });
+
+    expect(calls).toEqual([{
+      method: "query",
+      args: [
+        "SELECT Id, CaseNumber, Subject, Status, Priority, Origin, CreatedDate, LastModifiedDate FROM Case WHERE Status = 'New' LIMIT 25",
+      ],
+    }]);
+  });
 });
 
 function createRawClient(calls: SdkCall[]): SalesforceTicketingRawClient {

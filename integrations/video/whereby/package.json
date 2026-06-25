@@ -53,7 +53,6 @@
     "providerPackage": true,
     "category": "video",
     "provider": "whereby",
-    "providerSdkDependencies": [],
     "providerRestAdapterException": {
       "checkedAt": "2026-06-25",
       "result": "no-official-maintained-server-rest-sdk",

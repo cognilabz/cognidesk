@@ -44,7 +44,6 @@ describe("@cognidesk/integration-voice-sip", () => {
     const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
       cognidesk?: {
-        providerSdkDependencies?: unknown;
         providerSdkDecision?: {
           selectedSdkPackage?: string;
           defaultClientPolicy?: string;
@@ -57,13 +56,11 @@ describe("@cognidesk/integration-voice-sip", () => {
     expect(sipVoiceProviderManifest.metadata).toMatchObject({
       implementation: {
         providerSdkDecision: "provider-protocol-lib/drachtio-srf",
-        providerSdkDependencies: ["drachtio-srf"],
         runtime: "createDrachtioSipStackGateway backed by drachtio-srf Srf, createUAC, and Dialog call-control methods",
       },
       checkedProviderSdk: {
         verdict: "provider-protocol-lib-selected",
         packageSurfaceRuntimeSdkAvailable: true,
-        providerSdkDependencies: ["drachtio-srf"],
       },
     });
     expect(source).not.toContain("./client");
@@ -73,7 +70,7 @@ describe("@cognidesk/integration-voice-sip", () => {
     expect(drachtioSource).toContain("createUAC");
     expect(drachtioSource).toContain("dialog.request");
     expect(drachtioSource).toContain("dialog.modify");
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual(["drachtio-srf"]);
+    expect(packageJson.dependencies).toHaveProperty("drachtio-srf");
     expect(packageJson.cognidesk?.providerSdkDecision).toMatchObject({
       selectedSdkPackage: "drachtio-srf",
       defaultClientPolicy: "drachtio-srf-gateway-when-configured-or-host-injected-SipStackGateway",

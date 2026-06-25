@@ -61,6 +61,23 @@ describe("@cognidesk/integration-ticketing-gorgias", () => {
     await expect(integration.run("ticket.read", { ticketId: 7 })).rejects.toThrow("Gorgias provider client is required");
   });
 
+  it("rejects malformed Gorgias operation inputs before provider calls", async () => {
+    const providerClient = createProviderClient({
+      updateTicket: vi.fn(async () => ({ id: 7 })),
+      createTicketMessage: vi.fn(async () => ({ id: 5 })),
+    });
+    const integration = createGorgiasTicketingIntegration({ providerClient });
+
+    await expect(integration.run("ticket.update", { ticketId: 7 }))
+      .rejects.toThrow("Gorgias ticket.update.patch requires a JSON object input.");
+    await expect(integration.run("ticket.comment.create", { ticketId: 7 }))
+      .rejects.toThrow("Gorgias ticket.comment.create.message requires a JSON object input.");
+    await expect(integration.run("ticket.read", {}))
+      .rejects.toThrow("Gorgias ticket.read.ticketId is required.");
+    expect(providerClient.updateTicket).not.toHaveBeenCalled();
+    expect(providerClient.createTicketMessage).not.toHaveBeenCalled();
+  });
+
   it("normalizes raw REST methods and requires complete Basic auth credentials", async () => {
     const fetchMock = vi.fn(async () => jsonResponse({ ok: true }));
     const client = createGorgiasTicketingClient({

@@ -118,11 +118,8 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
     const packageJson = JSON.parse(
       await readFile(new URL("../package.json", import.meta.url), "utf8"),
     ) as {
-      cognidesk?: { providerSdkDependencies?: unknown };
       dependencies?: Record<string, string>;
     };
-
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([]);
     expect(packageJson.dependencies).not.toHaveProperty("@zohodesk/js-api-creator");
   });
 
@@ -232,6 +229,12 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
     expect(commentsUrl.pathname).toBe("/api/v1/tickets/ticket%2042%2Fa/comments");
     expect(commentsUrl.searchParams.get("limit")).toBe("50");
     expect(commentsUrl.searchParams.get("include")).toBe("plainText");
+
+    await client.listTickets({ status: "open", ignored: undefined, empty: null });
+    const ticketsUrl = new URL(String(fetchMock.mock.calls[2]![0]));
+    expect(ticketsUrl.searchParams.get("status")).toBe("open");
+    expect(ticketsUrl.searchParams.has("ignored")).toBe(false);
+    expect(ticketsUrl.searchParams.has("empty")).toBe(false);
   });
 
   it("surfaces Zoho Desk REST JSON errors", async () => {

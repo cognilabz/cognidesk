@@ -8,10 +8,7 @@
   "cognidesk": {
     "kind": "provider-package",
     "providerPackage": true,
-    "release": "independent-provider",
-    "providerSdkDependencies": [
-      "facebook-nodejs-business-sdk"
-    ]
+    "release": "independent-provider"
   },
   "exports": {
     ".": {

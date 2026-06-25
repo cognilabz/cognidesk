@@ -49,9 +49,6 @@
     "release": "independent-provider",
     "manifestOnlyExports": [
       "./manifest"
-    ],
-    "providerSdkDependencies": [
-      "@googleapis/gmail"
     ]
   },
   "repository": {

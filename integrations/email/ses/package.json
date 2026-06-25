@@ -52,10 +52,6 @@
     "release": "independent-provider",
     "manifestOnlyExports": [
       "./manifest"
-    ],
-    "providerSdkDependencies": [
-      "@aws-sdk/client-ses",
-      "@aws-sdk/client-sesv2"
     ]
   },
   "repository": {

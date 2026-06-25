@@ -29,7 +29,6 @@ describe("@cognidesk/integration-ticketing-kustomer", () => {
       defaultClientPolicy: "built-in-kustomer-rest-adapter-with-access-token",
       typedClientOverride: "KustomerTicketingProviderClient",
     });
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual([]);
     expect(packageJson.cognidesk.providerRestAdapterException).toMatchObject({
       result: "no-official-maintained-ticketing-rest-sdk",
       defaultClientPolicy: "built-in-kustomer-rest-adapter-with-access-token",

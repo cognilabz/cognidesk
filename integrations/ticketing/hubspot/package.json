@@ -45,9 +45,6 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "hubspot",
-    "providerSdkDependencies": [
-      "@hubspot/api-client"
-    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

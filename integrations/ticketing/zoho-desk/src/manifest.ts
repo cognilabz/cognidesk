@@ -97,7 +97,7 @@ export const zohoDeskTicketingProviderManifest = defineProviderPackage({
       guardrails: [
         "Keep backend ticketing calls behind ZohoDeskProviderClient and the built-in REST adapter until an official maintained Node/TypeScript Zoho Desk runtime SDK exists.",
         "Do not add @zohodesk/js-api-creator as the default provider SDK; it is a generic API builder, not a typed Zoho Desk ticketing client.",
-        "If an official maintained runtime SDK is adopted later, switch implementation.strategy away from provider-rest-adapter and declare cognidesk.providerSdkDependencies.",
+        "If an official maintained runtime SDK is adopted later, switch implementation.strategy away from provider-rest-adapter and add a normal package.json runtime dependency.",
       ],
     },
     checkedProviderSdk: {

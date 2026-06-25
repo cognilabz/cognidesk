@@ -9,9 +9,6 @@
     "kind": "provider-package",
     "providerPackage": true,
     "release": "independent-provider",
-    "providerSdkDependencies": [
-      "baileys"
-    ],
     "providerRuntimeExceptions": [
       {
         "packageName": "baileys",

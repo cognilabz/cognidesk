@@ -51,7 +51,7 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
       license: "freshdesk",
       result: "accepted-runtime-sdk",
     });
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual(["@freshworks/freshdesk"]);
+    expect(packageJson.dependencies).toHaveProperty("@freshworks/freshdesk");
     expect(packageJson.cognidesk.providerSdkRuntime).toMatchObject({
       sdkPackage: "@freshworks/freshdesk",
       checkedVersion: "0.0.1",
@@ -251,6 +251,23 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
         headerName: "x-attacker-secret",
       },
     })).resolves.toMatchObject({ verified: true, event: { provider: "freshdesk" } });
+  });
+
+  it("parses webhooks without constructing the ticketing client", async () => {
+    const handlers = createFreshdeskTicketingIntegrationOperationHandlers({
+      webhookSecret: "secret",
+    });
+    const request = new Request("https://example.test/webhook", {
+      method: "POST",
+      headers: { "x-cognidesk-freshdesk-webhook-secret": "secret" },
+      body: JSON.stringify({ ticket_id: 42 }),
+    });
+
+    await expect(handlers["freshdesk.webhook.parse"]({ request })).resolves.toMatchObject({
+      verified: true,
+      event: { provider: "freshdesk" },
+    });
+    expect(freshdeskSdkFactory).not.toHaveBeenCalled();
   });
 
   it("rejects unsigned Freshdesk webhooks before parsing the request body", async () => {

@@ -61,6 +61,7 @@ const providerSdkPackages = new Set([
   "@vonage/server-sdk",
   "@zoom/rivet",
   "discord.js",
+  "drachtio-srf",
   "googleapis",
   "mailgun.js",
   "node-zendesk",
@@ -114,7 +115,6 @@ async function main() {
   await checkNoRuntimeNodeModulesScanning(workspaces);
   await checkManifestOnlyEntrypoints();
   await checkSdkBackedGeneratedClones(splitProviderPackages);
-  checkProviderSdkDependencyMetadata(splitProviderPackages);
   await checkNoProviderSdkDecisionMetadata(splitProviderPackages);
   await checkProviderSdkDependenciesAreUsedAtRuntime(splitProviderPackages);
   await checkNoDirectHttpSupportSlice(splitProviderPackages);
@@ -139,9 +139,9 @@ async function main() {
   console.log("  package source does not scan node_modules at runtime");
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
-  console.log("  SDK-backed provider packages declare provider SDK dependency metadata");
+  console.log("  SDK-backed provider packages use normal package.json runtime dependencies");
   console.log("  non-SDK provider packages declare an explicit REST/protocol/internal decision");
-  console.log("  declared provider SDK dependencies are imported by runtime source");
+  console.log("  provider SDK runtime dependencies are imported by runtime source");
   console.log("  provider packages do not use retired direct-http support slices");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
   console.log("  provider coverage artifact references resolve under docs/provider-coverage");
@@ -515,14 +515,6 @@ async function checkSdkBackedGeneratedClones(packages) {
   }
 }
 
-function checkProviderSdkDependencyMetadata(packages) {
-  for (const pkg of packages) {
-    for (const failure of providerSdkDependencyMetadataFailuresForPackage(pkg)) {
-      failures.push(failure);
-    }
-  }
-}
-
 async function checkNoProviderSdkDecisionMetadata(packages) {
   for (const pkg of packages) {
     for (const failure of await noProviderSdkDecisionMetadataFailuresForPackage(pkg)) {
@@ -540,11 +532,8 @@ async function checkProviderSdkDependenciesAreUsedAtRuntime(packages) {
 }
 
 export async function providerSdkRuntimeUsageFailuresForPackage(pkg) {
-  const declaredRaw = pkg.packageJson.cognidesk?.providerSdkDependencies;
-  const declared = Array.isArray(declaredRaw)
-    ? declaredRaw.filter((value) => typeof value === "string" && value.length > 0)
-    : [];
-  if (declared.length === 0) return [];
+  const sdkDependencies = providerSdkRuntimeDependencyNames(pkg.packageJson);
+  if (sdkDependencies.length === 0) return [];
 
   const sourceFiles = (await sourceFilesForPackage(pkg))
     .filter((file) => file.endsWith(".ts"))
@@ -556,10 +545,10 @@ export async function providerSdkRuntimeUsageFailuresForPackage(pkg) {
     ? path.relative(repoRoot, pkg.packageJsonPath)
     : `${pkg.name}/package.json`;
 
-  for (const dependencyName of declared) {
+  for (const dependencyName of sdkDependencies) {
     if (!sourceUsesRuntimePackage(runtimeSource, dependencyName)) {
       failures.push(
-        `${packageJsonPath}: cognidesk.providerSdkDependencies declares ${dependencyName}, but runtime source does not import it`,
+        `${packageJsonPath}: package.json runtime dependency ${dependencyName} is a provider SDK/lib, but runtime source does not import it`,
       );
     }
   }
@@ -655,57 +644,8 @@ function sourceUsesRuntimePackage(source, dependencyName) {
   return found;
 }
 
-export function providerSdkDependencyMetadataFailuresForPackage(pkg) {
-  const failures = [];
-  const declaredRaw = pkg.packageJson.cognidesk?.providerSdkDependencies;
-  const declared = Array.isArray(declaredRaw)
-    ? declaredRaw.filter((value) => typeof value === "string" && value.length > 0)
-    : [];
-  const invalidDeclared = Array.isArray(declaredRaw)
-    ? declaredRaw.filter((value) => typeof value !== "string" || value.length === 0)
-    : declaredRaw === undefined
-      ? []
-      : [declaredRaw];
-  const dependencyNames = runtimeDependencyNames(pkg.packageJson);
-  const knownSdkDependencies = [...dependencyNames]
-    .filter((dependencyName) => providerSdkPackages.has(dependencyName))
-    .sort((left, right) => left.localeCompare(right));
-  const missingMetadata = knownSdkDependencies.filter((dependencyName) => !declared.includes(dependencyName));
-  const unknownMetadata = declared.filter((dependencyName) => !dependencyNames.has(dependencyName));
-  const packageJsonPath = pkg.packageJsonPath
-    ? path.relative(repoRoot, pkg.packageJsonPath)
-    : `${pkg.name}/package.json`;
-
-  if (declaredRaw === undefined) {
-    failures.push(
-      `${packageJsonPath}: provider packages must declare cognidesk.providerSdkDependencies as an array; use [] only with an explicit REST/protocol/internal no-SDK decision`,
-    );
-  }
-
-  if (invalidDeclared.length > 0) {
-    failures.push(
-      `${packageJsonPath}: cognidesk.providerSdkDependencies must be an array of package names`,
-    );
-  }
-
-  if (missingMetadata.length > 0) {
-    failures.push(
-      `${packageJsonPath}: SDK-backed provider package must list runtime SDK dependencies in cognidesk.providerSdkDependencies (${missingMetadata.join(", ")})`,
-    );
-  }
-
-  if (unknownMetadata.length > 0) {
-    failures.push(
-      `${packageJsonPath}: cognidesk.providerSdkDependencies references packages that are not runtime dependencies (${unknownMetadata.join(", ")})`,
-    );
-  }
-
-  return failures;
-}
-
 export async function noProviderSdkDecisionMetadataFailuresForPackage(pkg) {
-  const declaredRaw = pkg.packageJson.cognidesk?.providerSdkDependencies;
-  if (!Array.isArray(declaredRaw) || declaredRaw.length > 0) return [];
+  if (providerSdkRuntimeDependencyNames(pkg.packageJson).length > 0) return [];
 
   const packageJsonPath = pkg.packageJsonPath
     ? path.relative(repoRoot, pkg.packageJsonPath)
@@ -714,7 +654,7 @@ export async function noProviderSdkDecisionMetadataFailuresForPackage(pkg) {
   if (packageJsonDeclaresNoProviderSdkDecision(pkg.packageJson)) return [];
 
   return [
-    `${packageJsonPath}: cognidesk.providerSdkDependencies is [], but no explicit REST/protocol/internal provider SDK decision was found in package metadata`,
+    `${packageJsonPath}: no provider SDK/lib runtime dependency was found in normal package.json dependency fields, and no explicit REST/protocol/internal no-SDK decision was found in package metadata`,
   ];
 }
 
@@ -903,10 +843,13 @@ async function sourceFilesForPackage(pkg) {
 }
 
 export function isSdkBackedPackage(packageJson) {
-  const declared = packageJson.cognidesk?.providerSdkDependencies;
-  if (Array.isArray(declared) && declared.length > 0) return true;
+  return providerSdkRuntimeDependencyNames(packageJson).length > 0;
+}
 
-  return [...runtimeDependencyNames(packageJson)].some((dependencyName) => providerSdkPackages.has(dependencyName));
+function providerSdkRuntimeDependencyNames(packageJson) {
+  return [...runtimeDependencyNames(packageJson)]
+    .filter((dependencyName) => providerSdkPackages.has(dependencyName))
+    .sort((left, right) => left.localeCompare(right));
 }
 
 function runtimeDependencyNames(packageJson) {

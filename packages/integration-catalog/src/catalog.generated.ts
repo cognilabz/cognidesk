@@ -271,7 +271,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "externalProviderSdk": "not-applicable-internal-provider",
         "checkedAt": "2026-06-25",
         "providerSdkDecision": "internal-provider/local-runtime/no-provider-SDK",
-        "providerSdkDependencies": [],
         "defaultClientPolicy": "sdk-user-provided-cobrowsing-session-client",
         "typedClientOverride": "CognideskCobrowsingIntegrationClient",
         "reason": "Cognidesk Cobrowsing is an internal local-protocol adapter for SDK-user-owned session storage, signed session tokens, and event normalization rather than a named external cobrowsing provider SDK.",
@@ -1794,7 +1793,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "guardrails": [
           "Keep Five9 calls behind Five9ProviderClient or the built-in REST adapter until an official maintained Node/TypeScript Five9 runtime SDK exists.",
           "Require baseUrl and host-configured operation paths before the built-in REST adapter can call fetch.",
-          "If an official maintained runtime SDK is adopted later, switch implementationStrategy away from provider-rest-adapter and declare cognidesk.providerSdkDependencies."
+          "If an official maintained runtime SDK is adopted later, switch implementationStrategy away from provider-rest-adapter and add a normal package.json runtime dependency."
         ]
       },
       "checkedProviderSdk": {
@@ -7459,7 +7458,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "implementation": {
         "strategy": "protocol-local-runtime",
         "providerSdkDecision": "internal-provider/local-runtime/no-provider-SDK",
-        "providerSdkDependencies": [],
         "checkedAt": "2026-06-25",
         "checkedSurface": "package.json dependencies and src runtime imports",
         "runtime": "SDK-user-configured Cognidesk form registry and signed webhook parser",
@@ -7471,14 +7469,13 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "guardrails": [
           "Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced.",
           "Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package.",
-          "If an external forms provider SDK is adopted later, route runtime operations through it and declare cognidesk.providerSdkDependencies."
+          "If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency."
         ]
       },
       "checkedProviderSdk": {
         "checkedAt": "2026-06-25",
         "verdict": "internal-provider/local-runtime/no-provider-SDK",
-        "packageSurfaceRuntimeSdkAvailable": false,
-        "providerSdkDependencies": []
+        "packageSurfaceRuntimeSdkAvailable": false
       },
       "channelCoverage": {
         "formDefinitions": "typed-read-validate",
@@ -7674,7 +7671,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "externalProviderSdk": "not-applicable-internal-provider",
         "checkedAt": "2026-06-25",
         "providerSdkDecision": "internal-provider/local-runtime/no-provider-SDK",
-        "providerSdkDependencies": [],
         "defaultClientPolicy": "built-in-http-source-when-base-url-configured",
         "typedClientOverride": "HelpCenterProviderClient",
         "reason": "Cognidesk Help Center is an internal local/HTTP-source protocol and host-client adapter rather than a named external help-center provider SDK.",
@@ -17959,31 +17955,51 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
     },
     "readiness": {
       "mode": "credential-and-live-check",
-      "requiresCredentials": true,
-      "requiredCredentialIds": [
+      "requiresCredentials": false,
+      "requiredCredentialIds": [],
+      "optionalCredentialIds": [
         "servicenow-instance",
-        "servicenow-api-access"
+        "servicenow-api-access",
+        "servicenow-raw-client"
       ],
-      "optionalCredentialIds": [],
       "credentialRequirements": [
         {
           "id": "servicenow-instance",
           "label": "ServiceNow instance URL",
-          "description": "The SDK user's ServiceNow instance URL, for example https://example.service-now.com.",
+          "description": "The SDK user's ServiceNow instance URL for the built-in official @servicenow/sdk-api Connector transport, for example https://example.service-now.com. Not required when the host injects a ServiceNowRawClient.",
           "scopes": [],
-          "required": true
+          "required": false,
+          "metadata": {
+            "requiredWhen": "built-in-servicenow-sdk-connector"
+          }
         },
         {
           "id": "servicenow-api-access",
           "label": "ServiceNow API access",
-          "description": "Server-side Basic Auth or OAuth bearer access for ServiceNow REST APIs; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes.",
+          "description": "Server-side OAuth bearer or Basic Auth access for the built-in official @servicenow/sdk-api Connector transport and Basic Auth fallback; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes. Not required when the host injects a ServiceNowRawClient.",
           "scopes": [
             "table_api"
           ],
-          "required": true,
+          "required": false,
           "metadata": {
+            "requiredWhen": "built-in-servicenow-sdk-connector",
             "scopeKind": "internal-capability-labels",
             "privilegeGuidance": "The table_api value is Cognidesk capability guidance, not a universal ServiceNow OAuth scope. The credential must be authorized for Table API, Attachment API, Import Set API, and configured target tables."
+          }
+        },
+        {
+          "id": "servicenow-raw-client",
+          "label": "Host-provided ServiceNow raw client",
+          "description": "Optional ServiceNowRawClient override supplied by the host application. When configured, Cognidesk delegates operations to that client instead of constructing the built-in @servicenow/sdk-api Connector transport.",
+          "scopes": [],
+          "required": false,
+          "metadata": {
+            "credentialKind": "host-client-override",
+            "clientInterface": "ServiceNowRawClient",
+            "satisfies": [
+              "servicenow-instance",
+              "servicenow-api-access"
+            ]
           }
         }
       ]
@@ -18205,6 +18221,51 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "extension": false
       },
       {
+        "capability": "send",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "zendeskTicketComment",
+            "label": "Zendesk Ticket Comment"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
+        "capability": "draft",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "zendeskInternalNote",
+            "label": "Zendesk Internal Note"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": false,
+        "extension": false
+      },
+      {
+        "capability": "attach",
+        "audiences": [],
+        "providerObjects": [
+          {
+            "kind": "zendeskTicketAttachment",
+            "label": "Zendesk Ticket Attachment"
+          }
+        ],
+        "requiresCredential": true,
+        "sideEffect": true,
+        "exposesSensitiveData": true,
+        "changesWorkflow": true,
+        "extension": false
+      },
+      {
         "capability": "handoff",
         "audiences": [],
         "providerObjects": [
@@ -18228,7 +18289,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "scope": "support-workflow-subset",
       "notes": [
         "Coverage is a Cognidesk support workflow adapter backed by the node-zendesk provider SDK.",
-        "Typed operations cover ticket create/read/update/search, public comments, internal notes, uploads, users, organizations, webhooks list, current-user readiness, and a node-zendesk rawClient escape hatch for SDK-user-owned advanced methods.",
+        "Typed operations cover ticket create/read/update/search, public comments, internal notes, upload-and-attach, users, organizations, webhooks list, current-user readiness, and a node-zendesk rawClient escape hatch for SDK-user-owned advanced methods.",
         "This package intentionally does not copy the old generated full Zendesk Support OpenAPI clone."
       ],
       "evidence": [
@@ -18377,7 +18438,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "channelCoverage": {
         "tickets": "sdk-backed-create-read-update-search",
         "comments": "sdk-backed-ticket-update-comment",
-        "uploads": "sdk-backed-attachments-upload",
+        "uploads": "sdk-backed-attachments-upload-and-ticket-comment-association",
         "users": "sdk-backed-read-current-user",
         "organizations": "sdk-backed-read",
         "webhooks": "sdk-backed-list",
@@ -18748,7 +18809,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "guardrails": [
           "Keep backend ticketing calls behind ZohoDeskProviderClient and the built-in REST adapter until an official maintained Node/TypeScript Zoho Desk runtime SDK exists.",
           "Do not add @zohodesk/js-api-creator as the default provider SDK; it is a generic API builder, not a typed Zoho Desk ticketing client.",
-          "If an official maintained runtime SDK is adopted later, switch implementation.strategy away from provider-rest-adapter and declare cognidesk.providerSdkDependencies."
+          "If an official maintained runtime SDK is adopted later, switch implementation.strategy away from provider-rest-adapter and add a normal package.json runtime dependency."
         ]
       },
       "checkedProviderSdk": {
@@ -21503,9 +21564,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
       "implementation": {
         "strategy": "protocol-runtime-sdk-gateway",
         "providerSdkDecision": "provider-protocol-lib/drachtio-srf",
-        "providerSdkDependencies": [
-          "drachtio-srf"
-        ],
         "checkedAt": "2026-06-25",
         "checkedSurface": "npm view drachtio-srf/sip.js/jssip and package runtime imports",
         "runtime": "createDrachtioSipStackGateway backed by drachtio-srf Srf, createUAC, and Dialog call-control methods",
@@ -21535,9 +21593,6 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "checkedAt": "2026-06-25",
         "verdict": "provider-protocol-lib-selected",
         "packageSurfaceRuntimeSdkAvailable": true,
-        "providerSdkDependencies": [
-          "drachtio-srf"
-        ],
         "selectedPackage": {
           "packageName": "drachtio-srf",
           "ecosystem": "npm",

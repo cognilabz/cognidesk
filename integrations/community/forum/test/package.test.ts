@@ -78,7 +78,6 @@ describe("@cognidesk/integration-community-forum", () => {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
       cognidesk?: {
-        providerSdkDependencies?: string[];
         providerRestAdapterException?: {
           result?: string;
           defaultClientPolicy?: string;
@@ -99,7 +98,6 @@ describe("@cognidesk/integration-community-forum", () => {
       "@cognidesk/core",
       "@cognidesk/integration-kit",
     ]);
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([]);
     expect(packageJson.cognidesk?.providerRestAdapterException).toMatchObject({
       result: "no-applicable-official-js-ts-sdk",
       defaultClientPolicy: "built-in-discourse-rest-adapter-when-configured",

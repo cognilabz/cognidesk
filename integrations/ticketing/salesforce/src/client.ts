@@ -138,17 +138,25 @@ export function createSalesforceTicketingOperationsClient(
       return Promise.resolve(rawClient.query(input.soql ?? buildCaseSearchSoql(input)));
     },
     createCaseComment(input) {
+      const parentId = input.ticketId ?? input.caseId;
+      if (!parentId) throw new Error("Salesforce Case id is required.");
+      const commentBody = input.body ?? input.text ?? input.comment;
+      if (!commentBody) throw new Error("Salesforce CaseComment body is required.");
       return rawClient.sobject("CaseComment").create(stripUndefined({
-        ParentId: input.ticketId ?? input.caseId,
-        CommentBody: input.body ?? input.text ?? input.comment,
+        ParentId: parentId,
+        CommentBody: commentBody,
         IsPublished: input.isPublished ?? true,
         ...(input.fields ?? {}),
       }));
     },
     createInternalNote(input) {
+      const parentId = input.ticketId ?? input.caseId;
+      if (!parentId) throw new Error("Salesforce Case id is required.");
+      const body = input.body ?? input.text ?? input.note;
+      if (!body) throw new Error("Salesforce internal note body is required.");
       return rawClient.sobject("FeedItem").create(stripUndefined({
-        ParentId: input.ticketId ?? input.caseId,
-        Body: input.body ?? input.text ?? input.note,
+        ParentId: parentId,
+        Body: body,
         Type: input.type ?? "TextPost",
         Visibility: input.visibility,
         ...(input.fields ?? {}),
@@ -211,7 +219,10 @@ function caseFields(input: SalesforceCaseInput): SalesforceProviderPayload {
 }
 
 function buildCaseSearchSoql(input: SalesforceCaseSearchInput) {
-  const limit = Number.isFinite(input.limit) ? Number(input.limit) : 25;
+  const requestedLimit = input.limit;
+  const limit = typeof requestedLimit === "number" && Number.isInteger(requestedLimit) && requestedLimit > 0
+    ? requestedLimit
+    : 25;
   if (input.where) {
     return `SELECT Id, CaseNumber, Subject, Status, Priority, Origin, CreatedDate, LastModifiedDate FROM Case WHERE ${input.where} LIMIT ${limit}`;
   }

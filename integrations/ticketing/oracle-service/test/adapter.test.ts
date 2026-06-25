@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import {
   createOracleServiceTicketingClient,
+  createOracleServiceTicketingIntegration,
   createOracleServiceTicketingLiveChecks,
   type OracleServiceTicketingProviderClient,
   oracleServiceTicketingCredentialStatuses,
@@ -211,6 +212,21 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
     await expect(createOracleServiceTicketingLiveChecks({})[0]?.run({})).rejects.toThrow(
       "baseUrl/instanceUrl plus access credentials",
     );
+  });
+
+  it("does not expose Oracle Basic Auth usernames through integration metadata", () => {
+    const integration = createOracleServiceTicketingIntegration({
+      instanceUrl: "https://example.fa.oraclecloud.com",
+      username: "svc-user",
+      password: "svc-pass",
+      fetch: vi.fn(),
+    });
+
+    expect(integration.metadata).toMatchObject({
+      implementationStrategy: "no-official-sdk-rest-adapter",
+    });
+    expect(JSON.stringify(integration.metadata)).not.toContain("svc-user");
+    expect(JSON.stringify(integration)).not.toContain("svc-user");
   });
 
   it("reports live conformance as credential-blocked until Oracle credentials are configured", async () => {

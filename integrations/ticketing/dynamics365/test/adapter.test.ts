@@ -282,6 +282,8 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
       .resolves.toMatchObject({
         updated: { collection: "incidents", key: caseId, data: { title: "B" } },
       });
+    await expect(client.integration.run("ticket.update", { ticketId: caseId }))
+      .rejects.toThrow("Dynamics 365 ticket.update requires patch, body, or fields.");
     await expect(client.integration.run("ticket.search", { top: 1 })).resolves.toMatchObject({
       listed: { collection: "incidents", top: 1 },
     });

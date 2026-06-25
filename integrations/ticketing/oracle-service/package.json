@@ -49,7 +49,6 @@
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
     },
-    "providerSdkDependencies": [],
     "providerRestAdapterException": {
       "checkedAt": "2026-06-25",
       "result": "no-oracle-fusion-service-ticketing-runtime-sdk",

@@ -43,9 +43,9 @@ export function createZendeskTicketingOperationHandlers(
       _context: IntegrationOperationContext,
     ) => client.createComment(input.ticketId, input.note, false),
     "ticket.attachments.add": (
-      input: Parameters<typeof client.uploadFile>[0],
+      input: Parameters<typeof client.addTicketAttachment>[0],
       _context: IntegrationOperationContext,
-    ) => client.uploadFile(input),
+    ) => client.addTicketAttachment(input),
     "customer.read": (
       input: { userId: string | number },
       _context: IntegrationOperationContext,

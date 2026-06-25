@@ -106,12 +106,10 @@ describe("@cognidesk/integration-review-appstore", () => {
   it("declares and imports appstore-connect-sdk for the runtime client", async () => {
     const packageJson = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
-      cognidesk?: { providerSdkDependencies?: string[] };
     };
     const clientSource = await readFile(path.join(packageRoot, "src", "client.ts"), "utf8");
 
     expect(packageJson.dependencies ?? {}).toHaveProperty("appstore-connect-sdk");
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual(["appstore-connect-sdk"]);
     expect(clientSource).toContain("from \"appstore-connect-sdk\"");
     expect(clientSource).toContain("appsCustomerReviewsGetToManyRelated");
     expect(clientSource).toContain("customerReviewsGetInstance");

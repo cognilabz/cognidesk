@@ -46,9 +46,6 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "servicenow",
-    "providerSdkDependencies": [
-      "@servicenow/sdk-api"
-    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

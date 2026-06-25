@@ -6,8 +6,6 @@ describe("@cognidesk/integration-contact-center-five9", () => {
   it("records the package-level provider SDK decision", async () => {
     const manifestModule = await import("../src/manifest.js");
     const packageJson = readPackageJson();
-
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual([]);
     expect(packageJson.cognidesk.providerSdkDecision).toMatchObject({
       checkedAt: "2026-06-25",
       typedClientOverride: "Five9ProviderClient",
@@ -236,7 +234,6 @@ describe("@cognidesk/integration-contact-center-five9", () => {
 function readPackageJson() {
   return JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
     cognidesk: {
-      providerSdkDependencies: string[];
       providerSdkDecision: {
         checkedAt: string;
         typedClientOverride: string;

@@ -73,7 +73,6 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
       cognidesk?: {
         providerPackage?: boolean;
         release?: string;
-        providerSdkDependencies?: string[];
         manifestOnlyExports?: string[];
       };
     };
@@ -107,7 +106,6 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
     expect(packageJson.cognidesk).toMatchObject({
       providerPackage: true,
       release: "independent-provider",
-      providerSdkDependencies: [],
       manifestOnlyExports: ["./manifest"],
     });
     expect(packageJson.exports?.["./runtime"]).toMatchObject({

@@ -367,6 +367,9 @@ function updatePatch(input: Dynamics365UpdateOperationInput) {
   if (input.body) return input.body;
   if (input.fields) return input.fields;
   const { ticketId: _ticketId, caseId: _caseId, id: _id, ...patch } = input;
+  if (Object.keys(patch).length === 0) {
+    throw new Error("Dynamics 365 ticket.update requires patch, body, or fields.");
+  }
   return patch;
 }
 

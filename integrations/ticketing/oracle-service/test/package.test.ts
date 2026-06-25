@@ -95,6 +95,5 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
       "@cognidesk/core": "workspace:*",
       "@cognidesk/integration-kit": "workspace:*",
     });
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual([]);
   });
 });

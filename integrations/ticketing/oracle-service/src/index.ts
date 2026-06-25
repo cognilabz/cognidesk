@@ -387,7 +387,7 @@ export function createOracleServiceTicketingIntegration(options: OracleServiceTi
     operations: createOracleServiceTicketingOperationHandlers(client),
     credentials: {
       instanceUrl: options.instanceUrl,
-      username: options.username,
+      basicAuthConfigured: options.username && options.password ? true : undefined,
       accessToken: options.accessToken ? "configured" : undefined,
     },
     metadata: {

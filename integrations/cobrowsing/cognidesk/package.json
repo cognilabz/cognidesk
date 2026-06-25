@@ -54,7 +54,6 @@
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
     },
-    "providerSdkDependencies": [],
     "providerSdkDecision": {
       "checkedAt": "2026-06-25",
       "result": "not-applicable-internal-provider",

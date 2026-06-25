@@ -62,9 +62,6 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
-    },
-    "providerSdkDependencies": [
-      "appstore-connect-sdk"
-    ]
+    }
   }
 }

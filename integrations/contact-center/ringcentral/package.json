@@ -47,9 +47,6 @@
     "manifestOnlyExports": [
       "./manifest"
     ],
-    "providerSdkDependencies": [
-      "@ringcentral/sdk"
-    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 1000000,
       "unpackedSizeBytes": 5000000

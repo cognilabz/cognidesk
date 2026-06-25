@@ -49,9 +49,6 @@
     "manifestOnlyExports": [
       "./manifest"
     ],
-    "providerSdkDependencies": [
-      "drachtio-srf"
-    ],
     "providerSdkDecision": {
       "checkedAt": "2026-06-25",
       "result": "runtime-protocol-lib-selected",

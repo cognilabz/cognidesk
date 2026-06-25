@@ -42,9 +42,6 @@
     "release": "independent-provider",
     "category": "messaging",
     "provider": "rcs",
-    "providerSdkDependencies": [
-      "@google/rcsbusinessmessaging"
-    ],
     "manifestOnlyExports": [
       "./manifest"
     ]

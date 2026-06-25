@@ -6,8 +6,6 @@ describe("@cognidesk/integration-contact-center-nice-cxone", () => {
   it("records the package-level provider SDK decision", async () => {
     const manifestModule = await import("../src/manifest.js");
     const packageJson = readPackageJson();
-
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual([]);
     expect(packageJson.cognidesk.providerSdkDecision).toMatchObject({
       checkedAt: "2026-06-25",
       typedClientOverride: "NiceCxoneProviderClient",
@@ -200,7 +198,6 @@ function fakeProviderClient(): NiceCxoneProviderClient {
 function readPackageJson() {
   return JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
     cognidesk: {
-      providerSdkDependencies: string[];
       providerSdkDecision: {
         checkedAt: string;
         typedClientOverride: string;

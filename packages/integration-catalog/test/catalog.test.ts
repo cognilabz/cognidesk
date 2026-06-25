@@ -83,7 +83,7 @@ describe("integration catalog", () => {
       importPath: "@cognidesk/integration-ticketing-sap-service-cloud/manifest",
       packageName: "@cognidesk/integration-ticketing-sap-service-cloud",
       implementation: {
-        strategy: "provider-rest-adapter",
+        strategy: "support-workflow-adapter",
         runtimePackage: "@cognidesk/integration-ticketing-sap-service-cloud",
         manifestSource: "integrations/ticketing/sap-service-cloud/src/manifest.ts",
         manifestSourceKind: "manifest-only",

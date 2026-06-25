@@ -259,6 +259,7 @@ function zohoDeskProviderQuery(query: ZohoDeskProviderQuery | undefined): Record
   if (!query) return undefined;
   const output: Record<string, ProviderQueryValue> = {};
   for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null) continue;
     output[key] = zohoDeskProviderQueryValue(value);
   }
   return output;

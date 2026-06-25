@@ -44,7 +44,6 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "kustomer",
-    "providerSdkDependencies": [],
     "providerRestAdapterException": {
       "checkedAt": "2026-06-25",
       "result": "no-official-maintained-ticketing-rest-sdk",

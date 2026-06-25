@@ -33,13 +33,11 @@ describe("@cognidesk/integration-form-cognidesk", () => {
       implementation: {
         strategy: "protocol-local-runtime",
         providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK",
-        providerSdkDependencies: [],
         externalProviderSdk: "not-applicable-internal-provider",
       },
       checkedProviderSdk: {
         verdict: "internal-provider/local-runtime/no-provider-SDK",
         packageSurfaceRuntimeSdkAvailable: false,
-        providerSdkDependencies: [],
       },
     });
   });

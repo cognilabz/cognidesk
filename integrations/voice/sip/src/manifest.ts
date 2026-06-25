@@ -245,7 +245,6 @@ export const sipVoiceProviderManifest = defineProviderPackage({
     implementation: {
       strategy: "protocol-runtime-sdk-gateway",
       providerSdkDecision: "provider-protocol-lib/drachtio-srf",
-      providerSdkDependencies: ["drachtio-srf"],
       checkedAt: "2026-06-25",
       checkedSurface: "npm view drachtio-srf/sip.js/jssip and package runtime imports",
       runtime: "createDrachtioSipStackGateway backed by drachtio-srf Srf, createUAC, and Dialog call-control methods",
@@ -275,7 +274,6 @@ export const sipVoiceProviderManifest = defineProviderPackage({
       checkedAt: "2026-06-25",
       verdict: "provider-protocol-lib-selected",
       packageSurfaceRuntimeSdkAvailable: true,
-      providerSdkDependencies: ["drachtio-srf"],
       selectedPackage: {
         packageName: "drachtio-srf",
         ecosystem: "npm",

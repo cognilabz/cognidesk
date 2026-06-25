@@ -44,6 +44,12 @@ export interface ZendeskUploadFileInput {
   binary?: boolean;
 }
 
+export interface ZendeskTicketAttachmentInput extends ZendeskUploadFileInput {
+  ticketId: string | number;
+  comment?: JsonObject;
+  public?: boolean;
+}
+
 export interface ZendeskUploadOptions {
   filename: string;
   binary: boolean;
@@ -72,6 +78,7 @@ export interface ZendeskTicketingClient {
   searchTickets(query: string | JsonObject): Promise<ZendeskTicketingProviderPayload>;
   createComment(ticketId: string | number, comment: JsonObject, publicComment?: boolean): Promise<JsonObject>;
   uploadFile(input: ZendeskUploadFileInput): Promise<JsonObject>;
+  addTicketAttachment(input: ZendeskTicketAttachmentInput): Promise<JsonObject>;
   getUser(userId: string | number): Promise<JsonObject>;
   getOrganization(organizationId: string | number): Promise<JsonObject>;
   listWebhooks(): Promise<ZendeskTicketingProviderPayload>;

@@ -72,7 +72,6 @@ export function buildSipLocalRuntimeMissingReadiness(config: SipVoiceConfig): Si
     details: {
       ...configReadiness.details,
       providerSdkDecision: "provider-protocol-lib/drachtio-srf",
-      providerSdkDependencies: ["drachtio-srf"],
       gatewayRequired: true,
       reason: "No drachtio-srf gateway configuration or host SipStackGateway was supplied; this package cannot establish SIP registration, proxy reachability, or call-control readiness by itself.",
     },

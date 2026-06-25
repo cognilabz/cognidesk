@@ -48,7 +48,7 @@ describe("WhatsApp Web linked-device adapter", () => {
 
   it("declares and genuinely imports the Baileys community runtime package", async () => {
     const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-    expect(packageJson.cognidesk.providerSdkDependencies).toEqual(["baileys"]);
+    expect(packageJson.dependencies).toHaveProperty("baileys");
     expect(packageJson.cognidesk.providerRuntimeExceptions).toEqual([
       expect.objectContaining({
         packageName: "baileys",

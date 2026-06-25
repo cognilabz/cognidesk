@@ -58,9 +58,6 @@
     "manifestOnlyExports": [
       "./manifest"
     ],
-    "providerSdkDependencies": [
-      "@googleapis/androidpublisher"
-    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,
       "unpackedSizeBytes": 41943040,

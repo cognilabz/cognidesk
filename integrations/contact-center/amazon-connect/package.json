@@ -48,10 +48,6 @@
     "manifestOnlyExports": [
       "./manifest"
     ],
-    "providerSdkDependencies": [
-      "@aws-sdk/client-connect",
-      "@aws-sdk/client-connectparticipant"
-    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 1000000,
       "unpackedSizeBytes": 5000000

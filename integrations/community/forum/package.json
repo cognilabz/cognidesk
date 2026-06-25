@@ -46,7 +46,6 @@
   "cognidesk": {
     "providerPackage": true,
     "release": "independent-provider",
-    "providerSdkDependencies": [],
     "providerRestAdapterException": {
       "checkedAt": "2026-06-25",
       "result": "no-applicable-official-js-ts-sdk",

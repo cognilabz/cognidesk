@@ -106,7 +106,6 @@ describe("@cognidesk/integration-social-tiktok", () => {
       await readFile(new URL("../package.json", import.meta.url), "utf8"),
     ) as {
       cognidesk?: {
-        providerSdkDependencies?: string[];
         providerRestAdapterException?: {
           sdkPackage?: string;
           result?: string;
@@ -115,8 +114,6 @@ describe("@cognidesk/integration-social-tiktok", () => {
         };
       };
     };
-
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual([]);
     expect(packageJson.cognidesk?.providerRestAdapterException).toMatchObject({
       sdkPackage: "tiktok-business-api-sdk-official",
       result: "sdk-not-suitable-for-mixed-social-surface",

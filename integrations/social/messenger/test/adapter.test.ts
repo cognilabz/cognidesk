@@ -51,7 +51,6 @@ describe("@cognidesk/integration-social-messenger", () => {
     const clientSource = await readFile(new URL("../src/client.ts", import.meta.url), "utf8");
     const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")) as {
       dependencies?: Record<string, string>;
-      cognidesk?: { providerSdkDependencies?: string[] };
     };
 
     expect(source).not.toContain("./client");
@@ -59,7 +58,6 @@ describe("@cognidesk/integration-social-messenger", () => {
     expect(source).not.toContain("from \"facebook-nodejs-business-sdk\"");
     expect(source).not.toContain("from 'facebook-nodejs-business-sdk'");
     expect(packageJson.dependencies ?? {}).toHaveProperty("facebook-nodejs-business-sdk");
-    expect(packageJson.cognidesk?.providerSdkDependencies).toEqual(["facebook-nodejs-business-sdk"]);
     expect(clientSource).toContain("from \"facebook-nodejs-business-sdk\"");
     expect(clientSource).toContain("FacebookAdsApi.init");
     expect(clientSource).toContain("api.call");
