@@ -51,7 +51,7 @@ export function createFreshworksFreshdeskSdkProviderClient(
       return freshdeskUnsupportedSdkOperation("searchTickets", "the official @freshworks/freshdesk SDK searchTicket method accepts a string query only; inject FreshdeskTicketingProviderClient for structured search.");
     },
     createReply: (ticketId, body) => freshdeskSdkJson(sdkClient.tickets.replyTicket(ticketId, freshdeskSdkPayload(body))),
-    createNote: (ticketId, body) => freshdeskSdkJson(sdkClient.tickets.addNotes(ticketId, freshdeskSdkPayload(body))),
+    createNote: (ticketId, body) => freshdeskSdkJson(sdkClient.tickets.addNote(ticketId, freshdeskSdkPayload(body))),
     getContact: (contactId) => freshdeskSdkJson(sdkClient.contacts.getContact(contactId)),
     searchContacts: (query) => freshdeskSdkJson(sdkClient.contacts.searchContacts(freshdeskSdkContactSearchOptions(query))),
     getAgent: () => freshdeskUnsupportedSdkOperation("getAgent", "the official @freshworks/freshdesk SDK does not expose agents APIs; inject FreshdeskTicketingProviderClient for this operation."),
@@ -93,7 +93,12 @@ function freshdeskSdkDomain(options: Pick<FreshdeskTicketingClientOptions, "doma
   const domain = options.domain?.trim();
   if (!domain) throw new Error("Freshdesk SDK adapter requires domain.");
   const url = new URL(/^https?:\/\//i.test(domain) ? domain : `https://${domain}`);
-  return url.hostname.includes(".") ? url.hostname : `${url.hostname}.freshdesk.com`;
+  const hostname = url.hostname.toLowerCase();
+  const normalized = hostname.includes(".") ? hostname : `${hostname}.freshdesk.com`;
+  if (!normalized.endsWith(".freshdesk.com")) {
+    throw new Error("Freshdesk SDK adapter requires a trusted Freshdesk domain.");
+  }
+  return normalized;
 }
 
 function freshdeskSdkSearchQuery(query: string | FreshdeskJsonObject): string | undefined {

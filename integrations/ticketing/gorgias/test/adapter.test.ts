@@ -28,6 +28,13 @@ describe("@cognidesk/integration-ticketing-gorgias", () => {
       },
     });
     expect(manifestOnly.metadata).toHaveProperty("sdkDecision", "no-official-sdk-rest-adapter");
+    expect(manifestOnly.credentialRequirements).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: "gorgias-api-username",
+        required: false,
+        metadata: { requiredWhen: "using-basic-email-api-key" },
+      }),
+    ]));
   });
 
   it("binds declared operations to handlers", () => {
@@ -74,6 +81,10 @@ describe("@cognidesk/integration-ticketing-gorgias", () => {
       .rejects.toThrow("Gorgias ticket.comment.create.message requires a JSON object input.");
     await expect(integration.run("ticket.read", {}))
       .rejects.toThrow("Gorgias ticket.read.ticketId is required.");
+    await expect(integration.run("ticket.read", { ticketId: "" }))
+      .rejects.toThrow("Gorgias ticket.read.ticketId is required.");
+    await expect(integration.run("ticket.read", { ticketId: Number.POSITIVE_INFINITY }))
+      .rejects.toThrow("Gorgias ticket.read.ticketId is required.");
     expect(providerClient.updateTicket).not.toHaveBeenCalled();
     expect(providerClient.createTicketMessage).not.toHaveBeenCalled();
   });
@@ -111,6 +122,13 @@ describe("@cognidesk/integration-ticketing-gorgias", () => {
       fetch: fetchMock,
     });
     await expect(missingBaseUrlClient.readiness()).rejects.toThrow("requires baseUrl");
+
+    const insecureBaseUrlClient = createGorgiasTicketingClient({
+      baseUrl: "http://gorgias.example.test",
+      accessToken: "gorgias-token",
+      fetch: fetchMock,
+    });
+    await expect(insecureBaseUrlClient.readiness()).rejects.toThrow("requires an HTTPS baseUrl");
   });
 });
 

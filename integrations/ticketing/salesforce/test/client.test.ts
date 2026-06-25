@@ -64,7 +64,7 @@ describe("@cognidesk/integration-ticketing-salesforce", () => {
       ticketId: "500-update",
       patch: {
         status: "Closed",
-        fields: { Resolution__c: "fixed" },
+        fields: { Id: "500-attacker", Resolution__c: "fixed" },
       },
     });
     await client.integration.run("ticket.comment.create", {
@@ -127,6 +127,8 @@ describe("@cognidesk/integration-ticketing-salesforce", () => {
       .rejects.toThrow("Salesforce CaseComment body is required.");
     await expect(client.integration.run("ticket.internalNote.create", { ticketId: "500-note" }))
       .rejects.toThrow("Salesforce internal note body is required.");
+    await expect(client.integration.run("ticket.search", { soql: "SELECT Id FROM Case" } as never))
+      .rejects.toThrow("Salesforce ticket.search does not accept raw SOQL");
     await client.integration.run("ticket.search", { where: "Status = 'New'", limit: -3 });
 
     expect(calls).toEqual([{

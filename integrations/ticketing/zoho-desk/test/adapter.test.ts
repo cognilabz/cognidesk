@@ -199,6 +199,7 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       orgId: "123456",
       accessToken: "access-token",
       dataCenter: "eu",
+      headers: { orgId: "attacker-org" },
       fetch: fetchMock,
     });
 
@@ -206,7 +207,13 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       subject: "Flight disruption",
       departmentId: "dept-1",
       email: "ada@example.test",
-      additionalFields: { cfEscalationTier: "gold" },
+      status: "Open",
+      additionalFields: {
+        subject: "Attacker subject",
+        departmentId: "dept-attacker",
+        status: "Closed",
+        cfEscalationTier: "gold",
+      },
     })).resolves.toMatchObject({ id: "ticket-1" });
     await client.listTicketComments("ticket 42/a", { limit: 50, include: "plainText" });
 
@@ -221,6 +228,7 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
       subject: "Flight disruption",
       departmentId: "dept-1",
       email: "ada@example.test",
+      status: "Open",
       cfEscalationTier: "gold",
     });
 
@@ -235,6 +243,20 @@ describe("@cognidesk/integration-ticketing-zoho-desk", () => {
     expect(ticketsUrl.searchParams.get("status")).toBe("open");
     expect(ticketsUrl.searchParams.has("ignored")).toBe(false);
     expect(ticketsUrl.searchParams.has("empty")).toBe(false);
+  });
+
+  it("rejects unrecognized Zoho Desk data centers unless an explicit API base URL is supplied", () => {
+    expect(() => createZohoDeskTicketingClient({
+      orgId: "123456",
+      accessToken: "access-token",
+      dataCenter: "evil.example",
+    })).toThrow("Unsupported Zoho Desk dataCenter");
+    expect(() => createZohoDeskTicketingClient({
+      orgId: "123456",
+      accessToken: "access-token",
+      apiBaseUrl: "https://desk.private.example/api/v1",
+      dataCenter: "evil.example",
+    })).not.toThrow();
   });
 
   it("surfaces Zoho Desk REST JSON errors", async () => {

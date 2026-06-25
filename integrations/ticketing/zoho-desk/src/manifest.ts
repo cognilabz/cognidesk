@@ -29,13 +29,13 @@ export const zohoDeskTicketingProviderManifest = defineProviderPackage({
     ],
   },
   credentialRequirements: [
-    { id: "zoho-desk-org", label: "Zoho Desk organization ID", required: true },
+    { id: "zoho-desk-org", label: "Zoho Desk organization ID", required: false, metadata: { requiredWhen: "using-built-in-rest-adapter" } },
     {
       id: "zoho-desk-api-access",
       label: "Zoho Desk OAuth access",
       scopes: ["Desk.tickets.CREATE", "Desk.tickets.READ", "Desk.tickets.UPDATE", "Desk.basic.READ"],
-      required: true,
-      metadata: { scopeKind: "provider-oauth-scopes" },
+      required: false,
+      metadata: { scopeKind: "provider-oauth-scopes", requiredWhen: "using-built-in-rest-adapter" },
     },
   ],
   capabilities: [

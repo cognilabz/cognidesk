@@ -191,10 +191,10 @@ export function createSapServiceCloudODataProviderClient(
   ): Promise<T> => {
     const query = providerQuery(input.query);
     const headers = {
-      ...authHeaders,
-      ...(options.csrfToken ? { "x-csrf-token": options.csrfToken } : {}),
       ...(options.headers ?? {}),
+      ...(options.csrfToken ? { "x-csrf-token": options.csrfToken } : {}),
       ...(input.headers ?? {}),
+      ...authHeaders,
     };
     try {
       const requestConfig: HttpRequestConfig = {
@@ -225,14 +225,14 @@ export function createSapServiceCloudODataProviderClient(
       return sapODataEntity(await request<unknown>("GET", `${serviceRequestsPath}(${odataStringKey(objectId)})`)) as SapServiceRequestResource;
     },
     async updateServiceRequest(objectId, input, etag) {
-      return sapODataEntity(await request<unknown>(
+      return (sapODataEntity(await request<unknown>(
         "PATCH",
         `${serviceRequestsPath}(${odataStringKey(objectId)})`,
         {
           body: sapServiceRequestUpdateBody(input),
           ...(etag ? { headers: { "If-Match": etag } } : {}),
         },
-      )) as SapServiceRequestResource;
+      )) ?? {}) as SapServiceRequestResource;
     },
     async searchServiceRequests(input = {}) {
       return sapServiceSearchResult(await request<unknown>("GET", serviceRequestsPath, {
@@ -263,9 +263,9 @@ export function sapServiceCloudTicketingCredentialStatuses(
   input: SapServiceCloudCredentialStatusInput,
 ): ProviderCredentialStatusInput[] {
   const hasProviderClient = Boolean(input.providerClient ?? input.providerClientConfigured);
-  const hasBaseUrl = Boolean(input.baseUrl ?? hasProviderClient);
-  const hasBasic = Boolean(input.username && input.password);
-  const hasBearer = Boolean(input.accessToken);
+  const hasBaseUrl = Boolean(nonEmptyString(input.baseUrl) || hasProviderClient);
+  const hasBasic = Boolean(nonEmptyString(input.username) && nonEmptyString(input.password));
+  const hasBearer = Boolean(nonEmptyString(input.accessToken));
   const hasApiAccess = Boolean(input.apiAccessConfigured || input.authConfigured || hasBasic || hasBearer || hasProviderClient);
   return [
     {
@@ -367,24 +367,30 @@ const requiredProviderClientMethods = [
 ] as const;
 
 function hasSapServiceCloudRestConfiguration(options: SapServiceCloudTicketingClientOptions) {
-  return Boolean(options.baseUrl && hasSapServiceCloudAuthConfiguration(options));
+  return Boolean(nonEmptyString(options.baseUrl) && hasSapServiceCloudAuthConfiguration(options));
 }
 
 function hasSapServiceCloudAuthConfiguration(options: SapServiceCloudTicketingClientOptions) {
-  if (options.accessToken || (options.username && options.password)) return true;
-  if (!options.auth) return false;
-  if (options.auth.type === "bearer") return Boolean(options.auth.accessToken);
-  if (options.auth.type === "basic") return Boolean(options.auth.username && options.auth.password);
-  return Object.keys(options.auth.headers).length > 0;
+  return Object.keys(sapServiceCloudAuthHeadersOrEmpty(options)).length > 0;
 }
 
 function sapServiceCloudAuthHeaders(options: SapServiceCloudTicketingClientOptions): Record<string, string> {
-  if (options.auth?.type === "headers") return options.auth.headers;
-  if (options.auth?.type === "bearer") return { Authorization: `Bearer ${options.auth.accessToken}` };
-  if (options.auth?.type === "basic") return { Authorization: basicAuthHeader(options.auth.username, options.auth.password) };
-  if (options.accessToken) return { Authorization: `Bearer ${options.accessToken}` };
-  if (options.username && options.password) return { Authorization: basicAuthHeader(options.username, options.password) };
+  const headers = sapServiceCloudAuthHeadersOrEmpty(options);
+  if (Object.keys(headers).length > 0) return headers;
   throw new Error("SAP Service Cloud accessToken, username/password, or auth headers are required.");
+}
+
+function sapServiceCloudAuthHeadersOrEmpty(options: SapServiceCloudTicketingClientOptions): Record<string, string> {
+  if (options.auth?.type === "headers" && Object.keys(options.auth.headers).length > 0) return options.auth.headers;
+  if (options.auth?.type === "bearer" && nonEmptyString(options.auth.accessToken)) return { Authorization: `Bearer ${options.auth.accessToken.trim()}` };
+  if (options.auth?.type === "basic" && nonEmptyString(options.auth.username) && nonEmptyString(options.auth.password)) {
+    return { Authorization: basicAuthHeader(options.auth.username.trim(), options.auth.password) };
+  }
+  if (nonEmptyString(options.accessToken)) return { Authorization: `Bearer ${options.accessToken.trim()}` };
+  if (nonEmptyString(options.username) && nonEmptyString(options.password)) {
+    return { Authorization: basicAuthHeader(options.username.trim(), options.password) };
+  }
+  return {};
 }
 
 function basicAuthHeader(username: string, password: string) {
@@ -392,9 +398,13 @@ function basicAuthHeader(username: string, password: string) {
 }
 
 function normalizeBaseUrl(value: string | undefined, message: string) {
-  if (!value) throw new Error(message);
+  if (!nonEmptyString(value)) throw new Error(message);
   const url = new URL(value);
   return `${url.protocol}//${url.host}${url.pathname.replace(/\/+$/, "")}`;
+}
+
+function nonEmptyString(value: string | undefined): value is string {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function normalizeApiBasePath(value: string) {

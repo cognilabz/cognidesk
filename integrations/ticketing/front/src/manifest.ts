@@ -10,13 +10,13 @@ export const frontTicketingProviderManifestInput = {
   directions: ["bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
   credentialRequirements: [
-    { id: "front-base-url", label: "Front API base URL", required: false },
+    { id: "front-base-url", label: "Front API base URL", required: false, metadata: { requiredWhen: "using-built-in-rest-adapter", defaultValue: "https://api2.frontapp.com" } },
     {
       id: "front-api-access",
       label: "Front API access token or API key",
       scopes: ["conversations:read", "conversations:write", "messages:send", "messages:read", "comments:write", "comments:read", "teammates:read"],
-      required: true,
-      metadata: { scopeKind: "provider-oauth-scopes" },
+      required: false,
+      metadata: { scopeKind: "provider-oauth-scopes", requiredWhen: "using-built-in-rest-adapter" },
     },
   ],
   coverage: {

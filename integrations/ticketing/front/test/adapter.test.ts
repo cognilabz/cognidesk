@@ -97,7 +97,11 @@ describe("@cognidesk/integration-ticketing-front", () => {
       fetch: fetchMock as typeof fetch,
     });
 
-    await expect(client.rawRequest?.("/custom/path", { method: "post" })).resolves.toEqual({ ok: true });
+    await expect(client.rawRequest?.("/custom/{conversationId}", {
+      method: "post",
+      pathParams: { conversationId: "cnv 1/a" },
+    })).resolves.toEqual({ ok: true });
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe("https://front.example.test/custom/cnv%201%2Fa");
     expect(requestInits[0]?.method).toBe("POST");
 
     await expect(client.rawRequest?.("/custom/path", { method: "TRACE" }))

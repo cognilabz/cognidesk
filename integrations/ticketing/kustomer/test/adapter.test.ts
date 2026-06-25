@@ -29,6 +29,8 @@ describe("@cognidesk/integration-ticketing-kustomer", () => {
       defaultClientPolicy: "built-in-kustomer-rest-adapter-with-access-token",
       typedClientOverride: "KustomerTicketingProviderClient",
     });
+    expect(manifestOnly.credentialRequirements.find((credential) => credential.id === "kustomer-api-permissions")?.scopes)
+      .toEqual(expect.arrayContaining(["org.admin.user.read"]));
     expect(packageJson.cognidesk.providerRestAdapterException).toMatchObject({
       result: "no-official-maintained-ticketing-rest-sdk",
       defaultClientPolicy: "built-in-kustomer-rest-adapter-with-access-token",
@@ -69,7 +71,7 @@ describe("@cognidesk/integration-ticketing-kustomer", () => {
       }));
     const client = createKustomerTicketingClient({
       baseUrl: "https://example.kustomerapp.com/",
-      accessToken: "kus-token",
+      accessToken: "  kus-token  ",
       fetch: fetchMock,
     });
 
@@ -98,6 +100,11 @@ describe("@cognidesk/integration-ticketing-kustomer", () => {
     expect(messagesUrl.searchParams.get("conversation")).toBe("conv_1");
     expect(messagesUrl.searchParams.get("limit")).toBe("2");
     expect(messagesUrl.searchParams.get("filter")).toBe(JSON.stringify({ status: "open" }));
+
+    await client.readiness();
+    const [readinessUrl, readinessInit] = fetchMock.mock.calls[3]!;
+    expect(String(readinessUrl)).toBe("https://example.kustomerapp.com/v1/users/current");
+    expect(new Headers(readinessInit?.headers).get("Authorization")).toBe("Bearer kus-token");
   });
 
   it("rejects invalid operation inputs before calling the host client", async () => {

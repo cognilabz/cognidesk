@@ -78,6 +78,7 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
     const client = createPegaCustomerServiceTicketingClient({
       baseUrl: "https://pega.example.test/prweb/",
       accessToken: "pega-token",
+      headers: { Authorization: "Bearer attacker" },
       fetch: fetchMock,
     });
 
@@ -103,6 +104,22 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
         CustomerEmail: "customer@example.test",
       },
     });
+  });
+
+  it("keeps Pega auth headers authoritative and falls back from unusable structured bearer auth", async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ caseTypes: [] }));
+    const client = createPegaCustomerServiceTicketingClient({
+      baseUrl: "https://pega.example.test",
+      auth: { type: "bearer", accessToken: "   " },
+      accessToken: "pega-token",
+      headers: { Authorization: "Bearer attacker" },
+      fetch: fetchMock,
+    });
+
+    await client.listCaseTypes();
+
+    const [, init] = fetchCall(fetchMock);
+    expect(headerValue(init, "authorization")).toBe("Bearer pega-token");
   });
 
   it("encodes Pega DX paths and query parameters for built-in operations", async () => {
@@ -171,6 +188,24 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
     await expect(client.createCase({ caseTypeId: "MyCo-CS-Work-Service" })).rejects.toThrow(
       "baseUrl plus accessToken/auth headers",
     );
+  });
+
+  it("passes live-check abort signals into the built-in Pega REST adapter", async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ caseTypes: [] }));
+    const controller = new AbortController();
+    const liveCheck = createPegaCustomerServiceTicketingLiveChecks({
+      baseUrl: "https://pega.example.test",
+      accessToken: "pega-token",
+      fetch: fetchMock,
+    })[0]!;
+
+    await expect(liveCheck.run({ signal: controller.signal })).resolves.toMatchObject({
+      details: { caseTypeCount: 0 },
+    });
+
+    const [url, init] = fetchCall(fetchMock);
+    expect(url).toBe("https://pega.example.test/api/application/v2/casetypes");
+    expect(init.signal).toBe(controller.signal);
   });
 
   it("does not attach secret-bearing Pega options as integration credentials", async () => {

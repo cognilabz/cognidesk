@@ -232,11 +232,11 @@ export function createServiceNowTicketingOperationHandlers(
       client.createIncident(serviceNowCreateIncidentInput(input)),
     "ticket.read": (input: ServiceNowRecordIdentifierInput & {
       query?: Omit<ServiceNowTableQuery, "query" | "limit" | "offset">;
-    }) => client.getRecord(input.tableName ?? "incident", serviceNowRecordId(input, "ticket.read"), input.query),
+    }) => client.getRecord(serviceNowTableName(input.tableName, "ticket.read"), serviceNowRecordId(input, "ticket.read"), input.query),
     "ticket.update": (input: ServiceNowUpdateTicketOperationInput) =>
-      client.updateRecord(input.tableName ?? "incident", serviceNowRecordId(input, "ticket.update"), serviceNowPatch(input)),
+      client.updateRecord(serviceNowTableName(input.tableName, "ticket.update"), serviceNowRecordId(input, "ticket.update"), serviceNowPatch(input)),
     "ticket.search": (input: ServiceNowSearchRecordsOperationInput = {}) =>
-      client.searchRecords(input.tableName ?? "incident", serviceNowSearchQuery(input)),
+      client.searchRecords(serviceNowTableName(input.tableName, "ticket.search"), serviceNowSearchQuery(input)),
     "ticket.comment.create": (input: ServiceNowCreateCommentOperationInput) =>
       client.addIncidentComment(serviceNowRecordId(input, "ticket.comment.create"), serviceNowCommentText(input)),
     "ticket.internalNote.create": (input: ServiceNowCreateInternalNoteOperationInput) =>
@@ -246,7 +246,7 @@ export function createServiceNowTicketingOperationHandlers(
     "ticket.attachments.list": (input: ServiceNowListAttachmentsOperationInput = {}) =>
       client.listAttachments(serviceNowAttachmentListQuery(input)),
     "servicenow.record.create": (input: ServiceNowCreateRecordOperationInput) =>
-      client.createRecord(input.tableName, serviceNowPayload(input, "servicenow.record.create")),
+      client.createRecord(serviceNowTableName(input.tableName, "servicenow.record.create"), serviceNowPayload(input, "servicenow.record.create")),
     "servicenow.importSet.insert": (input: ServiceNowImportSetOperationInput) =>
       client.importSet(serviceNowStagingTableName(input), serviceNowPayload(input, "servicenow.importSet.insert")),
     "servicenow.importSet.result.read": (input: ServiceNowImportSetResultOperationInput) =>
@@ -357,6 +357,14 @@ function serviceNowRecordId(
   return sysId;
 }
 
+function serviceNowTableName(value: string | undefined, operation: string): string {
+  const tableName = value?.trim() || "incident";
+  if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(tableName)) {
+    throw new Error(`ServiceNow ${operation} requires a valid tableName.`);
+  }
+  return tableName;
+}
+
 function serviceNowPatch(input: ServiceNowUpdateTicketOperationInput): ServiceNowProviderPayload {
   const patch = input.patch ?? input.fields;
   if (!patch) throw new Error("ServiceNow ticket.update requires patch or fields.");
@@ -391,9 +399,9 @@ function serviceNowInternalNoteText(input: ServiceNowCreateInternalNoteOperation
 
 function serviceNowAttachmentInput(input: ServiceNowAddAttachmentOperationInput): ServiceNowUploadAttachmentInput {
   return {
-    tableName: input.tableName ?? "incident",
+    tableName: serviceNowTableName(input.tableName, "ticket.attachments.add"),
     tableSysId: input.tableSysId ?? serviceNowRecordId(input, "ticket.attachments.add"),
-    fileName: input.fileName,
+    fileName: serviceNowRequiredString(input.fileName, "ticket.attachments.add fileName"),
     data: input.data,
     ...(input.contentType ? { contentType: input.contentType } : {}),
   };
@@ -413,7 +421,7 @@ function serviceNowAttachmentListQuery(input: ServiceNowListAttachmentsOperation
   const scopedQuery = scopedSysId
     ? [
         query,
-        serviceNowEncodedQueryTerm("table_name", tableName ?? "incident"),
+        serviceNowEncodedQueryTerm("table_name", serviceNowTableName(tableName, "ticket.attachments.list")),
         serviceNowEncodedQueryTerm("table_sys_id", scopedSysId),
       ].filter(Boolean).join("^")
     : query;
@@ -433,7 +441,12 @@ function serviceNowEncodedQueryTerm(field: string, value: string): string {
 function serviceNowStagingTableName(input: { stagingTableName?: string; tableName?: string }): string {
   const stagingTableName = input.stagingTableName ?? input.tableName;
   if (!stagingTableName) throw new Error("ServiceNow Import Set operation requires stagingTableName or tableName.");
-  return stagingTableName;
+  return serviceNowTableName(stagingTableName, "Import Set operation");
+}
+
+function serviceNowRequiredString(value: string | undefined, label: string): string {
+  if (typeof value === "string" && value.trim().length > 0) return value;
+  throw new Error(`ServiceNow ${label} is required.`);
 }
 
 export function createServiceNowSdkConnector(

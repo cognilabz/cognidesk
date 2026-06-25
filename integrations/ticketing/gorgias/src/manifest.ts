@@ -21,6 +21,12 @@ export const gorgiasTicketingProviderManifestInput = {
       required: true,
       metadata: { authSchemes: ["bearer", "basic-email-api-key"] },
     },
+    {
+      id: "gorgias-api-username",
+      label: "Gorgias API email or username for Basic auth",
+      required: false,
+      metadata: { requiredWhen: "using-basic-email-api-key" },
+    },
   ],
   coverage: {
     scope: "support-workflow-subset",

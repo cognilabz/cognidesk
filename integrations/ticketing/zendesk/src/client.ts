@@ -22,6 +22,7 @@ export function createZendeskTicketingClient(options: ZendeskTicketingClientOpti
     rawClient,
     getRawClient: () => rawClient,
     async rawRequest<T = JsonValue>(path: string, init: RequestInit = {}): Promise<T> {
+      assertSupportedRawRequestInit(init);
       const method = init.method ?? "GET";
       const body = requestBody(init.body);
       const response = await requiredResourceMethod(rawClient.tickets, "_rawRequest")(method, rawRequestUrl(endpointUri, path), body);
@@ -251,6 +252,16 @@ function requestBody(body: BodyInit | null | undefined): unknown {
   }
 }
 
+function assertSupportedRawRequestInit(init: RequestInit): void {
+  const unsupported = Object.keys(init).filter((key) =>
+    !["method", "body"].includes(key)
+    && (init as Record<string, unknown>)[key] !== undefined
+  );
+  if (unsupported.length > 0) {
+    throw new Error(`Zendesk rawRequest supports only method and body; unsupported RequestInit fields: ${unsupported.join(", ")}.`);
+  }
+}
+
 function zendeskUploadData(data: ZendeskUploadFileInput["data"]): ZendeskUploadFileInput["data"] {
   if (data instanceof Readable || data instanceof FormData) return data;
   if (Buffer.isBuffer(data)) return Readable.from(data);
@@ -277,7 +288,9 @@ async function uploadZendeskFile(rawClient: ZendeskTicketingRawClient, input: Ze
 }
 
 function rawRequestUrl(endpointUri: string, path: string): string {
-  if (/^https?:\/\//i.test(path)) return path;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(path) || path.startsWith("//")) {
+    throw new Error("Zendesk rawRequest path must be relative to the Zendesk API endpoint.");
+  }
   const relativePath = path.replace(/^\/+/, "").replace(/^api\/v2\/?/, "");
   return `${endpointUri}/${relativePath}`;
 }

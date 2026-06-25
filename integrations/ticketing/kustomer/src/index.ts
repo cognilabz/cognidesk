@@ -262,8 +262,7 @@ function createKustomerRestProviderClient(options: KustomerTicketingClientOption
     },
     readiness() {
       return kustomerRequest(options, {
-        path: "/v1/messages",
-        query: { limit: 1 },
+        path: "/v1/users/current",
       });
     },
   };
@@ -312,7 +311,7 @@ function kustomerAccessToken(options: KustomerTicketingClientOptions): string {
   if (typeof token !== "string" || token.trim().length === 0) {
     throw new Error("Kustomer REST adapter requires non-empty accessToken or apiKey.");
   }
-  return token;
+  return token.trim();
 }
 
 function providerQuery(query?: JsonObject): Record<string, ProviderQueryValue> | undefined {

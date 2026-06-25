@@ -85,6 +85,7 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       baseUrl: "https://tenant.crm.ondemand.com/",
       accessToken: "sap-token",
       csrfToken: "csrf-token",
+      headers: { Authorization: "Bearer attacker" },
     });
 
     await expect(client.createServiceRequest({
@@ -246,10 +247,10 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
   it("surfaces SAP Cloud SDK HTTP errors with status and payload", async () => {
     vi.mocked(executeHttpRequest).mockRejectedValueOnce({
       response: {
-        status: 404,
-        statusText: "Not Found",
+        status: 503,
+        statusText: "Service Unavailable",
         headers: { "x-correlationid": "correlation-1" },
-        data: { error: { code: "NOT_FOUND", message: { value: "Invalid ObjectID." } } },
+        data: { message: "Gateway unavailable" },
       },
     });
     const client = createSapServiceCloudTicketingClient({
@@ -259,11 +260,26 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
 
     await expect(client.getServiceRequest("missing")).rejects.toMatchObject({
       name: "SapServiceCloudProviderApiError",
-      status: 404,
-      message: "Invalid ObjectID.",
-      body: expect.objectContaining({ error: expect.any(Object) }),
+      status: 503,
+      message: "Gateway unavailable",
+      body: expect.objectContaining({ message: "Gateway unavailable" }),
       response: expect.objectContaining({ requestId: "correlation-1" }),
     });
+  });
+
+  it("returns an empty object for SAP no-content update responses", async () => {
+    vi.mocked(executeHttpRequest).mockResolvedValueOnce({
+      data: undefined,
+      status: 204,
+      headers: {},
+      request: {},
+    } as Awaited<ReturnType<typeof executeHttpRequest>>);
+    const client = createSapServiceCloudTicketingClient({
+      baseUrl: "https://tenant.crm.ondemand.com",
+      accessToken: "sap-token",
+    });
+
+    await expect(client.updateServiceRequest("object-1", { statusCode: "2" })).resolves.toEqual({});
   });
 
   it("delegates SAP Service Cloud ticket operations to the host provider client", async () => {

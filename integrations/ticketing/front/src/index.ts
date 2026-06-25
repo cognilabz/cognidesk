@@ -132,6 +132,7 @@ function createFrontRestProviderClient(options: FrontTicketingClientOptions): Fr
       return frontRequest<T>(options, {
         path: operation,
         method: providerMethod(request.method),
+        pathParams: asPathParamsRecord(request.pathParams),
         query: asJsonObject(request.query),
         body: request.body,
         headers: asHeadersRecord(request.headers),
@@ -209,7 +210,7 @@ async function frontRequest<T = JsonObject>(
   request: {
     path: string;
     method?: ProviderHttpMethod | undefined;
-    pathParams?: Record<string, string | number | boolean | undefined>;
+    pathParams?: Record<string, string | number | boolean | undefined> | undefined;
     query?: JsonObject | undefined;
     body?: unknown;
     headers?: Record<string, string | undefined> | undefined;
@@ -275,6 +276,15 @@ function asHeadersRecord(value: unknown): Record<string, string | undefined> | u
   return Object.fromEntries(
     Object.entries(value).filter(([, header]) => typeof header === "string"),
   ) as Record<string, string>;
+}
+
+function asPathParamsRecord(value: unknown): Record<string, string | number | boolean | undefined> | undefined {
+  if (!isRecord(value)) return undefined;
+  return Object.fromEntries(
+    Object.entries(value).filter(([, param]) =>
+      param === undefined || typeof param === "string" || typeof param === "number" || typeof param === "boolean"
+    ),
+  ) as Record<string, string | number | boolean | undefined>;
 }
 
 function providerMethod(value: unknown): ProviderHttpMethod | undefined {

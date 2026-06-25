@@ -126,6 +126,23 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
     expect(query.get("onlyData")).toBe("true");
   });
 
+  it("keeps Oracle auth headers authoritative and falls back from blank baseUrl to instanceUrl", async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ items: [], count: 0 }));
+    const client = createOracleServiceTicketingClient({
+      baseUrl: "   ",
+      instanceUrl: "https://example.fa.oraclecloud.com/",
+      accessToken: "oracle-token",
+      headers: { Authorization: "Bearer attacker" },
+      fetch: fetchMock,
+    });
+
+    await client.searchServiceRequests({ limit: 1 });
+
+    const [url, init] = fetchCall(fetchMock);
+    expect(url).toBe("https://example.fa.oraclecloud.com/crmRestApi/resources/11.13.18.05/serviceRequests?limit=1");
+    expect(headerValue(init, "authorization")).toBe("Bearer oracle-token");
+  });
+
   it("surfaces Oracle REST JSON errors with status and payload", async () => {
     const fetchMock = vi.fn(async () =>
       jsonResponse({ title: "Invalid service request", "o:errorDetails": [{ detail: "Status is invalid." }] }, {
@@ -227,6 +244,8 @@ describe("@cognidesk/integration-ticketing-oracle-service", () => {
     });
     expect(JSON.stringify(integration.metadata)).not.toContain("svc-user");
     expect(JSON.stringify(integration)).not.toContain("svc-user");
+    expect(JSON.stringify(integration.metadata)).not.toContain("svc-pass");
+    expect(JSON.stringify(integration)).not.toContain("svc-pass");
   });
 
   it("reports live conformance as credential-blocked until Oracle credentials are configured", async () => {

@@ -259,11 +259,18 @@ describe("@cognidesk/integration-ticketing-zendesk", () => {
     await expect(client.rawRequest("/tickets/123.json", {
       method: "GET",
     })).resolves.toMatchObject({ raw: true });
+    await expect(client.rawRequest("https://evil.example/tickets/123.json", { method: "GET" }))
+      .rejects.toThrow("Zendesk rawRequest path must be relative");
+    await expect(client.rawRequest("/tickets/123.json", {
+      method: "GET",
+      headers: { Authorization: "Bearer attacker" },
+    })).rejects.toThrow("Zendesk rawRequest supports only method and body");
 
     expect(rawRequestCalls).toContainEqual({
       method: "tickets._rawRequest",
       args: ["GET", "https://example.zendesk.com/api/v2/tickets/123.json", undefined],
     });
+    expect(rawRequestCalls).toHaveLength(1);
   });
 });
 

@@ -111,6 +111,8 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
       "dynamics365Annotation",
       "dynamics365Queue",
       "dynamics365Activity",
+      "dynamics365EntityDefinition",
+      "dynamics365WhoAmI",
       "internalNote",
     ]));
     const updateCapability = dynamics365TicketingProviderManifest.capabilities.find((capability) =>
@@ -166,15 +168,26 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
       title: "Flight disruption",
       description: "Customer needs manual rebooking.",
       customerId: accountId,
+      priorityCode: 2,
+      additionalFields: {
+        title: "Attacker title",
+        description: "Attacker description",
+        "customerid_account@odata.bind": "/accounts(00000000-0000-4000-8000-999999999999)",
+        prioritycode: 999,
+        customEscalation: "gold",
+      },
     })).resolves.toMatchObject({ incidentid: "case-1" });
 
     expect(rawClient.create).toHaveBeenCalledWith({
       collection: "incidents",
       data: {
+        customEscalation: "gold",
         title: "Flight disruption",
         description: "Customer needs manual rebooking.",
         "customerid_account@odata.bind": `/accounts(${accountId})`,
+        prioritycode: 2,
       },
+      returnRepresentation: true,
     });
   });
 
@@ -280,7 +293,7 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
     });
     await expect(client.integration.run("ticket.update", { ticketId: caseId, patch: { title: "B" } }))
       .resolves.toMatchObject({
-        updated: { collection: "incidents", key: caseId, data: { title: "B" } },
+        updated: { collection: "incidents", key: caseId, data: { title: "B" }, returnRepresentation: true },
       });
     await expect(client.integration.run("ticket.update", { ticketId: caseId }))
       .rejects.toThrow("Dynamics 365 ticket.update requires patch, body, or fields.");
@@ -348,6 +361,8 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
       title: "Flight disruption",
       customerId: "account-1",
     })).rejects.toThrow("customerId must be a GUID");
+    await expect(client.getCase("case-1")).rejects.toThrow("caseId must be a GUID");
+    await expect(client.updateCase("case-1", { title: "B" })).rejects.toThrow("caseId must be a GUID");
     await expect(client.listCaseNotes("case-1")).rejects.toThrow("caseId must be a GUID");
     await expect(client.addToQueue({
       queueId,
@@ -355,6 +370,8 @@ describe("@cognidesk/integration-ticketing-dynamics365", () => {
       targetEntitySetName: "incidents)($expand=ownerid",
     })).rejects.toThrow("targetEntitySetName must be a Dataverse entity-set name");
     expect(rawClient.create).not.toHaveBeenCalled();
+    expect(rawClient.retrieve).not.toHaveBeenCalled();
+    expect(rawClient.update).not.toHaveBeenCalled();
     expect(rawClient.retrieveMultiple).not.toHaveBeenCalled();
     expect(rawClient.callAction).not.toHaveBeenCalled();
   });

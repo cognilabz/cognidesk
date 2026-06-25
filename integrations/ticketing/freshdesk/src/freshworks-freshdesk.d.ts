@@ -15,7 +15,7 @@ declare module "@freshworks/freshdesk" {
     updateTicket(id: string | number, ticket: FreshdeskSdkJsonObject): Promise<unknown>;
     searchTicket(query: string): Promise<unknown>;
     replyTicket(id: string | number, reply: FreshdeskSdkJsonObject): Promise<unknown>;
-    addNotes(id: string | number, notes: FreshdeskSdkJsonObject): Promise<unknown>;
+    addNote(id: string | number, note: FreshdeskSdkJsonObject): Promise<unknown>;
   }
 
   export interface FreshdeskSdkContactsApi {

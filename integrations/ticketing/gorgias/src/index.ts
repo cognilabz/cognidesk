@@ -219,10 +219,15 @@ function providerJsonRequestWithControls<T = unknown>(input: ProviderJsonRequest
 }
 
 function gorgiasBaseUrl(options: GorgiasTicketingClientOptions): string {
-  if (!options.baseUrl) {
+  const baseUrl = options.baseUrl?.trim();
+  if (!baseUrl) {
     throw new Error("Gorgias REST adapter requires baseUrl for the account-specific API endpoint.");
   }
-  return options.baseUrl.replace(/\/+$/, "").replace(/\/api$/i, "");
+  const url = new URL(baseUrl);
+  if (url.protocol !== "https:") {
+    throw new Error("Gorgias REST adapter requires an HTTPS baseUrl.");
+  }
+  return `${url.protocol}//${url.host}${url.pathname.replace(/\/+$/, "").replace(/\/api$/i, "")}`;
 }
 
 function gorgiasAuthorization(options: GorgiasTicketingClientOptions): string {
@@ -268,7 +273,8 @@ function optionalJsonObject(value: unknown, label: string): JsonObject | undefin
 function gorgiasTicketId(input: unknown, label: string): string | number {
   const object = assertJsonObject(input, label);
   const ticketId = object.ticketId;
-  if (typeof ticketId === "string" || typeof ticketId === "number") return ticketId;
+  if (typeof ticketId === "string" && ticketId.trim().length > 0) return ticketId;
+  if (typeof ticketId === "number" && Number.isFinite(ticketId)) return ticketId;
   throw new Error(`Gorgias ${label}.ticketId is required.`);
 }
 

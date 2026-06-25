@@ -217,9 +217,9 @@ export function createPegaCustomerServiceRestProviderClient(
         query,
         body: input.body,
         headers: {
-          ...authHeaders,
           ...(options.headers ?? {}),
           ...(input.headers ?? {}),
+          ...authHeaders,
         },
         fetch: fetchImpl,
         signal: options.signal,
@@ -277,8 +277,8 @@ export function pegaCustomerServiceTicketingCredentialStatuses(
   input: PegaCustomerServiceCredentialStatusInput,
 ): ProviderCredentialStatusInput[] {
   const hasProviderClient = Boolean(input.providerClient ?? input.client ?? input.hostProviderClientConfigured);
-  const hasBaseUrl = Boolean(input.baseUrl ?? hasProviderClient);
-  const hasApiAccess = Boolean(input.apiAccessConfigured || input.authConfigured || input.accessToken || hasProviderClient);
+  const hasBaseUrl = Boolean(nonEmptyString(input.baseUrl) || hasProviderClient);
+  const hasApiAccess = Boolean(input.apiAccessConfigured || input.authConfigured || nonEmptyString(input.accessToken) || hasProviderClient);
   return [
     {
       providerPackageId: pegaCustomerServiceTicketingProviderManifest.id,
@@ -315,7 +315,11 @@ export function createPegaCustomerServiceTicketingLiveChecks(options: PegaCustom
     requiredCredentialIds: ["pega-customer-service-instance", "pega-customer-service-api-access"],
     async run(context: { signal?: AbortSignal }) {
       const { providerClient: _providerClient, client: _client, ...restOptions } = options;
-      const client = options.providerClient ?? options.client ?? createPegaCustomerServiceTicketingClient(restOptions);
+      const signal = context.signal ?? restOptions.signal;
+      const client = options.providerClient ?? options.client ?? createPegaCustomerServiceTicketingClient({
+        ...restOptions,
+        ...(signal ? { signal } : {}),
+      });
       const caseTypes = await client.readiness();
       if (context.signal?.aborted) throw new Error("Pega Customer Service live case-types check aborted.");
       return { details: { caseTypeCount: caseTypes.length } };
@@ -403,27 +407,34 @@ function pegaCustomerServiceIntegrationCredentials(
 }
 
 function hasPegaCustomerServiceRestConfiguration(options: PegaCustomerServiceTicketingClientOptions) {
-  return Boolean(options.baseUrl && hasPegaCustomerServiceAuthConfiguration(options));
+  return Boolean(nonEmptyString(options.baseUrl) && hasPegaCustomerServiceAuthConfiguration(options));
 }
 
 function hasPegaCustomerServiceAuthConfiguration(options: PegaCustomerServiceTicketingClientOptions) {
-  if (options.accessToken) return true;
-  if (!options.auth) return false;
-  if (options.auth.type === "bearer") return Boolean(options.auth.accessToken);
-  return Object.keys(options.auth.headers).length > 0;
+  return Object.keys(pegaCustomerServiceAuthHeadersOrEmpty(options)).length > 0;
 }
 
 function pegaCustomerServiceAuthHeaders(options: PegaCustomerServiceTicketingClientOptions): Record<string, string> {
-  if (options.auth?.type === "headers") return options.auth.headers;
-  if (options.auth?.type === "bearer") return { Authorization: `Bearer ${options.auth.accessToken}` };
-  if (options.accessToken) return { Authorization: `Bearer ${options.accessToken}` };
+  const headers = pegaCustomerServiceAuthHeadersOrEmpty(options);
+  if (Object.keys(headers).length > 0) return headers;
   throw new Error("Pega Customer Service accessToken or auth headers are required.");
 }
 
+function pegaCustomerServiceAuthHeadersOrEmpty(options: PegaCustomerServiceTicketingClientOptions): Record<string, string> {
+  if (options.auth?.type === "headers" && Object.keys(options.auth.headers).length > 0) return options.auth.headers;
+  if (options.auth?.type === "bearer" && nonEmptyString(options.auth.accessToken)) return { Authorization: `Bearer ${options.auth.accessToken.trim()}` };
+  if (nonEmptyString(options.accessToken)) return { Authorization: `Bearer ${options.accessToken.trim()}` };
+  return {};
+}
+
 function normalizeBaseUrl(value: string | undefined, message: string) {
-  if (!value) throw new Error(message);
+  if (!nonEmptyString(value)) throw new Error(message);
   const url = new URL(value);
   return `${url.protocol}//${url.host}${url.pathname.replace(/\/+$/, "")}`;
+}
+
+function nonEmptyString(value: string | undefined): value is string {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function normalizeApiBasePath(value: string) {

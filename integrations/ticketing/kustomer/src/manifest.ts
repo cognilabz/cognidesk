@@ -83,7 +83,7 @@ export const kustomerTicketingProviderManifestInput = {
   }, {
     id: "kustomer-api-permissions",
     label: "Kustomer API permissions",
-    scopes: ["org.user.conversation.read", "org.user.conversation.write", "org.permission.conversation.create", "org.user.message.read", "org.user.message.write", "org.permission.message.create", "org.permission.draft.create"],
+    scopes: ["org.user.conversation.read", "org.user.conversation.write", "org.permission.conversation.create", "org.user.message.read", "org.user.message.write", "org.permission.message.create", "org.permission.draft.create", "org.admin.user.read"],
     required: true,
     metadata: {
       scopeKind: "provider-permission-labels",
@@ -125,10 +125,10 @@ export const kustomerTicketingProviderManifestInput = {
     { alias: "ticket.comment.create", capability: "send", providerOperation: "POST /v1/messages", providerObject: "ticketComment", sideEffect: true, externallyVisible: true, exposesSensitiveData: true },
     { alias: "kustomer.message.list", capability: "read-provider-object", providerOperation: "GET /v1/messages", providerObject: "kustomerMessage", extension: true, exposesSensitiveData: true },
     { alias: "kustomer.customerDraft.create", capability: "draft", providerOperation: "POST /v1/customers/{customer_id}/drafts", providerObject: "kustomerDraft", extension: true, sideEffect: true, exposesSensitiveData: true },
-    { alias: "kustomer.readiness", capability: "read-provider-object", providerOperation: "GET /v1/messages", providerObject: "kustomerOrg", extension: true, exposesSensitiveData: true },
+    { alias: "kustomer.readiness", capability: "read-provider-object", providerOperation: "GET /v1/users/current", providerObject: "kustomerUser", extension: true, exposesSensitiveData: true },
   ],
   privacyNotes: ["Kustomer conversations can include customer timeline data, messages, notes, tags, queue status, and custom objects."],
-  limitations: ["SDK user configuration owns auth, tenancy, pagination, retries, rate limits, and provider response normalization policy.", "Conversation model, queues, teams, custom objects, and message visibility are SDK-user configuration."],
+  limitations: ["REST-adapter or host-client configuration owns auth, tenancy, pagination, retries, rate limits, and provider response normalization policy.", "Conversation model, queues, teams, custom objects, and message visibility are host-client configuration."],
   metadata: {
     issue: 35,
     implementation: kustomerHostClientSupportSlice,

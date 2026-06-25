@@ -96,7 +96,7 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
         updateTicket: vi.fn(async () => ({ id: 42, updated: true })),
         searchTicket: vi.fn(async () => ({ results: [] })),
         replyTicket: vi.fn(async () => ({ replied: true })),
-        addNotes: vi.fn(async () => ({ noted: true })),
+        addNote: vi.fn(async () => ({ noted: true })),
       },
       contacts: {
         getContact: vi.fn(async () => ({ id: 7 })),
@@ -141,9 +141,17 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
     expect(sdkClient.tickets.getTicket).toHaveBeenCalledWith(42);
     expect(sdkClient.tickets.searchTicket).toHaveBeenCalledWith("\"email:ada@example.test\"");
     expect(sdkClient.tickets.replyTicket).toHaveBeenCalledWith(42, { body: "Hello" });
-    expect(sdkClient.tickets.addNotes).toHaveBeenCalledWith(42, { body: "Internal" });
+    expect(sdkClient.tickets.addNote).toHaveBeenCalledWith(42, { body: "Internal" });
     expect(sdkClient.contacts.getContact).toHaveBeenCalledWith(7);
     expect(sdkClient.contacts.searchContacts).toHaveBeenCalledWith({ query: "\"email:ada@example.test\"" });
+  });
+
+  it("rejects non-Freshdesk SDK domains before constructing a default SDK client", () => {
+    expect(() => createFreshdeskTicketingClient({
+      domain: "https://evil.example",
+      apiKey: "fd-key",
+    })).toThrow("trusted Freshdesk domain");
+    expect(freshdeskSdkFactory).not.toHaveBeenCalled();
   });
 
   it("does not revive a package-owned REST fallback for SDK gaps", async () => {
@@ -154,7 +162,7 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
         updateTicket: vi.fn(),
         searchTicket: vi.fn(),
         replyTicket: vi.fn(),
-        addNotes: vi.fn(),
+        addNote: vi.fn(),
       },
       contacts: {
         getContact: vi.fn(),
@@ -208,7 +216,7 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
       .resolves.toMatchObject({ verified: true, event: { provider: "freshdesk" } });
   });
 
-  it("keeps construction-time Freshdesk webhook credentials authoritative", async () => {
+  it("allows per-call Freshdesk webhook credentials to override integration defaults", async () => {
     const integration = createFreshdeskTicketingIntegration({
       providerClient: fakeFreshdeskProviderClient(),
       webhookSecret: "instance-secret",
@@ -216,7 +224,7 @@ describe("@cognidesk/integration-ticketing-freshdesk", () => {
     });
     const request = new Request("https://example.test/webhook", {
       method: "POST",
-      headers: { "x-instance-secret": "instance-secret" },
+      headers: { "x-attacker-secret": "attacker-secret" },
       body: JSON.stringify({ ticket_id: 42 }),
     });
 

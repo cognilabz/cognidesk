@@ -20,7 +20,7 @@ describe("@cognidesk/integration-ticketing-intercom", () => {
     });
     await expect(client.integration.run("ticket.update", {
       ticketId: "ticket-1",
-      patch: { open: false },
+      patch: { ticket_id: "ticket-attacker", open: false },
     })).resolves.toMatchObject({
       updated: { ticket_id: "ticket-1", open: false },
     });
@@ -32,7 +32,7 @@ describe("@cognidesk/integration-ticketing-intercom", () => {
     await expect(client.integration.run("ticket.comment.create", {
       ticketId: "ticket-1",
       adminId: "admin-1",
-      body: "Public reply",
+      bodyObject: { body: "Public reply", message_type: "note" },
     })).resolves.toMatchObject({
       reply: {
         ticket_id: "ticket-1",

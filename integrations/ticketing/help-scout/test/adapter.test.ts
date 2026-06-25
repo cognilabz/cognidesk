@@ -66,12 +66,14 @@ describe("@cognidesk/integration-ticketing-help-scout", () => {
       "@cognidesk/core": "workspace:*",
       "@cognidesk/integration-kit": "workspace:*",
     });
-    expect(Object.keys(packageJson.dependencies)).not.toEqual(expect.arrayContaining([
+    for (const bannedDependency of [
       "@helpscout/javascript-sdk",
       "helpscout",
       "helpscout-v2",
       "@bufferapp/helpscout",
-    ]));
+    ]) {
+      expect(packageJson.dependencies).not.toHaveProperty(bannedDependency);
+    }
   });
 
   it("binds declared operations to handlers", () => {

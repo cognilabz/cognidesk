@@ -62,7 +62,6 @@ export interface SalesforceCaseCommentInput {
 }
 
 export interface SalesforceCaseSearchInput {
-  soql?: string;
   where?: string;
   limit?: number;
 }
@@ -130,12 +129,15 @@ export function createSalesforceTicketingOperationsClient(
     },
     updateCase(caseId, patch) {
       return rawClient.sobject("Case").update({
-        Id: caseId,
         ...caseFields(patch),
+        Id: caseId,
       });
     },
     searchCases(input = {}) {
-      return Promise.resolve(rawClient.query(input.soql ?? buildCaseSearchSoql(input)));
+      if ("soql" in input) {
+        throw new Error("Salesforce ticket.search does not accept raw SOQL; use salesforce.soql.query.");
+      }
+      return Promise.resolve(rawClient.query(buildCaseSearchSoql(input)));
     },
     createCaseComment(input) {
       const parentId = input.ticketId ?? input.caseId;

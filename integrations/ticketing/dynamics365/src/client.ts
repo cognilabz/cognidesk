@@ -117,25 +117,29 @@ export function createDynamics365TicketingClient(
       return rawClient.create({
         collection: "incidents",
         data: stripUndefined({
+          ...(input.additionalFields ?? {}),
           title: input.title,
           description: input.description,
           ...(customerId ? { "customerid_account@odata.bind": `/accounts(${customerId})` } : {}),
           prioritycode: input.priorityCode,
-          ...(input.additionalFields ?? {}),
         }),
+        returnRepresentation: true,
       }) as Promise<Dynamics365ProviderResponse>;
     },
     async getCase(caseId) {
+      const normalizedCaseId = dataverseGuid(caseId, "caseId");
       return rawClient.retrieve({
         collection: "incidents",
-        key: caseId,
+        key: normalizedCaseId,
       }) as Promise<Dynamics365ProviderResponse>;
     },
     async updateCase(caseId, patch) {
+      const normalizedCaseId = dataverseGuid(caseId, "caseId");
       const result = await rawClient.update({
         collection: "incidents",
-        key: caseId,
+        key: normalizedCaseId,
         data: patch,
+        returnRepresentation: true,
       });
       return (result ?? {}) as Dynamics365ProviderResponse;
     },
@@ -335,6 +339,9 @@ export function createDynamics365RawClient(options: Dynamics365TicketingClientOp
 function normalizeInstanceUrl(instanceUrl?: string) {
   if (!instanceUrl) throw new Error("Dynamics 365 instanceUrl is required.");
   const url = new URL(instanceUrl);
+  if (url.protocol !== "https:") {
+    throw new Error("Dynamics 365 instanceUrl must use HTTPS.");
+  }
   return `${url.protocol}//${url.host}/`;
 }
 

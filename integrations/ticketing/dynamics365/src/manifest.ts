@@ -74,7 +74,7 @@ export const dynamics365TicketingProviderManifest = defineProviderPackage({
       label: "Read Dynamics cases",
       description: "Reads Dataverse incident records and readiness metadata.",
       audiences: ["internal-support", "mixed"],
-      providerObjects: [{ kind: "dynamics365Incident", label: "Dynamics 365 Case", schemaName: "incident" }, { kind: "dynamics365Annotation", label: "Dynamics 365 Annotation", schemaName: "annotation" }, { kind: "dynamics365Queue", label: "Dynamics 365 Queue", schemaName: "queue" }, { kind: "dynamics365Activity", label: "Dynamics 365 Activity", schemaName: "activitypointer" }],
+      providerObjects: [{ kind: "dynamics365Incident", label: "Dynamics 365 Case", schemaName: "incident" }, { kind: "dynamics365Annotation", label: "Dynamics 365 Annotation", schemaName: "annotation" }, { kind: "dynamics365Queue", label: "Dynamics 365 Queue", schemaName: "queue" }, { kind: "dynamics365Activity", label: "Dynamics 365 Activity", schemaName: "activitypointer" }, { kind: "dynamics365EntityDefinition", label: "Dynamics 365 Entity Definition", schemaName: "EntityDefinition" }, { kind: "dynamics365WhoAmI", label: "Dynamics 365 WhoAmI", schemaName: "WhoAmI" }],
       requiresCredential: true,
       exposesSensitiveData: true,
     },

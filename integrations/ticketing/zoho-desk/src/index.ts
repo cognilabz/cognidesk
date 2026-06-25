@@ -148,8 +148,8 @@ export function createZohoDeskRestProviderClient(options: ZohoDeskTicketingClien
     pathParams: input?.pathParams,
     query: zohoDeskProviderQuery(input?.query),
     headers: {
-      orgId,
       ...(options.headers ?? {}),
+      orgId,
     },
     ...(input?.body !== undefined ? { body: input.body } : {}),
     ...(options.fetch ? { fetch: options.fetch } : {}),
@@ -218,6 +218,7 @@ export function createZohoDeskTicketingLiveChecks(options: ZohoDeskLiveCheckOpti
 
 function createZohoDeskTicketPayload(input: ZohoDeskTicketInput): ZohoDeskProviderPayload {
   return {
+    ...(input.additionalFields ?? {}),
     subject: input.subject,
     departmentId: input.departmentId,
     ...(input.contactId ? { contactId: input.contactId } : {}),
@@ -225,7 +226,6 @@ function createZohoDeskTicketPayload(input: ZohoDeskTicketInput): ZohoDeskProvid
     ...(input.description ? { description: input.description } : {}),
     ...(input.priority ? { priority: input.priority } : {}),
     ...(input.status ? { status: input.status } : {}),
-    ...(input.additionalFields ?? {}),
   };
 }
 
@@ -299,6 +299,5 @@ function zohoDeskHost(dataCenter: string): string {
     cn: "desk.zoho.com.cn",
   };
   if (hosts[dataCenter]) return hosts[dataCenter];
-  const url = new URL(/^https?:\/\//i.test(dataCenter) ? dataCenter : `https://${dataCenter}`);
-  return url.hostname;
+  throw new Error(`Unsupported Zoho Desk dataCenter: ${dataCenter}. Use apiBaseUrl for custom endpoints.`);
 }

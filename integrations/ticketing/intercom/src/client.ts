@@ -70,7 +70,7 @@ function ticketUpdateRequest(input: unknown): Intercom.UpdateTicketRequest {
   const patch = asRecord(record?.patch) ?? asRecord(record?.body);
 
   if (patch) {
-    return { ticket_id: ticketId, ...patch } as Intercom.UpdateTicketRequest;
+    return { ...patch, ticket_id: ticketId } as Intercom.UpdateTicketRequest;
   }
 
   if (!record) {
@@ -78,7 +78,7 @@ function ticketUpdateRequest(input: unknown): Intercom.UpdateTicketRequest {
   }
 
   const { ticket_id: _ticket_id, ticketId: _ticketId, id: _id, patch: _patch, body: _body, ...rest } = record;
-  return { ticket_id: ticketId, ...rest } as Intercom.UpdateTicketRequest;
+  return { ...rest, ticket_id: ticketId } as Intercom.UpdateTicketRequest;
 }
 
 function ticketReplyRequest(input: unknown, messageType: "comment" | "note"): Intercom.ReplyToTicketRequest {
@@ -91,11 +91,11 @@ function ticketReplyRequest(input: unknown, messageType: "comment" | "note"): In
   return {
     ticket_id: requiredString(input, ["ticket_id", "ticketId", "id"], "ticket id"),
     body: {
-      message_type: stringField(record, ["message_type", "messageType"]) ?? messageType,
       type: stringField(record, ["type"]) ?? "admin",
       ...(bodyText ? { body: bodyText } : {}),
       ...(stringField(record, ["admin_id", "adminId"]) ? { admin_id: stringField(record, ["admin_id", "adminId"]) } : {}),
       ...(bodyObject ?? {}),
+      message_type: messageType,
     },
   } as Intercom.ReplyToTicketRequest;
 }

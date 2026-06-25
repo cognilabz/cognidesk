@@ -198,7 +198,68 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
     await expect(integration.run("ticket.attachments.list", { ticketId: "abc^123", limit: 5 }))
       .rejects.toThrow("ServiceNow encoded query value for table_sys_id");
     await expect(integration.run("ticket.attachments.list", { ticketId: "abc123", tableName: "incident=bad" }))
-      .rejects.toThrow("ServiceNow encoded query value for table_name");
+      .rejects.toThrow("ServiceNow ticket.attachments.list requires a valid tableName.");
+  });
+
+  it("validates ServiceNow generic table and attachment inputs before raw client calls", async () => {
+    const rawCalls: string[] = [];
+    const rawClient: ServiceNowRawClient = {
+      async createRecord<T extends ServiceNowRecord = ServiceNowRecord>() {
+        rawCalls.push("createRecord");
+        return {} as T;
+      },
+      async getRecord<T extends ServiceNowRecord = ServiceNowRecord>() {
+        rawCalls.push("getRecord");
+        return {} as T;
+      },
+      async updateRecord<T extends ServiceNowRecord = ServiceNowRecord>() {
+        rawCalls.push("updateRecord");
+        return {} as T;
+      },
+      async searchRecords<T extends ServiceNowRecord = ServiceNowRecord>() {
+        rawCalls.push("searchRecords");
+        return [] as T[];
+      },
+      async uploadAttachment() {
+        rawCalls.push("uploadAttachment");
+        return {};
+      },
+      async listAttachments() {
+        rawCalls.push("listAttachments");
+        return [];
+      },
+      async importSet() {
+        rawCalls.push("importSet");
+        return {};
+      },
+      async getImportSetResult() {
+        rawCalls.push("getImportSetResult");
+        return {};
+      },
+    };
+    const integration = createServiceNowTicketingIntegration({
+      ticketingClient: createServiceNowTicketingClient({ rawClient }),
+    });
+
+    await expect(integration.run("servicenow.record.create", {
+      tableName: "bad-table",
+      fields: { short_description: "Case" },
+    })).rejects.toThrow("ServiceNow servicenow.record.create requires a valid tableName.");
+    await expect(integration.run("ticket.attachments.add", {
+      ticketId: "abc123",
+      fileName: "",
+      data: "log body",
+    })).rejects.toThrow("ServiceNow ticket.attachments.add fileName is required.");
+    await expect(integration.run("ticket.attachments.list", {
+      ticketId: "abc123",
+      tableName: "incident=bad",
+    })).rejects.toThrow("ServiceNow ticket.attachments.list requires a valid tableName.");
+    await expect(integration.run("servicenow.importSet.insert", {
+      tableName: "bad-table",
+      record: { short_description: "Import" },
+    })).rejects.toThrow("ServiceNow Import Set operation requires a valid tableName.");
+
+    expect(rawCalls).toEqual([]);
   });
 
   it("uses the official ServiceNow SDK connector when bearer credentials are configured", async () => {

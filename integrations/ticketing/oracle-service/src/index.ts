@@ -227,7 +227,7 @@ export function createOracleServiceTicketingClient(
 export function createOracleServiceRestProviderClient(
   options: OracleServiceTicketingClientOptions,
 ): OracleServiceTicketingProviderClient {
-  const baseUrl = normalizeBaseUrl(options.baseUrl ?? options.instanceUrl, "Oracle Service baseUrl or instanceUrl is required.");
+  const baseUrl = normalizeBaseUrl(firstNonEmpty(options.baseUrl, options.instanceUrl), "Oracle Service baseUrl or instanceUrl is required.");
   const apiVersion = options.apiVersion ?? ORACLE_SERVICE_DEFAULT_API_VERSION;
   const fetchImpl = options.fetch ?? fetch;
   const authHeaders = oracleServiceAuthHeaders(options);
@@ -247,8 +247,8 @@ export function createOracleServiceRestProviderClient(
         query,
         body: input.body,
         headers: {
-          ...authHeaders,
           ...(options.headers ?? {}),
+          ...authHeaders,
         },
         fetch: fetchImpl,
         signal: options.signal,
@@ -319,9 +319,9 @@ export function oracleServiceTicketingCredentialStatuses(
   input: OracleServiceCredentialStatusInput,
 ): ProviderCredentialStatusInput[] {
   const hasProviderClient = Boolean(input.providerClientConfigured);
-  const hasInstance = Boolean(input.baseUrl ?? input.instanceUrl ?? hasProviderClient);
-  const hasBasic = Boolean(input.username && input.password);
-  const hasBearer = Boolean(input.accessToken);
+  const hasInstance = Boolean(firstNonEmpty(input.baseUrl, input.instanceUrl) ?? hasProviderClient);
+  const hasBasic = Boolean(nonEmptyString(input.username) && nonEmptyString(input.password));
+  const hasBearer = Boolean(nonEmptyString(input.accessToken));
   const hasApiAccess = Boolean(input.apiAccessConfigured || input.authConfigured || hasBasic || hasBearer || hasProviderClient);
   return [
     {
@@ -386,9 +386,13 @@ export function createOracleServiceTicketingIntegration(options: OracleServiceTi
     manifest: oracleServiceTicketingProviderManifest,
     operations: createOracleServiceTicketingOperationHandlers(client),
     credentials: {
+      providerClientConfigured: Boolean(options.providerClient ?? options.client) || undefined,
+      baseUrl: options.baseUrl,
       instanceUrl: options.instanceUrl,
-      basicAuthConfigured: options.username && options.password ? true : undefined,
-      accessToken: options.accessToken ? "configured" : undefined,
+      authConfigured: hasOracleServiceAuthConfiguration(options) || undefined,
+      basicAuthConfigured: nonEmptyString(options.username) && nonEmptyString(options.password) ? true : undefined,
+      accessToken: nonEmptyString(options.accessToken) ? "configured" : undefined,
+      headersConfigured: options.headers ? true : undefined,
     },
     metadata: {
       implementationStrategy: "no-official-sdk-rest-adapter",
@@ -416,24 +420,30 @@ function requireOracleServiceTicketingProviderClient(
 }
 
 function hasOracleServiceRestConfiguration(options: OracleServiceTicketingClientOptions) {
-  return Boolean((options.baseUrl ?? options.instanceUrl) && hasOracleServiceAuthConfiguration(options));
+  return Boolean(firstNonEmpty(options.baseUrl, options.instanceUrl) && hasOracleServiceAuthConfiguration(options));
 }
 
 function hasOracleServiceAuthConfiguration(options: OracleServiceTicketingClientOptions) {
-  if (options.accessToken || (options.username && options.password)) return true;
-  if (!options.auth) return false;
-  if (options.auth.type === "bearer") return Boolean(options.auth.accessToken);
-  if (options.auth.type === "basic") return Boolean(options.auth.username && options.auth.password);
-  return Object.keys(options.auth.headers).length > 0;
+  return Object.keys(oracleServiceAuthHeadersOrEmpty(options)).length > 0;
 }
 
 function oracleServiceAuthHeaders(options: OracleServiceTicketingClientOptions): Record<string, string> {
-  if (options.auth?.type === "headers") return options.auth.headers;
-  if (options.auth?.type === "bearer") return { Authorization: `Bearer ${options.auth.accessToken}` };
-  if (options.auth?.type === "basic") return { Authorization: basicAuthHeader(options.auth.username, options.auth.password) };
-  if (options.accessToken) return { Authorization: `Bearer ${options.accessToken}` };
-  if (options.username && options.password) return { Authorization: basicAuthHeader(options.username, options.password) };
+  const headers = oracleServiceAuthHeadersOrEmpty(options);
+  if (Object.keys(headers).length > 0) return headers;
   throw new Error("Oracle Service accessToken, username/password, or auth headers are required.");
+}
+
+function oracleServiceAuthHeadersOrEmpty(options: OracleServiceTicketingClientOptions): Record<string, string> {
+  if (options.auth?.type === "headers" && Object.keys(options.auth.headers).length > 0) return options.auth.headers;
+  if (options.auth?.type === "bearer" && nonEmptyString(options.auth.accessToken)) return { Authorization: `Bearer ${options.auth.accessToken.trim()}` };
+  if (options.auth?.type === "basic" && nonEmptyString(options.auth.username) && nonEmptyString(options.auth.password)) {
+    return { Authorization: basicAuthHeader(options.auth.username.trim(), options.auth.password) };
+  }
+  if (nonEmptyString(options.accessToken)) return { Authorization: `Bearer ${options.accessToken.trim()}` };
+  if (nonEmptyString(options.username) && nonEmptyString(options.password)) {
+    return { Authorization: basicAuthHeader(options.username.trim(), options.password) };
+  }
+  return {};
 }
 
 function basicAuthHeader(username: string, password: string) {
@@ -441,9 +451,17 @@ function basicAuthHeader(username: string, password: string) {
 }
 
 function normalizeBaseUrl(value: string | undefined, message: string) {
-  if (!value) throw new Error(message);
+  if (!nonEmptyString(value)) throw new Error(message);
   const url = new URL(value);
   return `${url.protocol}//${url.host}${url.pathname.replace(/\/+$/, "")}`;
+}
+
+function firstNonEmpty(...values: Array<string | undefined>): string | undefined {
+  return values.find(nonEmptyString);
+}
+
+function nonEmptyString(value: string | undefined): value is string {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function providerUrl(
