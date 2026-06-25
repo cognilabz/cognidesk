@@ -39,7 +39,7 @@ export interface GenesysCloudSdkClient {
 }
 
 export interface GenesysCloudPlatformSdk {
-  ApiClient: { instance: GenesysCloudSdkApiClient };
+  ApiClient: new () => GenesysCloudSdkApiClient;
   ConversationsApi: new (apiClient?: GenesysCloudSdkApiClient) => GenesysCloudConversationsApi;
   RoutingApi: new (apiClient?: GenesysCloudSdkApiClient) => GenesysCloudRoutingApi;
   UsersApi: new (apiClient?: GenesysCloudSdkApiClient) => GenesysCloudUsersApi;

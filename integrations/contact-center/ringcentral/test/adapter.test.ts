@@ -61,6 +61,51 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
     expect(client.sdk).toBe(sdk);
   });
 
+  it("accepts injected SDK clients without requiring server", async () => {
+    const sdk = fakeRingCentralSdk({
+      post: vi.fn(async () => jsonResponse({ id: "handoff-1" })),
+      get: vi.fn(async () => jsonResponse({ id: "extension-1" })),
+    });
+    const client = createRingCentralContactCenterClient({
+      sdk,
+      defaultHandoffPath: "/restapi/ringcx/handoff",
+      readinessPath: "/restapi/v1.0/account/~/extension/~",
+    });
+
+    await expect(client.createHandoff({ payload: { conversationId: "conversation-1" } }))
+      .resolves.toEqual({ id: "handoff-1" });
+    expect(sdk.post).toHaveBeenCalledWith("/restapi/ringcx/handoff", { conversationId: "conversation-1" });
+  });
+
+  it("requires server when constructing a RingCentral SDK client", () => {
+    expect(() => createRingCentralContactCenterClient({
+      defaultHandoffPath: "/restapi/ringcx/handoff",
+    } as never)).toThrow(/server is required/);
+  });
+
+  it("retries SDK authentication after a transient setup failure", async () => {
+    const authSetData = vi.fn()
+      .mockRejectedValueOnce(new Error("temporary auth failure"))
+      .mockResolvedValueOnce(undefined);
+    const sdk = fakeRingCentralSdk({
+      authSetData,
+      post: vi.fn(async () => jsonResponse({ id: "handoff-1" })),
+    });
+    const client = createRingCentralContactCenterClient({
+      sdk,
+      accessToken: "ringcentral-access-token",
+      defaultHandoffPath: "/restapi/ringcx/handoff",
+    });
+
+    await expect(client.createHandoff({ payload: { conversationId: "conversation-1" } }))
+      .rejects.toThrow(/temporary auth failure/);
+    await expect(client.createHandoff({ payload: { conversationId: "conversation-1" } }))
+      .resolves.toEqual({ id: "handoff-1" });
+
+    expect(authSetData).toHaveBeenCalledTimes(2);
+    expect(sdk.post).toHaveBeenCalledTimes(1);
+  });
+
   it("exports operation handlers that delegate to the injected SDK-backed client", async () => {
     const contactCenterClient = {
       sdk: fakeRingCentralSdk(),

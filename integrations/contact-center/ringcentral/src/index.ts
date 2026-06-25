@@ -21,8 +21,8 @@ export interface RingCentralContactCenterClient {
   readiness(): Promise<unknown>;
 }
 
-export interface RingCentralContactCenterClientOptions {
-  server: string;
+export interface RingCentralContactCenterCommonOptions {
+  server?: string;
   clientId?: string;
   clientSecret?: string;
   accessToken?: string;
@@ -31,9 +31,18 @@ export interface RingCentralContactCenterClientOptions {
   readinessPath?: string;
 }
 
-export interface RingCentralContactCenterIntegrationOptions extends RingCentralContactCenterClientOptions {
-  contactCenterClient?: RingCentralContactCenterClient;
-}
+export type RingCentralContactCenterClientOptions = RingCentralContactCenterCommonOptions & (
+  | { sdk: RingCentralSdkClient; server?: string }
+  | { sdk?: undefined; server: string }
+);
+
+export type RingCentralContactCenterIntegrationOptions =
+  | (RingCentralContactCenterCommonOptions & {
+    contactCenterClient: RingCentralContactCenterClient;
+  })
+  | (RingCentralContactCenterClientOptions & {
+    contactCenterClient?: undefined;
+  });
 
 export type RingCentralContactCenterOptions = RingCentralContactCenterIntegrationOptions;
 
@@ -59,7 +68,9 @@ export function createRingCentralContactCenterClient(
 }
 
 export function createRingCentralContactCenterOperationHandlers(options: RingCentralContactCenterIntegrationOptions) {
-  const client = options.contactCenterClient ?? createRingCentralContactCenterClient(options);
+  const client = options.contactCenterClient
+    ? options.contactCenterClient
+    : createRingCentralContactCenterClient(options);
 
   return {
     "contact-center.handoff.request": (input: RingCentralCreateHandoffInput) => client.createHandoff(input),
@@ -71,7 +82,9 @@ export const createRingCentralContactCenterIntegrationOperationHandlers =
   createRingCentralContactCenterOperationHandlers;
 
 export function createRingCentralContactCenterIntegration(options: RingCentralContactCenterIntegrationOptions) {
-  const client = options.contactCenterClient ?? createRingCentralContactCenterClient(options);
+  const client = options.contactCenterClient
+    ? options.contactCenterClient
+    : createRingCentralContactCenterClient(options);
   const integration = defineIntegration({
     manifest: ringCentralContactCenterManifestInput,
     operations: createRingCentralContactCenterOperationHandlers({
@@ -146,8 +159,9 @@ async function ringCentralReadiness(
 }
 
 function createRingCentralSdk(options: RingCentralContactCenterClientOptions) {
+  const server = configuredServer(options.server);
   return new SDK({
-    server: options.server,
+    server,
     ...(options.clientId ? { clientId: options.clientId } : {}),
     ...(options.clientSecret ? { clientSecret: options.clientSecret } : {}),
   } satisfies SDKOptions);
@@ -160,7 +174,10 @@ function createRingCentralSdkAuthenticationEnsurer(
   let authenticationReady: Promise<void> | undefined;
 
   return () => {
-    authenticationReady ??= configureRingCentralSdkAuthentication(sdk, options);
+    authenticationReady ??= configureRingCentralSdkAuthentication(sdk, options).catch((error) => {
+      authenticationReady = undefined;
+      throw error;
+    });
     return authenticationReady;
   };
 }
@@ -180,6 +197,11 @@ async function configureRingCentralSdkAuthentication(
 function configuredPath(path: string | undefined, label: string) {
   if (!path) throw new Error(`${label} must be configured by the SDK app; no official default path is assumed.`);
   return path;
+}
+
+function configuredServer(server: string | undefined) {
+  if (!server) throw new Error("RingCentral server is required when no SDK client is injected.");
+  return server;
 }
 
 async function readRingCentralSdkResponse<T = unknown>(response: unknown): Promise<T> {

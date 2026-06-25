@@ -163,6 +163,7 @@ body[data-md-color-scheme="slate"]::before {
   font-weight: 710;
 }
 
+.md-tabs__item--active > .md-tabs__link,
 .md-tabs__link--active,
 .md-tabs__link:hover {
   color: var(--cd-blue);

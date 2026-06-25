@@ -87,10 +87,10 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
   });
 
   it("creates SDK API clients from purecloud-platform-client-v2 constructors", async () => {
-    const apiClient = {
-      setEnvironment: vi.fn(),
-      setAccessToken: vi.fn(),
-    };
+    const apiClients: Array<{
+      setEnvironment: ReturnType<typeof vi.fn>;
+      setAccessToken: ReturnType<typeof vi.fn>;
+    }> = [];
     const constructedWith: unknown[] = [];
     const conversationsApi = {
       postConversationsCallbacks: vi.fn(async () => ({ ok: true })),
@@ -104,7 +104,14 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
       getUsersMe: vi.fn(async () => ({ id: "user-1" })),
     };
     const sdk = {
-      ApiClient: { instance: apiClient },
+      ApiClient: class {
+        setEnvironment = vi.fn();
+        setAccessToken = vi.fn();
+
+        constructor() {
+          apiClients.push(this);
+        }
+      },
       ConversationsApi: class {
         constructor(receivedApiClient: unknown) {
           constructedWith.push(receivedApiClient);
@@ -131,9 +138,11 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
       sdk,
     });
 
-    expect(apiClient.setEnvironment).toHaveBeenCalledWith("https://api.mypurecloud.ie");
-    expect(apiClient.setAccessToken).toHaveBeenCalledWith("token");
-    expect(constructedWith).toEqual([apiClient, apiClient, apiClient]);
+    expect(apiClients).toHaveLength(1);
+    expect(apiClients[0]?.setEnvironment).toHaveBeenCalledWith("https://api.mypurecloud.ie");
+    expect(apiClients[0]?.setAccessToken).toHaveBeenCalledWith("token");
+    expect(constructedWith).toEqual([apiClients[0], apiClients[0], apiClients[0]]);
+    expect(sdkClient.apiClient).toBe(apiClients[0]);
     expect(sdkClient.conversationsApi).toBe(conversationsApi);
     expect(sdkClient.routingApi).toBe(routingApi);
     expect(sdkClient.usersApi).toBe(usersApi);

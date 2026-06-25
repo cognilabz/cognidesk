@@ -90,7 +90,7 @@ export function createAircallOperationHandlers(options: AircallIntegrationOption
   const client = options.aircallClient ?? createAircallClient(options);
 
   return {
-    "contact-center.handoff.request": async (input: unknown) => client.createHandoff(input as ConfiguredHandoffInput),
+    "contact-center.handoff.request": async (input: unknown) => client.createHandoff(parseConfiguredHandoffInput(input)),
   } as const;
 }
 
@@ -163,6 +163,14 @@ function normalizeConfiguredHandoffInput(input: ConfiguredHandoffInput): Configu
   };
 }
 
+function parseConfiguredHandoffInput(input: unknown): ConfiguredHandoffInput {
+  if (input === undefined) return {};
+  if (!isPlainObject(input)) {
+    throw new Error("Aircall handoff input object is required.");
+  }
+  return normalizeConfiguredHandoffInput(input as ConfiguredHandoffInput);
+}
+
 function handoffBody(input: ConfiguredHandoffInput) {
   const extraFields = {
     ...(input.routing !== undefined ? { routing: input.routing } : {}),
@@ -177,5 +185,7 @@ function handoffBody(input: ConfiguredHandoffInput) {
 }
 
 function isPlainObject(value: unknown): value is ProviderJsonObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }

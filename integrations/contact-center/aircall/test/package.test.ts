@@ -25,6 +25,15 @@ describe("@cognidesk/integration-contact-center-aircall", () => {
     expect(integration.bindingReport).toMatchObject({ missingHandlerAliases: [], extraHandlerAliases: [], invalidExtensionOperationAliases: [] });
   });
 
+  it("validates handoff operation inputs before delegation", async () => {
+    const mod = await import("../src/index.js");
+    const rawClient: AircallRawClient = { createHandoff: vi.fn(async () => ({ id: "handoff_123" })) };
+    const handlers = mod.createAircallOperationHandlers({ rawClient });
+
+    await expect(handlers["contact-center.handoff.request"](null)).rejects.toThrow(/input object/);
+    expect(rawClient.createHandoff).not.toHaveBeenCalled();
+  });
+
   it("uses the default adapter with URL, headers, and JSON body", async () => {
     const mod = await import("../src/index.js");
     const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true })));
@@ -73,6 +82,20 @@ describe("@cognidesk/integration-contact-center-aircall", () => {
       routing: { queueId: "queue_123" },
       metadata: { priority: "high" },
     }));
+  });
+
+  it("rejects mixed non-plain payloads with routing metadata", async () => {
+    const mod = await import("../src/index.js");
+    const client = mod.createAircallClient({
+      baseUrl: "https://api.example.test",
+      defaultHandoffPath: "/v1/handoff",
+      fetch: vi.fn(async () => new Response(JSON.stringify({ ok: true }))) as unknown as typeof fetch,
+    });
+
+    expect(() => client.createHandoff({
+      payload: new Date("2026-06-25T00:00:00.000Z"),
+      routing: { queueId: "queue_123" },
+    })).toThrow(/payload must be an object/);
   });
 
   it("does not retry non-idempotent handoff requests", async () => {

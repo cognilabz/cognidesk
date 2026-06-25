@@ -62,7 +62,7 @@ export async function createGenesysCloudSdkClient(
   options: Pick<GenesysCloudContactCenterOptions, "apiBaseUrl" | "accessToken" | "sdk">,
 ): Promise<GenesysCloudSdkClient> {
   const sdk = options.sdk ?? await loadGenesysCloudSdk();
-  const apiClient = sdk.ApiClient.instance;
+  const apiClient = new sdk.ApiClient();
   apiClient.setEnvironment?.(options.apiBaseUrl);
   if (options.accessToken) apiClient.setAccessToken?.(options.accessToken);
 
