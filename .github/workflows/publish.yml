@@ -34,6 +34,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: npm-production
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -73,6 +75,10 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+
+      - name: Verify npm authentication
+        if: steps.publish-mode.outputs.dry_run != 'true'
+        run: npm whoami --registry https://registry.npmjs.org/
 
       - uses: pnpm/action-setup@v4
 
