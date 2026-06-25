@@ -113,10 +113,12 @@ To show an authenticated customer their prior support sessions, filter
 Conversation records by the same canonical customer id:
 
 ```typescript
+const customerId = authSession.customerId;
+
 const customerSessions =
   await runtime.listConversations<CustomerSessionContext>({
     agentId: "support",
-    customerId: customer.id,
+    customerId,
     limit: 25,
   });
 ```
