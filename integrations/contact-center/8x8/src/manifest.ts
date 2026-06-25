@@ -12,6 +12,14 @@ export const eightByEightSupportSlice = {
   },
   allowedOperations: [
     {
+      id: "configuredHandoff",
+      alias: "contact-center.handoff.request",
+      method: "POST",
+      path: "host-configured",
+      source: "provider-rest-adapter",
+      checksum: "not-applicable-host-configured",
+    },
+    {
       id: "placePhoneCall",
       alias: "contact-center.contact.start",
       method: "POST",
@@ -28,7 +36,7 @@ export const eightByEightSupportSlice = {
       checksum: "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62",
     },
     {
-      id: "setagentstatus",
+      id: "setAgentStatus",
       alias: "contact-center.agent.status.update",
       method: "PUT",
       path: "/tenants/{tenantId}/agentstatus/agents/{agentId}",

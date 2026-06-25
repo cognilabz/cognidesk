@@ -43,6 +43,7 @@ describe("@cognidesk/integration-contact-center-zoom", () => {
       query: { include: ["participants", "queue"] },
       body: { note: "follow up" },
       allowMutation: true,
+      classification: "host-reviewed-note",
       idempotencyKey: "idem_123",
     });
 
@@ -66,6 +67,31 @@ describe("@cognidesk/integration-contact-center-zoom", () => {
 
     expect(client.providerClient).toBe(providerClient);
     expect(providerClient.readContact).toHaveBeenCalledWith({ pathParams: { engagementId: "engagement_123" } });
+  });
+
+  it("normalizes extension request methods before enforcing mutation policy", async () => {
+    const mod = await import("../src/index.js");
+    const providerClient = fakeProviderClient();
+    const client = mod.createZoomContactCenterClient({ providerClient });
+
+    expect(() => client.request({ method: "TRACE" as never, path: "/contact_center/danger", allowMutation: true, classification: "host-reviewed-extension" }))
+      .toThrow(/not supported/);
+    expect(() => client.request({ method: "post" as never, path: "/contact_center/danger", allowMutation: true }))
+      .toThrow(/classification/);
+
+    await client.request({
+      method: "post" as never,
+      path: "/contact_center/danger",
+      allowMutation: true,
+      classification: "host-reviewed-extension",
+    });
+
+    expect(providerClient.request).toHaveBeenCalledWith(expect.objectContaining({
+      method: "POST",
+      path: "/contact_center/danger",
+      allowMutation: true,
+      classification: "host-reviewed-extension",
+    }));
   });
 
   it("surfaces provider JSON error payloads from the default adapter", async () => {

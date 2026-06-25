@@ -95,16 +95,24 @@ describe("@cognidesk/integration-contact-center-ringcentral", () => {
   it("matches supported contact-center category aliases with normalized operation objects", () => {
     expect(ringCentralContactCenterManifest.metadata?.categoryProfile).toMatchObject({
       id: "contact-center",
-      matchedOperations: expect.arrayContaining([
-        "contact-center.handoff.request",
-        "contact-center.handoff.status.read",
-      ]),
     });
     expect(ringCentralContactCenterManifest.capabilities.flatMap((capability) =>
       capability.providerObjects?.map((providerObject) => providerObject.kind) ?? []
     )).toEqual(expect.arrayContaining([
       "ringcxHandoff",
       "ringcentralReadiness",
+    ]));
+    expect(ringCentralContactCenterManifest.operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        alias: "contact-center.handoff.request",
+        capability: "handoff",
+        providerObject: "ringcxHandoff",
+      }),
+      expect.objectContaining({
+        alias: "contact-center.handoff.status.read",
+        capability: "read-provider-object",
+        providerObject: "ringcentralReadiness",
+      }),
     ]));
   });
 });

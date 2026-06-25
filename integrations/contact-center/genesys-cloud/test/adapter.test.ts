@@ -4,6 +4,7 @@ import {
   createGenesysCloudContactCenterClient,
   createGenesysCloudContactCenterIntegration,
   createGenesysCloudSdkClient,
+  genesysCloudContactCenterCredentialStatuses,
   genesysCloudContactCenterManifest,
   verifyGenesysCloudOpenMessagingWebhookSignature,
 } from "../src/index.js";
@@ -36,6 +37,24 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
       .toEqual([...integration.operationAliases].sort());
     expect(integration.contactCenterClient).toBe(contactCenterClient);
     expect(integration.sdkClient).toBe(sdkClient);
+  });
+
+  it("treats injected contact-center clients as configured credentials", () => {
+    const contactCenterClient = {
+      sdkClient: createSdkClient(),
+      createHandoff: vi.fn(async () => ({ ok: true })),
+      createCallback: vi.fn(async () => ({ ok: true })),
+      createOpenMessage: vi.fn(async () => ({ ok: true })),
+      getConversation: vi.fn(async () => ({ ok: true })),
+      listQueues: vi.fn(async () => ({ ok: true })),
+      readiness: vi.fn(async () => ({ ok: true })),
+    };
+
+    expect(genesysCloudContactCenterCredentialStatuses({ contactCenterClient } as never))
+      .toEqual(expect.arrayContaining([
+        expect.objectContaining({ requirementId: "genesys-cloud-region", state: "configured" }),
+        expect.objectContaining({ requirementId: "genesys-cloud-api-access", state: "configured" }),
+      ]));
   });
 
   it("routes normalized operations through named Genesys SDK APIs", async () => {
@@ -129,6 +148,11 @@ describe("@cognidesk/integration-contact-center-genesys-cloud", () => {
       body,
       signature: `sha256=${digest}`,
     })).toBe(true);
+    expect(verifyGenesysCloudOpenMessagingWebhookSignature({
+      secret: " ",
+      body,
+      signature: `sha256=${digest}`,
+    })).toBe(false);
   });
 
   it("declares SDK-backed coverage", () => {

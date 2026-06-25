@@ -52,6 +52,44 @@ describe("@cognidesk/integration-contact-center-aircall", () => {
     });
   });
 
+  it("preserves routing and metadata when payload is provided", async () => {
+    const mod = await import("../src/index.js");
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true })));
+    const client = mod.createAircallClient({
+      baseUrl: "https://api.example.test",
+      defaultHandoffPath: "/v1/handoff",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    await client.createHandoff({
+      payload: { conversationId: "conv_123" },
+      routing: { queueId: "queue_123" },
+      metadata: { priority: "high" },
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [RequestInfo | URL, RequestInit];
+    expect(init?.body).toBe(JSON.stringify({
+      conversationId: "conv_123",
+      routing: { queueId: "queue_123" },
+      metadata: { priority: "high" },
+    }));
+  });
+
+  it("does not retry non-idempotent handoff requests", async () => {
+    const mod = await import("../src/index.js");
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ error: "try_later" }), { status: 503 }));
+    const client = mod.createAircallClient({
+      baseUrl: "https://api.example.test",
+      defaultHandoffPath: "/v1/handoff",
+      retry: 2,
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    await expect(client.createHandoff({ payload: { conversationId: "conv_123" } }))
+      .rejects.toMatchObject({ status: 503 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("delegates to an injected raw client override", async () => {
     const mod = await import("../src/index.js");
     const rawClient: AircallRawClient = { createHandoff: vi.fn(async () => ({ id: "handoff_123" })) };

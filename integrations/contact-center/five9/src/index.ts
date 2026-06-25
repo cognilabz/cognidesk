@@ -114,13 +114,13 @@ function createFive9RestRawClient(options: Five9ClientOptions): Five9RawClient {
         apiKeyHeaderName: options.apiKeyHeaderName,
         idempotencyKey: input.idempotencyKey,
         fetch: options.fetch,
-    signal: options.signal,
-    timeoutMs: options.timeoutMs,
-    retry: options.retry,
+        signal: options.signal,
+        timeoutMs: options.timeoutMs,
+        retry: input.idempotencyKey ? options.retry : undefined,
         providerName: "Five9",
       });
     },
-    readiness() {
+    readiness(input = {}) {
       const path = configuredPath(options.readinessPath, "Five9 readiness path");
       return providerRestRequest<ProviderJsonObject>({
         baseUrl: configuredBaseUrl(options),
@@ -131,9 +131,9 @@ function createFive9RestRawClient(options: Five9ClientOptions): Five9RawClient {
         apiKey: options.apiKey,
         apiKeyHeaderName: options.apiKeyHeaderName,
         fetch: options.fetch,
-    signal: options.signal,
-    timeoutMs: options.timeoutMs,
-    retry: options.retry,
+        signal: input.signal ?? options.signal,
+        timeoutMs: options.timeoutMs,
+        retry: options.retry,
         providerName: "Five9",
       });
     },

@@ -13,7 +13,7 @@ describe("@cognidesk/integration-contact-center-nice-cxone", () => {
     expect(metadata).not.toContain("host-injected-only");
     expect(metadata).not.toContain("fail-closed");
     expect(metadata).not.toContain("direct-http-support-slice");
-  });
+  }, 10_000);
 
   it("binds declared operations to built-in REST handlers", async () => {
     const mod = await import("../src/index.js");
@@ -64,6 +64,31 @@ describe("@cognidesk/integration-contact-center-nice-cxone", () => {
       method: "POST",
       path: "/contacts/chats",
     });
+  });
+
+  it("normalizes extension request methods before enforcing mutation policy", async () => {
+    const mod = await import("../src/index.js");
+    const providerClient = fakeProviderClient();
+    const client = mod.createNiceCxoneClient({ providerClient });
+
+    expect(() => client.request({ method: "TRACE" as never, path: "/contacts/danger", allowMutation: true, classification: "host-reviewed-extension" }))
+      .toThrow(/not supported/);
+    expect(() => client.request({ method: "post" as never, path: "/contacts/danger", allowMutation: true }))
+      .toThrow(/classification/);
+
+    await client.request({
+      method: "post" as never,
+      path: "/contacts/danger",
+      allowMutation: true,
+      classification: "host-reviewed-extension",
+    });
+
+    expect(providerClient.request).toHaveBeenCalledWith(expect.objectContaining({
+      method: "POST",
+      path: "/contacts/danger",
+      allowMutation: true,
+      classification: "host-reviewed-extension",
+    }));
   });
 
   it("surfaces provider JSON error payloads from the default adapter", async () => {

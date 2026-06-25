@@ -49,6 +49,31 @@ describe("@cognidesk/integration-contact-center-genesys-pureconnect", () => {
     });
   });
 
+  it("normalizes extension request methods before enforcing mutation policy", async () => {
+    const mod = await import("../src/index.js");
+    const providerClient = fakeProviderClient();
+    const client = mod.createGenesysPureConnectClient({ providerClient });
+
+    expect(() => client.request({ method: "TRACE" as never, path: "/icws/session-1/danger", allowMutation: true, classification: "host-reviewed-extension" }))
+      .toThrow(/not supported/);
+    expect(() => client.request({ method: "post" as never, path: "/icws/session-1/danger", allowMutation: true }))
+      .toThrow(/classification/);
+
+    await client.request({
+      method: "post" as never,
+      path: "/icws/session-1/danger",
+      allowMutation: true,
+      classification: "host-reviewed-extension",
+    });
+
+    expect(providerClient.request).toHaveBeenCalledWith(expect.objectContaining({
+      method: "POST",
+      path: "/icws/session-1/danger",
+      allowMutation: true,
+      classification: "host-reviewed-extension",
+    }));
+  });
+
   it("creates a built-in REST adapter when configured without a provider client", async () => {
     const mod = await import("../src/index.js");
     const client = mod.createGenesysPureConnectClient({

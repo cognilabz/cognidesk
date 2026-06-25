@@ -205,7 +205,7 @@ function createEightByEightRestRawClient(options: EightByEightClientOptions): Ei
       });
     },
     updateAgentStatus(input) {
-      return requestAllowedOperation("setagentstatus", {
+      return requestAllowedOperation("setAgentStatus", {
         pathParams: { tenantId: input.tenantId, agentId: input.agentId },
         body: { status: input.status, metadata: input.metadata },
         idempotencyKey: input.idempotencyKey,
@@ -259,15 +259,26 @@ function configuredHandoffInput(input: ConfiguredHandoffInput | undefined): Conf
 }
 
 function startContactInput(input: EightByEightStartContactInput | undefined): EightByEightStartContactInput {
-  return requireInputObject(input, "startContact");
+  const value = requireInputObject(input, "startContact");
+  requireNonEmptyString(value.tenantId, "startContact.tenantId");
+  return value;
 }
 
 function endContactInput(input: EightByEightEndContactInput | undefined): EightByEightEndContactInput {
-  return requireInputObject(input, "endContact");
+  const value = requireInputObject(input, "endContact");
+  requireNonEmptyString(value.tenantId, "endContact.tenantId");
+  requireNonEmptyString(value.interactionId, "endContact.interactionId");
+  return value;
 }
 
 function updateAgentStatusInput(input: EightByEightUpdateAgentStatusInput | undefined): EightByEightUpdateAgentStatusInput {
-  return requireInputObject(input, "updateAgentStatus");
+  const value = requireInputObject(input, "updateAgentStatus");
+  requireNonEmptyString(value.tenantId, "updateAgentStatus.tenantId");
+  requireNonEmptyString(value.agentId, "updateAgentStatus.agentId");
+  if (value.status === undefined) {
+    throw new Error("8x8 Contact Center updateAgentStatus.status is required.");
+  }
+  return value;
 }
 
 function readinessInput(input: EightByEightReadinessInput | undefined): EightByEightReadinessInput | undefined {
@@ -279,10 +290,16 @@ function readinessInput(input: EightByEightReadinessInput | undefined): EightByE
 }
 
 function requireInputObject<T extends object>(input: T | undefined, operation: string): T {
-  if (!input || typeof input !== "object") {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new Error(`8x8 Contact Center ${operation} input object is required.`);
   }
   return input;
+}
+
+function requireNonEmptyString(value: unknown, field: string): asserts value is string {
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`8x8 Contact Center ${field} must be a non-empty string.`);
+  }
 }
 
 function handoffBody(input: ConfiguredHandoffInput) {

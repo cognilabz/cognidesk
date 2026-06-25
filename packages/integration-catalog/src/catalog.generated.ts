@@ -809,6 +809,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         },
         "allowedOperations": [
           {
+            "id": "configuredHandoff",
+            "alias": "contact-center.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "provider-rest-adapter",
+            "checksum": "not-applicable-host-configured"
+          },
+          {
             "id": "placePhoneCall",
             "alias": "contact-center.contact.start",
             "method": "POST",
@@ -825,7 +833,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "checksum": "sha256:87445b35060c46e8e70b23636c77d33a1ff2558eb526aefb45447752132cfe62"
           },
           {
-            "id": "setagentstatus",
+            "id": "setAgentStatus",
             "alias": "contact-center.agent.status.update",
             "method": "PUT",
             "path": "/tenants/{tenantId}/agentstatus/agents/{agentId}",
@@ -2079,6 +2087,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "verifiedAt": "2026-06-25",
         "allowedOperations": [
           {
+            "id": "configuredHandoff",
+            "alias": "contact-center.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "provider-rest-adapter",
+            "checksum": "not-applicable-host-configured"
+          },
+          {
             "id": "createCallback",
             "alias": "contact-center.callback.schedule",
             "method": "POST",
@@ -2240,7 +2256,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         },
         {
           "label": "PureConnect ICWS interactions",
-          "url": "https://help.genesys.com/staging/developer/root/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm"
+          "url": "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm"
         },
         {
           "label": "PureConnect ICWS SDK",
@@ -2899,6 +2915,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
             "path": "/contacts/chats/{chatSession}",
             "source": "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
             "checksum": "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog"
+          },
+          {
+            "id": "providerExtensionRequest",
+            "alias": "nice-cxone.request",
+            "method": "GET",
+            "path": "host-configured",
+            "source": "provider-rest-adapter",
+            "checksum": "not-applicable-host-configured"
           }
         ]
       },
@@ -3043,16 +3067,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [
-          "contact-center.handoff.request",
-          "contact-center.handoff.status.read"
-        ],
+        "matchedOperations": [],
         "missingRequiredOperations": [
           "contact-center.contact.read",
           "contact-center.queue.list",
           "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
+          "contact-center.handoff.request",
           "contact-center.contact.start",
           "contact-center.contact.end",
           "contact-center.queue.status.read",
@@ -3064,6 +3086,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
+          "contact-center.handoff.status.read",
           "contact-center.recording.read",
           "contact-center.routingProfile.read",
           "contact-center.conversation.monitor",
@@ -3156,16 +3179,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "id": "contact-center",
         "coverage": "partial",
         "conformant": false,
-        "matchedOperations": [
-          "contact-center.handoff.request",
-          "contact-center.handoff.status.read"
-        ],
+        "matchedOperations": [],
         "missingRequiredOperations": [
           "contact-center.contact.read",
           "contact-center.queue.list",
           "contact-center.transfer.request"
         ],
         "missingRecommendedOperations": [
+          "contact-center.handoff.request",
           "contact-center.contact.start",
           "contact-center.contact.end",
           "contact-center.queue.status.read",
@@ -3177,6 +3198,7 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
           "contact-center.transcript.read"
         ],
         "missingOptionalOperations": [
+          "contact-center.handoff.status.read",
           "contact-center.recording.read",
           "contact-center.routingProfile.read",
           "contact-center.conversation.monitor",
@@ -3377,6 +3399,14 @@ export const integrationCatalogEntries: readonly IntegrationCatalogEntry[] = [
         "sdkDecision": "No suitable official npm REST SDK was verified; this package provides a built-in REST adapter with providerClient override.",
         "verifiedAt": "2026-06-25",
         "allowedOperations": [
+          {
+            "id": "configuredHandoff",
+            "alias": "contact-center.handoff.request",
+            "method": "POST",
+            "path": "host-configured",
+            "source": "provider-rest-adapter",
+            "checksum": "not-applicable-host-configured"
+          },
           {
             "id": "calls-callback-post",
             "alias": "contact-center.callback.schedule",

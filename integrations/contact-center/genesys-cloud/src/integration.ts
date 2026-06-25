@@ -45,29 +45,32 @@ export async function createGenesysCloudContactCenterIntegration(
     credentialStatuses: () => genesysCloudContactCenterCredentialStatuses({
       ...options,
       sdkClient: options.sdkClient ?? client.sdkClient,
+      contactCenterClient: options.contactCenterClient,
     }),
     readiness: async () => genesysCloudReadiness(client),
   };
 }
 
 export function genesysCloudContactCenterCredentialStatuses(
-  input: Pick<GenesysCloudContactCenterOptions, "apiBaseUrl" | "accessToken" | "sdkClient">,
+  input: Pick<GenesysCloudContactCenterOptions, "apiBaseUrl" | "accessToken" | "sdkClient"> & {
+    contactCenterClient?: GenesysCloudContactCenterClient | undefined;
+  },
 ) {
-  const hasSdkClient = Boolean(input.sdkClient);
+  const hasConfiguredClient = Boolean(input.contactCenterClient) || Boolean(input.sdkClient);
   return [
     {
       providerPackageId: genesysCloudContactCenterManifest.id,
       requirementId: "genesys-cloud-region",
-      state: input.apiBaseUrl || hasSdkClient ? "configured" : "missing",
-      message: input.apiBaseUrl || hasSdkClient
+      state: input.apiBaseUrl || hasConfiguredClient ? "configured" : "missing",
+      message: input.apiBaseUrl || hasConfiguredClient
         ? "Genesys Cloud SDK environment is configured."
         : "Genesys Cloud API base URL is required.",
     },
     {
       providerPackageId: genesysCloudContactCenterManifest.id,
       requirementId: "genesys-cloud-api-access",
-      state: input.accessToken || hasSdkClient ? "configured" : "missing",
-      message: input.accessToken || hasSdkClient
+      state: input.accessToken || hasConfiguredClient ? "configured" : "missing",
+      message: input.accessToken || hasConfiguredClient
         ? "Genesys Cloud OAuth access is configured."
         : "Genesys Cloud OAuth access is required.",
     },

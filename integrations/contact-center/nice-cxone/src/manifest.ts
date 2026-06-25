@@ -38,6 +38,14 @@ export const niceCxoneRestSupportSlice = {
       source: "https://developer.niceincontact.com/content/apis/patron/patron-chatrequests-api-docs",
       checksum: "sha256:076fb5602cd1e76f13d38bb2172547e9d2f91877447c3088ff14e849bac2099a-local-generated-operation-catalog",
     },
+    {
+      id: "providerExtensionRequest",
+      alias: "nice-cxone.request",
+      method: "GET",
+      path: "host-configured",
+      source: "provider-rest-adapter",
+      checksum: "not-applicable-host-configured",
+    },
   ],
 } as const;
 

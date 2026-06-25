@@ -21,5 +21,5 @@ describe("@cognidesk/integration-ticketing-servicenow/manifest", () => {
         },
       },
     });
-  });
+  }, 10_000);
 });

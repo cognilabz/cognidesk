@@ -122,6 +122,9 @@ export function createGenesysPureConnectIntegration(options: GenesysPureConnectI
   });
 }
 
+const supportedRequestMethods = new Set<ProviderHttpMethod>(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+const mutatingRequestMethods = new Set<ProviderHttpMethod>(["POST", "PUT", "PATCH", "DELETE"]);
+
 function createGenesysPureConnectRestProviderClient(options: GenesysPureConnectClientOptions): GenesysPureConnectProviderClient {
   const request = (method: ProviderHttpMethod, path: string, input: GenesysPureConnectOperationInput = {}) => providerRestRequest<ProviderJsonObject>({
     baseUrl: configuredBaseUrl(options),
@@ -187,15 +190,18 @@ function validateGenesysPureConnectAllowedOperation(operationId: string, input: 
 }
 
 function validateGenesysPureConnectProviderRequest(input: ProviderExtensionRequestInput): ProviderExtensionRequestInput & { method: ProviderHttpMethod; path: string } {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error("Genesys PureConnect / ICWS request input object is required.");
+  }
   const operation = input.operationId
     ? genesysPureConnectSupportSlice.allowedOperations.find((candidate) => candidate.id === input.operationId)
     : undefined;
-  const method = input.method ?? operationMethod(operation) ?? "GET";
+  const method = providerHttpMethod(input.method ?? operationMethod(operation) ?? "GET", "Genesys PureConnect / ICWS");
   const path = input.path ?? operationPath(operation);
   if (!path || path === "host-configured") {
     throw new Error("Genesys PureConnect / ICWS request path or reviewed operationId is required.");
   }
-  if (["POST", "PUT", "PATCH", "DELETE"].includes(method) && !input.allowMutation) {
+  if (mutatingRequestMethods.has(method) && (input.allowMutation !== true || !hasPolicyClassification(input.classification))) {
     throw new Error("Genesys PureConnect / ICWS mutating extension requests require allowMutation=true and host policy classification.");
   }
   return {
@@ -203,6 +209,18 @@ function validateGenesysPureConnectProviderRequest(input: ProviderExtensionReque
     method,
     path,
   };
+}
+
+function hasPolicyClassification(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function providerHttpMethod(value: unknown, providerName: string): ProviderHttpMethod {
+  const method = String(value).toUpperCase();
+  if (!supportedRequestMethods.has(method as ProviderHttpMethod)) {
+    throw new Error(`${providerName} request method '${method}' is not supported.`);
+  }
+  return method as ProviderHttpMethod;
 }
 
 function normalizeConfiguredHandoffInput(input: ConfiguredHandoffInput): ConfiguredHandoffInput {

@@ -7,6 +7,14 @@ export const talkdeskSupportSlice = {
   verifiedAt: "2026-06-25",
   allowedOperations: [
     {
+      id: "configuredHandoff",
+      alias: "contact-center.handoff.request",
+      method: "POST",
+      path: "host-configured",
+      source: "provider-rest-adapter",
+      checksum: "not-applicable-host-configured",
+    },
+    {
       id: "calls-callback-post",
       alias: "contact-center.callback.schedule",
       method: "POST",

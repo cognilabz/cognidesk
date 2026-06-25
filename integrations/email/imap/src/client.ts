@@ -98,9 +98,7 @@ export function createImapEmailClient(options: ImapEmailClientOptions): ImapEmai
   };
 }
 
-export function createImapEmailIntegrationOperationHandlers(options: ImapEmailIntegrationOptions) {
-  const client = options.emailClient ?? createImapEmailClient(options);
-
+export function createImapEmailIntegrationOperationHandlers(client: ImapEmailClient) {
   return {
     "imap.mailbox.check": () => client.checkMailbox(),
     "email.thread.search": (input: unknown) => client.searchMessages(input as { query: SearchObject; uid?: boolean }),
@@ -114,7 +112,7 @@ export function createImapEmailIntegration(options: ImapEmailIntegrationOptions)
   return {
     ...defineIntegration({
       manifest: imapEmailProviderManifest,
-      operations: createImapEmailIntegrationOperationHandlers({ ...options, emailClient: client }),
+      operations: createImapEmailIntegrationOperationHandlers(client),
     }),
     rawClient: client.rawClient,
     client,

@@ -90,10 +90,7 @@ describe("@cognidesk/integration-email-imap", () => {
       fetchMessages: vi.fn(async () => [{ uid: 42, flags: ["\\Seen"] }]),
       close: vi.fn(async () => {}),
     } satisfies ImapEmailClient;
-    const handlers = createImapEmailIntegrationOperationHandlers({
-      connection: { host: "unused.example.test", port: 993, secure: true },
-      emailClient,
-    });
+    const handlers = createImapEmailIntegrationOperationHandlers(emailClient);
 
     await expect(handlers["imap.mailbox.check"]()).resolves.toMatchObject({ ready: true, mailbox: "Archive" });
     await expect(handlers["email.thread.search"]({ query: { all: true } })).resolves.toEqual([42]);

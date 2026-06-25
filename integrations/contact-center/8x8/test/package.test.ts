@@ -9,6 +9,8 @@ describe("@cognidesk/integration-contact-center-8x8", () => {
     expect(manifestModule.eightByEightProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-8x8");
     expect(manifestModule.eightByEightSupportSlice.implementationStrategy).toBe("provider-rest-adapter");
     expect(manifestModule.eightByEightSupportSlice.adapterKind).toBe("no-official-sdk-rest-adapter");
+    expect(manifestModule.eightByEightSupportSlice.allowedOperations.map((operation) => operation.alias))
+      .toContain("contact-center.handoff.request");
     expect(metadata).toContain("provider-rest-adapter");
     expect(metadata).not.toContain("host-injected-only");
     expect(metadata).not.toContain("fail-closed");
@@ -71,6 +73,22 @@ describe("@cognidesk/integration-contact-center-8x8", () => {
       agentId: "agent_123",
       status: { code: "available" },
     });
+  });
+
+  it("validates raw client contact inputs before delegation", async () => {
+    const mod = await import("../src/index.js");
+    const rawClient = fakeEightByEightRawClient();
+    const client = mod.createEightByEightClient({ rawClient });
+
+    expect(() => client.startContact({} as never)).toThrow(/startContact\.tenantId/);
+    expect(() => client.startContact([] as never)).toThrow(/input object/);
+    expect(() => client.endContact({ tenantId: "tenant_123" } as never)).toThrow(/endContact\.interactionId/);
+    expect(() => client.updateAgentStatus({ tenantId: "tenant_123", agentId: "agent_123" } as never))
+      .toThrow(/updateAgentStatus\.status/);
+
+    expect(rawClient.startContact).not.toHaveBeenCalled();
+    expect(rawClient.endContact).not.toHaveBeenCalled();
+    expect(rawClient.updateAgentStatus).not.toHaveBeenCalled();
   });
 
   it("surfaces provider JSON error payloads from the default adapter", async () => {

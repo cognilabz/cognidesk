@@ -110,16 +110,16 @@ function createAircallRestRawClient(options: AircallClientOptions): AircallRawCl
         method: "POST",
         path,
         query: input.query,
-        body: input.payload ?? { routing: input.routing, metadata: input.metadata },
+        body: handoffBody(input),
         accessToken: options.accessToken,
         authorizationHeader: options.authorizationHeader,
         apiKey: options.apiKey,
         apiKeyHeaderName: options.apiKeyHeaderName,
         idempotencyKey: input.idempotencyKey,
         fetch: options.fetch,
-    signal: options.signal,
-    timeoutMs: options.timeoutMs,
-    retry: options.retry,
+        signal: options.signal,
+        timeoutMs: options.timeoutMs,
+        retry: input.idempotencyKey ? options.retry : undefined,
         providerName: "Aircall",
       });
     },
@@ -133,9 +133,9 @@ function createAircallRestRawClient(options: AircallClientOptions): AircallRawCl
         apiKey: options.apiKey,
         apiKeyHeaderName: options.apiKeyHeaderName,
         fetch: options.fetch,
-    signal: options.signal,
-    timeoutMs: options.timeoutMs,
-    retry: options.retry,
+        signal: options.signal,
+        timeoutMs: options.timeoutMs,
+        retry: options.retry,
         providerName: "Aircall",
       });
     },
@@ -161,4 +161,21 @@ function normalizeConfiguredHandoffInput(input: ConfiguredHandoffInput): Configu
     ...(input.metadata !== undefined ? { metadata: input.metadata } : {}),
     ...(input.idempotencyKey !== undefined ? { idempotencyKey: input.idempotencyKey } : {}),
   };
+}
+
+function handoffBody(input: ConfiguredHandoffInput) {
+  const extraFields = {
+    ...(input.routing !== undefined ? { routing: input.routing } : {}),
+    ...(input.metadata !== undefined ? { metadata: input.metadata } : {}),
+  };
+  if (input.payload === undefined) return extraFields;
+  if (Object.keys(extraFields).length === 0) return input.payload;
+  if (!isPlainObject(input.payload)) {
+    throw new Error("Aircall handoff payload must be an object when routing or metadata are provided.");
+  }
+  return { ...input.payload, ...extraFields };
+}
+
+function isPlainObject(value: unknown): value is ProviderJsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

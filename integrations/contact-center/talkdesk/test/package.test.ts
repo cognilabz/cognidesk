@@ -5,6 +5,8 @@ describe("@cognidesk/integration-contact-center-talkdesk", () => {
     const manifestModule = await import("../src/manifest.js");
     expect(manifestModule.talkdeskProviderManifest.packageName).toBe("@cognidesk/integration-contact-center-talkdesk");
     expect(manifestModule.talkdeskSupportSlice.allowedOperations.length).toBeGreaterThan(0);
+    expect(manifestModule.talkdeskSupportSlice.allowedOperations.map((operation) => operation.alias))
+      .toContain("contact-center.handoff.request");
   });
 
   it("binds declared operations to handlers", async () => {

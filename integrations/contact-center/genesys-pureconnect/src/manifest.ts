@@ -47,7 +47,7 @@ export const genesysPureConnectProviderManifestInput = {
     ],
     evidence: [
       { label: "PureConnect ICWS connection", url: "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/connection/index.htm" },
-      { label: "PureConnect ICWS interactions", url: "https://help.genesys.com/staging/developer/root/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm" },
+      { label: "PureConnect ICWS interactions", url: "https://help.genesys.com/developer/cic/docs/icws/webhelp/icws/%28sessionId%29/interactions/Interactions.htm" },
       { label: "PureConnect ICWS SDK", url: "https://help.genesys.com/pureconnect/mergedprojects/wh_tr/mergedprojects/wh_tr_installation_and_configuration/desktop/interaction_center_web_services_icws_sdk.htm" },
     ],
   },

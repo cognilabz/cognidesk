@@ -36,6 +36,11 @@
   --md-typeset-a-color: var(--cd-blue);
   --md-code-bg-color: oklch(95% 0.018 285);
   --md-code-fg-color: var(--cd-ink);
+  --cd-code-surface: linear-gradient(135deg, oklch(98.5% 0.008 285), oklch(94.5% 0.025 250));
+  --cd-code-header: oklch(96.5% 0.012 285);
+  --cd-code-header-border: oklch(82% 0.04 270 / 0.65);
+  --cd-code-border: oklch(78% 0.055 270 / 0.7);
+  --cd-code-title: oklch(30% 0.028 282);
 }
 
 [data-md-color-scheme="slate"] {
@@ -50,10 +55,16 @@
   --md-typeset-a-color: var(--cd-cyan);
   --md-code-bg-color: oklch(19% 0.035 286);
   --md-code-fg-color: oklch(90% 0.012 285);
+  --cd-code-surface: linear-gradient(135deg, oklch(16% 0.03 286), oklch(20% 0.04 286));
+  --cd-code-header: oklch(17.5% 0.032 286);
+  --cd-code-header-border: oklch(34% 0.04 282 / 0.72);
+  --cd-code-border: oklch(58% 0.04 270 / 0.78);
+  --cd-code-title: oklch(88% 0.012 285);
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -214,23 +225,33 @@ body[data-md-color-scheme="slate"]::before {
 
 .md-typeset .highlight {
   overflow: hidden;
-  border: 1px solid oklch(78% 0.055 270 / 0.7);
   border-radius: var(--cd-radius);
+  background: var(--cd-code-surface);
+  border: 1px solid var(--cd-code-border);
   box-shadow: var(--cd-shadow-soft);
 }
 
-.md-typeset .highlight pre {
-  background:
-    linear-gradient(135deg, oklch(98.5% 0.008 285), oklch(94.5% 0.025 250)) !important;
+.md-typeset .highlight > .filename {
+  display: block;
+  margin: 0;
+  padding: 0.72rem 1rem;
+  color: var(--cd-code-title);
+  font-weight: 700;
+  background: var(--cd-code-header);
+  border-bottom: 1px solid var(--cd-code-header-border);
+  border-radius: 0;
 }
 
-[data-md-color-scheme="slate"] .md-typeset .highlight pre {
-  background:
-    linear-gradient(135deg, oklch(16% 0.03 286), oklch(20% 0.04 286)) !important;
+.md-typeset .highlight pre {
+  margin: 0;
+  background: transparent !important;
+  border-radius: 0;
 }
 
 .md-typeset .highlight code {
   border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--cd-ink);
 }
 
@@ -623,6 +644,13 @@ body[data-md-color-scheme="slate"]::before {
 
 .md-sidebar__scrollwrap {
   scrollbar-color: oklch(68% 0.16 252 / 0.55) transparent;
+}
+
+.md-sidebar .md-nav__title,
+.md-sidebar .md-nav__link.md-nav__container,
+.md-sidebar .md-nav__container > .md-nav__link {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .md-nav__link--active,

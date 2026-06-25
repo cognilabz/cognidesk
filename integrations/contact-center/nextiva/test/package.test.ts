@@ -40,6 +40,7 @@ describe("@cognidesk/integration-contact-center-nextiva", () => {
       pathParams: { workItemId: "work/123" },
       body: { status: "queued" },
       allowMutation: true,
+      classification: "host-reviewed-workitem",
     });
 
     const [url, init] = fetchMock.mock.calls[0] as unknown as [RequestInfo | URL, RequestInit];
@@ -61,6 +62,31 @@ describe("@cognidesk/integration-contact-center-nextiva", () => {
 
     expect(client.providerClient).toBe(providerClient);
     expect(providerClient.createHandoff).toHaveBeenCalledWith({ payload: { conversationId: "conv_123" } });
+  });
+
+  it("normalizes extension request methods before enforcing mutation policy", async () => {
+    const mod = await import("../src/index.js");
+    const providerClient = fakeProviderClient();
+    const client = mod.createNextivaClient({ providerClient });
+
+    expect(() => client.request({ method: "TRACE" as never, path: "/danger", allowMutation: true, classification: "host-reviewed-extension" }))
+      .toThrow(/not supported/);
+    expect(() => client.request({ method: "post" as never, path: "/danger", allowMutation: true }))
+      .toThrow(/classification/);
+
+    await client.request({
+      method: "post" as never,
+      path: "/danger",
+      allowMutation: true,
+      classification: "host-reviewed-extension",
+    });
+
+    expect(providerClient.request).toHaveBeenCalledWith(expect.objectContaining({
+      method: "POST",
+      path: "/danger",
+      allowMutation: true,
+      classification: "host-reviewed-extension",
+    }));
   });
 
   it("surfaces provider JSON error payloads from the default adapter", async () => {

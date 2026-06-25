@@ -142,6 +142,9 @@ export function createZoomContactCenterIntegration(options: ZoomContactCenterInt
 
 export const createZoomContactCenterIntegrationOperationHandlers = createZoomContactCenterOperationHandlers;
 
+const supportedRequestMethods = new Set<ProviderHttpMethod>(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+const mutatingRequestMethods = new Set<ProviderHttpMethod>(["POST", "PUT", "PATCH", "DELETE"]);
+
 function createZoomContactCenterRestProviderClient(options: ZoomContactCenterClientOptions): ZoomContactCenterProviderClient {
   const request = (method: ProviderHttpMethod, path: string, input: ZoomContactCenterOperationInput = {}) => providerRestRequest<ProviderJsonObject>({
     baseUrl: configuredBaseUrl(options),
@@ -216,15 +219,18 @@ function normalizeOperationInput(input: ZoomContactCenterOperationInput): ZoomCo
 }
 
 function validateZoomContactCenterProviderRequest(input: ProviderExtensionRequestInput): ProviderExtensionRequestInput & { method: ProviderHttpMethod; path: string } {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error("Zoom Contact Center request input object is required.");
+  }
   const operation = input.operationId
     ? zoomContactCenterSupportSlice.allowedOperations.find((candidate) => candidate.id === input.operationId)
     : undefined;
-  const method = input.method ?? operationMethod(operation) ?? "GET";
+  const method = providerHttpMethod(input.method ?? operationMethod(operation) ?? "GET", "Zoom Contact Center");
   const path = input.path ?? operationPath(operation);
   if (!path || path === "host-configured") {
     throw new Error("Zoom Contact Center request path or reviewed operationId is required.");
   }
-  if (["POST", "PUT", "PATCH", "DELETE"].includes(method) && !input.allowMutation) {
+  if (mutatingRequestMethods.has(method) && (input.allowMutation !== true || !hasPolicyClassification(input.classification))) {
     throw new Error("Zoom Contact Center mutating extension requests require allowMutation=true and host policy classification.");
   }
   return {
@@ -235,6 +241,18 @@ function validateZoomContactCenterProviderRequest(input: ProviderExtensionReques
     ...(input.allowMutation !== undefined ? { allowMutation: input.allowMutation } : {}),
     ...(input.classification !== undefined ? { classification: input.classification } : {}),
   };
+}
+
+function hasPolicyClassification(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function providerHttpMethod(value: unknown, providerName: string): ProviderHttpMethod {
+  const method = String(value).toUpperCase();
+  if (!supportedRequestMethods.has(method as ProviderHttpMethod)) {
+    throw new Error(`${providerName} request method '${method}' is not supported.`);
+  }
+  return method as ProviderHttpMethod;
 }
 
 function operationMethod(operation: ZoomContactCenterAllowedOperation | undefined): ProviderHttpMethod | undefined {

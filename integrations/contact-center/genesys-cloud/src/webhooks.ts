@@ -5,6 +5,7 @@ export function verifyGenesysCloudOpenMessagingWebhookSignature(input: {
   body: string | Buffer;
   signature: string;
 }) {
+  if (input.secret.trim().length === 0) return false;
   const expected = createHmac("sha256", input.secret).update(input.body).digest("hex");
   const expectedHeader = `sha256=${expected}`;
   const received = Buffer.from(input.signature);
