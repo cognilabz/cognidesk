@@ -128,6 +128,7 @@ nav:
       - Transport Neutrality: concepts/transport-neutrality.md
   - Guides:
       - guides/index.md
+      - AI Agents & Skills: guides/ai-agents-and-skills.md
       - Agents & Instructions: guides/agents-and-instructions.md
       - Tools: guides/tools.md
       - Knowledge Sources: guides/knowledge-sources.md
