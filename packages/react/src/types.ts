@@ -362,6 +362,11 @@ export interface UseVoiceOptions {
   initialContext?: unknown;
   chatStart?: ChatStartBehavior;
   mediaConstraints?: MediaStreamConstraints;
+  /**
+   * Defaults to true. Disable only when the app explicitly wants barge-in while
+   * assistant audio is playing and has reliable echo isolation.
+   */
+  suppressCaptureDuringPlayback?: boolean;
   WebSocket?: typeof WebSocket;
   audioContext?: AudioContext;
   app?: unknown;
