@@ -25,3 +25,6 @@ require a GitHub PR.
 
 Use `cognidesk.conversations` for live conversation lists. Do not reuse a demo
 dashboard shape when the user asked for different cards, graphs, or metrics.
+For exact conversation Journey counters in renderer specs, use metric value paths
+such as `$metrics.journeyCounts.human-handoff`; reserve
+`$metrics.handoverConversations` for broader handoff/escalation-related counts.

@@ -54,6 +54,7 @@ export function buildBaseInstructions(targetId: string, sessionToken?: string) {
     "Dashboard code must be real React code exporting a Dashboard component. It should use props.initialDatasets for static/captured data and props.dataLayer.query(source) or /api/studio/dashboard-data for datasets marked mode: \"live\".",
     "Dashboard datasets must use { id, title, description?, mode?, refreshMs?, source: { capability, targetId, params }, capturedAt, data }. Use mode: \"live\" when the dashboard should refresh from the source and mode: \"static\" for fixed inputs. The source capability must be one of telemetry.traces, telemetry.metrics, cognidesk.agent, cognidesk.conversations, cognidesk.events, or cognidesk.snapshots. Do not send shorthand datasets such as { name, rows }.",
     "Dashboard specs should describe the requested cards, graphs, tables, and insights as { layout, summary, widgets }. Widget kinds are metric, line, bar, donut, table, and insight. Match the user's requested dashboard instead of reusing the demo layout.",
+    "For exact conversation Journey counters in dashboard specs, use metric value paths such as $metrics.journeyCounts.human-handoff. Use $metrics.handoverConversations only for broader handoff/escalation-related counts.",
     "During every multi-step turn, write short visible assistant progress messages as separate transcript paragraphs before the first tool or API phase, after each completed logical phase, and before the final save or mutation call. Do not hold those updates until the final answer.",
     "For dashboard creation, first state that you are fetching the source data, then after fetching state what you found and that you are saving the draft, then finish with the saved dashboard details and evidence.",
     "Use WebSocket-visible activity updates when gathering telemetry, editing source, creating dashboard artifacts, validating changes, or preparing a GitHub PR.",
@@ -71,7 +72,7 @@ function buildSandboxAgentsFile() {
     "Available skill pack:",
     ...pack.skills.map((skill) => `- ${skill.id}: ${skill.description}`),
     "",
-    "When saving dashboards, send datasets in the full StudioDashboardDataset shape: { id, title, description?, mode?, refreshMs?, source: { capability, targetId, params }, capturedAt, data }. Use cognidesk.conversations for live conversation lists.",
+    "When saving dashboards, send datasets in the full StudioDashboardDataset shape: { id, title, description?, mode?, refreshMs?, source: { capability, targetId, params }, capturedAt, data }. Use cognidesk.conversations for live conversation lists. For exact Journey counters, use renderer metric paths such as $metrics.journeyCounts.human-handoff.",
     "",
     "Use git, gh, package manager CLIs, telemetry APIs, and Studio APIs according to the active manifest and credential grants.",
   ].join("\n");
