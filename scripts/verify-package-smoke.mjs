@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import {
   mkdir,
   mkdtemp,
@@ -17,6 +17,7 @@ import {
   isProviderPackage,
   packageWorkspaces,
 } from "./release-workspace.mjs";
+import { assertPackageReadmes } from "./verify-package-readmes.mjs";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = process.argv.slice(2);
@@ -78,42 +79,6 @@ if (assetExportEntries.length > 0) {
 }
 
 await runImportSmoke(importableExportEntries.map((entry) => entry.specifier));
-
-function assertPackageReadmes(packages) {
-  const failures = [];
-
-  for (const pkg of packages) {
-    const readmePath = path.join(pkg.dir, "README.md");
-    if (!existsSync(readmePath)) {
-      failures.push(`${pkg.relativeDir}: missing README.md`);
-      continue;
-    }
-
-    const readme = readFileSync(readmePath, "utf8").trim();
-    if (readme.length < 200) {
-      failures.push(`${pkg.relativeDir}: README.md is too short for npm package display`);
-      continue;
-    }
-
-    if (!readme.startsWith(`# ${pkg.name}`)) {
-      failures.push(`${pkg.relativeDir}: README.md must start with "# ${pkg.name}"`);
-    }
-
-    if (readme.includes("ERROR: No README data found!")) {
-      failures.push(`${pkg.relativeDir}: README.md contains npm missing-readme placeholder text`);
-    }
-  }
-
-  if (failures.length > 0) {
-    console.error("\nPackage README check failed:");
-    for (const failure of failures) {
-      console.error(`  ${failure}`);
-    }
-    process.exit(1);
-  }
-
-  console.log(`Package README check: ${packages.length} package README files found.`);
-}
 
 function selectSmokePackages() {
   const requestedPackageNames = readRepeatedOption("--package");
