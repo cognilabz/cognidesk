@@ -47,9 +47,9 @@ export function inferWidgets(datasets: StudioDashboardDataset[]): StudioDashboar
 
 export function metricValue(widget: StudioDashboardWidget, dataset: StudioDashboardDataset | undefined) {
   const rows = conversationRows(dataset?.data);
-  if (widget.valuePath?.startsWith("$metrics.") && rows.length) {
+  if (widget.valuePath?.startsWith("$metrics.")) {
     const metrics = conversationMetrics(rows);
-    return resolvePath(metrics, widget.valuePath.replace("$metrics.", ""));
+    return resolvePath(metrics, widget.valuePath.replace("$metrics.", "")) ?? 0;
   }
   if (widget.valuePath && dataset) return resolvePath(dataset.data, widget.valuePath);
   return Array.isArray(dataset?.data) ? dataset.data.length : (rows.length || rowsFromUnknown(dataset?.data).length);

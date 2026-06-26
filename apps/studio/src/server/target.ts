@@ -19,6 +19,8 @@ import { studioTargets } from "@/server/db/schema";
 import { createStudioAdapterHeaders } from "@/server/target-adapter-auth";
 import type { StudioConversationRow } from "@/components/studio/types";
 
+const MAX_TARGET_CONVERSATIONS = 1000;
+
 export async function ensureDefaultTarget(userId?: string | null): Promise<StudioTargetManifest> {
   await ensureStudioDatabase();
   const manifest = loadStudioTargetManifest();
@@ -100,14 +102,26 @@ export async function fetchTargetConversations(
 ): Promise<StudioConversationRow[]> {
   const manifest = await currentTarget();
   const params = new URLSearchParams();
-  params.set("limit", String(clampInt(options.limit ?? 50, 1, 250)));
+  params.set("limit", String(clampInt(options.limit ?? 50, 1, MAX_TARGET_CONVERSATIONS)));
   if (options.offset !== undefined) params.set("offset", String(clampInt(options.offset, 0, 100000)));
   if (options.agentId) params.set("agentId", options.agentId);
   const response = await adapterFetch(manifest, `/conversations?${params.toString()}`);
   if (!response.ok) throw new Error(`Studio Adapter conversations returned ${response.status}`);
-  const body = await response.json() as { conversations?: unknown };
-  const conversations = StudioConversationSummarySchema.array().parse(body.conversations ?? []);
+  const body = await response.json() as unknown;
+  const conversationsPayload = isRecord(body) ? body.conversations : undefined;
+  if (!Array.isArray(conversationsPayload)) throw new Error("Studio Adapter conversations response is missing conversations array.");
+  const conversations = StudioConversationSummarySchema.array().parse(conversationsPayload);
   return conversations.map(studioConversationRowFromSummary);
+}
+
+export async function fetchTargetConversation(conversationId: string): Promise<StudioConversationRow> {
+  const manifest = await currentTarget();
+  const response = await adapterFetch(manifest, `/conversations/${encodeURIComponent(conversationId)}`);
+  if (!response.ok) throw new Error(`Studio Adapter conversation returned ${response.status}`);
+  const body = await response.json() as unknown;
+  const conversationPayload = isRecord(body) ? body.conversation : undefined;
+  const conversation = StudioConversationSummarySchema.parse(conversationPayload);
+  return studioConversationRowFromSummary(conversation);
 }
 
 export async function fetchConversationEvents(conversationId: string, afterOffset = 0) {
@@ -144,6 +158,7 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
         data: await fetchConfigurationSurface(),
       };
     case "cognidesk.conversations":
+      const agentId = stringParam(parsed.params.agentId);
       return {
         id: randomUUID(),
         title: "Studio Conversations",
@@ -152,6 +167,7 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
         data: await fetchTargetConversations({
           limit: numberParam(parsed.params.limit) ?? 1000,
           offset: numberParam(parsed.params.offset) ?? 0,
+          ...(agentId ? { agentId } : {}),
         }),
       };
     case "cognidesk.events": {
@@ -295,4 +311,8 @@ function labelLifecycle(value: string) {
 function clampInt(value: number, min: number, max: number) {
   if (!Number.isFinite(value)) return min;
   return Math.min(max, Math.max(min, Math.trunc(value)));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }

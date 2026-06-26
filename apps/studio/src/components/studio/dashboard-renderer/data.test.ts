@@ -40,4 +40,12 @@ describe("dashboard conversation metrics", () => {
     expect(metricValue(metricWidget("$metrics.journeyCounts.human-handoff"), conversationsDataset)).toBe(2);
     expect(metricValue(metricWidget("$metrics.journeyCounts.unassigned"), conversationsDataset)).toBe(2);
   });
+
+  it("returns zero for missing exact journey-count buckets", () => {
+    expect(metricValue(metricWidget("$metrics.journeyCounts.secure-email-login"), conversationsDataset)).toBe(0);
+    expect(metricValue(metricWidget("$metrics.journeyCounts.human-handoff"), {
+      ...conversationsDataset,
+      data: { conversations: [] },
+    })).toBe(0);
+  });
 });

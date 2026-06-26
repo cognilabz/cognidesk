@@ -28,16 +28,30 @@ describe("messageTranscriptRows", () => {
       { role: "assistant", text: "Hi, how can I help?" },
     ]);
   });
+
+  it("keeps channel-only turns in mixed runtime streams and dedupes mirrored message events", () => {
+    const rows = messageTranscriptRows([
+      event(1, "message.started", { role: "assistant" }, "trace_intro"),
+      event(2, "message.completed", { text: "Welcome back." }, "trace_intro"),
+      event(3, "channel.sent", { text: "Welcome back." }, "trace_intro"),
+      event(4, "channel.received", { text: "I have a follow-up from the provider channel." }, "trace_channel"),
+    ]);
+
+    expect(rows.map((row) => ({ role: row.role, text: row.text }))).toEqual([
+      { role: "assistant", text: "Welcome back." },
+      { role: "customer", text: "I have a follow-up from the provider channel." },
+    ]);
+  });
 });
 
-function event(offset: number, type: string, data: Record<string, unknown>) {
+function event(offset: number, type: string, data: Record<string, unknown>, traceId = "trace_1") {
   return {
     id: `event_${offset}`,
     conversationId: "conversation_1",
     offset,
     type,
     createdAt: "2026-06-26T08:00:00.000Z",
-    telemetry: { traceId: "trace_1" },
+    telemetry: { traceId },
     data,
   };
 }

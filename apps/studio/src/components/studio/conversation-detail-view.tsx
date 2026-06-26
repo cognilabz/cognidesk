@@ -7,6 +7,7 @@ import { DataTable, Metric, PageHeader, Panel, PanelHeader } from "./ui";
 export function ConversationDetailView(props: {
   conversationId: string;
   conversation: StudioConversationRow | null;
+  conversationError: string | null;
   events: unknown[];
   eventsError: string | null;
   snapshot: unknown;
@@ -27,7 +28,7 @@ export function ConversationDetailView(props: {
       <PageHeader
         eyebrow="Conversation session"
         title={props.conversation?.customerLabel ?? `Conversation ${props.conversationId.slice(0, 8)}`}
-        description={props.conversation?.summary ?? "Runtime events and snapshot for the selected conversation."}
+        description={props.conversation?.summary ?? props.conversationError ?? "Runtime events and snapshot for the selected conversation."}
         actions={(
           <Link className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 transition hover:bg-slate-50" href="/">
             <ArrowLeft size={16} />
@@ -37,7 +38,7 @@ export function ConversationDetailView(props: {
       />
       <div className="space-y-6 px-8 py-6">
         <section className="grid grid-cols-4 gap-4 max-xl:grid-cols-2 max-md:grid-cols-1">
-          <Metric label="State" value={labelLifecycle(lifecycle)} detail={props.conversation?.updatedAt ? `Updated ${formatDateTime(props.conversation.updatedAt)}` : "Live snapshot"} tone={lifecycle === "handoff" ? "red" : lifecycle === "active" ? "blue" : "green"} />
+          <Metric label="State" value={labelLifecycle(lifecycle)} detail={props.conversationError ?? (props.conversation?.updatedAt ? `Updated ${formatDateTime(props.conversation.updatedAt)}` : "Live snapshot")} tone={lifecycle === "handoff" ? "red" : lifecycle === "active" ? "blue" : "green"} />
           <Metric label="Journey" value={activeJourneyId} detail={activeStateIds.length ? `${activeStateIds.length} active states` : "No active state"} tone="violet" />
           <Metric label="Messages" value={String(transcriptRows.length)} detail={props.eventsError ?? `${props.events.length} runtime events`} tone="slate" />
           <Metric label="Traces" value={String(traceIds.length)} detail={traceIds[0] ?? "No trace IDs"} tone="blue" />
@@ -178,8 +179,8 @@ export function messageTranscriptRows(events: unknown[]): TranscriptRow[] {
     rows.push(transcriptRow(record, pendingRole ?? stringField(data, "role") ?? "message", text, index));
     pendingRole = undefined;
   }
-  if (rows.length) return rows;
-  return channelTranscriptRows(events);
+  return dedupeTranscriptRows([...rows, ...channelTranscriptRows(events)])
+    .sort((left, right) => numericOffset(left) - numericOffset(right));
 }
 
 function channelTranscriptRows(events: unknown[]): TranscriptRow[] {
@@ -209,6 +210,30 @@ function transcriptRow(record: Record<string, unknown> | null, role: string, tex
     traceId: stringField(asRecord(record?.telemetry), "traceId") ?? "-",
     text,
   };
+}
+
+function dedupeTranscriptRows(rows: TranscriptRow[]) {
+  const uniqueRows: TranscriptRow[] = [];
+  for (const row of rows) {
+    const duplicate = uniqueRows.some((candidate) => {
+      const sameRole = normalizeTranscriptRole(candidate.role) === normalizeTranscriptRole(row.role);
+      const sameText = candidate.text.trim() === row.text.trim();
+      if (!sameRole || !sameText) return false;
+      if (candidate.traceId !== "-" && row.traceId !== "-") return candidate.traceId === row.traceId;
+      return candidate.createdAt === row.createdAt;
+    });
+    if (!duplicate) uniqueRows.push(row);
+  }
+  return uniqueRows;
+}
+
+function normalizeTranscriptRole(role: string) {
+  return role === "customer" ? "user" : role;
+}
+
+function numericOffset(row: TranscriptRow) {
+  const parsed = Number(row.offset);
+  return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
 }
 
 function eventTableRows(events: unknown[]): EventRow[] {
