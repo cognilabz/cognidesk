@@ -1,6 +1,6 @@
 # @cognidesk/integration-voice-sip
 
-Generic SIP Voice Connection voice integration package for Cognidesk support agents.
+SIP voice integration package for Cognidesk support agents.
 
 ## Install
 
@@ -14,7 +14,7 @@ npm install @cognidesk/integration-voice-sip
 import * as cognideskPackage from "@cognidesk/integration-voice-sip";
 ```
 
-This package exposes the reviewed Generic SIP Voice Connection voice support workflow surface for Cognidesk. It is intentionally scoped to the provider operations declared by the package manifest and does not claim full provider API coverage.
+This package exposes the reviewed SIP voice support workflow surface for Cognidesk. It is intentionally scoped to the provider operations declared by the package manifest and does not claim full provider API coverage.
 
 For manifest-only usage:
 
