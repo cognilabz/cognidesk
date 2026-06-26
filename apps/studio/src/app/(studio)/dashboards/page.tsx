@@ -1,11 +1,11 @@
 import { DashboardsView } from "@/components/studio/dashboards-view";
-import { ensureDemoConversations, listStudioConversations } from "@/server/conversations";
 import { ensureDemoTelemetryDashboards, getDashboardCode, listDashboards } from "@/server/dashboards";
 import {
   loadIntrospectionResult,
   requireStudioPageContext,
   serializeDashboards,
 } from "@/server/studio-page-data";
+import { fetchTargetConversations } from "@/server/target";
 import type { Metadata } from "next";
 
 export const runtime = "nodejs";
@@ -39,9 +39,7 @@ function loadDashboardsPageData() {
         loadIntrospectionResult(),
       ]).then(([dashboards, introspectionResult]) =>
         Promise.all([
-          ensureDemoConversations(manifest, introspectionResult.value).then(() =>
-            listStudioConversations(manifest.target.id)
-          ),
+          fetchTargetConversations({ limit: 1000 }),
           dashboards[0]
             ? getDashboardCode(dashboards[0].id)
             : Promise.resolve(null),

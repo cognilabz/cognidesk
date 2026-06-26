@@ -3,19 +3,21 @@ import { eq } from "drizzle-orm";
 import {
   StudioAgentIntrospectionSchema,
   StudioConfigurationSurfaceSchema,
+  StudioConversationSummarySchema,
   StudioDashboardDataQuerySchema,
   StudioTargetManifestSchema,
   type StudioAgentIntrospection,
   type StudioConfigurationSurface,
+  type StudioConversationSummary,
   type StudioDashboardDataQuery,
   type StudioTargetManifest,
 } from "@cognidesk/studio-contracts";
 import { audit } from "@/server/audit";
 import { loadStudioTargetManifest, studioEnv } from "@/server/config";
-import { listStudioConversations } from "@/server/conversations";
 import { db, ensureStudioDatabase } from "@/server/db/client";
 import { studioTargets } from "@/server/db/schema";
 import { createStudioAdapterHeaders } from "@/server/target-adapter-auth";
+import type { StudioConversationRow } from "@/components/studio/types";
 
 export async function ensureDefaultTarget(userId?: string | null): Promise<StudioTargetManifest> {
   await ensureStudioDatabase();
@@ -93,6 +95,21 @@ export async function fetchConfigurationSurface(): Promise<StudioConfigurationSu
   return StudioConfigurationSurfaceSchema.parse(await response.json());
 }
 
+export async function fetchTargetConversations(
+  options: { limit?: number; offset?: number; agentId?: string } = {},
+): Promise<StudioConversationRow[]> {
+  const manifest = await currentTarget();
+  const params = new URLSearchParams();
+  params.set("limit", String(clampInt(options.limit ?? 50, 1, 250)));
+  if (options.offset !== undefined) params.set("offset", String(clampInt(options.offset, 0, 100000)));
+  if (options.agentId) params.set("agentId", options.agentId);
+  const response = await adapterFetch(manifest, `/conversations?${params.toString()}`);
+  if (!response.ok) throw new Error(`Studio Adapter conversations returned ${response.status}`);
+  const body = await response.json() as { conversations?: unknown };
+  const conversations = StudioConversationSummarySchema.array().parse(body.conversations ?? []);
+  return conversations.map(studioConversationRowFromSummary);
+}
+
 export async function fetchConversationEvents(conversationId: string, afterOffset = 0) {
   const manifest = await currentTarget();
   const response = await adapterFetch(manifest, `/conversations/${encodeURIComponent(conversationId)}/events?afterOffset=${afterOffset}`);
@@ -132,7 +149,7 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
         title: "Studio Conversations",
         source: parsed,
         capturedAt: new Date().toISOString(),
-        data: await listStudioConversations(parsed.targetId, {
+        data: await fetchTargetConversations({
           limit: numberParam(parsed.params.limit) ?? 1000,
           offset: numberParam(parsed.params.offset) ?? 0,
         }),
@@ -245,4 +262,37 @@ function stringParam(value: unknown) {
 function numberParam(value: unknown) {
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function studioConversationRowFromSummary(summary: StudioConversationSummary): StudioConversationRow {
+  return {
+    id: summary.id,
+    agentId: summary.agentId,
+    lifecycle: summary.lifecycle,
+    customerLabel: `Conversation ${summary.id.slice(0, 8)}`,
+    summary: summarizeTargetConversation(summary),
+    createdAt: summary.createdAt,
+    updatedAt: summary.updatedAt,
+    ...(summary.activeJourneyId ? { activeJourneyId: summary.activeJourneyId } : {}),
+    activeStateIds: summary.activeStateIds,
+    traceIds: summary.traceIds,
+    ...(summary.eventCount !== undefined ? { eventCount: summary.eventCount } : {}),
+    satisfaction: "neutral",
+  };
+}
+
+function summarizeTargetConversation(summary: StudioConversationSummary) {
+  const journey = summary.activeJourneyId ? ` in ${summary.activeJourneyId}` : "";
+  const states = summary.activeStateIds.length ? `; states: ${summary.activeStateIds.join(", ")}` : "";
+  const events = summary.eventCount === undefined ? "event count unavailable" : `${summary.eventCount} events`;
+  return `${labelLifecycle(summary.lifecycle)} ${summary.agentId} conversation${journey} (${events}${states}).`;
+}
+
+function labelLifecycle(value: string) {
+  return value[0]?.toUpperCase() + value.slice(1);
+}
+
+function clampInt(value: number, min: number, max: number) {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, Math.trunc(value)));
 }

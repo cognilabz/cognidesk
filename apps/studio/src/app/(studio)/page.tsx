@@ -1,11 +1,11 @@
 import { HomeView } from "@/components/studio/home-view";
-import { ensureDemoConversations, listStudioConversations } from "@/server/conversations";
 import { listDashboards } from "@/server/dashboards";
 import {
   loadIntrospectionResult,
   requireStudioPageContext,
   serializeDashboards,
 } from "@/server/studio-page-data";
+import { fetchTargetConversations } from "@/server/target";
 import type { Metadata } from "next";
 
 export const runtime = "nodejs";
@@ -34,15 +34,12 @@ function loadHomePageData() {
     Promise.all([
       listDashboards(manifest.target.id),
       loadIntrospectionResult(),
-    ]).then(([dashboards, introspectionResult]) =>
-      ensureDemoConversations(manifest, introspectionResult.value)
-        .then(() => listStudioConversations(manifest.target.id))
-        .then((conversations) => ({
-          manifest,
-          dashboards,
-          introspectionResult,
-          conversations,
-        }))
-    )
+      fetchTargetConversations(),
+    ]).then(([dashboards, introspectionResult, conversations]) => ({
+      manifest,
+      dashboards,
+      introspectionResult,
+      conversations,
+    }))
   );
 }
