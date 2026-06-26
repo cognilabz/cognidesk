@@ -24,27 +24,39 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
+      - name: Detect PR scope
+        id: pr-scope
+        shell: bash
+        run: node scripts/classify-pr-ci.mjs "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}"
+
       - name: Install dependencies
+        if: steps.pr-scope.outputs.full_check == 'true' || steps.pr-scope.outputs.provider_checks == 'true'
         run: pnpm install --frozen-lockfile
 
-      - name: Check
-        run: pnpm check
-
-      - name: Detect provider package surface changes
-        id: provider-changes
+      - name: Verify package README metadata
         shell: bash
         run: |
-          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > changed-files.txt
-          if grep -Eq '^(integrations/|packages/(integration-catalog|integration-kit|test-harness)/|scripts/(check-integration-package-architecture|verify-provider-package-conformance|generate-integration-catalog|harden-generated-client-types)|package.json|pnpm-lock.yaml|pnpm-workspace.yaml)' changed-files.txt; then
-            echo "run_provider_checks=true" >> "${GITHUB_OUTPUT}"
-          else
-            echo "run_provider_checks=false" >> "${GITHUB_OUTPUT}"
-          fi
+          node --check scripts/classify-pr-ci.mjs
+          node --check scripts/sync-package-readmes.mjs
+          node --check scripts/verify-package-readmes.mjs
+          node --check scripts/verify-package-smoke.mjs
+          pnpm packages:sync-readmes
+          node scripts/verify-package-readmes.mjs
+          git diff --exit-code -- packages integrations
+
+      - name: Check
+        if: steps.pr-scope.outputs.full_check == 'true'
+        run: pnpm check
+
+      - name: Skip full check
+        if: steps.pr-scope.outputs.full_check != 'true'
+        shell: bash
+        run: echo "Skipping pnpm check for README, package-version, workflow, or release-script-only changes."
 
       - name: Verify integration package architecture
-        if: steps.provider-changes.outputs.run_provider_checks == 'true'
+        if: steps.pr-scope.outputs.provider_checks == 'true'
         run: pnpm providers:architecture
 
       - name: Verify provider package conformance
-        if: steps.provider-changes.outputs.run_provider_checks == 'true'
+        if: steps.pr-scope.outputs.provider_checks == 'true'
         run: pnpm provider-packages:check

@@ -17,6 +17,7 @@ import {
   isProviderPackage,
   packageWorkspaces,
 } from "./release-workspace.mjs";
+import { assertPackageReadmes } from "./verify-package-readmes.mjs";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = process.argv.slice(2);
@@ -42,6 +43,8 @@ const workspaces = discoveredWorkspaces.map((pkg) => ({
 }));
 const workspaceByName = new Map(workspaces.map((pkg) => [pkg.name, pkg]));
 const smokePackages = selectSmokePackages();
+
+assertPackageReadmes(workspaces);
 
 const exportEntries = smokePackages.flatMap((pkg) => publicExportEntries(pkg));
 const missingTargets = await missingExportTargets(exportEntries);

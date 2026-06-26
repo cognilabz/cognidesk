@@ -49,6 +49,19 @@ export paths for SDK packages and provider packages from a temporary
 consumer-style `node_modules`, then prints per-package `dist` and declaration
 chunk size reports. CI runs the same check with `--fail-size-budget`.
 
+The manual `Publish SDK and Provider Packages` GitHub Actions workflow uses npm
+trusted publishing through GitHub OIDC, not an npm token. For a real publish
+run, the workflow prepares the release version, runs verification, commits the
+package version changes to `main`, publishes packages to npm, and then creates
+the GitHub release. The release commit intentionally happens before npm publish
+so branch-protection failures stop the run before any package is published.
+
+If `main` requires pull requests, the repository ruleset must explicitly allow
+the release workflow actor to bypass that rule for this manual release path.
+Without that repository-level bypass, the workflow fails before npm publish and
+the release version must be merged through a normal pull request before
+publishing.
+
 ## Provider package artifacts
 
 Provider API slices are reviewed and committed inside the owning provider
