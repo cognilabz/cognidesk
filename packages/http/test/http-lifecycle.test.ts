@@ -21,7 +21,7 @@ import { FakeRuntime } from "./fixtures.js";
 describe("HTTP adapter lifecycle controls", () => {
   it("requests handoff through the runtime", async () => {
     const runtime = new FakeRuntime();
-    const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+    const handler = createCognideskHttpHandler({ runtime, agentId: "agent_primary" });
 
     const response = await handler.handle(new Request("http://localhost/conversations/conversation_1/handoff", {
       method: "POST",
@@ -43,7 +43,7 @@ describe("HTTP adapter lifecycle controls", () => {
 
   it("resumes handoff through the runtime", async () => {
     const runtime = new FakeRuntime();
-    const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+    const handler = createCognideskHttpHandler({ runtime, agentId: "agent_primary" });
 
     const response = await handler.handle(new Request("http://localhost/conversations/conversation_1/resume", {
       method: "POST",
@@ -65,7 +65,7 @@ describe("HTTP adapter lifecycle controls", () => {
 
   it("exposes lifecycle, intermediate message, compaction, and snapshot controls", async () => {
     const runtime = new FakeRuntime();
-    const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+    const handler = createCognideskHttpHandler({ runtime, agentId: "agent_primary" });
 
     const intermediateResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1/intermediate-messages", {
       method: "POST",

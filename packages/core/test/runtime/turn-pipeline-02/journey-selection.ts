@@ -13,16 +13,16 @@ import {
 export function registerJourneySelectionTests() {
   it("lets the matcher rank only retrieved journey candidates", async () => {
     let matcherPrompt = "";
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const context = z.object({ bookingReference: z.string().optional() });
-    const ticket = agentBuilder.stateMachineJourney("ticket-status", {
+    const ticket = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       priority: 20,
       context,
     });
-    ticket.initial(ticket.state("identifyTicket"));
+    ticket.initial(ticket.state("state_primary"));
     const refund = agentBuilder.stateMachineJourney("refund-status", {
       condition: "Customer wants refund status information",
       context,
@@ -78,7 +78,7 @@ export function registerJourneySelectionTests() {
     });
 
     expect(result.activeJourneyId).toBe("refund-status");
-    expect(matcherPrompt).toContain("journeyId: ticket-status");
+    expect(matcherPrompt).toContain("journeyId: journey_primary");
     expect(matcherPrompt).toContain("journeyId: refund-status");
     expect(matcherPrompt).not.toContain("journeyId: book-flight");
     const matched = (await runtime.listEvents(conversation.id)).find((event) => event.type === "journey.matched");
@@ -90,7 +90,7 @@ export function registerJourneySelectionTests() {
   });
 
   it("does not activate a journey disabled by the configured channel flow policy", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const context = z.object({ bookingReference: z.string().optional() });
@@ -99,12 +99,12 @@ export function registerJourneySelectionTests() {
       context,
     });
     booking.initial(booking.state("collectBooking"));
-    const ticket = agentBuilder.stateMachineJourney("ticket-status", {
+    const ticket = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       always: true,
       context,
     });
-    ticket.initial(ticket.state("identifyTicket"));
+    ticket.initial(ticket.state("state_primary"));
 
     const agent = agentBuilder.compile();
     const models = createModels({
@@ -115,7 +115,7 @@ export function registerJourneySelectionTests() {
           const structured = {
             candidates: [
               { journeyId: "book-flight", confidence: 0.95, reason: "The user asks to book a flight." },
-              { journeyId: "ticket-status", confidence: 0.4, reason: "Fallback support flow." },
+              { journeyId: "journey_primary", confidence: 0.4, reason: "Fallback support flow." },
             ],
           };
           return { text: JSON.stringify(structured), structured };
@@ -168,8 +168,8 @@ export function registerJourneySelectionTests() {
     });
     const events = await runtime.listEvents(conversation.id);
 
-    expect(result.activeJourneyId).toBe("ticket-status");
-    expect(events.find((event) => event.type === "journey.activated")?.data.journeyId).toBe("ticket-status");
+    expect(result.activeJourneyId).toBe("journey_primary");
+    expect(events.find((event) => event.type === "journey.activated")?.data.journeyId).toBe("journey_primary");
     expect(events.find((event) => event.type === "custom.channel.flow.disabled")).toMatchObject({
       data: {
         journeyId: "book-flight",
@@ -180,7 +180,7 @@ export function registerJourneySelectionTests() {
   });
 
   it("does not apply an unrelated same-kind concrete channel flow policy", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const context = z.object({ bookingReference: z.string().optional() });
@@ -189,12 +189,12 @@ export function registerJourneySelectionTests() {
       context,
     });
     booking.initial(booking.state("collectBooking"));
-    const ticket = agentBuilder.stateMachineJourney("ticket-status", {
+    const ticket = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       always: true,
       context,
     });
-    ticket.initial(ticket.state("identifyTicket"));
+    ticket.initial(ticket.state("state_primary"));
 
     const agent = agentBuilder.compile();
     const models = createModels({
@@ -205,7 +205,7 @@ export function registerJourneySelectionTests() {
           const structured = {
             candidates: [
               { journeyId: "book-flight", confidence: 0.95, reason: "The user asks to book a flight." },
-              { journeyId: "ticket-status", confidence: 0.4, reason: "Fallback support flow." },
+              { journeyId: "journey_primary", confidence: 0.4, reason: "Fallback support flow." },
             ],
           };
           return { text: JSON.stringify(structured), structured };
@@ -265,14 +265,14 @@ export function registerJourneySelectionTests() {
   it("passes the full conversation transcript to the journey matcher", async () => {
     let matcherPrompt = "";
     let responseCount = 0;
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const ticket = agentBuilder.stateMachineJourney("ticket-status", {
+    const ticket = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       context: z.object({ bookingReference: z.string().optional() }),
     });
-    ticket.initial(ticket.state("identifyTicket"));
+    ticket.initial(ticket.state("state_primary"));
 
     const agent = agentBuilder.compile();
     const models = createModels({
@@ -282,7 +282,7 @@ export function registerJourneySelectionTests() {
         generateText: async ({ messages }) => {
           matcherPrompt = messages.map((message) => message.content).join("\n");
           const structured = {
-            candidates: [{ journeyId: "ticket-status", confidence: 0.9 }],
+            candidates: [{ journeyId: "journey_primary", confidence: 0.9 }],
           };
           return { text: JSON.stringify(structured), structured };
         },

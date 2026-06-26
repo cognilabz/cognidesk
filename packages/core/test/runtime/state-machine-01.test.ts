@@ -41,7 +41,7 @@ describe("runtime state machine orchestration 01", () => {
       destination: z.string().optional(),
       flightCount: z.number().optional(),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agentBuilder.stateMachineJourney("book-flight", {
@@ -133,10 +133,10 @@ describe("runtime state machine orchestration 01", () => {
     const context = z.object({
       bookingReference: z.string().optional(),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const status = agentBuilder.stateMachineJourney("ticket-status", {
+    const status = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       context,
       contextReuse: {
@@ -150,7 +150,7 @@ describe("runtime state machine orchestration 01", () => {
         ),
       },
     });
-    const identify = status.state("identifyTicket").collect("bookingReference");
+    const identify = status.state("state_primary").collect("bookingReference");
     const done = status.final("done");
     status.initial(identify);
     identify.transitionTo(done);
@@ -184,7 +184,7 @@ describe("runtime state machine orchestration 01", () => {
     });
 
     expect(first.snapshot.journeyContexts?.at(0)).toMatchObject({
-      journeyId: "ticket-status",
+      journeyId: "journey_primary",
       context: { bookingReference: "ABC123" },
     });
     expect(second.snapshot.activeJourneyId).toBeUndefined();
@@ -198,7 +198,7 @@ describe("runtime state machine orchestration 01", () => {
       lifecycle: "active",
       activeStateIds: [],
       journeyContexts: [{
-        journeyId: "ticket-status",
+        journeyId: "journey_primary",
         context: { bookingReference: "ABC123" },
         updatedAt: "2026-05-26T00:00:00.000Z",
         stateId: "done",
@@ -212,8 +212,8 @@ describe("runtime state machine orchestration 01", () => {
       turn: { reusePrevious: false },
     });
 
-    expect(noReuse.snapshot.activeJourneyId).toBe("ticket-status");
-    expect(noReuse.snapshot.activeStateIds).toEqual(["identifyTicket"]);
+    expect(noReuse.snapshot.activeJourneyId).toBe("journey_primary");
+    expect(noReuse.snapshot.activeStateIds).toEqual(["state_primary"]);
     expect(noReuse.snapshot.journeyContext).toEqual({});
     expect(noReuse.events.map((event) => event.type)).toContain("ui.prompted");
   });

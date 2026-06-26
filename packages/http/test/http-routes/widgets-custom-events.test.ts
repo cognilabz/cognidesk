@@ -6,7 +6,7 @@ import { FakeRuntime } from "../fixtures.js";
 describe("HTTP widget and custom event routes", () => {
   it("posts widget submissions to the runtime", async () => {
       const runtime = new FakeRuntime();
-      const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+      const handler = createCognideskHttpHandler({ runtime, agentId: "agent_primary" });
 
       const response = await handler.handle(new Request("http://localhost/conversations/conversation_1/widgets/prompt_1/submissions", {
         method: "POST",
@@ -40,7 +40,7 @@ describe("HTTP widget and custom event routes", () => {
       } as unknown as JourneyEventDefinition;
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         customEvents: [leadCaptured],
         journeyEvents: [ticketSynced],
       });
@@ -55,7 +55,7 @@ describe("HTTP widget and custom event routes", () => {
         method: "POST",
         body: JSON.stringify({
           payload: { bookingReference: "ABC123" },
-          target: { journeyId: "ticket-status", stateId: "wait" },
+          target: { journeyId: "journey_primary", stateId: "wait" },
         }),
       }));
       const journey = await journeyResponse.json() as { event: RuntimeEvent; snapshot: RuntimeSnapshot | null; events: RuntimeEvent[] };
@@ -69,8 +69,8 @@ describe("HTTP widget and custom event routes", () => {
         name: "ticket.synced",
         payload: { bookingReference: "ABC123" },
         routing: "targeted",
-        target: { journeyId: "ticket-status", stateId: "wait" },
+        target: { journeyId: "journey_primary", stateId: "wait" },
       });
-      expect(journey.snapshot?.activeJourneyId).toBe("ticket-status");
+      expect(journey.snapshot?.activeJourneyId).toBe("journey_primary");
     });
 });

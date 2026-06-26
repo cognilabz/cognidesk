@@ -36,7 +36,7 @@ describe("createCognideskClient headers and API errors", () => {
             return Response.json({
               conversation: {
                 id: "conversation_1",
-                agentId: "flight-service",
+                agentId: "agent_primary",
                 lifecycle: "active",
                 context: {},
                 createdAt: "2026-05-25T00:00:00.000Z",
@@ -48,7 +48,7 @@ describe("createCognideskClient headers and API errors", () => {
         },
       });
 
-      const created = await client.createConversation({ agentId: "flight-service" });
+      const created = await client.createConversation({ agentId: "agent_primary" });
       await client.listEvents(created.conversation.id);
 
       expect(requests).toEqual([

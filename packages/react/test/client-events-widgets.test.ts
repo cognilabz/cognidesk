@@ -231,7 +231,7 @@ describe("React client events and widgets", () => {
         segments: [{
           id: "segment_1",
           text: "Ticket confirmed.",
-          references: [{ type: "knowledge", id: "faq-ticket-status" }],
+          references: [{ type: "knowledge", id: "faq-journey_primary" }],
         }],
       },
     });
@@ -258,7 +258,7 @@ describe("React client events and widgets", () => {
       segments: [{
         id: "segment_1",
         text: "Ticket confirmed.",
-        references: [{ type: "knowledge", id: "faq-ticket-status" }],
+        references: [{ type: "knowledge", id: "faq-journey_primary" }],
       }],
       status: "sent",
     }]);

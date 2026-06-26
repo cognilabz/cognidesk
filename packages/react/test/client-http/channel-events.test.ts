@@ -76,7 +76,7 @@ describe("createCognideskClient channel-event methods", () => {
         provider: "twilio",
       });
       await client.requestOutboundContact({
-        agentId: "flight-service",
+        agentId: "agent_primary",
         channel: { channelId: "sms-outbound", kind: "sms", provider: "twilio" },
         payload: { to: "+15550100", templateId: "boarding-pass" },
       });

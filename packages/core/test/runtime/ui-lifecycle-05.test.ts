@@ -31,7 +31,7 @@ import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherT
 
 describe("runtime UI and lifecycle events 05", () => {
   it("closes the conversation when the confirmed built-in end tool runs", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const resolution = agentBuilder.stateMachineJourney("resolved", {

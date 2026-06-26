@@ -38,7 +38,7 @@ describe("runtime tools and actions 02", () => {
         executed.push(input.label);
       },
     });
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     const journey = agentBuilder.stateMachineJourney("action-test", {
       condition: "Customer triggers a deterministic action test",
       context: z.object({}),
@@ -115,7 +115,7 @@ describe("runtime tools and actions 02", () => {
         if (attempts === 1) throw new Error("temporary action outage");
       },
     });
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     const journey = agentBuilder.stateMachineJourney("action-test", {
       condition: "Customer triggers a deterministic action retry",
       context: z.object({}),
@@ -195,7 +195,7 @@ describe("runtime tools and actions 02", () => {
         return { text: "Recovered." };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(getTicketStatus);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -263,7 +263,7 @@ describe("runtime tools and actions 02", () => {
         return { text: "I cannot send that until policy is configured." };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(sendSms);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -339,7 +339,7 @@ describe("runtime tools and actions 02", () => {
         return { text: "Sent." };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(sendSms);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -395,7 +395,7 @@ describe("runtime tools and actions 02", () => {
         return { updated: true };
       },
     });
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     const journey = agentBuilder.stateMachineJourney("ticket-update", {
       condition: "Customer updates a ticket",
       context: z.object({}),

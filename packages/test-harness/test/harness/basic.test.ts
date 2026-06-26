@@ -9,7 +9,7 @@ describe("CognideskTestHarness basic scripted judging", () => {
         sendMessage: async ({ text }) => ({
           text: `Assistant handled: ${text}`,
           events: [],
-          activeJourneyId: "ticket-status",
+          activeJourneyId: "journey_primary",
         }),
       };
       const judge: ModelAdapter = {
@@ -23,8 +23,8 @@ describe("CognideskTestHarness basic scripted judging", () => {
 
       const harness = createTestHarness({ client, judgeModel: judge });
       const result = await harness.runScenario({
-        id: "ticket-status",
-        agentId: "flight-service",
+        id: "journey_primary",
+        agentId: "agent_primary",
         user: {
           identity: "Busy traveller with booking CD-123",
           goal: "Find out ticket status",
@@ -32,7 +32,7 @@ describe("CognideskTestHarness basic scripted judging", () => {
         },
         assertions: [
           { id: "mentions-handled", type: "assistantContains", text: "handled" },
-          { id: "ticket-journey", type: "journeyActivated", journeyId: "ticket-status" },
+          { id: "ticket-journey", type: "journeyActivated", journeyId: "journey_primary" },
           {
             id: "custom-transcript",
             type: "custom",
@@ -55,7 +55,7 @@ describe("CognideskTestHarness basic scripted judging", () => {
         {
           assertionId: "ticket-journey",
           passed: true,
-          reasoning: "Journey 'ticket-status' was activated.",
+          reasoning: "Journey 'journey_primary' was activated.",
         },
         {
           assertionId: "custom-transcript",

@@ -31,7 +31,7 @@ import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherT
 
 describe("runtime UI and lifecycle events 04", () => {
   it("emits structured guard denials and guard prompts without advancing state", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const journey = agentBuilder.stateMachineJourney("ticket-review", {
@@ -88,7 +88,7 @@ describe("runtime UI and lifecycle events 04", () => {
   });
 
   it("applies journey guards before activation", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const journey = agentBuilder.stateMachineJourney("secured-ticket-review", {
@@ -150,7 +150,7 @@ describe("runtime UI and lifecycle events 04", () => {
   });
 
   it("applies widget submissions to the matching active parallel state", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const journey = agentBuilder.stateMachineJourney("parallel-profile", {
@@ -203,7 +203,7 @@ describe("runtime UI and lifecycle events 04", () => {
   });
 
   it("moves to handoff when the confirmed built-in handoff tool runs", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const handoff = agentBuilder.stateMachineJourney("human-handoff", {

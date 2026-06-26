@@ -6,7 +6,7 @@ import { FakeRuntime } from "../fixtures.js";
 describe("HTTP event, voice, and error routes", () => {
   it("returns event history as JSON and streams SSE events", async () => {
       const runtime = new FakeRuntime();
-      const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+      const handler = createCognideskHttpHandler({ runtime, agentId: "agent_primary" });
       await handler.handle(new Request("http://localhost/conversations", { method: "POST", body: "{}" }));
       await handler.handle(new Request("http://localhost/conversations/conversation_1/messages", {
         method: "POST",
@@ -38,7 +38,7 @@ describe("HTTP event, voice, and error routes", () => {
       const runtime = new FakeRuntime();
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         basePath: "/api",
         voice: {
           async createSocket({ result }) {
@@ -85,7 +85,7 @@ describe("HTTP event, voice, and error routes", () => {
       const runtime = new FakeRuntime();
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         basePath: "/api",
         voice: {
           async createSocket({ result }) {
@@ -134,7 +134,7 @@ describe("HTTP event, voice, and error routes", () => {
 
     it("returns 400 for malformed JSON, wrong body shapes, and invalid offsets", async () => {
       const runtime = new FakeRuntime();
-      const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+      const handler = createCognideskHttpHandler({ runtime, agentId: "agent_primary" });
 
       const malformed = await handler.handle(new Request("http://localhost/conversations", {
         method: "POST",
@@ -164,7 +164,7 @@ describe("HTTP event, voice, and error routes", () => {
       const runtime = new FakeRuntime();
       vi.spyOn(runtime, "createConversation")
         .mockRejectedValue(new Error("secret database token leaked from adapter"));
-      const handler = createCognideskHttpHandler({ runtime, agentId: "flight-service" });
+      const handler = createCognideskHttpHandler({ runtime, agentId: "agent_primary" });
 
       const response = await handler.handle(new Request("http://localhost/conversations", {
         method: "POST",
@@ -183,7 +183,7 @@ describe("HTTP event, voice, and error routes", () => {
         .mockRejectedValue(new Error("secret database token leaked from adapter"));
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         exposeInternalErrors: true,
       });
 

@@ -57,7 +57,7 @@ const bookFlight = tool("bookFlight", {
 
 describe("definition builders hierarchy and fragments", () => {
   it("requires hierarchical states to declare their initial child", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agent.stateMachineJourney("book-flight", {
@@ -72,7 +72,7 @@ describe("definition builders hierarchy and fragments", () => {
   });
 
   it("compiles hierarchical initial child state metadata", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agent.stateMachineJourney("book-flight", {
@@ -93,7 +93,7 @@ describe("definition builders hierarchy and fragments", () => {
   });
 
   it("inherits parent collected fields into child states", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agent.stateMachineJourney("book-flight", {
@@ -114,7 +114,7 @@ describe("definition builders hierarchy and fragments", () => {
   });
 
   it("composes reusable journey fragments into a state-machine journey", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const passengerLookup = tool("lookupPassenger", {

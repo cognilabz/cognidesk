@@ -77,25 +77,25 @@ describe("definition builder validation", () => {
       output: z.object({}),
     });
 
-    const duplicateToolAgent = createAgent("flight-service", {
+    const duplicateToolAgent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     duplicateToolAgent.tools.add(searchFlights, duplicateTool);
     expect(() => duplicateToolAgent.compile()).toThrow("Tool 'searchFlights' is already registered.");
 
-    const duplicateKnowledgeAgent = createAgent("flight-service", {
+    const duplicateKnowledgeAgent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     duplicateKnowledgeAgent.knowledge.add(flightFaq, duplicateKnowledge);
     expect(() => duplicateKnowledgeAgent.compile()).toThrow("Knowledge source 'flight-faq' is already registered.");
 
-    const duplicateWidgetAgent = createAgent("flight-service", {
+    const duplicateWidgetAgent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     duplicateWidgetAgent.registerWidget(confirmationWidget).registerWidget(duplicateWidget);
     expect(() => duplicateWidgetAgent.compile()).toThrow("Widget 'confirmation' is already registered.");
 
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const first = agent.stateMachineJourney("book-flight", {
@@ -113,7 +113,7 @@ describe("definition builder validation", () => {
   });
 
   it("rejects duplicate state identifiers in a journey", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agent.stateMachineJourney("book-flight", {

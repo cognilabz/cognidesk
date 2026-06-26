@@ -12,7 +12,7 @@ describe("CognideskTestHarness deterministic assertions", () => {
 
       const result = await harness.runScenario({
         id: "assertion-failure",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Traveller",
           goal: "Trigger assertion failure",
@@ -50,7 +50,7 @@ describe("CognideskTestHarness deterministic assertions", () => {
 
       const result = await harness.runScenario({
         id: "tool-and-length",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Traveller",
           goal: "Check ticket",
@@ -135,7 +135,7 @@ describe("CognideskTestHarness deterministic assertions", () => {
 
       const result = await harness.runScenario({
         id: "policy-proof",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Traveller",
           goal: "Trigger policy checks",

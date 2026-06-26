@@ -19,7 +19,7 @@ describe("createCognideskClient HTTP route calls", () => {
               conversations: [
                 {
                   id: "conversation_1",
-                  agentId: "flight-service",
+                  agentId: "agent_primary",
                   lifecycle: "active",
                   context: {},
                   createdAt: "2026-05-25T00:00:00.000Z",
@@ -32,7 +32,7 @@ describe("createCognideskClient HTTP route calls", () => {
             return Response.json({
               conversation: {
                 id: "conversation_1",
-                agentId: "flight-service",
+                agentId: "agent_primary",
                 lifecycle: "active",
                 context: {},
                 createdAt: "2026-05-25T00:00:00.000Z",
@@ -44,7 +44,7 @@ describe("createCognideskClient HTTP route calls", () => {
             return Response.json({
               conversation: {
                 id: "conversation_voice",
-                agentId: "flight-service",
+                agentId: "agent_primary",
                 lifecycle: "active",
                 context: {},
                 createdAt: "2026-05-25T00:00:00.000Z",
@@ -75,7 +75,7 @@ describe("createCognideskClient HTTP route calls", () => {
             return Response.json({
               conversation: {
                 id: "conversation_1",
-                agentId: "flight-service",
+                agentId: "agent_primary",
                 lifecycle: "active",
                 context: {},
                 createdAt: "2026-05-25T00:00:00.000Z",
@@ -134,7 +134,7 @@ describe("createCognideskClient HTTP route calls", () => {
               },
               events: [],
               text: body.event.payload?.text ? `Handled: ${body.event.payload.text}` : "ok",
-              activeJourneyId: "ticket-status",
+              activeJourneyId: "journey_primary",
               disposition: "model-turn",
             });
           }
@@ -142,7 +142,7 @@ describe("createCognideskClient HTTP route calls", () => {
             return Response.json({
               conversation: {
                 id: "conversation_1",
-                agentId: "flight-service",
+                agentId: "agent_primary",
                 lifecycle: "handoff",
                 context: {},
                 createdAt: "2026-05-25T00:00:00.000Z",
@@ -162,7 +162,7 @@ describe("createCognideskClient HTTP route calls", () => {
             return Response.json({
               conversation: {
                 id: "conversation_1",
-                agentId: "flight-service",
+                agentId: "agent_primary",
                 lifecycle: "active",
                 context: {},
                 createdAt: "2026-05-25T00:00:00.000Z",
@@ -230,7 +230,7 @@ describe("createCognideskClient HTTP route calls", () => {
             return Response.json({
               conversation: {
                 id: "conversation_1",
-                agentId: "flight-service",
+                agentId: "agent_primary",
                 lifecycle: "active",
                 context: {},
                 createdAt: "2026-05-25T00:00:00.000Z",
@@ -246,7 +246,7 @@ describe("createCognideskClient HTTP route calls", () => {
             return Response.json({
               conversation: {
                 id: "conversation_1",
-                agentId: "flight-service",
+                agentId: "agent_primary",
                 lifecycle: "closed",
                 context: {},
                 createdAt: "2026-05-25T00:00:00.000Z",
@@ -280,12 +280,12 @@ describe("createCognideskClient HTTP route calls", () => {
               events: [],
             });
           }
-          return Response.json({ text: "ok", events: [], activeJourneyId: "ticket-status" });
+          return Response.json({ text: "ok", events: [], activeJourneyId: "journey_primary" });
         },
       });
 
       const created = await client.createConversation({
-        agentId: "flight-service",
+        agentId: "agent_primary",
         context: { locale: "en" },
         channel,
         chatStart: {
@@ -293,22 +293,22 @@ describe("createCognideskClient HTTP route calls", () => {
           text: "Welcome aboard.",
           visibleToModel: true,
         },
-        app: { surface: "flight-demo", campaign: "returning-customer" },
+        app: { surface: "client-surface", campaign: "returning-customer" },
       });
       const listed = await client.listConversations({
-        agentId: "flight-service",
+        agentId: "agent_primary",
         beforeUpdatedAt: "2026-05-27T00:00:00.000Z",
         afterUpdatedAt: "2026-05-24T00:00:00.000Z",
         limit: 5,
       });
       await client.listConversations({
-        agentId: "flight-service",
+        agentId: "agent_primary",
         before: { updatedAt: "2026-05-27T00:00:00.000Z", id: "conversation_9" },
         after: { updatedAt: "2026-05-24T00:00:00.000Z", id: "conversation_1" },
         limit: 2,
       });
       await client.startVoiceConversation({
-        agentId: "flight-service",
+        agentId: "agent_primary",
         context: { locale: "en" },
         chatStart: {
           type: "message",
@@ -344,7 +344,7 @@ describe("createCognideskClient HTTP route calls", () => {
       await client.emitJourneyEvent(created.conversation.id, "ticket.synced", {
         payload: { bookingReference: "ABC123" },
         routing: "targeted",
-        target: { journeyId: "ticket-status", stateId: "wait" },
+        target: { journeyId: "journey_primary", stateId: "wait" },
       });
       await client.requestHandoff(created.conversation.id, {
         reason: "Customer wants a human",
@@ -377,7 +377,7 @@ describe("createCognideskClient HTTP route calls", () => {
         {
           url: "http://localhost/api/conversations",
           body: {
-            agentId: "flight-service",
+            agentId: "agent_primary",
             context: { locale: "en" },
             channel,
             chatStart: {
@@ -385,21 +385,21 @@ describe("createCognideskClient HTTP route calls", () => {
               text: "Welcome aboard.",
               visibleToModel: true,
             },
-            app: { surface: "flight-demo", campaign: "returning-customer" },
+            app: { surface: "client-surface", campaign: "returning-customer" },
           },
         },
         {
-          url: "http://localhost/api/conversations?agentId=flight-service&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z&limit=5",
+          url: "http://localhost/api/conversations?agentId=agent_primary&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z&limit=5",
           body: {},
         },
         {
-          url: "http://localhost/api/conversations?agentId=flight-service&beforeUpdatedAt=2026-05-27T00%3A00%3A00.000Z&beforeId=conversation_9&afterUpdatedAt=2026-05-24T00%3A00%3A00.000Z&afterId=conversation_1&limit=2",
+          url: "http://localhost/api/conversations?agentId=agent_primary&beforeUpdatedAt=2026-05-27T00%3A00%3A00.000Z&beforeId=conversation_9&afterUpdatedAt=2026-05-24T00%3A00%3A00.000Z&afterId=conversation_1&limit=2",
           body: {},
         },
         {
           url: "http://localhost/api/voice/conversations",
           body: {
-            agentId: "flight-service",
+            agentId: "agent_primary",
             context: { locale: "en" },
             chatStart: {
               type: "message",
@@ -456,7 +456,7 @@ describe("createCognideskClient HTTP route calls", () => {
           body: {
             payload: { bookingReference: "ABC123" },
             routing: "targeted",
-            target: { journeyId: "ticket-status", stateId: "wait" },
+            target: { journeyId: "journey_primary", stateId: "wait" },
           },
         },
         {
@@ -499,7 +499,7 @@ describe("createCognideskClient HTTP route calls", () => {
         handling: "started",
       });
       expect(listed.conversations).toHaveLength(1);
-      expect(sent.activeJourneyId).toBe("ticket-status");
+      expect(sent.activeJourneyId).toBe("journey_primary");
       expect(sent.text).toBe("Handled: hello");
     });
 });

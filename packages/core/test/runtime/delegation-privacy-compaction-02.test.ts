@@ -53,7 +53,7 @@ describe("runtime delegation, privacy, and compaction 02", () => {
       generateText: response.generateText,
       embed: async () => ({ embedding: [0], model: "embedding", dimensions: 1 }),
     };
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,

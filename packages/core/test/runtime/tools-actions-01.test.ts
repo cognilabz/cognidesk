@@ -56,7 +56,7 @@ describe("runtime tools and actions 01", () => {
         return { text: `Tool said ${input.messages.at(-1)?.content}` };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(getTicketStatus);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -110,7 +110,7 @@ describe("runtime tools and actions 01", () => {
       }),
     });
     const responseCalls: TextGenerationInput[] = [];
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     const seating = agentBuilder.stateMachineJourney("seat-selection", {
       condition: "Customer wants help selecting a seat",
       context: z.object({}),
@@ -180,7 +180,7 @@ describe("runtime tools and actions 01", () => {
       }),
     });
     const responseCalls: TextGenerationInput[] = [];
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     const journey = agentBuilder.stateMachineJourney("trip-prep", {
       condition: "Customer wants help preparing for a trip",
       context: z.object({}),

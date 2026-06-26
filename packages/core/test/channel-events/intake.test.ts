@@ -11,7 +11,7 @@ import { RecordingStorage, createModels } from "../runtime/fixtures.js";
 
 describe("channel event intake runtime", () => {
   it("handles text-bearing customer Channel Events as model turns", async () => {
-      const agent = createAgent("flight-service", {
+      const agent = createAgent("agent_primary", {
         instructions: "Help customers with flights.",
       }).compile();
       const storage = new RecordingStorage();
@@ -52,7 +52,7 @@ describe("channel event intake runtime", () => {
       expect(result.intake.outcome).toBe("accepted");
       expect(result.intake.bindingOutcome).toBe("resume-existing");
       expect(result.disposition).toBe("model-turn");
-      expect(result.text).toContain("faq-ticket-status");
+      expect(result.text).toContain("faq-journey_primary");
       expect(result.turn?.conversation.id).toBe(conversation.id);
 
       const events = await runtime.listEvents(conversation.id);
@@ -82,7 +82,7 @@ describe("channel event intake runtime", () => {
     });
 
     it("deduplicates repeated Channel Events from the same source stream", async () => {
-      const agent = createAgent("flight-service", {
+      const agent = createAgent("agent_primary", {
         instructions: "Help customers with flights.",
       }).compile();
       const storage = new RecordingStorage();
@@ -128,13 +128,13 @@ describe("channel event intake runtime", () => {
       const storage = new RecordingStorage();
       const runtime = createRuntime({
         storage,
-        agent: createAgent("flight-service", {
+        agent: createAgent("agent_primary", {
           instructions: "Help customers with flights.",
         }).compile(),
         models: createModels(),
       });
       const conversation = await runtime.createConversation({
-        agentId: "flight-service",
+        agentId: "agent_primary",
         context: {},
       });
       const source = defineChannelEventSource<{
@@ -212,7 +212,7 @@ describe("channel event intake runtime", () => {
       const storage = new RecordingStorage();
       const runtime = createRuntime({ storage });
       const conversation = await runtime.createConversation({
-        agentId: "flight-service",
+        agentId: "agent_primary",
         context: {},
       });
 

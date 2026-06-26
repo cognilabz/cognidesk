@@ -7,7 +7,7 @@ import { RecordingStorage } from "./runtime/fixtures.js";
 
 describe("voice contracts", () => {
   it("compiles an Agent-level Voice Profile", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help with flights.",
     }).voice({
       instructions: "Speak concisely.",
@@ -41,7 +41,7 @@ describe("voice contracts", () => {
     });
 
     const started = await runtime.startVoiceConversation({
-      agentId: "flight-service",
+      agentId: "agent_primary",
       context: {},
     });
 
@@ -69,7 +69,7 @@ describe("voice contracts", () => {
     const storage = new RecordingStorage();
     const runtime = createRuntime({ storage });
     const conversation = await runtime.createConversation({
-      agentId: "flight-service",
+      agentId: "agent_primary",
       context: {},
     });
 
@@ -94,7 +94,7 @@ describe("voice contracts", () => {
     const storage = new RecordingStorage();
     const runtime = createRuntime({ storage });
     const conversation = await runtime.createConversation({
-      agentId: "flight-service",
+      agentId: "agent_primary",
       context: {},
     });
 
@@ -120,7 +120,7 @@ describe("voice contracts", () => {
     const storage = new RecordingStorage();
     const runtime = createRuntime({ storage });
     const conversation = await runtime.createConversation({
-      agentId: "flight-service",
+      agentId: "agent_primary",
       context: {},
     });
 

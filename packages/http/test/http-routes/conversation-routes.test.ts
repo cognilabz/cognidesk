@@ -13,22 +13,22 @@ describe("HTTP conversation routes", () => {
     });
 
     const response = await handler.handle(new Request(
-      "http://localhost/conversations?agentId=flight-service&customerId=customer_123&limit=2&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z",
+      "http://localhost/conversations?agentId=agent_primary&customerId=customer_primary&limit=2&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z",
     ));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
     expect(listConversations).toHaveBeenCalledWith({
-      agentId: "flight-service",
-      customerId: "customer_123",
+      agentId: "agent_primary",
+      customerId: "customer_primary",
       beforeUpdatedAt: "2026-05-27T00:00:00.000Z",
       afterUpdatedAt: "2026-05-24T00:00:00.000Z",
       limit: 2,
     });
     await expect(response.json()).resolves.toMatchObject({
       conversations: [
-        { id: "conversation_2", agentId: "flight-service" },
-        { id: "conversation_1", agentId: "flight-service" },
+        { id: "conversation_2", agentId: "agent_primary" },
+        { id: "conversation_1", agentId: "agent_primary" },
       ],
     });
   });
@@ -39,12 +39,12 @@ describe("HTTP conversation routes", () => {
     const handler = createCognideskHttpHandler({ runtime });
 
     const response = await handler.handle(new Request(
-      "http://localhost/conversations?agentId=flight-service&limit=2&beforeUpdatedAt=2026-05-27T00%3A00%3A00.000Z&beforeId=conversation_9&afterUpdatedAt=2026-05-24T00%3A00%3A00.000Z&afterId=conversation_1",
+      "http://localhost/conversations?agentId=agent_primary&limit=2&beforeUpdatedAt=2026-05-27T00%3A00%3A00.000Z&beforeId=conversation_9&afterUpdatedAt=2026-05-24T00%3A00%3A00.000Z&afterId=conversation_1",
     ));
 
     expect(response.status).toBe(200);
     expect(listConversations).toHaveBeenCalledWith({
-      agentId: "flight-service",
+      agentId: "agent_primary",
       before: { updatedAt: "2026-05-27T00:00:00.000Z", id: "conversation_9" },
       after: { updatedAt: "2026-05-24T00:00:00.000Z", id: "conversation_1" },
       limit: 2,
@@ -78,7 +78,7 @@ describe("HTTP conversation routes", () => {
     await expect(readResponse.json()).resolves.toMatchObject({
       conversation: {
         id: "conversation_1",
-        context: { customerId: "customer_123" },
+        context: { customerId: "customer_primary" },
       },
     });
 
@@ -86,8 +86,8 @@ describe("HTTP conversation routes", () => {
       method: "PATCH",
       body: JSON.stringify({
         context: {
-          customerId: "customer_456",
-          customer: { id: "customer_456", tier: "vip" },
+          customerId: "customer_secondary",
+          customer: { id: "customer_secondary", segment: "priority" },
         },
       }),
     }));
@@ -95,16 +95,16 @@ describe("HTTP conversation routes", () => {
     expect(updateConversationContext).toHaveBeenCalledWith({
       conversationId: "conversation_1",
       context: {
-        customerId: "customer_456",
-        customer: { id: "customer_456", tier: "vip" },
+        customerId: "customer_secondary",
+        customer: { id: "customer_secondary", segment: "priority" },
       },
     });
     await expect(updateResponse.json()).resolves.toMatchObject({
       conversation: {
         id: "conversation_1",
         context: {
-          customerId: "customer_456",
-          customer: { id: "customer_456", tier: "vip" },
+          customerId: "customer_secondary",
+          customer: { id: "customer_secondary", segment: "priority" },
         },
       },
     });
@@ -125,7 +125,7 @@ describe("HTTP conversation routes", () => {
 
     const updateResponse = await handler.handle(new Request("http://localhost/conversations/missing", {
       method: "PATCH",
-      body: JSON.stringify({ context: { customerId: "customer_456" } }),
+      body: JSON.stringify({ context: { customerId: "customer_secondary" } }),
     }));
     expect(updateResponse.status).toBe(404);
 
@@ -139,7 +139,7 @@ describe("HTTP conversation routes", () => {
       const runtime = new FakeRuntime();
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         cors: true,
       });
 
@@ -150,7 +150,7 @@ describe("HTTP conversation routes", () => {
       expect(createResponse.status).toBe(201);
       expect(createResponse.headers.get("access-control-allow-origin")).toBe("*");
       const created = await createResponse.json() as { conversation: ConversationRecord };
-      expect(created.conversation.agentId).toBe("flight-service");
+      expect(created.conversation.agentId).toBe("agent_primary");
 
       const messageResponse = await handler.handle(new Request(`http://localhost/conversations/${created.conversation.id}/messages`, {
         method: "POST",
@@ -159,14 +159,14 @@ describe("HTTP conversation routes", () => {
       expect(messageResponse.status).toBe(200);
       const message = await messageResponse.json() as { text: string; activeJourneyId?: string };
       expect(message.text).toBe("Handled: Where is my ticket?");
-      expect(message.activeJourneyId).toBe("ticket-status");
+      expect(message.activeJourneyId).toBe("journey_primary");
     });
 
   it("emits chat start messages during conversation creation", async () => {
     const runtime = new FakeRuntime();
     const handler = createCognideskHttpHandler({
       runtime,
-      agentId: "flight-service",
+      agentId: "agent_primary",
     });
 
     const response = await handler.handle(new Request("http://localhost/conversations", {
@@ -204,7 +204,7 @@ describe("HTTP conversation routes", () => {
     const runtime = new FakeRuntime();
     const handler = createCognideskHttpHandler({
       runtime,
-      agentId: "flight-service",
+      agentId: "agent_primary",
       chatStart: "Default welcome.",
     });
 
@@ -229,7 +229,7 @@ describe("HTTP conversation routes", () => {
     const runtime = new FakeRuntime();
     const handler = createCognideskHttpHandler({
       runtime,
-      agentId: "flight-service",
+      agentId: "agent_primary",
       chatStart: "Default welcome.",
     });
 
@@ -259,7 +259,7 @@ describe("HTTP conversation routes", () => {
     const runtime = new FakeRuntime();
     const handler = createCognideskHttpHandler({
       runtime,
-      agentId: "flight-service",
+      agentId: "agent_primary",
       chatStart: "Default welcome.",
     });
 

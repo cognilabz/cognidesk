@@ -11,7 +11,7 @@ describe("Cognidesk eval CLI", () => {
       await writeFile(configFile, `
         export const scenarios = [{
           id: "scripted",
-          agentId: "flight-service",
+          agentId: "agent_primary",
           user: {
             identity: "Traveller",
             goal: "Check ticket",
@@ -47,7 +47,7 @@ describe("Cognidesk eval CLI", () => {
 
       const failingConfigFile = join(directory, "failing.config.mjs");
       await writeFile(failingConfigFile, `
-        export const scenarios = [{ id: "failing", agentId: "flight-service", user: { identity: "Traveller", goal: "Fail" } }];
+        export const scenarios = [{ id: "failing", agentId: "agent_primary", user: { identity: "Traveller", goal: "Fail" } }];
         export const harness = {
           async runScenario() {
             return {
@@ -85,8 +85,8 @@ describe("Cognidesk eval CLI", () => {
       const configFile = join(directory, "crash.config.mjs");
       await writeFile(configFile, `
         export const scenarios = [
-          { id: "throws", agentId: "flight-service", user: { identity: "Traveller", goal: "Throw", scriptedTurns: ["Hi"] } },
-          { id: "passes", agentId: "flight-service", user: { identity: "Traveller", goal: "Pass", scriptedTurns: ["Hi"] } }
+          { id: "throws", agentId: "agent_primary", user: { identity: "Traveller", goal: "Throw", scriptedTurns: ["Hi"] } },
+          { id: "passes", agentId: "agent_primary", user: { identity: "Traveller", goal: "Pass", scriptedTurns: ["Hi"] } }
         ];
         export const harness = {
           async runScenario(scenario) {

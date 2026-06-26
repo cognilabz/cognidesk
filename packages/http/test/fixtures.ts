@@ -37,14 +37,14 @@ export class FakeRuntime implements CognideskHttpRuntime {
 
   async getConversation(conversationId: string): Promise<ConversationRecord | null> {
     if (conversationId === "missing") return null;
-    return this.createConversation({ id: conversationId, agentId: "flight-service", context: { customerId: "customer_123" } });
+    return this.createConversation({ id: conversationId, agentId: "agent_primary", context: { customerId: "customer_primary" } });
   }
 
   async listConversations(_input: ListRuntimeConversationsOptions = {}): Promise<ConversationRecord[]> {
     return [
       {
         id: "conversation_2",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         lifecycle: "active",
         context: { locale: "de" },
         createdAt: "2026-05-26T00:00:00.000Z",
@@ -52,7 +52,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
       },
       {
         id: "conversation_1",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         lifecycle: "active",
         context: {},
         createdAt: "2026-05-25T00:00:00.000Z",
@@ -66,7 +66,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
     return {
       ...await this.createConversation({
         id: input.conversationId,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         context: input.context,
       }),
       updatedAt: "2026-05-26T00:00:00.000Z",
@@ -88,17 +88,17 @@ export class FakeRuntime implements CognideskHttpRuntime {
     } satisfies RuntimeEvent;
     this.events.push(event);
     return {
-      conversation: await this.createConversation({ agentId: "flight-service", context: {} }),
+      conversation: await this.createConversation({ agentId: "agent_primary", context: {} }),
       snapshot: {
         conversationId: input.conversationId,
         lifecycle: "active" as const,
-        activeJourneyId: "ticket-status",
-        activeStateIds: ["identifyTicket"],
+        activeJourneyId: "journey_primary",
+        activeStateIds: ["state_primary"],
         updatedAt: "2026-05-25T00:00:00.000Z",
       },
       events: [event],
       text: `Handled: ${input.text}`,
-      activeJourneyId: "ticket-status",
+      activeJourneyId: "journey_primary",
     };
   }
 
@@ -176,7 +176,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
     } satisfies RuntimeEvent;
     this.events.push(event);
     return {
-      conversation: await this.createConversation({ agentId: "flight-service", context: {} }),
+      conversation: await this.createConversation({ agentId: "agent_primary", context: {} }),
       channelSegment: {
         id: "voice_segment_1",
         conversationId: input.conversationId,
@@ -254,7 +254,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
 
   async requestHandoff(input: RequestHandoffInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }> {
     const conversation = {
-      ...await this.createConversation({ agentId: "flight-service", context: {} }),
+      ...await this.createConversation({ agentId: "agent_primary", context: {} }),
       lifecycle: "handoff" as const,
     };
     const event = {
@@ -275,7 +275,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
 
   async resumeConversation(input: ResumeConversationInput): Promise<{ conversation: ConversationRecord; event: RuntimeEvent }> {
     const conversation = {
-      ...await this.createConversation({ agentId: "flight-service", context: {} }),
+      ...await this.createConversation({ agentId: "agent_primary", context: {} }),
       lifecycle: "active" as const,
     };
     const event = {
@@ -304,7 +304,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
     } satisfies RuntimeEvent;
     this.events.push(event);
     return {
-      ...await this.createConversation({ agentId: "flight-service", context: {} }),
+      ...await this.createConversation({ agentId: "agent_primary", context: {} }),
       lifecycle: "closed" as const,
     };
   }
@@ -382,7 +382,7 @@ export class FakeRuntime implements CognideskHttpRuntime {
 
   async replayConversation(input: ReplayConversationInput): Promise<ReplayConversationResult> {
     return {
-      conversation: await this.createConversation({ agentId: "flight-service", context: {} }),
+      conversation: await this.createConversation({ agentId: "agent_primary", context: {} }),
       snapshot: this.snapshot,
       events: this.events.filter((event) => event.offset > (input.afterOffset ?? 0)),
       messages: [],

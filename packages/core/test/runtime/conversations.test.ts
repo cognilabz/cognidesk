@@ -9,7 +9,7 @@ describe("runtime conversations", () => {
 
     const oldConversation = await runtime.createConversation({
       id: "conv_old",
-      agentId: "flight-service",
+      agentId: "agent_primary",
       context: { locale: "en" },
     });
     const otherConversation = await runtime.createConversation({
@@ -19,7 +19,7 @@ describe("runtime conversations", () => {
     });
     const newConversation = await runtime.createConversation({
       id: "conv_new",
-      agentId: "flight-service",
+      agentId: "agent_primary",
       context: { locale: "de" },
     });
 
@@ -43,7 +43,7 @@ describe("runtime conversations", () => {
     });
 
     await expect(runtime.listConversations<{ locale?: string }>({
-      agentId: "flight-service",
+      agentId: "agent_primary",
       limit: 2,
     })).resolves.toMatchObject([
       { id: "conv_new", context: { locale: "de" } },
@@ -57,18 +57,18 @@ describe("runtime conversations", () => {
 
     await runtime.createConversation({
       id: "conv_customer_old",
-      agentId: "support",
-      context: { customerId: "customer_123", customer: { plan: "standard" } },
+      agentId: "agent_primary",
+      context: { customerId: "customer_primary", customer: { plan: "baseline" } },
     });
     await runtime.createConversation({
       id: "conv_customer_other",
-      agentId: "support",
-      context: { customerId: "customer_999" },
+      agentId: "agent_primary",
+      context: { customerId: "customer_secondary" },
     });
     const latest = await runtime.createConversation({
       id: "conv_customer_new",
-      agentId: "support",
-      context: { customer: { id: "customer_123", locale: "de" } },
+      agentId: "agent_primary",
+      context: { customer: { id: "customer_primary", locale: "de" } },
     });
 
     await runtime.emit({
@@ -86,11 +86,11 @@ describe("runtime conversations", () => {
 
     await expect(runtime.getConversation(latest.id)).resolves.toMatchObject({
       id: "conv_customer_new",
-      context: { customer: { id: "customer_123", locale: "de" } },
+      context: { customer: { id: "customer_primary", locale: "de" } },
     });
     await expect(runtime.listConversations({
-      agentId: "support",
-      customerId: "customer_123",
+      agentId: "agent_primary",
+      customerId: "customer_primary",
     })).resolves.toMatchObject([
       { id: "conv_customer_new" },
       { id: "conv_customer_old" },
@@ -103,8 +103,8 @@ describe("runtime conversations", () => {
 
     const conversation = await runtime.createConversation({
       id: "conv_customer_profile",
-      agentId: "support",
-      context: { customerId: "customer_123", customer: { id: "customer_123", tier: "standard" } },
+      agentId: "agent_primary",
+      context: { customerId: "customer_primary", customer: { id: "customer_primary", segment: "baseline" } },
     });
     await runtime.emit({
       conversationId: conversation.id,
@@ -120,13 +120,13 @@ describe("runtime conversations", () => {
 
     await expect(runtime.updateConversationContext({
       conversationId: conversation.id,
-      context: { customerId: "customer_456", customer: { id: "customer_456", tier: "vip" } },
+      context: { customerId: "customer_secondary", customer: { id: "customer_secondary", segment: "priority" } },
     })).resolves.toMatchObject({
       id: "conv_customer_profile",
-      context: { customerId: "customer_456", customer: { id: "customer_456", tier: "vip" } },
+      context: { customerId: "customer_secondary", customer: { id: "customer_secondary", segment: "priority" } },
     });
-    await expect(runtime.listConversations({ customerId: "customer_123" })).resolves.toEqual([]);
-    await expect(runtime.listConversations({ customerId: "customer_456" })).resolves.toMatchObject([
+    await expect(runtime.listConversations({ customerId: "customer_primary" })).resolves.toEqual([]);
+    await expect(runtime.listConversations({ customerId: "customer_secondary" })).resolves.toMatchObject([
       { id: "conv_customer_profile" },
     ]);
 
@@ -143,7 +143,7 @@ describe("runtime conversations", () => {
     const updatedAt = "2099-02-01T00:00:00.000Z";
 
     for (const id of ["conv_cursor_a", "conv_cursor_b", "conv_cursor_c", "conv_cursor_d"]) {
-      await runtime.createConversation({ id, agentId: "flight-service", context: {} });
+      await runtime.createConversation({ id, agentId: "agent_primary", context: {} });
       await runtime.emit({
         conversationId: id,
         type: "message.completed",
@@ -152,12 +152,12 @@ describe("runtime conversations", () => {
       });
     }
 
-    const firstPage = await runtime.listConversations({ agentId: "flight-service", limit: 2 });
+    const firstPage = await runtime.listConversations({ agentId: "agent_primary", limit: 2 });
     expect(firstPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_a", "conv_cursor_b"]);
 
     const cursor = firstPage[1]!;
     await expect(runtime.listConversations({
-      agentId: "flight-service",
+      agentId: "agent_primary",
       before: { updatedAt: cursor.updatedAt, id: cursor.id },
       limit: 2,
     })).resolves.toMatchObject([

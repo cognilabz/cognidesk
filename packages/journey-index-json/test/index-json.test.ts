@@ -93,8 +93,8 @@ const embeddingModel: ModelAdapter = {
 };
 
 function createIndexedAgent(condition: string) {
-  const agent = createAgent("flight-service", { instructions: "Help with flights." });
-  const journey = agent.stateMachineJourney("ticket-status", {
+  const agent = createAgent("agent_primary", { instructions: "Help with flights." });
+  const journey = agent.stateMachineJourney("journey_primary", {
     condition,
     context: z.object({ bookingReference: z.string().optional() }),
   });

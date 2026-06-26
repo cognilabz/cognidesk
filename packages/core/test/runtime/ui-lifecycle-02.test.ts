@@ -39,7 +39,7 @@ describe("runtime UI and lifecycle events 02", () => {
       payload: z.object({ name: z.string() }),
     });
     let systemPrompt = "";
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.customEvents.add(leadCaptured, internalMetric);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -94,7 +94,7 @@ describe("runtime UI and lifecycle events 02", () => {
     const unregistered = customRuntimeEvent("unregistered", {
       payload: z.object({ ok: z.boolean() }),
     });
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.customEvents.add(registered);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -108,11 +108,11 @@ describe("runtime UI and lifecycle events 02", () => {
       conversationId: conversation.id,
       event: unregistered,
       payload: { ok: true },
-    })).rejects.toThrow("Custom runtime event 'unregistered' is not registered on agent 'flight-service'.");
+    })).rejects.toThrow("Custom runtime event 'unregistered' is not registered on agent 'agent_primary'.");
   });
 
   it("moves a conversation into handoff lifecycle and stores a handoff event", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -138,7 +138,7 @@ describe("runtime UI and lifecycle events 02", () => {
   });
 
   it("blocks handoff when the configured channel policy does not enable it", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -183,7 +183,7 @@ describe("runtime UI and lifecycle events 02", () => {
   });
 
   it("blocks handoff when only an unrelated same-kind concrete channel policy enables it", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -228,7 +228,7 @@ describe("runtime UI and lifecycle events 02", () => {
   });
 
   it("resumes a handoff conversation back to active lifecycle", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -266,7 +266,7 @@ describe("runtime UI and lifecycle events 02", () => {
       passengerName: z.string().optional(),
       bookingReference: z.string().optional(),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agentBuilder.stateMachineJourney("book-flight", {

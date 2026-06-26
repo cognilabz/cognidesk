@@ -31,7 +31,7 @@ import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherT
 
 describe("runtime UI and lifecycle events 01", () => {
   it("stores submitted widget output as a conversation event", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -64,7 +64,7 @@ describe("runtime UI and lifecycle events 01", () => {
   });
 
   it("replays runtime events into inspectable messages and open prompts", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -138,7 +138,7 @@ describe("runtime UI and lifecycle events 01", () => {
   });
 
   it("emits programmatic intermediate assistant messages", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -166,7 +166,7 @@ describe("runtime UI and lifecycle events 01", () => {
 
   it("can expose durable intermediate messages to later model turns", async () => {
     let responsePrompt = "";
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -203,7 +203,7 @@ describe("runtime UI and lifecycle events 01", () => {
 
   it("generates constrained wait-time preambles as intermediate messages", async () => {
     let preamblePrompt = "";
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -249,7 +249,7 @@ describe("runtime UI and lifecycle events 01", () => {
   });
 
   it("rejects stale, mismatched, or invalid widget submissions before recording them", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,

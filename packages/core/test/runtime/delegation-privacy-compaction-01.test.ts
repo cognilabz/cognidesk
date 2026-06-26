@@ -34,7 +34,7 @@ import { createPrivacyStorageAdapter } from "../../src/runtime/privacy.js";
 describe("runtime delegation, privacy, and compaction 01", () => {
   it("completes delegation journeys when completion criteria are satisfied", async () => {
     let completionPrompt = "";
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     agentBuilder.delegationJourney("human-handoff", {
@@ -93,7 +93,7 @@ describe("runtime delegation, privacy, and compaction 01", () => {
   });
 
   it("completes an active delegation journey when an operator resumes bot control", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     agentBuilder.delegationJourney("human-handoff", {
@@ -184,7 +184,7 @@ describe("runtime delegation, privacy, and compaction 01", () => {
       generateText: response.generateText,
       embed: async () => ({ embedding: [0], model: "embedding", dimensions: 1 }),
     };
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -228,7 +228,7 @@ describe("runtime delegation, privacy, and compaction 01", () => {
       payload: z.object({ note: z.string() }),
       visibleToModel: true,
     });
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.customEvents.add(auditNote);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -295,7 +295,7 @@ describe("runtime delegation, privacy, and compaction 01", () => {
   });
 
   it("applies channel-specific privacy hooks to persisted channel events", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -365,7 +365,7 @@ describe("runtime delegation, privacy, and compaction 01", () => {
 
   it("preserves atomic storage hooks while redacting their events", async () => {
     const storage = new RecordingStorage();
-    const conversation = await storage.createConversation({ agentId: "flight-service", context: {} });
+    const conversation = await storage.createConversation({ agentId: "agent_primary", context: {} });
     const wrapped = createPrivacyStorageAdapter(storage, {
       redactRuntimeEvent: ({ event }) => {
         if (event.type === "approval.resolved") {
@@ -472,7 +472,7 @@ describe("runtime delegation, privacy, and compaction 01", () => {
       generateText: response.generateText,
       embed: async () => ({ embedding: [0], model: "embedding", dimensions: 1 }),
     };
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -526,7 +526,7 @@ describe("runtime delegation, privacy, and compaction 01", () => {
       generateText: response.generateText,
       embed: async () => ({ embedding: [0], model: "embedding", dimensions: 1 }),
     };
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
