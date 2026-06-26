@@ -18,6 +18,7 @@ import type {
   StartVoiceResult,
   StartVoiceSegmentInput,
   SubmitWidgetInput,
+  UpdateRuntimeConversationContextInput,
 } from "@cognidesk/core";
 
 export class FakeRuntime implements CognideskHttpRuntime {
@@ -25,13 +26,18 @@ export class FakeRuntime implements CognideskHttpRuntime {
 
   async createConversation(_input: CreateRuntimeConversationInput): Promise<ConversationRecord> {
     return {
-      id: "conversation_1",
-      agentId: "flight-service",
+      id: _input.id ?? "conversation_1",
+      agentId: _input.agentId,
       lifecycle: "active",
-      context: {},
+      context: _input.context,
       createdAt: "2026-05-25T00:00:00.000Z",
       updatedAt: "2026-05-25T00:00:00.000Z",
     };
+  }
+
+  async getConversation(conversationId: string): Promise<ConversationRecord | null> {
+    if (conversationId === "missing") return null;
+    return this.createConversation({ id: conversationId, agentId: "flight-service", context: { customerId: "customer_123" } });
   }
 
   async listConversations(_input: ListRuntimeConversationsOptions = {}): Promise<ConversationRecord[]> {
@@ -53,6 +59,22 @@ export class FakeRuntime implements CognideskHttpRuntime {
         updatedAt: "2026-05-25T00:00:00.000Z",
       },
     ];
+  }
+
+  async updateConversationContext(input: UpdateRuntimeConversationContextInput): Promise<ConversationRecord | null> {
+    if (input.conversationId === "missing") return null;
+    return {
+      ...await this.createConversation({
+        id: input.conversationId,
+        agentId: "flight-service",
+        context: input.context,
+      }),
+      updatedAt: "2026-05-26T00:00:00.000Z",
+    };
+  }
+
+  async deleteConversation(conversationId: string): Promise<boolean> {
+    return conversationId !== "missing";
   }
 
   async handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult> {

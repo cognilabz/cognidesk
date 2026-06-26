@@ -12,6 +12,7 @@ import type {
   RuntimeEventInput,
   RuntimeSnapshot,
   StorageAdapter,
+  UpdateConversationContextInput,
 } from "@cognidesk/core";
 import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
@@ -185,6 +186,25 @@ export class SqliteStorageAdapter implements StorageAdapter {
       .set({ lifecycle, updatedAt })
       .where(eq(sqliteConversations.id, conversationId));
     return this.getConversation(conversationId);
+  }
+
+  async updateConversationContext<TConversationContext = unknown>(
+    conversationId: string,
+    input: UpdateConversationContextInput<TConversationContext>,
+  ): Promise<ConversationRecord<TConversationContext> | null> {
+    const updatedAt = nowIso();
+    await this.db.update(sqliteConversations)
+      .set({ contextJson: JSON.stringify(input.context), updatedAt })
+      .where(eq(sqliteConversations.id, conversationId));
+    return this.getConversation<TConversationContext>(conversationId);
+  }
+
+  async deleteConversation(conversationId: string): Promise<boolean> {
+    const deleted = await this.db.delete(sqliteConversations)
+      .where(eq(sqliteConversations.id, conversationId))
+      .returning({ id: sqliteConversations.id })
+      .get();
+    return Boolean(deleted);
   }
 
   async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {

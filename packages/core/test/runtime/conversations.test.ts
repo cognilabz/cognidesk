@@ -97,6 +97,46 @@ describe("runtime conversations", () => {
     ]);
   });
 
+  it("updates customer context and deletes customer conversations", async () => {
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({ storage });
+
+    const conversation = await runtime.createConversation({
+      id: "conv_customer_profile",
+      agentId: "support",
+      context: { customerId: "customer_123", customer: { id: "customer_123", tier: "standard" } },
+    });
+    await runtime.emit({
+      conversationId: conversation.id,
+      type: "message.completed",
+      data: { text: "Hello" },
+    });
+    await storage.saveSnapshot({
+      conversationId: conversation.id,
+      lifecycle: "active",
+      activeStateIds: [],
+      updatedAt: new Date().toISOString(),
+    });
+
+    await expect(runtime.updateConversationContext({
+      conversationId: conversation.id,
+      context: { customerId: "customer_456", customer: { id: "customer_456", tier: "vip" } },
+    })).resolves.toMatchObject({
+      id: "conv_customer_profile",
+      context: { customerId: "customer_456", customer: { id: "customer_456", tier: "vip" } },
+    });
+    await expect(runtime.listConversations({ customerId: "customer_123" })).resolves.toEqual([]);
+    await expect(runtime.listConversations({ customerId: "customer_456" })).resolves.toMatchObject([
+      { id: "conv_customer_profile" },
+    ]);
+
+    await expect(runtime.deleteConversation(conversation.id)).resolves.toBe(true);
+    await expect(runtime.deleteConversation(conversation.id)).resolves.toBe(false);
+    await expect(runtime.getConversation(conversation.id)).resolves.toBeNull();
+    await expect(runtime.listEvents(conversation.id)).resolves.toEqual([]);
+    await expect(runtime.getSnapshot(conversation.id)).resolves.toBeNull();
+  });
+
   it("lists conversations through the runtime with a composite cursor", async () => {
     const storage = new RecordingStorage();
     const runtime = createRuntime({ storage });

@@ -9,6 +9,7 @@ import type {
   RuntimeEventInput,
   RuntimeSnapshot,
   StorageAdapter,
+  UpdateConversationContextInput,
 } from "@cognidesk/core";
 import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
@@ -176,6 +177,24 @@ export class PostgresStorageAdapter implements StorageAdapter {
       .set({ lifecycle, updatedAt })
       .where(eq(postgresConversations.id, conversationId));
     return this.getConversation(conversationId);
+  }
+
+  async updateConversationContext<TConversationContext = unknown>(
+    conversationId: string,
+    input: UpdateConversationContextInput<TConversationContext>,
+  ): Promise<ConversationRecord<TConversationContext> | null> {
+    const updatedAt = nowIso();
+    await this.db.update(postgresConversations)
+      .set({ contextJson: input.context, updatedAt })
+      .where(eq(postgresConversations.id, conversationId));
+    return this.getConversation<TConversationContext>(conversationId);
+  }
+
+  async deleteConversation(conversationId: string): Promise<boolean> {
+    const deleted = await this.db.delete(postgresConversations)
+      .where(eq(postgresConversations.id, conversationId))
+      .returning({ id: postgresConversations.id });
+    return Boolean(deleted[0]);
   }
 
   async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {

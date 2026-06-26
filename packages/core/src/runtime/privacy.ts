@@ -4,6 +4,7 @@ import type {
   ListConversationsOptions,
   RuntimeEventInput,
   StorageAdapter,
+  UpdateConversationContextInput,
 } from "../storage.js";
 import type {
   ModelMessage,
@@ -62,8 +63,28 @@ export function createPrivacyStorageAdapter(
     listConversations<TConversationContext = unknown>(options?: ListConversationsOptions) {
       return storage.listConversations<TConversationContext>(options);
     },
+    async updateConversationContext<TConversationContext = unknown>(
+      conversationId: string,
+      input: UpdateConversationContextInput<TConversationContext>,
+    ) {
+      const current = await storage.getConversation(conversationId);
+      if (!current) return null;
+      const context = privacy.redactConversationContext
+        ? await privacy.redactConversationContext({
+          conversationId,
+          agentId: current.agentId,
+          context: input.context,
+        })
+        : input.context;
+      return storage.updateConversationContext<TConversationContext>(conversationId, {
+        context: context as TConversationContext,
+      });
+    },
     updateConversationLifecycle(conversationId, lifecycle) {
       return storage.updateConversationLifecycle(conversationId, lifecycle);
+    },
+    deleteConversation(conversationId) {
+      return storage.deleteConversation(conversationId);
     },
     async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent) {
       return storage.appendEvent(await redactRuntimeEventForStorage(storage, privacy, event));

@@ -10,6 +10,7 @@ import type {
   RuntimeEventInput,
   RuntimeSnapshot,
   StorageAdapter,
+  UpdateConversationContextInput,
 } from "../../src/index.js";
 import { defineChannelContext } from "../../src/index.js";
 
@@ -146,6 +147,28 @@ export class RecordingStorage implements StorageAdapter {
     const updated = { ...current, lifecycle, updatedAt: new Date().toISOString() };
     this.conversations.set(conversationId, updated);
     return updated;
+  }
+
+  async updateConversationContext<TConversationContext = unknown>(
+    conversationId: string,
+    input: UpdateConversationContextInput<TConversationContext>,
+  ): Promise<ConversationRecord<TConversationContext> | null> {
+    const current = this.conversations.get(conversationId);
+    if (!current) return null;
+    const updated = {
+      ...current,
+      context: input.context,
+      updatedAt: new Date().toISOString(),
+    } as ConversationRecord<TConversationContext>;
+    this.conversations.set(conversationId, updated as ConversationRecord);
+    return updated;
+  }
+
+  async deleteConversation(conversationId: string): Promise<boolean> {
+    const deleted = this.conversations.delete(conversationId);
+    this.events.delete(conversationId);
+    this.snapshots.delete(conversationId);
+    return deleted;
   }
 
   async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {

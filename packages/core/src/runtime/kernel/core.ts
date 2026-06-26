@@ -18,9 +18,11 @@ import {
 } from "../approvals.js";
 import {
   createRuntimeConversation,
+  deleteRuntimeConversation,
   listRuntimeConversations,
   listRuntimeEvents,
   replayRuntimeConversation,
+  updateRuntimeConversationContext,
 } from "../facade/conversations.js";
 import {
   emitRuntimeCustomEvent,
@@ -64,6 +66,7 @@ import type {
   ResolvePendingSupportActionInput,
   RuntimeOptions,
   StateMachineTurnResult,
+  UpdateRuntimeConversationContextInput,
 } from "../types.js";
 
 export function createRuntimeCore(options: RuntimeOptions) {
@@ -115,6 +118,14 @@ export function createRuntimeCore(options: RuntimeOptions) {
     },
     listConversations<TConversationContext = unknown>(input: ListRuntimeConversationsOptions = {}) {
       return listRuntimeConversations<TConversationContext>(options, input);
+    },
+    updateConversationContext<TConversationContext = unknown>(
+      input: UpdateRuntimeConversationContextInput<TConversationContext>,
+    ) {
+      return updateRuntimeConversationContext<TConversationContext>(options, input);
+    },
+    deleteConversation(conversationId: string) {
+      return deleteRuntimeConversation(options, conversationId);
     },
     replayConversation(input: { conversationId: string; afterOffset?: number }) {
       return replayRuntimeConversation(options, core.requireConversationRecord, input);

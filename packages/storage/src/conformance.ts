@@ -77,6 +77,27 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
           },
         });
 
+        const contextUpdated = await storage.updateConversationContext("conv_1", {
+          context: {
+            locale: "de",
+            customerId: "customer_123",
+            customer: { id: "customer_123", tier: "vip" },
+          },
+        });
+        expect(contextUpdated).toMatchObject({
+          id: "conv_1",
+          context: {
+            locale: "de",
+            customerId: "customer_123",
+            customer: { id: "customer_123", tier: "vip" },
+          },
+          channel: {
+            channelId: "email.support",
+            kind: "email",
+          },
+        });
+        expect(await storage.updateConversationContext("missing", { context: {} })).toBeNull();
+
         const event = await storage.appendEvent({
           conversationId: "conv_1",
           type: "message.completed",
@@ -102,6 +123,12 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
         };
         await storage.saveSnapshot(snapshot);
         expect(await storage.getSnapshot("conv_1")).toEqual(snapshot);
+
+        await expect(storage.deleteConversation("missing")).resolves.toBe(false);
+        await expect(storage.deleteConversation("conv_1")).resolves.toBe(true);
+        expect(await storage.getConversation("conv_1")).toBeNull();
+        expect(await storage.listEvents({ conversationId: "conv_1" })).toEqual([]);
+        expect(await storage.getSnapshot("conv_1")).toBeNull();
       });
     });
 

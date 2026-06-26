@@ -60,6 +60,7 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           if (!options.runtime.listConversations) return json({ error: "Conversation listing is not supported by this runtime" }, 501, responseOptions);
           const limit = parseOptionalInteger(url.searchParams.get("limit"), "limit");
           const agentId = optionalSearchString(url.searchParams, "agentId");
+          const customerId = optionalSearchString(url.searchParams, "customerId");
           const beforeUpdatedAt = optionalSearchString(url.searchParams, "beforeUpdatedAt") ?? optionalSearchString(url.searchParams, "before");
           const afterUpdatedAt = optionalSearchString(url.searchParams, "afterUpdatedAt") ?? optionalSearchString(url.searchParams, "after");
           const beforeId = optionalSearchString(url.searchParams, "beforeId");
@@ -72,6 +73,7 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
           }
           const conversations = await options.runtime.listConversations({
             ...(agentId ? { agentId } : {}),
+            ...(customerId ? { customerId } : {}),
             ...(beforeUpdatedAt && beforeId ? { before: { updatedAt: beforeUpdatedAt, id: beforeId } } : {}),
             ...(afterUpdatedAt && afterId ? { after: { updatedAt: afterUpdatedAt, id: afterId } } : {}),
             ...(beforeUpdatedAt && !beforeId ? { beforeUpdatedAt } : {}),
@@ -101,6 +103,36 @@ export function createCognideskHttpHandler(options: CognideskHttpHandlerOptions)
             conversation,
             ...(events.length > 0 ? { events } : {}),
           }, 201, responseOptions);
+        }
+
+        const conversationMatch = path.match(/^\/conversations\/([^/]+)$/);
+        if (conversationMatch) {
+          const conversationId = decodeURIComponent(conversationMatch[1] ?? "");
+          if (request.method === "GET") {
+            if (!options.runtime.getConversation) return json({ error: "Conversation retrieval is not supported by this runtime" }, 501, responseOptions);
+            const conversation = await options.runtime.getConversation(conversationId);
+            if (!conversation) return json({ error: "Conversation not found" }, 404, responseOptions);
+            return json({ conversation }, 200, responseOptions);
+          }
+
+          if (request.method === "PATCH") {
+            if (!options.runtime.updateConversationContext) return json({ error: "Conversation context updates are not supported by this runtime" }, 501, responseOptions);
+            const body = await readObject(request);
+            if (!hasOwnProperty(body, "context")) throw new HttpInputError("context is required.");
+            const conversation = await options.runtime.updateConversationContext({
+              conversationId,
+              context: body.context,
+            });
+            if (!conversation) return json({ error: "Conversation not found" }, 404, responseOptions);
+            return json({ conversation }, 200, responseOptions);
+          }
+
+          if (request.method === "DELETE") {
+            if (!options.runtime.deleteConversation) return json({ error: "Conversation deletion is not supported by this runtime" }, 501, responseOptions);
+            const deleted = await options.runtime.deleteConversation(conversationId);
+            if (!deleted) return json({ error: "Conversation not found" }, 404, responseOptions);
+            return emptyResponse(204, responseOptions);
+          }
         }
 
         if (request.method === "POST" && path === "/channel-events") {

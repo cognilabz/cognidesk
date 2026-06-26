@@ -8,6 +8,7 @@ import type {
   RuntimeEventEmitter,
   RuntimeOptions,
   SubmitWidgetInput,
+  UpdateRuntimeConversationContextInput,
 } from "../types.js";
 import type { ConversationRecord, RuntimeEventInput } from "../../storage.js";
 import type { RuntimeEvent } from "../../types.js";
@@ -54,6 +55,22 @@ export function listRuntimeConversations<TConversationContext = unknown>(
   input: ListRuntimeConversationsOptions = {},
 ) {
   return options.storage.listConversations<TConversationContext>(input);
+}
+
+export function updateRuntimeConversationContext<TConversationContext = unknown>(
+  options: RuntimeOptions,
+  input: UpdateRuntimeConversationContextInput<TConversationContext>,
+) {
+  return options.storage.updateConversationContext<TConversationContext>(input.conversationId, {
+    context: input.context,
+  });
+}
+
+export function deleteRuntimeConversation(
+  options: RuntimeOptions,
+  conversationId: string,
+) {
+  return options.storage.deleteConversation(conversationId);
 }
 
 export async function listAllRuntimeEvents(

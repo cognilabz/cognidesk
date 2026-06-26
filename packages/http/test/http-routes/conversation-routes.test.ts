@@ -13,13 +13,14 @@ describe("HTTP conversation routes", () => {
     });
 
     const response = await handler.handle(new Request(
-      "http://localhost/conversations?agentId=flight-service&limit=2&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z",
+      "http://localhost/conversations?agentId=flight-service&customerId=customer_123&limit=2&before=2026-05-27T00%3A00%3A00.000Z&after=2026-05-24T00%3A00%3A00.000Z",
     ));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("access-control-allow-origin")).toBe("*");
     expect(listConversations).toHaveBeenCalledWith({
       agentId: "flight-service",
+      customerId: "customer_123",
       beforeUpdatedAt: "2026-05-27T00:00:00.000Z",
       afterUpdatedAt: "2026-05-24T00:00:00.000Z",
       limit: 2,
@@ -62,6 +63,76 @@ describe("HTTP conversation routes", () => {
     await expect(response.json()).resolves.toEqual({
       error: "beforeUpdatedAt and beforeId must be provided together.",
     });
+  });
+
+  it("reads, updates, and deletes a customer conversation", async () => {
+    const runtime = new FakeRuntime();
+    const getConversation = vi.spyOn(runtime, "getConversation");
+    const updateConversationContext = vi.spyOn(runtime, "updateConversationContext");
+    const deleteConversation = vi.spyOn(runtime, "deleteConversation");
+    const handler = createCognideskHttpHandler({ runtime });
+
+    const readResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1"));
+    expect(readResponse.status).toBe(200);
+    expect(getConversation).toHaveBeenCalledWith("conversation_1");
+    await expect(readResponse.json()).resolves.toMatchObject({
+      conversation: {
+        id: "conversation_1",
+        context: { customerId: "customer_123" },
+      },
+    });
+
+    const updateResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1", {
+      method: "PATCH",
+      body: JSON.stringify({
+        context: {
+          customerId: "customer_456",
+          customer: { id: "customer_456", tier: "vip" },
+        },
+      }),
+    }));
+    expect(updateResponse.status).toBe(200);
+    expect(updateConversationContext).toHaveBeenCalledWith({
+      conversationId: "conversation_1",
+      context: {
+        customerId: "customer_456",
+        customer: { id: "customer_456", tier: "vip" },
+      },
+    });
+    await expect(updateResponse.json()).resolves.toMatchObject({
+      conversation: {
+        id: "conversation_1",
+        context: {
+          customerId: "customer_456",
+          customer: { id: "customer_456", tier: "vip" },
+        },
+      },
+    });
+
+    const deleteResponse = await handler.handle(new Request("http://localhost/conversations/conversation_1", {
+      method: "DELETE",
+    }));
+    expect(deleteResponse.status).toBe(204);
+    expect(deleteConversation).toHaveBeenCalledWith("conversation_1");
+  });
+
+  it("returns 404 for missing conversation reads, updates, and deletes", async () => {
+    const runtime = new FakeRuntime();
+    const handler = createCognideskHttpHandler({ runtime });
+
+    const readResponse = await handler.handle(new Request("http://localhost/conversations/missing"));
+    expect(readResponse.status).toBe(404);
+
+    const updateResponse = await handler.handle(new Request("http://localhost/conversations/missing", {
+      method: "PATCH",
+      body: JSON.stringify({ context: { customerId: "customer_456" } }),
+    }));
+    expect(updateResponse.status).toBe(404);
+
+    const deleteResponse = await handler.handle(new Request("http://localhost/conversations/missing", {
+      method: "DELETE",
+    }));
+    expect(deleteResponse.status).toBe(404);
   });
 
   it("creates conversations and posts user messages", async () => {
