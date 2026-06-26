@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  assertNoWorkspaceProtocolDependencies,
   assertFixedPackageVersion,
   dependencyFields,
   isPlatformPackage,
@@ -76,7 +77,7 @@ function publish(pkg) {
     registry,
   ];
   const originalPackageJson = readFileSync(pkg.packageJsonPath, "utf8");
-  const publishPackageJson = materializeWorkspaceDependencies(pkg.packageJson, packageVersions);
+  const publishPackageJson = publishManifest(pkg);
 
   try {
     writeFileSync(pkg.packageJsonPath, `${JSON.stringify(publishPackageJson, null, 2)}\n`);
@@ -87,6 +88,12 @@ function publish(pkg) {
   } finally {
     writeFileSync(pkg.packageJsonPath, originalPackageJson);
   }
+}
+
+function publishManifest(pkg) {
+  const packageJson = materializeWorkspaceDependencies(pkg.packageJson, packageVersions);
+  assertNoWorkspaceProtocolDependencies(packageJson, `${pkg.name}@${pkg.packageJson.version} publish manifest`);
+  return packageJson;
 }
 
 if (!distTag) {
@@ -102,6 +109,9 @@ const decisions = packages.map((pkg) => ({
   pkg,
   ...readPublishedPackageState(pkg, { root, registry }),
 }));
+for (const pkg of packages) {
+  publishManifest(pkg);
+}
 const alreadyPublishedPlatform = decisions
   .filter(({ pkg, versionPublished }) => isPlatformPackage(pkg) && versionPublished);
 
