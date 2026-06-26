@@ -312,6 +312,33 @@ export function materializeWorkspaceDependencies(packageJson, packageVersions) {
   return materialized;
 }
 
+export function workspaceProtocolDependencyEntries(packageJson) {
+  const entries = [];
+
+  for (const field of dependencyFields) {
+    const dependencies = packageJson[field];
+    if (!dependencies) continue;
+
+    for (const [dependencyName, dependencyRange] of Object.entries(dependencies)) {
+      if (typeof dependencyRange === "string" && dependencyRange.startsWith("workspace:")) {
+        entries.push({ field, dependencyName, dependencyRange });
+      }
+    }
+  }
+
+  return entries;
+}
+
+export function assertNoWorkspaceProtocolDependencies(packageJson, label = packageJson.name ?? "package") {
+  const entries = workspaceProtocolDependencyEntries(packageJson);
+  if (entries.length === 0) return;
+
+  const details = entries
+    .map((entry) => `${entry.field}.${entry.dependencyName}=${entry.dependencyRange}`)
+    .join(", ");
+  throw new Error(`${label} contains workspace protocol dependency ranges: ${details}`);
+}
+
 function materializeWorkspaceRange(range, version) {
   const workspaceRange = range.slice("workspace:".length);
   if (workspaceRange === "*" || workspaceRange === "") return version;

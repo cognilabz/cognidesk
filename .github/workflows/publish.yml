@@ -78,6 +78,9 @@ jobs:
       - name: Verify package publish smoke
         run: pnpm release:verify-packages -- --fail-size-budget
 
+      - name: Verify external consumer install
+        run: pnpm release:verify-consumer-install
+
       - name: Refresh release lockfile
         if: steps.publish-mode.outputs.dry_run != 'true'
         run: pnpm install --lockfile-only

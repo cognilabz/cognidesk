@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   allWorkspacePackages,
   assertFixedStablePackageVersion,
+  assertNoWorkspaceProtocolDependencies,
   isNpmNotFound,
   materializeWorkspaceDependencies,
   nextAvailablePatchVersion,
@@ -140,6 +141,23 @@ test("publish manifests materialize internal workspace dependency links", () => 
   assert.equal(materialized.dependencies["@cognidesk/core"], "1.2.4");
   assert.equal(materialized.dependencies["@cognidesk/ui"], "^1.2.4");
   assert.equal(materialized.dependencies.streamdown, "^2.5.0");
+  assert.doesNotThrow(() => assertNoWorkspaceProtocolDependencies(materialized));
+});
+
+test("publish manifest guard rejects workspace protocol dependency links", () => {
+  assert.throws(
+    () => assertNoWorkspaceProtocolDependencies({
+      name: "@cognidesk/integration-email-gmail",
+      version: "0.4.0",
+      dependencies: {
+        "@cognidesk/core": "workspace:*",
+      },
+      devDependencies: {
+        "@cognidesk/test-harness": "workspace:^",
+      },
+    }),
+    /contains workspace protocol dependency ranges: dependencies\.@cognidesk\/core=workspace:\*, devDependencies\.@cognidesk\/test-harness=workspace:\^/,
+  );
 });
 
 test("stable release version advances to the next unpublished patch", () => {
