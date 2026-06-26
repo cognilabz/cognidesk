@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-kit",
-  "version": "0.0.3",
+  "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -30,8 +30,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "0.0.3",
-    "@cognidesk/voice-websocket": "0.0.3"
+    "@cognidesk/core": "workspace:*",
+    "@cognidesk/voice-websocket": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.0",

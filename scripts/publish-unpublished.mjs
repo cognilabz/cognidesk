@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   assertFixedPackageVersion,
   dependencyFields,
   isPlatformPackage,
   isProviderPackage,
+  materializeWorkspaceDependencies,
   packageWorkspaces,
 } from "./release-workspace.mjs";
 
@@ -110,11 +112,18 @@ function publish(pkg) {
     "--registry",
     registry,
   ];
+  const originalPackageJson = readFileSync(pkg.packageJsonPath, "utf8");
+  const publishPackageJson = materializeWorkspaceDependencies(pkg.packageJson, packageVersions);
 
-  execFileSync("npm", args, {
-    cwd: join(root, pkg.dir),
-    stdio: "inherit",
-  });
+  try {
+    writeFileSync(pkg.packageJsonPath, `${JSON.stringify(publishPackageJson, null, 2)}\n`);
+    execFileSync("npm", args, {
+      cwd: join(root, pkg.dir),
+      stdio: "inherit",
+    });
+  } finally {
+    writeFileSync(pkg.packageJsonPath, originalPackageJson);
+  }
 }
 
 if (!distTag) {
@@ -122,6 +131,7 @@ if (!distTag) {
 }
 
 const packages = sortByInternalDependencies(packageWorkspaces(root));
+const packageVersions = new Map(packages.map((pkg) => [pkg.name, pkg.packageJson.version]));
 const platformPackages = packages.filter(isPlatformPackage);
 const providerPackages = packages.filter(isProviderPackage);
 const platformVersion = assertFixedPackageVersion(platformPackages, "platform SDK packages");

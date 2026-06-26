@@ -67,15 +67,17 @@ export function createPrivacyStorageAdapter(
       conversationId: string,
       input: UpdateConversationContextInput<TConversationContext>,
     ) {
+      if (!privacy.redactConversationContext) {
+        return storage.updateConversationContext<TConversationContext>(conversationId, input);
+      }
+
       const current = await storage.getConversation(conversationId);
       if (!current) return null;
-      const context = privacy.redactConversationContext
-        ? await privacy.redactConversationContext({
-          conversationId,
-          agentId: current.agentId,
-          context: input.context,
-        })
-        : input.context;
+      const context = await privacy.redactConversationContext({
+        conversationId,
+        agentId: current.agentId,
+        context: input.context,
+      });
       return storage.updateConversationContext<TConversationContext>(conversationId, {
         context: context as TConversationContext,
       });

@@ -6,10 +6,12 @@ import test from "node:test";
 import {
   allWorkspacePackages,
   assertFixedStablePackageVersion,
+  materializeWorkspaceDependencies,
   nextAvailablePatchVersion,
   packageWorkspaces,
   platformPackageWorkspaces,
   providerPackageWorkspaces,
+  updatePackageVersions,
   updatePackageTrain,
 } from "./release-workspace.mjs";
 
@@ -105,6 +107,38 @@ test("platform release train updates only platform package dependency links", as
     assert.equal(provider.packageJson.version, "0.4.0");
     assert.equal(provider.packageJson.dependencies["@cognidesk/core"], "workspace:*");
   });
+});
+
+test("platform source version updates preserve workspace dependency links", async () => {
+  await withFixtureWorkspace(async (root) => {
+    const platformPackages = platformPackageWorkspaces(root);
+
+    updatePackageVersions(platformPackages, "1.2.4");
+
+    const react = platformPackages.find((pkg) => pkg.name === "@cognidesk/react");
+
+    assert.equal(react.packageJson.version, "1.2.4");
+    assert.equal(react.packageJson.dependencies["@cognidesk/core"], "workspace:*");
+  });
+});
+
+test("publish manifests materialize internal workspace dependency links", () => {
+  const materialized = materializeWorkspaceDependencies({
+    name: "@cognidesk/react",
+    version: "1.2.4",
+    dependencies: {
+      "@cognidesk/core": "workspace:*",
+      "@cognidesk/ui": "workspace:^",
+      "streamdown": "^2.5.0",
+    },
+  }, new Map([
+    ["@cognidesk/core", "1.2.4"],
+    ["@cognidesk/ui", "1.2.4"],
+  ]));
+
+  assert.equal(materialized.dependencies["@cognidesk/core"], "1.2.4");
+  assert.equal(materialized.dependencies["@cognidesk/ui"], "^1.2.4");
+  assert.equal(materialized.dependencies.streamdown, "^2.5.0");
 });
 
 test("stable release version advances to the next unpublished patch", () => {

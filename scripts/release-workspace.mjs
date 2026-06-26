@@ -210,6 +210,12 @@ export function nextAvailablePatchVersion(version, isVersionPublished) {
   return candidate;
 }
 
+export function updatePackageVersions(packages, version) {
+  for (const pkg of packages) {
+    pkg.packageJson.version = version;
+  }
+}
+
 export function updatePackageTrain(packages, version, dependencyPackages = packages) {
   const packageNames = new Set(dependencyPackages.map((pkg) => pkg.name));
 
@@ -227,6 +233,33 @@ export function updatePackageTrain(packages, version, dependencyPackages = packa
       }
     }
   }
+}
+
+export function materializeWorkspaceDependencies(packageJson, packageVersions) {
+  const materialized = JSON.parse(JSON.stringify(packageJson));
+
+  for (const field of dependencyFields) {
+    const dependencies = materialized[field];
+    if (!dependencies) continue;
+
+    for (const [dependencyName, dependencyRange] of Object.entries(dependencies)) {
+      const dependencyVersion = packageVersions.get(dependencyName);
+      if (!dependencyVersion || typeof dependencyRange !== "string") continue;
+      if (!dependencyRange.startsWith("workspace:")) continue;
+
+      dependencies[dependencyName] = materializeWorkspaceRange(dependencyRange, dependencyVersion);
+    }
+  }
+
+  return materialized;
+}
+
+function materializeWorkspaceRange(range, version) {
+  const workspaceRange = range.slice("workspace:".length);
+  if (workspaceRange === "*" || workspaceRange === "") return version;
+  if (workspaceRange === "^") return `^${version}`;
+  if (workspaceRange === "~") return `~${version}`;
+  return workspaceRange;
 }
 
 export function writePackages(packages) {

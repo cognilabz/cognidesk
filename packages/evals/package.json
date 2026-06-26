@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/evals",
-  "version": "0.0.3",
+  "version": "0.0.2",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,8 +18,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "0.0.3",
-    "@cognidesk/test-harness": "0.0.3"
+    "@cognidesk/core": "workspace:*",
+    "@cognidesk/test-harness": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.0",

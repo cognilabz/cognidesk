@@ -251,7 +251,7 @@ export class CognideskRuntime {
   listConversations<TConversationContext = unknown>(input: ListRuntimeConversationsOptions = {}) {
     return this.runtimeOperation("list_conversations", telemetrySpanNames.runtimeListConversations, {
       ...(input.agentId ? { [telemetryAttributes.agentId]: input.agentId } : {}),
-      ...(input.customerId ? { "cognidesk.customer.id": input.customerId } : {}),
+      ...(input.customerId ? { [telemetryAttributes.customerId]: input.customerId } : {}),
     }, () => this.kernel.listConversations<TConversationContext>(input));
   }
 

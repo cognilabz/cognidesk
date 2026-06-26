@@ -7,7 +7,7 @@ import {
   bumpStableVersion,
   nextAvailablePatchVersion,
   platformPackageWorkspaces,
-  updatePackageTrain,
+  updatePackageVersions,
   writePackages,
 } from "./release-workspace.mjs";
 
@@ -16,6 +16,7 @@ const args = process.argv.slice(2);
 const validBumps = new Set(["patch", "minor", "major"]);
 const yes = args.includes("--yes");
 const autoPatchExisting = args.includes("--auto-patch-existing");
+const skipInstall = args.includes("--skip-install");
 const explicitBump = readOption("--bump");
 const defaultBump = readOption("--default-bump") ?? "patch";
 const registry = readOption("--registry") ?? process.env.NPM_CONFIG_REGISTRY ?? "https://registry.npmjs.org/";
@@ -100,9 +101,9 @@ if (autoPatchExisting) {
 }
 
 if (nextVersion !== currentVersion) {
-  updatePackageTrain(packages, nextVersion);
+  updatePackageVersions(packages, nextVersion);
   writePackages(packages);
-  runPnpmInstall();
+  if (!skipInstall) runPnpmInstall();
 }
 
 console.log("\nPrepared SDK release:");

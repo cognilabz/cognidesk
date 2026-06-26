@@ -68,6 +68,7 @@ export const telemetrySpanNames = {
 
 export const telemetryAttributes = {
   agentId: "cognidesk.agent.id",
+  customerId: "cognidesk.customer.id",
   conversationId: "cognidesk.conversation.id",
   journeyId: "cognidesk.journey.id",
   stateId: "cognidesk.state.id",
