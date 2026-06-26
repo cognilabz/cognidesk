@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   allWorkspacePackages,
   assertFixedStablePackageVersion,
+  nextAvailablePatchVersion,
   packageWorkspaces,
   platformPackageWorkspaces,
   providerPackageWorkspaces,
@@ -104,6 +105,19 @@ test("platform release train updates only platform package dependency links", as
     assert.equal(provider.packageJson.version, "0.4.0");
     assert.equal(provider.packageJson.dependencies["@cognidesk/core"], "workspace:*");
   });
+});
+
+test("stable release version advances to the next unpublished patch", () => {
+  const published = new Set(["1.2.3", "1.2.4"]);
+
+  assert.equal(
+    nextAvailablePatchVersion("1.2.3", (version) => published.has(version)),
+    "1.2.5",
+  );
+  assert.equal(
+    nextAvailablePatchVersion("1.2.6", (version) => published.has(version)),
+    "1.2.6",
+  );
 });
 
 async function withFixtureWorkspace(callback) {

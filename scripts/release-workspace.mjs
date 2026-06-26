@@ -202,6 +202,14 @@ export function nextPatchVersion(version) {
   return bumpStableVersion(version, "patch");
 }
 
+export function nextAvailablePatchVersion(version, isVersionPublished) {
+  let candidate = version;
+  while (isVersionPublished(candidate)) {
+    candidate = nextPatchVersion(candidate);
+  }
+  return candidate;
+}
+
 export function updatePackageTrain(packages, version, dependencyPackages = packages) {
   const packageNames = new Set(dependencyPackages.map((pkg) => pkg.name));
 

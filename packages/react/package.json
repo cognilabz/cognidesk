@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/react",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,8 +18,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
-    "@cognidesk/ui": "workspace:*",
+    "@cognidesk/core": "0.0.3",
+    "@cognidesk/ui": "0.0.3",
     "streamdown": "^2.5.0"
   },
   "peerDependencies": {

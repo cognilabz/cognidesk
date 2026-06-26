@@ -5,6 +5,7 @@ import { stdin as input, stdout as output } from "node:process";
 import {
   assertFixedStablePackageVersion,
   bumpStableVersion,
+  nextAvailablePatchVersion,
   platformPackageWorkspaces,
   updatePackageTrain,
   writePackages,
@@ -14,8 +15,10 @@ const root = process.cwd();
 const args = process.argv.slice(2);
 const validBumps = new Set(["patch", "minor", "major"]);
 const yes = args.includes("--yes");
+const autoPatchExisting = args.includes("--auto-patch-existing");
 const explicitBump = readOption("--bump");
 const defaultBump = readOption("--default-bump") ?? "patch";
+const registry = readOption("--registry") ?? process.env.NPM_CONFIG_REGISTRY ?? "https://registry.npmjs.org/";
 
 function readOption(name) {
   const index = args.indexOf(name);
@@ -32,6 +35,30 @@ function runPnpmInstall() {
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
+}
+
+function npmView(args) {
+  return spawnSync("npm", ["view", ...args, "--registry", registry], {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
+
+function isNotFound(result) {
+  return result.stderr.includes("E404") || result.stderr.includes("404 Not Found");
+}
+
+function isVersionPublished(packages, version) {
+  for (const pkg of packages) {
+    const result = npmView([`${pkg.name}@${version}`, "version"]);
+    if (result.status === 0) return true;
+    if (isNotFound(result)) continue;
+
+    process.stderr.write(result.stderr);
+    throw new Error(`Unable to check published version for ${pkg.name}@${version}.`);
+  }
+  return false;
 }
 
 async function readBump(currentVersion) {
@@ -55,21 +82,32 @@ if (!validBumps.has(defaultBump)) {
 
 const packages = platformPackageWorkspaces(root);
 const currentVersion = assertFixedStablePackageVersion(packages, "platform SDK packages");
-const bump = await readBump(currentVersion);
 
-if (!validBumps.has(bump)) {
-  throw new Error(`Invalid bump "${bump}". Expected patch, minor, or major.`);
+let nextVersion;
+let bump;
+
+if (autoPatchExisting) {
+  nextVersion = nextAvailablePatchVersion(currentVersion, (version) => isVersionPublished(packages, version));
+  bump = nextVersion === currentVersion ? "none" : "auto-patch-existing";
+} else {
+  bump = await readBump(currentVersion);
+
+  if (!validBumps.has(bump)) {
+    throw new Error(`Invalid bump "${bump}". Expected patch, minor, or major.`);
+  }
+
+  nextVersion = bumpStableVersion(currentVersion, bump);
 }
 
-const nextVersion = bumpStableVersion(currentVersion, bump);
-
-updatePackageTrain(packages, nextVersion);
-writePackages(packages);
-runPnpmInstall();
+if (nextVersion !== currentVersion) {
+  updatePackageTrain(packages, nextVersion);
+  writePackages(packages);
+  runPnpmInstall();
+}
 
 console.log("\nPrepared SDK release:");
 console.log(`  ${currentVersion} -> ${nextVersion} (${bump})`);
-console.log(`  Updated ${packages.length} platform SDK packages.`);
+console.log(`  ${nextVersion === currentVersion ? "Checked" : "Updated"} ${packages.length} platform SDK packages.`);
 
 console.log("\nNext steps:");
 console.log("  pnpm check");

@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/model",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/core": "workspace:*",
+    "@cognidesk/core": "0.0.3",
     "ai": "^6.0.191",
     "nunjucks": "^3.2.4"
   },
