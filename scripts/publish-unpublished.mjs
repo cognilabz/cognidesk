@@ -19,6 +19,7 @@ const registry = readOption("--registry") ?? process.env.NPM_CONFIG_REGISTRY ?? 
 const dryRun = args.includes("--dry-run");
 const failOnExisting = args.includes("--fail-on-existing");
 const distTag = readOption("--tag") ?? "latest";
+const packageFilter = readOption("--package");
 
 function readOption(name) {
   const index = args.indexOf(name);
@@ -100,10 +101,20 @@ if (!distTag) {
   throw new Error("A non-empty npm dist-tag is required.");
 }
 
-const packages = sortByInternalDependencies(packageWorkspaces(root));
-const packageVersions = new Map(packages.map((pkg) => [pkg.name, pkg.packageJson.version]));
-const platformPackages = packages.filter(isPlatformPackage);
-const providerPackages = packages.filter(isProviderPackage);
+const allPackages = sortByInternalDependencies(packageWorkspaces(root));
+const packages = packageFilter
+  ? allPackages.filter((pkg) => pkg.name === packageFilter || pkg.dir === packageFilter)
+  : allPackages;
+
+if (packageFilter && packages.length === 0) {
+  throw new Error(`No publishable package matched --package ${packageFilter}.`);
+}
+
+const packageVersions = new Map(allPackages.map((pkg) => [pkg.name, pkg.packageJson.version]));
+const platformPackages = allPackages.filter(isPlatformPackage);
+const providerPackages = allPackages.filter(isProviderPackage);
+const selectedPlatformPackages = packages.filter(isPlatformPackage);
+const selectedProviderPackages = packages.filter(isProviderPackage);
 const platformVersion = assertFixedPackageVersion(platformPackages, "platform SDK packages");
 const decisions = packages.map((pkg) => ({
   pkg,
@@ -115,9 +126,10 @@ for (const pkg of packages) {
 const alreadyPublishedPlatform = decisions
   .filter(({ pkg, versionPublished }) => isPlatformPackage(pkg) && versionPublished);
 
-console.log(`Publish plan: ${packages.length} packages with dist-tag "${distTag}".`);
-console.log(`  platform SDK packages: ${platformPackages.length} at ${platformVersion}`);
-console.log(`  independent provider packages: ${providerPackages.length}`);
+console.log(`Publish plan: ${packages.length} package${packages.length === 1 ? "" : "s"} with dist-tag "${distTag}".`);
+if (packageFilter) console.log(`  package filter: ${packageFilter}`);
+console.log(`  selected platform SDK packages: ${selectedPlatformPackages.length} of ${platformPackages.length} at ${platformVersion}`);
+console.log(`  selected independent provider packages: ${selectedProviderPackages.length} of ${providerPackages.length}`);
 
 if (alreadyPublishedPlatform.length > 0 && failOnExisting) {
   const names = alreadyPublishedPlatform

@@ -8,6 +8,19 @@ on:
         required: false
         default: true
         type: boolean
+      publish_scope:
+        description: "Stable SDK release or a single provider package"
+        required: false
+        default: "stable"
+        type: choice
+        options:
+          - stable
+          - provider
+      provider_package:
+        description: "Provider package name or integrations/{category}/{provider} directory when publish_scope=provider"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: write
@@ -30,6 +43,21 @@ jobs:
         run: |
           mode="stable"
           dry_run="${{ inputs.dry_run }}"
+          publish_scope="${{ inputs.publish_scope }}"
+          provider_package="${{ inputs.provider_package }}"
+
+          if [ "${publish_scope}" != "stable" ] && [ "${publish_scope}" != "provider" ]; then
+            echo "publish_scope must be stable or provider." >&2
+            exit 1
+          fi
+
+          if [ "${publish_scope}" = "provider" ]; then
+            mode="provider"
+            if [ -z "${provider_package}" ]; then
+              echo "provider_package is required when publish_scope=provider." >&2
+              exit 1
+            fi
+          fi
 
           if [ "${dry_run}" != "true" ] && [ "${GITHUB_REF}" != "refs/heads/main" ]; then
             echo "Publishing requires running this workflow from the main branch." >&2
@@ -38,7 +66,8 @@ jobs:
 
           echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
           echo "dry_run=${dry_run}" >> "${GITHUB_OUTPUT}"
-          echo "Selected manual ${mode} publish mode (dry_run=${dry_run})."
+          echo "provider_package=${provider_package}" >> "${GITHUB_OUTPUT}"
+          echo "Selected manual ${mode} publish mode (dry_run=${dry_run}, provider_package=${provider_package})."
 
       - uses: actions/setup-node@v4
         with:
@@ -51,10 +80,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Prepare stable version
+        if: steps.publish-mode.outputs.mode == 'stable'
         run: pnpm release:prepare -- --auto-patch-existing --yes --skip-install
 
       - name: Read release version
         id: release-version
+        if: steps.publish-mode.outputs.mode == 'stable'
         shell: bash
         run: |
           version="$(node -e "console.log(JSON.parse(require('node:fs').readFileSync('packages/core/package.json', 'utf8')).version)")"
@@ -63,6 +94,7 @@ jobs:
           echo "Prepared release v${version}."
 
       - name: Verify stable release
+        if: steps.publish-mode.outputs.mode == 'stable'
         shell: bash
         run: pnpm release:verify-stable -- --tag "${{ steps.release-version.outputs.tag }}"
 
@@ -82,11 +114,11 @@ jobs:
         run: pnpm release:verify-consumer-install
 
       - name: Refresh release lockfile
-        if: steps.publish-mode.outputs.dry_run != 'true'
+        if: steps.publish-mode.outputs.mode == 'stable' && steps.publish-mode.outputs.dry_run != 'true'
         run: pnpm install --lockfile-only
 
       - name: Commit and push release version
-        if: steps.publish-mode.outputs.dry_run != 'true'
+        if: steps.publish-mode.outputs.mode == 'stable' && steps.publish-mode.outputs.dry_run != 'true'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -115,10 +147,14 @@ jobs:
             args+=(--dry-run)
           fi
 
+          if [ "${{ steps.publish-mode.outputs.mode }}" = "provider" ]; then
+            args+=(--package "${{ steps.publish-mode.outputs.provider_package }}")
+          fi
+
           pnpm release:publish -- "${args[@]}"
 
       - name: Create GitHub release
-        if: steps.publish-mode.outputs.dry_run != 'true'
+        if: steps.publish-mode.outputs.mode == 'stable' && steps.publish-mode.outputs.dry_run != 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
