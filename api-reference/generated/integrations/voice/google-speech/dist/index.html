@@ -1,0 +1,3908 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="TypeScript runtime SDK for building customer support agents as code.">
+      
+      
+        <meta name="author" content="Cognilabz">
+      
+      
+        <link rel="canonical" href="https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/google-speech/dist/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>integrations/voice/google-speech/dist - Cognidesk</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/styles/cognidesk-theme.css">
+    
+    <script>__md_scope=new URL("../../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="integrations/voice/google-speech/dist - Cognidesk" >
+      
+        <meta  property="og:description"  content="TypeScript runtime SDK for building customer support agents as code." >
+      
+        <meta  property="og:image"  content="https://cognidesk.cognilabz.com/assets/images/social/api-reference/generated/integrations/voice/google-speech/dist.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://cognidesk.cognilabz.com/api-reference/generated/integrations/voice/google-speech/dist/" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="integrations/voice/google-speech/dist - Cognidesk" >
+      
+        <meta  name="twitter:description"  content="TypeScript runtime SDK for building customer support agents as code." >
+      
+        <meta  name="twitter:image"  content="https://cognidesk.cognilabz.com/assets/images/social/api-reference/generated/integrations/voice/google-speech/dist.png" >
+      
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#integrationsvoicegoogle-speechdist" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../../.." title="Cognidesk" class="md-header__button md-logo" aria-label="Cognidesk" data-md-component="logo">
+      
+  <img src="../../../../../../assets/images/cognidesk-mark.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Cognidesk
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              integrations/voice/google-speech/dist
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cognilabz/cognidesk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    cognilabz/cognidesk
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../getting-started/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../concepts/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../guides/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../examples/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../community/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Community
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../../.." title="Cognidesk" class="md-nav__button md-logo" aria-label="Cognidesk" data-md-component="logo">
+      
+  <img src="../../../../../../assets/images/cognidesk-mark.svg" alt="logo">
+
+    </a>
+    Cognidesk
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cognilabz/cognidesk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    cognilabz/cognidesk
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../../getting-started/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../getting-started/local-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Local Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../../concepts/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Concepts
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../concepts/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Agents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../concepts/journeys/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Journeys
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../concepts/tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../concepts/knowledge-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Knowledge Sources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../concepts/runtime-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Runtime Events
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../concepts/transport-neutrality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Transport Neutrality
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Guides
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/ai-agents-and-skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI Agents & Skills
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/agents-and-instructions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Agents & Instructions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/knowledge-sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Knowledge Sources
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/journeys/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Journeys
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/custom-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom Events
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/models-and-providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Models & Providers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/provider-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Provider Integrations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/http-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HTTP Transport
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/sse-streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SSE Streaming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/react-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    React UI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/voice/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Voice
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Observability
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/provider-integrations-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Provider Integration Catalog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../guides/omnichannel-changes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Omnichannel NG Changes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/core
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../http/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/http
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../react/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/react
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/ui
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/storage
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../otel/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/otel
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../voice-websocket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/voice-websocket
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../journey-index-json/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/journey-index-json
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../test-harness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/test-harness
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../studio-contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    @cognidesk/studio-contracts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../../examples/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Examples
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../examples/flight-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Flight Demo
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../../community/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Community
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Community
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../community/repository-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Repository Map
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../community/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../community/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interfaces
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechClient
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechClient">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#synthesizespeech" class="md-nav__link">
+    <span class="md-ellipsis">
+      synthesizeSpeech()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="synthesizeSpeech()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transcribespeech" class="md-nav__link">
+    <span class="md-ellipsis">
+      transcribeSpeech()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="transcribeSpeech()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechclientoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechClientOptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechClientOptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#accesstoken" class="md-nav__link">
+    <span class="md-ellipsis">
+      accessToken?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clientoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      clientOptions?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getaccesstoken" class="md-nav__link">
+    <span class="md-ellipsis">
+      getAccessToken?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quotaprojectid" class="md-nav__link">
+    <span class="md-ellipsis">
+      quotaProjectId?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#speechclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      speechClient?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#texttospeechclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      textToSpeechClient?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechcredentialstatusinput" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechCredentialStatusInput
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechCredentialStatusInput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#accesstoken_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      accessToken?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hasaccesstokenprovider" class="md-nav__link">
+    <span class="md-ellipsis">
+      hasAccessTokenProvider?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechjsonobject" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechJsonObject
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechJsonObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#indexable" class="md-nav__link">
+    <span class="md-ellipsis">
+      Indexable
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechoperationrequestinput" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechOperationRequestInput
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechOperationRequestInput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#body" class="md-nav__link">
+    <span class="md-ellipsis">
+      body?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#contenttype" class="md-nav__link">
+    <span class="md-ellipsis">
+      contentType?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      headers?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pathparams" class="md-nav__link">
+    <span class="md-ellipsis">
+      pathParams?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query" class="md-nav__link">
+    <span class="md-ellipsis">
+      query?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#responsetype" class="md-nav__link">
+    <span class="md-ellipsis">
+      responseType?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechtotextinput" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechToTextInput
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechToTextInput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#audio" class="md-nav__link">
+    <span class="md-ellipsis">
+      audio
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enableautomaticpunctuation" class="md-nav__link">
+    <span class="md-ellipsis">
+      enableAutomaticPunctuation?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#encoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      encoding?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#languagecode" class="md-nav__link">
+    <span class="md-ellipsis">
+      languageCode?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxalternatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      maxAlternatives?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      model?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#profanityfilter" class="md-nav__link">
+    <span class="md-ellipsis">
+      profanityFilter?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#samplerate" class="md-nav__link">
+    <span class="md-ellipsis">
+      sampleRate?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      signal?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useenhanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      useEnhanced?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechtotextresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechToTextResult
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechToTextResult">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#confidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      confidence?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#languagecode_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      languageCode?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#raw" class="md-nav__link">
+    <span class="md-ellipsis">
+      raw?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#requestid" class="md-nav__link">
+    <span class="md-ellipsis">
+      requestId?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    <span class="md-ellipsis">
+      text
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totalbilledtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      totalBilledTime?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechvoiceprovideroptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechVoiceProviderOptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechVoiceProviderOptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#extends" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extends
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#properties_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#accesstoken_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      accessToken?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#audioencoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      audioEncoding?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client" class="md-nav__link">
+    <span class="md-ellipsis">
+      client?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clientoptions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      clientOptions?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#effectsprofileid" class="md-nav__link">
+    <span class="md-ellipsis">
+      effectsProfileId?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enableautomaticpunctuation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      enableAutomaticPunctuation?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endsilencems" class="md-nav__link">
+    <span class="md-ellipsis">
+      endSilenceMs?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="endSilenceMs?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inherited-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inherited from
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getaccesstoken_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      getAccessToken?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#id" class="md-nav__link">
+    <span class="md-ellipsis">
+      id?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="id?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inherited-from_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inherited from
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#languagecode_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      languageCode?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxalternatives_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      maxAlternatives?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxspeechms" class="md-nav__link">
+    <span class="md-ellipsis">
+      maxSpeechMs?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="maxSpeechMs?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inherited-from_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inherited from
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#minspeechms" class="md-nav__link">
+    <span class="md-ellipsis">
+      minSpeechMs?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="minSpeechMs?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inherited-from_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inherited from
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      model?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="model?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inherited-from_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inherited from
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputsamplerate" class="md-nav__link">
+    <span class="md-ellipsis">
+      outputSampleRate?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pitch" class="md-nav__link">
+    <span class="md-ellipsis">
+      pitch?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#profanityfilter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      profanityFilter?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quotaprojectid_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      quotaProjectId?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recognitionencoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      recognitionEncoding?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recognitionmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      recognitionModel?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#samplerate_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      sampleRate?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="sampleRate?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inherited-from_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inherited from
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#silencethreshold" class="md-nav__link">
+    <span class="md-ellipsis">
+      silenceThreshold?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="silenceThreshold?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inherited-from_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inherited from
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#speakingrate" class="md-nav__link">
+    <span class="md-ellipsis">
+      speakingRate?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#speechclient_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      speechClient?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssmlgender" class="md-nav__link">
+    <span class="md-ellipsis">
+      ssmlGender?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#striplinear16wavheader" class="md-nav__link">
+    <span class="md-ellipsis">
+      stripLinear16WavHeader?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#texttospeechclient_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      textToSpeechClient?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useenhanced_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      useEnhanced?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#voicelanguagecode" class="md-nav__link">
+    <span class="md-ellipsis">
+      voiceLanguageCode?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#voicename" class="md-nav__link">
+    <span class="md-ellipsis">
+      voiceName
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#volumegaindb" class="md-nav__link">
+    <span class="md-ellipsis">
+      volumeGainDb?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googletexttospeechinput" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleTextToSpeechInput
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleTextToSpeechInput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#audioencoding_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      audioEncoding?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#effectsprofileid_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      effectsProfileId?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#languagecode_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      languageCode?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pitch_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      pitch?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sampleratehertz" class="md-nav__link">
+    <span class="md-ellipsis">
+      sampleRateHertz?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signal_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      signal?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#speakingrate_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      speakingRate?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssmlgender_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      ssmlGender?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      text
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#voicename_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      voiceName?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#volumegaindb_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      volumeGainDb?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type Aliases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Aliases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechaccesstokenprovider" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechAccessTokenProvider
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GoogleSpeechAccessTokenProvider">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechjsonprimitive" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechJsonPrimitive
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechjsonvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechJsonValue
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechrecognitionencoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechRecognitionEncoding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechresource" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleSpeechResource
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googletexttospeechaudioencoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleTextToSpeechAudioEncoding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googletexttospeechssmlgender" class="md-nav__link">
+    <span class="md-ellipsis">
+      GoogleTextToSpeechSsmlGender
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creategooglespeechclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      createGoogleSpeechClient()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="createGoogleSpeechClient()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creategooglespeechrawclients" class="md-nav__link">
+    <span class="md-ellipsis">
+      createGoogleSpeechRawClients()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="createGoogleSpeechRawClients()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creategooglespeechvoiceprovider" class="md-nav__link">
+    <span class="md-ellipsis">
+      createGoogleSpeechVoiceProvider()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="createGoogleSpeechVoiceProvider()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechcredentialstatuses" class="md-nav__link">
+    <span class="md-ellipsis">
+      googleSpeechCredentialStatuses()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="googleSpeechCredentialStatuses()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      References
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="References">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechintegration" class="md-nav__link">
+    <span class="md-ellipsis">
+      googleSpeechIntegration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#googlespeechprovidermanifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      googleSpeechProviderManifest
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="integrationsvoicegoogle-speechdist">integrations/voice/google-speech/dist<a class="headerlink" href="#integrationsvoicegoogle-speechdist" title="Permanent link">&para;</a></h1>
+<h2 id="interfaces">Interfaces<a class="headerlink" href="#interfaces" title="Permanent link">&para;</a></h2>
+<h3 id="googlespeechclient">GoogleSpeechClient<a class="headerlink" href="#googlespeechclient" title="Permanent link">&para;</a></h3>
+<h4 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h4>
+<h5 id="synthesizespeech">synthesizeSpeech()<a class="headerlink" href="#synthesizespeech" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nx">synthesizeSpeech</span><span class="p">(</span><span class="nx">input</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nb">ArrayBuffer</span><span class="o">&gt;</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h6>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input</code></td>
+<td><a href="#googletexttospeechinput"><code>GoogleTextToSpeechInput</code></a></td>
+</tr>
+</tbody>
+</table>
+<h6 id="returns">Returns<a class="headerlink" href="#returns" title="Permanent link">&para;</a></h6>
+<p><code>Promise</code>\&lt;<code>ArrayBuffer</code>&gt;</p>
+<h5 id="transcribespeech">transcribeSpeech()<a class="headerlink" href="#transcribespeech" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">transcribeSpeech</span><span class="p">(</span><span class="nx">input</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">GoogleSpeechToTextResult</span><span class="o">&gt;</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">&para;</a></h6>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input</code></td>
+<td><a href="#googlespeechtotextinput"><code>GoogleSpeechToTextInput</code></a></td>
+</tr>
+</tbody>
+</table>
+<h6 id="returns_1">Returns<a class="headerlink" href="#returns_1" title="Permanent link">&para;</a></h6>
+<p><code>Promise</code>\&lt;<a href="#googlespeechtotextresult"><code>GoogleSpeechToTextResult</code></a>&gt;</p>
+<hr />
+<h3 id="googlespeechclientoptions">GoogleSpeechClientOptions<a class="headerlink" href="#googlespeechclientoptions" title="Permanent link">&para;</a></h3>
+<h4 id="properties">Properties<a class="headerlink" href="#properties" title="Permanent link">&para;</a></h4>
+<h5 id="accesstoken">accessToken?<a class="headerlink" href="#accesstoken" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">accessToken?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="clientoptions">clientOptions?<a class="headerlink" href="#clientoptions" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">clientOptions?</span><span class="o">:</span><span class="w"> </span><span class="kt">object</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="getaccesstoken">getAccessToken?<a class="headerlink" href="#getaccesstoken" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">getAccessToken?</span><span class="o">:</span><span class="w"> </span><span class="kt">GoogleSpeechAccessTokenProvider</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="quotaprojectid">quotaProjectId?<a class="headerlink" href="#quotaprojectid" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">quotaProjectId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="speechclient">speechClient?<a class="headerlink" href="#speechclient" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">speechClient?</span><span class="o">:</span><span class="w"> </span><span class="kt">SpeechClient</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="texttospeechclient">textToSpeechClient?<a class="headerlink" href="#texttospeechclient" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">textToSpeechClient?</span><span class="o">:</span><span class="w"> </span><span class="kt">TextToSpeechClient</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechcredentialstatusinput">GoogleSpeechCredentialStatusInput<a class="headerlink" href="#googlespeechcredentialstatusinput" title="Permanent link">&para;</a></h3>
+<h4 id="properties_1">Properties<a class="headerlink" href="#properties_1" title="Permanent link">&para;</a></h4>
+<h5 id="accesstoken_1">accessToken?<a class="headerlink" href="#accesstoken_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">accessToken?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="hasaccesstokenprovider">hasAccessTokenProvider?<a class="headerlink" href="#hasaccesstokenprovider" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">hasAccessTokenProvider?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechjsonobject">GoogleSpeechJsonObject<a class="headerlink" href="#googlespeechjsonobject" title="Permanent link">&para;</a></h3>
+<h4 id="indexable">Indexable<a class="headerlink" href="#indexable" title="Permanent link">&para;</a></h4>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p">[</span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">]</span><span class="o">:</span><span class="w"> </span><span class="nx">GoogleSpeechJsonValue</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechoperationrequestinput">GoogleSpeechOperationRequestInput<a class="headerlink" href="#googlespeechoperationrequestinput" title="Permanent link">&para;</a></h3>
+<h4 id="properties_2">Properties<a class="headerlink" href="#properties_2" title="Permanent link">&para;</a></h4>
+<h5 id="body">body?<a class="headerlink" href="#body" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">body?</span><span class="o">:</span><span class="w"> </span><span class="kt">GoogleSpeechJsonValue</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="contenttype">contentType?<a class="headerlink" href="#contenttype" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">contentType?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="headers">headers?<a class="headerlink" href="#headers" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">headers?</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="o">&gt;</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="pathparams">pathParams?<a class="headerlink" href="#pathparams" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">pathParams?</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kt">number</span><span class="o">&gt;</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="query">query?<a class="headerlink" href="#query" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">query?</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">GoogleSpeechJsonValue</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">undefined</span><span class="o">&gt;</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="responsetype">responseType?<a class="headerlink" href="#responsetype" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">responseType</span><span class="o">?:</span><span class="w"> </span><span class="s2">&quot;response&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;arrayBuffer&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;stream&quot;</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechtotextinput">GoogleSpeechToTextInput<a class="headerlink" href="#googlespeechtotextinput" title="Permanent link">&para;</a></h3>
+<h4 id="properties_3">Properties<a class="headerlink" href="#properties_3" title="Permanent link">&para;</a></h4>
+<h5 id="audio">audio<a class="headerlink" href="#audio" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nx">audio</span><span class="o">:</span><span class="w"> </span><span class="kt">Uint8Array</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="enableautomaticpunctuation">enableAutomaticPunctuation?<a class="headerlink" href="#enableautomaticpunctuation" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">enableAutomaticPunctuation?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="encoding">encoding?<a class="headerlink" href="#encoding" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">encoding?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="languagecode">languageCode?<a class="headerlink" href="#languagecode" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">languageCode?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="maxalternatives">maxAlternatives?<a class="headerlink" href="#maxalternatives" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">maxAlternatives?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="model">model?<a class="headerlink" href="#model" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">model?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="profanityfilter">profanityFilter?<a class="headerlink" href="#profanityfilter" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">profanityFilter?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="samplerate">sampleRate?<a class="headerlink" href="#samplerate" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">sampleRate?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="signal">signal?<a class="headerlink" href="#signal" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">signal?</span><span class="o">:</span><span class="w"> </span><span class="kt">AbortSignal</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="useenhanced">useEnhanced?<a class="headerlink" href="#useenhanced" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">useEnhanced?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechtotextresult">GoogleSpeechToTextResult<a class="headerlink" href="#googlespeechtotextresult" title="Permanent link">&para;</a></h3>
+<h4 id="properties_4">Properties<a class="headerlink" href="#properties_4" title="Permanent link">&para;</a></h4>
+<h5 id="confidence">confidence?<a class="headerlink" href="#confidence" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">confidence?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="languagecode_1">languageCode?<a class="headerlink" href="#languagecode_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">languageCode?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="raw">raw?<a class="headerlink" href="#raw" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">raw?</span><span class="o">:</span><span class="w"> </span><span class="kt">GoogleSpeechJsonObject</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="requestid">requestId?<a class="headerlink" href="#requestid" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">requestId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="text">text<a class="headerlink" href="#text" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="totalbilledtime">totalBilledTime?<a class="headerlink" href="#totalbilledtime" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">totalBilledTime?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechvoiceprovideroptions">GoogleSpeechVoiceProviderOptions<a class="headerlink" href="#googlespeechvoiceprovideroptions" title="Permanent link">&para;</a></h3>
+<h4 id="extends">Extends<a class="headerlink" href="#extends" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>Omit</code>\&lt;<code>Partial</code>\&lt;<code>SpeechPipelineVoiceProviderOptions</code>&gt;, <code>"provider"</code> | <code>"transcriptionSource"</code> | <code>"transcribe"</code> | <code>"synthesize"</code>&gt;</li>
+</ul>
+<h4 id="properties_5">Properties<a class="headerlink" href="#properties_5" title="Permanent link">&para;</a></h4>
+<h5 id="accesstoken_2">accessToken?<a class="headerlink" href="#accesstoken_2" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">accessToken?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="audioencoding">audioEncoding?<a class="headerlink" href="#audioencoding" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">audioEncoding?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="client">client?<a class="headerlink" href="#client" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">client?</span><span class="o">:</span><span class="w"> </span><span class="kt">GoogleSpeechClient</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="clientoptions_1">clientOptions?<a class="headerlink" href="#clientoptions_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">clientOptions?</span><span class="o">:</span><span class="w"> </span><span class="kt">object</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="effectsprofileid">effectsProfileId?<a class="headerlink" href="#effectsprofileid" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">effectsProfileId?</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</span></code></pre></div>
+<h5 id="enableautomaticpunctuation_1">enableAutomaticPunctuation?<a class="headerlink" href="#enableautomaticpunctuation_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">enableAutomaticPunctuation?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="endsilencems">endSilenceMs?<a class="headerlink" href="#endsilencems" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">endSilenceMs?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="inherited-from">Inherited from<a class="headerlink" href="#inherited-from" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="nx">Omit</span><span class="p">.</span><span class="nx">endSilenceMs</span>
+</span></code></pre></div>
+<h5 id="getaccesstoken_1">getAccessToken?<a class="headerlink" href="#getaccesstoken_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">getAccessToken?</span><span class="o">:</span><span class="w"> </span><span class="kt">GoogleSpeechAccessTokenProvider</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="id">id?<a class="headerlink" href="#id" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">id?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="inherited-from_1">Inherited from<a class="headerlink" href="#inherited-from_1" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="nx">Omit</span><span class="p">.</span><span class="nx">id</span>
+</span></code></pre></div>
+<h5 id="languagecode_2">languageCode?<a class="headerlink" href="#languagecode_2" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">languageCode?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="maxalternatives_1">maxAlternatives?<a class="headerlink" href="#maxalternatives_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">maxAlternatives?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="maxspeechms">maxSpeechMs?<a class="headerlink" href="#maxspeechms" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-46-1"><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">maxSpeechMs?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="inherited-from_2">Inherited from<a class="headerlink" href="#inherited-from_2" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-47-1"><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="nx">Omit</span><span class="p">.</span><span class="nx">maxSpeechMs</span>
+</span></code></pre></div>
+<h5 id="minspeechms">minSpeechMs?<a class="headerlink" href="#minspeechms" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-48-1"><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">minSpeechMs?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="inherited-from_3">Inherited from<a class="headerlink" href="#inherited-from_3" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-49-1"><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="nx">Omit</span><span class="p">.</span><span class="nx">minSpeechMs</span>
+</span></code></pre></div>
+<h5 id="model_1">model?<a class="headerlink" href="#model_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-50-1"><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">model?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="inherited-from_4">Inherited from<a class="headerlink" href="#inherited-from_4" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-51-1"><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="nx">Omit</span><span class="p">.</span><span class="nx">model</span>
+</span></code></pre></div>
+<h5 id="outputsamplerate">outputSampleRate?<a class="headerlink" href="#outputsamplerate" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-52-1"><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">outputSampleRate?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="pitch">pitch?<a class="headerlink" href="#pitch" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-53-1"><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">pitch?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="profanityfilter_1">profanityFilter?<a class="headerlink" href="#profanityfilter_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-54-1"><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">profanityFilter?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="quotaprojectid_1">quotaProjectId?<a class="headerlink" href="#quotaprojectid_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-55-1"><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">quotaProjectId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="recognitionencoding">recognitionEncoding?<a class="headerlink" href="#recognitionencoding" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-56-1"><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">recognitionEncoding?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="recognitionmodel">recognitionModel?<a class="headerlink" href="#recognitionmodel" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-57-1"><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">recognitionModel?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="samplerate_1">sampleRate?<a class="headerlink" href="#samplerate_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-58-1"><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">sampleRate?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="inherited-from_5">Inherited from<a class="headerlink" href="#inherited-from_5" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-59-1"><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a><span class="nx">Omit</span><span class="p">.</span><span class="nx">sampleRate</span>
+</span></code></pre></div>
+<h5 id="silencethreshold">silenceThreshold?<a class="headerlink" href="#silencethreshold" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-60-1"><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">silenceThreshold?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h6 id="inherited-from_6">Inherited from<a class="headerlink" href="#inherited-from_6" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-61-1"><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a><span class="nx">Omit</span><span class="p">.</span><span class="nx">silenceThreshold</span>
+</span></code></pre></div>
+<h5 id="speakingrate">speakingRate?<a class="headerlink" href="#speakingrate" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-62-1"><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">speakingRate?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="speechclient_1">speechClient?<a class="headerlink" href="#speechclient_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-63-1"><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">speechClient?</span><span class="o">:</span><span class="w"> </span><span class="kt">SpeechClient</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="ssmlgender">ssmlGender?<a class="headerlink" href="#ssmlgender" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-64-1"><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">ssmlGender?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="striplinear16wavheader">stripLinear16WavHeader?<a class="headerlink" href="#striplinear16wavheader" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-65-1"><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">stripLinear16WavHeader?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="texttospeechclient_1">textToSpeechClient?<a class="headerlink" href="#texttospeechclient_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-66-1"><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">textToSpeechClient?</span><span class="o">:</span><span class="w"> </span><span class="kt">TextToSpeechClient</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="useenhanced_1">useEnhanced?<a class="headerlink" href="#useenhanced_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-67-1"><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">useEnhanced?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="voicelanguagecode">voiceLanguageCode?<a class="headerlink" href="#voicelanguagecode" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-68-1"><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">voiceLanguageCode?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="voicename">voiceName<a class="headerlink" href="#voicename" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-69-1"><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a><span class="nx">voiceName</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="volumegaindb">volumeGainDb?<a class="headerlink" href="#volumegaindb" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-70-1"><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">volumeGainDb?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googletexttospeechinput">GoogleTextToSpeechInput<a class="headerlink" href="#googletexttospeechinput" title="Permanent link">&para;</a></h3>
+<h4 id="properties_6">Properties<a class="headerlink" href="#properties_6" title="Permanent link">&para;</a></h4>
+<h5 id="audioencoding_1">audioEncoding?<a class="headerlink" href="#audioencoding_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-71-1"><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">audioEncoding?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="effectsprofileid_1">effectsProfileId?<a class="headerlink" href="#effectsprofileid_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-72-1"><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">effectsProfileId?</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</span></code></pre></div>
+<h5 id="languagecode_3">languageCode?<a class="headerlink" href="#languagecode_3" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-73-1"><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">languageCode?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="pitch_1">pitch?<a class="headerlink" href="#pitch_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-74-1"><a id="__codelineno-74-1" name="__codelineno-74-1" href="#__codelineno-74-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">pitch?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="sampleratehertz">sampleRateHertz?<a class="headerlink" href="#sampleratehertz" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-75-1"><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">sampleRateHertz?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="signal_1">signal?<a class="headerlink" href="#signal_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-76-1"><a id="__codelineno-76-1" name="__codelineno-76-1" href="#__codelineno-76-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">signal?</span><span class="o">:</span><span class="w"> </span><span class="kt">AbortSignal</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="speakingrate_1">speakingRate?<a class="headerlink" href="#speakingrate_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-77-1"><a id="__codelineno-77-1" name="__codelineno-77-1" href="#__codelineno-77-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">speakingRate?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="ssmlgender_1">ssmlGender?<a class="headerlink" href="#ssmlgender_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-78-1"><a id="__codelineno-78-1" name="__codelineno-78-1" href="#__codelineno-78-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">ssmlGender?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="text_1">text<a class="headerlink" href="#text_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-79-1"><a id="__codelineno-79-1" name="__codelineno-79-1" href="#__codelineno-79-1"></a><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="voicename_1">voiceName?<a class="headerlink" href="#voicename_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-80-1"><a id="__codelineno-80-1" name="__codelineno-80-1" href="#__codelineno-80-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">voiceName?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h5 id="volumegaindb_1">volumeGainDb?<a class="headerlink" href="#volumegaindb_1" title="Permanent link">&para;</a></h5>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-81-1"><a id="__codelineno-81-1" name="__codelineno-81-1" href="#__codelineno-81-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">volumeGainDb?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span></code></pre></div>
+<h2 id="type-aliases">Type Aliases<a class="headerlink" href="#type-aliases" title="Permanent link">&para;</a></h2>
+<h3 id="googlespeechaccesstokenprovider">GoogleSpeechAccessTokenProvider<a class="headerlink" href="#googlespeechaccesstokenprovider" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-82-1"><a id="__codelineno-82-1" name="__codelineno-82-1" href="#__codelineno-82-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">GoogleSpeechAccessTokenProvider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">input</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="p">;</span>
+</span></code></pre></div>
+<h4 id="parameters_2">Parameters<a class="headerlink" href="#parameters_2" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input</code></td>
+<td>{ <code>signal?</code>: <code>AbortSignal</code>; }</td>
+</tr>
+<tr>
+<td><code>input.signal?</code></td>
+<td><code>AbortSignal</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="returns_2">Returns<a class="headerlink" href="#returns_2" title="Permanent link">&para;</a></h4>
+<p><code>string</code> | <code>Promise</code>\&lt;<code>string</code>&gt;</p>
+<hr />
+<h3 id="googlespeechjsonprimitive">GoogleSpeechJsonPrimitive<a class="headerlink" href="#googlespeechjsonprimitive" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-83-1"><a id="__codelineno-83-1" name="__codelineno-83-1" href="#__codelineno-83-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">GoogleSpeechJsonPrimitive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechjsonvalue">GoogleSpeechJsonValue<a class="headerlink" href="#googlespeechjsonvalue" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-84-1"><a id="__codelineno-84-1" name="__codelineno-84-1" href="#__codelineno-84-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">GoogleSpeechJsonValue</span><span class="w"> </span><span class="o">=</span>
+</span><span id="__span-84-2"><a id="__codelineno-84-2" name="__codelineno-84-2" href="#__codelineno-84-2"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="nx">GoogleSpeechJsonPrimitive</span>
+</span><span id="__span-84-3"><a id="__codelineno-84-3" name="__codelineno-84-3" href="#__codelineno-84-3"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="nx">GoogleSpeechJsonObject</span>
+</span><span id="__span-84-4"><a id="__codelineno-84-4" name="__codelineno-84-4" href="#__codelineno-84-4"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="nx">GoogleSpeechJsonValue</span><span class="p">[];</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechrecognitionencoding">GoogleSpeechRecognitionEncoding<a class="headerlink" href="#googlespeechrecognitionencoding" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-85-1"><a id="__codelineno-85-1" name="__codelineno-85-1" href="#__codelineno-85-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">GoogleSpeechRecognitionEncoding</span><span class="w"> </span><span class="o">=</span>
+</span><span id="__span-85-2"><a id="__codelineno-85-2" name="__codelineno-85-2" href="#__codelineno-85-2"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;ENCODING_UNSPECIFIED&quot;</span>
+</span><span id="__span-85-3"><a id="__codelineno-85-3" name="__codelineno-85-3" href="#__codelineno-85-3"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;LINEAR16&quot;</span>
+</span><span id="__span-85-4"><a id="__codelineno-85-4" name="__codelineno-85-4" href="#__codelineno-85-4"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;FLAC&quot;</span>
+</span><span id="__span-85-5"><a id="__codelineno-85-5" name="__codelineno-85-5" href="#__codelineno-85-5"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;MULAW&quot;</span>
+</span><span id="__span-85-6"><a id="__codelineno-85-6" name="__codelineno-85-6" href="#__codelineno-85-6"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;AMR&quot;</span>
+</span><span id="__span-85-7"><a id="__codelineno-85-7" name="__codelineno-85-7" href="#__codelineno-85-7"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;AMR_WB&quot;</span>
+</span><span id="__span-85-8"><a id="__codelineno-85-8" name="__codelineno-85-8" href="#__codelineno-85-8"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;OGG_OPUS&quot;</span>
+</span><span id="__span-85-9"><a id="__codelineno-85-9" name="__codelineno-85-9" href="#__codelineno-85-9"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;SPEEX_WITH_HEADER_BYTE&quot;</span>
+</span><span id="__span-85-10"><a id="__codelineno-85-10" name="__codelineno-85-10" href="#__codelineno-85-10"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;MP3&quot;</span>
+</span><span id="__span-85-11"><a id="__codelineno-85-11" name="__codelineno-85-11" href="#__codelineno-85-11"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;WEBM_OPUS&quot;</span>
+</span><span id="__span-85-12"><a id="__codelineno-85-12" name="__codelineno-85-12" href="#__codelineno-85-12"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;ALAW&quot;</span>
+</span><span id="__span-85-13"><a id="__codelineno-85-13" name="__codelineno-85-13" href="#__codelineno-85-13"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googlespeechresource">GoogleSpeechResource<a class="headerlink" href="#googlespeechresource" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-86-1"><a id="__codelineno-86-1" name="__codelineno-86-1" href="#__codelineno-86-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">GoogleSpeechResource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">GoogleSpeechJsonValue</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googletexttospeechaudioencoding">GoogleTextToSpeechAudioEncoding<a class="headerlink" href="#googletexttospeechaudioencoding" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-87-1"><a id="__codelineno-87-1" name="__codelineno-87-1" href="#__codelineno-87-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">GoogleTextToSpeechAudioEncoding</span><span class="w"> </span><span class="o">=</span>
+</span><span id="__span-87-2"><a id="__codelineno-87-2" name="__codelineno-87-2" href="#__codelineno-87-2"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;AUDIO_ENCODING_UNSPECIFIED&quot;</span>
+</span><span id="__span-87-3"><a id="__codelineno-87-3" name="__codelineno-87-3" href="#__codelineno-87-3"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;LINEAR16&quot;</span>
+</span><span id="__span-87-4"><a id="__codelineno-87-4" name="__codelineno-87-4" href="#__codelineno-87-4"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;MP3&quot;</span>
+</span><span id="__span-87-5"><a id="__codelineno-87-5" name="__codelineno-87-5" href="#__codelineno-87-5"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;OGG_OPUS&quot;</span>
+</span><span id="__span-87-6"><a id="__codelineno-87-6" name="__codelineno-87-6" href="#__codelineno-87-6"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;MULAW&quot;</span>
+</span><span id="__span-87-7"><a id="__codelineno-87-7" name="__codelineno-87-7" href="#__codelineno-87-7"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;ALAW&quot;</span>
+</span><span id="__span-87-8"><a id="__codelineno-87-8" name="__codelineno-87-8" href="#__codelineno-87-8"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="googletexttospeechssmlgender">GoogleTextToSpeechSsmlGender<a class="headerlink" href="#googletexttospeechssmlgender" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-88-1"><a id="__codelineno-88-1" name="__codelineno-88-1" href="#__codelineno-88-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">GoogleTextToSpeechSsmlGender</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;SSML_VOICE_GENDER_UNSPECIFIED&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;MALE&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;FEMALE&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;NEUTRAL&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span></code></pre></div>
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
+<h3 id="creategooglespeechclient">createGoogleSpeechClient()<a class="headerlink" href="#creategooglespeechclient" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-89-1"><a id="__codelineno-89-1" name="__codelineno-89-1" href="#__codelineno-89-1"></a><span class="kd">function</span><span class="w"> </span><span class="nx">createGoogleSpeechClient</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">GoogleSpeechClient</span><span class="p">;</span>
+</span></code></pre></div>
+<h4 id="parameters_3">Parameters<a class="headerlink" href="#parameters_3" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>options</code></td>
+<td><a href="#googlespeechclientoptions"><code>GoogleSpeechClientOptions</code></a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="returns_3">Returns<a class="headerlink" href="#returns_3" title="Permanent link">&para;</a></h4>
+<p><a href="#googlespeechclient"><code>GoogleSpeechClient</code></a></p>
+<hr />
+<h3 id="creategooglespeechrawclients">createGoogleSpeechRawClients()<a class="headerlink" href="#creategooglespeechrawclients" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-90-1"><a id="__codelineno-90-1" name="__codelineno-90-1" href="#__codelineno-90-1"></a><span class="kd">function</span><span class="w"> </span><span class="nx">createGoogleSpeechRawClients</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-90-2"><a id="__codelineno-90-2" name="__codelineno-90-2" href="#__codelineno-90-2"></a><span class="w">  </span><span class="nx">speechClient</span><span class="o">:</span><span class="w"> </span><span class="kt">SpeechClient</span><span class="p">;</span>
+</span><span id="__span-90-3"><a id="__codelineno-90-3" name="__codelineno-90-3" href="#__codelineno-90-3"></a><span class="w">  </span><span class="nx">textToSpeechClient</span><span class="o">:</span><span class="w"> </span><span class="kt">TextToSpeechClient</span><span class="p">;</span>
+</span><span id="__span-90-4"><a id="__codelineno-90-4" name="__codelineno-90-4" href="#__codelineno-90-4"></a><span class="p">};</span>
+</span></code></pre></div>
+<h4 id="parameters_4">Parameters<a class="headerlink" href="#parameters_4" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>options</code></td>
+<td><a href="#googlespeechclientoptions"><code>GoogleSpeechClientOptions</code></a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="returns_4">Returns<a class="headerlink" href="#returns_4" title="Permanent link">&para;</a></h4>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-91-1"><a id="__codelineno-91-1" name="__codelineno-91-1" href="#__codelineno-91-1"></a><span class="p">{</span>
+</span><span id="__span-91-2"><a id="__codelineno-91-2" name="__codelineno-91-2" href="#__codelineno-91-2"></a><span class="w">  </span><span class="nx">speechClient</span><span class="o">:</span><span class="w"> </span><span class="kt">SpeechClient</span><span class="p">;</span>
+</span><span id="__span-91-3"><a id="__codelineno-91-3" name="__codelineno-91-3" href="#__codelineno-91-3"></a><span class="w">  </span><span class="nx">textToSpeechClient</span><span class="o">:</span><span class="w"> </span><span class="kt">TextToSpeechClient</span><span class="p">;</span>
+</span><span id="__span-91-4"><a id="__codelineno-91-4" name="__codelineno-91-4" href="#__codelineno-91-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>speechClient</code></td>
+<td><code>SpeechClient</code></td>
+</tr>
+<tr>
+<td><code>textToSpeechClient</code></td>
+<td><code>TextToSpeechClient</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="creategooglespeechvoiceprovider">createGoogleSpeechVoiceProvider()<a class="headerlink" href="#creategooglespeechvoiceprovider" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-92-1"><a id="__codelineno-92-1" name="__codelineno-92-1" href="#__codelineno-92-1"></a><span class="kd">function</span><span class="w"> </span><span class="nx">createGoogleSpeechVoiceProvider</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">VoiceProvider</span><span class="p">;</span>
+</span></code></pre></div>
+<h4 id="parameters_5">Parameters<a class="headerlink" href="#parameters_5" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>options</code></td>
+<td><a href="#googlespeechvoiceprovideroptions"><code>GoogleSpeechVoiceProviderOptions</code></a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="returns_5">Returns<a class="headerlink" href="#returns_5" title="Permanent link">&para;</a></h4>
+<p><a href="../../../../packages/voice-websocket/dist/#voiceprovider"><code>VoiceProvider</code></a></p>
+<hr />
+<h3 id="googlespeechcredentialstatuses">googleSpeechCredentialStatuses()<a class="headerlink" href="#googlespeechcredentialstatuses" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-93-1"><a id="__codelineno-93-1" name="__codelineno-93-1" href="#__codelineno-93-1"></a><span class="kd">function</span><span class="w"> </span><span class="nx">googleSpeechCredentialStatuses</span><span class="p">(</span><span class="nx">input</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-93-2"><a id="__codelineno-93-2" name="__codelineno-93-2" href="#__codelineno-93-2"></a><span class="w">  </span><span class="nx">expiresAt?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-93-3"><a id="__codelineno-93-3" name="__codelineno-93-3" href="#__codelineno-93-3"></a><span class="w">  </span><span class="nx">message?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-93-4"><a id="__codelineno-93-4" name="__codelineno-93-4" href="#__codelineno-93-4"></a><span class="w">  </span><span class="nx">providerPackageId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-93-5"><a id="__codelineno-93-5" name="__codelineno-93-5" href="#__codelineno-93-5"></a><span class="w">  </span><span class="nx">requirementId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-93-6"><a id="__codelineno-93-6" name="__codelineno-93-6" href="#__codelineno-93-6"></a><span class="w">  </span><span class="nx">scopes?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</span><span id="__span-93-7"><a id="__codelineno-93-7" name="__codelineno-93-7" href="#__codelineno-93-7"></a><span class="w">  </span><span class="nx">state</span><span class="o">:</span><span class="w">   </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;required&quot;</span>
+</span><span id="__span-93-8"><a id="__codelineno-93-8" name="__codelineno-93-8" href="#__codelineno-93-8"></a><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;configured&quot;</span>
+</span><span id="__span-93-9"><a id="__codelineno-93-9" name="__codelineno-93-9" href="#__codelineno-93-9"></a><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;permission-blocked&quot;</span>
+</span><span id="__span-93-10"><a id="__codelineno-93-10" name="__codelineno-93-10" href="#__codelineno-93-10"></a><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;not-required&quot;</span>
+</span><span id="__span-93-11"><a id="__codelineno-93-11" name="__codelineno-93-11" href="#__codelineno-93-11"></a><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;missing&quot;</span>
+</span><span id="__span-93-12"><a id="__codelineno-93-12" name="__codelineno-93-12" href="#__codelineno-93-12"></a><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;expired&quot;</span>
+</span><span id="__span-93-13"><a id="__codelineno-93-13" name="__codelineno-93-13" href="#__codelineno-93-13"></a><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;insufficient-scope&quot;</span>
+</span><span id="__span-93-14"><a id="__codelineno-93-14" name="__codelineno-93-14" href="#__codelineno-93-14"></a><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;unavailable&quot;</span><span class="p">;</span>
+</span><span id="__span-93-15"><a id="__codelineno-93-15" name="__codelineno-93-15" href="#__codelineno-93-15"></a><span class="p">}[];</span>
+</span></code></pre></div>
+<h4 id="parameters_6">Parameters<a class="headerlink" href="#parameters_6" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input</code></td>
+<td><a href="#googlespeechcredentialstatusinput"><code>GoogleSpeechCredentialStatusInput</code></a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="returns_6">Returns<a class="headerlink" href="#returns_6" title="Permanent link">&para;</a></h4>
+<p>{
+  <code>expiresAt?</code>: <code>string</code>;
+  <code>message?</code>: <code>string</code>;
+  <code>providerPackageId?</code>: <code>string</code>;
+  <code>requirementId</code>: <code>string</code>;
+  <code>scopes?</code>: <code>string</code>[];
+  <code>state</code>:   | <code>"required"</code>
+     | <code>"configured"</code>
+     | <code>"permission-blocked"</code>
+     | <code>"not-required"</code>
+     | <code>"missing"</code>
+     | <code>"expired"</code>
+     | <code>"insufficient-scope"</code>
+     | <code>"unavailable"</code>;
+}[]</p>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<h3 id="googlespeechintegration">googleSpeechIntegration<a class="headerlink" href="#googlespeechintegration" title="Permanent link">&para;</a></h3>
+<p>Re-exports <a href="manifest/#googlespeechintegration">googleSpeechIntegration</a></p>
+<hr />
+<h3 id="googlespeechprovidermanifest">googleSpeechProviderManifest<a class="headerlink" href="#googlespeechprovidermanifest" title="Permanent link">&para;</a></h3>
+<p>Re-exports <a href="manifest/#googlespeechprovidermanifest">googleSpeechProviderManifest</a></p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Built by <a href="https://cognilabz.com">Cognilabz</a>
+    </div>
+  
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/cognilabz/cognidesk" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../../../../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "header.autohide"], "search": "../../../../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>
