@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   allWorkspacePackages,
   assertFixedStablePackageVersion,
+  isNpmNotFound,
   materializeWorkspaceDependencies,
   nextAvailablePatchVersion,
   packageWorkspaces,
@@ -152,6 +153,12 @@ test("stable release version advances to the next unpublished patch", () => {
     nextAvailablePatchVersion("1.2.6", (version) => published.has(version)),
     "1.2.6",
   );
+});
+
+test("npm not-found detection ignores spawn failures without stderr", () => {
+  assert.equal(isNpmNotFound({ error: new Error("spawn npm ENOENT") }), false);
+  assert.equal(isNpmNotFound({ stderr: undefined }), false);
+  assert.equal(isNpmNotFound({ stderr: "npm ERR! code E404" }), true);
 });
 
 async function withFixtureWorkspace(callback) {

@@ -221,7 +221,7 @@ export function readPublishedPackageState(pkg, options = {}) {
   }
 
   if (!isNpmNotFound(versionResult)) {
-    process.stderr.write(versionResult.stderr);
+    writeNpmFailure(versionResult);
     throw new Error(`Unable to check published version for ${pkg.name}@${version}`);
   }
 
@@ -235,7 +235,7 @@ export function readPublishedPackageState(pkg, options = {}) {
     return { packageExists: false, versionPublished: false };
   }
 
-  process.stderr.write(packageResult.stderr);
+  writeNpmFailure(packageResult);
   throw new Error(`Unable to check package existence for ${pkg.name}`);
 }
 
@@ -252,7 +252,20 @@ export function npmView(args, options = {}) {
 }
 
 export function isNpmNotFound(result) {
-  return result.stderr.includes("E404") || result.stderr.includes("404 Not Found");
+  if (result.error) return false;
+  const stderr = typeof result.stderr === "string" ? result.stderr : "";
+  return stderr.includes("E404") || stderr.includes("404 Not Found");
+}
+
+function writeNpmFailure(result) {
+  if (typeof result.stderr === "string" && result.stderr.length > 0) {
+    process.stderr.write(result.stderr);
+    return;
+  }
+
+  if (result.error) {
+    process.stderr.write(`${result.error.message}\n`);
+  }
 }
 
 export function updatePackageVersions(packages, version) {
