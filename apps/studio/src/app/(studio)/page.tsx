@@ -34,7 +34,7 @@ function loadHomePageData() {
     Promise.all([
       listDashboards(manifest.target.id),
       loadIntrospectionResult(),
-      fetchTargetConversations(),
+      fetchTargetConversations({ limit: 250 }),
     ]).then(([dashboards, introspectionResult, conversations]) => ({
       manifest,
       dashboards,
