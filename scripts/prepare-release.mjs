@@ -5,6 +5,7 @@ import { stdin as input, stdout as output } from "node:process";
 import {
   assertFixedStablePackageVersion,
   bumpStableVersion,
+  isAnyPackageVersionPublished,
   nextAvailablePatchVersion,
   platformPackageWorkspaces,
   updatePackageVersions,
@@ -38,30 +39,6 @@ function runPnpmInstall() {
   }
 }
 
-function npmView(args) {
-  return spawnSync("npm", ["view", ...args, "--registry", registry], {
-    cwd: root,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-}
-
-function isNotFound(result) {
-  return result.stderr.includes("E404") || result.stderr.includes("404 Not Found");
-}
-
-function isVersionPublished(packages, version) {
-  for (const pkg of packages) {
-    const result = npmView([`${pkg.name}@${version}`, "version"]);
-    if (result.status === 0) return true;
-    if (isNotFound(result)) continue;
-
-    process.stderr.write(result.stderr);
-    throw new Error(`Unable to check published version for ${pkg.name}@${version}.`);
-  }
-  return false;
-}
-
 async function readBump(currentVersion) {
   const initialBump = explicitBump ?? (yes ? defaultBump : undefined);
   if (initialBump) return initialBump.toLowerCase();
@@ -88,7 +65,10 @@ let nextVersion;
 let bump;
 
 if (autoPatchExisting) {
-  nextVersion = nextAvailablePatchVersion(currentVersion, (version) => isVersionPublished(packages, version));
+  nextVersion = nextAvailablePatchVersion(
+    currentVersion,
+    (version) => isAnyPackageVersionPublished(packages, version, { root, registry }),
+  );
   bump = nextVersion === currentVersion ? "none" : "auto-patch-existing";
 } else {
   bump = await readBump(currentVersion);

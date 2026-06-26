@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -20,6 +21,7 @@ export const workspacePatterns = [
   ...appWorkspacePatterns,
 ];
 const providerPackagePrefix = "@cognidesk/integration-";
+const defaultRegistry = "https://registry.npmjs.org/";
 
 export function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -208,6 +210,49 @@ export function nextAvailablePatchVersion(version, isVersionPublished) {
     candidate = nextPatchVersion(candidate);
   }
   return candidate;
+}
+
+export function readPublishedPackageState(pkg, options = {}) {
+  const version = options.version ?? pkg.packageJson.version;
+  const versionResult = npmView([`${pkg.name}@${version}`, "version"], options);
+
+  if (versionResult.status === 0) {
+    return { packageExists: true, versionPublished: true };
+  }
+
+  if (!isNpmNotFound(versionResult)) {
+    process.stderr.write(versionResult.stderr);
+    throw new Error(`Unable to check published version for ${pkg.name}@${version}`);
+  }
+
+  const packageResult = npmView([pkg.name, "version"], options);
+
+  if (packageResult.status === 0) {
+    return { packageExists: true, versionPublished: false };
+  }
+
+  if (isNpmNotFound(packageResult)) {
+    return { packageExists: false, versionPublished: false };
+  }
+
+  process.stderr.write(packageResult.stderr);
+  throw new Error(`Unable to check package existence for ${pkg.name}`);
+}
+
+export function isAnyPackageVersionPublished(packages, version, options = {}) {
+  return packages.some((pkg) => readPublishedPackageState(pkg, { ...options, version }).versionPublished);
+}
+
+export function npmView(args, options = {}) {
+  return spawnSync("npm", ["view", ...args, "--registry", options.registry ?? defaultRegistry], {
+    cwd: options.root ?? process.cwd(),
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
+
+export function isNpmNotFound(result) {
+  return result.stderr.includes("E404") || result.stderr.includes("404 Not Found");
 }
 
 export function updatePackageVersions(packages, version) {
