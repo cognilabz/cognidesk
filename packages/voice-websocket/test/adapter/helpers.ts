@@ -136,14 +136,14 @@ export class FakeRuntime implements VoiceRuntime {
       snapshot: {
         conversationId: input.conversationId,
         lifecycle: "active",
-        activeJourneyId: "ticket-status",
-        activeStateIds: ["identifyTicket"],
+        activeJourneyId: "journey_primary",
+        activeStateIds: ["state_primary"],
         updatedAt: "2026-05-25T00:00:00.000Z",
       },
       events,
       voiceEvents: events.filter((event) => event.type === "voice.transcript.committed"),
       text: "Sure, I can help with your ticket status.",
-      activeJourneyId: "ticket-status",
+      activeJourneyId: "journey_primary",
     };
   }
 
@@ -189,7 +189,7 @@ export function fakeStartVoiceResult(): StartVoiceResult {
   return {
     conversation: {
       id: "conversation_1",
-      agentId: "flight-service",
+      agentId: "agent_primary",
       lifecycle: "active",
       context: {},
       createdAt: "2026-05-25T00:00:00.000Z",

@@ -25,10 +25,10 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
       await withStorage(async (storage) => {
         const conversation = await storage.createConversation({
           id: "conv_1",
-          agentId: "flight-service",
+          agentId: "agent_primary",
           context: { locale: "en" },
           channel: {
-            channelId: "email.support",
+            channelId: "email.primary",
             kind: "email",
             provider: "gmail",
             externalThreadId: "thread_123",
@@ -40,11 +40,11 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
 
         expect(conversation).toMatchObject({
           id: "conv_1",
-          agentId: "flight-service",
+          agentId: "agent_primary",
           lifecycle: "active",
           context: { locale: "en" },
           channel: {
-            channelId: "email.support",
+            channelId: "email.primary",
             kind: "email",
             provider: "gmail",
             externalThreadId: "thread_123",
@@ -58,14 +58,14 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
         });
         await expect(storage.createConversation({
           id: "conv_1",
-          agentId: "flight-service",
+          agentId: "agent_primary",
           context: { locale: "en" },
         })).rejects.toThrow();
 
         const storedConversation = await storage.getConversation<{ locale: string }>("conv_1");
         expect(storedConversation?.context.locale).toBe("en");
         expect(storedConversation?.channel).toMatchObject({
-          channelId: "email.support",
+          channelId: "email.primary",
           kind: "email",
           provider: "gmail",
           externalThreadId: "thread_123",
@@ -76,6 +76,27 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
             attachments: true,
           },
         });
+
+        const contextUpdated = await storage.updateConversationContext("conv_1", {
+          context: {
+            locale: "de",
+            customerId: "customer_primary",
+            customer: { id: "customer_primary", segment: "priority" },
+          },
+        });
+        expect(contextUpdated).toMatchObject({
+          id: "conv_1",
+          context: {
+            locale: "de",
+            customerId: "customer_primary",
+            customer: { id: "customer_primary", segment: "priority" },
+          },
+          channel: {
+            channelId: "email.primary",
+            kind: "email",
+          },
+        });
+        expect(await storage.updateConversationContext("missing", { context: {} })).toBeNull();
 
         const event = await storage.appendEvent({
           conversationId: "conv_1",
@@ -89,7 +110,7 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
         const updated = await storage.updateConversationLifecycle("conv_1", "closed");
         expect(updated?.lifecycle).toBe("closed");
         expect(updated?.channel).toMatchObject({
-          channelId: "email.support",
+          channelId: "email.primary",
           kind: "email",
         });
         expect(await storage.updateConversationLifecycle("missing", "closed")).toBeNull();
@@ -102,6 +123,12 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
         };
         await storage.saveSnapshot(snapshot);
         expect(await storage.getSnapshot("conv_1")).toEqual(snapshot);
+
+        await expect(storage.deleteConversation("missing")).resolves.toBe(false);
+        await expect(storage.deleteConversation("conv_1")).resolves.toBe(true);
+        expect(await storage.getConversation("conv_1")).toBeNull();
+        expect(await storage.listEvents({ conversationId: "conv_1" })).toEqual([]);
+        expect(await storage.getSnapshot("conv_1")).toBeNull();
       });
     });
 
@@ -126,61 +153,61 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
     it("lists conversations by most recent update and supports filters and limits", async () => {
       await withStorage(async (storage) => {
         await storage.createConversation({
-          id: "conv_support_old",
-          agentId: "support",
-          context: { customerId: "customer_123", customer: { label: "standard support customer" }, tier: "standard" },
+          id: "conv_primary_old",
+          agentId: "agent_primary",
+          context: { customerId: "customer_primary", customer: { label: "profile one" }, segment: "baseline" },
           channel: "chat",
         });
         await storage.createConversation({
-          id: "conv_sales",
-          agentId: "sales",
-          context: { customerId: "customer_999", customer: { label: "sales customer" }, tier: "enterprise" },
+          id: "conv_secondary",
+          agentId: "agent_secondary",
+          context: { customerId: "customer_secondary", customer: { label: "profile two" }, segment: "extended" },
           channel: {
-            channelId: "email.sales",
+            channelId: "email.secondary",
             kind: "email",
             provider: "gmail",
           },
         });
         await storage.createConversation({
-          id: "conv_support_new",
-          agentId: "support",
-          context: { customer: { id: "customer_123", label: "nested customer id" }, tier: "vip" },
+          id: "conv_primary_new",
+          agentId: "agent_primary",
+          context: { customer: { id: "customer_primary", label: "nested customer id" }, segment: "priority" },
         });
 
         await storage.appendEvent({
-          conversationId: "conv_support_old",
+          conversationId: "conv_primary_old",
           type: "message.completed",
           createdAt: "2099-01-01T00:00:00.000Z",
           data: { text: "old" },
         });
         await storage.appendEvent({
-          conversationId: "conv_sales",
+          conversationId: "conv_secondary",
           type: "message.completed",
           createdAt: "2099-01-02T00:00:00.000Z",
-          data: { text: "sales" },
+          data: { text: "secondary" },
         });
         await storage.appendEvent({
-          conversationId: "conv_support_new",
+          conversationId: "conv_primary_new",
           type: "message.completed",
           createdAt: "2099-01-03T00:00:00.000Z",
           data: { text: "new" },
         });
 
-        const all = await storage.listConversations<{ tier: string }>({
+        const all = await storage.listConversations<{ segment: string }>({
           afterUpdatedAt: "2098-12-31T00:00:00.000Z",
         });
         expect(all.map((conversation) => conversation.id)).toEqual([
-          "conv_support_new",
-          "conv_sales",
-          "conv_support_old",
+          "conv_primary_new",
+          "conv_secondary",
+          "conv_primary_old",
         ]);
         expect(all[1]).toMatchObject({
-          id: "conv_sales",
-          agentId: "sales",
+          id: "conv_secondary",
+          agentId: "agent_secondary",
           lifecycle: "active",
-          context: { tier: "enterprise" },
+          context: { segment: "extended" },
           channel: {
-            channelId: "email.sales",
+            channelId: "email.secondary",
             kind: "email",
             provider: "gmail",
           },
@@ -189,19 +216,19 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
 
         await expect(storage.listConversations({ afterUpdatedAt: "2098-12-31T00:00:00.000Z", limit: 2 }))
           .resolves.toHaveLength(2);
-        await expect(storage.listConversations({ agentId: "support" }))
-          .resolves.toMatchObject([{ id: "conv_support_new" }, { id: "conv_support_old" }]);
-        await expect(storage.listConversations({ customerId: "customer_123" }))
-          .resolves.toMatchObject([{ id: "conv_support_new" }, { id: "conv_support_old" }]);
-        await expect(storage.listConversations({ agentId: "support", customerId: "customer_999" }))
+        await expect(storage.listConversations({ agentId: "agent_primary" }))
+          .resolves.toMatchObject([{ id: "conv_primary_new" }, { id: "conv_primary_old" }]);
+        await expect(storage.listConversations({ customerId: "customer_primary" }))
+          .resolves.toMatchObject([{ id: "conv_primary_new" }, { id: "conv_primary_old" }]);
+        await expect(storage.listConversations({ agentId: "agent_primary", customerId: "customer_secondary" }))
           .resolves.toEqual([]);
         await expect(storage.listConversations({
           afterUpdatedAt: "2098-12-31T00:00:00.000Z",
           beforeUpdatedAt: "2099-01-03T00:00:00.000Z",
         }))
-          .resolves.toMatchObject([{ id: "conv_sales" }, { id: "conv_support_old" }]);
+          .resolves.toMatchObject([{ id: "conv_secondary" }, { id: "conv_primary_old" }]);
         await expect(storage.listConversations({ afterUpdatedAt: "2099-01-01T00:00:00.000Z" }))
-          .resolves.toMatchObject([{ id: "conv_support_new" }, { id: "conv_sales" }]);
+          .resolves.toMatchObject([{ id: "conv_primary_new" }, { id: "conv_secondary" }]);
       });
     });
 
@@ -209,7 +236,7 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
       await withStorage(async (storage) => {
         const updatedAt = "2099-02-01T00:00:00.000Z";
         for (const id of ["conv_cursor_a", "conv_cursor_b", "conv_cursor_c", "conv_cursor_d"]) {
-          await storage.createConversation({ id, agentId: "support", context: {} });
+          await storage.createConversation({ id, agentId: "agent_primary", context: {} });
           await storage.appendEvent({
             conversationId: id,
             type: "message.completed",
@@ -218,20 +245,20 @@ export function defineStorageAdapterConformanceSuite<TStorage extends StorageAda
           });
         }
 
-        const firstPage = await storage.listConversations({ agentId: "support", limit: 2 });
+        const firstPage = await storage.listConversations({ agentId: "agent_primary", limit: 2 });
         expect(firstPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_a", "conv_cursor_b"]);
 
         const cursor = firstPage[1];
         expect(cursor).toBeDefined();
         const secondPage = await storage.listConversations({
-          agentId: "support",
+          agentId: "agent_primary",
           before: { updatedAt: cursor!.updatedAt, id: cursor!.id },
           limit: 2,
         });
         expect(secondPage.map((conversation) => conversation.id)).toEqual(["conv_cursor_c", "conv_cursor_d"]);
 
         const previousPage = await storage.listConversations({
-          agentId: "support",
+          agentId: "agent_primary",
           after: { updatedAt: secondPage[0]!.updatedAt, id: secondPage[0]!.id },
           limit: 2,
         });

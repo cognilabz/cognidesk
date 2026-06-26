@@ -52,6 +52,10 @@ export interface CreateConversationInput<TConversationContext = unknown> {
   channel?: ConversationChannelInput;
 }
 
+export interface UpdateConversationContextInput<TConversationContext = unknown> {
+  context: TConversationContext;
+}
+
 export interface StorageAdapter {
   initialize?(): Promise<void> | void;
 
@@ -67,10 +71,17 @@ export interface StorageAdapter {
     options?: ListConversationsOptions,
   ): Promise<ConversationRecord<TConversationContext>[]>;
 
+  updateConversationContext<TConversationContext = unknown>(
+    conversationId: string,
+    input: UpdateConversationContextInput<TConversationContext>,
+  ): Promise<ConversationRecord<TConversationContext> | null>;
+
   updateConversationLifecycle(
     conversationId: string,
     lifecycle: ConversationLifecycle,
   ): Promise<ConversationRecord | null>;
+
+  deleteConversation(conversationId: string): Promise<boolean>;
 
   appendEvent<TEvent extends RuntimeEventInput>(
     event: TEvent,

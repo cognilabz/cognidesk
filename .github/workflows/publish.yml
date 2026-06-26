@@ -1,21 +1,8 @@
 name: Publish SDK and Provider Packages
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "v*"
   workflow_dispatch:
     inputs:
-      mode:
-        description: "Publish mode to run"
-        required: true
-        default: dev
-        type: choice
-        options:
-          - dev
-          - stable
       dry_run:
         description: "Run checks/build and report publish decisions without publishing"
         required: false
@@ -23,7 +10,7 @@ on:
         type: boolean
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -34,8 +21,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: npm-production
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,65 +28,43 @@ jobs:
         id: publish-mode
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            mode="${{ inputs.mode }}"
-            dry_run="${{ inputs.dry_run }}"
-          elif [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            mode="dev"
-            dry_run="false"
-          elif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            mode="stable"
-            dry_run="false"
-          else
-            echo "Unsupported ref: ${GITHUB_REF}" >&2
-            exit 1
-          fi
+          mode="stable"
+          dry_run="${{ inputs.dry_run }}"
 
-          if [ "${mode}" = "stable" ] && [ "${dry_run}" != "true" ] && [ "${GITHUB_REF_TYPE}" != "tag" ]; then
-            echo "Stable publishing requires a vX.Y.Z tag." >&2
-            exit 1
-          fi
-
-          if [ "${mode}" = "dev" ] && [ "${dry_run}" != "true" ] && [ "${GITHUB_REF}" != "refs/heads/main" ]; then
-            echo "Dev publishing requires the main branch." >&2
+          if [ "${dry_run}" != "true" ] && [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "Publishing requires running this workflow from the main branch." >&2
             exit 1
           fi
 
           echo "mode=${mode}" >> "${GITHUB_OUTPUT}"
           echo "dry_run=${dry_run}" >> "${GITHUB_OUTPUT}"
-          echo "Selected ${mode} publish mode (dry_run=${dry_run})."
+          echo "Selected manual ${mode} publish mode (dry_run=${dry_run})."
 
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Verify npm authentication
-        if: steps.publish-mode.outputs.dry_run != 'true'
-        run: npm whoami --registry https://registry.npmjs.org/
-
       - uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Prepare dev version
-        if: steps.publish-mode.outputs.mode == 'dev'
-        run: pnpm release:prepare-dev
+      - name: Prepare stable version
+        run: pnpm release:prepare -- --auto-patch-existing --yes --skip-install
 
-      - name: Refresh dev lockfile
-        if: steps.publish-mode.outputs.mode == 'dev'
-        run: pnpm install --lockfile-only
-
-      - name: Verify stable release
-        if: steps.publish-mode.outputs.mode == 'stable'
+      - name: Read release version
+        id: release-version
         shell: bash
         run: |
-          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
-            pnpm release:verify-stable -- --tag "${GITHUB_REF_NAME}"
-          else
-            pnpm release:verify-stable
-          fi
+          version="$(node -e "console.log(JSON.parse(require('node:fs').readFileSync('packages/core/package.json', 'utf8')).version)")"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "tag=v${version}" >> "${GITHUB_OUTPUT}"
+          echo "Prepared release v${version}."
+
+      - name: Verify stable release
+        shell: bash
+        run: pnpm release:verify-stable -- --tag "${{ steps.release-version.outputs.tag }}"
 
       - name: Build
         run: pnpm build
@@ -118,16 +81,49 @@ jobs:
       - name: Publish packages
         shell: bash
         run: |
-          args=()
-
-          if [ "${{ steps.publish-mode.outputs.mode }}" = "dev" ]; then
-            args+=(--tag dev --fail-on-existing)
-          else
-            args+=(--tag latest)
-          fi
+          args=(--tag latest)
 
           if [ "${{ steps.publish-mode.outputs.dry_run }}" = "true" ]; then
             args+=(--dry-run)
           fi
 
           pnpm release:publish -- "${args[@]}"
+
+      - name: Refresh release lockfile
+        if: steps.publish-mode.outputs.dry_run != 'true'
+        run: pnpm install --lockfile-only
+
+      - name: Commit release version
+        if: steps.publish-mode.outputs.dry_run != 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- packages pnpm-lock.yaml; then
+            echo "Package versions already match v${{ steps.release-version.outputs.version }}."
+            exit 0
+          fi
+
+          git add packages pnpm-lock.yaml
+          git commit -m "Release SDK ${{ steps.release-version.outputs.version }}"
+          git push origin HEAD:main
+
+      - name: Create GitHub release
+        if: steps.publish-mode.outputs.dry_run != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.release-version.outputs.tag }}"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
+            echo "Release tag ${tag} already exists." >&2
+            exit 1
+          fi
+
+          git tag "${tag}"
+          git push origin "${tag}"
+          gh release create "${tag}" \
+            --title "${tag}" \
+            --generate-notes

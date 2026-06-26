@@ -25,6 +25,8 @@ import type {
   CreateCognideskStudioAdapterOptions,
 } from "./types.js";
 
+const MAX_CONVERSATIONS_LIMIT = 1000;
+
 export function createCognideskStudioAdapter(options: CreateCognideskStudioAdapterOptions): CognideskStudioAdapter {
   const basePath = normalizeBasePath(options.basePath ?? "/api/studio");
   const cors = options.cors ?? true;
@@ -129,7 +131,7 @@ export function createCognideskStudioAdapter(options: CreateCognideskStudioAdapt
       }
 
       if (request.method === "GET" && path === "/conversations") {
-        const limit = coerceLimit(url.searchParams.get("limit"), 50, 250);
+        const limit = coerceLimit(url.searchParams.get("limit"), 50, MAX_CONVERSATIONS_LIMIT);
         const agentId = url.searchParams.get("agentId") ?? undefined;
         const conversations = options.conversations?.listConversations
           ? await options.conversations.listConversations({
@@ -139,6 +141,17 @@ export function createCognideskStudioAdapter(options: CreateCognideskStudioAdapt
           : [];
         const summaries = await Promise.all(conversations.map((conversation) => summarizeConversation(conversation, options.runtime)));
         return withCors(jsonResponse({ conversations: summaries }), cors);
+      }
+
+      const conversationMatch = path.match(/^\/conversations\/([^/]+)$/);
+      if (request.method === "GET" && conversationMatch) {
+        const conversationId = decodeURIComponent(conversationMatch[1] ?? "");
+        const conversation = options.conversations?.getConversation
+          ? await options.conversations.getConversation(conversationId)
+          : null;
+        if (!conversation) return withCors(jsonResponse({ error: "Conversation not found" }, { status: 404 }), cors);
+        const summary = await summarizeConversation(conversation, options.runtime);
+        return withCors(jsonResponse({ conversation: summary }), cors);
       }
 
       const eventsMatch = path.match(/^\/conversations\/([^/]+)\/events$/);

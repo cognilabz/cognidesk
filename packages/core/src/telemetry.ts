@@ -42,6 +42,8 @@ export const telemetrySpanNames = {
   runtimeCreateConversation: "cognidesk.runtime.create_conversation",
   runtimeGetConversation: "cognidesk.runtime.get_conversation",
   runtimeListConversations: "cognidesk.runtime.list_conversations",
+  runtimeUpdateConversationContext: "cognidesk.runtime.update_conversation_context",
+  runtimeDeleteConversation: "cognidesk.runtime.delete_conversation",
   runtimeEmitEvent: "cognidesk.runtime.emit_event",
   runtimeEmitIntermediateMessage: "cognidesk.runtime.emit_intermediate_message",
   runtimeEmitGeneratedPreamble: "cognidesk.runtime.emit_generated_preamble",
@@ -66,6 +68,7 @@ export const telemetrySpanNames = {
 
 export const telemetryAttributes = {
   agentId: "cognidesk.agent.id",
+  customerId: "cognidesk.customer.id",
   conversationId: "cognidesk.conversation.id",
   journeyId: "cognidesk.journey.id",
   stateId: "cognidesk.state.id",

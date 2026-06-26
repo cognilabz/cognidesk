@@ -31,10 +31,10 @@ import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherT
 
 describe("runtime state machine orchestration 03", () => {
   it("can route targeted journey events into an inactive state machine", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const status = agentBuilder.stateMachineJourney("ticket-status", {
+    const status = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status",
       context: z.object({}),
     });
@@ -58,7 +58,7 @@ describe("runtime state machine orchestration 03", () => {
       conversationId: conversation.id,
       event: sync,
       payload: { ok: true },
-      target: { journeyId: "ticket-status", stateId: "wait" },
+      target: { journeyId: "journey_primary", stateId: "wait" },
     });
 
     expect(result.snapshot?.activeJourneyId).toBeUndefined();
@@ -76,16 +76,16 @@ describe("runtime state machine orchestration 03", () => {
       bookingReference: z.string().optional(),
       viewedContext: z.unknown().optional(),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const status = agentBuilder.stateMachineJourney("ticket-status", {
+    const status = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status",
       context,
     });
     const identify = status.state("identify").collect("bookingReference");
     const inspect = status.state("inspect").runTool(journeyContextViewerTool, {
-      input: () => ({ journeyId: "ticket-status", fields: ["bookingReference"] }),
+      input: () => ({ journeyId: "journey_primary", fields: ["bookingReference"] }),
       assign: {
         viewedContext: ({ output }) => output.context,
       },
@@ -125,14 +125,14 @@ describe("runtime state machine orchestration 03", () => {
             toolCalls: [{
               id: "call_1",
               name: "cognidesk.viewJourneyContext",
-              input: { journeyId: "ticket-status", fields: ["bookingReference"] },
+              input: { journeyId: "journey_primary", fields: ["bookingReference"] },
             }],
           };
         }
         return { text: `Context ${input.messages.at(-1)?.content}` };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(journeyContextViewerTool);
     const agent = agentBuilder.compile();
     const storage = new RecordingStorage();
@@ -143,7 +143,7 @@ describe("runtime state machine orchestration 03", () => {
       lifecycle: "active",
       activeStateIds: [],
       journeyContexts: [{
-        journeyId: "ticket-status",
+        journeyId: "journey_primary",
         context: { bookingReference: "ABC123", internalNote: "not requested" },
         updatedAt: "2026-05-26T00:00:00.000Z",
         stateId: "done",
@@ -168,7 +168,7 @@ describe("runtime state machine orchestration 03", () => {
       output: z.object({ summary: z.string() }),
       execute: async ({ input }) => ({ summary: input.issue }),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     agentBuilder.delegationJourney("human-handoff", {

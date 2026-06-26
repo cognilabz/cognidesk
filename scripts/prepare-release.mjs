@@ -5,8 +5,10 @@ import { stdin as input, stdout as output } from "node:process";
 import {
   assertFixedStablePackageVersion,
   bumpStableVersion,
+  isAnyPackageVersionPublished,
+  nextAvailablePatchVersion,
   platformPackageWorkspaces,
-  updatePackageTrain,
+  updatePackageVersions,
   writePackages,
 } from "./release-workspace.mjs";
 
@@ -14,8 +16,11 @@ const root = process.cwd();
 const args = process.argv.slice(2);
 const validBumps = new Set(["patch", "minor", "major"]);
 const yes = args.includes("--yes");
+const autoPatchExisting = args.includes("--auto-patch-existing");
+const skipInstall = args.includes("--skip-install");
 const explicitBump = readOption("--bump");
 const defaultBump = readOption("--default-bump") ?? "patch";
+const registry = readOption("--registry") ?? process.env.NPM_CONFIG_REGISTRY ?? "https://registry.npmjs.org/";
 
 function readOption(name) {
   const index = args.indexOf(name);
@@ -55,21 +60,35 @@ if (!validBumps.has(defaultBump)) {
 
 const packages = platformPackageWorkspaces(root);
 const currentVersion = assertFixedStablePackageVersion(packages, "platform SDK packages");
-const bump = await readBump(currentVersion);
 
-if (!validBumps.has(bump)) {
-  throw new Error(`Invalid bump "${bump}". Expected patch, minor, or major.`);
+let nextVersion;
+let bump;
+
+if (autoPatchExisting) {
+  nextVersion = nextAvailablePatchVersion(
+    currentVersion,
+    (version) => isAnyPackageVersionPublished(packages, version, { root, registry }),
+  );
+  bump = nextVersion === currentVersion ? "none" : "auto-patch-existing";
+} else {
+  bump = await readBump(currentVersion);
+
+  if (!validBumps.has(bump)) {
+    throw new Error(`Invalid bump "${bump}". Expected patch, minor, or major.`);
+  }
+
+  nextVersion = bumpStableVersion(currentVersion, bump);
 }
 
-const nextVersion = bumpStableVersion(currentVersion, bump);
-
-updatePackageTrain(packages, nextVersion);
-writePackages(packages);
-runPnpmInstall();
+if (nextVersion !== currentVersion) {
+  updatePackageVersions(packages, nextVersion);
+  writePackages(packages);
+  if (!skipInstall) runPnpmInstall();
+}
 
 console.log("\nPrepared SDK release:");
 console.log(`  ${currentVersion} -> ${nextVersion} (${bump})`);
-console.log(`  Updated ${packages.length} platform SDK packages.`);
+console.log(`  ${nextVersion === currentVersion ? "Checked" : "Updated"} ${packages.length} platform SDK packages.`);
 
 console.log("\nNext steps:");
 console.log("  pnpm check");

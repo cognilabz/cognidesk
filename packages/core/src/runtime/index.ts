@@ -60,6 +60,7 @@ import type {
   RuntimeConfigurationSource,
   RuntimeOptions,
   SubmitWidgetInput,
+  UpdateRuntimeConversationContextInput,
 } from "./types.js";
 import type { JourneyEventDefinition } from "../definition.js";
 import type { ConversationRecord, RuntimeEventInput } from "../storage.js";
@@ -131,6 +132,7 @@ export type {
   RuntimeConfigurationSource,
   RuntimeOptions,
   SubmitWidgetInput,
+  UpdateRuntimeConversationContextInput,
   ReplayedMessage,
   ReplayedPrompt,
 } from "./types.js";
@@ -249,7 +251,22 @@ export class CognideskRuntime {
   listConversations<TConversationContext = unknown>(input: ListRuntimeConversationsOptions = {}) {
     return this.runtimeOperation("list_conversations", telemetrySpanNames.runtimeListConversations, {
       ...(input.agentId ? { [telemetryAttributes.agentId]: input.agentId } : {}),
+      ...(input.customerId ? { [telemetryAttributes.customerId]: input.customerId } : {}),
     }, () => this.kernel.listConversations<TConversationContext>(input));
+  }
+
+  updateConversationContext<TConversationContext = unknown>(
+    input: UpdateRuntimeConversationContextInput<TConversationContext>,
+  ): Promise<ConversationRecord<TConversationContext> | null> {
+    return this.runtimeOperation("update_conversation_context", telemetrySpanNames.runtimeUpdateConversationContext, {
+      [telemetryAttributes.conversationId]: input.conversationId,
+    }, () => this.kernel.updateConversationContext<TConversationContext>(input));
+  }
+
+  deleteConversation(conversationId: string): Promise<boolean> {
+    return this.runtimeOperation("delete_conversation", telemetrySpanNames.runtimeDeleteConversation, {
+      [telemetryAttributes.conversationId]: conversationId,
+    }, () => this.kernel.deleteConversation(conversationId));
   }
 
   listPendingSupportActions(input: ListPendingSupportActionsInput | string): Promise<PendingSupportAction[]> {

@@ -10,6 +10,7 @@ import type {
   RuntimeEventInput,
   RuntimeSnapshot,
   StorageAdapter,
+  UpdateConversationContextInput,
 } from "../../src/index.js";
 import { defineChannelContext } from "../../src/index.js";
 
@@ -17,7 +18,7 @@ export function createModels(overrides: Partial<AgentModelSet> = {}): AgentModel
   const response = {
     provider: "test",
     model: "response",
-    generateText: async () => ({ text: "Use faq-ticket-status for the current ticket status." }),
+    generateText: async () => ({ text: "Use faq-journey_primary for the current ticket status." }),
   };
   const extraction = {
     provider: "test",
@@ -33,8 +34,8 @@ export function createModels(overrides: Partial<AgentModelSet> = {}): AgentModel
     generateText: async (_input: TextGenerationInput) => {
       const structured = {
         segments: [{
-          text: "Use faq-ticket-status for the current ticket status.",
-          knowledgeIds: ["faq-ticket-status"],
+          text: "Use faq-journey_primary for the current ticket status.",
+          knowledgeIds: ["faq-journey_primary"],
         }],
       };
       return { text: JSON.stringify(structured), structured };
@@ -64,7 +65,7 @@ export function createModels(overrides: Partial<AgentModelSet> = {}): AgentModel
 export function vectorForMatcherTest(text: string) {
   const lower = text.toLowerCase();
   if (lower.includes("book-flight") || lower.includes("book a flight")) return [0, 1];
-  if (lower.includes("ticket-status")) return [1, 0];
+  if (lower.includes("journey_primary")) return [1, 0];
   if (lower.includes("refund-status")) return [1, 0];
   if (lower.includes("refund")) return [1, 0];
   return [0, 0];
@@ -146,6 +147,28 @@ export class RecordingStorage implements StorageAdapter {
     const updated = { ...current, lifecycle, updatedAt: new Date().toISOString() };
     this.conversations.set(conversationId, updated);
     return updated;
+  }
+
+  async updateConversationContext<TConversationContext = unknown>(
+    conversationId: string,
+    input: UpdateConversationContextInput<TConversationContext>,
+  ): Promise<ConversationRecord<TConversationContext> | null> {
+    const current = this.conversations.get(conversationId);
+    if (!current) return null;
+    const updated = {
+      ...current,
+      context: input.context,
+      updatedAt: new Date().toISOString(),
+    } as ConversationRecord<TConversationContext>;
+    this.conversations.set(conversationId, updated as ConversationRecord);
+    return updated;
+  }
+
+  async deleteConversation(conversationId: string): Promise<boolean> {
+    const deleted = this.conversations.delete(conversationId);
+    this.events.delete(conversationId);
+    this.snapshots.delete(conversationId);
+    return deleted;
   }
 
   async appendEvent<TEvent extends RuntimeEventInput>(event: TEvent): Promise<RuntimeEvent> {

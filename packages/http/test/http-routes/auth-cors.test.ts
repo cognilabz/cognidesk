@@ -9,7 +9,7 @@ describe("HTTP authorization and CORS routes", () => {
       const authorizedPaths: string[] = [];
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         authorize({ path, request }) {
           authorizedPaths.push(`${request.method} ${path}`);
           return false;
@@ -34,7 +34,7 @@ describe("HTTP authorization and CORS routes", () => {
       const listEvents = vi.spyOn(runtime, "listEvents");
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         cors: {
           origins: ["https://app.example.com"],
           credentials: true,
@@ -71,7 +71,7 @@ describe("HTTP authorization and CORS routes", () => {
       const createConversation = vi.spyOn(runtime, "createConversation");
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
         cors: {
           origins: ["https://app.example.com"],
           methods: ["GET", "POST", "OPTIONS"],

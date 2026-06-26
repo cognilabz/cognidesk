@@ -30,12 +30,16 @@ import type {
   StartVoiceSegmentInput,
   VoiceSocketMetadata,
   SubmitWidgetInput,
+  UpdateRuntimeConversationContextInput,
 } from "@cognidesk/core";
 import type { ChannelEventSubmitInput } from "./channel-events.js";
 
 export interface CognideskHttpRuntime {
   createConversation(input: CreateRuntimeConversationInput): Promise<ConversationRecord>;
+  getConversation?(conversationId: string): Promise<ConversationRecord | null>;
   listConversations?(input?: ListRuntimeConversationsOptions): Promise<ConversationRecord[]>;
+  updateConversationContext?(input: UpdateRuntimeConversationContextInput): Promise<ConversationRecord | null>;
+  deleteConversation?(conversationId: string): Promise<boolean>;
   handleChannelEvent?(input: HandleChannelEventInput): Promise<HandleChannelEventResult>;
   handleUserMessage(input: HandleUserMessageInput): Promise<HandleUserMessageResult>;
   submitWidget?(input: SubmitWidgetInput): Promise<RuntimeEvent>;

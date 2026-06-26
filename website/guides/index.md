@@ -10,6 +10,7 @@ guide assumes you've read the [Concepts](../concepts/index.md) section.
 
 ## Core
 
+- [AI Agents & Skills](ai-agents-and-skills.md) — use AI coding agents and Cognilabz Skills with Cognidesk
 - [Agents & Instructions](agents-and-instructions.md) — configure agent behavior and personality
 - [Tools](tools.md) — define and use typed tools
 - [Knowledge Sources](knowledge-sources.md) — integrate retrieval-augmented context

@@ -31,7 +31,7 @@ export function registerObservabilityTests() {
         }],
       }),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     agentBuilder.knowledge.add(knowledge);

@@ -58,7 +58,7 @@ describe("runtime tools and actions 03", () => {
         return { text: "Could not charge." };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(chargeCard);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -113,7 +113,7 @@ describe("runtime tools and actions 03", () => {
         return { text: "Could not look up the ticket." };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(lookupTicket);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -169,7 +169,7 @@ describe("runtime tools and actions 03", () => {
         return { text: "Recovered." };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(lookupTicket);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -231,7 +231,7 @@ describe("runtime tools and actions 03", () => {
         return { text: "Charged." };
       },
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(chargeCard);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -272,7 +272,7 @@ describe("runtime tools and actions 03", () => {
         }],
       }),
     };
-    const agentBuilder = createAgent("flight-service", { instructions: "Help customers with flights." });
+    const agentBuilder = createAgent("agent_primary", { instructions: "Help customers with flights." });
     agentBuilder.tools.add(handoffTool);
     const agent = agentBuilder.compile();
     const runtime = createRuntime({
@@ -304,13 +304,13 @@ describe("runtime tools and actions 03", () => {
       metadata: z.object({ source: z.string() }),
       retrieve: async () => ({
         items: [{
-          id: "faq-ticket-status",
+          id: "faq-journey_primary",
           content: "Ticket status is available with the booking reference.",
           metadata: { source: "faq" },
         }],
       }),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     agentBuilder.knowledge.add(knowledge);
@@ -339,7 +339,7 @@ describe("runtime tools and actions 03", () => {
 
     const events = await runtime.listEvents(conversation.id);
     expect(events.find((event) => event.type === "error")).toBeUndefined();
-    expect(events.at(-1)?.data).toEqual({ text: "Use faq-ticket-status for the current ticket status." });
+    expect(events.at(-1)?.data).toEqual({ text: "Use faq-journey_primary for the current ticket status." });
   });
 
   it("can disable citation post-processing on the agent definition", async () => {
@@ -349,13 +349,13 @@ describe("runtime tools and actions 03", () => {
       metadata: z.object({ source: z.string() }),
       retrieve: async () => ({
         items: [{
-          id: "faq-ticket-status",
+          id: "faq-journey_primary",
           content: "Ticket status is available with the booking reference.",
           metadata: { source: "faq" },
         }],
       }),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
       postProcessing: { citations: false },
     });
@@ -386,6 +386,6 @@ describe("runtime tools and actions 03", () => {
     const events = await runtime.listEvents(conversation.id);
     expect(citationCalls).toBe(0);
     expect(events.find((event) => event.type === "error")).toBeUndefined();
-    expect(events.at(-1)?.data).toEqual({ text: "Use faq-ticket-status for the current ticket status." });
+    expect(events.at(-1)?.data).toEqual({ text: "Use faq-journey_primary for the current ticket status." });
   });
 });

@@ -11,7 +11,7 @@ import type { TextGenerationInput } from "./helpers.js";
 export function registerPromptContextTests() {
   it("injects configured persona, channel policy, and resolved SDK context into the response prompt", async () => {
     const captured: { input?: TextGenerationInput } = {};
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
       persona: {
         brand: "FlightCo",
@@ -173,7 +173,7 @@ export function registerPromptContextTests() {
 
   it("does not expose an unrelated same-kind concrete runtime channel policy", async () => {
     const captured: { input?: TextGenerationInput } = {};
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     }).compile();
     const runtime = createRuntime({

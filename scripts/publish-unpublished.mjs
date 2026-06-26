@@ -1,12 +1,15 @@
 #!/usr/bin/env node
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   assertFixedPackageVersion,
   dependencyFields,
   isPlatformPackage,
   isProviderPackage,
+  materializeWorkspaceDependencies,
   packageWorkspaces,
+  readPublishedPackageState,
 } from "./release-workspace.mjs";
 
 const root = process.cwd();
@@ -59,44 +62,6 @@ function sortByInternalDependencies(packages) {
   return sorted;
 }
 
-function npmView(args) {
-  return spawnSync("npm", ["view", ...args, "--registry", registry], {
-    cwd: root,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-}
-
-function isNotFound(result) {
-  return result.stderr.includes("E404") || result.stderr.includes("404 Not Found");
-}
-
-function readPublishedState(pkg) {
-  const versionResult = npmView([`${pkg.name}@${pkg.packageJson.version}`, "version"]);
-
-  if (versionResult.status === 0) {
-    return { packageExists: true, versionPublished: true };
-  }
-
-  if (!isNotFound(versionResult)) {
-    process.stderr.write(versionResult.stderr);
-    throw new Error(`Unable to check published version for ${pkg.name}@${pkg.packageJson.version}`);
-  }
-
-  const packageResult = npmView([pkg.name, "version"]);
-
-  if (packageResult.status === 0) {
-    return { packageExists: true, versionPublished: false };
-  }
-
-  if (isNotFound(packageResult)) {
-    return { packageExists: false, versionPublished: false };
-  }
-
-  process.stderr.write(packageResult.stderr);
-  throw new Error(`Unable to check package existence for ${pkg.name}`);
-}
-
 function publish(pkg) {
   const args = [
     "publish",
@@ -110,11 +75,18 @@ function publish(pkg) {
     "--registry",
     registry,
   ];
+  const originalPackageJson = readFileSync(pkg.packageJsonPath, "utf8");
+  const publishPackageJson = materializeWorkspaceDependencies(pkg.packageJson, packageVersions);
 
-  execFileSync("npm", args, {
-    cwd: join(root, pkg.dir),
-    stdio: "inherit",
-  });
+  try {
+    writeFileSync(pkg.packageJsonPath, `${JSON.stringify(publishPackageJson, null, 2)}\n`);
+    execFileSync("npm", args, {
+      cwd: join(root, pkg.dir),
+      stdio: "inherit",
+    });
+  } finally {
+    writeFileSync(pkg.packageJsonPath, originalPackageJson);
+  }
 }
 
 if (!distTag) {
@@ -122,12 +94,13 @@ if (!distTag) {
 }
 
 const packages = sortByInternalDependencies(packageWorkspaces(root));
+const packageVersions = new Map(packages.map((pkg) => [pkg.name, pkg.packageJson.version]));
 const platformPackages = packages.filter(isPlatformPackage);
 const providerPackages = packages.filter(isProviderPackage);
 const platformVersion = assertFixedPackageVersion(platformPackages, "platform SDK packages");
 const decisions = packages.map((pkg) => ({
   pkg,
-  ...readPublishedState(pkg),
+  ...readPublishedPackageState(pkg, { root, registry }),
 }));
 const alreadyPublishedPlatform = decisions
   .filter(({ pkg, versionPublished }) => isPlatformPackage(pkg) && versionPublished);

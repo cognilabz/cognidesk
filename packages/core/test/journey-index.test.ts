@@ -60,7 +60,7 @@ describe("journey index", () => {
     expect(candidates.map((candidate) => candidate.journeyId)).toEqual([
       "handoff",
       "vip-review",
-      "ticket-status",
+      "journey_primary",
     ]);
     expect(candidates.map((candidate) => candidate.reason)).toEqual([
       "always",
@@ -87,20 +87,20 @@ describe("journey index", () => {
 
     expect(candidates.map((candidate) => candidate.journeyId)).toEqual([
       "handoff",
-      "ticket-status",
+      "journey_primary",
       "vip-review",
     ]);
   });
 
   it("applies includeWhen as a hard candidate filter", async () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const status = agent.stateMachineJourney("ticket-status", {
+    const status = agent.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       context,
     });
-    status.initial(status.state("identifyTicket"));
+    status.initial(status.state("state_primary"));
     agent.delegationJourney("internal-review", {
       condition: "Internal review is required",
       always: true,
@@ -128,7 +128,7 @@ describe("journey index", () => {
       topK: 2,
     });
 
-    expect(candidates.map((candidate) => candidate.journeyId)).toEqual(["ticket-status"]);
+    expect(candidates.map((candidate) => candidate.journeyId)).toEqual(["journey_primary"]);
 
     const allowed = await selectJourneyCandidates({
       agent: compiled,
@@ -143,7 +143,7 @@ describe("journey index", () => {
 
     expect(allowed.map((candidate) => candidate.journeyId)).toEqual([
       "internal-review",
-      "ticket-status",
+      "journey_primary",
     ]);
   });
 
@@ -196,7 +196,7 @@ describe("journey index", () => {
 });
 
 function createRoutingAgent(statusCondition: string) {
-  const agent = createAgent("flight-service", {
+  const agent = createAgent("agent_primary", {
     instructions: "Help customers with flights.",
   });
 
@@ -209,14 +209,14 @@ function createRoutingAgent(statusCondition: string) {
   const collect = booking.state("collectDetails");
   booking.initial(collect);
 
-  const status = agent.stateMachineJourney("ticket-status", {
+  const status = agent.stateMachineJourney("journey_primary", {
     condition: `Customer wants ${statusCondition} information`,
     examples: ["Where is my ticket?"],
     tags: ["status"],
     priority: 10,
     context,
   });
-  const identify = status.state("identifyTicket").collect("bookingReference");
+  const identify = status.state("state_primary").collect("bookingReference");
   status.initial(identify);
 
   agent.delegationJourney("handoff", {

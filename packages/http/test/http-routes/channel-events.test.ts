@@ -8,7 +8,7 @@ describe("HTTP channel-event routes", () => {
       const handleChannelEvent = vi.spyOn(runtime, "handleChannelEvent");
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
       });
 
       const response = await handler.handle(new Request("http://localhost/channel-events", {
@@ -49,7 +49,7 @@ describe("HTTP channel-event routes", () => {
       });
       expect(body.channelEvent.id).toBe("provider_event_1");
       expect(body.text).toBe("Handled: Where is my ticket?");
-      expect(body.activeJourneyId).toBe("ticket-status");
+      expect(body.activeJourneyId).toBe("journey_primary");
       expect(handleChannelEvent).toHaveBeenCalledWith(expect.objectContaining({
         conversationId: "conversation_1",
         event: expect.objectContaining({
@@ -74,7 +74,7 @@ describe("HTTP channel-event routes", () => {
       const handleChannelEvent = vi.spyOn(runtime, "handleChannelEvent");
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
       });
 
       const response = await handler.handle(new Request("http://localhost/channel-events", {
@@ -106,7 +106,7 @@ describe("HTTP channel-event routes", () => {
       expect(response.status).toBe(200);
       expect(await response.json()).toMatchObject({
         text: "Handled: Please refund my ticket.",
-        activeJourneyId: "ticket-status",
+        activeJourneyId: "journey_primary",
       });
       expect(handleChannelEvent).toHaveBeenCalledWith(expect.objectContaining({
         conversationId: "conversation_1",

@@ -307,7 +307,7 @@ describe("prompt profiles", () => {
         latestUserMessage: "I need to check a ticket",
         activeJourneyId: null,
         conversationTranscript: [{ role: "user", content: "I need to check a ticket" }],
-        candidates: [{ id: "ticket-status", condition: "Customer wants ticket status" }],
+        candidates: [{ id: "journey_primary", condition: "Customer wants ticket status" }],
       },
       structuredOutput: {
         required: true,
@@ -317,7 +317,7 @@ describe("prompt profiles", () => {
     });
 
     expect(instruction).toContain("Journey matcher");
-    expect(instruction).toContain("ticket-status");
+    expect(instruction).toContain("journey_primary");
     expect(instruction).toContain("selectedJourneyId");
   });
 
@@ -345,7 +345,7 @@ describe("prompt profiles", () => {
       promptTask: "response",
       model: { provider: "openai.responses", model: "gpt-5.5", logicalModelSlug: "gpt-5.5" },
       payload: {
-        selectedJourneyId: "ticket-status",
+        selectedJourneyId: "journey_primary",
         activeStateIds: [],
         journeyContext: {},
         tools: [],
@@ -353,6 +353,6 @@ describe("prompt profiles", () => {
       structuredOutput: { required: false, name: "response" },
     });
 
-    expect(instruction).toBe("Respond for ticket-status with response.");
+    expect(instruction).toBe("Respond for journey_primary with response.");
   });
 });

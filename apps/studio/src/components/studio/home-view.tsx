@@ -3,7 +3,8 @@
 import { Activity, Database, GitPullRequestArrow } from "lucide-react";
 import type { StudioAgentIntrospection, StudioTargetManifest } from "@cognidesk/studio-contracts";
 import type { DashboardRow, StudioConversationRow } from "./types";
-import { conversationJourneyActivity, conversationRows, telemetryRows } from "./data";
+import { conversationJourneyActivity, telemetryRows } from "./data";
+import { ConversationSearchPanel } from "./conversation-search-panel";
 import { formatDateTime } from "./format";
 import { DataTable, EmptyState, Metric, PageHeader, Panel, PanelHeader } from "./ui";
 
@@ -54,10 +55,7 @@ export function HomeView(props: {
         </section>
 
         <section className="grid grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] gap-4 max-xl:grid-cols-1">
-          <Panel>
-            <PanelHeader title="Latest conversations" />
-            <DataTable columns={["Customer", "State", "Journey", "Events", "Summary"]} rows={conversationRows(props.conversations)} emptyText="No conversations available." />
-          </Panel>
+          <ConversationSearchPanel conversations={props.conversations} />
           <Panel>
             <PanelHeader title="Agent facts" {...(props.introspection ? { detail: `Captured ${formatDateTime(props.introspection.capturedAt)}` } : {})} />
             <DataTable columns={["Fact", "Value"]} rows={telemetryRows(props.introspection)} emptyText={props.introspectionError ?? "No runtime facts available."} />

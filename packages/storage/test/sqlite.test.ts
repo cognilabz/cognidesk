@@ -123,7 +123,7 @@ describe("SQLite runtime integration", () => {
 
       const conversation = await runtime.createConversation({
         id: "conv_1",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         context: { locale: "en" },
       });
 

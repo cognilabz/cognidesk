@@ -34,10 +34,10 @@ describe("runtime state machine orchestration 02", () => {
     const context = z.object({
       bookingReference: z.string().optional(),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const status = agentBuilder.stateMachineJourney("ticket-status", {
+    const status = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       context,
       contextReuse: {
@@ -45,7 +45,7 @@ describe("runtime state machine orchestration 02", () => {
         when: ({ previousContext }) => previousContext.bookingReference === "ABC123",
       },
     });
-    const identify = status.state("identifyTicket").collect("bookingReference");
+    const identify = status.state("state_primary").collect("bookingReference");
     const lookup = status.final("lookupTicket");
     status.initial(identify);
     identify.transitionTo(lookup);
@@ -66,7 +66,7 @@ describe("runtime state machine orchestration 02", () => {
       lifecycle: "active",
       activeStateIds: [],
       journeyContexts: [{
-        journeyId: "ticket-status",
+        journeyId: "journey_primary",
         context: { bookingReference: "ABC123" },
         updatedAt: "2026-05-26T00:00:00.000Z",
         stateId: "lookupTicket",
@@ -94,13 +94,13 @@ describe("runtime state machine orchestration 02", () => {
       "message.completed",
     ]);
     expect(result.events.find((event) => event.type === "journey.state.entered")?.data).toEqual({
-      journeyId: "ticket-status",
+      journeyId: "journey_primary",
       stateId: "lookupTicket",
     });
   });
 
   it("uses the matcher to choose among multiple conversational transitions", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const journey = agentBuilder.stateMachineJourney("ticket-help", {
@@ -148,10 +148,10 @@ describe("runtime state machine orchestration 02", () => {
 
   it("validates journey events and routes them through the active state machine", async () => {
     const context = z.object({ bookingReference: z.string().optional() });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const status = agentBuilder.stateMachineJourney("ticket-status", {
+    const status = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status",
       context,
     });
@@ -202,7 +202,7 @@ describe("runtime state machine orchestration 02", () => {
   });
 
   it("routes active-journey events to the matching active parallel state", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const journey = agentBuilder.stateMachineJourney("parallel-events", {

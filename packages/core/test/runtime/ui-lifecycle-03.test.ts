@@ -35,10 +35,10 @@ describe("runtime UI and lifecycle events 03", () => {
     const context = z.object({
       bookingReference: z.string().optional(),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const status = agentBuilder.stateMachineJourney("ticket-status", {
+    const status = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       context,
     });
@@ -71,7 +71,7 @@ describe("runtime UI and lifecycle events 03", () => {
 
     expect(turn.snapshot.activeStateIds).toEqual(["identify"]);
     expect(prompted?.data).toEqual({
-      promptId: "confirm-field:ticket-status:identify:bookingReference",
+      promptId: "confirm-field:journey_primary:identify:bookingReference",
       widgetKind: "confirmation",
       input: {
         title: "Confirm booking reference",
@@ -83,7 +83,7 @@ describe("runtime UI and lifecycle events 03", () => {
 
     await runtime.submitWidget({
       conversationId: conversation.id,
-      promptId: "confirm-field:ticket-status:identify:bookingReference",
+      promptId: "confirm-field:journey_primary:identify:bookingReference",
       widgetKind: "confirmation",
       output: { confirmed: false },
     });
@@ -93,12 +93,12 @@ describe("runtime UI and lifecycle events 03", () => {
     });
     expect((await runtime.listEvents(conversation.id)).filter((event) => (
       event.type === "ui.prompted"
-      && event.data.promptId === "confirm-field:ticket-status:identify:bookingReference"
+      && event.data.promptId === "confirm-field:journey_primary:identify:bookingReference"
     ))).toHaveLength(2);
 
     await runtime.submitWidget({
       conversationId: conversation.id,
-      promptId: "confirm-field:ticket-status:identify:bookingReference",
+      promptId: "confirm-field:journey_primary:identify:bookingReference",
       widgetKind: "confirmation",
       output: { confirmed: true },
     });
@@ -113,7 +113,7 @@ describe("runtime UI and lifecycle events 03", () => {
   });
 
   it("uses requiredWhen to skip conditionally unnecessary collected fields", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agentBuilder.stateMachineJourney("book-flight", {
@@ -158,7 +158,7 @@ describe("runtime UI and lifecycle events 03", () => {
   });
 
   it("prompts for missing collected fields and applies widget submissions to journey context", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const profile = agentBuilder.stateMachineJourney("traveller-profile", {
@@ -226,7 +226,7 @@ describe("runtime UI and lifecycle events 03", () => {
   });
 
   it("groups multiple missing fields into one form prompt and applies all submitted values", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agentBuilder.stateMachineJourney("booking", {

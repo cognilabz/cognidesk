@@ -31,7 +31,7 @@ import { AbortError, RecordingStorage, createModels, deferred, vectorForMatcherT
 
 describe("runtime turn pipeline 03", () => {
   it("emits intermediate messages when telemetry is disabled", async () => {
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -61,7 +61,7 @@ describe("runtime turn pipeline 03", () => {
         return { text: `Answer ${calls.length}` };
       },
     };
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -96,7 +96,7 @@ describe("runtime turn pipeline 03", () => {
       },
     };
     const storage = new RecordingStorage();
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage,
       agent,
@@ -112,7 +112,7 @@ describe("runtime turn pipeline 03", () => {
         stableFacts: ["Booking ABC123"],
       },
       journeySummaries: [{
-        journeyId: "ticket-status",
+        journeyId: "journey_primary",
         kind: "stateMachine",
         completedAt: "2026-05-26T00:00:00.000Z",
         stateId: "done",
@@ -150,7 +150,7 @@ describe("runtime turn pipeline 03", () => {
         return { text: "Second answer." };
       },
     };
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -204,7 +204,7 @@ describe("runtime turn pipeline 03", () => {
         return { text: "Second answer." };
       },
     };
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -244,7 +244,7 @@ describe("runtime turn pipeline 03", () => {
         return { text: "Recovered." };
       },
     };
-    const agent = createAgent("flight-service", { instructions: "Help customers with flights." }).compile();
+    const agent = createAgent("agent_primary", { instructions: "Help customers with flights." }).compile();
     const runtime = createRuntime({
       storage: new RecordingStorage(),
       agent,
@@ -291,7 +291,7 @@ describe("runtime turn pipeline 03", () => {
         return { text: "Second answer." };
       },
     };
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
       behavior: { interruptOnNewMessage: false },
     }).compile();

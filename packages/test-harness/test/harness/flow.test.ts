@@ -17,7 +17,7 @@ describe("CognideskTestHarness scenario flow", () => {
 
       const result = await harness.runScenario({
         id: "booking",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Leisure traveller",
           goal: "Book a Berlin trip",
@@ -132,7 +132,7 @@ describe("CognideskTestHarness scenario flow", () => {
 
       const result = await harness.runScenario({
         id: "widget-route-form",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Traveller",
           goal: "Submit route details",
@@ -176,7 +176,7 @@ describe("CognideskTestHarness scenario flow", () => {
 
       const noUser = await harness.runScenario({
         id: "no-user",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Traveller",
           goal: "No turns",
@@ -184,7 +184,7 @@ describe("CognideskTestHarness scenario flow", () => {
       });
       const noJudge = await harness.runScenario({
         id: "no-judge",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Traveller",
           goal: "Judge me",
@@ -248,7 +248,7 @@ describe("CognideskTestHarness scenario flow", () => {
 
       const result = await harness.runScenario({
         id: "privacy",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Traveller",
           goal: "Protect transcript",
@@ -292,7 +292,7 @@ describe("CognideskTestHarness scenario flow", () => {
 
       const result = await harness.runScenario({
         id: "closed",
-        agentId: "flight-service",
+        agentId: "agent_primary",
         user: {
           identity: "Traveller",
           goal: "Stop after closure",

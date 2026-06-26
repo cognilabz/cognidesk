@@ -36,22 +36,22 @@ describe("runtime turn pipeline 01", () => {
       metadata: z.object({ source: z.string() }),
       retrieve: async () => ({
         items: [{
-          id: "faq-ticket-status",
+          id: "faq-journey_primary",
           title: "Ticket status",
           content: "Ticket status is available with the booking reference.",
           metadata: { source: "faq" },
         }],
       }),
     });
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     agentBuilder.knowledge.add(knowledge);
-    const status = agentBuilder.stateMachineJourney("ticket-status", {
+    const status = agentBuilder.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status information",
       context: z.object({ bookingReference: z.string().optional() }),
     });
-    const identify = status.state("identifyTicket").collect("bookingReference");
+    const identify = status.state("state_primary").collect("bookingReference");
     status.initial(identify);
 
     const agent = agentBuilder.compile();
@@ -69,9 +69,9 @@ describe("runtime turn pipeline 01", () => {
       text: "Can you check ticket ABC123?",
     });
 
-    expect(result.activeJourneyId).toBe("ticket-status");
-    expect(result.text).toContain("faq-ticket-status");
-    expect(result.snapshot.activeStateIds).toEqual(["identifyTicket"]);
+    expect(result.activeJourneyId).toBe("journey_primary");
+    expect(result.text).toContain("faq-journey_primary");
+    expect(result.snapshot.activeStateIds).toEqual(["state_primary"]);
     const events = await runtime.listEvents(conversation.id);
     expect(events.map((event) => event.type)).toEqual([
       "custom.conversation.created",
@@ -91,10 +91,10 @@ describe("runtime turn pipeline 01", () => {
     expect(events.at(-1)?.data).toMatchObject({
       segments: [{
         id: "segment_1",
-        text: "Use faq-ticket-status for the current ticket status.",
+        text: "Use faq-journey_primary for the current ticket status.",
         references: [{
           type: "knowledge",
-          id: "faq-ticket-status",
+          id: "faq-journey_primary",
           sourceName: "flight-faq",
           title: "Ticket status",
           metadata: { source: "faq" },
@@ -104,7 +104,7 @@ describe("runtime turn pipeline 01", () => {
   });
 
   it("persists channel context, renders channel-aware instructions, and emits channel events", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const emailJourney = agentBuilder.stateMachineJourney("email-support", {
@@ -178,7 +178,7 @@ describe("runtime turn pipeline 01", () => {
   });
 
   it("renders model prompt profiles with task payloads before model calls", async () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     }).compile();
     let capturedSystem = "";
@@ -224,7 +224,7 @@ describe("runtime turn pipeline 01", () => {
   });
 
   it("can emit synthetic assistant text deltas for streaming clients", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const agent = agentBuilder.compile();
@@ -269,7 +269,7 @@ describe("runtime turn pipeline 01", () => {
   });
 
   it("forwards model text deltas before assistant completion when the adapter streams", async () => {
-    const agentBuilder = createAgent("flight-service", {
+    const agentBuilder = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const agent = agentBuilder.compile();

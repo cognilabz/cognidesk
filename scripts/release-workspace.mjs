@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -20,6 +21,7 @@ export const workspacePatterns = [
   ...appWorkspacePatterns,
 ];
 const providerPackagePrefix = "@cognidesk/integration-";
+const defaultRegistry = "https://registry.npmjs.org/";
 
 export function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -202,6 +204,76 @@ export function nextPatchVersion(version) {
   return bumpStableVersion(version, "patch");
 }
 
+export function nextAvailablePatchVersion(version, isVersionPublished) {
+  let candidate = version;
+  while (isVersionPublished(candidate)) {
+    candidate = nextPatchVersion(candidate);
+  }
+  return candidate;
+}
+
+export function readPublishedPackageState(pkg, options = {}) {
+  const version = options.version ?? pkg.packageJson.version;
+  const versionResult = npmView([`${pkg.name}@${version}`, "version"], options);
+
+  if (versionResult.status === 0) {
+    return { packageExists: true, versionPublished: true };
+  }
+
+  if (!isNpmNotFound(versionResult)) {
+    writeNpmFailure(versionResult);
+    throw new Error(`Unable to check published version for ${pkg.name}@${version}`);
+  }
+
+  const packageResult = npmView([pkg.name, "version"], options);
+
+  if (packageResult.status === 0) {
+    return { packageExists: true, versionPublished: false };
+  }
+
+  if (isNpmNotFound(packageResult)) {
+    return { packageExists: false, versionPublished: false };
+  }
+
+  writeNpmFailure(packageResult);
+  throw new Error(`Unable to check package existence for ${pkg.name}`);
+}
+
+export function isAnyPackageVersionPublished(packages, version, options = {}) {
+  return packages.some((pkg) => readPublishedPackageState(pkg, { ...options, version }).versionPublished);
+}
+
+export function npmView(args, options = {}) {
+  return spawnSync("npm", ["view", ...args, "--registry", options.registry ?? defaultRegistry], {
+    cwd: options.root ?? process.cwd(),
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
+
+export function isNpmNotFound(result) {
+  if (result.error) return false;
+  const stderr = typeof result.stderr === "string" ? result.stderr : "";
+  return stderr.includes("E404") || stderr.includes("404 Not Found");
+}
+
+function writeNpmFailure(result) {
+  if (typeof result.stderr === "string" && result.stderr.length > 0) {
+    process.stderr.write(result.stderr);
+    return;
+  }
+
+  if (result.error) {
+    process.stderr.write(`${result.error.message}\n`);
+  }
+}
+
+export function updatePackageVersions(packages, version) {
+  for (const pkg of packages) {
+    pkg.packageJson.version = version;
+  }
+}
+
 export function updatePackageTrain(packages, version, dependencyPackages = packages) {
   const packageNames = new Set(dependencyPackages.map((pkg) => pkg.name));
 
@@ -219,6 +291,33 @@ export function updatePackageTrain(packages, version, dependencyPackages = packa
       }
     }
   }
+}
+
+export function materializeWorkspaceDependencies(packageJson, packageVersions) {
+  const materialized = JSON.parse(JSON.stringify(packageJson));
+
+  for (const field of dependencyFields) {
+    const dependencies = materialized[field];
+    if (!dependencies) continue;
+
+    for (const [dependencyName, dependencyRange] of Object.entries(dependencies)) {
+      const dependencyVersion = packageVersions.get(dependencyName);
+      if (!dependencyVersion || typeof dependencyRange !== "string") continue;
+      if (!dependencyRange.startsWith("workspace:")) continue;
+
+      dependencies[dependencyName] = materializeWorkspaceRange(dependencyRange, dependencyVersion);
+    }
+  }
+
+  return materialized;
+}
+
+function materializeWorkspaceRange(range, version) {
+  const workspaceRange = range.slice("workspace:".length);
+  if (workspaceRange === "*" || workspaceRange === "") return version;
+  if (workspaceRange === "^") return `^${version}`;
+  if (workspaceRange === "~") return `~${version}`;
+  return workspaceRange;
 }
 
 export function writePackages(packages) {

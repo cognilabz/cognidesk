@@ -1,6 +1,12 @@
 import type { z } from "zod";
 import type { Logger } from "pino";
-import type { ConversationRecord, CreateConversationInput, ListConversationsOptions, RuntimeEventInput } from "../storage.js";
+import type {
+  ConversationRecord,
+  CreateConversationInput,
+  ListConversationsOptions,
+  RuntimeEventInput,
+  UpdateConversationContextInput,
+} from "../storage.js";
 import type { CompiledAgent } from "../definition.js";
 import type { ReplayedMessage, ReplayedPrompt } from "./replay.js";
 import type { RuntimeApprovalEvaluationInput } from "./types/operations.js";
@@ -114,6 +120,11 @@ export interface CreateRuntimeConversationInput<TConversationContext = unknown>
   extends CreateConversationInput<TConversationContext> {}
 
 export interface ListRuntimeConversationsOptions extends ListConversationsOptions {}
+
+export interface UpdateRuntimeConversationContextInput<TConversationContext = unknown>
+  extends UpdateConversationContextInput<TConversationContext> {
+  conversationId: string;
+}
 
 export interface HandleUserMessageInput<TTurn = unknown> {
   conversationId: string;

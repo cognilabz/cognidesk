@@ -29,7 +29,7 @@ describe("HTTP output and compatibility routes", () => {
       Object.assign(runtime, { resolveChannelOutput });
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
       });
 
       const response = await handler.handle(new Request("http://localhost/channel-outputs/resolve", {
@@ -81,7 +81,7 @@ describe("HTTP output and compatibility routes", () => {
       const handleChannelEvent = vi.spyOn(runtime, "handleChannelEvent");
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
       });
 
       const response = await handler.handle(new Request("http://localhost/channel-events", {
@@ -127,7 +127,7 @@ describe("HTTP output and compatibility routes", () => {
       const handleChannelEvent = vi.spyOn(runtime, "handleChannelEvent");
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
       });
 
       const response = await handler.handle(new Request("http://localhost/conversations/conversation_1/messages", {
@@ -146,7 +146,7 @@ describe("HTTP output and compatibility routes", () => {
       expect(response.status).toBe(200);
       expect(await response.json()).toMatchObject({
         text: "Handled: hello",
-        activeJourneyId: "ticket-status",
+        activeJourneyId: "journey_primary",
       });
       expect(handleChannelEvent).toHaveBeenCalledWith(expect.objectContaining({
         conversationId: "conversation_1",
@@ -171,7 +171,7 @@ describe("HTTP output and compatibility routes", () => {
       const createConversation = vi.spyOn(runtime, "createConversation");
       const handler = createCognideskHttpHandler({
         runtime,
-        agentId: "flight-service",
+        agentId: "agent_primary",
       });
 
       const response = await handler.handle(new Request("http://localhost/conversations", {
@@ -190,7 +190,7 @@ describe("HTTP output and compatibility routes", () => {
 
       expect(response.status).toBe(201);
       expect(createConversation).toHaveBeenCalledWith(expect.objectContaining({
-        agentId: "flight-service",
+        agentId: "agent_primary",
         context: { locale: "en" },
         channel: expect.objectContaining({
           channelId: "intercom-thread-123",

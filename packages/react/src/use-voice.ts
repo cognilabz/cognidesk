@@ -11,6 +11,8 @@ import type {
   VoiceProtocolServerEvent,
 } from "./types.js";
 
+const capturePlaybackLeadSeconds = 0.08;
+
 export interface UseVoiceResult {
   status: VoiceConnectionStatus;
   conversationId: string | null;
@@ -94,7 +96,11 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
     options.onEvent?.(event);
     if (event.type === "input_audio_buffer.speech_started") {
       const context = audioContextRef.current;
-      if (context && playbackUntilRef.current > context.currentTime + 0.05) {
+      const playbackActive = isVoicePlaybackActive({
+        currentTime: context?.currentTime,
+        playbackUntil: playbackUntilRef.current,
+      });
+      if (context && playbackActive && options.suppressCaptureDuringPlayback === false) {
         const playedUntilMs = Math.max(0, Math.round(context.currentTime * 1000));
         stopPlayback();
         protocolRef.current?.sendEvent({
@@ -146,7 +152,7 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
         options.onConversationCreated?.(voiceConversationId);
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia(options.mediaConstraints ?? { audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia(options.mediaConstraints ?? defaultVoiceMediaConstraints());
       localStreamRef.current = stream;
       setLocalStream(stream);
       stream.getAudioTracks().forEach((track) => {
@@ -197,7 +203,12 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
 
       await readyPromise;
       await installCaptureWorklet(context, stream, (audio) => {
-        if (mutedRef.current) return;
+        if (shouldSuppressVoiceCapture({
+          muted: mutedRef.current,
+          currentTime: context.currentTime,
+          playbackUntil: playbackUntilRef.current,
+          suppressDuringPlayback: options.suppressCaptureDuringPlayback ?? true,
+        })) return;
         sequenceRef.current += 1;
         protocolRef.current?.sendEvent({
           type: "input_audio_buffer.append",
@@ -241,6 +252,35 @@ export function useVoice(options: UseVoiceOptions): UseVoiceResult {
     setMuted,
     sendEvent,
   };
+}
+
+export function defaultVoiceMediaConstraints(): MediaStreamConstraints {
+  return {
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+    },
+  };
+}
+
+export function shouldSuppressVoiceCapture(input: {
+  muted: boolean;
+  currentTime?: number | undefined;
+  playbackUntil: number;
+  suppressDuringPlayback?: boolean;
+}): boolean {
+  if (input.muted) return true;
+  if (input.suppressDuringPlayback === false) return false;
+  return isVoicePlaybackActive(input);
+}
+
+export function isVoicePlaybackActive(input: {
+  currentTime?: number | undefined;
+  playbackUntil: number;
+}): boolean {
+  if (input.currentTime === undefined) return false;
+  return input.playbackUntil > input.currentTime + capturePlaybackLeadSeconds;
 }
 
 async function resolveChatStart(

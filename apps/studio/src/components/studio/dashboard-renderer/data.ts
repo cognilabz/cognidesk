@@ -47,9 +47,9 @@ export function inferWidgets(datasets: StudioDashboardDataset[]): StudioDashboar
 
 export function metricValue(widget: StudioDashboardWidget, dataset: StudioDashboardDataset | undefined) {
   const rows = conversationRows(dataset?.data);
-  if (widget.valuePath?.startsWith("$metrics.") && rows.length) {
+  if (widget.valuePath?.startsWith("$metrics.")) {
     const metrics = conversationMetrics(rows);
-    return metrics[widget.valuePath.replace("$metrics.", "") as keyof ReturnType<typeof conversationMetrics>];
+    return resolvePath(metrics, widget.valuePath.replace("$metrics.", "")) ?? 0;
   }
   if (widget.valuePath && dataset) return resolvePath(dataset.data, widget.valuePath);
   return Array.isArray(dataset?.data) ? dataset.data.length : (rows.length || rowsFromUnknown(dataset?.data).length);
@@ -88,10 +88,16 @@ function conversationRows(value: unknown): ConversationRow[] {
 function conversationMetrics(rows: ConversationRow[]) {
   const totalConversations = rows.length;
   const handoverConversations = rows.filter(isHandoverConversation).length;
+  const journeyCounts = rows.reduce<Record<string, number>>((counts, row) => {
+    const journeyId = row.activeJourneyId?.trim() || "unassigned";
+    counts[journeyId] = (counts[journeyId] ?? 0) + 1;
+    return counts;
+  }, {});
   return {
     totalConversations,
     handoverConversations,
     handoverPercentage: totalConversations ? Number(((handoverConversations / totalConversations) * 100).toFixed(1)) : 0,
+    journeyCounts,
   };
 }
 

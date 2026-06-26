@@ -57,7 +57,7 @@ const bookFlight = tool("bookFlight", {
 
 describe("definition builders basics", () => {
   it("compiles a type-safe state machine journey graph", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agent.stateMachineJourney("book-flight", {
@@ -94,14 +94,14 @@ describe("definition builders basics", () => {
   });
 
   it("compiles alternate journey entries into the graph", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
-    const booking = agent.stateMachineJourney("ticket-status", {
+    const booking = agent.stateMachineJourney("journey_primary", {
       condition: "Customer wants ticket status",
       context: z.object({ bookingReference: z.string().optional() }),
     });
-    const identify = booking.state("identifyTicket").collect("bookingReference");
+    const identify = booking.state("state_primary").collect("bookingReference");
     const lookup = booking.final("lookupTicket");
 
     booking.initial(identify);
@@ -128,7 +128,7 @@ describe("definition builders basics", () => {
   });
 
   it("rejects journeys without initial state", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     agent.stateMachineJourney("book-flight", {
@@ -140,7 +140,7 @@ describe("definition builders basics", () => {
   });
 
   it("keeps side-effect tool confirmation as a type requirement", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agent.stateMachineJourney("book-flight", {
@@ -154,7 +154,7 @@ describe("definition builders basics", () => {
   });
 
   it("rejects unknown context paths at typecheck time", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agent.stateMachineJourney("book-flight", {
@@ -170,7 +170,7 @@ describe("definition builders basics", () => {
   });
 
   it("supports compile-time checked state registry lookups", () => {
-    const agent = createAgent("flight-service", {
+    const agent = createAgent("agent_primary", {
       instructions: "Help customers with flights.",
     });
     const booking = agent.stateMachineJourney("book-flight", {
