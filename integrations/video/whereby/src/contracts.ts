@@ -1,7 +1,15 @@
 import type {
   WherebyFullApiGeneratedClient,
+  WherebyFullApiOperationKey,
   WherebyGeneratedOperationCaller,
 } from "./full-api-client.generated.js";
+
+export interface WherebyProviderJsonRetryOptions {
+  attempts?: number | undefined;
+  statusCodes?: readonly number[] | undefined;
+  baseDelayMs?: number | undefined;
+  maxDelayMs?: number | undefined;
+}
 
 export type WherebyVideoJsonPrimitive = string | number | boolean | null;
 export type WherebyVideoJsonValue =
@@ -18,12 +26,18 @@ export interface WherebyVideoProviderResponse extends WherebyVideoJsonObject {}
 export interface WherebyVideoProviderExtensionFields extends WherebyVideoJsonObject {}
 
 export interface WherebyVideoClientOptions {
-  apiKey: string;
-  apiBaseUrl?: string;
-  fetch?: typeof fetch;
+  providerClient?: WherebyVideoProviderClient | undefined;
+  apiKey?: string | undefined;
+  baseUrl?: string | undefined;
+  fetch?: typeof fetch | undefined;
+  signal?: AbortSignal | undefined;
+  timeoutMs?: number | undefined;
+  retry?: number | WherebyProviderJsonRetryOptions | undefined;
 }
 
 export interface WherebyCredentialStatusInput {
+  providerClientConfigured?: boolean;
+  apiAccessConfigured?: boolean;
   apiKey?: string;
   organizationId?: string;
   subdomain?: string;
@@ -224,7 +238,12 @@ export interface WherebyListSummariesResponse {
   [key: string]: WherebyVideoProviderExtensionValue;
 }
 
+export interface WherebyVideoProviderClient {
+  requestOperation(operationKey: WherebyFullApiOperationKey, input?: WherebyOperationRequestInput): Promise<unknown>;
+}
+
 export interface WherebyVideoClient {
+  providerClient: WherebyVideoProviderClient;
   fullApi: WherebyFullApiGeneratedClient;
   requestOperation: WherebyGeneratedOperationCaller;
   createMeeting(input: WherebyCreateMeetingInput): Promise<WherebyMeetingResource>;

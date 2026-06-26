@@ -33,13 +33,23 @@ export function awsTranscribeStreamingCommandInput(input: AwsTranscribeSpeechInp
     ...(input.languageOptions !== undefined ? { LanguageOptions: input.languageOptions.join(",") } : {}),
     ...(input.preferredLanguage !== undefined ? { PreferredLanguage: input.preferredLanguage } : {}),
     ...(input.vocabularyName !== undefined ? { VocabularyName: input.vocabularyName } : {}),
+    ...(input.vocabularyNames !== undefined ? { VocabularyNames: input.vocabularyNames.join(",") } : {}),
     ...(input.vocabularyFilterName !== undefined ? { VocabularyFilterName: input.vocabularyFilterName } : {}),
+    ...(input.vocabularyFilterNames !== undefined ? { VocabularyFilterNames: input.vocabularyFilterNames.join(",") } : {}),
     ...(input.vocabularyFilterMethod !== undefined ? { VocabularyFilterMethod: input.vocabularyFilterMethod } : {}),
     ...(input.sessionId !== undefined ? { SessionId: input.sessionId } : {}),
+    ...(input.showSpeakerLabel !== undefined ? { ShowSpeakerLabel: input.showSpeakerLabel } : {}),
+    ...(input.enableChannelIdentification !== undefined ? { EnableChannelIdentification: input.enableChannelIdentification } : {}),
+    ...(input.numberOfChannels !== undefined ? { NumberOfChannels: input.numberOfChannels } : {}),
     ...(input.enablePartialResultsStabilization !== undefined
       ? { EnablePartialResultsStabilization: input.enablePartialResultsStabilization }
       : {}),
     ...(input.partialResultsStability !== undefined ? { PartialResultsStability: input.partialResultsStability } : {}),
+    ...(input.contentIdentificationType !== undefined ? { ContentIdentificationType: input.contentIdentificationType } : {}),
+    ...(input.contentRedactionType !== undefined ? { ContentRedactionType: input.contentRedactionType } : {}),
+    ...(input.piiEntityTypes !== undefined ? { PiiEntityTypes: input.piiEntityTypes.join(",") } : {}),
+    ...(input.languageModelName !== undefined ? { LanguageModelName: input.languageModelName } : {}),
+    ...(input.sessionResumeWindow !== undefined ? { SessionResumeWindow: input.sessionResumeWindow } : {}),
   };
 }
 

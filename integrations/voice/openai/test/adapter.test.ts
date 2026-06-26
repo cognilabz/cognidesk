@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
+import OpenAI from "openai";
+import { OpenAIRealtimeWS } from "openai/realtime/ws";
+import { describe, expect, it, vi } from "vitest";
 import type { RealtimeClientEvent, RealtimeServerEvent } from "openai/resources/realtime/realtime";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   OPENAI_REALTIME_V1_MODEL,
+  createOpenAIVoiceClient,
   createOpenAIVoiceProvider,
   openAIVoiceIntegration,
   openAIVoiceProviderManifest,
@@ -11,7 +15,7 @@ import type { VoiceControlNotification, VoiceProviderEvent, VoiceSocketSession }
 import type { RuntimeEvent } from "@cognidesk/core";
 
 describe("@cognidesk/integration-voice-openai", () => {
-  it("declares metadata-only OpenAI Realtime voice integration metadata", () => {
+  it("declares metadata-only OpenAI Realtime voice integration metadata", async () => {
     expect(openAIVoiceProviderManifest).toMatchObject({
       id: "voice.openai",
       packageName: "@cognidesk/integration-voice-openai",
@@ -24,8 +28,14 @@ describe("@cognidesk/integration-voice-openai", () => {
         },
         implementation: {
           strategy: "official-sdk",
+          sdkPackage: "openai",
           sdkPackages: ["openai"],
+          verifiedVersion: "6.44.0",
           rawClientEscapeHatch: true,
+        },
+        rawClient: {
+          option: "rawClient",
+          export: "getRawClient",
         },
       },
     });
@@ -33,6 +43,81 @@ describe("@cognidesk/integration-voice-openai", () => {
       missingHandlerAliases: [],
       extraHandlerAliases: [],
     });
+    await expect(readFile(new URL("../src/manifest.ts", import.meta.url), "utf8"))
+      .resolves.not.toMatch(/from\s+["']openai(\/|["'])/);
+  });
+
+  it("creates realtime sockets through the official OpenAI SDK and exposes the raw client", async () => {
+    const rawClient = new OpenAI({ apiKey: "test-key" });
+    const sdkSocket = new FakeSdkRealtimeSocket();
+    const createSpy = vi.spyOn(OpenAIRealtimeWS, "create")
+      .mockResolvedValue(sdkSocket as unknown as OpenAIRealtimeWS);
+    const client = createOpenAIVoiceClient({ rawClient });
+
+    try {
+      await expect(client.getRawClient()).resolves.toBe(rawClient);
+      await expect(client.createRealtimeSocket({ model: OPENAI_REALTIME_V1_MODEL })).resolves.toBe(sdkSocket);
+      expect(createSpy).toHaveBeenCalledWith(rawClient, { model: OPENAI_REALTIME_V1_MODEL });
+    } finally {
+      createSpy.mockRestore();
+    }
+  });
+
+  it("maps Cognidesk voice operations to realtime SDK socket methods", async () => {
+    const realtime = new FakeRealtimeSocket();
+    const client = createOpenAIVoiceClient({
+      rawClient: new OpenAI({ apiKey: "test-key" }),
+      realtime: async () => realtime,
+    });
+    const context = { metadata: { client } };
+
+    const started = await openAIVoiceIntegration.run("voice.session.start", {
+      session: {
+        type: "realtime",
+        model: OPENAI_REALTIME_V1_MODEL,
+        output_modalities: ["audio"],
+      },
+    }, context);
+
+    expect(started.socket).toBe(realtime);
+    expect(realtime.sent[0]).toEqual({
+      type: "session.update",
+      session: {
+        type: "realtime",
+        model: OPENAI_REALTIME_V1_MODEL,
+        output_modalities: ["audio"],
+      },
+    });
+
+    await openAIVoiceIntegration.run("voice.turn.finalize", {
+      socket: realtime,
+      eventId: "event_commit",
+    }, context);
+    expect(realtime.sent[1]).toEqual({
+      type: "input_audio_buffer.commit",
+      event_id: "event_commit",
+    });
+
+    const spoken = await openAIVoiceIntegration.run("voice.speak", {
+      socket: realtime,
+      id: "speech_1",
+      text: "Boarding starts now.",
+    }, context);
+    expect(spoken).toMatchObject({
+      speechId: "speech_1",
+      event: {
+        type: "response.create",
+        response: {
+          conversation: "none",
+          output_modalities: ["audio"],
+          metadata: {
+            cognidesk_voice_kind: "speech",
+            cognidesk_voice_id: "speech_1",
+          },
+        },
+      },
+    });
+    expect(JSON.stringify(realtime.sent[2])).toContain("Boarding starts now.");
   });
 
   it("configures a gpt-realtime-2 websocket session and translates browser events", async () => {
@@ -459,6 +544,15 @@ class FakeRealtimeSocket {
   emit(event: RealtimeServerEvent) {
     for (const listener of this.eventListeners) listener(event);
   }
+}
+
+class FakeSdkRealtimeSocket extends FakeRealtimeSocket {
+  socket = {
+    readyState: 1,
+    OPEN: 1,
+    off: () => undefined,
+    once: () => undefined,
+  };
 }
 
 function responseDoneEvent(): RealtimeServerEvent {

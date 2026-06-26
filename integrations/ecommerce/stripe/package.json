@@ -44,9 +44,6 @@
     "manifestOnlyExports": [
       "./manifest"
     ],
-    "providerSdkDependencies": [
-      "stripe"
-    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,
       "unpackedSizeBytes": 41943040,

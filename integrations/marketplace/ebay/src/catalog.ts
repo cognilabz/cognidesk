@@ -6,6 +6,8 @@ export const EBAY_SELECTED_API_OPERATION_COUNT = 45;
 export const EBAY_SELECTED_API_GENERATED_FUNCTION_COUNT = 45;
 export const EBAY_SELECTED_API_PATH_COUNT = 34;
 
+const EBAY_SDK_AUDIT_VERIFICATION_DATE = "2026-06-25";
+
 export const ebaySelectedApiSpecs = [
   {
     api: "sell.fulfillment",
@@ -121,10 +123,11 @@ export const ebayMarketplaceProviderManifest = defineProviderPackage({
     scope: "support-workflow-subset",
     notes: [
       "Coverage is limited to selected eBay marketplace support primitives: Sell Fulfillment order, shipping fulfillment, refund, and payment-dispute operations; Sell Commerce Message conversations; Commerce Notification destination/subscription/config/public-key operations; notification challenges; and signed notification parsing.",
-      "The selected REST slice now covers every documented operation in the currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource groups, but does not claim full eBay platform coverage.",
+      "The selected eBay OpenAPI slice documents the provider-client contract for every currently implemented Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, and Commerce Identity resource group operation, and this package ships a built-in REST adapter for those operations.",
       "The package does not implement full eBay API coverage for inventory/listing management, account policy breadth, marketing/promotions, analytics/reporting, taxonomy/metadata, media, translation, buy APIs, finances beyond supported fulfillment dispute routes, Negotiation/Leads/Charity/Media APIs, or older Trading/Browse/Finding surfaces.",
-      "The Fulfillment API issueRefund path supports eBay HTTP Message Signature headers for EU/UK seller policy, but the SDK user must provide Key Management API signing material or a request signer.",
-      "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, and retention decisions.",
+      "Runtime provider-data operations use the built-in typed eBay REST adapter when OAuth token/environment/baseUrl/fetch options are provided; host-injected providerClient remains available as an override and must implement the selected operation contract.",
+      "Local helpers for eBay notification challenge/signature parsing and HTTP Message Signature header creation remain available for host clients and webhook handlers.",
+      "The SDK user owns OAuth grant/scopes, marketplace selection, notification topic and filter policy, public-key cache freshness, refund/dispute authority, outbound messaging policy, consent, redaction, retention decisions, and optional provider-client override runtime.",
     ],
     evidence: [
       { label: "eBay Sell Fulfillment API", url: "https://developer.ebay.com/develop/api/sell/fulfillment_api" },
@@ -183,6 +186,12 @@ export const ebayMarketplaceProviderManifest = defineProviderPackage({
       label: "eBay marketplace ID",
       description: "SDK-user-selected marketplace such as EBAY_US or EBAY_DE, forwarded through X-EBAY-C-MARKETPLACE-ID where supported.",
       required: true,
+    },
+    {
+      id: "ebay-provider-client",
+      label: "Optional eBay marketplace provider client override",
+      description: "Optional host-injected client implementing EbayMarketplaceProviderClient when the SDK user wants to override the built-in REST adapter.",
+      required: false,
     },
     {
       id: "ebay-notification-verification-token",
@@ -350,42 +359,77 @@ export const ebayMarketplaceProviderManifest = defineProviderPackage({
   ],
   limitations: [
     "The SDK user chooses marketplaces, OAuth flows, scopes, notification topics, subscription filters, operator visibility, outbound messaging policy, refund/dispute rules, retention, consent, and redaction.",
-    "Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes typed REST foundations and does not decide whether a seller is eligible for a specific action.",
-    "The issueRefund method is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay request signer or Key Management API signing key is configured.",
+    "Some eBay APIs are entitlement, marketplace, scope, topic, or sandbox limited; this package exposes a typed REST/provider-client contract and does not decide whether a seller is eligible for a specific action.",
+    "Provider-data operations fail closed unless OAuth tokens are provided for the built-in typed REST adapter or an injected EbayMarketplaceProviderClient implements the selected operation.",
+    "The local issueRefund signature helper is fail-closed when EU/UK seller or SDK policy requires digital signatures and no eBay signing key material is configured.",
     "Notification signature verification requires a valid eBay public key retrieved by key ID from the Notification API or a SDK-user-provided verifier/cache implementation.",
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     docs: "https://developer.ebay.com/api-docs",
     implementation: {
-      strategy: "direct-support-slice",
+      strategy: "provider-owned-utility-sdks-plus-selected-rest-adapter",
       selectedApiCount: ebaySelectedApiSpecs.length,
       checkedAt: EBAY_SELECTED_API_VERIFICATION_DATE,
+      sdkAuditCheckedAt: EBAY_SDK_AUDIT_VERIFICATION_DATE,
+      sdkDecision: "provider-owned-utility-sdks-used-no-provider-owned-general-rest-sdk",
+      sdkDecisionReason:
+        "eBay's provider-owned Node.js packages cover digital signatures, event notifications, and OAuth helpers rather than a general backend REST client for this selected Sell/Commerce/Developer support slice. This package uses the provider-owned utility SDKs at runtime where they fit, keeps a typed selected REST adapter for API operations, and rejects community REST wrappers as package defaults because they are not eBay/provider-owned.",
+      defaultHttpClient: "providerJsonRequest-for-selected-rest-operations",
+      providerClientOverride: true,
       officialUtilityPackagesChecked: [
         {
           package: "digital-signature-nodejs-sdk",
           version: "3.0.1",
+          modifiedAt: "2023-07-31T23:11:34.276Z",
           repository: "https://github.com/eBay/digital-signature-nodejs-sdk",
-          decision: "not-adopted-current-local-signer-is-smaller",
+          decision: "provider-owned-runtime-used-for-default-digital-signature-headers",
+          runtimeUse: "generateDigestHeader, generateSignatureInput, and generateSignature are imported and used for default eBay digital signature header creation.",
         },
         {
           package: "event-notification-nodejs-sdk",
           version: "1.0.3",
+          modifiedAt: "2023-06-15T21:52:53.428Z",
           repository: "https://github.com/eBay/event-notification-nodejs-sdk",
-          decision: "not-adopted-current-local-verifier-is-smaller",
+          decision: "provider-owned-runtime-used-for-endpoint-challenge",
+          runtimeUse: "validateEndpoint is imported and used for notification endpoint challenge responses; webhook payload parsing and public-key verification remain typed local code because the SDK process() helper owns a broader processor/OAuth flow than this adapter exposes.",
+        },
+        {
+          package: "ebay-oauth-nodejs-client",
+          version: "1.2.2",
+          modifiedAt: "2023-06-15T21:52:53.428Z",
+          repository: "https://github.com/eBay/ebay-oauth-nodejs-client",
+          decision: "provider-owned-oauth-helper-not-selected-rest-runtime",
+          reason: "OAuth helper only; it does not expose the selected Sell Fulfillment, Commerce Message, Commerce Notification, Developer Key Management, or Commerce Identity operations.",
         },
       ],
-      communityPackagesChecked: [
+      communityRestPackagesChecked: [
         {
           package: "ebay-api",
           version: "9.5.2",
+          modifiedAt: "2026-05-11T08:17:20.577Z",
           repository: "https://github.com/hendt/ebay-api",
-          decision: "not-adopted-community-client-not-official-default",
+          decision: "community-wrapper-rejected-not-provider-owned",
+        },
+        {
+          package: "@tradebuddyhq/ebay-wrapper",
+          version: "2.0.0",
+          modifiedAt: "2026-03-13T20:45:46.135Z",
+          repository: "https://github.com/tradebuddyhq/ebay-wrapper",
+          decision: "community-wrapper-rejected-not-provider-owned",
         },
       ],
     },
+    providerClient: {
+      package: "host-provided",
+      interface: "EbayMarketplaceProviderClient",
+      importPolicy: "optional-host-override",
+      defaultClientPolicy: "built-in-rest-with-oauth-tokens-fail-closed",
+      transportPolicy: "package-owned-typed-provider-rest-adapter",
+      failClosedPolicy: "credential-missing-without-token-or-host-client",
+    },
     supportSlice: {
-      source: "official-ebay-openapi-selected-rest-contracts",
+      source: "official-ebay-openapi-selected-provider-contracts",
       verifiedAt: EBAY_SELECTED_API_VERIFICATION_DATE,
       specs: ebaySelectedApiSpecs.map((spec) => ({
         api: spec.api,
@@ -426,7 +470,7 @@ export const ebayMarketplaceProviderManifest = defineProviderPackage({
       inventoryMarketingAnalyticsBuyApis: "provider-supported-not-typed",
     },
     generatedProviderSliceVerification: {
-      provider: "ebay-selected-rest",
+      provider: "ebay-provider-rest-adapter",
       apiVersion: ebaySelectedApiSpecs.map((spec) => `${spec.api}:${spec.version}`).join(", "),
       verifiedAt: EBAY_SELECTED_API_VERIFICATION_DATE,
       coverageArtifact: "docs/provider-coverage/ebay-selected-api-2026-06-18.operations.json",

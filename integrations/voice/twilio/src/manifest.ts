@@ -98,7 +98,7 @@ export const twilioVoiceProviderManifest = defineIntegrationProviderPackage({
   operations: [
     {
       alias: "voice.call.answer",
-      providerOperation: "parseWebhook",
+      providerOperation: "twilio.validateRequest",
       capability: "receive",
       label: "Receive voice webhook",
       providerObject: "twilioCall",
@@ -107,7 +107,7 @@ export const twilioVoiceProviderManifest = defineIntegrationProviderPackage({
     },
     {
       alias: "voice.call.start",
-      providerOperation: "createOutboundCall",
+      providerOperation: "calls.create",
       capability: "send",
       label: "Create outbound call",
       providerObject: "twilioCall",
@@ -119,7 +119,7 @@ export const twilioVoiceProviderManifest = defineIntegrationProviderPackage({
     },
     {
       alias: "voice.call.redirect",
-      providerOperation: "redirectCall",
+      providerOperation: "calls(sid).update",
       capability: "transfer",
       label: "Redirect call",
       providerObject: "twilioCall",
@@ -141,6 +141,10 @@ export const twilioVoiceProviderManifest = defineIntegrationProviderPackage({
       sdkPackage: "twilio",
       verifiedVersion: "6.0.2",
       verifiedAt: "2026-06-21",
+    },
+    sdkClient: {
+      export: "getSdkClient",
+      coverage: "deprecated-raw-client-alias",
     },
     rawClient: {
       export: "getRawClient",

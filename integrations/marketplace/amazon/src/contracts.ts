@@ -1,3 +1,5 @@
+import type { AmazonSpApiOfficialSdk } from "./official-sdk.js";
+
 export type AmazonMarketplaceJsonPrimitive = string | number | boolean | null;
 export type AmazonMarketplaceJsonValue =
   | AmazonMarketplaceJsonPrimitive
@@ -30,6 +32,7 @@ export interface AmazonMarketplaceClientOptions {
   region?: string;
   aws?: AmazonAwsSigningOptions;
   fetch?: typeof fetch;
+  officialSdk?: AmazonSpApiOfficialSdk;
 }
 
 export type AmazonSpApiEndpoint = "na" | "eu" | "fe";

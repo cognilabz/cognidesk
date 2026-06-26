@@ -1,12 +1,19 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import type TwilioSDK from "twilio";
 import {
   defineIntegration,
-  type IntegrationOperationContext,
   type ProviderCredentialStatusInput,
 } from "@cognidesk/integration-kit";
+import twilio from "twilio";
 import { twilioVoiceProviderManifest } from "./manifest.js";
 
 export { twilioVoiceProviderManifest } from "./manifest.js";
+
+type TwilioSdkCalls = TwilioSDK.Twilio["calls"];
+type TwilioSdkCallContext = ReturnType<TwilioSdkCalls["get"]>;
+
+export type TwilioVoiceSdkCallCreateOptions = Parameters<TwilioSdkCalls["create"]>[0];
+export type TwilioVoiceSdkCallUpdateOptions = NonNullable<Parameters<TwilioSdkCallContext["update"]>[0]>;
+export type TwilioVoiceSdkClient = TwilioVoiceRawClient;
 
 export interface TwilioVoiceClientOptions {
   accountSid: string;
@@ -14,19 +21,41 @@ export interface TwilioVoiceClientOptions {
   apiKeySid?: string;
   apiKeySecret?: string;
   rawClient?: TwilioVoiceRawClient;
+  /** @deprecated Use rawClient. */
+  sdkClient?: TwilioVoiceRawClient;
 }
 
 export interface TwilioVoiceRawClient {
-  calls: {
-    create(input: Record<string, unknown>): Promise<TwilioCallResource>;
-    get?(sid: string): {
-      fetch(): Promise<TwilioCallResource>;
-      update(input: Record<string, unknown>): Promise<TwilioCallResource>;
-    };
+  calls: TwilioVoiceCallsResource;
+  api: {
+    accounts(accountSid: string): TwilioAccountContextResource;
   };
-  api?: {
-    accounts(accountSid: string): { fetch(): Promise<TwilioAccountResource> };
-  };
+}
+
+export interface TwilioVoiceCallsResource {
+  (sid: string): TwilioCallContextResource;
+  create(input: TwilioVoiceSdkCallCreateOptions): Promise<TwilioCallResource>;
+  get(sid: string): TwilioCallContextResource;
+}
+
+export interface TwilioCallableVoiceCallsResource {
+  (sid: string): TwilioCallContextResource;
+  create(input: TwilioVoiceSdkCallCreateOptions): Promise<TwilioCallResource>;
+  get?(sid: string): TwilioCallContextResource;
+}
+
+export interface TwilioGettableVoiceCallsResource {
+  create(input: TwilioVoiceSdkCallCreateOptions): Promise<TwilioCallResource>;
+  get(sid: string): TwilioCallContextResource;
+}
+
+export interface TwilioCallContextResource {
+  fetch(): Promise<TwilioCallResource>;
+  update(input: TwilioVoiceSdkCallUpdateOptions): Promise<TwilioCallResource>;
+}
+
+export interface TwilioAccountContextResource {
+  fetch(): Promise<TwilioAccountResource>;
 }
 
 export interface TwilioOutboundCallInput {
@@ -107,6 +136,8 @@ export interface TwilioAccountResource {
 
 export interface TwilioVoiceClient {
   getRawClient(): Promise<TwilioVoiceRawClient>;
+  /** @deprecated Use getRawClient. */
+  getSdkClient(): Promise<TwilioVoiceRawClient>;
   createOutboundCall(input: TwilioOutboundCallInput): Promise<TwilioCallResource>;
   fetchCall(callSid: string): Promise<TwilioCallResource>;
   updateCall(callSid: string, input: TwilioCallUpdateInput): Promise<TwilioCallResource>;
@@ -131,6 +162,17 @@ export interface ParseTwilioVoiceWebhookOptions {
   requireSignature?: boolean;
 }
 
+export interface ParseTwilioVoiceWebhookInput extends ParseTwilioVoiceWebhookOptions {
+  request: Request;
+}
+
+export interface TwilioVoiceIntegrationOptions extends TwilioVoiceClientOptions {
+  voiceClient?: TwilioVoiceClient;
+  webhookAuthToken?: string;
+  publicUrl?: string;
+  requireSignature?: boolean;
+}
+
 export interface TwilioMediaStreamTwiMLOptions {
   websocketUrl: string;
   mode?: "connect" | "start";
@@ -140,68 +182,86 @@ export interface TwilioMediaStreamTwiMLOptions {
   customParameters?: Record<string, string>;
 }
 
-export const twilioVoiceIntegration = defineIntegration({
-  manifest: twilioVoiceProviderManifest,
-  operations: {
-    "voice.call.answer": async (request: unknown, context: IntegrationOperationContext) =>
-      parseTwilioVoiceWebhook(request as Request, context.metadata as ParseTwilioVoiceWebhookOptions | undefined),
-    "voice.call.start": async (input: unknown, context: IntegrationOperationContext) =>
-      metadataClient<TwilioVoiceClient>(context).createOutboundCall(input as TwilioOutboundCallInput),
-    "voice.call.redirect": async (
-      input: unknown,
-      context: IntegrationOperationContext,
-    ) => {
-      const transfer = input as { callSid: string; redirect: TwilioCallRedirectInput };
-      return metadataClient<TwilioVoiceClient>(context).redirectCall(transfer.callSid, transfer.redirect);
-    },
-  },
-});
-
-function metadataClient<Client>(context: IntegrationOperationContext): Client {
-  const client = context.metadata?.client;
-  if (!client) throw new Error("Pass a Twilio Voice client as context.metadata.client.");
-  return client as Client;
+export function createTwilioVoiceOperationHandlers(options: TwilioVoiceIntegrationOptions) {
+  const client = options.voiceClient ?? createTwilioVoiceClient(options);
+  return createTwilioVoiceOperationHandlersForClient(client, options);
 }
+
+function createTwilioVoiceOperationHandlersForClient(
+  client: TwilioVoiceClient,
+  options: TwilioVoiceIntegrationOptions,
+) {
+  return {
+    "voice.call.answer": async (input: Request | ParseTwilioVoiceWebhookInput) => {
+      const webhookInput = parseWebhookOperationInput(input);
+      const authToken = webhookInput.authToken ?? options.webhookAuthToken ?? options.authToken;
+      const publicUrl = webhookInput.publicUrl ?? options.publicUrl;
+      const requireSignature = webhookInput.requireSignature ?? options.requireSignature;
+      return parseTwilioVoiceWebhook(webhookInput.request, {
+        ...(authToken ? { authToken } : {}),
+        ...(publicUrl ? { publicUrl } : {}),
+        ...(requireSignature !== undefined ? { requireSignature } : {}),
+      });
+    },
+    "voice.call.start": (input: TwilioOutboundCallInput) => client.createOutboundCall(input),
+    "voice.call.redirect": (input: { callSid: string; redirect: TwilioCallRedirectInput }) =>
+      client.redirectCall(input.callSid, input.redirect),
+  } as const;
+}
+
+export function createTwilioVoiceIntegration(options: TwilioVoiceIntegrationOptions) {
+  const client = options.voiceClient ?? createTwilioVoiceClient(options);
+  return {
+    ...defineIntegration({
+      manifest: twilioVoiceProviderManifest,
+      operations: createTwilioVoiceOperationHandlersForClient(client, options),
+    }),
+    client,
+    getRawClient: () => client.getRawClient(),
+    getSdkClient: () => client.getSdkClient(),
+  };
+}
+
+export const createTwilioIntegration = createTwilioVoiceIntegration;
+export const createTwilioIntegrationOperationHandlers = createTwilioVoiceOperationHandlers;
+
+export const twilioVoiceIntegration = createTwilioVoiceIntegration({
+  accountSid: "",
+  voiceClient: createUnconfiguredTwilioVoiceClient(),
+});
 
 export function createTwilioVoiceClient(options: TwilioVoiceClientOptions): TwilioVoiceClient {
   let rawClientPromise: Promise<TwilioVoiceRawClient> | undefined;
   const getRawClient = () => {
     rawClientPromise ??= options.rawClient
       ? Promise.resolve(options.rawClient)
+      : options.sdkClient
+        ? Promise.resolve(options.sdkClient)
       : createTwilioRawClient(options);
     return rawClientPromise;
   };
   return {
     getRawClient,
+    getSdkClient: getRawClient,
     async createOutboundCall(input) {
       assertOutboundCallInput(input);
       return (await getRawClient()).calls.create(callCreateBody(input));
     },
     async fetchCall(callSid) {
-      const call = (await getRawClient()).calls.get?.(callSid);
-      if (!call) throw new Error("Twilio helper client does not expose calls.get().");
-      return call.fetch();
+      return twilioCallContext(await getRawClient(), callSid).fetch();
     },
     async updateCall(callSid, input) {
-      const call = (await getRawClient()).calls.get?.(callSid);
-      if (!call) throw new Error("Twilio helper client does not expose calls.get().");
-      return call.update(callUpdateBody(input));
+      return twilioCallContext(await getRawClient(), callSid).update(callUpdateBody(input));
     },
     async redirectCall(callSid, input) {
-      const call = (await getRawClient()).calls.get?.(callSid);
-      if (!call) throw new Error("Twilio helper client does not expose calls.get().");
-      return call.update(callRedirectBody(input));
+      return twilioCallContext(await getRawClient(), callSid).update(callRedirectBody(input));
     },
     async endCall(callSid, input = {}) {
-      const call = (await getRawClient()).calls.get?.(callSid);
-      if (!call) throw new Error("Twilio helper client does not expose calls.get().");
-      return call.update(callEndBody(input));
+      return twilioCallContext(await getRawClient(), callSid).update(callEndBody(input));
     },
     async fetchAccount() {
       const rawClient = await getRawClient();
-      const account = rawClient.api?.accounts(options.accountSid);
-      if (!account) return { sid: options.accountSid };
-      return account.fetch();
+      return rawClient.api.accounts(options.accountSid).fetch();
     },
   };
 }
@@ -291,23 +351,43 @@ export function validateTwilioRequestSignature(input: {
   signature: string;
   authToken: string;
 }) {
-  const signed = Object.keys(input.params).sort()
-    .reduce((value, key) => `${value}${key}${input.params[key] ?? ""}`, input.url);
-  const expected = createHmac("sha1", input.authToken).update(signed).digest("base64");
-  const expectedBuffer = Buffer.from(expected);
-  const actualBuffer = Buffer.from(input.signature);
-  return expectedBuffer.length === actualBuffer.length
-    && timingSafeEqual(expectedBuffer, actualBuffer);
+  return twilio.validateRequest(input.authToken, input.signature, input.url, input.params);
 }
 
 async function createTwilioRawClient(options: TwilioVoiceClientOptions): Promise<TwilioVoiceRawClient> {
-  const mod = await import("twilio");
-  const createClient = mod.default ?? mod;
-  if (options.authToken) return createClient(options.accountSid, options.authToken) as unknown as TwilioVoiceRawClient;
+  if (options.authToken) return twilio(options.accountSid, options.authToken) as unknown as TwilioVoiceRawClient;
   if (options.apiKeySid && options.apiKeySecret) {
-    return createClient(options.apiKeySid, options.apiKeySecret, { accountSid: options.accountSid }) as unknown as TwilioVoiceRawClient;
+    return twilio(options.apiKeySid, options.apiKeySecret, { accountSid: options.accountSid }) as unknown as TwilioVoiceRawClient;
   }
   throw new Error("Twilio Auth Token or API key credentials are required.");
+}
+
+function parseWebhookOperationInput(input: Request | ParseTwilioVoiceWebhookInput): ParseTwilioVoiceWebhookInput {
+  if (typeof input === "object" && input !== null && "request" in input) {
+    return input;
+  }
+  return { request: input };
+}
+
+function twilioCallContext(rawClient: TwilioVoiceRawClient, callSid: string): TwilioCallContextResource {
+  const calls = rawClient.calls;
+  return calls(callSid);
+}
+
+function createUnconfiguredTwilioVoiceClient(): TwilioVoiceClient {
+  const fail = (): never => {
+    throw new Error("Create a configured Twilio Voice integration with createTwilioVoiceIntegration(...).");
+  };
+  return {
+    getRawClient: async () => fail(),
+    getSdkClient: async () => fail(),
+    createOutboundCall: async () => fail(),
+    fetchCall: async () => fail(),
+    updateCall: async () => fail(),
+    redirectCall: async () => fail(),
+    endCall: async () => fail(),
+    fetchAccount: async () => fail(),
+  };
 }
 
 function assertOutboundCallInput(input: TwilioOutboundCallInput) {
@@ -319,7 +399,7 @@ function assertOutboundCallInput(input: TwilioOutboundCallInput) {
   }
 }
 
-function callCreateBody(input: TwilioOutboundCallInput) {
+function callCreateBody(input: TwilioOutboundCallInput): TwilioVoiceSdkCallCreateOptions {
   return compact({
     to: input.to,
     from: input.from,
@@ -334,10 +414,10 @@ function callCreateBody(input: TwilioOutboundCallInput) {
     machineDetection: input.machineDetection,
     sendDigits: input.sendDigits,
     ...parameterFields(input.metadata),
-  });
+  }) as unknown as TwilioVoiceSdkCallCreateOptions;
 }
 
-function callUpdateBody(input: TwilioCallUpdateInput) {
+function callUpdateBody(input: TwilioCallUpdateInput): TwilioVoiceSdkCallUpdateOptions {
   return compact({
     url: input.url,
     twiml: input.twiml,
@@ -348,10 +428,10 @@ function callUpdateBody(input: TwilioCallUpdateInput) {
     statusCallback: input.statusCallback,
     statusCallbackMethod: input.statusCallbackMethod,
     timeLimit: input.timeLimitSeconds,
-  });
+  }) as TwilioVoiceSdkCallUpdateOptions;
 }
 
-function callRedirectBody(input: TwilioCallRedirectInput) {
+function callRedirectBody(input: TwilioCallRedirectInput): TwilioVoiceSdkCallUpdateOptions {
   return compact({
     url: input.url,
     twiml: input.twiml,
@@ -360,15 +440,15 @@ function callRedirectBody(input: TwilioCallRedirectInput) {
     fallbackMethod: input.fallbackMethod,
     statusCallback: input.statusCallback,
     statusCallbackMethod: input.statusCallbackMethod,
-  });
+  }) as TwilioVoiceSdkCallUpdateOptions;
 }
 
-function callEndBody(input: TwilioCallEndInput) {
+function callEndBody(input: TwilioCallEndInput): TwilioVoiceSdkCallUpdateOptions {
   return compact({
     status: input.status ?? "completed",
     statusCallback: input.statusCallback,
     statusCallbackMethod: input.statusCallbackMethod,
-  });
+  }) as TwilioVoiceSdkCallUpdateOptions;
 }
 
 function parameterFields(metadata: Record<string, string> | undefined) {

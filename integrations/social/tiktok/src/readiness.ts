@@ -4,7 +4,7 @@ import { createTikTokSocialClient } from "./client.js";
 export function createTikTokSocialLiveChecks(options: TikTokLiveCheckOptions) {
   return [{
     id: "account",
-    description: "TikTok Open API user profile endpoint is reachable with the configured access token.",
+    description: "TikTok profile access is reachable through the configured REST adapter or provider client.",
     requiredCredentialIds: ["tiktok-access-token", "tiktok-account-id", "tiktok-scopes"],
     async run(context: { signal?: AbortSignal }) {
       const client = options.client ?? createTikTokSocialClient(options);

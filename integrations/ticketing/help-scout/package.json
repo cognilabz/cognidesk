@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-ticketing-help-scout",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -51,6 +51,39 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerRestAdapterException": {
+      "checkedAt": "2026-06-25",
+      "result": "no-official-maintained-inbox-api-runtime-sdk",
+      "reason": "Help Scout's official JavaScript SDK is for Apps UI context and interface actions, not backend Inbox API ticketing operations. The available Node wrappers are unofficial or legacy and do not satisfy this package's typed server-side conversation, thread, reply, note, mailbox-readiness, and raw request runtime contract.",
+      "defaultClientPolicy": "built-in-help-scout-inbox-rest-adapter",
+      "typedClientOverride": "HelpScoutTicketingProviderClient",
+      "rejectedSdkPackages": [
+        {
+          "packageName": "@helpscout/javascript-sdk",
+          "checkedVersion": "0.10.0",
+          "license": "not-declared",
+          "reason": "Official Help Scout Apps UI SDK for contextual app extensions, not a backend Inbox API ticketing client."
+        },
+        {
+          "packageName": "helpscout",
+          "checkedVersion": "0.0.1",
+          "license": "MIT",
+          "reason": "Unofficial legacy Node wrapper, not an official maintained provider runtime SDK."
+        },
+        {
+          "packageName": "helpscout-v2",
+          "checkedVersion": "0.0.2",
+          "license": "ISC",
+          "reason": "Unofficial Help Scout API v2 wrapper, not an official maintained provider runtime SDK."
+        },
+        {
+          "packageName": "@bufferapp/helpscout",
+          "checkedVersion": "0.1.2",
+          "license": "MIT",
+          "reason": "Third-party legacy Node wrapper, not an official maintained provider runtime SDK."
+        }
+      ]
     }
   },
   "files": [

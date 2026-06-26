@@ -85,6 +85,11 @@ describe("@cognidesk/integration-workplace-slack", () => {
       client: webClient as never,
       fetch: fetchMock as unknown as typeof fetch,
     });
+    expect(client.webClient).toBe(webClient);
+
+    await expect(client.apiCall("chat.postMessage", { channel: "C123", text: "Raw call." }))
+      .resolves.toMatchObject({ ok: true });
+    expect(webClient.apiCall).toHaveBeenCalledWith("chat.postMessage", { channel: "C123", text: "Raw call." });
 
     await expect(client.postMessage({
       channel: "C123",

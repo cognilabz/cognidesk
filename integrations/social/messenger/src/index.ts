@@ -1,11 +1,17 @@
 export type * from "./contracts.js";
 export {
   createMessengerAttachmentMessage,
+  createMessengerGraphProviderClient,
   createMessengerSocialClient,
   createMessengerTextMessage,
 } from "./client.js";
 export { messengerSocialCredentialStatuses } from "./credentials.js";
-export { messengerSocialProviderManifest } from "./manifest.js";
+export {
+  messengerSocialOperationAliases,
+  messengerSocialProviderClientSupportSlice,
+  messengerSocialProviderManifest,
+  messengerSocialSupportSlice,
+} from "./manifest.js";
 export { createMessengerSocialLiveChecks } from "./readiness.js";
 export {
   normalizeMessengerWebhookEvents,

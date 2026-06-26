@@ -547,7 +547,29 @@ describe("flight demo model provider config", () => {
     });
   });
 
-  it("reports enabled WhatsApp delivery as blocked until Cloud API env secrets exist", () => {
+  it("does not validate WhatsApp transport env when delivery is disabled", () => {
+    process.env.TEST_FLIGHT_WHATSAPP_PROVIDER = "not-a-transport";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      whatsapp: {
+        enabled: false,
+        provider: "cloud-api",
+        providerEnv: "TEST_FLIGHT_WHATSAPP_PROVIDER",
+      },
+    });
+
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).toMatchObject({
+      provider: "whatsapp",
+      transport: "cloud-api",
+      configured: false,
+      enabled: false,
+    });
+  });
+
+  it("reports enabled WhatsApp send-only delivery as blocked until Cloud API send env exists", () => {
     const config = parseFlightDemoConfig({
       ...configWithModels({
         provider: "openai",
@@ -568,9 +590,92 @@ describe("flight demo model provider config", () => {
       missingEnv: [
         "TEST_FLIGHT_WHATSAPP_ACCESS_TOKEN",
         "TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
-        "TEST_FLIGHT_WHATSAPP_APP_SECRET",
       ],
     });
+  });
+
+  it("allows WhatsApp send-only delivery without webhook app secret", () => {
+    process.env.TEST_FLIGHT_WHATSAPP_ACCESS_TOKEN = "whatsapp-token";
+    process.env.TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID = "phone-number-id";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      whatsapp: {
+        enabled: true,
+        accessTokenEnv: "TEST_FLIGHT_WHATSAPP_ACCESS_TOKEN",
+        phoneNumberIdEnv: "TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
+        appSecretEnv: "TEST_FLIGHT_WHATSAPP_APP_SECRET",
+      },
+    });
+
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).toMatchObject({
+      provider: "whatsapp",
+      transport: "cloud-api",
+      providerPackageId: "messaging.whatsapp",
+      configured: true,
+      accessToken: "whatsapp-token",
+      phoneNumberId: "phone-number-id",
+    });
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).not.toHaveProperty("appSecret");
+  });
+
+  it("configures WhatsApp Web linked-device delivery without Meta Business credentials", () => {
+    process.env.TEST_FLIGHT_WHATSAPP_PROVIDER = "web";
+    process.env.TEST_FLIGHT_WHATSAPP_WEB_AUTH_STATE_DIR = "/tmp/cognidesk-wa";
+    process.env.TEST_FLIGHT_WHATSAPP_WEB_PAIRING_PHONE = "+15550123";
+    process.env.TEST_FLIGHT_WHATSAPP_WEB_CONNECT_TIMEOUT_MS = "12000";
+    process.env.TEST_FLIGHT_WHATSAPP_WEB_SEND_TIMEOUT_MS = "8000";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      whatsapp: {
+        enabled: true,
+        provider: "cloud-api",
+        providerEnv: "TEST_FLIGHT_WHATSAPP_PROVIDER",
+        accessTokenEnv: "TEST_FLIGHT_WHATSAPP_ACCESS_TOKEN",
+        phoneNumberIdEnv: "TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
+        webAuthStateDirEnv: "TEST_FLIGHT_WHATSAPP_WEB_AUTH_STATE_DIR",
+        webPairingPhoneEnv: "TEST_FLIGHT_WHATSAPP_WEB_PAIRING_PHONE",
+        webConnectTimeoutMsEnv: "TEST_FLIGHT_WHATSAPP_WEB_CONNECT_TIMEOUT_MS",
+        webSendTimeoutMsEnv: "TEST_FLIGHT_WHATSAPP_WEB_SEND_TIMEOUT_MS",
+      },
+    });
+
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).toMatchObject({
+      provider: "whatsapp",
+      transport: "web",
+      providerPackageId: "messaging.whatsapp-web",
+      configured: true,
+      authStateDir: "/tmp/cognidesk-wa",
+      pairingPhoneNumber: "15550123",
+      connectTimeoutMs: 12000,
+      sendTimeoutMs: 8000,
+    });
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).not.toHaveProperty("accessToken");
+    expect(getConfiguredWhatsAppDeliveryConfig(config)).not.toHaveProperty("recipientOverride");
+  });
+
+  it("rejects invalid WhatsApp Web pairing phone numbers", () => {
+    process.env.TEST_FLIGHT_WHATSAPP_PROVIDER = "web";
+    process.env.TEST_FLIGHT_WHATSAPP_WEB_PAIRING_PHONE = "+1 555 0123";
+    const config = parseFlightDemoConfig({
+      ...configWithModels({
+        provider: "openai",
+        roles: roles("gpt-5.4-mini", "text-embedding-3-small"),
+      }),
+      whatsapp: {
+        enabled: true,
+        providerEnv: "TEST_FLIGHT_WHATSAPP_PROVIDER",
+        webPairingPhoneEnv: "TEST_FLIGHT_WHATSAPP_WEB_PAIRING_PHONE",
+      },
+    });
+
+    expect(() => getConfiguredWhatsAppDeliveryConfig(config))
+      .toThrow("TEST_FLIGHT_WHATSAPP_WEB_PAIRING_PHONE must contain digits only, optionally prefixed by '+'.");
   });
 
   it("reads WhatsApp delivery settings without sending provider messages", () => {
@@ -578,7 +683,6 @@ describe("flight demo model provider config", () => {
     process.env.TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID = "phone-number-id";
     process.env.TEST_FLIGHT_WHATSAPP_APP_SECRET = "app-secret";
     process.env.TEST_FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN = "verify-token";
-    process.env.TEST_FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE = "+15550100";
     process.env.TEST_FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL = "https://auth.example.test/whatsapp";
     const config = parseFlightDemoConfig({
       ...configWithModels({
@@ -591,7 +695,6 @@ describe("flight demo model provider config", () => {
         phoneNumberIdEnv: "TEST_FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
         appSecretEnv: "TEST_FLIGHT_WHATSAPP_APP_SECRET",
         verifyTokenEnv: "TEST_FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN",
-        recipientOverrideEnv: "TEST_FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE",
         confirmationBaseUrl: "https://auth.example.test/default-whatsapp",
         confirmationBaseUrlEnv: "TEST_FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL",
         graphApiBaseUrl: "https://graph.facebook.example.test",
@@ -602,12 +705,13 @@ describe("flight demo model provider config", () => {
 
     expect(getConfiguredWhatsAppDeliveryConfig(config)).toMatchObject({
       provider: "whatsapp",
+      transport: "cloud-api",
+      providerPackageId: "messaging.whatsapp",
       configured: true,
       accessToken: "whatsapp-token",
       phoneNumberId: "phone-number-id",
       appSecret: "app-secret",
       verifyToken: "verify-token",
-      recipientOverride: "+15550100",
       confirmationBaseUrl: "https://auth.example.test/whatsapp",
       graphApiBaseUrl: "https://graph.facebook.example.test",
       graphApiVersion: "v25.0",

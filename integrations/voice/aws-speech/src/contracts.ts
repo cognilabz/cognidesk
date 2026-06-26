@@ -5,8 +5,12 @@ import type {
 import type {
   PollyClient,
   PollyClientConfig,
+  SynthesizeSpeechCommandInput,
+  SynthesizeSpeechCommandOutput,
 } from "@aws-sdk/client-polly";
 import type {
+  StartStreamTranscriptionCommandInput,
+  StartStreamTranscriptionCommandOutput,
   TranscribeStreamingClient,
   TranscribeStreamingClientConfig,
 } from "@aws-sdk/client-transcribe-streaming";
@@ -44,12 +48,18 @@ export interface AwsSpeechOperationRequestInput {
   responseType?: "json" | "arrayBuffer" | "response" | "stream";
 }
 
-export type AwsTranscribeMediaEncoding = "pcm" | "ogg-opus" | "flac";
-export type AwsTranscribePartialResultsStability = "high" | "medium" | "low";
-export type AwsTranscribeVocabularyFilterMethod = "remove" | "mask" | "tag";
-export type AwsPollyOutputFormat = "json" | "mp3" | "ogg_vorbis" | "pcm" | "ogg_opus";
-export type AwsPollyEngine = "standard" | "neural" | "long-form" | "generative";
-export type AwsPollyTextType = "text" | "ssml";
+export type AwsTranscribeMediaEncoding = NonNullable<StartStreamTranscriptionCommandInput["MediaEncoding"]>;
+export type AwsTranscribeLanguageCode = NonNullable<StartStreamTranscriptionCommandInput["LanguageCode"]>;
+export type AwsTranscribePartialResultsStability = NonNullable<StartStreamTranscriptionCommandInput["PartialResultsStability"]>;
+export type AwsTranscribeVocabularyFilterMethod = NonNullable<StartStreamTranscriptionCommandInput["VocabularyFilterMethod"]>;
+export type AwsTranscribeContentIdentificationType = NonNullable<StartStreamTranscriptionCommandInput["ContentIdentificationType"]>;
+export type AwsTranscribeContentRedactionType = NonNullable<StartStreamTranscriptionCommandInput["ContentRedactionType"]>;
+export type AwsPollyOutputFormat = NonNullable<SynthesizeSpeechCommandInput["OutputFormat"]>;
+export type AwsPollyEngine = NonNullable<SynthesizeSpeechCommandInput["Engine"]>;
+export type AwsPollyLanguageCode = NonNullable<SynthesizeSpeechCommandInput["LanguageCode"]>;
+export type AwsPollySpeechMarkType = NonNullable<SynthesizeSpeechCommandInput["SpeechMarkTypes"]>[number];
+export type AwsPollyTextType = NonNullable<SynthesizeSpeechCommandInput["TextType"]>;
+export type AwsPollyVoiceId = NonNullable<SynthesizeSpeechCommandInput["VoiceId"]>;
 
 export interface AwsSpeechCredentialStatusInput {
   accessKeyId?: string;
@@ -61,18 +71,28 @@ export interface AwsSpeechCredentialStatusInput {
 export interface AwsTranscribeSpeechInput {
   audio: Uint8Array;
   sampleRate?: number;
-  languageCode?: string;
+  languageCode?: AwsTranscribeLanguageCode;
   mediaEncoding?: AwsTranscribeMediaEncoding;
   identifyLanguage?: boolean;
   identifyMultipleLanguages?: boolean;
   languageOptions?: string[];
-  preferredLanguage?: string;
+  preferredLanguage?: AwsTranscribeLanguageCode;
   vocabularyName?: string;
+  vocabularyNames?: string[];
   vocabularyFilterName?: string;
+  vocabularyFilterNames?: string[];
   vocabularyFilterMethod?: AwsTranscribeVocabularyFilterMethod;
   sessionId?: string;
+  showSpeakerLabel?: boolean;
+  enableChannelIdentification?: boolean;
+  numberOfChannels?: number;
   enablePartialResultsStabilization?: boolean;
   partialResultsStability?: AwsTranscribePartialResultsStability;
+  contentIdentificationType?: AwsTranscribeContentIdentificationType;
+  contentRedactionType?: AwsTranscribeContentRedactionType;
+  piiEntityTypes?: string[];
+  languageModelName?: string;
+  sessionResumeWindow?: number;
   signal?: AbortSignal;
 }
 
@@ -88,11 +108,12 @@ export interface AwsTranscribeSpeechResult {
 
 export interface AwsPollySynthesizeSpeechInput {
   text: string;
-  voiceId: string;
+  voiceId: AwsPollyVoiceId;
   outputFormat?: AwsPollyOutputFormat;
   engine?: AwsPollyEngine;
-  languageCode?: string;
+  languageCode?: AwsPollyLanguageCode;
   sampleRate?: string;
+  speechMarkTypes?: AwsPollySpeechMarkType[];
   textType?: AwsPollyTextType;
   lexiconNames?: string[];
   signal?: AbortSignal;
@@ -105,7 +126,9 @@ export interface AwsPollySynthesizeSpeechResult {
   outputFormat?: AwsPollyOutputFormat;
 }
 
-export interface AwsSpeechClient {
+export interface AwsSpeechClient<RawClients extends AwsSpeechCommandClients = AwsSpeechCommandClients> {
+  rawClients: RawClients;
+  getRawClient(): RawClients;
   transcribeSpeech(input: AwsTranscribeSpeechInput): Promise<AwsTranscribeSpeechResult | null>;
   synthesizeSpeech(input: AwsPollySynthesizeSpeechInput): Promise<AwsPollySynthesizeSpeechResult>;
 }
@@ -125,79 +148,25 @@ export interface AwsSdkCommandConstructor<Input> {
   new(input: Input): unknown;
 }
 
-export interface AwsTranscribeStreamingCommandInput {
-  AudioStream: AsyncIterable<AwsTranscribeStreamingAudioStreamEvent>;
-  MediaEncoding: AwsTranscribeMediaEncoding;
-  MediaSampleRateHertz: number;
-  LanguageCode?: string;
-  IdentifyLanguage?: boolean;
-  IdentifyMultipleLanguages?: boolean;
-  LanguageOptions?: string;
-  PreferredLanguage?: string;
-  VocabularyName?: string;
-  VocabularyFilterName?: string;
-  VocabularyFilterMethod?: AwsTranscribeVocabularyFilterMethod;
-  SessionId?: string;
-  EnablePartialResultsStabilization?: boolean;
-  PartialResultsStability?: AwsTranscribePartialResultsStability;
+export type AwsTranscribeStreamingCommandInput = StartStreamTranscriptionCommandInput;
+export type AwsTranscribeStreamingCommandOutput = StartStreamTranscriptionCommandOutput;
+export type AwsTranscribeStreamingAudioStreamEvent = NonNullable<StartStreamTranscriptionCommandInput["AudioStream"]> extends AsyncIterable<infer Event>
+  ? Event
+  : never;
+export type AwsTranscribeStreamingResponseEvent = NonNullable<StartStreamTranscriptionCommandOutput["TranscriptResultStream"]> extends AsyncIterable<infer Event>
+  ? Event
+  : never;
+export type AwsPollySynthesizeCommandInput = SynthesizeSpeechCommandInput;
+export type AwsPollySynthesizeCommandOutput = SynthesizeSpeechCommandOutput;
+
+export interface AwsSpeechCommandClients {
+  transcribeStreamingClient: AwsSdkCommandClient<AwsTranscribeStreamingCommandOutput>;
+  pollyClient: AwsSdkCommandClient<AwsPollySynthesizeCommandOutput>;
 }
 
-export interface AwsTranscribeStreamingAudioStreamEvent {
-  AudioEvent: {
-    AudioChunk: Uint8Array;
-  };
-}
-
-export interface AwsTranscribeStreamingCommandOutput {
-  TranscriptResultStream?: AsyncIterable<AwsTranscribeStreamingResponseEvent>;
-  LanguageCode?: string;
-  MediaEncoding?: AwsTranscribeMediaEncoding;
-  MediaSampleRateHertz?: number;
-}
-
-interface AwsSdkExceptionShape {
-  Message?: string;
-  message?: string;
-}
-
-export interface AwsTranscribeStreamingResponseEvent {
-  TranscriptEvent?: {
-    Transcript?: {
-      Results?: AwsTranscribeStreamingResult[];
-    };
-  };
-  BadRequestException?: AwsSdkExceptionShape;
-  ConflictException?: AwsSdkExceptionShape;
-  InternalFailureException?: AwsSdkExceptionShape;
-  LimitExceededException?: AwsSdkExceptionShape;
-  ServiceUnavailableException?: AwsSdkExceptionShape;
-}
-
-export interface AwsTranscribeStreamingResult {
-  Alternatives?: Array<{
-    Transcript?: string;
-  }>;
-  EndTime?: number;
-  IsPartial?: boolean;
-  ResultId?: string;
-  StartTime?: number;
-}
-
-export interface AwsPollySynthesizeCommandInput {
-  Text: string;
-  VoiceId: string;
-  OutputFormat: AwsPollyOutputFormat;
-  Engine?: AwsPollyEngine;
-  LanguageCode?: string;
-  SampleRate?: string;
-  TextType?: AwsPollyTextType;
-  LexiconNames?: string[];
-}
-
-export interface AwsPollySynthesizeCommandOutput {
-  AudioStream?: unknown;
-  ContentType?: string;
-  RequestCharacters?: number;
+export interface AwsSpeechRawClients extends AwsSpeechCommandClients {
+  transcribeStreamingClient: TranscribeStreamingClient;
+  pollyClient: PollyClient;
 }
 
 export interface AwsSdkSpeechClientOptions {
@@ -220,22 +189,33 @@ export interface AwsSpeechVoiceProviderOptions
   StartStreamTranscriptionCommand?: AwsSdkSpeechClientOptions["StartStreamTranscriptionCommand"];
   pollyClient?: AwsSdkSpeechClientOptions["pollyClient"];
   SynthesizeSpeechCommand?: AwsSdkSpeechClientOptions["SynthesizeSpeechCommand"];
-  languageCode?: string;
+  languageCode?: AwsTranscribeLanguageCode;
   mediaEncoding?: AwsTranscribeMediaEncoding;
   identifyLanguage?: boolean;
   identifyMultipleLanguages?: boolean;
   languageOptions?: string[];
-  preferredLanguage?: string;
+  preferredLanguage?: AwsTranscribeLanguageCode;
   vocabularyName?: string;
+  vocabularyNames?: string[];
   vocabularyFilterName?: string;
+  vocabularyFilterNames?: string[];
   vocabularyFilterMethod?: AwsTranscribeVocabularyFilterMethod;
+  showSpeakerLabel?: boolean;
+  enableChannelIdentification?: boolean;
+  numberOfChannels?: number;
   enablePartialResultsStabilization?: boolean;
   partialResultsStability?: AwsTranscribePartialResultsStability;
-  voiceId: string;
+  contentIdentificationType?: AwsTranscribeContentIdentificationType;
+  contentRedactionType?: AwsTranscribeContentRedactionType;
+  piiEntityTypes?: string[];
+  languageModelName?: string;
+  sessionResumeWindow?: number;
+  voiceId: AwsPollyVoiceId;
   outputFormat?: AwsPollyOutputFormat;
   engine?: AwsPollyEngine;
-  pollyLanguageCode?: string;
+  pollyLanguageCode?: AwsPollyLanguageCode;
   pollySampleRate?: string;
+  speechMarkTypes?: AwsPollySpeechMarkType[];
   textType?: AwsPollyTextType;
   lexiconNames?: string[];
 }

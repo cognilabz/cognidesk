@@ -52,6 +52,13 @@ describe("@cognidesk/integration-community-forum", () => {
       .resolves.toMatchObject({ topics: [{ id: 1 }] });
   });
 
+  it("fails closed when no host provider client is injected", async () => {
+    const integration = createForumCommunityIntegration();
+
+    await expect((integration.run as unknown as OperationRunner)("forum.topic.read", { topicId: 55 }))
+      .rejects.toThrow("Forum provider client is not configured.");
+  });
+
   it("exports the same operation aliases from root and manifest subpath", () => {
     expect(operationAliases(forumCommunityProviderManifestFromRoot)).toEqual(operationAliases(forumCommunityProviderManifest));
     expect(operationAliases(forumCommunityProviderManifestFromRoot)).toEqual([
@@ -66,13 +73,63 @@ describe("@cognidesk/integration-community-forum", () => {
 
   it("keeps the manifest subpath runtime-light and avoids a fake SDK dependency", async () => {
     const source = await readFile(resolve(packageRoot, "src/manifest.ts"), "utf8");
+    const runtimeSource = await readFile(resolve(packageRoot, "src/index.ts"), "utf8");
     const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      cognidesk?: {
+        providerRestAdapterException?: {
+          result?: string;
+          defaultClientPolicy?: string;
+          typedClientOverride?: string;
+          rejectedSdkPackages?: { packageName?: string; ecosystem?: string }[];
+        };
+      };
     };
 
     expect(forumCommunityProviderManifest.packageName).toBe("@cognidesk/integration-community-forum");
     expect(source).not.toContain("node:crypto");
     expect(source).not.toContain("./index");
+    expect(runtimeSource).toContain("providerJsonRequest");
+    expect(runtimeSource).toContain("Api-Key");
+    expect(runtimeSource).toContain("posts.json");
+    expect(runtimeSource).not.toContain("URLSearchParams");
+    expect(Object.keys(packageJson.dependencies ?? {}).sort()).toEqual([
+      "@cognidesk/core",
+      "@cognidesk/integration-kit",
+    ]);
+    expect(packageJson.cognidesk?.providerRestAdapterException).toMatchObject({
+      result: "no-applicable-official-js-ts-sdk",
+      defaultClientPolicy: "built-in-discourse-rest-adapter-when-configured",
+      typedClientOverride: "ForumCommunityProviderClient",
+      rejectedSdkPackages: expect.arrayContaining([
+        expect.objectContaining({
+          packageName: "discourse_api",
+          ecosystem: "ruby",
+        }),
+        expect.objectContaining({
+          packageName: "discourse-api-sdk",
+          ecosystem: "npm",
+        }),
+        expect.objectContaining({
+          packageName: "@discourse/mcp",
+          ecosystem: "npm",
+        }),
+        expect.objectContaining({
+          packageName: "discourse-sdk",
+          ecosystem: "npm",
+        }),
+      ]),
+    });
     expect(packageJson.dependencies).not.toHaveProperty("discourse2");
+    expect(packageJson.dependencies).not.toHaveProperty("discourse_api");
+    expect(packageJson.dependencies).not.toHaveProperty("discourse-api-sdk");
+    expect(packageJson.dependencies).not.toHaveProperty("@discourse/mcp");
+    expect(packageJson.dependencies).not.toHaveProperty("discourse-sdk");
+    expect(packageJson.devDependencies).not.toHaveProperty("discourse2");
+    expect(packageJson.devDependencies).not.toHaveProperty("discourse_api");
+    expect(packageJson.devDependencies).not.toHaveProperty("discourse-api-sdk");
+    expect(packageJson.devDependencies).not.toHaveProperty("@discourse/mcp");
+    expect(packageJson.devDependencies).not.toHaveProperty("discourse-sdk");
   });
 });

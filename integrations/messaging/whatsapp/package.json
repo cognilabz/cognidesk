@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-messaging-whatsapp",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -8,7 +8,20 @@
   "cognidesk": {
     "kind": "provider-package",
     "providerPackage": true,
-    "release": "independent-provider"
+    "release": "independent-provider",
+    "providerRuntimeExceptions": [
+      {
+        "packageName": "baileys",
+        "provider": "whatsapp-web",
+        "scope": "community-linked-device-runtime",
+        "officialProviderSdk": false,
+        "checkedAt": "2026-06-25",
+        "evidence": [
+          "https://baileys.wiki/docs/intro/",
+          "https://github.com/WhiskeySockets/Baileys"
+        ]
+      }
+    ]
   },
   "exports": {
     ".": {
@@ -32,7 +45,9 @@
   },
   "dependencies": {
     "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "baileys": "7.0.0-rc13",
+    "qrcode-terminal": "0.12.0"
   },
   "devDependencies": {
     "tsup": "^8.5.0",

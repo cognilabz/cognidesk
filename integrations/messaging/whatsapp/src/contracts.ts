@@ -1,3 +1,5 @@
+import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
+
 export type WhatsAppMessagingJsonPrimitive = string | number | boolean | null;
 export type WhatsAppMessagingJsonValue =
   | WhatsAppMessagingJsonPrimitive
@@ -15,11 +17,16 @@ export interface WhatsAppMessagingProviderResponse extends WhatsAppMessagingJson
 export interface WhatsAppMessagingProviderExtensionFields extends WhatsAppMessagingJsonObject {}
 
 export interface WhatsAppMessagingClientOptions {
-  accessToken: string;
-  phoneNumberId: string;
-  graphApiBaseUrl?: string;
+  accessToken?: string;
+  phoneNumberId?: string;
   graphApiVersion?: string;
+  graphApiBaseUrl?: string;
+  baseUrl?: string;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
+  providerClient?: WhatsAppMessagingProviderClient | undefined;
 }
 
 export interface WhatsAppCredentialStatusInput {
@@ -126,7 +133,7 @@ export interface WhatsAppUpdateBusinessProfileInput {
   messagingProduct?: "whatsapp";
 }
 
-export interface WhatsAppMessagingClient {
+export interface WhatsAppMessagingProviderClient {
   sendMessage(input: WhatsAppMessageInput): Promise<WhatsAppApiResponse>;
   uploadMedia(input: WhatsAppUploadMediaInput): Promise<WhatsAppMediaResource>;
   getMedia(mediaId: string): Promise<WhatsAppMediaResource>;
@@ -136,6 +143,10 @@ export interface WhatsAppMessagingClient {
   updateBusinessProfile(
     input: WhatsAppUpdateBusinessProfileInput,
   ): Promise<{ success?: boolean; [key: string]: WhatsAppMessagingJsonValue | undefined }>;
+}
+
+export interface WhatsAppMessagingClient extends WhatsAppMessagingProviderClient {
+  providerClient: WhatsAppMessagingProviderClient;
 }
 
 export interface WhatsAppLiveCheckOptions extends WhatsAppMessagingClientOptions {

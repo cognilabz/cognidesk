@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-ticketing-sap-service-cloud",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,6 +26,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@sap-cloud-sdk/http-client": "^4.7.0",
     "@cognidesk/core": "workspace:*",
     "@cognidesk/integration-kit": "workspace:*"
   },

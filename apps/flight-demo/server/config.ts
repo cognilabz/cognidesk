@@ -249,11 +249,19 @@ const defaultEmailConfig = {
 
 const defaultWhatsAppConfig = {
   enabled: false,
+  provider: "cloud-api" as const,
+  providerEnv: "FLIGHT_WHATSAPP_PROVIDER",
   accessTokenEnv: "FLIGHT_WHATSAPP_ACCESS_TOKEN",
   phoneNumberIdEnv: "FLIGHT_WHATSAPP_PHONE_NUMBER_ID",
   appSecretEnv: "FLIGHT_WHATSAPP_APP_SECRET",
   verifyTokenEnv: "FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN",
-  recipientOverrideEnv: "FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE",
+  webAuthStateDir: ".data/whatsapp-web",
+  webAuthStateDirEnv: "FLIGHT_WHATSAPP_WEB_AUTH_STATE_DIR",
+  webPairingPhoneEnv: "FLIGHT_WHATSAPP_WEB_PAIRING_PHONE",
+  webConnectTimeoutMsEnv: "FLIGHT_WHATSAPP_WEB_CONNECT_TIMEOUT_MS",
+  webSendTimeoutMsEnv: "FLIGHT_WHATSAPP_WEB_SEND_TIMEOUT_MS",
+  webConnectTimeoutMs: 45_000,
+  webSendTimeoutMs: 30_000,
   confirmationBaseUrl: "https://auth.cognidesk.local/flight-demo/whatsapp",
   confirmationBaseUrlEnv: "FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL",
   graphApiBaseUrl: "https://graph.facebook.com",
@@ -293,11 +301,19 @@ const emailConfigSchema = z.object({
 
 const whatsAppConfigSchema = z.object({
   enabled: z.boolean().default(false),
+  provider: z.enum(["cloud-api", "web"]).default("cloud-api"),
+  providerEnv: z.string().min(1).default("FLIGHT_WHATSAPP_PROVIDER"),
   accessTokenEnv: z.string().min(1).default("FLIGHT_WHATSAPP_ACCESS_TOKEN"),
   phoneNumberIdEnv: z.string().min(1).default("FLIGHT_WHATSAPP_PHONE_NUMBER_ID"),
   appSecretEnv: z.string().min(1).default("FLIGHT_WHATSAPP_APP_SECRET"),
   verifyTokenEnv: z.string().min(1).default("FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN"),
-  recipientOverrideEnv: z.string().min(1).default("FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE"),
+  webAuthStateDir: z.string().min(1).default(".data/whatsapp-web"),
+  webAuthStateDirEnv: z.string().min(1).default("FLIGHT_WHATSAPP_WEB_AUTH_STATE_DIR"),
+  webPairingPhoneEnv: z.string().min(1).default("FLIGHT_WHATSAPP_WEB_PAIRING_PHONE"),
+  webConnectTimeoutMsEnv: z.string().min(1).default("FLIGHT_WHATSAPP_WEB_CONNECT_TIMEOUT_MS"),
+  webSendTimeoutMsEnv: z.string().min(1).default("FLIGHT_WHATSAPP_WEB_SEND_TIMEOUT_MS"),
+  webConnectTimeoutMs: z.number().int().positive().default(45_000),
+  webSendTimeoutMs: z.number().int().positive().default(30_000),
   confirmationBaseUrl: z.string().url().default("https://auth.cognidesk.local/flight-demo/whatsapp"),
   confirmationBaseUrlEnv: z.string().min(1).default("FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL"),
   graphApiBaseUrl: z.string().url().default("https://graph.facebook.com"),
@@ -400,12 +416,13 @@ export type ConfiguredEmailReplyVerificationConfig =
 export type ConfiguredWhatsAppDeliveryConfig =
   | {
       provider: "whatsapp";
+      transport: "cloud-api";
+      providerPackageId: "messaging.whatsapp";
       configured: true;
       accessToken: string;
       phoneNumberId: string;
-      appSecret: string;
+      appSecret?: string;
       verifyToken?: string;
-      recipientOverride?: string;
       confirmationBaseUrl: string;
       graphApiBaseUrl: string;
       graphApiVersion: string;
@@ -413,12 +430,28 @@ export type ConfiguredWhatsAppDeliveryConfig =
     }
   | {
       provider: "whatsapp";
+      transport: "web";
+      providerPackageId: "messaging.whatsapp-web";
+      configured: true;
+      authStateDir: string;
+      pairingPhoneNumber?: string;
+      connectTimeoutMs: number;
+      sendTimeoutMs: number;
+      verifyToken?: string;
+      confirmationBaseUrl: string;
+      graphApiBaseUrl: string;
+      graphApiVersion: string;
+      wabaWebhookSubscribed: boolean;
+    }
+  | {
+      provider: "whatsapp";
+      transport: "cloud-api" | "web";
+      providerPackageId: "messaging.whatsapp" | "messaging.whatsapp-web";
       configured: false;
       enabled: boolean;
       reason: string;
       missingEnv: string[];
       verifyToken?: string;
-      recipientOverride?: string;
       confirmationBaseUrl: string;
       graphApiBaseUrl: string;
       graphApiVersion: string;
@@ -760,23 +793,42 @@ export function getConfiguredWhatsAppDeliveryConfig(config: FlightDemoConfig): C
   const whatsapp = config.whatsapp;
   const confirmationBaseUrl = readTrimmedEnv(whatsapp.confirmationBaseUrlEnv) ?? whatsapp.confirmationBaseUrl;
   const verifyToken = readTrimmedEnv(whatsapp.verifyTokenEnv);
-  const recipientOverride = readTrimmedEnv(whatsapp.recipientOverrideEnv);
-  const base = {
+  const commonBase = {
     provider: "whatsapp" as const,
     confirmationBaseUrl,
     graphApiBaseUrl: whatsapp.graphApiBaseUrl,
     graphApiVersion: whatsapp.graphApiVersion,
     wabaWebhookSubscribed: whatsapp.wabaWebhookSubscribed,
     ...(verifyToken ? { verifyToken } : {}),
-    ...(recipientOverride ? { recipientOverride } : {}),
   };
   if (!whatsapp.enabled) {
+    const transport = whatsapp.provider;
     return {
-      ...base,
+      ...commonBase,
+      transport,
+      providerPackageId: transport === "web" ? "messaging.whatsapp-web" : "messaging.whatsapp",
       configured: false,
       enabled: false,
       reason: "Flight demo WhatsApp delivery is disabled in config.json.",
       missingEnv: [],
+    };
+  }
+
+  const transport = readWhatsAppTransport(whatsapp.providerEnv, whatsapp.provider);
+  if (transport === "web") {
+    const configuredAuthStateDir = readTrimmedEnv(whatsapp.webAuthStateDirEnv) ?? whatsapp.webAuthStateDir;
+    const pairingPhoneNumber = readWhatsAppPairingPhoneNumber(whatsapp.webPairingPhoneEnv);
+    const connectTimeoutMs = numberEnv(whatsapp.webConnectTimeoutMsEnv, whatsapp.webConnectTimeoutMs);
+    const sendTimeoutMs = numberEnv(whatsapp.webSendTimeoutMsEnv, whatsapp.webSendTimeoutMs);
+    return {
+      ...commonBase,
+      transport: "web",
+      providerPackageId: "messaging.whatsapp-web",
+      configured: true,
+      authStateDir: resolveFlightDemoPath(configuredAuthStateDir),
+      ...(pairingPhoneNumber ? { pairingPhoneNumber } : {}),
+      connectTimeoutMs,
+      sendTimeoutMs,
     };
   }
 
@@ -786,10 +838,11 @@ export function getConfiguredWhatsAppDeliveryConfig(config: FlightDemoConfig): C
   const missingEnv: string[] = [];
   if (!accessToken) missingEnv.push(whatsapp.accessTokenEnv);
   if (!phoneNumberId) missingEnv.push(whatsapp.phoneNumberIdEnv);
-  if (!appSecret) missingEnv.push(whatsapp.appSecretEnv);
-  if (missingEnv.length > 0 || !accessToken || !phoneNumberId || !appSecret) {
+  if (missingEnv.length > 0 || !accessToken || !phoneNumberId) {
     return {
-      ...base,
+      ...commonBase,
+      transport: "cloud-api",
+      providerPackageId: "messaging.whatsapp",
       configured: false,
       enabled: true,
       reason: `Flight demo WhatsApp delivery requires ${missingEnv.join(", ")}.`,
@@ -798,11 +851,13 @@ export function getConfiguredWhatsAppDeliveryConfig(config: FlightDemoConfig): C
   }
 
   return {
-    ...base,
+    ...commonBase,
+    transport: "cloud-api",
+    providerPackageId: "messaging.whatsapp",
     configured: true,
     accessToken,
     phoneNumberId,
-    appSecret,
+    ...(appSecret ? { appSecret } : {}),
   };
 }
 
@@ -910,6 +965,25 @@ function readBooleanOverride(
 function readTrimmedEnv(name: string) {
   const value = process.env[name]?.trim();
   return value ? value : undefined;
+}
+
+function readWhatsAppTransport(
+  providerEnv: string,
+  defaultValue: "cloud-api" | "web",
+) {
+  const value = readTrimmedEnv(providerEnv)?.toLowerCase();
+  if (!value) return defaultValue;
+  if (value === "cloud-api" || value === "web") return value;
+  throw new Error(`${providerEnv} must be 'cloud-api' or 'web'.`);
+}
+
+function readWhatsAppPairingPhoneNumber(envName: string) {
+  const value = readTrimmedEnv(envName);
+  if (!value) return undefined;
+  if (!/^\+?\d+$/.test(value)) {
+    throw new Error(`${envName} must contain digits only, optionally prefixed by '+'.`);
+  }
+  return value.replace(/^\+/, "");
 }
 
 function numberEnv(name: string, defaultValue: number) {

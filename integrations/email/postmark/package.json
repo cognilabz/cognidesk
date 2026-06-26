@@ -51,9 +51,6 @@
     "release": "independent-provider",
     "manifestOnlyExports": [
       "./manifest"
-    ],
-    "providerSdkDependencies": [
-      "postmark"
     ]
   },
   "repository": {

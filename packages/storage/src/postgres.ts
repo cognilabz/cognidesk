@@ -132,6 +132,12 @@ export class PostgresStorageAdapter implements StorageAdapter {
   ): Promise<ConversationRecord<TConversationContext>[]> {
     const filters = [
       ...(options.agentId ? [eq(postgresConversations.agentId, options.agentId)] : []),
+      ...(options.customerId
+        ? [sql`(
+            ${postgresConversations.contextJson}->>'customerId' = ${options.customerId}
+            OR (${postgresConversations.contextJson} #>> '{customer,id}') = ${options.customerId}
+          )`]
+        : []),
       ...(options.before ? [or(
         lt(postgresConversations.updatedAt, options.before.updatedAt),
         and(

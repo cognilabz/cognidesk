@@ -51,6 +51,52 @@ describe("runtime conversations", () => {
     ]);
   });
 
+  it("reads a customer-bound conversation and filters sessions by customer id", async () => {
+    const storage = new RecordingStorage();
+    const runtime = createRuntime({ storage });
+
+    await runtime.createConversation({
+      id: "conv_customer_old",
+      agentId: "support",
+      context: { customerId: "customer_123", customer: { plan: "standard" } },
+    });
+    await runtime.createConversation({
+      id: "conv_customer_other",
+      agentId: "support",
+      context: { customerId: "customer_999" },
+    });
+    const latest = await runtime.createConversation({
+      id: "conv_customer_new",
+      agentId: "support",
+      context: { customer: { id: "customer_123", locale: "de" } },
+    });
+
+    await runtime.emit({
+      conversationId: "conv_customer_old",
+      type: "message.completed",
+      createdAt: "2099-01-01T00:00:00.000Z",
+      data: { text: "old" },
+    });
+    await runtime.emit({
+      conversationId: "conv_customer_new",
+      type: "message.completed",
+      createdAt: "2099-01-02T00:00:00.000Z",
+      data: { text: "new" },
+    });
+
+    await expect(runtime.getConversation(latest.id)).resolves.toMatchObject({
+      id: "conv_customer_new",
+      context: { customer: { id: "customer_123", locale: "de" } },
+    });
+    await expect(runtime.listConversations({
+      agentId: "support",
+      customerId: "customer_123",
+    })).resolves.toMatchObject([
+      { id: "conv_customer_new" },
+      { id: "conv_customer_old" },
+    ]);
+  });
+
   it("lists conversations through the runtime with a composite cursor", async () => {
     const storage = new RecordingStorage();
     const runtime = createRuntime({ storage });

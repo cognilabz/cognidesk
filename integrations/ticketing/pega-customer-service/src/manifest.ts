@@ -1,21 +1,18 @@
-import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
+import {
+  defineIntegrationProviderPackage as defineProviderPackage,
+  type ProviderManifestInput,
+} from "@cognidesk/integration-kit";
 
-export const PEGA_CUSTOMER_SERVICE_DEFAULT_API_BASE_PATH = "/api/v1";
-
-export const pegaCustomerServiceSupportOperationAllowlist = [
-  { alias: "ticket.create", method: "POST", path: "{apiBasePath}/cases" },
-  { alias: "ticket.read", method: "GET", path: "{apiBasePath}/cases/{ID}" },
-  { alias: "ticket.update", method: "PUT", path: "{apiBasePath}/cases/{ID}" },
-  { alias: "ticket.search", method: "GET", path: "{apiBasePath}/cases" },
-  { alias: "pega-customer-service.caseTypes.list", method: "GET", path: "{apiBasePath}/casetypes" },
-  {
-    alias: "pega-customer-service.assignmentAction.submit",
-    method: "PATCH",
-    path: "{apiBasePath}/assignments/{assignmentID}/actions/{actionID}",
-  },
+export const pegaCustomerServiceDelegatedOperationAllowlist = [
+  { alias: "ticket.create", providerClientMethod: "createCase" },
+  { alias: "ticket.read", providerClientMethod: "getCase" },
+  { alias: "ticket.update", providerClientMethod: "updateCase" },
+  { alias: "ticket.search", providerClientMethod: "searchCases" },
+  { alias: "pega-customer-service.caseTypes.list", providerClientMethod: "listCaseTypes" },
+  { alias: "pega-customer-service.assignmentAction.submit", providerClientMethod: "performAssignmentAction" },
 ] as const;
 
-export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackage({
+export const pegaCustomerServiceTicketingProviderManifestInput = {
   id: "ticketing.pega-customer-service",
   name: "Pega Customer Service",
   packageName: "@cognidesk/integration-ticketing-pega-customer-service",
@@ -27,7 +24,8 @@ export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackag
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Coverage is typed for Pega DX API case creation, case read/update, case search/listing, case-type listing, assignment action submission, and readiness checks used by Cognidesk support workflows.",
+      "Runtime coverage uses the built-in Pega DX REST adapter when baseUrl plus access credentials are provided; a host-injected PegaCustomerServiceProviderClient remains available as an override.",
+      "Coverage is typed for Pega Customer Service case creation, case read/update, case search/listing, case-type listing, assignment action submission, and readiness checks used by Cognidesk support workflows.",
       "This is not full Pega Customer Service or Pega Platform API coverage; broader assignments/actions lifecycle, stages/process navigation, attachments, data views/pages, bulk actions, views, refresh/validation flows, security rules, and broader application administration remain outside this adapter.",
     ],
     evidence: [
@@ -39,24 +37,44 @@ export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackag
       { label: "Pega DX API PUT /cases/{ID}", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-put-cases-id.html" },
       { label: "Pega DX API GET /casetypes", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-get-casetypes_0.html" },
       { label: "Pega DX API PATCH /assignments/{assignmentID}/actions/{actionID}", url: "https://docs.pega.com/bundle/dx-api/page/platform/dx-api/endpoint-patch-assignments-assignmentid-actions-actionid.html" },
+      { label: "Pega React SDK", url: "https://github.com/pegasystems/react-sdk" },
+      { label: "@pega/constellationjs package", url: "https://www.npmjs.com/package/@pega/constellationjs" },
+      { label: "@pega/auth package", url: "https://www.npmjs.com/package/@pega/auth" },
     ],
   },
   credentialRequirements: [
     {
+      id: "pega-customer-service-provider-client",
+      label: "Optional Pega Customer Service provider client override",
+      description: "Optional host runtime override implementing PegaCustomerServiceProviderClient. When omitted, the package uses its built-in Pega DX REST adapter.",
+      required: false,
+      metadata: {
+        injectionInterface: "PegaCustomerServiceProviderClient",
+        credentialOwnership: "host-managed-override",
+        defaultHttpClient: "built-in-fetch",
+        defaultFetchClient: "built-in-provider-rest-adapter",
+        defaultClientPolicy: "built-in-dx-rest-adapter",
+      },
+    },
+    {
       id: "pega-customer-service-instance",
-      label: "Pega Customer Service instance URL",
-      description: "The SDK user's Pega Platform or Pega Customer Service application URL.",
-      required: true,
+      label: "Pega Customer Service base URL",
+      description: "Pega application base URL used by the built-in DX REST adapter, or supplied by a host provider client override.",
+      required: false,
+      metadata: {
+        requiredWhen: "built-in-dx-rest-adapter",
+      },
     },
     {
       id: "pega-customer-service-api-access",
-      label: "Pega DX API access",
-      description: "Server-side OAuth bearer access or Basic Auth credentials for Pega DX API endpoints with operator/client privileges for cases, case types, and assignment actions.",
-      scopes: ["cases:read", "cases:write", "casetypes:read"],
-      required: true,
+      label: "Pega Customer Service DX API access",
+      description: "Server-side Pega DX API access supplied as accessToken, auth headers, or encapsulated in a host provider client override.",
+      scopes: ["cases:read", "cases:write", "assignments:write"],
+      required: false,
       metadata: {
+        requiredWhen: "built-in-dx-rest-adapter",
         scopeKind: "internal-capability-labels",
-        privilegeGuidance: "These strings are Cognidesk capability labels, not proven official Pega OAuth scopes. Pega access depends on the operator/client access group and privileges for case list/read/create/update, case type read, and assignment action submission.",
+        privilegeGuidance: "These strings are Cognidesk capability labels, not official Pega OAuth scope names. Pega access depends on application OAuth/client configuration, roles, privileges, and case security.",
       },
     },
   ],
@@ -64,7 +82,7 @@ export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackag
     {
       capability: "create-provider-object",
       label: "Create Pega cases",
-      description: "Creates Pega Customer Service cases with the Pega DX API from SDK-user-selected workflows.",
+      description: "Creates Pega Customer Service cases through the built-in DX REST adapter or provider client override from SDK-user-selected workflows.",
       audiences: ["customer-facing", "internal-support", "mixed"],
       providerObjects: [{ kind: "pegaCase", label: "Pega Case", schemaName: "Pega-API-CaseManagement-Case" }],
       requiresCredential: true,
@@ -75,7 +93,7 @@ export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackag
     {
       capability: "read-provider-object",
       label: "Read Pega cases",
-      description: "Reads Pega cases and case type metadata through the Pega DX API.",
+      description: "Reads Pega cases and case type metadata through the built-in DX REST adapter or provider client override.",
       audiences: ["customer-facing", "internal-support", "mixed"],
       providerObjects: [
         { kind: "pegaCase", label: "Pega Case", schemaName: "Pega-API-CaseManagement-Case" },
@@ -87,7 +105,7 @@ export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackag
     {
       capability: "update-provider-object",
       label: "Update Pega cases",
-      description: "Updates Pega cases with SDK-user-supplied case data through the Pega DX API.",
+      description: "Updates Pega cases with SDK-user-supplied case data through the built-in DX REST adapter or provider client override.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [{ kind: "pegaCase", label: "Pega Case", schemaName: "Pega-API-CaseManagement-Case" }],
       requiresCredential: true,
@@ -182,32 +200,53 @@ export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackag
     "Pega API credentials stay server-side and Studio receives only readiness and scope status.",
   ],
   limitations: [
-    "Case types, starting processes, field requirements, assignment routing, security rules, data pages, and stage transitions are owned by the SDK user's Pega application.",
-    "SDK users own case-type selection, field mapping, handoff timing, customer identity matching, notification policy, and retention before calling Pega APIs.",
+    "The built-in adapter covers selected Pega DX case and assignment-action operations only; hosts can still inject a PegaCustomerServiceProviderClient for custom authentication, retries, or endpoint policy.",
+    "Case types, starting processes, field requirements, assignment routing, security rules, data pages, and stage transitions are owned by the SDK user's Pega application and injected provider client.",
+    "SDK users own case-type selection, field mapping, handoff timing, customer identity matching, notification policy, and retention before invoking Pega provider operations.",
   ],
   metadata: {
     implementation: {
-      strategy: "direct-http-support-slice",
+      strategy: "provider-rest-adapter",
+      adapterKind: "no-official-sdk-rest-adapter",
+      providerClientInterface: "PegaCustomerServiceProviderClient",
+      defaultHttpClient: "built-in-fetch",
+      defaultFetchClient: "built-in-provider-rest-adapter",
+      providerClientOverride: true,
+      manifestImport: "no-client-initialization",
     },
     implementationStrategy: {
-      strategy: "direct-support-slice",
-      reason: "No suitable maintained server-side JavaScript SDK was found for Pega Customer Service/DX API case operations; current Pega JavaScript packages are Constellation UI/client orchestration assets.",
-      checkedAt: "2026-06-21",
+      strategy: "no-official-sdk-rest-adapter",
+      reason: "No suitable official server-side JavaScript SDK was found for Pega Customer Service case operations; current Pega JavaScript SDK surfaces are Constellation UI/client orchestration assets, while DX API remains documented as REST endpoints.",
+      checkedAt: "2026-06-25",
       rejectedLibraries: [
         {
           packageName: "@pega/constellationjs",
-          version: "25.1.3",
-          integrity: "sha512-dPPo+e/ADjMwabHfQ5s9DX2P8IeJiSg6NPXFRLFkFZm1OFbkDevf3YoSpf5/XzWD3IqcBo0dx8NzV7tLjp4EJw==",
-          reason: "Pega-maintained package, but it provides ConstellationJS engine files rather than a server-side DX API case client.",
+          result: "not-used-as-package-default",
+          reason: "Pega-maintained package, but it delivers ConstellationJS engine files rather than a server-side Customer Service case client.",
+        },
+        {
+          packageName: "@pega/auth",
+          result: "not-used-as-package-default",
+          reason: "Pega-maintained OAuth client infrastructure for Infinity and Launchpad, but not a typed Customer Service or DX case operations client.",
+        },
+        {
+          packageName: "pegasystems/react-sdk",
+          result: "not-used-as-package-default",
+          reason: "Pega-maintained React SDK for Constellation DX components and alternative UI integration, not a backend ticketing provider client for Cognidesk operations.",
         },
       ],
     },
-    supportOperationSlice: {
-      sourceKind: "official-docs-reviewed-slice",
-      sourceVersion: PEGA_CUSTOMER_SERVICE_DEFAULT_API_BASE_PATH,
-      checkedAt: "2026-06-21",
-      allowlistSha256: "6b4e3eb1f0a9b371002d8a3be22827c473680c7ce1335a0faf9d990e94cd32fd",
-      operations: pegaCustomerServiceSupportOperationAllowlist,
+    providerClient: {
+      interface: "PegaCustomerServiceProviderClient",
+      injectionPolicy: "optional-runtime-override",
+      importPolicy: "optional-host-override",
+      defaultClient: "built-in-dx-rest-adapter",
+    },
+    providerRestAdapterSupportSurface: {
+      source: "Built-in Pega DX REST adapter",
+      adapterKind: "no-official-sdk-rest-adapter",
+      checkedAt: "2026-06-25",
+      operations: pegaCustomerServiceDelegatedOperationAllowlist,
     },
     checkedProviderApiCoverage: {
       verifiedAt: "2026-06-18",
@@ -217,16 +256,21 @@ export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackag
       implementedFamilyCount: 3,
       gapFamilyCount: 1,
       implementedOperationCount: 6,
+      implementationOwnership: "built-in-provider-rest-adapter",
     },
     channelCoverage: {
-      cases: "typed-create-read-update-search",
-      assignmentActions: "typed-submit",
-      caseTypes: "typed-list",
-      readiness: "typed-list",
+      cases: "typed-rest-adapter-create-read-update-search",
+      assignmentActions: "typed-rest-adapter-submit",
+      caseTypes: "typed-rest-adapter-list",
+      readiness: "typed-rest-adapter-list",
       attachmentsDataPages: "provider-supported-not-typed",
       stageLifecycleActions: "provider-supported-not-typed",
       broaderCaseManagementAdmin: "not-covered",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],
-});
+} as const satisfies ProviderManifestInput;
+
+export const pegaCustomerServiceTicketingProviderManifest = defineProviderPackage(
+  pegaCustomerServiceTicketingProviderManifestInput,
+);

@@ -7,6 +7,8 @@ export {
   type WherebyLiveTranscriptionOptions,
   type WherebyRecordingOptions,
   type WherebyTranscriptionResource,
+  type WherebyVideoProviderClient,
+  createUnconfiguredWherebyVideoProviderClient,
   createWherebyVideoClient,
   createWherebyVideoLiveChecks,
   parseWherebySignatureHeader,

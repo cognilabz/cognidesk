@@ -8,7 +8,7 @@ import {
   createPegaCustomerServiceTicketingOperationHandlers,
   pegaCustomerServiceTicketingProviderManifest,
 } from "../src/index.js";
-import { pegaCustomerServiceSupportOperationAllowlist } from "../src/manifest.js";
+import { pegaCustomerServiceDelegatedOperationAllowlist } from "../src/manifest.js";
 
 describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
   it("keeps the manifest-only entry metadata-only and scoped", async () => {
@@ -19,19 +19,46 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
       packageName: "@cognidesk/integration-ticketing-pega-customer-service",
       coverage: { scope: "support-workflow-subset" },
       metadata: {
-        implementationStrategy: { strategy: "direct-support-slice" },
-        supportOperationSlice: {
-          allowlistSha256: "6b4e3eb1f0a9b371002d8a3be22827c473680c7ce1335a0faf9d990e94cd32fd",
+        implementationStrategy: { strategy: "no-official-sdk-rest-adapter" },
+        implementation: {
+          strategy: "provider-rest-adapter",
+          adapterKind: "no-official-sdk-rest-adapter",
+          defaultFetchClient: "built-in-provider-rest-adapter",
+        },
+        providerClient: {
+          interface: "PegaCustomerServiceProviderClient",
+          injectionPolicy: "optional-runtime-override",
+          defaultClient: "built-in-dx-rest-adapter",
+        },
+        providerRestAdapterSupportSurface: {
+          source: "Built-in Pega DX REST adapter",
+          adapterKind: "no-official-sdk-rest-adapter",
         },
       },
     });
-    expect(pegaCustomerServiceSupportOperationAllowlist.map((operation) => operation.alias)).toEqual([
+    expect(pegaCustomerServiceTicketingProviderManifest.metadata?.implementationStrategy).toMatchObject({
+      strategy: "no-official-sdk-rest-adapter",
+      rejectedLibraries: expect.arrayContaining([
+        expect.objectContaining({ packageName: "@pega/constellationjs", result: "not-used-as-package-default" }),
+        expect.objectContaining({ packageName: "@pega/auth", result: "not-used-as-package-default" }),
+        expect.objectContaining({ packageName: "pegasystems/react-sdk", result: "not-used-as-package-default" }),
+      ]),
+    });
+    expect(pegaCustomerServiceDelegatedOperationAllowlist.map((operation) => operation.alias)).toEqual([
       "ticket.create",
       "ticket.read",
       "ticket.update",
       "ticket.search",
       "pega-customer-service.caseTypes.list",
       "pega-customer-service.assignmentAction.submit",
+    ]);
+    expect(pegaCustomerServiceDelegatedOperationAllowlist.map((operation) => operation.providerClientMethod)).toEqual([
+      "createCase",
+      "getCase",
+      "updateCase",
+      "searchCases",
+      "listCaseTypes",
+      "performAssignmentAction",
     ]);
   });
 
@@ -53,9 +80,7 @@ describe("@cognidesk/integration-ticketing-pega-customer-service", () => {
     });
 
     const integration = createPegaCustomerServiceTicketingIntegration({
-      instanceUrl: "https://pega.example.com",
-      accessToken: "token",
-      client,
+      providerClient: client,
     });
     await expect(integration.run("ticket.read", { caseId: "C-1" })).resolves.toMatchObject({ caseID: "C-1" });
     expect(client.getCase).toHaveBeenCalledWith("C-1");

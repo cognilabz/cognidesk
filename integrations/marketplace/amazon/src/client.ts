@@ -2,6 +2,7 @@ import type {
   AmazonBuyerInfo,
   AmazonMarketplaceClient,
   AmazonMarketplaceClientOptions,
+  AmazonMarketplaceParticipationsResponse,
   AmazonNotificationDestinationResponse,
   AmazonNotificationDestinationsResponse,
   AmazonNotificationSubscriptionResponse,
@@ -19,135 +20,125 @@ import type {
 } from "./contracts.js";
 import { createAmazonRestrictedDataToken, refreshAmazonLwaAccessToken } from "./credentials/tokens.js";
 import {
-  amazonRequest,
-  endpointBaseUrl,
+  createAmazonSpApiOfficialSdkApis,
+  stripUndefinedAmazonPayload,
+  type AmazonOrdersV2026SdkSearchInput,
+} from "./official-sdk.js";
+import {
   marketplaceIdsFromOptions,
   resolveAmazonRestrictedDataToken,
-  withQuery,
-  type AmazonRequestInit,
 } from "./request.js";
 
 export function createAmazonMarketplaceClient(options: AmazonMarketplaceClientOptions): AmazonMarketplaceClient {
-  const fetchImpl = options.fetch ?? fetch;
-  const apiBaseUrl = (options.apiBaseUrl ?? endpointBaseUrl(options.endpoint ?? "na")).replace(/\/+$/, "");
-  const requestPath = <T>(path: string, init?: AmazonRequestInit) => amazonRequest<T>({
-    url: `${apiBaseUrl}${path}`,
-    fetch: fetchImpl,
-    options,
-    ...init,
-  });
+  const sdkApis = createAmazonSpApiOfficialSdkApis(options);
   const createRestrictedDataToken = (input: AmazonRestrictedDataTokenRequest) =>
-    createAmazonRestrictedDataToken({ ...options, fetch: fetchImpl }, input);
-  const requestWithRestrictedDataToken = async <T>(
+    createAmazonRestrictedDataToken(options, input);
+  const ordersV0WithRestrictedDataToken = async (
     path: string,
-    restrictedResourcePath: string,
-    init?: AmazonRequestInit,
+    dataElements: string[] = ["buyerInfo"],
   ) => {
     const restrictedDataToken = await resolveAmazonRestrictedDataToken(options, {
       restrictedResources: [{
-        method: init?.method ?? "GET",
-        path: restrictedResourcePath,
-        dataElements: ["buyerInfo"],
+        method: "GET",
+        path,
+        dataElements,
       }],
       ...(options.restrictedDataTokenTargetApplication
         ? { targetApplication: options.restrictedDataTokenTargetApplication }
         : {}),
     }, createRestrictedDataToken);
-    return requestPath<T>(path, {
-      ...init,
-      headers: {
-        ...init?.headers,
-        "x-amz-access-token": restrictedDataToken,
-      },
-    });
+    return sdkApis.ordersV0WithRestrictedDataToken(restrictedDataToken);
   };
 
   return {
     async refreshAccessToken() {
-      return refreshAmazonLwaAccessToken({ ...options, fetch: fetchImpl });
+      return refreshAmazonLwaAccessToken(options);
     },
     async createRestrictedDataToken(input) {
       return createRestrictedDataToken(input);
     },
     async getOrders(input: AmazonOrderSearchInput = {}) {
-      const marketplaceIds = input.marketplaceIds ?? (options.marketplaceId ? [options.marketplaceId] : undefined);
-      return requestPath<AmazonOrdersResponse>(withQuery("/orders/v0/orders", {
-        MarketplaceIds: marketplaceIds?.join(","),
-        CreatedAfter: input.createdAfter,
-        CreatedBefore: input.createdBefore,
-        LastUpdatedAfter: input.lastUpdatedAfter,
-        LastUpdatedBefore: input.lastUpdatedBefore,
-        OrderStatuses: input.orderStatuses?.join(","),
-        FulfillmentChannels: input.fulfillmentChannels?.join(","),
-        PaymentMethods: input.paymentMethods?.join(","),
-        BuyerEmail: input.buyerEmail,
-        SellerOrderId: input.sellerOrderId,
-        MaxResultsPerPage: input.maxResultsPerPage,
-        NextToken: input.nextToken,
-        AmazonOrderIds: input.amazonOrderIds?.join(","),
-        EasyShipShipmentStatuses: input.easyShipShipmentStatuses?.join(","),
-        ElectronicInvoiceStatuses: input.electronicInvoiceStatuses?.join(","),
-      }));
-    },
-    async getOrder(amazonOrderId) {
-      return requestPath<AmazonOrderResponse>(`/orders/v0/orders/${encodeURIComponent(amazonOrderId)}`);
-    },
-    async getOrderBuyerInfo(amazonOrderId) {
-      const path = `/orders/v0/orders/${encodeURIComponent(amazonOrderId)}/buyerInfo`;
-      return requestWithRestrictedDataToken<AmazonOrderResponse<AmazonOrder & { BuyerInfo?: AmazonBuyerInfo }>>(path, path);
-    },
-    async getOrderItems(amazonOrderId, input = {}) {
-      return requestPath<AmazonOrderItemsResponse>(withQuery(
-        `/orders/v0/orders/${encodeURIComponent(amazonOrderId)}/orderItems`,
-        { NextToken: input.nextToken },
-      ));
-    },
-    async getOrderItemsBuyerInfo(amazonOrderId, input = {}) {
-      const path = `/orders/v0/orders/${encodeURIComponent(amazonOrderId)}/orderItems/buyerInfo`;
-      return requestWithRestrictedDataToken<AmazonOrderItemsResponse<AmazonOrderItem & { BuyerInfo?: AmazonBuyerInfo }>>(withQuery(path, { NextToken: input.nextToken }), path);
-    },
-    async searchOrdersV2026(input: AmazonOrdersV2026SearchInput = {}) {
-      const marketplaceIds = input.marketplaceIds ?? (options.marketplaceId ? [options.marketplaceId] : undefined);
-      return requestPath<AmazonOrdersResponse>(withQuery("/orders/2026-01-01/orders", {
-        marketplaceIds: marketplaceIds?.join(","),
+      const marketplaceIds = input.marketplaceIds ?? marketplaceIdsFromOptions(options);
+      return sdkApis.ordersV0().getOrders(marketplaceIds, stripUndefinedAmazonPayload({
         createdAfter: input.createdAfter,
         createdBefore: input.createdBefore,
         lastUpdatedAfter: input.lastUpdatedAfter,
         lastUpdatedBefore: input.lastUpdatedBefore,
-        fulfillmentStatuses: input.fulfillmentStatuses?.join(","),
-        fulfilledBy: input.fulfilledBy,
+        orderStatuses: input.orderStatuses,
+        fulfillmentChannels: input.fulfillmentChannels,
+        paymentMethods: input.paymentMethods,
+        buyerEmail: input.buyerEmail,
+        sellerOrderId: input.sellerOrderId,
+        maxResultsPerPage: input.maxResultsPerPage,
+        nextToken: input.nextToken,
+        amazonOrderIds: input.amazonOrderIds,
+        easyShipShipmentStatuses: input.easyShipShipmentStatuses,
+        electronicInvoiceStatuses: input.electronicInvoiceStatuses,
+      })) as Promise<AmazonOrdersResponse>;
+    },
+    async getOrder(amazonOrderId) {
+      return sdkApis.ordersV0().getOrder(amazonOrderId) as Promise<AmazonOrderResponse>;
+    },
+    async getOrderBuyerInfo(amazonOrderId) {
+      const path = `/orders/v0/orders/${encodeURIComponent(amazonOrderId)}/buyerInfo`;
+      const orders = await ordersV0WithRestrictedDataToken(path);
+      return orders.getOrderBuyerInfo(amazonOrderId) as Promise<AmazonOrderResponse<AmazonOrder & { BuyerInfo?: AmazonBuyerInfo }>>;
+    },
+    async getOrderItems(amazonOrderId, input = {}) {
+      return sdkApis.ordersV0().getOrderItems(amazonOrderId, stripUndefinedAmazonPayload({
+        nextToken: input.nextToken,
+      })) as Promise<AmazonOrderItemsResponse>;
+    },
+    async getOrderItemsBuyerInfo(amazonOrderId, input = {}) {
+      const path = `/orders/v0/orders/${encodeURIComponent(amazonOrderId)}/orderItems/buyerInfo`;
+      const orders = await ordersV0WithRestrictedDataToken(path);
+      return orders.getOrderItemsBuyerInfo(amazonOrderId, stripUndefinedAmazonPayload({
+        nextToken: input.nextToken,
+      })) as Promise<AmazonOrderItemsResponse<AmazonOrderItem & { BuyerInfo?: AmazonBuyerInfo }>>;
+    },
+    async searchOrdersV2026(input: AmazonOrdersV2026SearchInput = {}) {
+      if (input.amazonOrderIds?.length) {
+        throw new Error("Amazon Orders v2026 SearchOrdersApi does not support amazonOrderIds; call getOrderV2026 for each order ID.");
+      }
+      const marketplaceIds = input.marketplaceIds ?? marketplaceIdsFromOptions(options);
+      return sdkApis.ordersV2026Search().searchOrders(stripUndefinedAmazonPayload({
+        marketplaceIds,
+        createdAfter: sdkDate(input.createdAfter, "createdAfter"),
+        createdBefore: sdkDate(input.createdBefore, "createdBefore"),
+        lastUpdatedAfter: sdkDate(input.lastUpdatedAfter, "lastUpdatedAfter"),
+        lastUpdatedBefore: sdkDate(input.lastUpdatedBefore, "lastUpdatedBefore"),
+        fulfillmentStatuses: input.fulfillmentStatuses,
+        fulfilledBy: input.fulfilledBy ? [input.fulfilledBy] : undefined,
         maxResultsPerPage: input.maxResultsPerPage,
         paginationToken: input.paginationToken,
-        amazonOrderIds: input.amazonOrderIds?.join(","),
-        includedData: input.includedData?.join(","),
-      }));
+        includedData: input.includedData,
+      } satisfies AmazonOrdersV2026SdkSearchInput)) as Promise<AmazonOrdersResponse>;
     },
     async getOrderV2026(amazonOrderId, input: AmazonOrdersV2026GetInput = {}) {
-      return requestPath<AmazonOrderResponse>(withQuery(
-        `/orders/2026-01-01/orders/${encodeURIComponent(amazonOrderId)}`,
-        { includedData: input.includedData?.join(",") },
-      ));
+      return sdkApis.ordersV2026Get().getOrder(amazonOrderId, stripUndefinedAmazonPayload({
+        includedData: input.includedData,
+      })) as Promise<AmazonOrderResponse>;
     },
     async getSolicitationActionsForOrder(amazonOrderId, marketplaceIds) {
-      return requestPath<AmazonSolicitationActionsResponse>(withQuery(
-        `/solicitations/v1/orders/${encodeURIComponent(amazonOrderId)}`,
-        { marketplaceIds: (marketplaceIds ?? marketplaceIdsFromOptions(options)).join(",") },
-      ));
+      return sdkApis.solicitations().getSolicitationActionsForOrder(
+        amazonOrderId,
+        marketplaceIds ?? marketplaceIdsFromOptions(options),
+      ) as Promise<AmazonSolicitationActionsResponse>;
     },
     async createProductReviewAndSellerFeedbackSolicitation(amazonOrderId, marketplaceIds) {
-      return requestPath<AmazonResource>(withQuery(
-        `/solicitations/v1/orders/${encodeURIComponent(amazonOrderId)}/solicitations/productReviewAndSellerFeedback`,
-        { marketplaceIds: (marketplaceIds ?? marketplaceIdsFromOptions(options)).join(",") },
-      ), { method: "POST" });
+      return sdkApis.solicitations().createProductReviewAndSellerFeedbackSolicitation(
+        amazonOrderId,
+        marketplaceIds ?? marketplaceIdsFromOptions(options),
+      ) as Promise<AmazonResource>;
     },
-    async getMarketplaceParticipations(input = {}) {
-      return requestPath("/sellers/v1/marketplaceParticipations", input.signal ? { signal: input.signal } : undefined);
+    async getMarketplaceParticipations(_input = {}) {
+      return sdkApis.sellers().getMarketplaceParticipations() as Promise<AmazonMarketplaceParticipationsResponse>;
     },
     async getDestinations() {
-      return requestPath<AmazonNotificationDestinationsResponse>("/notifications/v1/destinations");
+      return sdkApis.notifications().getDestinations() as Promise<AmazonNotificationDestinationsResponse>;
     },
     async getDestination(destinationId) {
-      return requestPath<AmazonNotificationDestinationResponse>(`/notifications/v1/destinations/${encodeURIComponent(destinationId)}`);
+      return sdkApis.notifications().getDestination(destinationId) as Promise<AmazonNotificationDestinationResponse>;
     },
     async createSubscription(input) {
       if (!input.notificationType) {
@@ -159,26 +150,19 @@ export function createAmazonMarketplaceClient(options: AmazonMarketplaceClientOp
       if (input.marketplaceIds?.length) {
         throw new Error("Amazon Notifications createSubscription does not accept marketplaceIds as a query parameter; configure filtering through processingDirective when supported.");
       }
-      return requestPath<AmazonNotificationSubscriptionResponse>(
-        `/notifications/v1/subscriptions/${encodeURIComponent(input.notificationType)}`,
-        {
-          method: "POST",
-          body: {
-            payloadVersion: input.payloadVersion ?? "1.0",
-            destinationId: input.destinationId,
-            ...(input.processingDirective ? { processingDirective: input.processingDirective } : {}),
-          },
-        },
-      );
+      return sdkApis.notifications().createSubscription(input.notificationType, stripUndefinedAmazonPayload({
+        payloadVersion: input.payloadVersion ?? "1.0",
+        destinationId: input.destinationId,
+        processingDirective: input.processingDirective,
+      })) as Promise<AmazonNotificationSubscriptionResponse>;
     },
     async getSubscription(input) {
       if (!input.notificationType) {
         throw new Error("Amazon Notifications getSubscription requires a notificationType.");
       }
-      return requestPath<AmazonNotificationSubscriptionResponse>(withQuery(
-        `/notifications/v1/subscriptions/${encodeURIComponent(input.notificationType)}`,
-        { payloadVersion: input.payloadVersion },
-      ));
+      return sdkApis.notifications().getSubscription(input.notificationType, stripUndefinedAmazonPayload({
+        payloadVersion: input.payloadVersion,
+      })) as Promise<AmazonNotificationSubscriptionResponse>;
     },
     async deleteSubscription(input) {
       if (!input.notificationType) {
@@ -187,10 +171,19 @@ export function createAmazonMarketplaceClient(options: AmazonMarketplaceClientOp
       if (!input.subscriptionId) {
         throw new Error("Amazon Notifications deleteSubscription requires a subscriptionId from getSubscription/getSubscriptionById.");
       }
-      return requestPath<Record<string, never>>(
-        `/notifications/v1/subscriptions/${encodeURIComponent(input.notificationType)}/${encodeURIComponent(input.subscriptionId)}`,
-        { method: "DELETE" },
-      );
+      return sdkApis.notifications().deleteSubscriptionById(
+        input.subscriptionId,
+        input.notificationType,
+      ) as Promise<Record<string, never>>;
     },
   };
+}
+
+function sdkDate(value: string | undefined, key: string): Date | undefined {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`Amazon Orders v2026 requires '${key}' to be an ISO-8601 date string.`);
+  }
+  return parsed;
 }

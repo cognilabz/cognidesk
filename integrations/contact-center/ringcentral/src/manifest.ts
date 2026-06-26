@@ -29,9 +29,9 @@ export const ringCentralContactCenterManifestInput = {
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Runtime uses @ringcentral/sdk where viable for authentication, request dispatch, and raw platform access.",
+      "Runtime uses @ringcentral/sdk for authentication and SDK.platform()-dispatched contact-center operations.",
       "The official SDK does not currently prove typed coverage for every current RingCX Voice and Engage Digital OpenAPI operation.",
-      "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness plus raw SDK request escape hatches.",
+      "Normalized Cognidesk coverage is limited to SDK-configured handoff/readiness through an injected SDK platform client.",
       "Provider-package-local reviewed RingCX slices can be added later for operations not covered cleanly by @ringcentral/sdk.",
     ],
     evidence: [
@@ -62,17 +62,17 @@ export const ringCentralContactCenterManifestInput = {
     {
       alias: "contact-center.handoff.request",
       capability: "handoff",
-      providerOperation: "sdk-configured-request",
-      providerObject: "contactTransfer",
+      providerOperation: "SDK.platform().post",
+      providerObject: "ringcxHandoff",
       sideEffect: true,
       exposesSensitiveData: true,
       changesWorkflow: true,
     },
     {
       alias: "contact-center.handoff.status.read",
-      capability: "handoff",
-      providerOperation: "sdk-configured-readiness-request",
-      providerObject: "contactTransfer",
+      capability: "read-provider-object",
+      providerOperation: "SDK.platform().get",
+      providerObject: "ringcentralReadiness",
       exposesSensitiveData: true,
     },
   ],
@@ -86,14 +86,19 @@ export const ringCentralContactCenterManifestInput = {
   ],
   metadata: {
     implementation: {
-      strategy: "official-sdk-plus-reviewed-slices",
+      strategy: "official-sdk-backed-client-plus-reviewed-slices",
       sdkPackage: "@ringcentral/sdk",
       sdkPackages: ["@ringcentral/sdk"],
+      sdkRuntimeSurface: "SDK.platform()",
+      operationMethodMap: {
+        "contact-center.handoff.request": "SDK.platform().post",
+        "contact-center.handoff.status.read": "SDK.platform().get",
+      },
     },
     channelCoverage: {
-      configuredHttpHandoff: "sdk-dispatched",
-      configuredReadiness: "sdk-dispatched",
-      rawRingCentralSdkPlatform: "escape-hatch",
+      configuredHttpHandoff: "SDK.platform().post",
+      configuredReadiness: "SDK.platform().get",
+      sdkBackedClient: "injected-client",
       currentVoiceRestApiOperations: "provider-supported-not-typed",
       digitalRestApiOperations: "provider-supported-not-typed",
       channelSdkMessaging: "provider-supported-sdk-runtime-not-typed",

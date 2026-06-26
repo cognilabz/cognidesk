@@ -9,6 +9,18 @@ describe("@cognidesk/integration-ticketing-servicenow/manifest", () => {
       packageName: "@cognidesk/integration-ticketing-servicenow",
       category: "ticketing",
       provider: "servicenow",
+      metadata: {
+        implementation: {
+          strategy: "official-sdk-connector",
+          manifestImport: "no-sdk-client-initialization",
+          sdkPackage: "@servicenow/sdk-api",
+          packageOwnedRestClient: false,
+        },
+        sdkDecision: {
+          package: "@servicenow/sdk-api",
+          result: "official-sdk-runtime-connector-not-ticketing-client",
+        },
+      },
     });
-  });
+  }, 30_000);
 });

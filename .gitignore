@@ -22,3 +22,4 @@ website/api-reference/generated/
 !website/api-reference/generated/integrations/**
 !website/api-reference/generated/packages/
 !website/api-reference/generated/packages/**
+.data

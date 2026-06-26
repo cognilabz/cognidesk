@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-contact-center-genesys-engage",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,7 +26,9 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cognidesk/integration-kit": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "engagement-client-js": "^9.0.83",
+    "superagent-proxy": "^3.0.0"
   },
   "devDependencies": {
     "tsup": "^8.5.0",
@@ -60,6 +62,35 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "official-engagement-sdk-for-callbacks-gms-chat-rest-adapter",
+      "defaultRestPolicy": "official-engagement-client-sdk-for-callbacks-with-fail-closed-gms-chat-rest-adapter-and-typed-provider-client-override",
+      "typedClientOverride": "GenesysEngageProviderClient",
+      "checkedPackages": [
+        {
+          "package": "engagement-client-js",
+          "checkedVersion": "9.0.83",
+          "license": "MIT",
+          "result": "accepted-callback-runtime-sdk",
+          "reason": "Official PureEngage Engagement client exposes CallbacksApi.bookCallbackExternal, which backs Cognidesk contact-center.callback.schedule. It does not expose GMS Chat API v2, so chat operations stay on the reviewed REST adapter."
+        },
+        {
+          "package": "genesys-workspace-client-js",
+          "checkedVersion": "9.0.95",
+          "license": "MIT",
+          "result": "workspace-web-edition-api-not-gms-runtime-client",
+          "reason": "Workspace Web Edition client targets workspace voice/call controls rather than GMS Chat API v2 and GMS callback endpoints."
+        },
+        {
+          "package": "purecloud-platform-client-v2",
+          "checkedVersion": "255.1.0",
+          "license": "MIT",
+          "result": "genesys-cloud-sdk-not-genesys-engage-gms",
+          "reason": "Maintained SDK targets Genesys Cloud Platform APIs, not Genesys Engage GMS Chat/Callback endpoints."
+        }
+      ]
     }
   }
 }

@@ -1,14 +1,18 @@
 import { createHmac } from "node:crypto";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
 import {
-  createForumCommunityClient,
+  createForumCommunityIntegration,
   createForumCommunityLiveChecks,
+  createForumCommunityUnavailableClient,
   forumCommunityCredentialStatuses,
   forumCommunityProviderManifest,
   parseForumWebhook,
+  type ForumCommunityClient,
   validateForumWebhookSignature,
 } from "../src/index.js";
+
+type OperationRunner = (alias: string, input: unknown) => Promise<unknown>;
 
 describe("@cognidesk/integration-community-forum", () => {
   it("exports an official provider manifest for forum community support", () => {
@@ -21,8 +25,43 @@ describe("@cognidesk/integration-community-forum", () => {
     });
     expect(forumCommunityProviderManifest.name).toBe("Discourse Forum");
     expect(forumCommunityProviderManifest.metadata).toMatchObject({
-      concreteProvider: "discourse",
-      supportedForumApi: "discourse-compatible-rest-and-webhooks",
+      concreteProvider: "discourse-compatible-rest-adapter-or-provider-client",
+      supportedForumApi: "built-in-discourse-rest-adapter-and-discourse-webhooks",
+      implementation: {
+        strategy: "no-official-js-ts-sdk-rest-adapter",
+        defaultClientPolicy: "provider-rest-adapter-when-configured",
+        officialJsSdkAvailable: false,
+        verifiedAt: "2026-06-25",
+        providerClient: "ForumCommunityProviderClient",
+        sdkDecision: {
+          result: "no-applicable-official-js-ts-sdk",
+          rejectedSdkPackages: expect.arrayContaining([
+            expect.objectContaining({
+              packageName: "discourse_api",
+              ecosystem: "ruby",
+            }),
+            expect.objectContaining({
+              packageName: "discourse-api-sdk",
+              ecosystem: "npm",
+            }),
+            expect.objectContaining({
+              packageName: "@discourse/mcp",
+              ecosystem: "npm",
+            }),
+            expect.objectContaining({
+              packageName: "discourse-sdk",
+              ecosystem: "npm",
+            }),
+          ]),
+        },
+      },
+      providerClient: {
+        interface: "ForumCommunityProviderClient",
+        defaultClientPolicy: "provider-rest-adapter-when-configured",
+        sdkDecision: {
+          result: "no-applicable-official-js-ts-sdk",
+        },
+      },
       apiCoverage: {
         operationCatalog: "docs/provider-coverage/discourse-selected-api-2026-06-18.operations.json",
         generatedFromOfficialSpec: false,
@@ -32,6 +71,8 @@ describe("@cognidesk/integration-community-forum", () => {
         selectedOperationCount: 5,
         docsOnlyOperationCount: 1,
         implementedOperationCount: 6,
+        packageImplementedProviderRestOperationCount: 5,
+        providerOperationImplementation: "built-in-provider-rest-adapter",
         fullProviderApi: false,
       },
     });
@@ -50,17 +91,21 @@ describe("@cognidesk/integration-community-forum", () => {
       scope: "support-workflow-subset",
     });
     expect(forumCommunityProviderManifest.coverage.notes.join(" "))
+      .toContain("built-in Discourse-compatible REST adapter");
+    expect(forumCommunityProviderManifest.coverage.notes.join(" "))
+      .toContain("No applicable official JavaScript or TypeScript Discourse provider SDK");
+    expect(forumCommunityProviderManifest.coverage.notes.join(" "))
       .toContain("does not implement broader Discourse administration");
     expect(forumCommunityProviderManifest.coverage.notes.join(" "))
       .toContain("non-Discourse forum APIs");
     expect(forumCommunityProviderManifest.limitations.join(" "))
-      .toContain("Discourse rate limits and throttling");
+      .toContain("operation handlers fail closed");
     expect(forumCommunityProviderManifest.coverage.evidence.map((evidence) => evidence.url))
       .toEqual(expect.arrayContaining(["https://docs.discourse.org/"]));
     const descriptions = forumCommunityProviderManifest.capabilities
       .map((capability) => capability.description ?? "")
       .join(" ");
-    expect(descriptions).toContain("latest topics, and search results");
+    expect(descriptions).toContain("configured Discourse-compatible REST adapter or provider client");
     expect(descriptions).toContain("current API user readiness record");
     expect(descriptions).toContain("query and pagination controls");
     expect(descriptions).not.toContain("category, tag, and pagination controls");
@@ -69,62 +114,70 @@ describe("@cognidesk/integration-community-forum", () => {
       .toContain("category/tag labels present in returned topics");
   });
 
-  it("creates topics and replies through Discourse-compatible posts endpoint", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ id: 101, topic_id: 55, post_number: 1 }), { status: 200 })
-    );
-    const client = createForumCommunityClient({
-      baseUrl: "https://community.example.test",
-      apiKey: "forum-key",
-      apiUsername: "system",
-      fetch: fetchMock as unknown as typeof fetch,
-    });
+  it("delegates provider operations to the host-injected forum client", async () => {
+    const calls: [string, unknown][] = [];
+    const client: ForumCommunityClient = {
+      async createTopic(input) {
+        calls.push(["createTopic", input]);
+        return { id: 101, topic_id: 55 };
+      },
+      async createReply(input) {
+        calls.push(["createReply", input]);
+        return { id: 102, topic_id: input.topicId };
+      },
+      async getTopic(topicId) {
+        calls.push(["getTopic", topicId]);
+        return { id: topicId, title: "Known issue" };
+      },
+      async getPost(postId) {
+        calls.push(["getPost", postId]);
+        return { id: postId, raw: "Body" };
+      },
+      async search(input) {
+        calls.push(["search", input]);
+        return { topics: [{ id: 55 }], query: input.query };
+      },
+      async latest() {
+        calls.push(["latest", undefined]);
+        return { topics: [] };
+      },
+      async getCurrentUser() {
+        calls.push(["getCurrentUser", undefined]);
+        return { id: 1, username: "system" };
+      },
+    };
+    const integration = createForumCommunityIntegration({ client });
+    const run = integration.run as unknown as OperationRunner;
 
-    await client.createTopic({ title: "Known issue", raw: "We are investigating.", category: 7, tags: ["status"] });
-    await client.createReply({ topicId: 55, raw: "Can you share logs?", replyToPostNumber: 1 });
+    await expect(run("forum.topic.create", {
+      title: "Known issue",
+      raw: "We are investigating.",
+      category: 7,
+      tags: ["status"],
+    })).resolves.toMatchObject({ id: 101 });
+    await expect(run("forum.reply.create", {
+      topicId: 55,
+      raw: "Can you share logs?",
+      replyToPostNumber: 1,
+    })).resolves.toMatchObject({ id: 102 });
+    await expect(run("forum.topic.read", { topicId: 55 })).resolves.toMatchObject({ id: 55 });
+    await expect(run("forum.post.read", { postId: 101 })).resolves.toMatchObject({ id: 101 });
+    await expect(run("forum.search", { query: "reset password", page: 2 }))
+      .resolves.toMatchObject({ topics: [{ id: 55 }] });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://community.example.test/posts.json",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          "Api-Key": "forum-key",
-          "Api-Username": "system",
-          "content-type": "application/x-www-form-urlencoded",
-        }),
-      }),
-    );
-    const topicRequest = (fetchMock.mock.calls[0] as unknown[])[1] as { body: URLSearchParams };
-    expect(topicRequest.body.get("title")).toBe("Known issue");
-    expect(topicRequest.body.get("category")).toBe("7");
-    expect(topicRequest.body.getAll("tags[]")).toEqual(["status"]);
-    const replyRequest = (fetchMock.mock.calls[1] as unknown[])[1] as { body: URLSearchParams };
-    expect(replyRequest.body.get("topic_id")).toBe("55");
-    expect(replyRequest.body.get("reply_to_post_number")).toBe("1");
+    expect(calls).toEqual([
+      ["createTopic", { title: "Known issue", raw: "We are investigating.", category: 7, tags: ["status"] }],
+      ["createReply", { topicId: 55, raw: "Can you share logs?", replyToPostNumber: 1 }],
+      ["getTopic", 55],
+      ["getPost", 101],
+      ["search", { query: "reset password", page: 2 }],
+    ]);
   });
 
-  it("reads topics, posts, and search results", async () => {
-    const fetchMock = vi.fn(async (url: string) => {
-      if (url.endsWith("/t/55.json")) return new Response(JSON.stringify({ id: 55, title: "Known issue" }), { status: 200 });
-      if (url.endsWith("/posts/101.json")) return new Response(JSON.stringify({ id: 101, raw: "Body" }), { status: 200 });
-      return new Response(JSON.stringify({ topics: [{ id: 55 }] }), { status: 200 });
-    });
-    const client = createForumCommunityClient({
-      baseUrl: "https://community.example.test",
-      apiKey: "forum-key",
-      apiUsername: "system",
-      fetch: fetchMock as unknown as typeof fetch,
-    });
+  it("fails closed instead of performing default provider REST operations", async () => {
+    const client = createForumCommunityUnavailableClient("Host forum client missing.");
 
-    await expect(client.getTopic(55)).resolves.toMatchObject({ id: 55 });
-    await expect(client.getPost(101)).resolves.toMatchObject({ id: 101 });
-    await expect(client.search({ query: "reset password", page: 2 })).resolves.toMatchObject({ topics: [{ id: 55 }] });
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      3,
-      "https://community.example.test/search.json?q=reset+password&page=2",
-      expect.objectContaining({ method: "GET" }),
-    );
+    await expect(client.search({ query: "reset password" })).rejects.toThrow("Host forum client missing.");
   });
 
   it("validates and parses signed forum webhooks", async () => {
@@ -176,9 +229,6 @@ describe("@cognidesk/integration-community-forum", () => {
       live: {
         enabled: true,
         checks: createForumCommunityLiveChecks({
-          baseUrl: "https://community.example.test",
-          apiKey: "missing",
-          apiUsername: "missing",
           client: {
             async getCurrentUser() {
               return { id: 1, username: "system" };
@@ -216,9 +266,6 @@ describe("@cognidesk/integration-community-forum", () => {
       live: {
         enabled: true,
         checks: createForumCommunityLiveChecks({
-          baseUrl: "https://community.example.test",
-          apiKey: "configured",
-          apiUsername: "system",
           client: {
             async getCurrentUser() {
               return { id: 1, username: "system" };

@@ -1,9 +1,12 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
+import { GetAccountCommand, SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { describe, expect, it, vi } from "vitest";
 import { assertIntegrationConformance, createOperationHandlerStubs } from "@cognidesk/integration-kit/testing";
 import {
+  createSesEmailClient,
   createSesEmailIntegration,
   parseSesSnsNotification,
   parseSesSqsRecord,
@@ -40,6 +43,19 @@ describe("@cognidesk/integration-email-ses", () => {
     vi.doUnmock("@aws-sdk/client-sesv2");
   });
 
+  it("constructs real AWS SDK v3 clients for default runtime use", () => {
+    const client = createSesEmailClient({
+      region: "eu-central-1",
+      credentials: {
+        accessKeyId: "test-access-key",
+        secretAccessKey: "test-secret-key",
+      },
+    });
+
+    expect(client.rawClients.sesv2).toBeInstanceOf(SESv2Client);
+    expect(client.rawClients.ses).toBeInstanceOf(SESClient);
+  });
+
   it("passes provider conformance for the split package manifest", async () => {
     const report = assertIntegrationConformance({
       manifest: sesEmailProviderManifest,
@@ -64,13 +80,16 @@ describe("@cognidesk/integration-email-ses", () => {
   });
 
   it("binds declared operations to AWS SDK v3 clients", async () => {
-    const send = vi.fn(async (command: { constructor: { name: string } }) => {
-      if (command.constructor.name === "GetAccountCommand") return { SendingEnabled: true };
-      if (command.constructor.name === "ListEmailIdentitiesCommand") return { EmailIdentities: [{ IdentityName: "example.test" }] };
-      if (command.constructor.name === "SendEmailCommand") return { MessageId: "ses-message-id" };
+    const sesv2Send = vi.fn(async (command: unknown) => {
+      if (command instanceof GetAccountCommand) return { SendingEnabled: true };
+      if (command instanceof SendEmailCommand) return { MessageId: "ses-message-id" };
       return {};
     });
-    const rawClients = { sesv2: { send } } as unknown as SesRawClients;
+    const sesSend = vi.fn(async (command: unknown) => {
+      if (command instanceof SendRawEmailCommand) return { MessageId: "raw-ses-message-id" };
+      return {};
+    });
+    const rawClients = { sesv2: { send: sesv2Send }, ses: { send: sesSend } } as unknown as SesRawClients;
     const integration = createSesEmailIntegration({ region: "eu-central-1", rawClients });
 
     await expect(integration.operations["email.send"]?.({
@@ -78,15 +97,21 @@ describe("@cognidesk/integration-email-ses", () => {
       Destination: { ToAddresses: ["customer@example.test"] },
       Content: { Simple: { Subject: { Data: "Hi" }, Body: { Text: { Data: "Body" } } } },
     })).resolves.toMatchObject({ MessageId: "ses-message-id" });
+    await expect(integration.operations["ses.rawEmail.send"]?.({
+      Source: "support@example.test",
+      Destinations: ["customer@example.test"],
+      RawMessage: { Data: new Uint8Array([82, 97, 119]) },
+    })).resolves.toMatchObject({ MessageId: "raw-ses-message-id" });
     await integration.operations["ses.account.read"]?.();
 
-    expect(send).toHaveBeenCalledTimes(2);
+    expect(sesv2Send).toHaveBeenCalledTimes(2);
+    expect(sesSend).toHaveBeenCalledTimes(1);
   });
 
   it("passes fail-closed SNS verification options through inbound operations", async () => {
     const integration = createSesEmailIntegration({
       region: "eu-central-1",
-      rawClients: { sesv2: { send: vi.fn(async () => ({})) } } as unknown as SesRawClients,
+      rawClients: { sesv2: { send: vi.fn(async () => ({})) }, ses: { send: vi.fn(async () => ({})) } } as unknown as SesRawClients,
       snsParseOptions: {
         verifySignature: () => true,
       },

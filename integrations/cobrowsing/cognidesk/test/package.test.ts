@@ -50,4 +50,41 @@ describe("@cognidesk/integration-cobrowsing-cognidesk", () => {
     expect(packageJson.dependencies).not.toHaveProperty("drachtio-srf");
     expect(packageJson.dependencies).not.toHaveProperty("imapflow");
   });
+
+  it("documents the internal runtime boundary without an external provider SDK", async () => {
+    const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
+      dependencies?: Record<string, string>;
+      exports?: Record<string, { import?: string; types?: string }>;
+      scripts?: Record<string, string>;
+      cognidesk?: {
+        providerPackage?: boolean;
+        release?: string;
+        manifestOnlyExports?: string[];
+      };
+    };
+
+    expect(cognideskCobrowsingProviderManifest.metadata).toMatchObject({
+      implementation: {
+        strategy: "local-protocol",
+        sdkPackage: "@cognidesk/integration-cobrowsing-cognidesk",
+        runtimePackage: "@cognidesk/integration-cobrowsing-cognidesk",
+        manifestImport: "no-sdk-client-initialization",
+        externalProviderSdk: "not-applicable-internal-provider",
+      },
+    });
+    expect(Object.keys(packageJson.dependencies ?? {}).sort()).toEqual([
+      "@cognidesk/core",
+      "@cognidesk/integration-kit",
+    ]);
+    expect(packageJson.exports?.["./runtime"]).toMatchObject({
+      import: "./dist/runtime.js",
+      types: "./dist/runtime.d.ts",
+    });
+    expect(packageJson.scripts?.build).toContain("src/runtime.ts");
+    expect(packageJson.cognidesk).toMatchObject({
+      providerPackage: true,
+      release: "independent-provider",
+      manifestOnlyExports: ["./manifest"],
+    });
+  });
 });

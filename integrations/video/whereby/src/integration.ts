@@ -21,7 +21,7 @@ export interface WherebyVideoIntegrationContext {
 }
 
 type WherebyVideoOperationContext = Partial<IntegrationOperationContext<WherebyVideoIntegrationContext>> & Partial<WherebyVideoIntegrationContext>;
-type WherebyRestRequestOperationInput<OperationKey extends WherebyFullApiOperationKey> = {
+type WherebyProviderOperationInvokeInput<OperationKey extends WherebyFullApiOperationKey> = {
   operation: OperationKey;
   request: WherebyFullApiOperationRequestMap[OperationKey];
 };
@@ -52,8 +52,8 @@ export const wherebyVideoOperationHandlers = {
     input: { roomName: string; tokens: WherebyRoomThemeTokensInput },
     context: WherebyVideoOperationContext,
   ) => requireWherebyVideoClient(context).setRoomThemeTokens(input.roomName, input.tokens),
-  "whereby.rest.request": <OperationKey extends WherebyFullApiOperationKey>(
-    input: WherebyRestRequestOperationInput<OperationKey>,
+  "whereby.provider-operation.invoke": <OperationKey extends WherebyFullApiOperationKey>(
+    input: WherebyProviderOperationInvokeInput<OperationKey>,
     context: WherebyVideoOperationContext,
   ) => requireWherebyVideoClient(context).requestOperation(input.operation, input.request),
   "whereby.webhook.parse": (

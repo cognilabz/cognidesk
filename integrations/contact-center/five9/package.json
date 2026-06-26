@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-contact-center-five9",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -60,6 +60,32 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-suitable-official-server-side-sdk",
+      "defaultRestPolicy": "fail-closed-configured-rest-adapter-with-typed-provider-client-override",
+      "typedClientOverride": "Five9ProviderClient",
+      "checkedPackages": [
+        {
+          "package": "five9",
+          "checkedVersion": "0.1.3",
+          "result": "third-party-stale-node-module",
+          "reason": "Third-party package last published years ago, not an official maintained Five9 runtime SDK."
+        },
+        {
+          "package": "uniphore-five9-messaging-api-client-library",
+          "checkedVersion": "7.2.0",
+          "license": "ISC",
+          "result": "third-party-messaging-specific-client",
+          "reason": "Uniphore-maintained messaging client, not an official Five9 contact-center runtime SDK for the declared handoff surface."
+        },
+        {
+          "package": "Five9 CRM SDK",
+          "result": "browser-agent-desktop-cdn-sdk-not-node-runtime",
+          "reason": "Five9 JavaScript CRM SDK is loaded from Five9 CDN for browser pages integrated with Agent Desktop Toolkit."
+        }
+      ]
     }
   }
 }

@@ -120,6 +120,7 @@ export class RecordingStorage implements StorageAdapter {
   ): Promise<ConversationRecord<TConversationContext>[]> {
     return Array.from(this.conversations.values())
       .filter((conversation) => options.agentId === undefined || conversation.agentId === options.agentId)
+      .filter((conversation) => options.customerId === undefined || conversationCustomerId(conversation.context) === options.customerId)
       .filter((conversation) =>
         options.before === undefined
         || conversation.updatedAt < options.before.updatedAt
@@ -191,6 +192,16 @@ export class RecordingStorage implements StorageAdapter {
   async getSnapshot(conversationId: string): Promise<RuntimeSnapshot | null> {
     return this.snapshots.get(conversationId) ?? null;
   }
+}
+
+function conversationCustomerId(context: unknown) {
+  if (!context || typeof context !== "object" || Array.isArray(context)) return undefined;
+  if ("customerId" in context && typeof context.customerId === "string") return context.customerId;
+  const customer = "customer" in context ? context.customer : undefined;
+  if (customer && typeof customer === "object" && !Array.isArray(customer) && "id" in customer && typeof customer.id === "string") {
+    return customer.id;
+  }
+  return undefined;
 }
 
 function isApprovalPending(events: RuntimeEvent[], approvalId: string) {

@@ -1,4 +1,4 @@
-import { SESClient, SendRawEmailCommand, type SendRawEmailCommandInput } from "@aws-sdk/client-ses";
+import { SESClient, SendRawEmailCommand, type SendRawEmailCommandInput, type SendRawEmailCommandOutput } from "@aws-sdk/client-ses";
 import {
   DeleteSuppressedDestinationCommand,
   GetAccountCommand,
@@ -18,7 +18,7 @@ import { parseSesSnsNotification, type ParseSesSnsNotificationOptions } from "./
 
 export interface SesRawClients {
   sesv2: Pick<SESv2Client, "send">;
-  ses?: Pick<SESClient, "send">;
+  ses: Pick<SESClient, "send">;
 }
 
 export interface SesEmailClientOptions {
@@ -35,7 +35,7 @@ export interface SesEmailClientOptions {
 export interface SesEmailClient {
   rawClients: SesRawClients;
   sendEmail(input: SendEmailCommandInput): Promise<SendEmailCommandOutput>;
-  sendRawEmail(input: SendRawEmailCommandInput): Promise<unknown>;
+  sendRawEmail(input: SendRawEmailCommandInput): Promise<SendRawEmailCommandOutput>;
   getAccount(): Promise<GetAccountCommandOutput>;
   listEmailIdentities(input?: ListEmailIdentitiesCommandInput): Promise<ListEmailIdentitiesCommandOutput>;
   deleteSuppressedDestination(input: DeleteSuppressedDestinationCommandInput): Promise<unknown>;
@@ -84,6 +84,7 @@ export function createSesEmailIntegration(options: SesEmailClientOptions) {
       operations: {
         "ses.snsNotification.receive": (input: unknown) => parseSesSnsNotification(input as Request, snsParseOptions),
         "email.send": (input: unknown) => client.sendEmail(input as SendEmailCommandInput),
+        "ses.rawEmail.send": (input: unknown) => client.sendRawEmail(input as SendRawEmailCommandInput),
         "email.deliveryStatus.read": (input: unknown) => parseSesSnsNotification(input as Request, snsParseOptions),
         "ses.account.read": () => client.getAccount(),
         "ses.identities.list": (input: unknown) => client.listEmailIdentities((input as ListEmailIdentitiesCommandInput | undefined) ?? {}),

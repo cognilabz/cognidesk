@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-help-center-cognidesk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -46,6 +46,14 @@
   "cognidesk": {
     "providerPackage": true,
     "release": "independent-provider",
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "not-applicable-internal-provider",
+      "reason": "Cognidesk Help Center is an internal local/HTTP-source protocol and host-client adapter; it does not wrap a named external help-center provider SDK.",
+      "defaultClientPolicy": "built-in-http-source-when-base-url-configured",
+      "typedClientOverride": "HelpCenterProviderClient",
+      "rejectedSdkPackages": []
+    },
     "manifestOnlyExports": [
       "./manifest"
     ],

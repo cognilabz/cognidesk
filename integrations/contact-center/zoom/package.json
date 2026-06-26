@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-contact-center-zoom",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -60,6 +60,40 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-suitable-contact-center-management-sdk",
+      "defaultRestPolicy": "fail-closed-reviewed-contact-center-rest-adapter-with-typed-provider-client-override",
+      "typedClientOverride": "ZoomContactCenterProviderClient",
+      "checkedPackages": [
+        {
+          "package": "@zoom/rivet",
+          "checkedVersion": "0.4.0",
+          "license": "SEE LICENSE IN LICENSE.md",
+          "result": "server-sdk-without-contact-center-management-namespace",
+          "reason": "Official server-side API wrapper exports meetings/users/phone/etc., but no contact-center export or /contact_center engagement endpoints for this package surface."
+        },
+        {
+          "package": "@zoom/appssdk",
+          "checkedVersion": "0.16.38",
+          "license": "MIT",
+          "result": "embedded-zoom-apps-sdk-not-contact-center-management-client",
+          "reason": "Browser Zoom Apps SDK, not server-side Contact Center management API client."
+        },
+        {
+          "package": "@zoom/rtms",
+          "checkedVersion": "1.1.0",
+          "license": "MIT",
+          "result": "media-streaming-sdk-not-contact-center-management-client",
+          "reason": "Node wrapper for Zoom RTMS media streaming C SDK, not Contact Center REST management operations."
+        },
+        {
+          "package": "@zoom/contact-center",
+          "result": "not-published",
+          "reason": "No public npm package exists under this likely official Contact Center SDK name."
+        }
+      ]
     }
   }
 }

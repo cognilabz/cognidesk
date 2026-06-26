@@ -1,7 +1,8 @@
 import { createHmac } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildSipAddress,
+  createDrachtioSrfSipStackGateway,
   createSipVoiceClient,
   createSipVoiceLiveChecks,
   parseSipVoiceWebhook,
@@ -46,9 +47,15 @@ describe("@cognidesk/integration-voice-sip", () => {
       scope: "local-protocol",
     });
     expect(sipVoiceProviderManifest.coverage.notes.join(" "))
-      .toContain("Does not implement a SIP transaction/dialog stack");
+      .toContain("drachtio-srf-backed gateway adapter");
     expect(sipVoiceProviderManifest.coverage.notes.join(" "))
-      .toContain("Provider-specific SIP registration, INVITE/REFER/re-INVITE execution");
+      .toContain("Provider-specific SIP registration, inbound request/response acceptance");
+    expect(sipVoiceProviderManifest.metadata).toMatchObject({
+      implementation: {
+        strategy: "protocol-runtime-sdk-gateway",
+        providerSdkDecision: "provider-protocol-lib/drachtio-srf",
+      },
+    });
   });
 
   it("reports Studio-visible readiness for SIP stack configuration", () => {
@@ -122,11 +129,81 @@ describe("@cognidesk/integration-voice-sip", () => {
     expect(calls).toHaveLength(3);
   });
 
+  it("uses drachtio-srf for outbound SIP gateway call-control operations", async () => {
+    const dialog = {
+      sip: { callId: "drachtio-call-1", localTag: "ltag", remoteTag: "rtag" },
+      destroy: vi.fn((_: unknown, callback: (error?: Error | null) => void) => callback(null)),
+      request: vi.fn(async () => ({ statusCode: 202 })),
+      modify: vi.fn(async () => "v=0\r\nm=audio 49172 RTP/SAVP 0"),
+    };
+    const srf = {
+      createUAC: vi.fn(async () => dialog),
+    };
+    const gateway = createDrachtioSrfSipStackGateway({ srf: srf as never });
+    const client = createSipVoiceClient({ config: validConfig(), gateway });
+
+    await expect(gateway.checkReadiness?.({ config: validConfig() })).resolves.toMatchObject({
+      ok: true,
+      details: { sdkPackage: "drachtio-srf" },
+    });
+    await expect(client.createOutboundCall({
+      to: "sip:customer@example.com",
+      from: "sip:support@example.com",
+      offer: { type: "offer", sdp: "v=0\r\nm=audio 49170 RTP/SAVP 0" },
+    })).resolves.toMatchObject({
+      callId: "drachtio-call-1",
+      providerCallId: "drachtio-call-1",
+      dialogId: "drachtio-call-1:ltag:rtag",
+      state: "answered",
+    });
+    expect(srf.createUAC).toHaveBeenCalledWith("sip:customer@example.com", expect.objectContaining({
+      auth: { username: "agent-100", password: "secret" },
+      localSdp: "v=0\r\nm=audio 49170 RTP/SAVP 0",
+    }));
+
+    await expect(client.transferCall({ callId: "drachtio-call-1", target: "sip:agent2@example.com" }))
+      .resolves.toMatchObject({ state: "transferring" });
+    await expect(client.sendDtmf({ callId: "drachtio-call-1", digits: "123#" }))
+      .resolves.toMatchObject({ state: "answered" });
+    await expect(client.updateMediaSession({
+      callId: "drachtio-call-1",
+      offer: { type: "offer", sdp: "v=0\r\nm=audio 49172 RTP/SAVP 0" },
+    })).resolves.toMatchObject({ localDescription: { contentType: "application/sdp" } });
+    await expect(client.hangupCall({ callId: "drachtio-call-1" }))
+      .resolves.toMatchObject({ state: "completed" });
+
+    expect(dialog.request).toHaveBeenCalledTimes(2);
+    expect(dialog.modify).toHaveBeenCalledWith("v=0\r\nm=audio 49172 RTP/SAVP 0", { noAck: false });
+    expect(dialog.destroy).toHaveBeenCalled();
+  });
+
   it("fails unsupported call control clearly instead of pretending to be a SIP stack", async () => {
     const client = createSipVoiceClient({ config: validConfig(), gateway: {} });
 
     await expect(client.hangupCall({ callId: "call_1", reason: "customer-ended" }))
       .rejects.toThrow("SIP stack gateway does not implement hangupCall");
+  });
+
+  it("fails SIP readiness closed when no local stack gateway is supplied", async () => {
+    const client = createSipVoiceClient({ config: validConfig() });
+
+    await expect(client.checkReadiness()).resolves.toMatchObject({
+      ok: false,
+      registrarReachable: false,
+      registered: false,
+      proxyReachable: false,
+      missing: ["sip-stack-gateway"],
+      details: {
+        providerSdkDecision: "provider-protocol-lib/drachtio-srf",
+        gatewayRequired: true,
+      },
+    });
+  });
+
+  it("rejects live readiness without a gateway readiness implementation", async () => {
+    const checks = createSipVoiceLiveChecks({ config: validConfig() });
+
+    await expect(checks[0]?.run({})).rejects.toThrow("SIP readiness check failed: sip-stack-gateway");
   });
 
   it("runs live readiness through the configured gateway and exposes readiness details", async () => {

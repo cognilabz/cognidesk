@@ -238,6 +238,14 @@ export class CognideskRuntime {
     }, () => this.kernel.listEvents(conversationId, afterOffset));
   }
 
+  getConversation<TConversationContext = unknown>(
+    conversationId: string,
+  ): Promise<ConversationRecord<TConversationContext> | null> {
+    return this.runtimeOperation("get_conversation", telemetrySpanNames.runtimeGetConversation, {
+      [telemetryAttributes.conversationId]: conversationId,
+    }, () => this.kernel.getConversation<TConversationContext>(conversationId));
+  }
+
   listConversations<TConversationContext = unknown>(input: ListRuntimeConversationsOptions = {}) {
     return this.runtimeOperation("list_conversations", telemetrySpanNames.runtimeListConversations, {
       ...(input.agentId ? { [telemetryAttributes.agentId]: input.agentId } : {}),

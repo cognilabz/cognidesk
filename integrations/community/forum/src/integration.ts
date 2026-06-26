@@ -1,6 +1,7 @@
 import { defineIntegration } from "@cognidesk/integration-kit";
 import {
   createForumCommunityClient,
+  createForumCommunityUnavailableClient,
   parseForumWebhook,
   type ForumCommunityClient,
   type ForumCommunityClientOptions,
@@ -11,9 +12,8 @@ import {
 } from "./index.js";
 import { forumCommunityProviderManifest } from "./manifest.js";
 
-export interface ForumCommunityIntegrationOptions {
-  client?: ForumCommunityClient;
-  clientOptions?: ForumCommunityClientOptions;
+export interface ForumCommunityIntegrationOptions extends ForumCommunityClientOptions {
+  unavailableReason?: string;
 }
 
 export interface ParseForumWebhookOperationInput {
@@ -21,9 +21,10 @@ export interface ParseForumWebhookOperationInput {
   options?: ParseForumWebhookOptions;
 }
 
-export function createForumCommunityIntegration(options: ForumCommunityIntegrationOptions) {
-  const client = options.client ?? (options.clientOptions ? createForumCommunityClient(options.clientOptions) : undefined);
-  if (!client) throw new Error("Forum integration requires a client or clientOptions.");
+export function createForumCommunityIntegration(options: ForumCommunityIntegrationOptions = {}) {
+  const client = options.client || options.providerClient || hasForumRestInput(options)
+    ? createForumCommunityClient(options)
+    : createForumCommunityUnavailableClient(options.unavailableReason);
 
   return defineIntegration({
     manifest: forumCommunityProviderManifest as never,
@@ -37,4 +38,8 @@ export function createForumCommunityIntegration(options: ForumCommunityIntegrati
         parseForumWebhook(input.request, input.options),
     } as never,
   });
+}
+
+function hasForumRestInput(options: ForumCommunityIntegrationOptions): boolean {
+  return Boolean(options.baseUrl || options.apiKey || options.apiUsername || options.fetch);
 }

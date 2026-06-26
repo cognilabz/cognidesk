@@ -43,6 +43,25 @@ describe("@cognidesk/integration-messaging-discord", () => {
       package: "discord.js",
       importPolicy: "runtime-entrypoint-only",
     });
+    expect(discordMessagingProviderManifest.metadata?.implementation).toMatchObject({
+      strategy: "official-sdk-support-slice",
+      sdkPackage: "discord.js",
+      sdkRuntimeSurface: "REST + Routes + Client gateway",
+      operationMethodMap: {
+        "discord.message.send": "REST.post(Routes.channelMessages)",
+        "discord.webhook.execute": "REST.post(Routes.webhook)",
+        "discord.channel-messages.list": "REST.get(Routes.channelMessages)",
+      },
+      strictExceptions: {
+        "discord.interaction.receive": expect.stringContaining("local protocol handling"),
+      },
+    });
+    expect(discordMessagingProviderManifest.operations
+      .filter((operation) => operation.providerOperation)
+      .map((operation) => operation.providerOperation))
+      .not.toEqual(expect.arrayContaining([
+        expect.stringMatching(/^(GET|POST|PATCH|PUT|DELETE) /),
+      ]));
 
     const integration = createDiscordMessagingIntegration({
       botToken: "discord-bot-token",
@@ -75,7 +94,7 @@ describe("@cognidesk/integration-messaging-discord", () => {
     });
   });
 
-  it("uses discord.js REST-compatible calls for messaging support operations", async () => {
+  it("uses discord.js REST and Routes-backed calls for messaging support operations", async () => {
     const restCalls: Array<{ method: string; route: string; options?: unknown }> = [];
     const rest: DiscordRestLike = {
       async get(route, options) {
@@ -84,20 +103,20 @@ describe("@cognidesk/integration-messaging-discord", () => {
         if (route === "/oauth2/applications/@me") return { id: "app_123", name: "Cognidesk" };
         if (route === "/guilds/guild_123") return { id: "guild_123", name: "Support" };
         if (route === "/channels/channel_123") return { id: "channel_123", type: 15, name: "support" };
+        if (route === "/channels/channel_123/messages") return [{ id: "message_1" }];
         return [{ id: "message_1" }];
       },
       async post(route, options) {
         restCalls.push({ method: "POST", route, options });
+        if (route.startsWith("/webhooks/")) return { id: "webhook_message_123" };
         return route.includes("/threads")
           ? { id: "thread_123", name: "booking-help" }
           : { id: "message_123", content: "We can help." };
       },
     };
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ id: "webhook_message_123" }), { status: 200 }));
     const client = createDiscordMessagingClient({
       botToken: "discord-bot-token",
       rest,
-      fetch: fetchMock as unknown as typeof fetch,
     });
 
     await expect(client.sendChannelMessage({
@@ -138,7 +157,8 @@ describe("@cognidesk/integration-messaging-discord", () => {
       expect.objectContaining({ method: "POST", route: "/channels/channel_123/messages" }),
       expect.objectContaining({ method: "POST", route: "/channels/channel_123/threads" }),
       expect.objectContaining({ method: "POST", route: "/channels/forum_123/threads" }),
-      expect.objectContaining({ method: "GET", route: "/channels/channel_123/messages?before=message_9&limit=5" }),
+      expect.objectContaining({ method: "POST", route: "/webhooks/123/token" }),
+      expect.objectContaining({ method: "GET", route: "/channels/channel_123/messages" }),
     ]));
     const messageCall = restCalls.find((call) => call.route === "/channels/channel_123/messages");
     expect(messageCall?.options).toMatchObject({
@@ -148,10 +168,29 @@ describe("@cognidesk/integration-messaging-discord", () => {
         nonce: "nonce_123",
       },
     });
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://discord.com/api/webhooks/123/token?wait=true&thread_id=thread_123",
-      expect.objectContaining({ method: "POST" }),
-    );
+    const webhookCall = restCalls.find((call) => call.route === "/webhooks/123/token");
+    expect(webhookCall?.options).toMatchObject({
+      auth: false,
+      body: {
+        content: "Moderator note.",
+      },
+    });
+    expect((webhookCall?.options as { query?: URLSearchParams } | undefined)?.query?.toString())
+      .toBe("wait=true&thread_id=thread_123");
+    expect((restCalls.find((call) => call.method === "GET" && call.route === "/channels/channel_123/messages")?.options as { query?: URLSearchParams } | undefined)?.query?.toString())
+      .toBe("before=message_9&limit=5");
+
+    const callsBeforeRejectedWebhook = restCalls.length;
+    await expect(client.executeWebhook({
+      webhookUrl: "https://example.test/api/webhooks/123/token",
+      content: "Nope.",
+    })).rejects.toThrow("Discord webhookUrl must be a Discord webhook execution URL");
+    expect(restCalls).toHaveLength(callsBeforeRejectedWebhook);
+
+    await expect(createDiscordMessagingClient({}).sendChannelMessage({
+      channelId: "channel_123",
+      content: "Needs a bot token.",
+    })).rejects.toThrow("Discord botToken is required for discord.message.send");
   });
 
   it("validates and parses Discord interaction signatures and normalizes Channel Events", async () => {

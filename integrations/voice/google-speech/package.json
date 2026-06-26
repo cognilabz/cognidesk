@@ -47,10 +47,8 @@
     "release": "independent-provider",
     "category": "voice",
     "provider": "google-speech",
-    "manifestOnlyExports": ["./manifest"],
-    "providerSdkDependencies": [
-      "@google-cloud/speech",
-      "@google-cloud/text-to-speech"
+    "manifestOnlyExports": [
+      "./manifest"
     ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,

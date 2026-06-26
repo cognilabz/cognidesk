@@ -180,15 +180,83 @@ FLIGHT_EMAIL_LOGIN_BASE_URL=https://auth.cognidesk.local/flight-demo/login
 
 Set `FLIGHT_DEMO_WHATSAPP_JOURNEY=true` to register the `whatsapp-customer-message` Journey without enabling Secure Email or Discord handoff. The Journey can send verification links, confirmation links, or support notifications only after explicit customer confirmation.
 
-Default WhatsApp environment variables:
+Minimal send-only WhatsApp environment variables:
 
 ```sh
+FLIGHT_WHATSAPP_PROVIDER=cloud-api
+FLIGHT_WHATSAPP_ACCESS_TOKEN=...
+FLIGHT_WHATSAPP_PHONE_NUMBER_ID=...
+```
+
+Optional variables for demo links and inbound webhook verification:
+
+```sh
+FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL=https://auth.cognidesk.local/flight-demo/whatsapp
+FLIGHT_WHATSAPP_APP_SECRET=...
+FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN=...
+```
+
+`FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL` is only used by the demo when the outgoing WhatsApp message is a `verification-link` or `confirmation-link`; the URL is written into the message text. Plain notification messages do not use it. `FLIGHT_WHATSAPP_APP_SECRET` and `FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN` are only needed when receiving or verifying Meta webhooks. Send-only delivery needs the access token and phone number ID.
+
+The recipient phone number is always collected from the customer in the demo conversation before the send is confirmed.
+
+For a safe local smoke test, type your own WhatsApp-enabled test number in the chat prompt.
+
+### WhatsApp via linked device
+
+For a consumer-friendly local demo without a WhatsApp Business Account, use the community WhatsApp Web linked-device adapter. It follows the same non-Business-API approach as WhatsApp Web clients such as `wacli`, but it sends directly through the built-in Node/Baileys integration instead of shelling out to a CLI.
+
+Then run the Flight Demo with:
+
+```sh
+FLIGHT_DEMO_WHATSAPP_JOURNEY=true
+FLIGHT_WHATSAPP_PROVIDER=web
+```
+
+Optional linked-device variables:
+
+```sh
+FLIGHT_WHATSAPP_WEB_AUTH_STATE_DIR=/absolute/path/to/.data/whatsapp-web
+FLIGHT_WHATSAPP_WEB_PAIRING_PHONE=15550123
+FLIGHT_WHATSAPP_WEB_CONNECT_TIMEOUT_MS=45000
+FLIGHT_WHATSAPP_WEB_SEND_TIMEOUT_MS=30000
+```
+
+On first use, scan the QR code printed by the server from WhatsApp's Linked Devices screen. If `FLIGHT_WHATSAPP_WEB_PAIRING_PHONE` is set, the server requests and prints a pairing code instead; use the account phone number in E.164 format without `+`.
+
+This is a third-party WhatsApp Web integration, not an official WhatsApp Business Platform API. Use a demo/automation account when possible, understand that the local auth-state directory contains session credentials, and confirm every outbound send in the demo UI.
+
+WhatsApp environment variable reference:
+
+| Variable | Applies to | Required | Purpose |
+| --- | --- | --- | --- |
+| `FLIGHT_DEMO_WHATSAPP_JOURNEY` | all WhatsApp modes | yes | Enables only the Flight Demo WhatsApp customer-message journey. `FLIGHT_DEMO_WHATSAPP_ENABLED` and `COGNIDESK_FLIGHT_DEMO_WHATSAPP_JOURNEY` are accepted aliases; `FLIGHT_DEMO_EXTERNAL_APIS=true` enables all external-integration journeys by default. |
+| `FLIGHT_WHATSAPP_PROVIDER` | all WhatsApp modes | optional | Selects delivery: `cloud-api` for Meta Cloud API, `web` for WhatsApp Web linked-device. Defaults to `cloud-api`. |
+| `FLIGHT_WHATSAPP_ACCESS_TOKEN` | `cloud-api` | send-only yes | Meta access token used to call the WhatsApp Cloud API. |
+| `FLIGHT_WHATSAPP_PHONE_NUMBER_ID` | `cloud-api` | send-only yes | Meta `phone_number_id` used as the sender number for Cloud API sends. |
+| `FLIGHT_WHATSAPP_APP_SECRET` | `cloud-api` webhooks | no for send-only | Meta app secret used only to validate inbound webhook signatures. |
+| `FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN` | `cloud-api` webhooks | no for send-only | Verify token used only for webhook challenge setup. |
+| `FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL` | all WhatsApp modes | optional | Base URL written into demo verification/confirmation messages. It is not a webhook callback and is not needed for plain notifications. |
+| `FLIGHT_WHATSAPP_WEB_AUTH_STATE_DIR` | `web` | optional | Local directory where the linked-device session credentials are stored. Defaults to `.data/whatsapp-web` under the Flight Demo app. |
+| `FLIGHT_WHATSAPP_WEB_PAIRING_PHONE` | `web` | optional | Phone number used to request a pairing code instead of scanning a QR code. Use digits/E.164 without `+`, for example `15550123`. |
+| `FLIGHT_WHATSAPP_WEB_CONNECT_TIMEOUT_MS` | `web` | optional | Max time to wait for the linked-device session to open. Defaults to `45000`. |
+| `FLIGHT_WHATSAPP_WEB_SEND_TIMEOUT_MS` | `web` | optional | Max time to wait for one outbound WhatsApp Web send. Defaults to `30000`. |
+
+There is intentionally no WhatsApp recipient override. The customer phone number is always collected in the demo conversation and shown before the explicit send confirmation.
+
+Full WhatsApp environment variable example:
+
+```sh
+FLIGHT_WHATSAPP_PROVIDER=cloud-api
 FLIGHT_WHATSAPP_ACCESS_TOKEN=...
 FLIGHT_WHATSAPP_PHONE_NUMBER_ID=...
 FLIGHT_WHATSAPP_APP_SECRET=...
 FLIGHT_WHATSAPP_WEBHOOK_VERIFY_TOKEN=...
-FLIGHT_WHATSAPP_RECIPIENT_OVERRIDE=+15550100
 FLIGHT_WHATSAPP_CONFIRMATION_BASE_URL=https://auth.cognidesk.local/flight-demo/whatsapp
+FLIGHT_WHATSAPP_WEB_AUTH_STATE_DIR=/absolute/path/to/.data/whatsapp-web
+FLIGHT_WHATSAPP_WEB_PAIRING_PHONE=15550123
+FLIGHT_WHATSAPP_WEB_CONNECT_TIMEOUT_MS=45000
+FLIGHT_WHATSAPP_WEB_SEND_TIMEOUT_MS=30000
 ```
 
 Default text role mapping:

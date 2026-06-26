@@ -194,6 +194,12 @@ describe("@cognidesk/integration-email-gmail", () => {
     const rawClient = gmailClientMock();
     const client = createGmailEmailClient({ rawClient });
 
+    await client.sendEmail({
+      from: "support@example.test",
+      to: ["customer@example.test"],
+      subject: "Need help",
+      text: "Starting a new thread.",
+    });
     await client.sendReply({
       threadId: "thread_1",
       from: "support@example.test",
@@ -209,15 +215,24 @@ describe("@cognidesk/integration-email-gmail", () => {
     });
     await client.sendDraft({ draftId: "draft_1" });
 
-    const sendCall = vi.mocked(rawClient.users.messages.send).mock.calls[0]?.[0] as {
+    const newMessageCall = vi.mocked(rawClient.users.messages.send).mock.calls[0]?.[0] as {
       userId?: string;
       requestBody?: { raw?: string; threadId?: string };
     } | undefined;
-    expect(sendCall).toMatchObject({
+    const replyCall = vi.mocked(rawClient.users.messages.send).mock.calls[1]?.[0] as {
+      userId?: string;
+      requestBody?: { raw?: string; threadId?: string };
+    } | undefined;
+    expect(newMessageCall).toMatchObject({
+      userId: "me",
+      requestBody: {},
+    });
+    expect(newMessageCall?.requestBody?.threadId).toBeUndefined();
+    expect(replyCall).toMatchObject({
       userId: "me",
       requestBody: { threadId: "thread_1" },
     });
-    const decoded = Buffer.from(sendCall?.requestBody?.raw ?? "", "base64url").toString("utf8");
+    const decoded = Buffer.from(replyCall?.requestBody?.raw ?? "", "base64url").toString("utf8");
     expect(decoded).toContain("In-Reply-To: <incoming@example.test>\r\n");
     expect(rawClient.users.drafts.create).toHaveBeenCalledWith({
       userId: "me",
@@ -265,6 +280,17 @@ describe("@cognidesk/integration-email-gmail", () => {
         labelFilterBehavior: "include",
       },
     }, undefined);
+    expect(rawClient.users.history.list).toHaveBeenCalledWith({
+      userId: "me",
+      startHistoryId: "watch_history",
+      historyTypes: ["messageAdded"],
+    }, undefined);
+    expect(rawClient.users.messages.attachments.get).toHaveBeenCalledWith({
+      userId: "me",
+      messageId: "message_1",
+      id: "att_1",
+    }, undefined);
+    expect(rawClient.users.labels.list).toHaveBeenCalledWith({ userId: "me" }, undefined);
   });
 
   it("parses Gmail Pub/Sub push notifications into mailbox history cursors", async () => {

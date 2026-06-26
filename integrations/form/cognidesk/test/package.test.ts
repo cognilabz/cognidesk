@@ -41,8 +41,24 @@ describe("@cognidesk/integration-form-cognidesk", () => {
 
   it("keeps the manifest subpath runtime-light", async () => {
     const source = await readFile(resolve(packageRoot, "src/manifest.ts"), "utf8");
+    const packageJson = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8")) as {
+      dependencies?: Record<string, string>;
+    };
 
     expect(cognideskFormsProviderManifest.packageName).toBe("@cognidesk/integration-form-cognidesk");
+    expect(cognideskFormsProviderManifest.metadata).toMatchObject({
+      implementation: {
+        providerSdkDecision: "internal-provider/local-runtime/no-provider-SDK",
+        runtime: "SDK-user-configured Cognidesk form registry and signed webhook parser",
+        externalProviderSdk: "not-applicable-internal-provider",
+      },
+      checkedProviderSdk: {
+        verdict: "internal-provider/local-runtime/no-provider-SDK",
+        packageSurfaceRuntimeSdkAvailable: false,
+      },
+    });
+    expect(Object.keys(packageJson.dependencies ?? {}).every((dependency) => dependency.startsWith("@cognidesk/")))
+      .toBe(true);
     expect(source).not.toContain("node:crypto");
     expect(source).not.toContain("./index");
     expect(source).not.toContain("fetch");

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { ZoomVideoProviderClient } from "../src/index.js";
 
 describe("@cognidesk/integration-video-zoom package boundary", () => {
   it("imports the manifest-only entry without importing provider clients", async () => {
@@ -16,20 +17,35 @@ describe("@cognidesk/integration-video-zoom package boundary", () => {
       .toEqual(zoomVideoIntegration.manifest.operations.map((operation) => operation.alias).sort());
   });
 
-  it("executes normalized meeting creation through the integration handler", async () => {
+  it("executes meeting creation through the host provider client", async () => {
     const { createZoomVideoClient } = await import("../src/client.js");
     const { zoomVideoOperationHandlers } = await import("../src/integration.js");
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ id: 123, topic: "Support video" }), { status: 201 })
-    );
+    const createMeeting = vi.fn(async () => ({ id: 123, topic: "Support video" }));
     const client = createZoomVideoClient({
-      accessToken: "zoom-token",
-      fetch: fetchMock as unknown as typeof fetch,
+      providerClient: createProviderClient({ createMeeting }),
     });
 
     await expect(zoomVideoOperationHandlers["video.meeting.create"](
       { topic: "Support video", type: 2 },
       { client },
     )).resolves.toMatchObject({ id: 123 });
+    expect(createMeeting).toHaveBeenCalledWith({ topic: "Support video", type: 2 });
   });
 });
+
+function createProviderClient(
+  overrides: Partial<ZoomVideoProviderClient> = {},
+): ZoomVideoProviderClient {
+  const response = async () => ({});
+  const listMeetings = async () => ({ meetings: [] });
+  return {
+    createMeeting: response,
+    listMeetings,
+    getMeeting: response,
+    updateMeeting: response,
+    deleteMeeting: response,
+    getCurrentUser: response,
+    requestOperation: response as ZoomVideoProviderClient["requestOperation"],
+    ...overrides,
+  };
+}

@@ -1,3 +1,5 @@
+import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
+
 export type EbayMarketplaceJsonPrimitive = string | number | boolean | null;
 export type EbayMarketplaceJsonValue =
   | EbayMarketplaceJsonPrimitive
@@ -13,20 +15,21 @@ export interface EbayMarketplaceProviderResponse extends EbayMarketplaceJsonObje
 export interface EbayMarketplaceProviderExtensionFields extends EbayMarketplaceJsonObject {}
 
 export interface EbayMarketplaceClientOptions {
-  accessToken: string;
-  applicationAccessToken?: string;
+  providerClient?: EbayMarketplaceProviderClient | undefined;
   marketplaceId?: string;
-  sellerDomicileCountry?: string;
-  requireDigitalSignatureForRefunds?: boolean;
-  digitalSignature?: EbayDigitalSignatureOptions;
-  signRequest?: EbayRequestSigner;
-  apiBaseUrl?: string;
-  identityApiBaseUrl?: string;
-  keyManagementApiBaseUrl?: string;
+  accessToken?: string;
+  applicationAccessToken?: string;
+  environment?: "production" | "sandbox";
+  baseUrl?: string;
   fetch?: typeof fetch;
+  requestSigner?: EbayRequestSigner;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
 }
 
 export interface EbayCredentialStatusInput {
+  providerClientConfigured?: boolean;
   accessTokenConfigured?: boolean;
   applicationAccessTokenConfigured?: boolean;
   clientIdConfigured?: boolean;
@@ -347,7 +350,7 @@ export interface EbayCreateSigningKeyInput {
   [key: string]: EbayMarketplaceProviderExtensionValue;
 }
 
-export interface EbayMarketplaceClient {
+export interface EbayMarketplaceProviderClient {
   getOrder(orderId: string): Promise<EbayOrder>;
   searchOrders(input?: EbayOrderSearchInput): Promise<EbayOrdersCollection>;
   createShippingFulfillment(orderId: string, input: EbayShippingFulfillmentInput): Promise<EbayShippingFulfillment>;
@@ -395,18 +398,22 @@ export interface EbayMarketplaceClient {
   getNotificationTopics(input?: EbayNotificationTopicSearchInput): Promise<EbayRestCollection>;
 }
 
+export interface EbayMarketplaceClient extends EbayMarketplaceProviderClient {
+  providerClient: EbayMarketplaceProviderClient;
+}
+
 export interface EbaySelectedApiOperation {
   api: "sell.fulfillment" | "commerce.message" | "commerce.notification" | "developer.key-management" | "commerce.identity";
   specUrl: string;
   operationId: string;
-  functionName: keyof EbayMarketplaceClient;
+  functionName: keyof EbayMarketplaceProviderClient;
   method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
   resource: string;
 }
 
 export interface EbayLiveCheckOptions extends EbayMarketplaceClientOptions {
-  client?: Pick<EbayMarketplaceClient, "getUser">;
+  client?: Pick<EbayMarketplaceProviderClient, "getUser">;
 }
 
 export interface EbayNotificationSignatureHeader {

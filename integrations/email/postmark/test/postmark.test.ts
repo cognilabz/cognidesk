@@ -36,6 +36,46 @@ describe("@cognidesk/integration-email-postmark", () => {
     vi.doUnmock("postmark");
   });
 
+  it("constructs and uses official SDK clients on the default runtime path", async () => {
+    vi.resetModules();
+    const serverClient = {
+      sendEmail: vi.fn(async () => ({ MessageID: "sdk-message-id" })),
+    };
+    const accountClient = {};
+    const ServerClient = vi.fn(function ServerClient() {
+      return serverClient;
+    });
+    const AccountClient = vi.fn(function AccountClient() {
+      return accountClient;
+    });
+    vi.doMock("postmark", () => ({ ServerClient, AccountClient }));
+
+    try {
+      const { createPostmarkEmailIntegration: createRuntimeIntegration } = await import("../src/client.js");
+      const integration = createRuntimeIntegration({
+        serverToken: "server-token",
+        accountToken: "account-token",
+      });
+
+      expect(ServerClient).toHaveBeenCalledWith("server-token");
+      expect(AccountClient).toHaveBeenCalledWith("account-token");
+      expect(integration.rawClients.server).toBe(serverClient);
+      expect(integration.rawClients.account).toBe(accountClient);
+
+      await expect(integration.operations["email.send"]?.({
+        From: "support@example.test",
+        To: "customer@example.test",
+        Subject: "Hello",
+        TextBody: "Body",
+      })).resolves.toMatchObject({ MessageID: "sdk-message-id" });
+      expect(serverClient.sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+        To: "customer@example.test",
+      }));
+    } finally {
+      vi.doUnmock("postmark");
+    }
+  });
+
   it("passes provider conformance for the split package manifest", async () => {
     const report = assertIntegrationConformance({
       manifest: postmarkEmailProviderManifest,

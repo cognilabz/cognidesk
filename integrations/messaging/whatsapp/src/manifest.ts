@@ -1,5 +1,29 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
 
+const whatsappBusinessPlatformServerSdkException = {
+  strategy: "no-official-maintained-server-sdk-rest-adapter",
+  defaultClientPolicy: "provider-rest-adapter-when-configured",
+  officialMaintainedServerSdkAvailable: false,
+  packageOwnedRestClient: true,
+  verifiedAt: "2026-06-25",
+  runtimePackage: "@cognidesk/integration-messaging-whatsapp/runtime",
+  providerClient: "WhatsAppMessagingProviderClient",
+  sdkDecision: {
+    checkedAt: "2026-06-25",
+    result: "no-maintained-official-sdk-rest-adapter-selected",
+    rejectedSdkPackages: [
+      {
+        packageName: "whatsapp",
+        reason: "Official Meta WhatsApp Business Platform Node.js SDK for Cloud API, but the upstream repository and documentation mark the project archived/read-only.",
+      },
+      {
+        packageName: "facebook-nodejs-business-sdk",
+        reason: "Official Meta Business SDK for broader Graph/Marketing API surfaces, not a maintained WhatsApp Cloud API messaging client.",
+      },
+    ],
+  },
+} as const;
+
 export const whatsappMessagingProviderManifest = defineProviderPackage({
   id: "messaging.whatsapp",
   name: "WhatsApp Business Platform",
@@ -12,7 +36,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Coverage is typed for selected WhatsApp Business Platform support workflows: Cloud API message sends, template payload construction, media upload/get/download helpers, phone-number readiness, business profile get/update, webhook challenge handling, and X-Hub-Signature-256 validation.",
+      "Coverage is typed for selected WhatsApp Business Platform support workflows: provider REST adapter message sends, template payload construction, media upload/get/download, phone-number readiness, business profile get/update, webhook challenge handling, and X-Hub-Signature-256 validation.",
       "This is not full WhatsApp Business Platform coverage; template CRUD/listing, Flows, commerce, Calling API, groups, phone-number registration and management, WABA account management, analytics, and broader Business Management APIs remain outside this adapter.",
     ],
     evidence: [
@@ -29,7 +53,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
     {
       id: "whatsapp-access-token",
       label: "WhatsApp Business access token",
-      description: "Server-side Meta Graph API access token for WhatsApp Business Platform calls.",
+      description: "Server-side Meta access token used by the built-in Graph API adapter or an injected WhatsApp/Meta provider client.",
       scopes: ["whatsapp_business_messaging", "whatsapp_business_management"],
       required: true,
       metadata: { scopeKind: "provider-permission-labels" },
@@ -37,7 +61,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
     {
       id: "whatsapp-phone-number-id",
       label: "WhatsApp Business phone number ID",
-      description: "Meta Graph API phone_number_id used for Cloud API message and media endpoints.",
+      description: "Meta phone_number_id used by the built-in Graph API adapter or an injected WhatsApp/Meta provider client.",
       required: true,
     },
     {
@@ -76,7 +100,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
     {
       capability: "send",
       label: "Send WhatsApp messages",
-      description: "Sends WhatsApp Cloud API messages when SDK-user policy permits outbound contact: free-form service messages inside the customer service window or approved templates outside it.",
+      description: "Sends WhatsApp messages through the configured Graph API adapter or provider client when SDK-user policy permits outbound contact: free-form service messages inside the customer service window or approved templates outside it.",
       audiences: ["customer-facing"],
       providerObjects: [{ kind: "whatsappMessage", label: "WhatsApp Message" }],
       requiresCredential: true,
@@ -95,7 +119,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
     {
       capability: "media",
       label: "Use WhatsApp media",
-      description: "Uploads media, fetches media metadata, and downloads media bytes through SDK-user-governed handling.",
+      description: "Uploads media, reads media metadata, and downloads media bytes through the configured Graph API adapter or provider client.",
       audiences: ["customer-facing", "mixed"],
       providerObjects: [{ kind: "whatsappMedia", label: "WhatsApp Media" }],
       requiresCredential: true,
@@ -118,7 +142,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
     {
       capability: "read-provider-object",
       label: "Read WhatsApp phone number and profile",
-      description: "Reads WhatsApp Business phone-number readiness and business profile resources for Studio-visible configuration and support diagnostics.",
+      description: "Reads WhatsApp Business phone-number readiness and business profile resources through the configured Graph API adapter or provider client for Studio-visible configuration and support diagnostics.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [
         { kind: "whatsappPhoneNumber", label: "WhatsApp Business Phone Number" },
@@ -130,7 +154,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
     {
       capability: "update-provider-object",
       label: "Update WhatsApp business profile",
-      description: "Updates WhatsApp Business profile fields when SDK-user configuration permits profile changes.",
+      description: "Updates WhatsApp Business profile fields through the configured Graph API adapter or provider client when SDK-user configuration permits profile changes.",
       audiences: ["internal-support"],
       providerObjects: [{ kind: "whatsappBusinessProfile", label: "WhatsApp Business Profile" }],
       requiresCredential: true,
@@ -167,7 +191,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
       capability: "send",
       providerObject: "messagingMessage",
       label: "Send WhatsApp message",
-      description: "Send a WhatsApp Cloud API message through the configured phone number.",
+      description: "Send a WhatsApp message through the configured Graph API adapter or provider client.",
       audiences: ["customer-facing"],
       requiresCredential: true,
       requiresApproval: true,
@@ -205,7 +229,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
       capability: "attach",
       providerObject: "mediaAttachment",
       label: "Upload WhatsApp media",
-      description: "Upload media for use in WhatsApp messages.",
+      description: "Upload media for use in WhatsApp messages through the configured Graph API adapter or provider client.",
       audiences: ["customer-facing", "mixed"],
       requiresCredential: true,
       requiresApproval: true,
@@ -219,7 +243,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
       capability: "read-provider-object",
       providerObject: "whatsappPhoneNumber",
       label: "Read WhatsApp phone number",
-      description: "Read WhatsApp Business phone-number readiness metadata.",
+      description: "Read WhatsApp Business phone-number readiness metadata through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       requiresCredential: true,
       exposesSensitiveData: true,
@@ -231,7 +255,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
       capability: "read-provider-object",
       providerObject: "whatsappBusinessProfile",
       label: "Read WhatsApp business profile",
-      description: "Read WhatsApp Business profile fields for support diagnostics.",
+      description: "Read WhatsApp Business profile fields for support diagnostics through the configured Graph API adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       requiresCredential: true,
       exposesSensitiveData: true,
@@ -243,7 +267,7 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
       capability: "update-provider-object",
       providerObject: "whatsappBusinessProfile",
       label: "Update WhatsApp business profile",
-      description: "Update WhatsApp Business profile fields when SDK-user policy permits.",
+      description: "Update WhatsApp Business profile fields through the configured Graph API adapter or provider client when SDK-user policy permits.",
       audiences: ["internal-support"],
       requiresCredential: true,
       requiresApproval: true,
@@ -273,15 +297,23 @@ export const whatsappMessagingProviderManifest = defineProviderPackage({
     "Available operations depend on the SDK user's Meta app, WhatsApp Business Account, phone number registration, WABA messages webhook subscription, access token scopes, business verification, templates, quality limits, and messaging windows.",
     "Free-form WhatsApp service messages are for the customer service window; SDK users must select approved templates for outbound contact outside that window.",
     "Opt-in, outbound-contact policy, template selection, human escalation, media retention, redaction, and deletion behavior are SDK-user configuration.",
-    "This package provides transport helpers and does not choose default automation, promotional messaging, consent, retry, or rate-limit policies.",
+    "This package provides a built-in Graph API REST adapter when accessToken and phoneNumberId are configured; hosts may still inject an approved WhatsApp/Meta provider client and own automation, promotional messaging, consent, retry, and rate-limit policies.",
   ],
   metadata: {
+    implementation: whatsappBusinessPlatformServerSdkException,
+    providerClient: {
+      package: "built-in-or-host-provided",
+      interface: "WhatsAppMessagingProviderClient",
+      importPolicy: "provider-client-override-supported",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
+      sdkDecision: whatsappBusinessPlatformServerSdkException.sdkDecision,
+    },
     channelCoverage: {
-      cloudApiMessages: "typed-send",
+      cloudApiMessages: "provider-rest-adapter-send",
       templatePayloads: "typed-build-only",
-      media: "typed-upload-get-download",
-      phoneNumberReadiness: "typed-read",
-      businessProfile: "typed-read-update",
+      media: "provider-rest-adapter-upload-get-download",
+      phoneNumberReadiness: "provider-rest-adapter-read",
+      businessProfile: "provider-rest-adapter-read-update",
       webhooks: "typed-challenge-verify-parse",
       templateCrud: "provider-supported-not-typed",
       flowsCommerceCallingGroups: "provider-supported-not-typed",

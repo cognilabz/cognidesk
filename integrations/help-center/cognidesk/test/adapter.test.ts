@@ -33,7 +33,9 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
       evidence: [],
     });
     expect(cognideskHelpCenterProviderManifest.coverage.notes.join(" "))
-      .toContain("does not implement a named external help-center provider API");
+      .toContain("built-in HTTP source adapters");
+    expect(cognideskHelpCenterProviderManifest.coverage.notes.join(" "))
+      .toContain("does not implement a named external help-center provider API or broader article/category");
   });
 
   it("searches and fetches local help center articles", async () => {
@@ -54,36 +56,47 @@ describe("@cognidesk/integration-help-center-cognidesk", () => {
     await expect(client.readiness()).resolves.toMatchObject({ type: "local", articleCount: 2 });
   });
 
-  it("uses a generic HTTP help center source", async () => {
-    const fetchMock = vi.fn(async (url: string) => {
-      if (url.includes("/search?")) {
-        return new Response(JSON.stringify({ articles: [{ id: "a1", title: "Article 1" }], cursor: "next" }), { status: 200 });
-      }
-      if (url.endsWith("/articles/a1")) {
-        return new Response(JSON.stringify({ article: { id: "a1", title: "Article 1" } }), { status: 200 });
-      }
-      return new Response(JSON.stringify({ ok: true }), { status: 200 });
-    });
+  it("delegates HTTP help center sources to a host-injected provider client", async () => {
+    const providerClient = {
+      search: vi.fn(async () => ({
+        articles: [{ id: "a1", title: "Article 1" }],
+        cursor: "next",
+      })),
+      fetchArticle: vi.fn(async () => ({ id: "a1", title: "Article 1" })),
+      readiness: vi.fn(async () => ({ ok: true })),
+    };
     const client = createHelpCenterClient({
       id: "http-docs",
       type: "http",
-      baseUrl: "https://docs.example.test/",
-      headers: { authorization: "Bearer configured" },
-      fetch: fetchMock as unknown as typeof fetch,
-    });
+    }, { providerClient });
 
     await expect(client.search({ query: "password", limit: 3 })).resolves.toMatchObject({
       articles: [{ id: "a1" }],
       cursor: "next",
     });
     await expect(client.fetchArticle("a1")).resolves.toMatchObject({ id: "a1" });
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://docs.example.test/search?query=password&limit=3",
-      expect.objectContaining({
-        headers: expect.objectContaining({ authorization: "Bearer configured" }),
-      }),
-    );
+    await expect(client.readiness()).resolves.toMatchObject({ ok: true });
+    expect(providerClient.search).toHaveBeenCalledWith({ query: "password", limit: 3 });
+    expect(providerClient.fetchArticle).toHaveBeenCalledWith("a1");
+    expect(providerClient.readiness).toHaveBeenCalledWith();
+  });
+
+  it("requires baseUrl for HTTP help center sources without a host client", async () => {
+    const client = createHelpCenterClient({
+      id: "http-docs",
+      type: "http",
+    });
+
+    await expect(client.search({ query: "password" })).rejects
+      .toThrow("baseUrl");
+  });
+
+  it("accepts configured HTTP help center sources for the built-in adapter", () => {
+    expect(() => defineHelpCenterSource({
+      id: "legacy-http-docs",
+      type: "http",
+      baseUrl: "https://docs.example.test",
+    })).not.toThrow();
   });
 
   it("normalizes ingestion and search events", () => {

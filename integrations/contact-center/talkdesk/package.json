@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-contact-center-talkdesk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -60,6 +60,29 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-official-npm-rest-sdk",
+      "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+      "typedClientOverride": "TalkdeskProviderClient",
+      "checkedPackages": [
+        {
+          "package": "@talkdesk/td-sdk",
+          "result": "not-published",
+          "reason": "No public npm package exists under this likely official SDK name."
+        },
+        {
+          "package": "@talkdesk/client-sdk",
+          "result": "not-published",
+          "reason": "No public npm package exists under this likely official SDK name."
+        },
+        {
+          "package": "@talkdesk/app-connect",
+          "result": "not-published",
+          "reason": "No public npm package exists under this likely official SDK name."
+        }
+      ]
     }
   }
 }

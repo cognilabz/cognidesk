@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-contact-center-nextiva",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -60,6 +60,35 @@
       "packedSizeBytes": 2097152,
       "unpackedSizeBytes": 4194304,
       "declarationFileBytes": 1048576
+    },
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "no-suitable-server-side-sdk",
+      "defaultRestPolicy": "fail-closed-provider-rest-adapter-with-typed-provider-client-override",
+      "typedClientOverride": "NextivaProviderClient",
+      "checkedPackages": [
+        {
+          "package": "ncx-sdk",
+          "checkedVersion": "1.5.8",
+          "license": "MIT",
+          "result": "not-used-as-runtime-rest-client",
+          "reason": "Session/frontend-oriented client with broad any-typed services and socket/session initialization, not a strict server-side REST client for Cognidesk handoff operations."
+        },
+        {
+          "package": "ncx-web-sdk",
+          "checkedVersion": "0.0.1-dev.6",
+          "license": "UNLICENSED",
+          "result": "not-used-as-runtime-rest-client",
+          "reason": "Dev-tagged browser Web SDK with browser telephony/UI peer surface and no suitable redistributable server-side runtime contract."
+        },
+        {
+          "package": "ncx-react-sdk",
+          "checkedVersion": "0.0.1-dev.10",
+          "license": "UNLICENSED",
+          "result": "not-used-as-runtime-rest-client",
+          "reason": "React frontend SDK is not appropriate for this provider runtime package."
+        }
+      ]
     }
   }
 }

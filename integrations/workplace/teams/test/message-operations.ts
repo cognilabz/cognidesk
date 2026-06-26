@@ -9,6 +9,53 @@ import {
 } from "./helpers.js";
 
 export function registerTeamsMessageOperationTests() {
+  it("exposes the raw Microsoft Graph client and routes helpers through SDK request methods", async () => {
+    const fetchMock = vi.fn(async (request: RequestInfo | URL, init?: RequestInit) => {
+      const method = init?.method ?? (request instanceof Request ? request.method : "GET");
+      return new Response(JSON.stringify(
+        method === "POST"
+          ? { id: "chat_message_123", chatId: "chat_123" }
+          : { id: "user_123", displayName: "Support Agent" },
+      ), { status: method === "POST" ? 201 : 200 });
+    });
+    const client = createTeamsWorkplaceClient({
+      accessToken: "graph-token",
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+    const sdkMethodCalls: string[] = [];
+    const originalApi = client.graphClient.api.bind(client.graphClient);
+    const apiSpy = vi.spyOn(client.graphClient, "api").mockImplementation((path: string) => {
+      const request = originalApi(path);
+      const originalGet = request.get.bind(request);
+      const originalPost = request.post.bind(request);
+      vi.spyOn(request, "get").mockImplementation(async () => {
+        sdkMethodCalls.push("get");
+        return originalGet();
+      });
+      vi.spyOn(request, "post").mockImplementation(async (content: unknown) => {
+        sdkMethodCalls.push("post");
+        return originalPost(content);
+      });
+      return request;
+    });
+
+    expect(client.rawClient).toBe(client.graphClient);
+    expect(typeof client.rawClient.api).toBe("function");
+    await expect(client.getCurrentUser()).resolves.toMatchObject({ id: "user_123" });
+    await expect(client.sendChatMessage({
+      chatId: "chat_123",
+      content: "Supervisor review requested.",
+    })).resolves.toMatchObject({ id: "chat_message_123" });
+    await expect(client.requestGraph({
+      method: "GET",
+      path: "/me",
+    })).resolves.toMatchObject({ id: "user_123" });
+
+    expect(apiSpy).toHaveBeenCalledWith("/me");
+    expect(apiSpy).toHaveBeenCalledWith("/chats/chat_123/messages");
+    expect(sdkMethodCalls).toEqual(["get", "post", "get"]);
+  });
+
   it("sends Teams channel messages through the official Microsoft Graph client", async () => {
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({

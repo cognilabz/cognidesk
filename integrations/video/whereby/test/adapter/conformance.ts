@@ -22,7 +22,6 @@ export function registerWherebyConformanceTests() {
       live: {
         enabled: true,
         checks: createWherebyVideoLiveChecks({
-          apiKey: "missing",
           client: {
             async listMeetings() {
               return { results: [], cursor: null };
@@ -49,7 +48,8 @@ export function registerWherebyConformanceTests() {
         enabledCapabilities: ["schedule", "create-provider-object", "read-provider-object", "delete-provider-object", "update-provider-object", "receive"],
       }],
       credentialStatuses: wherebyVideoCredentialStatuses({
-        apiKey: "configured",
+        providerClientConfigured: true,
+        apiAccessConfigured: true,
         subdomain: "example",
         roomTemplateConfigured: true,
         webhookSigningSecret: "configured",
@@ -58,7 +58,6 @@ export function registerWherebyConformanceTests() {
       live: {
         enabled: true,
         checks: createWherebyVideoLiveChecks({
-          apiKey: "configured",
           client: {
             async listMeetings() {
               return { results: [], cursor: null };

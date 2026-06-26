@@ -1,5 +1,41 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
 
+const discourseForumProviderSdkDecision = {
+  strategy: "no-official-js-ts-sdk-rest-adapter",
+  defaultClientPolicy: "provider-rest-adapter-when-configured",
+  officialJsSdkAvailable: false,
+  packageOwnedRestClient: true,
+  verifiedAt: "2026-06-25",
+  runtimePackage: "@cognidesk/integration-community-forum/runtime",
+  providerClient: "ForumCommunityProviderClient",
+  sdkDecision: {
+    checkedAt: "2026-06-25",
+    result: "no-applicable-official-js-ts-sdk",
+    rejectedSdkPackages: [
+      {
+        packageName: "discourse_api",
+        ecosystem: "ruby",
+        reason: "Discourse documentation recommends the official discourse_api Ruby gem for Ruby consumers; it is not a JavaScript or TypeScript runtime SDK for this provider package.",
+      },
+      {
+        packageName: "discourse-api-sdk",
+        ecosystem: "npm",
+        reason: "Third-party npm publisher and repository; not published by the Discourse npm organization, despite package description text.",
+      },
+      {
+        packageName: "@discourse/mcp",
+        ecosystem: "npm",
+        reason: "Official Discourse MCP CLI server, not an in-process JavaScript or TypeScript provider API client for this runtime package.",
+      },
+      {
+        packageName: "discourse-sdk",
+        ecosystem: "npm",
+        reason: "Unofficial, old, and untyped npm package surface; unsuitable as the strict provider SDK dependency for this package.",
+      },
+    ],
+  },
+} as const;
+
 export const forumCommunityProviderManifest = defineProviderPackage({
   id: "community.forum",
   name: "Discourse Forum",
@@ -13,19 +49,19 @@ export const forumCommunityProviderManifest = defineProviderPackage({
     {
       id: "forum-base-url",
       label: "Forum base URL",
-      description: "SDK-user-selected forum origin, such as a Discourse community URL.",
+      description: "Forum origin used by the built-in Discourse-compatible REST adapter or a provider client override.",
       required: true,
     },
     {
       id: "forum-api-key",
       label: "Forum API key",
-      description: "Server-side forum API key used for topic, post, search, and user readiness calls.",
+      description: "Server-side forum credential used by the built-in REST adapter or encapsulated in a provider client override.",
       required: true,
     },
     {
       id: "forum-api-username",
       label: "Forum API username",
-      description: "Forum API username that owns SDK-user-selected moderation and posting permissions.",
+      description: "Forum API username used by the built-in REST adapter or represented by a provider client override.",
       required: true,
     },
     {
@@ -38,7 +74,8 @@ export const forumCommunityProviderManifest = defineProviderPackage({
   coverage: {
     scope: "support-workflow-subset",
     notes: [
-      "Coverage is limited to Discourse-compatible topic/reply creation through posts, topic/post reads, search/latest/current-user reads, and X-Discourse-Event-Signature webhook validation.",
+      "Coverage is limited to a built-in Discourse-compatible REST adapter for forum topic/post/search/current-user workflows, optional provider client overrides, and X-Discourse-Event-Signature webhook validation.",
+      "No applicable official JavaScript or TypeScript Discourse provider SDK was verified on 2026-06-25; Discourse's documented client-library path is the discourse_api Ruby gem, so this package uses a constrained REST adapter.",
       "The package does not implement broader Discourse administration for categories, tags, users/groups, moderation actions, uploads, badges, notifications, private messages, plugin endpoints, site settings, or non-Discourse forum APIs.",
     ],
     evidence: [
@@ -59,7 +96,7 @@ export const forumCommunityProviderManifest = defineProviderPackage({
     {
       capability: "send",
       label: "Create forum replies",
-      description: "Creates public forum replies when SDK-user policy permits public response automation.",
+      description: "Creates public forum replies through the configured Discourse-compatible REST adapter or provider client when SDK-user policy permits public response automation.",
       audiences: ["customer-facing", "mixed"],
       providerObjects: [{ kind: "forumPost", label: "Forum Post" }],
       requiresCredential: true,
@@ -78,7 +115,7 @@ export const forumCommunityProviderManifest = defineProviderPackage({
     {
       capability: "thread",
       label: "Use forum topics",
-      description: "Reads forum topics, posts, latest topics, and search results as community support threads.",
+      description: "Reads forum topics, posts, latest topics, and search results through the configured Discourse-compatible REST adapter or provider client.",
       audiences: ["customer-facing", "mixed"],
       providerObjects: [{ kind: "forumTopic", label: "Forum Topic" }],
       requiresCredential: true,
@@ -87,7 +124,7 @@ export const forumCommunityProviderManifest = defineProviderPackage({
     {
       capability: "create-provider-object",
       label: "Create forum topics",
-      description: "Creates SDK-user-approved forum topics for support announcements or escalated community cases.",
+      description: "Creates SDK-user-approved forum topics through the configured Discourse-compatible REST adapter or provider client.",
       audiences: ["customer-facing", "mixed"],
       providerObjects: [{ kind: "forumTopic", label: "Forum Topic" }],
       requiresCredential: true,
@@ -98,7 +135,7 @@ export const forumCommunityProviderManifest = defineProviderPackage({
     {
       capability: "read-provider-object",
       label: "Read forum topics and posts",
-      description: "Reads forum topics, posts, and the current API user readiness record through the configured forum API.",
+      description: "Reads forum topics, posts, and the current API user readiness record through the configured Discourse-compatible REST adapter or provider client.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [
         { kind: "forumTopic", label: "Forum Topic" },
@@ -110,7 +147,7 @@ export const forumCommunityProviderManifest = defineProviderPackage({
     {
       capability: "search-provider-object",
       label: "Search forum content",
-      description: "Searches forum topics and posts with SDK-user-selected query and pagination controls.",
+      description: "Searches forum topics and posts through the configured Discourse-compatible REST adapter or provider client with SDK-user-selected query and pagination controls.",
       audiences: ["internal-support", "mixed"],
       providerObjects: [{ kind: "forumSearchResult", label: "Forum Search Result" }],
       requiresCredential: true,
@@ -193,14 +230,23 @@ export const forumCommunityProviderManifest = defineProviderPackage({
   ],
   limitations: [
     "The SDK user chooses which forum implementation, categories, tags, moderation actions, public reply approval, and retention policies are active.",
-    "This package uses Discourse-compatible REST and webhook conventions as the concrete forum foundation; other forum implementations can wrap the same manifest pattern.",
-    "Discourse rate limits and throttling are configurable by site administrators; SDK users own 429 handling, retry, and backoff policy.",
+    "Provider operations require baseUrl, apiKey, and apiUsername for the built-in REST adapter, or a ForumCommunityProviderClient override; without either, operation handlers fail closed.",
+    "Forum rate limits and throttling are provider-specific; the configured adapter or host boundary owns 429 handling, retry, and backoff policy.",
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
     docs: "https://docs.discourse.org/",
-    concreteProvider: "discourse",
-    supportedForumApi: "discourse-compatible-rest-and-webhooks",
+    implementation: discourseForumProviderSdkDecision,
+    implementationStrategy: "provider-rest-adapter",
+    concreteProvider: "discourse-compatible-rest-adapter-or-provider-client",
+    supportedForumApi: "built-in-discourse-rest-adapter-and-discourse-webhooks",
+    providerClient: {
+      package: "built-in-or-host-provided",
+      interface: "ForumCommunityProviderClient",
+      importPolicy: "provider-client-override-supported",
+      defaultClientPolicy: "provider-rest-adapter-when-configured",
+      sdkDecision: discourseForumProviderSdkDecision.sdkDecision,
+    },
     apiCoverage: {
       operationCatalog: "docs/provider-coverage/discourse-selected-api-2026-06-18.operations.json",
       generatedFromOfficialSpec: false,
@@ -210,13 +256,15 @@ export const forumCommunityProviderManifest = defineProviderPackage({
       selectedOperationCount: 5,
       docsOnlyOperationCount: 1,
       implementedOperationCount: 6,
+      packageImplementedProviderRestOperationCount: 5,
+      providerOperationImplementation: "built-in-provider-rest-adapter",
       fullProviderApi: false,
     },
     channelCoverage: {
-      topics: "typed-create-read-latest",
-      posts: "typed-create-read",
-      search: "typed-search",
-      currentUser: "typed-read",
+      topics: "provider-rest-adapter-create-read-latest",
+      posts: "provider-rest-adapter-create-read",
+      search: "provider-rest-adapter-search",
+      currentUser: "provider-rest-adapter-read",
       webhooks: "typed-validate-parse",
       categoriesTagsUsersGroupsModerationUploadsBadgesPrivateMessages: "provider-supported-not-typed",
       nonDiscourseForumApis: "not-covered",

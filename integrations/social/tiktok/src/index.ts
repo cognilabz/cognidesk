@@ -1,6 +1,7 @@
 export type * from "./contracts.js";
 export {
   createTikTokBusinessCommentReply,
+  createTikTokRestProviderClient,
   createTikTokSocialClient,
   getTikTokGeneralDmSupport,
 } from "./client.js";
@@ -13,8 +14,9 @@ export {
   validateTikTokWebhookSignature,
 } from "./webhooks.js";
 export {
-  TIKTOK_DIRECT_SLICE_METADATA,
+  TIKTOK_HOST_CLIENT_SUPPORT_SLICE,
   TIKTOK_SELECTED_OPERATION_COUNT,
   TIKTOK_SELECTED_OPERATIONS,
+  TIKTOK_SUPPORT_SLICE,
   type TikTokSelectedOperation,
 } from "./selected-operations.js";

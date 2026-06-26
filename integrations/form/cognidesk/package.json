@@ -49,6 +49,14 @@
     "manifestOnlyExports": [
       "./manifest"
     ],
+    "providerSdkDecision": {
+      "checkedAt": "2026-06-25",
+      "result": "not-applicable-internal-provider",
+      "reason": "Cognidesk Forms is an internal local intake protocol for SDK-user-defined form schemas, submission normalization, and signed webhook parsing; it does not wrap a named external forms provider SDK.",
+      "defaultClientPolicy": "sdk-user-configured-form-registry",
+      "typedClientOverride": "CognideskFormsIntegrationOptions",
+      "rejectedSdkPackages": []
+    },
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 1048576,
       "unpackedSizeBytes": 4194304,

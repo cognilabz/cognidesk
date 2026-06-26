@@ -1,3 +1,5 @@
+import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
+
 export type InstagramSocialJsonPrimitive = string | number | boolean | null;
 export type InstagramSocialJsonValue =
   | InstagramSocialJsonPrimitive
@@ -13,12 +15,18 @@ export interface InstagramSocialProviderResponse extends InstagramSocialJsonObje
 export interface InstagramSocialProviderExtensionFields extends InstagramSocialJsonObject {}
 
 export interface InstagramSocialClientOptions {
-  accessToken: string;
+  accessToken?: string;
+  pageAccessToken?: string;
   pageId?: string;
   instagramBusinessAccountId?: string;
-  graphApiBaseUrl?: string;
   graphApiVersion?: string;
+  graphApiBaseUrl?: string;
+  baseUrl?: string;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
+  providerClient?: InstagramMetaProviderClient;
 }
 
 export interface InstagramCredentialStatusInput {
@@ -121,6 +129,7 @@ export interface InstagramListMessagesInput {
 }
 
 export interface InstagramSocialClient {
+  providerClient: InstagramMetaProviderClient;
   sendMessage(input: InstagramMessageInput): Promise<InstagramMessageResponse>;
   sendTextMessage(input: {
     recipientId: string;
@@ -138,6 +147,8 @@ export interface InstagramSocialClient {
   getInstagramBusinessAccount(fields?: string[]): Promise<InstagramAccountResource>;
   getPage(fields?: string[]): Promise<InstagramPageResource>;
 }
+
+export type InstagramMetaProviderClient = Omit<InstagramSocialClient, "providerClient" | "sendTextMessage">;
 
 export interface InstagramLiveCheckOptions extends InstagramSocialClientOptions {
   client?: Pick<InstagramSocialClient, "getInstagramBusinessAccount" | "getPage">;

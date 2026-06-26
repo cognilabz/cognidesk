@@ -103,6 +103,7 @@ function isKnownChannelCoverageStatus(status: string) {
     || status === "not-covered"
     || status.startsWith("generated")
     || status.startsWith("typed")
+    || status.startsWith("provider-rest-adapter")
     || status.startsWith("provider-supported")
     || status.startsWith("sdk-owned");
 }

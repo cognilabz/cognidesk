@@ -1,4 +1,5 @@
 import { defineIntegration } from "@cognidesk/integration-kit";
+import { SDK, type SDKOptions } from "@ringcentral/sdk";
 import {
   ringCentralContactCenterManifest,
   ringCentralContactCenterManifestInput,
@@ -6,91 +7,124 @@ import {
 
 export { ringCentralContactCenterManifest } from "./manifest.js";
 
-export type RingCentralHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 export type RingCentralJsonObject = Record<string, unknown>;
 
-export interface RingCentralPlatformClient {
-  get?: (path: string, query?: unknown) => Promise<unknown>;
-  post?: (path: string, body?: unknown, query?: unknown) => Promise<unknown>;
-  put?: (path: string, body?: unknown, query?: unknown) => Promise<unknown>;
-  patch?: (path: string, body?: unknown, query?: unknown) => Promise<unknown>;
-  delete?: (path: string, query?: unknown) => Promise<unknown>;
-  auth?: () => { setData?: (data: unknown) => Promise<unknown> | unknown };
+export type RingCentralSdkPlatform = Pick<ReturnType<SDK["platform"]>, "auth" | "get" | "post">;
+
+export interface RingCentralSdkClient {
+  platform(): RingCentralSdkPlatform;
 }
 
-export interface RingCentralRawClient {
-  platform: RingCentralPlatformClient;
-  request<T = unknown>(
-    method: RingCentralHttpMethod,
-    path: string,
-    input?: RingCentralRequestInput,
-  ): Promise<T>;
+export interface RingCentralCreateHandoffInput {
+  payload: unknown;
 }
 
-export interface RingCentralRequestInput {
-  query?: Record<string, string | number | boolean | undefined>;
-  body?: unknown;
+export interface RingCentralContactCenterClient {
+  sdk: RingCentralSdkClient;
+  createHandoff(input: RingCentralCreateHandoffInput): Promise<unknown>;
+  readiness(): Promise<unknown>;
 }
 
-export interface RingCentralContactCenterOptions {
-  server: string;
+export interface RingCentralContactCenterCommonOptions {
+  server?: string;
   clientId?: string;
   clientSecret?: string;
   accessToken?: string;
-  rawClient?: RingCentralRawClient;
+  sdk?: RingCentralSdkClient;
   defaultHandoffPath?: string;
   readinessPath?: string;
 }
 
-export async function createRingCentralContactCenterClient(options: RingCentralContactCenterOptions) {
-  const rawClient = options.rawClient ?? await createRingCentralRawClient(options);
+export type RingCentralContactCenterClientOptions = RingCentralContactCenterCommonOptions & (
+  | { sdk: RingCentralSdkClient; server?: string }
+  | { sdk?: undefined; server: string }
+);
+
+export type RingCentralContactCenterIntegrationOptions =
+  | (RingCentralContactCenterCommonOptions & {
+    contactCenterClient: RingCentralContactCenterClient;
+  })
+  | (RingCentralContactCenterClientOptions & {
+    contactCenterClient?: undefined;
+  });
+
+export type RingCentralContactCenterOptions = RingCentralContactCenterIntegrationOptions;
+
+export function createRingCentralContactCenterClient(
+  options: RingCentralContactCenterClientOptions,
+): RingCentralContactCenterClient {
+  const sdk = options.sdk ?? createRingCentralSdk(options);
+  const platform = sdk.platform();
+  const ensureAuthentication = createRingCentralSdkAuthenticationEnsurer(platform, options);
 
   return {
-    rawClient,
-    createHandoff(input: { payload: unknown }) {
-      return rawClient.request("POST", configuredPath(options.defaultHandoffPath, "RingCX handoff path"), {
-        body: input.payload,
-      });
+    sdk,
+    async createHandoff(input) {
+      await ensureAuthentication();
+      const response = await platform.post(configuredPath(options.defaultHandoffPath, "RingCX handoff path"), input.payload);
+      return readRingCentralSdkResponse(response);
     },
-    readiness() {
-      return rawClient.request("GET", configuredPath(options.readinessPath, "RingCX readiness path"));
+    async readiness() {
+      await ensureAuthentication();
+      const response = await platform.get(configuredPath(options.readinessPath, "RingCX readiness path"));
+      return readRingCentralSdkResponse(response);
     },
-    request: rawClient.request,
   };
 }
 
-export async function createRingCentralContactCenterIntegration(options: RingCentralContactCenterOptions) {
-  const client = await createRingCentralContactCenterClient(options);
+export function createRingCentralContactCenterOperationHandlers(options: RingCentralContactCenterIntegrationOptions) {
+  const client = options.contactCenterClient
+    ? options.contactCenterClient
+    : createRingCentralContactCenterClient(options);
+
+  return {
+    "contact-center.handoff.request": (input: RingCentralCreateHandoffInput) => client.createHandoff(input),
+    "contact-center.handoff.status.read": () => client.readiness(),
+  } as const;
+}
+
+export const createRingCentralContactCenterIntegrationOperationHandlers =
+  createRingCentralContactCenterOperationHandlers;
+
+export function createRingCentralContactCenterIntegration(options: RingCentralContactCenterIntegrationOptions) {
+  const client = options.contactCenterClient
+    ? options.contactCenterClient
+    : createRingCentralContactCenterClient(options);
   const integration = defineIntegration({
     manifest: ringCentralContactCenterManifestInput,
-    operations: {
-      "contact-center.handoff.request": client.createHandoff,
-      "contact-center.handoff.status.read": client.readiness,
-    },
+    operations: createRingCentralContactCenterOperationHandlers({
+      ...options,
+      contactCenterClient: client,
+    }),
   });
   return {
     ...integration,
-    rawClient: client.rawClient,
+    contactCenterClient: client,
     credentialStatuses: () => ringCentralContactCenterCredentialStatuses(options),
     readiness: async () => ringCentralReadiness(client),
   };
 }
 
 export function ringCentralContactCenterCredentialStatuses(
-  input: Pick<RingCentralContactCenterOptions, "server" | "accessToken" | "rawClient" | "defaultHandoffPath">,
+  input: Pick<
+    RingCentralContactCenterOptions,
+    "accessToken" | "contactCenterClient" | "defaultHandoffPath" | "sdk" | "server"
+  >,
 ) {
+  const hasSdkClient = Boolean(input.contactCenterClient || input.sdk);
+
   return [
     {
       providerPackageId: ringCentralContactCenterManifest.id,
       requirementId: "ringcentral-api-base",
-      state: input.server || input.rawClient ? "configured" : "missing",
-      message: input.server || input.rawClient ? "RingCentral API base is configured." : "RingCentral API base URL is required.",
+      state: input.server || hasSdkClient ? "configured" : "missing",
+      message: input.server || hasSdkClient ? "RingCentral API base is configured." : "RingCentral API base URL is required.",
     },
     {
       providerPackageId: ringCentralContactCenterManifest.id,
       requirementId: "ringcentral-api-access",
-      state: input.accessToken || input.rawClient ? "configured" : "required",
-      message: input.accessToken || input.rawClient
+      state: input.accessToken || hasSdkClient ? "configured" : "required",
+      message: input.accessToken || hasSdkClient
         ? "RingCentral SDK access is configured."
         : "RingCentral SDK access is verified by runtime authentication.",
     },
@@ -104,7 +138,7 @@ export function ringCentralContactCenterCredentialStatuses(
 }
 
 async function ringCentralReadiness(
-  client: Awaited<ReturnType<typeof createRingCentralContactCenterClient>>,
+  client: RingCentralContactCenterClient,
 ) {
   try {
     await client.readiness();
@@ -129,61 +163,40 @@ async function ringCentralReadiness(
   }
 }
 
-async function createRingCentralRawClient(options: RingCentralContactCenterOptions): Promise<RingCentralRawClient> {
-  const sdkModule = await import("@ringcentral/sdk");
-  const SDK = (sdkModule.default ?? sdkModule) as new (options: {
-    server: string;
-    clientId?: string;
-    clientSecret?: string;
-  }) => { platform(): RingCentralPlatformClient };
-  const sdk = new SDK({
-    server: options.server,
+function createRingCentralSdk(options: RingCentralContactCenterClientOptions) {
+  const server = configuredServer(options.server);
+  return new SDK({
+    server,
     ...(options.clientId ? { clientId: options.clientId } : {}),
     ...(options.clientSecret ? { clientSecret: options.clientSecret } : {}),
-  });
-  const platform = sdk.platform();
+  } satisfies SDKOptions);
+}
+
+function createRingCentralSdkAuthenticationEnsurer(
+  platform: RingCentralSdkPlatform,
+  options: RingCentralContactCenterClientOptions,
+) {
+  let authenticationReady: Promise<void> | undefined;
+
+  return () => {
+    authenticationReady ??= configureRingCentralSdkAuthentication(platform, options).catch((error) => {
+      authenticationReady = undefined;
+      throw error;
+    });
+    return authenticationReady;
+  };
+}
+
+async function configureRingCentralSdkAuthentication(
+  platform: RingCentralSdkPlatform,
+  options: RingCentralContactCenterClientOptions,
+) {
   if (options.accessToken) {
-    await platform.auth?.().setData?.({
+    await platform.auth().setData({
       access_token: options.accessToken,
       token_type: "bearer",
     });
   }
-
-  return {
-    platform,
-    request(method, path, input = {}) {
-      return ringCentralPlatformRequest(platform, method, path, input);
-    },
-  };
-}
-
-async function ringCentralPlatformRequest<T>(
-  platform: RingCentralPlatformClient,
-  method: RingCentralHttpMethod,
-  path: string,
-  input: RingCentralRequestInput,
-): Promise<T> {
-  const response = await callPlatform(platform, method, path, input);
-  if (isJsonResponse(response)) return response.json() as Promise<T>;
-  return response as T;
-}
-
-function callPlatform(
-  platform: RingCentralPlatformClient,
-  method: RingCentralHttpMethod,
-  path: string,
-  input: RingCentralRequestInput,
-) {
-  if (method === "GET") return requiredMethod(platform.get, "get").call(platform, path, compactQuery(input.query));
-  if (method === "POST") return requiredMethod(platform.post, "post").call(platform, path, input.body, compactQuery(input.query));
-  if (method === "PUT") return requiredMethod(platform.put, "put").call(platform, path, input.body, compactQuery(input.query));
-  if (method === "PATCH") return requiredMethod(platform.patch, "patch").call(platform, path, input.body, compactQuery(input.query));
-  return requiredMethod(platform.delete, "delete").call(platform, path, compactQuery(input.query));
-}
-
-function requiredMethod<T>(method: T | undefined, name: string): T {
-  if (!method) throw new Error(`RingCentral SDK platform does not expose ${name}().`);
-  return method;
 }
 
 function configuredPath(path: string | undefined, label: string) {
@@ -191,8 +204,14 @@ function configuredPath(path: string | undefined, label: string) {
   return path;
 }
 
-function compactQuery(query?: RingCentralRequestInput["query"]) {
-  return Object.fromEntries(Object.entries(query ?? {}).filter(([, value]) => value !== undefined));
+function configuredServer(server: string | undefined) {
+  if (!server) throw new Error("RingCentral server is required when no SDK client is injected.");
+  return server;
+}
+
+async function readRingCentralSdkResponse<T = unknown>(response: unknown): Promise<T> {
+  if (isJsonResponse(response)) return response.json() as Promise<T>;
+  return response as T;
 }
 
 function isJsonResponse(value: unknown): value is { json(): Promise<unknown> } {

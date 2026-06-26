@@ -1,3 +1,5 @@
+import type { Client } from "@microsoft/microsoft-graph-client";
+import { ResponseType } from "@microsoft/microsoft-graph-client";
 import {
   createOutlookEmailClient,
   createOutlookRecipient,
@@ -11,6 +13,83 @@ import {
 } from "./helpers.js";
 
 describe("@cognidesk/integration-email-outlook client", () => {
+  it("exposes the injected Microsoft Graph SDK client and translates operations to SDK request methods", async () => {
+    const { calls, graphClient } = createRecordingGraphClient({
+      get: { value: [{ id: "message_1", subject: "Help" }] },
+      post: { id: "created_1" },
+      patch: { id: "message_1", isRead: true },
+    });
+    const controller = new AbortController();
+    const client = createOutlookEmailClient({
+      accessToken: "oauth-token",
+      userId: "support@example.test",
+      graphClient,
+    });
+
+    expect(client.graphClient).toBe(graphClient);
+    expect(client.rawClient).toBe(graphClient);
+
+    await expect(client.listMessages({
+      folderId: "Inbox",
+      top: 2,
+      select: ["id", "subject"],
+      signal: controller.signal,
+    })).resolves.toMatchObject({ value: [{ id: "message_1" }] });
+    await client.getMessage({ id: "message_1" });
+    await expect(client.createDraft({ subject: "Draft reply" }))
+      .resolves.toMatchObject({ id: "created_1" });
+    await expect(client.sendMail({
+      message: {
+        subject: "Approved reply",
+        toRecipients: [createOutlookRecipient("customer@example.test")],
+      },
+    })).resolves.toEqual({ accepted: true });
+    await expect(client.updateMessage({ id: "message_1", isRead: true }))
+      .resolves.toMatchObject({ isRead: true });
+    await client.getAttachmentValue({ messageId: "message_1", attachmentId: "attachment_1" });
+    await client.requestGraph({
+      method: "DELETE",
+      path: "/me/messages/{messageId}",
+      pathParams: { messageId: "message_1" },
+    });
+
+    expect(calls.filter((call): call is SdkApiCall => call.kind === "api").map((call) => call.path))
+      .toEqual([
+        "/users/support%40example.test/mailFolders/Inbox/messages",
+        "/users/support%40example.test/messages/message_1",
+        "/users/support%40example.test/messages",
+        "/users/support%40example.test/sendMail",
+        "/users/support%40example.test/messages/message_1",
+        "/users/support%40example.test/messages/message_1/attachments/attachment_1/$value",
+        "/me/messages/message_1",
+      ]);
+    expect(calls.filter(isTerminalSdkCall)).toEqual([
+      { kind: "get" },
+      { kind: "get" },
+      { kind: "post", body: { subject: "Draft reply" } },
+      {
+        kind: "post",
+        body: {
+          message: {
+            subject: "Approved reply",
+            toRecipients: [{ emailAddress: { address: "customer@example.test" } }],
+          },
+        },
+      },
+      { kind: "patch", body: { isRead: true } },
+      { kind: "get" },
+      { kind: "delete" },
+    ]);
+
+    const listQuery = calls.find((call): call is Extract<SdkCall, { kind: "query" }> => call.kind === "query");
+    expect(listQuery).toBeDefined();
+    const params = new URLSearchParams(listQuery?.value);
+    expect(params.get("$select")).toBe("id,subject");
+    expect(params.get("$top")).toBe("2");
+    expect(calls).toContainEqual({ kind: "option", name: "signal", value: controller.signal });
+    expect(calls).toContainEqual({ kind: "responseType", value: ResponseType.RAW });
+  });
+
   it("creates draft messages through the official Microsoft Graph client", async () => {
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({
@@ -309,3 +388,78 @@ describe("@cognidesk/integration-email-outlook client", () => {
     expect(rawRequest.headers.get("client-request-id")).toBe("request_1");
   });
 });
+
+type SdkApiCall = { kind: "api"; path: string };
+type SdkCall =
+  | SdkApiCall
+  | { kind: "query"; value: string }
+  | { kind: "headers"; value: Record<string, string> }
+  | { kind: "option"; name: string; value: unknown }
+  | { kind: "middlewareOptions"; value: unknown }
+  | { kind: "responseType"; value: ResponseType }
+  | { kind: "get" }
+  | { kind: "post"; body: unknown }
+  | { kind: "put"; body: unknown }
+  | { kind: "patch"; body: unknown }
+  | { kind: "delete" };
+
+function createRecordingGraphClient(results: Partial<Record<"get" | "post" | "put" | "patch" | "delete", unknown>> = {}) {
+  const calls: SdkCall[] = [];
+  const request = {
+    query(value: string) {
+      calls.push({ kind: "query", value });
+      return request;
+    },
+    headers(value: Record<string, string>) {
+      calls.push({ kind: "headers", value });
+      return request;
+    },
+    option(name: string, value: unknown) {
+      calls.push({ kind: "option", name, value });
+      return request;
+    },
+    middlewareOptions(value: unknown) {
+      calls.push({ kind: "middlewareOptions", value });
+      return request;
+    },
+    responseType(value: ResponseType) {
+      calls.push({ kind: "responseType", value });
+      return request;
+    },
+    async get() {
+      calls.push({ kind: "get" });
+      return results.get;
+    },
+    async post(body: unknown) {
+      calls.push({ kind: "post", body });
+      return results.post;
+    },
+    async put(body: unknown) {
+      calls.push({ kind: "put", body });
+      return results.put;
+    },
+    async patch(body: unknown) {
+      calls.push({ kind: "patch", body });
+      return results.patch;
+    },
+    async delete() {
+      calls.push({ kind: "delete" });
+      return results.delete;
+    },
+  };
+  const graphClient = {
+    api(path: string) {
+      calls.push({ kind: "api", path });
+      return request;
+    },
+  } as unknown as Client;
+  return { calls, graphClient };
+}
+
+function isTerminalSdkCall(call: SdkCall) {
+  return call.kind === "get"
+    || call.kind === "post"
+    || call.kind === "put"
+    || call.kind === "patch"
+    || call.kind === "delete";
+}

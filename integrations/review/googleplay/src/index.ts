@@ -1,5 +1,6 @@
 import {
   defineIntegration,
+  type IntegrationOperationHandlers,
   type IntegrationOperationContext,
   type ProviderManifestInput,
 } from "@cognidesk/integration-kit";
@@ -20,6 +21,22 @@ export {
 export { createGooglePlayReviewsLiveChecks } from "./readiness.js";
 
 type GooglePlayOperationContext = IntegrationOperationContext<GooglePlayReviewsClientOptions>;
+
+export function createGooglePlayReviewsOperationHandlers(options: GooglePlayReviewsClientOptions) {
+  return createGooglePlayReviewsClient(options).handlers;
+}
+
+export function createGooglePlayReviewsIntegration(options: GooglePlayReviewsClientOptions) {
+  const client = createGooglePlayReviewsClient(options);
+  return defineIntegration({
+    manifest: googlePlayReviewsProviderManifestInput as unknown as ProviderManifestInput,
+    operations: client.handlers as unknown as IntegrationOperationHandlers,
+    metadata: {
+      rawClient: client.rawClient,
+      packageName: options.packageName,
+    },
+  });
+}
 
 const googlePlayReviewOperations = {
   "googleplay.reviews.list": async (
@@ -44,6 +61,8 @@ const googlePlayReviewOperations = {
     return client.replyToReview(input.reviewId, input);
   },
 };
+
+export const googlePlayReviewsOperationHandlers = createGooglePlayReviewsOperationHandlers;
 
 export const googlePlayReviewsIntegration = defineIntegration({
   manifest: googlePlayReviewsProviderManifestInput as unknown as ProviderManifestInput,

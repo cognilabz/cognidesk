@@ -45,9 +45,6 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "salesforce",
-    "providerSdkDependencies": [
-      "jsforce"
-    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

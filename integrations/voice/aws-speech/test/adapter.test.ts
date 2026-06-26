@@ -1,10 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
+import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
+import {
+  StartStreamTranscriptionCommand,
+  TranscribeStreamingClient,
+} from "@aws-sdk/client-transcribe-streaming";
 import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
   awsSpeechCredentialStatuses,
   awsSpeechIntegration,
   awsSpeechProviderManifest,
   createAwsSdkSpeechClient,
+  createAwsSpeechClient,
   type AwsPollySynthesizeCommandInput,
   type AwsSdkCommandClient,
   type AwsTranscribeStreamingCommandInput,
@@ -36,6 +42,81 @@ describe("@cognidesk/integration-voice-aws-speech", () => {
       missingHandlerAliases: [],
       extraHandlerAliases: [],
     });
+  });
+
+  it("constructs real AWS SDK v3 clients and exposes them as the raw escape hatch", () => {
+    const client = createAwsSpeechClient({
+      accessKeyId: "test-access-key",
+      secretAccessKey: "test-secret-key",
+      region: "eu-central-1",
+    });
+
+    expect(client.rawClients.transcribeStreamingClient).toBeInstanceOf(TranscribeStreamingClient);
+    expect(client.rawClients.pollyClient).toBeInstanceOf(PollyClient);
+    expect(client.getRawClient()).toBe(client.rawClients);
+  });
+
+  it("uses real AWS SDK commands when wrapping injected AWS SDK clients", async () => {
+    const transcribeStreamingClient = {
+      send: vi.fn(async (command: unknown) => {
+        expect(command).toBeInstanceOf(StartStreamTranscriptionCommand);
+        expect((command as StartStreamTranscriptionCommand).input).toMatchObject({
+          LanguageCode: "en-US",
+          MediaEncoding: "pcm",
+          MediaSampleRateHertz: 16000,
+          ShowSpeakerLabel: true,
+          VocabularyNames: "general,product",
+        });
+        return {
+          TranscriptResultStream: transcriptEvents([{
+            TranscriptEvent: {
+              Transcript: {
+                Results: [{
+                  IsPartial: false,
+                  ResultId: "result_1",
+                  StartTime: 0,
+                  EndTime: 0.5,
+                  Alternatives: [{ Transcript: "Hello from AWS." }],
+                }],
+              },
+            },
+          }]),
+        };
+      }),
+    };
+    const pollyClient = {
+      send: vi.fn(async (command: unknown) => {
+        expect(command).toBeInstanceOf(SynthesizeSpeechCommand);
+        expect((command as SynthesizeSpeechCommand).input).toMatchObject({
+          Text: "Reply",
+          VoiceId: "Joanna",
+          OutputFormat: "pcm",
+          SpeechMarkTypes: ["word"],
+        });
+        return { AudioStream: new Uint8Array([1, 2, 3]), ContentType: "audio/pcm" };
+      }),
+    };
+    const client = createAwsSpeechClient({
+      region: "eu-central-1",
+      transcribeStreamingClient: transcribeStreamingClient as never,
+      pollyClient: pollyClient as never,
+    });
+
+    expect(client.rawClients.transcribeStreamingClient).toBe(transcribeStreamingClient);
+    expect(client.rawClients.pollyClient).toBe(pollyClient);
+    await expect(client.transcribeSpeech({
+      audio: new Uint8Array([1, 2]),
+      sampleRate: 16000,
+      languageCode: "en-US",
+      showSpeakerLabel: true,
+      vocabularyNames: ["general", "product"],
+    })).resolves.toMatchObject({ text: "Hello from AWS.", resultId: "result_1" });
+    await expect(client.synthesizeSpeech({
+      text: "Reply",
+      voiceId: "Joanna",
+      outputFormat: "pcm",
+      speechMarkTypes: ["word"],
+    })).resolves.toMatchObject({ contentType: "audio/pcm" });
   });
 
   it("adapts AWS SDK command clients for Transcribe Streaming and Polly", async () => {
@@ -83,6 +164,9 @@ describe("@cognidesk/integration-voice-aws-speech", () => {
       SynthesizeSpeechCommand: FakeSynthesizeSpeechCommand,
     });
 
+    expect(client.rawClients.transcribeStreamingClient).toBe(transcribeStreamingClient);
+    expect(client.rawClients.pollyClient).toBe(pollyClient);
+    expect(client.getRawClient()).toBe(client.rawClients);
     await expect(client.transcribeSpeech({
       audio: new Uint8Array([1, 2]),
       sampleRate: 16000,

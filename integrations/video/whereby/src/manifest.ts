@@ -6,6 +6,67 @@ import {
   WHEREBY_FULL_API_SPEC_VERSION,
 } from "./full-api-operations.generated.js";
 
+export const wherebyHostClientSupportSlice = {
+  implementationStrategy: "no-official-sdk-rest-adapter",
+  sdkDecision: "No viable official maintained server-side Whereby REST SDK was verified; browser/core SDKs target live media/browser runtimes and the assistant SDK targets headless assistants, so provider operations default to this package's REST adapter.",
+  verifiedAt: "2026-06-25",
+  providerClientInterface: "WherebyVideoProviderClient",
+  defaultClientPolicy: "built-in-rest-with-api-key",
+  restAdapterException: {
+    result: "no-official-maintained-server-rest-sdk",
+    checkedAt: "2026-06-25",
+    reason: "Whereby's official npm SDK packages are browser/WebRTC, React Native, or headless assistant clients; none provide the server-side REST resource management client needed for meetings, recordings, transcriptions, summaries, insights, room theme operations, and webhooks.",
+    defaultClientPolicy: "built-in-whereby-rest-adapter-with-api-key",
+    typedClientOverride: "WherebyVideoProviderClient",
+    rejectedSdkPackages: [
+      {
+        packageName: "@whereby.com/browser-sdk",
+        checkedVersion: "3.26.0",
+        license: "MIT",
+        reason: "Official browser SDK for embedded/custom video UI, not a server REST API client.",
+      },
+      {
+        packageName: "@whereby.com/core",
+        checkedVersion: "1.15.0",
+        license: "MIT",
+        reason: "Official low-level browser/WebRTC core SDK; exported RoomService covers claimed-room/client state operations, not Embedded REST resources such as meetings, recordings, transcriptions, summaries, insights, or webhooks.",
+      },
+      {
+        packageName: "@whereby.com/assistant-sdk",
+        checkedVersion: "1.2.89",
+        license: "MIT",
+        reason: "Official Node assistant/media SDK for joining rooms headlessly, not REST resource management.",
+      },
+      {
+        packageName: "@whereby.com/react-native-sdk",
+        checkedVersion: "0.8.113",
+        license: "MIT",
+        reason: "Official React Native SDK for mobile video experiences, not server REST operations.",
+      },
+      {
+        packageName: "@whereby.com/media",
+        checkedVersion: "9.2.6",
+        license: "MIT",
+        reason: "Official WebRTC media library used by Whereby room clients; it does not expose server-side Embedded REST resource management operations.",
+      },
+    ],
+    missingServerRestSdkPackages: [
+      {
+        packageName: "@whereby.com/rest-sdk",
+        npmStatus: "404",
+      },
+      {
+        packageName: "whereby",
+        npmStatus: "404",
+      },
+      {
+        packageName: "whereby-api",
+        npmStatus: "404",
+      },
+    ],
+  },
+} as const;
+
 export const wherebyVideoProviderManifest = defineProviderPackage({
   id: "video.whereby",
   name: "Whereby Embedded",
@@ -18,8 +79,8 @@ export const wherebyVideoProviderManifest = defineProviderPackage({
   coverage: {
     scope: "provider-api-subset",
     notes: [
-      "Coverage includes generated per-operation functions for every operation in Whereby's official public REST OpenAPI spec.",
-      "Typed convenience helpers remain available for meetings, room theme tokens/media, recordings, transcriptions, beta summaries, insights, signed webhook parsing, and live readiness checks.",
+      "Coverage includes generated per-operation types/functions for every operation in Whereby's official public REST OpenAPI spec; runtime calls default to a package-owned REST adapter when apiKey/baseUrl/fetch options are provided.",
+      "Typed convenience helpers remain available for meetings, room theme tokens/media, recordings, transcriptions, beta summaries, insights, signed webhook parsing, and live readiness checks with host-injected providerClient override support.",
       "This support slice is limited to the Whereby REST API surface; browser/mobile SDK behavior, live media transport, embedded UI control, assistants, web-component APIs, React/React Native SDKs, camera effects, customer S3 policy, and webhook event catalogs are separate Whereby surfaces.",
       "The SDK user owns consent, recording/transcription/summarization eligibility, data retention, host/viewer URL distribution, room branding policy, and feature-gated beta availability decisions.",
     ],
@@ -34,9 +95,15 @@ export const wherebyVideoProviderManifest = defineProviderPackage({
   },
   credentialRequirements: [
     {
+      id: "whereby-provider-client",
+      label: "Optional Whereby provider client override",
+      description: "Optional host-injected client implementing WherebyVideoProviderClient.requestOperation when the SDK user wants to override the built-in REST adapter.",
+      required: false,
+    },
+    {
       id: "whereby-api-key",
       label: "Whereby API key",
-      description: "Server-side API key used as a bearer token for Whereby Embedded REST API calls.",
+      description: "Server-side Whereby Embedded API key used by the built-in REST adapter.",
       required: true,
     },
     {
@@ -185,11 +252,11 @@ export const wherebyVideoProviderManifest = defineProviderPackage({
       changesWorkflow: true,
     },
     {
-      alias: "whereby.rest.request",
+      alias: "whereby.provider-operation.invoke",
       capability: "read-provider-object",
-      providerObject: "wherebyRestOperation",
+      providerObject: "wherebyProviderOperation",
       extension: true,
-      metadata: { supportSliceEscapeHatch: true },
+      metadata: { supportSliceEscapeHatch: true, transport: "provider-rest-adapter-or-host-provider-client" },
     },
     {
       alias: "whereby.webhook.parse",
@@ -207,10 +274,18 @@ export const wherebyVideoProviderManifest = defineProviderPackage({
   limitations: [
     "Whereby meetings are transient rooms controlled by the SDK user's Embedded account, API key, plan, dashboard configuration, and current Whereby feature availability.",
     "Whereby's documented meeting API supports create, list, get, and delete; meeting mutation is limited by Whereby to the documented room theme endpoints.",
-    "This package provides REST and webhook primitives only; it does not decide channel eligibility, consent, recording/transcription policy, handoff timing, or which users receive host/viewer URLs.",
+    "This package provides a built-in REST adapter plus host-provider-client override and webhook primitives; it does not decide channel eligibility, consent, recording/transcription policy, handoff timing, or which users receive host/viewer URLs.",
   ],
   maintainers: [{ name: "Cognidesk", type: "official" }],
   metadata: {
+    implementation: wherebyHostClientSupportSlice,
+    providerRestAdapterException: wherebyHostClientSupportSlice.restAdapterException,
+    providerClient: {
+      package: "host-provided",
+      interface: "WherebyVideoProviderClient",
+      importPolicy: "optional-host-override",
+      defaultClientPolicy: "built-in-rest-with-api-key",
+    },
     docs: "https://docs.whereby.com/reference/whereby-rest-api-reference/meetings",
     channelCoverage: {
       meetings: "typed-create-list-read-delete",
@@ -220,7 +295,8 @@ export const wherebyVideoProviderManifest = defineProviderPackage({
       summaries: "typed-create-list-read-delete",
       insights: "typed-list-read",
       webhooks: "typed-validate-parse",
-      restApiOperations: "generated-constrained-support-slice",
+      providerOperations: "generated-typed-rest-adapter-or-host-client-override",
+      providerRestAdapter: "typed-built-in-rest-json",
       browserSdkLiveMediaEmbeddedUiAssistants: "provider-supported-not-typed-separate-surface",
     },
     generatedSupportSliceVerification: {
@@ -270,7 +346,7 @@ export const wherebyVideoProviderManifest = defineProviderPackage({
     },
     sdkViability: {
       decision: "no-official-maintained-server-rest-sdk-found",
-      checkedAt: "2026-06-21",
+      checkedAt: "2026-06-25",
       rejectedSdkPackages: [
         {
           packageName: "@whereby.com/browser-sdk",

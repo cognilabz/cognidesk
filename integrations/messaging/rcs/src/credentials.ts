@@ -3,7 +3,12 @@ import type { RcsCredentialStatusInput } from "./contracts.js";
 import { rcsMessagingProviderManifest } from "./manifest.js";
 
 export function rcsMessagingCredentialStatuses(input: RcsCredentialStatusInput): ProviderCredentialStatusInput[] {
-  const authConfigured = Boolean(input.accessToken || input.tokenProviderConfigured || input.serviceAccountClientEmail);
+  const transportConfigured = Boolean(
+    input.providerClientConfigured
+      || input.accessToken
+      || input.tokenProviderConfigured
+      || input.serviceAccountConfigured,
+  );
   return [
     {
       providerPackageId: rcsMessagingProviderManifest.id,
@@ -15,13 +20,13 @@ export function rcsMessagingCredentialStatuses(input: RcsCredentialStatusInput):
     },
     {
       providerPackageId: rcsMessagingProviderManifest.id,
-      requirementId: "rcs-access-token",
-      state: authConfigured ? "configured" : "missing",
+      requirementId: "rcs-provider-client",
+      state: transportConfigured ? "configured" : "missing",
       scopes: input.scopes ?? [],
       ...(input.expiresAt ? { expiresAt: input.expiresAt } : {}),
-      message: authConfigured
-        ? "RCS OAuth access is configured."
-        : "A configured OAuth access token, token provider, or service account is required.",
+      message: transportConfigured
+        ? "RCS provider transport is configured."
+        : "RCS built-in REST adapter requires accessToken, token provider, service account, or providerClient.",
     },
     {
       providerPackageId: rcsMessagingProviderManifest.id,

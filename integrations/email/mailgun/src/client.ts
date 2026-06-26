@@ -6,7 +6,7 @@ import { parseMailgunWebhook } from "./webhooks.js";
 export interface MailgunRawClient {
   messages: {
     create(domain: string, data: Record<string, unknown>): Promise<unknown>;
-    retrieveStoredEmail?: (domain: string, storageKey: string) => Promise<unknown>;
+    retrieveStoredEmail(domain: string, storageKey: string): Promise<unknown>;
   };
   events: { get(domain: string, query?: Record<string, unknown>): Promise<unknown> };
   domains: { get(domain: string): Promise<unknown> };
@@ -87,10 +87,7 @@ export function createMailgunEmailClient(options: MailgunEmailClientOptions): Ma
       return call(() => rawClient.events.get(options.domain, toMailgunEventQuery(input)));
     },
     getStoredMessage(storageKey) {
-      if (!rawClient.messages.retrieveStoredEmail) {
-        throw new Error("mailgun.js stored message retrieval is unavailable on the configured raw client.");
-      }
-      return call(() => rawClient.messages.retrieveStoredEmail!(options.domain, storageKey));
+      return call(() => rawClient.messages.retrieveStoredEmail(options.domain, storageKey));
     },
     getDomain() {
       return call(() => rawClient.domains.get(options.domain));
@@ -144,12 +141,28 @@ function mailgunWebhookParserOptions(options: MailgunEmailClientOptions) {
 function createRawMailgunClient(options: MailgunEmailClientOptions): MailgunRawClient {
   const FormDataCtor = options.formData ?? FormData;
   const mailgun = new Mailgun(FormDataCtor as never);
-  return mailgun.client({
+  const client = mailgun.client({
     username: "api",
     key: options.apiKey,
     url: options.apiBaseUrl ?? resolveMailgunApiBaseUrl(options.region),
     useFetch: true,
-  }) as MailgunRawClient;
+  }) as unknown as Partial<MailgunRawClient>;
+  assertMailgunRuntimeClient(client);
+  return client;
+}
+
+function assertMailgunRuntimeClient(client: Partial<MailgunRawClient>): asserts client is MailgunRawClient {
+  const requiredMethods: Array<[string, unknown]> = [
+    ["messages.create", client.messages?.create],
+    ["messages.retrieveStoredEmail", client.messages?.retrieveStoredEmail],
+    ["events.get", client.events?.get],
+    ["domains.get", client.domains?.get],
+    ["webhooks.list", client.webhooks?.list],
+  ];
+  const missingMethod = requiredMethods.find(([, method]) => typeof method !== "function")?.[0];
+  if (missingMethod) {
+    throw new Error(`mailgun.js runtime client is missing ${missingMethod}.`);
+  }
 }
 
 function resolveMailgunApiBaseUrl(region: MailgunEmailClientOptions["region"]) {

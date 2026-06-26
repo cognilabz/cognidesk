@@ -13,10 +13,14 @@ export const sipVoiceProviderManifest = defineProviderPackage({
     scope: "local-protocol",
     notes: [
       "Defines a Cognidesk SIP stack gateway contract and callback normalizer for SDK-user-owned SIP/SBC/BYOC infrastructure.",
-      "Does not implement a SIP transaction/dialog stack, registrar, SBC, RTP/SRTP media engine, or any specific provider's SIP/Voice REST API.",
-      "Provider-specific SIP registration, INVITE/REFER/re-INVITE execution, media anchoring, recording, transcription, routing, consent, and retention remain SDK-user/provider gateway responsibilities.",
+      "Ships a drachtio-srf-backed gateway adapter for outbound UAC and dialog-level BYE, REFER, INFO DTMF, and re-INVITE media update operations when a drachtio Srf instance or server connection is configured.",
+      "Does not implement a registrar, SBC, RTP/SRTP media engine, recording/transcription media services, or any specific provider's SIP/Voice REST API.",
+      "Provider-specific SIP registration, inbound request/response acceptance, media anchoring, recording, transcription, routing, consent, and retention remain SDK-user/provider gateway responsibilities.",
     ],
-    evidence: [],
+    evidence: [
+      { label: "drachtio-srf npm package", url: "https://www.npmjs.com/package/drachtio-srf" },
+      { label: "drachtio-srf repository", url: "https://github.com/drachtio/drachtio-srf" },
+    ],
   },
   credentialRequirements: [
     {
@@ -232,23 +236,77 @@ export const sipVoiceProviderManifest = defineProviderPackage({
     "This package does not implement a SIP stack or expose SIP credentials to browsers; SDK users supply and operate the SIP/SBC bridge.",
   ],
   limitations: [
-    "A full SIP transaction/dialog stack is intentionally out of scope for this package.",
-    "SDK users must bridge these contracts to their chosen SIP stack, SBC, PBX, or BYOC voice provider.",
+    "A full SIP platform, registrar, SBC, and RTP/SRTP media engine are intentionally out of scope for this package.",
+    "The drachtio-srf gateway adapter requires a configured drachtio Srf instance or reachable drachtio server for live SIP signaling.",
+    "SDK users can still bridge these contracts to their chosen SIP stack, SBC, PBX, or BYOC voice provider through SipStackGateway.",
     "Conversation routing, consent, recording policy, retention, and handoff remain SDK-user configuration.",
   ],
   metadata: {
+    implementation: {
+      strategy: "protocol-runtime-sdk-gateway",
+      providerSdkDecision: "provider-protocol-lib/drachtio-srf",
+      checkedAt: "2026-06-25",
+      checkedSurface: "npm view drachtio-srf/sip.js/jssip and package runtime imports",
+      runtime: "createDrachtioSipStackGateway backed by drachtio-srf Srf, createUAC, and Dialog call-control methods",
+      selectedSdkPackage: "drachtio-srf",
+      reason: "drachtio-srf is a maintained, typed, server-side SIP signaling resource framework suitable for this package's outbound UAC and dialog-level call-control gateway operations.",
+      defaultClientPolicy: "drachtio-srf-gateway-when-configured-or-host-injected-SipStackGateway",
+      typedClientOverride: "SipStackGateway",
+      rejectedSdkPackages: [
+        {
+          packageName: "sip.js",
+          ecosystem: "npm",
+          reason: "Typed SIP library, but the current package surface needs server-side SIP gateway/dialog control rather than a browser/WebRTC User-Agent-first stack.",
+        },
+        {
+          packageName: "jssip",
+          ecosystem: "npm",
+          reason: "Typed and maintained SIP library, but its browser/User-Agent-oriented runtime surface is not the best fit for server-side BYOC SIP gateway operations.",
+        },
+      ],
+      guardrails: [
+        "Keep inbound SIP request/response acceptance behind host-provided gateway code until the operation surface carries concrete drachtio request/response objects.",
+        "Do not report live SIP readiness as healthy unless a drachtio Srf instance/server connection or host gateway readiness implementation is configured.",
+        "Keep media, recording, transcription, routing, consent, and retention decisions outside the drachtio signaling adapter.",
+      ],
+    },
+    checkedProviderSdk: {
+      checkedAt: "2026-06-25",
+      verdict: "provider-protocol-lib-selected",
+      packageSurfaceRuntimeSdkAvailable: true,
+      selectedPackage: {
+        packageName: "drachtio-srf",
+        ecosystem: "npm",
+        versionChecked: "5.0.24",
+        reason: "Maintained typed server-side SIP signaling resource framework with Srf.createUAC and Dialog methods.",
+      },
+      candidates: [
+        {
+          package: "drachtio-srf",
+          result: "selected-runtime-protocol-lib",
+        },
+        {
+          package: "sip.js",
+          result: "rejected-browser-user-agent-oriented-for-this-server-gateway-surface",
+        },
+        {
+          package: "jssip",
+          result: "rejected-browser-user-agent-oriented-for-this-server-gateway-surface",
+        },
+      ],
+    },
     bridgeContract: "sip-stack-gateway",
     secureMedia: ["tls", "srtp"],
     webhookEvents: ["call.status", "call.transfer", "recording", "transcription"],
     channelCoverage: {
-      sipGatewayContract: "sdk-owned-local-protocol",
-      inboundInviteEvents: "sdk-owned-bridge-contract",
-      outboundInvite: "sdk-owned-bridge-contract",
-      sdpMedia: "sdk-owned-bridge-contract",
-      transfer: "sdk-owned-bridge-contract",
+      sipGatewayContract: "drachtio-srf-gateway-or-host-gateway",
+      inboundInviteEvents: "host-gateway-contract",
+      outboundInvite: "drachtio-srf-createUAC-or-host-gateway",
+      sdpMedia: "drachtio-srf-dialog-modify-or-host-gateway",
+      transfer: "drachtio-srf-dialog-REFER-or-host-gateway",
       recordingCallbacks: "sdk-owned-bridge-contract",
       transcriptionCallbacks: "sdk-owned-bridge-contract",
-      sipStack: "not-covered",
+      sipStack: "drachtio-srf-signaling-adapter-for-selected-dialog-operations",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

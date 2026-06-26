@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { evaluateCapabilityUse } from "@cognidesk/core";
-import { whatsappMessagingProviderManifest } from "@cognidesk/integration-messaging-whatsapp";
+import {
+  whatsappWebMessagingProviderManifest,
+  whatsappMessagingProviderManifest,
+} from "@cognidesk/integration-messaging-whatsapp";
 import {
   FLIGHT_DISCORD_PROVIDER_PACKAGE_ID,
   FLIGHT_SECURE_EMAIL_CHANNEL_ID,
   FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID,
   FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+  FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID,
   createFlightDemoRuntimeChannels,
   flightDemoRuntimeChannels,
 } from "../server/agent/policies.js";
@@ -94,6 +98,43 @@ describe("flight demo channel policies", () => {
     expect(decision.allowed).toBe(false);
   });
 
+  it("allows WhatsApp outbound sends through the linked-device web provider when selected", () => {
+    const channels = createFlightDemoRuntimeChannels({
+      externalIntegrationJourneysEnabled: { secureEmail: false, discordHandoff: false, whatsapp: true },
+      whatsappProviderPackageId: FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID,
+    });
+    const decision = evaluateCapabilityUse({
+      request: {
+        channel: "chat",
+        capability: "send",
+        providerPackageId: FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID,
+        outbound: true,
+        sideEffect: true,
+        externallyVisible: true,
+        exposesSensitiveData: false,
+        changesWorkflow: false,
+        requiredPolicyIds: [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID],
+      },
+      channels,
+      providerPackages: [whatsappWebMessagingProviderManifest],
+    });
+
+    expect(decision).toMatchObject({ allowed: true });
+    expect(providerPackageIds(channels)).toContain(FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID);
+    expect(providerPackageIds(channels)).not.toContain(FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID);
+    expect(whatsAppOutboundDeliveries(channels)).toEqual(["whatsapp-web-message"]);
+  });
+
+  it("derives WhatsApp delivery metadata from the selected provider package", () => {
+    const channels = createFlightDemoRuntimeChannels({
+      externalIntegrationJourneysEnabled: { secureEmail: false, discordHandoff: false, whatsapp: true },
+      whatsappProviderPackageId: FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID,
+      whatsappDelivery: "whatsapp-cloud-api-message",
+    });
+
+    expect(whatsAppOutboundDeliveries(channels)).toEqual(["whatsapp-web-message"]);
+  });
+
   it("adds secure email channel policies only when secure email is enabled", () => {
     const enabledChannels = createFlightDemoRuntimeChannels({
       externalIntegrationJourneysEnabled: { secureEmail: true, discordHandoff: false, whatsapp: false },
@@ -127,4 +168,10 @@ function journeyActivations(channels: typeof flightDemoRuntimeChannels) {
 
 function providerPackageIds(channels: typeof flightDemoRuntimeChannels) {
   return channels.flatMap((channel) => channel.providerPackageIds ?? []);
+}
+
+function whatsAppOutboundDeliveries(channels: typeof flightDemoRuntimeChannels) {
+  return [...new Set(channels
+    .filter((channel) => channel.providerPackageIds?.includes(FLIGHT_WHATSAPP_WEB_PROVIDER_PACKAGE_ID))
+    .map((channel) => channel.outbound?.metadata?.delivery))];
 }

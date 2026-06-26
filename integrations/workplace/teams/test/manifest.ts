@@ -33,6 +33,11 @@ export function registerTeamsManifestTests() {
     });
     expect(teamsWorkplaceProviderManifest.operations.map((operation) => operation.alias))
       .toEqual(Object.values(teamsWorkplaceOperationAliases));
+    expect(teamsWorkplaceProviderManifest.operations.find((operation) =>
+      operation.alias === teamsWorkplaceOperationAliases.rawGraphRequest
+    )).toMatchObject({
+      metadata: { rawClientEscapeHatch: true },
+    });
     expect(teamsWorkplaceProviderManifest.capabilities.map((capability) => capability.capability))
       .toEqual(expect.arrayContaining([
         "receive",

@@ -1,3 +1,5 @@
+import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
+
 export type MessengerSocialJsonPrimitive = string | number | boolean | null;
 export type MessengerSocialJsonValue =
   | MessengerSocialJsonPrimitive
@@ -13,11 +15,17 @@ export interface MessengerSocialProviderResponse extends MessengerSocialJsonObje
 export interface MessengerSocialProviderExtensionFields extends MessengerSocialJsonObject {}
 
 export interface MessengerSocialClientOptions {
-  pageAccessToken: string;
-  pageId: string;
-  graphApiBaseUrl?: string;
-  graphApiVersion?: string;
+  providerClient?: MessengerSocialProviderClient | undefined;
+  accessToken?: string | undefined;
+  pageAccessToken?: string | undefined;
+  pageId?: string | undefined;
+  graphApiVersion?: string | undefined;
+  graphApiBaseUrl?: string | undefined;
+  baseUrl?: string | undefined;
   fetch?: typeof fetch;
+  signal?: AbortSignal | undefined;
+  timeoutMs?: number | undefined;
+  retry?: number | ProviderJsonRetryOptions | undefined;
 }
 
 export interface MessengerCredentialStatusInput {
@@ -55,9 +63,36 @@ export interface MessengerUploadAttachmentInput {
   isReusable?: boolean;
 }
 
+export interface MessengerProviderSendMessageInput extends MessengerSocialJsonObject {
+  recipient: { id: string };
+  messaging_type: NonNullable<MessengerSendMessageInput["messagingType"]>;
+  message?: MessengerSocialJsonObject;
+  sender_action?: NonNullable<MessengerSendMessageInput["senderAction"]>;
+  tag?: string;
+  notification_type?: NonNullable<MessengerSendMessageInput["notificationType"]>;
+}
+
+export interface MessengerProviderUploadAttachmentInput extends MessengerSocialJsonObject {
+  message: {
+    attachment: {
+      type: MessengerAttachmentType;
+      payload: {
+        is_reusable: boolean;
+        url: string;
+      };
+    };
+  };
+}
+
 export interface MessengerHandoverInput {
   recipientId: string;
   targetAppId?: string;
+  metadata?: string;
+}
+
+export interface MessengerProviderHandoverInput extends MessengerSocialJsonObject {
+  recipient: { id: string };
+  target_app_id?: string;
   metadata?: string;
 }
 
@@ -72,6 +107,20 @@ export interface MessengerConversationResponse {
   data?: Array<MessengerSocialJsonObject>;
   paging?: MessengerSocialJsonObject;
   [key: string]: MessengerSocialProviderExtensionValue;
+}
+
+export interface MessengerSocialProviderClient {
+  sendMessage(input: MessengerProviderSendMessageInput): Promise<MessengerApiResponse>;
+  uploadAttachment(input: MessengerProviderUploadAttachmentInput): Promise<MessengerApiResponse>;
+  passThreadControl(input: MessengerProviderHandoverInput): Promise<MessengerApiResponse>;
+  takeThreadControl(input: MessengerProviderHandoverInput): Promise<MessengerApiResponse>;
+  requestThreadControl(input: MessengerProviderHandoverInput): Promise<MessengerApiResponse>;
+  listConversations(input?: MessengerConversationSearchInput): Promise<MessengerConversationResponse>;
+  getConversationMessages(
+    conversationId: string,
+    input?: Omit<MessengerConversationSearchInput, "userId">,
+  ): Promise<MessengerConversationResponse>;
+  getPage(): Promise<MessengerSocialProviderResponse>;
 }
 
 export interface MessengerWebhookPayload {
@@ -100,6 +149,7 @@ export interface MessengerChallengeVerificationInput {
 }
 
 export interface MessengerSocialClient {
+  providerClient: MessengerSocialProviderClient;
   sendMessage(input: MessengerSendMessageInput): Promise<MessengerApiResponse>;
   sendText(input: {
     recipientId: string;
@@ -124,5 +174,5 @@ export interface MessengerSocialClient {
 }
 
 export interface MessengerLiveCheckOptions extends MessengerSocialClientOptions {
-  client?: Pick<MessengerSocialClient, "getPage" | "listConversations">;
+  client?: Pick<MessengerSocialClient, "getPage" | "listConversations"> | undefined;
 }

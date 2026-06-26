@@ -1,7 +1,6 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import {
   defineIntegration,
-  type IntegrationOperationContext,
   type ProviderCredentialStatusInput,
 } from "@cognidesk/integration-kit";
 import { vonageVoiceProviderManifest } from "./manifest.js";
@@ -12,6 +11,7 @@ export interface VonageVoiceClientOptions {
   applicationId: string;
   privateKey?: string;
   jwt?: string;
+  jwtOptions?: Record<string, unknown>;
   signatureSecret?: string;
   defaultEventUrl?: string[];
   rawClient?: VonageRawClient;
@@ -20,8 +20,9 @@ export interface VonageVoiceClientOptions {
 export interface VonageRawClient {
   voice?: {
     createOutboundCall(input: Record<string, unknown>): Promise<VonageCallResource>;
-    getCall?(uuid: string): Promise<VonageCallResource>;
-    updateCall?(uuid: string, input: Record<string, unknown>): Promise<VonageJsonObject>;
+    getCall(uuid: string): Promise<VonageCallResource>;
+    transferCallWithURL(uuid: string, url: string): Promise<VonageCallControlResult>;
+    transferCallWithNCCO?(uuid: string, ncco: VonageJsonObject[]): Promise<VonageCallControlResult>;
   };
 }
 
@@ -43,13 +44,16 @@ export interface VonageOutboundCallInput {
   advancedMachineDetection?: Record<string, unknown>;
 }
 
-export interface VonageCallUpdateInput {
+export type VonageCallUpdateInput = VonageCallTransferInput;
+
+export interface VonageCallTransferInput {
   action: "transfer";
-  destination: {
-    type: "url";
-    url: string[];
-  };
+  destination: VonageCallTransferDestination;
 }
+
+export type VonageCallTransferDestination =
+  | { type: "url"; url: string[] }
+  | { type: "ncco"; ncco: VonageNccoAction[] };
 
 export interface VonageCallResource extends VonageJsonObject {
   uuid?: string;
@@ -62,6 +66,7 @@ export type VonageJsonValue = VonageJsonPrimitive | VonageJsonObject | VonageJso
 export interface VonageJsonObject {
   [key: string]: VonageJsonValue | undefined;
 }
+export type VonageCallControlResult = VonageJsonObject | void;
 
 export type VonageNccoAction =
   | { action: "talk"; text: string; voiceName?: string; bargeIn?: boolean }
@@ -73,7 +78,8 @@ export interface VonageVoiceClient {
   getRawClient(): Promise<VonageRawClient>;
   createOutboundCall(input: VonageOutboundCallInput): Promise<VonageCallResource>;
   fetchCall(uuid: string): Promise<VonageCallResource>;
-  updateCall(uuid: string, input: VonageCallUpdateInput): Promise<VonageJsonObject>;
+  transferCall(uuid: string, input: VonageCallTransferInput): Promise<VonageCallControlResult>;
+  updateCall(uuid: string, input: VonageCallUpdateInput): Promise<VonageCallControlResult>;
 }
 
 export interface ParseVonageWebhookOptions {
@@ -81,6 +87,22 @@ export interface ParseVonageWebhookOptions {
   expectedApiKey?: string;
   rawBody?: string;
   requireSignature?: boolean;
+}
+
+export interface ParseVonageWebhookInput extends ParseVonageWebhookOptions {
+  request: Request;
+}
+
+export interface VonageVoiceIntegrationOptions extends VonageVoiceClientOptions {
+  voiceClient?: VonageVoiceClient;
+  expectedApiKey?: string;
+  requireSignature?: boolean;
+}
+
+export interface VonageCallTransferOperationInput {
+  uuid: string;
+  transfer?: VonageCallTransferInput;
+  update?: VonageCallUpdateInput;
 }
 
 export interface VonageWebhook {
@@ -93,28 +115,42 @@ export interface VonageWebhook {
   raw: VonageJsonObject;
 }
 
-export const vonageVoiceIntegration = defineIntegration({
-  manifest: vonageVoiceProviderManifest,
-  operations: {
-    "voice.call.answer": async (request: unknown, context: IntegrationOperationContext) =>
-      parseVonageWebhook(request as Request, context.metadata as ParseVonageWebhookOptions | undefined),
-    "voice.call.start": async (input: unknown, context: IntegrationOperationContext) =>
-      metadataClient<VonageVoiceClient>(context).createOutboundCall(input as VonageOutboundCallInput),
-    "voice.call.transfer": async (
-      input: unknown,
-      context: IntegrationOperationContext,
-    ) => {
-      const transfer = input as { uuid: string; update: VonageCallUpdateInput };
-      return metadataClient<VonageVoiceClient>(context).updateCall(transfer.uuid, transfer.update);
-    },
-  },
-});
+export function createVonageVoiceOperationHandlers(options: VonageVoiceIntegrationOptions) {
+  const client = options.voiceClient ?? createVonageVoiceClient(options);
 
-function metadataClient<Client>(context: IntegrationOperationContext): Client {
-  const client = context.metadata?.client;
-  if (!client) throw new Error("Pass a Vonage Voice client as context.metadata.client.");
-  return client as Client;
+  return {
+    "voice.call.answer": async (input: Request | ParseVonageWebhookInput) => {
+      const webhookInput = parseWebhookOperationInput(input);
+      const signatureSecret = webhookInput.signatureSecret ?? options.signatureSecret;
+      const expectedApiKey = webhookInput.expectedApiKey ?? options.expectedApiKey;
+      const requireSignature = webhookInput.requireSignature ?? options.requireSignature;
+      return parseVonageWebhook(webhookInput.request, {
+        ...(signatureSecret ? { signatureSecret } : {}),
+        ...(expectedApiKey ? { expectedApiKey } : {}),
+        ...(webhookInput.rawBody !== undefined ? { rawBody: webhookInput.rawBody } : {}),
+        ...(requireSignature !== undefined ? { requireSignature } : {}),
+      });
+    },
+    "voice.call.start": (input: VonageOutboundCallInput) => client.createOutboundCall(input),
+    "voice.call.transfer": (input: VonageCallTransferOperationInput) =>
+      client.transferCall(input.uuid, transferOperationPayload(input)),
+  } as const;
 }
+
+export function createVonageVoiceIntegration(options: VonageVoiceIntegrationOptions) {
+  return defineIntegration({
+    manifest: vonageVoiceProviderManifest,
+    operations: createVonageVoiceOperationHandlers(options),
+  });
+}
+
+export const createVonageIntegration = createVonageVoiceIntegration;
+export const createVonageIntegrationOperationHandlers = createVonageVoiceOperationHandlers;
+
+export const vonageVoiceIntegration = createVonageVoiceIntegration({
+  applicationId: "",
+  voiceClient: createUnconfiguredVonageVoiceClient(),
+});
 
 export function createVonageVoiceClient(options: VonageVoiceClientOptions): VonageVoiceClient {
   let rawClientPromise: Promise<VonageRawClient> | undefined;
@@ -124,7 +160,7 @@ export function createVonageVoiceClient(options: VonageVoiceClientOptions): Vona
       : createVonageRawClient(options);
     return rawClientPromise;
   };
-  return {
+  const client: VonageVoiceClient = {
     getRawClient,
     async createOutboundCall(input) {
       assertOutboundCallInput(input, options);
@@ -134,21 +170,32 @@ export function createVonageVoiceClient(options: VonageVoiceClientOptions): Vona
       return createOutboundCall.call(rawClient.voice, normalizeOutboundCall(input, options));
     },
     async fetchCall(uuid) {
-      const getCall = (await getRawClient()).voice?.getCall;
+      const rawClient = await getRawClient();
+      const getCall = rawClient.voice?.getCall;
       if (!getCall) throw new Error("Vonage SDK client does not expose voice.getCall().");
-      return getCall(uuid);
+      return getCall.call(rawClient.voice, uuid);
     },
-    async updateCall(uuid, input) {
+    async transferCall(uuid, input) {
       if (input.action !== "transfer") {
         throw new Error("Vonage Voice modify-call supports only the documented transfer action.");
       }
-      const updateCall = (await getRawClient()).voice?.updateCall;
-      if (!updateCall) {
-        throw new Error("Vonage SDK client does not expose voice.updateCall(); use getRawClient() for custom call-control support.");
+      const rawClient = await getRawClient();
+      const voice = rawClient.voice;
+      if (!voice) throw new Error("Vonage SDK client does not expose voice.");
+      if (input.destination.type === "url") {
+        const transferCallWithURL = voice.transferCallWithURL;
+        if (!transferCallWithURL) throw new Error("Vonage SDK client does not expose voice.transferCallWithURL().");
+        return transferCallWithURL.call(voice, uuid, transferUrl(input.destination));
       }
-      return updateCall(uuid, input as unknown as Record<string, unknown>);
+      const transferCallWithNCCO = voice.transferCallWithNCCO;
+      if (!transferCallWithNCCO) throw new Error("Vonage SDK client does not expose voice.transferCallWithNCCO().");
+      return transferCallWithNCCO.call(voice, uuid, input.destination.ncco.map(normalizeNccoAction));
+    },
+    async updateCall(uuid, input) {
+      return client.transferCall(uuid, input);
     },
   };
+  return client;
 }
 
 export function createVonageWebSocketNcco(input: {
@@ -255,11 +302,70 @@ export function verifyVonageWebhookJwt(
 
 async function createVonageRawClient(options: VonageVoiceClientOptions): Promise<VonageRawClient> {
   const { Vonage } = await import("@vonage/server-sdk");
-  return new Vonage({
-    applicationId: options.applicationId,
-    ...(options.privateKey ? { privateKey: options.privateKey } : {}),
-    ...(options.jwt ? { jwt: options.jwt } : {}),
-  }) as VonageRawClient;
+  const credentials = createVonageSdkCredentials(options) as ConstructorParameters<typeof Vonage>[0];
+  return new Vonage(credentials) as VonageRawClient;
+}
+
+function createVonageSdkCredentials(options: VonageVoiceClientOptions): unknown {
+  if (options.privateKey) {
+    return compact({
+      applicationId: options.applicationId,
+      privateKey: options.privateKey,
+      jwtOptions: options.jwtOptions,
+    });
+  }
+  if (options.jwt) return createStaticVonageJwtAuth(options.jwt);
+  throw new Error("Vonage privateKey or JWT credentials are required to create the SDK client.");
+}
+
+function createStaticVonageJwtAuth(jwt: string) {
+  return {
+    getQueryParams: async <T>(params?: T) => mergeAuthParams(params, {
+      api_key: "",
+      api_secret: "",
+    }),
+    createSignatureHash: async <T>(params: T) => mergeAuthParams(params, {
+      api_key: "",
+    }),
+    createBasicHeader: async () => "",
+    createBearerHeader: async () => `Bearer ${jwt}`,
+  };
+}
+
+function mergeAuthParams<T>(params: T | undefined, authParams: Record<string, string>): Record<string, string> & T {
+  if (params && typeof params === "object") return { ...authParams, ...params } as Record<string, string> & T;
+  return authParams as Record<string, string> & T;
+}
+
+function parseWebhookOperationInput(input: Request | ParseVonageWebhookInput): ParseVonageWebhookInput {
+  if (typeof input === "object" && input !== null && "request" in input) return input;
+  return { request: input };
+}
+
+function transferOperationPayload(input: VonageCallTransferOperationInput): VonageCallTransferInput {
+  const payload = input.transfer ?? input.update;
+  if (!payload) throw new Error("Vonage transfer operation requires transfer payload.");
+  return payload;
+}
+
+function transferUrl(destination: { type: "url"; url: string[] }) {
+  if (destination.url.length !== 1 || !destination.url[0]) {
+    throw new Error("Vonage SDK transferCallWithURL requires exactly one transfer URL.");
+  }
+  return destination.url[0];
+}
+
+function createUnconfiguredVonageVoiceClient(): VonageVoiceClient {
+  const fail = (): never => {
+    throw new Error("Create a configured Vonage Voice integration with createVonageVoiceIntegration(...).");
+  };
+  return {
+    getRawClient: async () => fail(),
+    createOutboundCall: async () => fail(),
+    fetchCall: async () => fail(),
+    transferCall: async () => fail(),
+    updateCall: async () => fail(),
+  };
 }
 
 function assertOutboundCallInput(input: VonageOutboundCallInput, options: VonageVoiceClientOptions) {

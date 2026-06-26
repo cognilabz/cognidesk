@@ -5,6 +5,10 @@ import type {
   RealtimeServerEvent,
   RealtimeSessionCreateRequest,
 } from "openai/resources/realtime/realtime";
+import {
+  defineIntegration,
+  type IntegrationOperationContext,
+} from "@cognidesk/integration-kit";
 import type { VoiceModelSet } from "@cognidesk/core";
 import type {
   VoiceControlNotification,
@@ -21,14 +25,19 @@ import type {
 } from "@cognidesk/voice-websocket";
 export {
   OPENAI_REALTIME_V1_MODEL,
-  openAIVoiceIntegration,
+  openAIVoiceManifestInput,
   openAIVoiceProviderManifest,
 } from "./manifest.js";
-import { OPENAI_REALTIME_V1_MODEL } from "./manifest.js";
+import { OPENAI_REALTIME_V1_MODEL, openAIVoiceManifestInput } from "./manifest.js";
 
 export interface OpenAIVoiceProviderOptions {
   apiKey?: string;
+  /**
+   * Raw official OpenAI SDK client. Prefer rawClient for new code.
+   */
   client?: OpenAI;
+  rawClient?: OpenAI;
+  voiceClient?: OpenAIVoiceClient;
   model?: typeof OPENAI_REALTIME_V1_MODEL;
   voice?: string;
   transcriptionLanguage?: string;
@@ -49,6 +58,68 @@ export interface OpenAIRealtimeSocket {
   on(event: "error", listener: (error: unknown) => void): void;
 }
 
+export interface OpenAIVoiceClientOptions {
+  apiKey?: string;
+  baseURL?: string;
+  rawClient?: OpenAI;
+  realtime?: OpenAIRealtimeFactory;
+}
+
+export interface OpenAIRealtimeSocketInput {
+  model?: string;
+}
+
+export interface OpenAIRealtimeSessionStartInput extends OpenAIRealtimeSocketInput {
+  socket?: OpenAIRealtimeSocket;
+  session?: RealtimeSessionCreateRequest;
+}
+
+export interface OpenAIRealtimeSessionStartResult {
+  socket: OpenAIRealtimeSocket;
+  session: RealtimeSessionCreateRequest;
+}
+
+export interface OpenAIRealtimeTurnFinalizeInput {
+  socket: OpenAIRealtimeSocket;
+  eventId?: string;
+}
+
+export type OpenAIRealtimeResponseCreateRequest = NonNullable<
+  Extract<RealtimeClientEvent, { type: "response.create" }>["response"]
+>;
+
+export interface OpenAIRealtimeSpeakInput {
+  socket: OpenAIRealtimeSocket;
+  id?: string;
+  text?: string;
+  response?: OpenAIRealtimeResponseCreateRequest;
+}
+
+export interface OpenAIRealtimeEventSendInput {
+  socket: OpenAIRealtimeSocket;
+  event: RealtimeClientEvent;
+}
+
+export interface OpenAIVoiceClient {
+  getRawClient(): Promise<OpenAI>;
+  createRealtimeSocket(input?: OpenAIRealtimeSocketInput): Promise<OpenAIRealtimeSocket>;
+  startRealtimeSession(input?: OpenAIRealtimeSessionStartInput): Promise<OpenAIRealtimeSessionStartResult>;
+  updateRealtimeSession(input: {
+    socket: OpenAIRealtimeSocket;
+    session: RealtimeSessionCreateRequest;
+  }): RealtimeClientEvent;
+  commitAudioTurn(input: OpenAIRealtimeTurnFinalizeInput): RealtimeClientEvent;
+  createRealtimeResponse(input: {
+    socket: OpenAIRealtimeSocket;
+    response: OpenAIRealtimeResponseCreateRequest;
+  }): RealtimeClientEvent;
+  speak(input: OpenAIRealtimeSpeakInput): {
+    event: RealtimeClientEvent;
+    speechId?: string;
+  };
+  sendRealtimeEvent(input: OpenAIRealtimeEventSendInput): RealtimeClientEvent;
+}
+
 interface PendingSpeech {
   id: string;
   responseId?: string;
@@ -61,23 +132,121 @@ export type OpenAIRealtimeFactory = (
   input: OpenAIRealtimeFactoryInput,
 ) => Promise<OpenAIRealtimeSocket>;
 
+export function createOpenAIVoiceClient(options: OpenAIVoiceClientOptions = {}): OpenAIVoiceClient {
+  let rawClientPromise: Promise<OpenAI> | undefined;
+  const realtime = options.realtime ?? createOpenAIRealtimeSocket;
+  const getRawClient = () => {
+    rawClientPromise ??= Promise.resolve(options.rawClient ?? new OpenAI({
+      ...(options.apiKey !== undefined ? { apiKey: options.apiKey } : {}),
+      ...(options.baseURL ? { baseURL: options.baseURL } : {}),
+    }));
+    return rawClientPromise;
+  };
+  const sendRealtimeEvent = (input: OpenAIRealtimeEventSendInput) => {
+    input.socket.send(input.event);
+    return input.event;
+  };
+  const createRealtimeSocket = async (input: OpenAIRealtimeSocketInput = {}) => {
+    const rawClient = await getRawClient();
+    return realtime({
+      client: rawClient,
+      model: resolveSupportedRealtimeModel(input.model),
+    });
+  };
+  const updateRealtimeSession = (input: {
+    socket: OpenAIRealtimeSocket;
+    session: RealtimeSessionCreateRequest;
+  }) => sendRealtimeEvent({
+    socket: input.socket,
+    event: {
+      type: "session.update",
+      session: input.session,
+    },
+  });
+  const commitAudioTurn = (input: OpenAIRealtimeTurnFinalizeInput) => sendRealtimeEvent({
+    socket: input.socket,
+    event: {
+      type: "input_audio_buffer.commit",
+      ...optionalStringField("event_id", input.eventId),
+    },
+  });
+  const createRealtimeResponse = (input: {
+    socket: OpenAIRealtimeSocket;
+    response: OpenAIRealtimeResponseCreateRequest;
+  }) => sendRealtimeEvent({
+    socket: input.socket,
+    event: {
+      type: "response.create",
+      response: input.response,
+    },
+  });
+
+  return {
+    getRawClient,
+    createRealtimeSocket,
+    async startRealtimeSession(input = {}) {
+      const model = resolveSupportedRealtimeModel(input.model ?? input.session?.model);
+      const socket = input.socket ?? await createRealtimeSocket({ model });
+      const session = input.session
+        ? { ...input.session, model }
+        : buildRealtimeSession({ model });
+      updateRealtimeSession({ socket, session });
+      return { socket, session };
+    },
+    updateRealtimeSession,
+    commitAudioTurn,
+    createRealtimeResponse,
+    speak(input) {
+      const event = input.response
+        ? createRealtimeResponse({ socket: input.socket, response: input.response })
+        : sendRealtimeEvent({
+            socket: input.socket,
+            event: createSpeechResponse({
+              id: input.id ?? createId("cognidesk_voice_speech"),
+              text: requireSpeakText(input.text),
+            }),
+          });
+      const speechId = input.response ? undefined : speechIdFromResponseCreateEvent(event);
+      return speechId ? { event, speechId } : { event };
+    },
+    sendRealtimeEvent,
+  };
+}
+
+export function createOpenAIVoiceOperationHandlers(options: { voiceClient?: OpenAIVoiceClient } = {}) {
+  return {
+    "voice.session.start": async (input: OpenAIRealtimeSessionStartInput, context: IntegrationOperationContext) =>
+      operationVoiceClient(context, options.voiceClient).startRealtimeSession(input),
+    "voice.turn.finalize": async (input: OpenAIRealtimeTurnFinalizeInput, context: IntegrationOperationContext) =>
+      operationVoiceClient(context, options.voiceClient).commitAudioTurn(input),
+    "voice.speak": async (input: OpenAIRealtimeSpeakInput, context: IntegrationOperationContext) =>
+      operationVoiceClient(context, options.voiceClient).speak(input),
+  } as const;
+}
+
+export const openAIVoiceIntegration = defineIntegration({
+  manifest: openAIVoiceManifestInput,
+  operations: createOpenAIVoiceOperationHandlers(),
+});
+
 export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = {}): VoiceProvider {
   const model = options.model ?? OPENAI_REALTIME_V1_MODEL;
   if (model !== OPENAI_REALTIME_V1_MODEL) {
     throw new Error(`@cognidesk/integration-voice-openai v1 supports only ${OPENAI_REALTIME_V1_MODEL}.`);
   }
-  const client = options.client ?? new OpenAI({
-    apiKey: options.apiKey,
+  const voiceClient = options.voiceClient ?? createOpenAIVoiceClient({
+    ...(options.apiKey !== undefined ? { apiKey: options.apiKey } : {}),
     ...(options.baseURL ? { baseURL: options.baseURL } : {}),
+    ...(options.rawClient ?? options.client ? { rawClient: options.rawClient ?? options.client } : {}),
+    ...(options.realtime ? { realtime: options.realtime } : {}),
   });
-  const realtime = options.realtime ?? createOpenAIRealtimeSocket;
 
   return {
     id: "openai-realtime-ws",
     async connect(input): Promise<VoiceProviderSession> {
       const profileModel = input.profile?.modelSet;
       assertSupportedModel(profileModel);
-      const socket = await realtime({ client, model });
+      const socket = await voiceClient.createRealtimeSocket({ model });
       let speechQueue = Promise.resolve();
       let pendingSpeech: PendingSpeech | null = null;
       const sendProviderEvent = async (event: VoiceProviderEvent) => {
@@ -109,8 +278,8 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
         });
       });
 
-      socket.send({
-        type: "session.update",
+      voiceClient.updateRealtimeSession({
+        socket,
         session: buildRealtimeSession({
           ...(options.sessionDefaults ? { defaults: options.sessionDefaults } : {}),
           model,
@@ -124,7 +293,7 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
       return {
         send(event) {
           const translated = translateBrowserEvent(event);
-          if (translated) socket.send(translated);
+          if (translated) voiceClient.sendRealtimeEvent({ socket, event: translated });
         },
         speak({ text }) {
           return enqueueSpeech((id) => createSpeechResponse({ id, text }));
@@ -150,7 +319,7 @@ export function createOpenAIVoiceProvider(options: OpenAIVoiceProviderOptions = 
             }, 90_000);
             pendingSpeech = { id, resolve, reject, timeout };
             try {
-              socket.send(createEvent(id));
+              voiceClient.sendRealtimeEvent({ socket, event: createEvent(id) });
             } catch (error) {
               clearTimeout(timeout);
               pendingSpeech = null;
@@ -622,9 +791,38 @@ function assertSupportedModel(modelSet: VoiceModelSet | undefined) {
   if (modelSet.provider !== "openai") {
     throw new Error(`@cognidesk/integration-voice-openai cannot run voice model provider '${modelSet.provider}'.`);
   }
-  if (modelSet.model !== OPENAI_REALTIME_V1_MODEL) {
+  resolveSupportedRealtimeModel(modelSet.model);
+}
+
+function resolveSupportedRealtimeModel(model: string | undefined): typeof OPENAI_REALTIME_V1_MODEL {
+  const resolved = model ?? OPENAI_REALTIME_V1_MODEL;
+  if (resolved !== OPENAI_REALTIME_V1_MODEL) {
     throw new Error(`@cognidesk/integration-voice-openai v1 supports only ${OPENAI_REALTIME_V1_MODEL}.`);
   }
+  return resolved;
+}
+
+function operationVoiceClient(
+  context: IntegrationOperationContext,
+  configuredClient: OpenAIVoiceClient | undefined,
+) {
+  if (configuredClient) return configuredClient;
+  const client = context.metadata?.client ?? context.metadata?.voiceClient;
+  if (!client) throw new Error("Pass an OpenAI voice client as context.metadata.client.");
+  return client as OpenAIVoiceClient;
+}
+
+function requireSpeakText(text: string | undefined) {
+  if (text === undefined) throw new Error("OpenAI realtime voice.speak requires text or a response payload.");
+  return text;
+}
+
+function speechIdFromResponseCreateEvent(event: RealtimeClientEvent) {
+  if (event.type !== "response.create") return undefined;
+  const metadata = event.response?.metadata;
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return undefined;
+  const value = (metadata as Record<string, unknown>).cognidesk_voice_id;
+  return typeof value === "string" ? value : undefined;
 }
 
 function mergeSession(

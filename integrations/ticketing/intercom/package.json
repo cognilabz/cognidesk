@@ -45,9 +45,6 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "intercom",
-    "providerSdkDependencies": [
-      "intercom-client"
-    ],
     "manifestOnlyExports": [
       "./manifest"
     ],

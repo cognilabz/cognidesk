@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-ticketing-dynamics365",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "@cognidesk/core": "workspace:*",
-    "@cognidesk/integration-kit": "workspace:*"
+    "@cognidesk/integration-kit": "workspace:*",
+    "dynamics-web-api": "2.5.0"
   },
   "devDependencies": {
     "@cognidesk/test-harness": "workspace:*",

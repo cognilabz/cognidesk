@@ -42,9 +42,6 @@
     "release": "independent-provider",
     "category": "workplace",
     "provider": "slack",
-    "providerSdkDependencies": [
-      "@slack/web-api"
-    ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,
       "unpackedSizeBytes": 41943040,

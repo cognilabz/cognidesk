@@ -15,7 +15,7 @@ export const intercomTicketingProviderManifest = defineIntegrationProviderPackag
     scope: "support-workflow-subset",
     notes: [
       "Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.",
-      "Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient.",
+      "Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient/getRawClient().",
       "Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass.",
     ],
     evidence: [
@@ -54,7 +54,7 @@ export const intercomTicketingProviderManifest = defineIntegrationProviderPackag
       strategy: "official-sdk",
       sdkPackage: "intercom-client",
       sdkVersionRange: "7.0.3",
-      rawClientEscapeHatch: "IntercomTicketingClient.rawClient",
+      rawClientEscapeHatch: "IntercomTicketingClient.rawClient/getRawClient()",
       manifestImport: "no-sdk-client-initialization",
       supplyChainNote: "7.0.3 is pinned; do not allow compromised 7.0.4.",
     },

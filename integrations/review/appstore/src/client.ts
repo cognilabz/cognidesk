@@ -1,110 +1,343 @@
-import { IntegrationError, normalizeIntegrationError } from "@cognidesk/integration-kit";
+import {
+  IntegrationError,
+  normalizeIntegrationError,
+  providerJsonRequest,
+  type ProviderQueryValue,
+} from "@cognidesk/integration-kit";
+import {
+  appsCustomerReviewsGetToManyRelated,
+  appsGetInstance,
+  createClient as createAppStoreConnectSdkClient,
+  customerReviewResponsesCreateInstance,
+  customerReviewResponsesDeleteInstance,
+  customerReviewsGetInstance,
+  type AppsCustomerReviewsGetToManyRelatedData,
+  type CustomerReviewsGetInstanceData,
+  type CustomerReviewResponsesCreateInstanceData,
+  type Client as AppStoreConnectSdkClient,
+} from "appstore-connect-sdk";
 import type {
   AppStoreAppResponse,
   AppStoreCustomerReviewResponseDocument,
-  AppStoreHttpMethod,
   AppStoreListReviewsInput,
-  AppStoreRawRequestInput,
   AppStoreReviewResponse,
   AppStoreReviewResponseInput,
   AppStoreReviewsClient,
   AppStoreReviewsClientOptions,
   AppStoreReviewsListResponse,
-  AppStoreReviewsProviderPayload,
+  AppStoreReviewsProviderClient,
   AppStoreReviewsProviderQuery,
 } from "./contracts.js";
 import { createAppStoreConnectJwt } from "./jwt.js";
 
-export function createAppStoreReviewsClient(options: AppStoreReviewsClientOptions): AppStoreReviewsClient {
-  const apiBaseUrl = (options.apiBaseUrl ?? "https://api.appstoreconnect.apple.com").replace(/\/+$/, "");
-  const fetchImpl = options.fetch ?? fetch;
-  const rawClient = {
-    request: <T = unknown>(input: AppStoreRawRequestInput) =>
-      appStoreRequest<T>({
-        url: appStoreOperationUrl(apiBaseUrl, input.path, {}, input.query),
-        method: input.method,
-        options,
-        fetch: fetchImpl,
-        body: input.body,
-      }),
-  };
+const APP_STORE_CONNECT_DEFAULT_BASE_URL = "https://api.appstoreconnect.apple.com";
 
+export function createAppStoreReviewsClient(options: AppStoreReviewsClientOptions): AppStoreReviewsClient {
+  const providerClient = options.providerClient ?? createAppStoreConnectRestProviderClient(options);
   return {
-    rawClient,
+    providerClient,
+    listReviews: (input) => providerClient.listReviews(input),
+    async listReviewsPage(pageUrl) {
+      return providerClient.listReviewsPage(normalizeAppStoreReviewsPageUrl(
+        pageUrl,
+        options.baseUrl ?? APP_STORE_CONNECT_DEFAULT_BASE_URL,
+        options.appId,
+      ));
+    },
+    getReview: (reviewId, input) => providerClient.getReview(reviewId, input),
+    createOrUpdateReviewResponse: (input) => providerClient.createOrUpdateReviewResponse(input),
+    deleteReviewResponse: (responseId) => providerClient.deleteReviewResponse(responseId),
+    getApp: () => providerClient.getApp(),
+  };
+}
+
+export function createAppStoreConnectRestProviderClient(
+  options: Omit<AppStoreReviewsClientOptions, "providerClient">,
+): AppStoreReviewsProviderClient {
+  if (shouldUseAppStoreConnectSdk(options)) return createAppStoreConnectSdkProviderClient(options);
+  if (!hasAppStoreAuth(options)) return createUnconfiguredAppStoreProviderClient();
+  assertAppStoreAppId(options.appId);
+  return {
     async listReviews(input = {}) {
-      const url = new URL(`${apiBaseUrl}/v1/apps/${encodeURIComponent(options.appId)}/customerReviews`);
-      applyListQuery(url, input);
-      return appStoreRequest<AppStoreReviewsListResponse>({ url: url.toString(), method: "GET", options, fetch: fetchImpl });
+      return appStoreJsonRequest<AppStoreReviewsListResponse>(options, {
+        method: "GET",
+        path: "/v1/apps/{id}/customerReviews",
+        pathParams: { id: options.appId },
+        query: appStoreListReviewsQuery(input),
+        operationAlias: "appstore.reviews.list",
+      });
     },
     async listReviewsPage(pageUrl) {
-      return appStoreRequest<AppStoreReviewsListResponse>({
-        url: normalizeAppStoreReviewsPageUrl(pageUrl, apiBaseUrl, options.appId),
+      const url = normalizeAppStoreReviewsPageUrl(
+        pageUrl,
+        options.baseUrl ?? APP_STORE_CONNECT_DEFAULT_BASE_URL,
+        options.appId,
+      );
+      return appStoreJsonRequest<AppStoreReviewsListResponse>(options, {
         method: "GET",
-        options,
-        fetch: fetchImpl,
+        absoluteUrl: url,
+        operationAlias: "appstore.reviews.page",
       });
     },
     async getReview(reviewId, input = {}) {
-      const url = new URL(`${apiBaseUrl}/v1/customerReviews/${encodeURIComponent(reviewId)}`);
-      applyListQuery(url, input);
-      return appStoreRequest<AppStoreReviewResponse>({ url: url.toString(), method: "GET", options, fetch: fetchImpl });
+      return appStoreJsonRequest<AppStoreReviewResponse>(options, {
+        method: "GET",
+        path: "/v1/customerReviews/{id}",
+        pathParams: { id: reviewId },
+        query: appStoreListReviewsQuery(input),
+        operationAlias: "appstore.reviews.get",
+      });
     },
     async createOrUpdateReviewResponse(input) {
-      return appStoreRequest<AppStoreCustomerReviewResponseDocument>({
-        url: `${apiBaseUrl}/v1/customerReviewResponses`,
+      return appStoreJsonRequest<AppStoreCustomerReviewResponseDocument>(options, {
         method: "POST",
-        options,
-        fetch: fetchImpl,
-        body: reviewResponseBody(input),
+        path: "/v1/customerReviewResponses",
+        body: appStoreReviewResponseBody(input),
+        operationAlias: "appstore.reviewResponses.createOrUpdate",
       });
     },
     async deleteReviewResponse(responseId) {
-      await appStoreRequest<void>({
-        url: `${apiBaseUrl}/v1/customerReviewResponses/${encodeURIComponent(responseId)}`,
+      await appStoreJsonRequest(options, {
         method: "DELETE",
-        options,
-        fetch: fetchImpl,
+        path: "/v1/customerReviewResponses/{id}",
+        pathParams: { id: responseId },
+        operationAlias: "appstore.reviewResponses.delete",
       });
     },
     async getApp() {
-      return appStoreRequest<AppStoreAppResponse>({
-        url: `${apiBaseUrl}/v1/apps/${encodeURIComponent(options.appId)}?fields%5Bapps%5D=name%2CbundleId%2Csku%2CprimaryLocale`,
+      return appStoreJsonRequest<AppStoreAppResponse>(options, {
         method: "GET",
-        options,
-        fetch: fetchImpl,
+        path: "/v1/apps/{id}",
+        pathParams: { id: options.appId },
+        operationAlias: "appstore.app.get",
       });
     },
   };
 }
 
-export async function appStoreRequest<T>(input: {
-  url: string;
-  method: AppStoreHttpMethod;
-  options: AppStoreReviewsClientOptions;
-  fetch: typeof fetch;
-  body?: AppStoreReviewsProviderPayload | undefined;
-}): Promise<T> {
-  const jwt = await resolveJwt(input.options);
-  const response = await input.fetch(input.url, {
-    method: input.method,
-    headers: {
-      authorization: `Bearer ${jwt}`,
-      accept: "application/json",
-      ...(input.body ? { "content-type": "application/json" } : {}),
+export function createAppStoreConnectSdkProviderClient(
+  options: Omit<AppStoreReviewsClientOptions, "providerClient">,
+): AppStoreReviewsProviderClient {
+  if (!hasAppStoreAuth(options)) return createUnconfiguredAppStoreProviderClient();
+  const appId = assertAppStoreAppId(options.appId);
+  return {
+    async listReviews(input = {}) {
+      const client = await appStoreConnectSdkClient(options);
+      return appStoreSdkResult<AppStoreReviewsListResponse>(await appsCustomerReviewsGetToManyRelated({
+        client,
+        path: { id: appId },
+        query: appStoreSdkListReviewsQuery(input),
+        responseStyle: "data",
+        throwOnError: true,
+      }), "appstore.reviews.list");
     },
-    ...(input.body ? { body: JSON.stringify(input.body) } : {}),
-  });
-  if (response.status === 204) return undefined as T;
-  const text = await response.text();
-  const body = (text ? JSON.parse(text) : {}) as T & { errors?: Array<{ detail?: string; title?: string }> };
-  if (!response.ok) {
-    const firstError = body.errors?.[0];
-    throw normalizeIntegrationError(
-      new Error(firstError?.detail ?? firstError?.title ?? `App Store Connect API returned ${response.status}.`),
+    async listReviewsPage(pageUrl) {
+      const url = new URL(normalizeAppStoreReviewsPageUrl(
+        pageUrl,
+        options.baseUrl ?? APP_STORE_CONNECT_DEFAULT_BASE_URL,
+        appId,
+      ));
+      const client = await appStoreConnectSdkClient(options);
+      return appStoreSdkResult<AppStoreReviewsListResponse>(await client.get({
+        url: `${url.pathname}${url.search}`,
+        responseStyle: "data",
+        throwOnError: true,
+      }), "appstore.reviews.page");
+    },
+    async getReview(reviewId, input = {}) {
+      const client = await appStoreConnectSdkClient(options);
+      return appStoreSdkResult<AppStoreReviewResponse>(await customerReviewsGetInstance({
+        client,
+        path: { id: reviewId },
+        query: appStoreSdkReviewQuery(input),
+        responseStyle: "data",
+        throwOnError: true,
+      }), "appstore.reviews.get");
+    },
+    async createOrUpdateReviewResponse(input) {
+      const client = await appStoreConnectSdkClient(options);
+      return appStoreSdkResult<AppStoreCustomerReviewResponseDocument>(await customerReviewResponsesCreateInstance({
+        client,
+        body: appStoreReviewResponseBody(input) as CustomerReviewResponsesCreateInstanceData["body"],
+        responseStyle: "data",
+        throwOnError: true,
+      }), "appstore.reviewResponses.createOrUpdate");
+    },
+    async deleteReviewResponse(responseId) {
+      const client = await appStoreConnectSdkClient(options);
+      await customerReviewResponsesDeleteInstance({
+        client,
+        path: { id: responseId },
+        responseStyle: "data",
+        throwOnError: true,
+      });
+    },
+    async getApp() {
+      const client = await appStoreConnectSdkClient(options);
+      return appStoreSdkResult<AppStoreAppResponse>(await appsGetInstance({
+        client,
+        path: { id: appId },
+        query: { "fields[apps]": ["name", "bundleId", "sku", "primaryLocale"] },
+        responseStyle: "data",
+        throwOnError: true,
+      }), "appstore.app.get");
+    },
+  };
+}
+
+export function createUnconfiguredAppStoreProviderClient(): AppStoreReviewsProviderClient {
+  const fail = async () => {
+    throw new IntegrationError(
+      "credential-missing",
+      "App Store Connect API credentials are required. Pass issuerId/keyId/privateKey, accessToken/getJwt, or providerClient.",
       { providerPackageId: "review.appstore", provider: "appstore" },
     );
+  };
+  return {
+    listReviews: fail,
+    listReviewsPage: fail,
+    getReview: fail,
+    createOrUpdateReviewResponse: fail,
+    deleteReviewResponse: fail,
+    getApp: fail,
+  };
+}
+
+function shouldUseAppStoreConnectSdk(options: Omit<AppStoreReviewsClientOptions, "providerClient">) {
+  return Boolean(
+    options.sdkClient ||
+      (!options.fetch && options.timeoutMs === undefined && options.retry === undefined && !options.signal),
+  );
+}
+
+async function appStoreConnectSdkClient(
+  options: Omit<AppStoreReviewsClientOptions, "providerClient">,
+): Promise<AppStoreConnectSdkClient> {
+  if (options.sdkClient) return options.sdkClient;
+  return createAppStoreConnectSdkClient({
+    bearerToken: await appStoreJwt(options),
+    ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
+  });
+}
+
+function appStoreSdkResult<T>(result: unknown, operationAlias: string): T {
+  if (isRecord(result) && "error" in result && result.error !== undefined) {
+    throw normalizeProviderRequestError(result.error, {
+      providerPackageId: "review.appstore",
+      provider: "appstore",
+      operationAlias,
+    });
   }
-  return body as T;
+  if (isRecord(result) && "data" in result && ("response" in result || "request" in result || "error" in result)) {
+    return result.data as T;
+  }
+  return result as T;
+}
+
+function appStoreSdkListReviewsQuery(
+  input: AppStoreListReviewsInput,
+): NonNullable<AppsCustomerReviewsGetToManyRelatedData["query"]> {
+  const query: Record<string, unknown> = {};
+  if (input.limit !== undefined) query.limit = input.limit;
+  if (input.sort) query.sort = [input.sort];
+  if (input.include?.length) query.include = input.include;
+  for (const [resource, fields] of Object.entries(input.fields ?? {})) {
+    if (fields?.length) query[`fields[${resource}]`] = fields;
+  }
+  for (const [key, value] of Object.entries(input.filter ?? {})) {
+    if (value === undefined) continue;
+    const sdkKey = key === "existsPublishedResponse" ? "exists[publishedResponse]" : `filter[${key}]`;
+    query[sdkKey] = Array.isArray(value) ? value : [value];
+  }
+  return query as NonNullable<AppsCustomerReviewsGetToManyRelatedData["query"]>;
+}
+
+function appStoreSdkReviewQuery(
+  input: Pick<AppStoreListReviewsInput, "include" | "fields">,
+): NonNullable<CustomerReviewsGetInstanceData["query"]> {
+  const query: Record<string, unknown> = {};
+  if (input.include?.length) query.include = input.include;
+  for (const [resource, fields] of Object.entries(input.fields ?? {})) {
+    if (fields?.length) query[`fields[${resource}]`] = fields;
+  }
+  return query as NonNullable<CustomerReviewsGetInstanceData["query"]>;
+}
+
+async function appStoreJsonRequest<T>(
+  options: Omit<AppStoreReviewsClientOptions, "providerClient">,
+  request: {
+    method: "GET" | "POST" | "DELETE";
+    path?: string;
+    absoluteUrl?: string;
+    pathParams?: Record<string, string | number | boolean | undefined>;
+    query?: Record<string, ProviderQueryValue>;
+    body?: unknown;
+    operationAlias: string;
+  },
+): Promise<T> {
+  const token = await appStoreJwt(options);
+  try {
+    if (request.absoluteUrl) {
+      const url = new URL(request.absoluteUrl);
+      return await providerJsonRequest<T>({
+        baseUrl: url.origin,
+        path: `${url.pathname}${url.search}`,
+        method: request.method,
+        accessToken: token,
+        fetch: options.fetch,
+        signal: options.signal,
+        timeoutMs: options.timeoutMs,
+        retry: options.retry,
+        providerName: `App Store Connect ${request.operationAlias}`,
+      });
+    }
+    return await providerJsonRequest<T>({
+      baseUrl: options.baseUrl ?? APP_STORE_CONNECT_DEFAULT_BASE_URL,
+      path: request.path ?? "/",
+      method: request.method,
+      pathParams: request.pathParams,
+      query: request.query,
+      body: request.body,
+      accessToken: token,
+      fetch: options.fetch,
+      signal: options.signal,
+      timeoutMs: options.timeoutMs,
+      retry: options.retry,
+      providerName: `App Store Connect ${request.operationAlias}`,
+    });
+  } catch (error) {
+    throw normalizeProviderRequestError(error, {
+      providerPackageId: "review.appstore",
+      provider: "appstore",
+      operationAlias: request.operationAlias,
+    });
+  }
+}
+
+async function appStoreJwt(options: Omit<AppStoreReviewsClientOptions, "providerClient">) {
+  if (hasNonBlankString(options.accessToken)) return options.accessToken;
+  if (options.getJwt) return requireNonBlankJwt(await options.getJwt(), "getJwt");
+  if (hasNonBlankString(options.issuerId) && hasNonBlankString(options.keyId) && hasNonBlankString(options.privateKey)) {
+    return createAppStoreConnectJwt({
+      issuerId: options.issuerId,
+      keyId: options.keyId,
+      privateKey: options.privateKey,
+    });
+  }
+  throw new IntegrationError(
+    "credential-missing",
+    "App Store Connect issuerId, keyId, and privateKey are required for JWT auth.",
+    { providerPackageId: "review.appstore", provider: "appstore" },
+  );
+}
+
+function hasAppStoreAuth(options: Omit<AppStoreReviewsClientOptions, "providerClient">) {
+  return Boolean(
+    options.sdkClient ||
+      hasNonBlankString(options.accessToken) ||
+      options.getJwt ||
+      (hasNonBlankString(options.issuerId) && hasNonBlankString(options.keyId) && hasNonBlankString(options.privateKey)),
+  );
 }
 
 export function appStoreOperationUrl(
@@ -147,9 +380,20 @@ export function applyListQuery(
 }
 
 export function normalizeAppStoreReviewsPageUrl(pageUrl: string, apiBaseUrl: string, appId: string) {
-  const url = new URL(pageUrl);
-  const baseUrl = new URL(apiBaseUrl);
-  const expectedPath = `/v1/apps/${encodeURIComponent(appId)}/customerReviews`;
+  const appIdValue = assertAppStoreAppId(appId);
+  let url: URL;
+  let baseUrl: URL;
+  try {
+    url = new URL(pageUrl);
+    baseUrl = new URL(apiBaseUrl);
+  } catch (error) {
+    throw new IntegrationError(
+      "provider-validation",
+      "App Store review page URL must be an absolute App Store Connect customerReviews pagination link.",
+      { providerPackageId: "review.appstore", provider: "appstore", cause: error },
+    );
+  }
+  const expectedPath = `/v1/apps/${encodeURIComponent(appIdValue)}/customerReviews`;
   if (url.origin !== baseUrl.origin || url.pathname !== expectedPath) {
     throw new IntegrationError(
       "provider-validation",
@@ -160,18 +404,30 @@ export function normalizeAppStoreReviewsPageUrl(pageUrl: string, apiBaseUrl: str
   return url.toString();
 }
 
-function reviewResponseBody(input: AppStoreReviewResponseInput) {
-  return {
-    data: {
-      type: "customerReviewResponses",
-      attributes: { responseBody: input.responseBody },
-      relationships: {
-        review: {
-          data: { type: "customerReviews", id: input.reviewId },
-        },
-      },
-    },
-  };
+function assertAppStoreAppId(appId: string | undefined): string {
+  if (!hasNonBlankString(appId)) {
+    throw new IntegrationError(
+      "credential-missing",
+      "An App Store Connect app ID is required. Pass appId or providerClient.",
+      { providerPackageId: "review.appstore", provider: "appstore" },
+    );
+  }
+  return appId;
+}
+
+function requireNonBlankJwt(token: unknown, source: "getJwt"): string {
+  if (!hasNonBlankString(token)) {
+    throw new IntegrationError(
+      "credential-missing",
+      `App Store Connect ${source} must return a non-empty JWT.`,
+      { providerPackageId: "review.appstore", provider: "appstore" },
+    );
+  }
+  return token;
+}
+
+function hasNonBlankString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function appendAppStoreQuery(params: URLSearchParams, query?: AppStoreReviewsProviderQuery) {
@@ -185,18 +441,73 @@ function appendAppStoreQuery(params: URLSearchParams, query?: AppStoreReviewsPro
   }
 }
 
-async function resolveJwt(options: AppStoreReviewsClientOptions) {
-  if (options.jwtFactory) return await options.jwtFactory();
-  if (!options.privateKey) {
-    throw new IntegrationError(
-      "credential-missing",
-      "App Store Connect private key or jwtFactory is required.",
-      { providerPackageId: "review.appstore", provider: "appstore" },
-    );
+function appStoreListReviewsQuery(
+  input: AppStoreListReviewsInput | Pick<AppStoreListReviewsInput, "include" | "fields">,
+) {
+  const query: Record<string, ProviderQueryValue> = {};
+  if ("limit" in input && input.limit !== undefined) query.limit = input.limit;
+  if ("sort" in input && input.sort) query.sort = input.sort;
+  if ("cursor" in input && input.cursor) query.cursor = input.cursor;
+  if (input.include?.length) query.include = input.include.join(",");
+  for (const [resource, fields] of Object.entries(input.fields ?? {})) {
+    if (fields?.length) query[`fields[${resource}]`] = fields.join(",");
   }
-  return createAppStoreConnectJwt({
-    issuerId: options.issuerId,
-    keyId: options.keyId,
-    privateKey: options.privateKey,
+  if ("filter" in input) {
+    for (const [key, value] of Object.entries(input.filter ?? {})) {
+      if (value === undefined) continue;
+      query[`filter[${key}]`] = Array.isArray(value) ? value.join(",") : value;
+    }
+  }
+  return query;
+}
+
+function appStoreReviewResponseBody(input: AppStoreReviewResponseInput) {
+  return {
+    data: {
+      type: "customerReviewResponses",
+      attributes: {
+        responseBody: input.responseBody,
+      },
+      relationships: {
+        review: {
+          data: {
+            type: "customerReviews",
+            id: input.reviewId,
+          },
+        },
+      },
+    },
+  };
+}
+
+function normalizeProviderRequestError(
+  error: unknown,
+  context: { providerPackageId: string; provider: string; operationAlias: string },
+) {
+  return normalizeIntegrationError(error, {
+    ...context,
+    statusCode: readErrorStatus(error),
+    retryable: readErrorRetryable(error),
+    details: readErrorPayload(error),
   });
+}
+
+function readErrorStatus(error: unknown) {
+  if (!isRecord(error)) return undefined;
+  const status = error.status ?? error.statusCode;
+  return typeof status === "number" ? status : undefined;
+}
+
+function readErrorRetryable(error: unknown) {
+  const status = readErrorStatus(error);
+  return status === undefined ? undefined : status === 429 || status >= 500;
+}
+
+function readErrorPayload(error: unknown) {
+  if (!isRecord(error) || error.payload === undefined) return undefined;
+  return { payload: error.payload };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

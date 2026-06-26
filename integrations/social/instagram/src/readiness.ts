@@ -4,7 +4,7 @@ import { createInstagramSocialClient } from "./client.js";
 export function createInstagramSocialLiveChecks(options: InstagramLiveCheckOptions) {
   return [{
     id: "account",
-    description: "Meta Graph API Instagram professional account and connected Page endpoints are reachable.",
+    description: "Configured Instagram Graph API adapter or provider client can read the Instagram professional account and connected Page.",
     requiredCredentialIds: [
       "instagram-page-access-token",
       "instagram-page-id",

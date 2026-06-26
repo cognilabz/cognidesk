@@ -26,11 +26,15 @@ export const freshdeskTicketingProviderManifestInput = {
   coverage: {
     scope: "provider-api-subset",
     notes: [
-      "SDK decision: Freshworks has beta or very early JavaScript packages, but no verified official maintained Freshdesk ticketing backend client suitable for this adapter.",
+      "Implementation uses the official @freshworks/freshdesk JavaScript SDK by default when domain and apiKey are configured.",
+      "Operations not exposed by the official SDK, such as agents, groups, and current-agent readiness, require an injected FreshdeskTicketingProviderClient instead of a package-owned REST fallback.",
       "Coverage is limited to Freshdesk v2 tickets, contacts, conversations, replies, notes, handoff updates, agents, groups, current-agent readiness, and SDK-user shared-secret webhook validation.",
     ],
     evidence: [
       { label: "Freshdesk API v2 reference", url: "https://developers.freshdesk.com/api/" },
+      { label: "Freshworks Freshdesk SDK", url: "https://www.npmjs.com/package/@freshworks/freshdesk" },
+      { label: "Freshworks API SDK", url: "https://www.npmjs.com/package/@freshworks/api-sdk" },
+      { label: "Freshworks API SDK repository", url: "https://github.com/freshworks/freshworks-api-sdk" },
       { label: "Freshworks API SDK announcement", url: "https://community.freshworks.dev/t/freshworks-api-sdk-for-node-js/5232" },
     ],
   },
@@ -60,14 +64,42 @@ export const freshdeskTicketingProviderManifestInput = {
   limitations: ["Ticket forms, required fields, statuses, products, groups, SLAs, automations, and agent permissions are SDK-user configuration."],
   metadata: {
     issue: 35,
-    implementationStrategy: "direct-http-support-slice",
-    sdkDecision: {
-      candidates: ["@freshworks/api-sdk", "@freshworks/freshdesk"],
-      verdict: "not-adopted",
-      reason: "No verified official maintained Freshdesk ticketing backend SDK was found.",
-      checkedAt: "2026-06-21",
+    implementation: {
+      strategy: "provider-sdk-adapter",
+      runtimePackage: "@cognidesk/integration-ticketing-freshdesk",
+      providerClient: "FreshdeskTicketingProviderClient",
+      providerClientInterface: "FreshdeskTicketingProviderClient",
+      rawClientEscapeHatch: "FreshdeskTicketingClient.providerClient",
+      providerSdkPackage: "@freshworks/freshdesk",
+      defaultClientPolicy: "use-official-freshworks-freshdesk-sdk-when-domain-and-apiKey-are-configured",
+      packageOwnedRestClient: false,
+      packageOwnedRestFallback: false,
+      providerClientOverride: true,
+      rawClientOverride: true,
+      sdkDecision: {
+        checkedAt: "2026-06-25",
+        package: "@freshworks/freshdesk",
+        checkedVersion: "0.0.1",
+        license: "freshdesk",
+        result: "accepted-runtime-sdk",
+        reason: "@freshworks/freshdesk exposes Freshdesk tickets, contacts, and conversations runtime clients. Agents, groups, and current-agent readiness are not exposed by that package and require FreshdeskTicketingProviderClient injection.",
+        packageChecked: "@freshworks/freshdesk",
+        notes: [
+          "@freshworks/freshdesk 0.0.1 exposes tickets.createTicket/getTicket/updateTicket/searchTicket/replyTicket/addNotes and contacts.getContact/searchContacts.",
+          "The package does not expose agents/groups/readiness helpers; those operations fail closed unless a host FreshdeskTicketingProviderClient is injected.",
+        ],
+      },
+      delegatedOperationTarget: "official Freshdesk SDK for covered operations or injected Freshdesk provider client for SDK gaps",
     },
-    supportSlice: {
+    sdkDecision: {
+      checkedAt: "2026-06-25",
+      package: "@freshworks/freshdesk",
+      checkedVersion: "0.0.1",
+      license: "freshdesk",
+      result: "accepted-runtime-sdk",
+      reason: "@freshworks/freshdesk is the official Freshdesk JavaScript SDK and is used for the ticket/contact operations it exposes.",
+    },
+    freshdeskV2Coverage: {
       source: "Freshdesk API v2",
       allowlistedOperations: ["tickets.create", "tickets.read", "tickets.update", "tickets.search", "reply.create", "note.create", "contacts.read", "contacts.search", "agents.read", "groups.read", "agents.me", "automation_webhook.parse"],
     },

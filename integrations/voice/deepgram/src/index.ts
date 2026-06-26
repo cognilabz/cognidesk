@@ -8,6 +8,7 @@ import {
   pcm16WavBlob,
   type SpeechPipelineVoiceProviderOptions,
 } from "@cognidesk/integration-kit/speech";
+import type { DeepgramClient as DeepgramSdkClient } from "@deepgram/sdk";
 import { deepgramVoiceProviderManifest } from "./manifest.js";
 
 export { deepgramVoiceProviderManifest } from "./manifest.js";
@@ -60,6 +61,7 @@ export interface DeepgramTextToSpeechResult {
 
 export interface DeepgramVoiceClient {
   getRawClient(): Promise<DeepgramRawClient>;
+  getSdkClient(): Promise<DeepgramRawClient>;
   transcribeAudio(input: DeepgramTranscribeAudioInput): Promise<DeepgramTranscriptionResult>;
   synthesizeSpeech(input: DeepgramTextToSpeechInput): Promise<DeepgramTextToSpeechResult>;
 }
@@ -88,18 +90,35 @@ export interface DeepgramJsonObject {
   [key: string]: DeepgramJsonValue;
 }
 
+type DeepgramSdkMediaClient = DeepgramSdkClient["listen"]["v1"]["media"];
+type DeepgramSdkAudioClient = DeepgramSdkClient["speak"]["v1"]["audio"];
+type DeepgramSdkTranscribeFile = DeepgramSdkMediaClient["transcribeFile"];
+type DeepgramSdkGenerateAudio = DeepgramSdkAudioClient["generate"];
+type DeepgramSdkTranscribeRequest = Parameters<DeepgramSdkTranscribeFile>[1];
+type DeepgramSdkTranscribeRequestOptions = Parameters<DeepgramSdkTranscribeFile>[2];
+type DeepgramSdkGenerateRequest = Parameters<DeepgramSdkGenerateAudio>[0];
+type DeepgramSdkGenerateRequestOptions = Parameters<DeepgramSdkGenerateAudio>[1];
+type DeepgramSdkBinaryResponse = Awaited<ReturnType<DeepgramSdkGenerateAudio>>;
+
 export interface DeepgramRawClient {
   listen?: {
     v1?: {
       media?: {
-        transcribeFile(uploadable: Blob, request: Record<string, unknown>, requestOptions?: Record<string, unknown>): Promise<unknown>;
+        transcribeFile(
+          uploadable: Parameters<DeepgramSdkTranscribeFile>[0],
+          request: DeepgramSdkTranscribeRequest,
+          requestOptions?: DeepgramSdkTranscribeRequestOptions,
+        ): ReturnType<DeepgramSdkTranscribeFile> | PromiseLike<DeepgramJsonObject>;
       };
     };
   };
   speak?: {
     v1?: {
       audio?: {
-        generate(request: Record<string, unknown>, requestOptions?: Record<string, unknown>): Promise<unknown>;
+        generate(
+          request: DeepgramSdkGenerateRequest,
+          requestOptions?: DeepgramSdkGenerateRequestOptions,
+        ): ReturnType<DeepgramSdkGenerateAudio> | PromiseLike<DeepgramSdkBinaryResponse | Response | ArrayBuffer | Uint8Array>;
       };
     };
   };
@@ -210,13 +229,15 @@ export function createDeepgramVoiceClient(options: DeepgramVoiceClientOptions): 
 
   return {
     getRawClient,
+    getSdkClient: getRawClient,
     async transcribeAudio(input) {
       const rawClient = await getRawClient();
-      const transcribeFile = rawClient.listen?.v1?.media?.transcribeFile;
+      const media = rawClient.listen?.v1?.media;
+      const transcribeFile = media?.transcribeFile;
       if (!transcribeFile) throw new Error("Deepgram SDK client does not expose listen.v1.media.transcribeFile.");
       const sampleRate = input.sampleRate ?? DEFAULT_SAMPLE_RATE;
       const response = await transcribeFile.call(
-        rawClient.listen?.v1?.media,
+        media,
         pcm16WavBlob(input.audio, sampleRate),
         compactJson({
           model: input.model ?? DEFAULT_STT_MODEL,
@@ -224,8 +245,8 @@ export function createDeepgramVoiceClient(options: DeepgramVoiceClientOptions): 
           language: input.language,
           punctuate: input.punctuate,
           detect_language: input.detectLanguage,
-        }),
-        compactJson({ abortSignal: input.signal }),
+        }) as DeepgramSdkTranscribeRequest,
+        abortOptions<DeepgramSdkTranscribeRequestOptions>(input.signal),
       );
       const json = normalizeSdkJson(response);
       const metadata = objectField(json.metadata);
@@ -247,21 +268,22 @@ export function createDeepgramVoiceClient(options: DeepgramVoiceClientOptions): 
     },
     async synthesizeSpeech(input) {
       const rawClient = await getRawClient();
-      const generate = rawClient.speak?.v1?.audio?.generate;
+      const audio = rawClient.speak?.v1?.audio;
+      const generate = audio?.generate;
       if (!generate) throw new Error("Deepgram SDK client does not expose speak.v1.audio.generate.");
       const encoding = input.encoding ?? DEFAULT_TTS_ENCODING;
       const container = input.container ?? DEFAULT_TTS_CONTAINER;
       const sampleRate = input.sampleRate ?? DEFAULT_SAMPLE_RATE;
-      const response = await generate.call(
-        rawClient.speak?.v1?.audio,
+      const response = generate.call(
+        audio,
         compactJson({
           text: input.text,
           model: input.model ?? DEFAULT_TTS_MODEL,
           encoding,
           container,
           sample_rate: sampleRate,
-        }),
-        compactJson({ abortSignal: input.signal }),
+        }) as unknown as DeepgramSdkGenerateRequest,
+        abortOptions<DeepgramSdkGenerateRequestOptions>(input.signal),
       );
       return normalizeBinaryResponse(response);
     },
@@ -283,38 +305,71 @@ export function deepgramVoiceCredentialStatuses(input: { apiKey?: string }): Pro
 async function createDeepgramSdkClient(options: DeepgramVoiceClientOptions): Promise<DeepgramRawClient> {
   const apiKey = requireApiKey(options.apiKey);
   const sdk = await import("@deepgram/sdk");
-  const Client = sdk.DeepgramClient ?? sdk.DefaultDeepgramClient;
-  return new Client({
+  return new sdk.DeepgramClient({
     apiKey,
     ...(options.apiBaseUrl ? { baseUrl: options.apiBaseUrl } : {}),
     ...(options.fetch ? { fetch: options.fetch } : {}),
   }) as unknown as DeepgramRawClient;
 }
 
-async function normalizeBinaryResponse(response: unknown): Promise<DeepgramTextToSpeechResult> {
-  if (response instanceof Response) {
-    const requestId = response.headers.get("dg-request-id") ?? undefined;
-    const modelName = response.headers.get("dg-model-name") ?? undefined;
-    const modelUuid = response.headers.get("dg-model-uuid") ?? undefined;
-    const charCount = numberHeader(response.headers, "dg-char-count");
-    const contentType = response.headers.get("content-type") ?? undefined;
+async function normalizeBinaryResponse(response: unknown, headers?: Headers): Promise<DeepgramTextToSpeechResult> {
+  if (hasRawResponse(response)) {
+    const { data, rawResponse } = await response.withRawResponse();
+    return normalizeBinaryResponse(data, headersFromRawResponse(rawResponse));
+  }
+
+  const value = isPromiseLike(response) ? await response : response;
+  if (value instanceof Response) {
     return {
-      audio: await response.arrayBuffer(),
-      ...(requestId ? { requestId } : {}),
-      ...(modelName ? { modelName } : {}),
-      ...(modelUuid ? { modelUuid } : {}),
-      ...(charCount !== undefined ? { charCount } : {}),
-      ...(contentType ? { contentType } : {}),
+      audio: await value.arrayBuffer(),
+      ...ttsMetadataFromHeaders(value.headers),
     };
   }
-  if (response instanceof ArrayBuffer) return { audio: response };
-  if (response instanceof Uint8Array) return { audio: arrayBufferFromBytes(response) };
-  if (isRecord(response) && response.body instanceof ReadableStream) {
-    return { audio: await streamToArrayBuffer(response.body) };
+  if (isBinaryResponse(value)) return { audio: await value.arrayBuffer(), ...ttsMetadataFromHeaders(headers) };
+  if (value instanceof ArrayBuffer) return { audio: value, ...ttsMetadataFromHeaders(headers) };
+  if (value instanceof Uint8Array) return { audio: arrayBufferFromBytes(value), ...ttsMetadataFromHeaders(headers) };
+  if (isRecord(value) && value.body instanceof ReadableStream) {
+    return { audio: await streamToArrayBuffer(value.body), ...ttsMetadataFromHeaders(headers) };
   }
-  if (isRecord(response) && response.data instanceof ArrayBuffer) return { audio: response.data };
-  if (isRecord(response) && response.result instanceof ArrayBuffer) return { audio: response.result };
+  if (isRecord(value) && value.data instanceof ArrayBuffer) return { audio: value.data, ...ttsMetadataFromHeaders(headers) };
+  if (isRecord(value) && value.result instanceof ArrayBuffer) return { audio: value.result, ...ttsMetadataFromHeaders(headers) };
   throw new Error("Unsupported Deepgram SDK TTS response shape.");
+}
+
+function ttsMetadataFromHeaders(headers: Headers | undefined) {
+  if (!headers) return {};
+  const requestId = headers.get("dg-request-id") ?? undefined;
+  const modelName = headers.get("dg-model-name") ?? undefined;
+  const modelUuid = headers.get("dg-model-uuid") ?? undefined;
+  const charCount = numberHeader(headers, "dg-char-count");
+  const contentType = headers.get("content-type") ?? undefined;
+  return {
+    ...(requestId ? { requestId } : {}),
+    ...(modelName ? { modelName } : {}),
+    ...(modelUuid ? { modelUuid } : {}),
+    ...(charCount !== undefined ? { charCount } : {}),
+    ...(contentType ? { contentType } : {}),
+  };
+}
+
+function headersFromRawResponse(rawResponse: unknown) {
+  return isRecord(rawResponse) && rawResponse.headers instanceof Headers
+    ? rawResponse.headers
+    : undefined;
+}
+
+function hasRawResponse(value: unknown): value is {
+  withRawResponse(): Promise<{ data: unknown; rawResponse: unknown }>;
+} {
+  return isRecord(value) && typeof value.withRawResponse === "function";
+}
+
+function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
+  return isRecord(value) && typeof value.then === "function";
+}
+
+function isBinaryResponse(value: unknown): value is { arrayBuffer(): Promise<ArrayBuffer> } {
+  return isRecord(value) && typeof value.arrayBuffer === "function";
 }
 
 function arrayBufferFromBytes(bytes: Uint8Array) {
@@ -373,6 +428,10 @@ function compactJson(input: Record<string, DeepgramJsonValue | AbortSignal | und
     if (value !== undefined) output[key] = value as DeepgramJsonValue;
   }
   return output;
+}
+
+function abortOptions<RequestOptions>(signal: AbortSignal | undefined) {
+  return signal ? ({ abortSignal: signal } as RequestOptions) : undefined;
 }
 
 function requireApiKey(value: string | undefined) {

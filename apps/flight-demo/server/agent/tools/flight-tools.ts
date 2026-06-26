@@ -3,8 +3,14 @@ import { z } from "zod";
 import { tool } from "@cognidesk/core";
 import {
   createWhatsAppTextMessage,
+  defineWhatsAppWebMessagingIntegration,
   defineWhatsAppMessagingIntegration,
   type WhatsAppApiResponse,
+  type WhatsAppMessageInput,
+  type WhatsAppMessagingJsonObject,
+  type WhatsAppMessagingProviderClient,
+  type WhatsAppWebSendTextResult,
+  type WhatsAppWebSessionProvider,
 } from "@cognidesk/integration-messaging-whatsapp";
 import { flights } from "../data/flights.js";
 import { flightSchema } from "../domain/schemas.js";
@@ -12,7 +18,7 @@ import {
   FLIGHT_MOCK_BOOKING_CAPABILITY,
   FLIGHT_MOCK_BOOKING_POLICY_ID,
   FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID,
-  FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+  flightWhatsAppProviderPackageIdForTransport,
 } from "../policies.js";
 
 const whatsAppMessagePurposeSchema = z.enum(["verification-link", "confirmation-link", "notification"]);
@@ -42,11 +48,17 @@ export interface FlightWhatsAppCustomerMessageSender {
 }
 
 export interface FlightWhatsAppToolOptions {
+  transport?: "cloud-api" | "web";
+  providerPackageId?: string;
   configured?: boolean;
   accessToken?: string;
   phoneNumberId?: string;
   appSecret?: string;
-  recipientOverride?: string;
+  authStateDir?: string;
+  pairingPhoneNumber?: string;
+  connectTimeoutMs?: number;
+  sendTimeoutMs?: number;
+  sessionProvider?: WhatsAppWebSessionProvider;
   confirmationBaseUrl?: string;
   graphApiBaseUrl?: string;
   graphApiVersion?: string;
@@ -226,7 +238,8 @@ function createSendWhatsAppCustomerMessageTool(options: FlightWhatsAppToolOption
     sideEffect: true,
     policy: {
       capability: "send",
-      providerPackageId: FLIGHT_WHATSAPP_PROVIDER_PACKAGE_ID,
+      providerPackageId: options.providerPackageId
+        ?? flightWhatsAppProviderPackageIdForTransport(options.transport ?? "cloud-api"),
       outbound: true,
       externallyVisible: true,
       requiredPolicyIds: [FLIGHT_WHATSAPP_CUSTOMER_MESSAGE_POLICY_ID],
@@ -235,24 +248,24 @@ function createSendWhatsAppCustomerMessageTool(options: FlightWhatsAppToolOption
       conversationId,
       "whatsapp",
       input.messagePurpose,
-      normalizeWhatsAppPhone(options.recipientOverride ?? input.recipientPhone),
+      normalizeWhatsAppPhone(input.recipientPhone),
       shortHash(`${input.bookingReference ?? ""}:${input.notificationText ?? ""}`),
     ].join(":"),
     execute: async ({ input, conversationId, telemetry }) => telemetry.withSpan("flight_demo.whatsapp.send", {
       attributes: {
         "flight_demo.whatsapp.purpose": input.messagePurpose,
-        "flight_demo.whatsapp.recipient_overridden": Boolean(options.recipientOverride),
+        "flight_demo.whatsapp.recipient_overridden": false,
       },
     }, async (span) => {
       const customerPhone = normalizeWhatsAppPhone(input.recipientPhone);
-      const recipientPhone = normalizeWhatsAppPhone(options.recipientOverride ?? input.recipientPhone);
+      const recipientPhone = normalizeWhatsAppPhone(input.recipientPhone);
       if (!customerPhone || !recipientPhone) {
         return {
           provider: "whatsapp" as const,
           status: "failed" as const,
           purpose: input.messagePurpose,
           recipientPhone: maskPhone(input.recipientPhone),
-          recipientOverridden: Boolean(options.recipientOverride),
+          recipientOverridden: false,
           previewUrl: false,
           reason: "A valid WhatsApp phone number is required.",
         };
@@ -276,7 +289,7 @@ function createSendWhatsAppCustomerMessageTool(options: FlightWhatsAppToolOption
           status: "not-configured" as const,
           purpose: input.messagePurpose,
           recipientPhone: maskPhone(recipientPhone),
-          recipientOverridden: Boolean(options.recipientOverride),
+          recipientOverridden: false,
           previewUrl: message.previewUrl,
           ...(message.link ? { link: message.link } : {}),
           reason,
@@ -290,7 +303,7 @@ function createSendWhatsAppCustomerMessageTool(options: FlightWhatsAppToolOption
         purpose: input.messagePurpose,
         previewUrl: message.previewUrl,
         customerPhone,
-        recipientOverridden: Boolean(options.recipientOverride),
+        recipientOverridden: false,
         ...(input.bookingReference ? { bookingReference: normalizeBookingReference(input.bookingReference) } : {}),
         ...(message.link ? { link: message.link } : {}),
       });
@@ -300,7 +313,7 @@ function createSendWhatsAppCustomerMessageTool(options: FlightWhatsAppToolOption
         status: delivery.status,
         purpose: input.messagePurpose,
         recipientPhone: maskPhone(recipientPhone),
-        recipientOverridden: Boolean(options.recipientOverride),
+        recipientOverridden: false,
         previewUrl: message.previewUrl,
         ...(delivery.messageId ? { messageId: delivery.messageId } : {}),
         ...(message.link ? { link: message.link } : {}),
@@ -313,13 +326,16 @@ function createSendWhatsAppCustomerMessageTool(options: FlightWhatsAppToolOption
 
 function createWhatsAppSender(options: FlightWhatsAppToolOptions): FlightWhatsAppCustomerMessageSender | null {
   if (options.sender) return options.sender;
-  if (!options.configured || !options.accessToken || !options.phoneNumberId || !options.appSecret) return null;
+  if (options.transport === "web") return createWhatsAppWebSender(options);
+  if (!options.configured || !options.accessToken || !options.phoneNumberId) return null;
   const integration = defineWhatsAppMessagingIntegration({
-    accessToken: options.accessToken,
-    phoneNumberId: options.phoneNumberId,
-    appSecret: options.appSecret,
-    ...(options.graphApiBaseUrl ? { graphApiBaseUrl: options.graphApiBaseUrl } : {}),
-    ...(options.graphApiVersion ? { graphApiVersion: options.graphApiVersion } : {}),
+    appSecret: options.appSecret ?? "",
+    providerClient: createFlightWhatsAppGraphApiProviderClient({
+      accessToken: options.accessToken,
+      phoneNumberId: options.phoneNumberId,
+      graphApiBaseUrl: options.graphApiBaseUrl ?? "https://graph.facebook.com",
+      graphApiVersion: options.graphApiVersion ?? "v25.0",
+    }),
   });
   return {
     async send(input) {
@@ -341,6 +357,154 @@ function createWhatsAppSender(options: FlightWhatsAppToolOptions): FlightWhatsAp
       }
     },
   };
+}
+
+function createWhatsAppWebSender(options: FlightWhatsAppToolOptions): FlightWhatsAppCustomerMessageSender | null {
+  if (!options.configured) return null;
+  const integration = defineWhatsAppWebMessagingIntegration({
+    ...(options.authStateDir ? { authStateDir: options.authStateDir } : {}),
+    ...(options.pairingPhoneNumber ? { pairingPhoneNumber: options.pairingPhoneNumber } : {}),
+    ...(options.connectTimeoutMs ? { connectTimeoutMs: options.connectTimeoutMs } : {}),
+    ...(options.sendTimeoutMs ? { sendTimeoutMs: options.sendTimeoutMs } : {}),
+    ...(options.sessionProvider ? { sessionProvider: options.sessionProvider } : {}),
+  });
+  return {
+    async send(input) {
+      try {
+        const response = await integration.run("whatsapp-web.message.send", {
+          to: `+${input.to}`,
+          message: input.body,
+          previewUrl: input.previewUrl,
+        }) as WhatsAppWebSendTextResult;
+        return response.sent
+          ? {
+              status: "sent",
+              ...(response.messageId ? { messageId: response.messageId } : {}),
+            }
+          : {
+              status: "failed",
+              reason: "WhatsApp Web did not report a successful send.",
+            };
+      } catch (error) {
+        return {
+          status: "failed",
+          reason: publicErrorMessage(error),
+        };
+      }
+    },
+  };
+}
+
+function createFlightWhatsAppGraphApiProviderClient(options: {
+  accessToken: string;
+  phoneNumberId: string;
+  graphApiBaseUrl: string;
+  graphApiVersion: string;
+}): WhatsAppMessagingProviderClient {
+  const unsupported = async (): Promise<never> => {
+    throw new Error("Flight demo WhatsApp Graph API client only supports sending customer text messages.");
+  };
+  return {
+    async sendMessage(input) {
+      const response = await fetch(flightWhatsAppGraphApiUrl(options), {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${options.accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(buildWhatsAppCloudApiMessageBody(input)),
+      });
+      return readWhatsAppCloudApiResponse(response);
+    },
+    uploadMedia: unsupported,
+    getMedia: unsupported,
+    downloadMedia: unsupported,
+    getPhoneNumber: unsupported,
+    getBusinessProfile: unsupported,
+    updateBusinessProfile: unsupported,
+  };
+}
+
+function flightWhatsAppGraphApiUrl(options: {
+  graphApiBaseUrl: string;
+  graphApiVersion: string;
+  phoneNumberId: string;
+}) {
+  const baseUrl = options.graphApiBaseUrl.replace(/\/+$/, "");
+  const version = options.graphApiVersion.replace(/^\/+|\/+$/g, "");
+  return new URL(
+    `${version}/${encodeURIComponent(options.phoneNumberId)}/messages`,
+    `${baseUrl}/`,
+  );
+}
+
+function buildWhatsAppCloudApiMessageBody(input: WhatsAppMessageInput): WhatsAppMessagingJsonObject {
+  const typedContent = {
+    text: input.text,
+    template: input.template,
+    image: input.image,
+    document: input.document,
+    audio: input.audio,
+    video: input.video,
+    sticker: input.sticker,
+    interactive: input.interactive,
+    location: input.location,
+    contacts: input.contacts,
+  }[input.type];
+  if (typedContent === undefined) {
+    throw new Error(`WhatsApp ${input.type} message content is required.`);
+  }
+  return stripUndefined({
+    messaging_product: "whatsapp",
+    recipient_type: input.recipientType,
+    to: input.to,
+    type: input.type,
+    [input.type]: typedContent,
+    context: input.context,
+    ...(input.additionalFields ?? {}),
+  });
+}
+
+async function readWhatsAppCloudApiResponse(response: Response): Promise<WhatsAppApiResponse> {
+  const text = await response.text();
+  const json = parseJsonObject(text);
+  if (!response.ok) {
+    throw new Error(whatsAppCloudApiErrorMessage(response.status, json, text));
+  }
+  return json;
+}
+
+function whatsAppCloudApiErrorMessage(
+  status: number,
+  json: WhatsAppMessagingJsonObject,
+  text: string,
+) {
+  const error = isJsonObject(json.error) ? json.error : undefined;
+  const message = typeof error?.message === "string"
+    ? error.message
+    : text.trim().slice(0, 240) || "WhatsApp Cloud API request failed.";
+  const code = typeof error?.code === "number" || typeof error?.code === "string"
+    ? ` code ${String(error.code)}`
+    : "";
+  return `WhatsApp Cloud API request failed with HTTP ${status}${code}: ${message}`;
+}
+
+function parseJsonObject(text: string): WhatsAppMessagingJsonObject {
+  if (!text.trim()) return {};
+  try {
+    const value = JSON.parse(text) as unknown;
+    return isJsonObject(value) ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+function isJsonObject(value: unknown): value is WhatsAppMessagingJsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stripUndefined(input: WhatsAppMessagingJsonObject): WhatsAppMessagingJsonObject {
+  return Object.fromEntries(Object.entries(input).filter((entry) => entry[1] !== undefined)) as WhatsAppMessagingJsonObject;
 }
 
 function createFlightWhatsAppMessage(input: {

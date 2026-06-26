@@ -52,8 +52,38 @@ export type GooglePlayReview = androidpublisher_v3.Schema$Review;
 export type GooglePlayReviewsListResponse = androidpublisher_v3.Schema$ReviewsListResponse;
 export type GooglePlayReviewReplyResponse = androidpublisher_v3.Schema$ReviewsReplyResponse;
 
+export type GooglePlayReviewsOperationAlias =
+  | "googleplay.reviews.list"
+  | "googleplay.reviews.get"
+  | "googleplay.reviews.reply";
+
+export interface GooglePlayReviewsOperationInputMap {
+  "googleplay.reviews.list": GooglePlayReviewsListInput | undefined;
+  "googleplay.reviews.get": { reviewId: string } & GooglePlayReviewsGetInput;
+  "googleplay.reviews.reply": { reviewId: string } & GooglePlayReviewReplyInput;
+}
+
+export interface GooglePlayReviewsOperationOutputMap {
+  "googleplay.reviews.list": GooglePlayReviewsListResponse;
+  "googleplay.reviews.get": GooglePlayReview;
+  "googleplay.reviews.reply": GooglePlayReviewReplyResponse;
+}
+
+export type GooglePlayReviewsOperationHandler<K extends GooglePlayReviewsOperationAlias> = (
+  input: GooglePlayReviewsOperationInputMap[K],
+) => Promise<GooglePlayReviewsOperationOutputMap[K]>;
+
+export type GooglePlayReviewsOperationHandlers = {
+  [K in GooglePlayReviewsOperationAlias]: GooglePlayReviewsOperationHandler<K>;
+};
+
 export interface GooglePlayReviewsClient {
   rawClient: Pick<GooglePlayAndroidPublisherClient, "reviews">;
+  handlers: GooglePlayReviewsOperationHandlers;
+  execute<K extends GooglePlayReviewsOperationAlias>(
+    alias: K,
+    input: GooglePlayReviewsOperationInputMap[K],
+  ): Promise<GooglePlayReviewsOperationOutputMap[K]>;
   listReviews(input?: GooglePlayReviewsListInput): Promise<GooglePlayReviewsListResponse>;
   getReview(reviewId: string, input?: GooglePlayReviewsGetInput): Promise<GooglePlayReview>;
   replyToReview(reviewId: string, input: GooglePlayReviewReplyInput): Promise<GooglePlayReviewReplyResponse>;

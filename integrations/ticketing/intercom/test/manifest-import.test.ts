@@ -15,6 +15,14 @@ describe("@cognidesk/integration-ticketing-intercom/manifest", () => {
         strategy: "official-sdk",
         manifestImport: "no-sdk-client-initialization",
       });
+      const operationAliases = intercomTicketingProviderManifest.operations.map((operation) => operation.alias);
+      expect(new Set(operationAliases).size).toBe(operationAliases.length);
+      expect(intercomTicketingProviderManifest.operations).toEqual(expect.arrayContaining([
+        expect.objectContaining({ alias: "ticket.read", providerOperation: "tickets.get" }),
+        expect.objectContaining({ alias: "ticket.comment.create", providerOperation: "tickets.reply" }),
+        expect.objectContaining({ alias: "ticket.internalNote.create", providerOperation: "tickets.reply" }),
+        expect.objectContaining({ alias: "intercom.conversation.read", providerOperation: "conversations.find" }),
+      ]));
     } finally {
       vi.doUnmock("intercom-client");
     }

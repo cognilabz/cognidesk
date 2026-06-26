@@ -21,7 +21,19 @@ export {
 } from "./meetings-api-operations.generated.js";
 export type * from "./meetings-api-schema-types.generated.js";
 
-export { createZoomVideoClient } from "./client.js";
+export {
+  createMissingZoomVideoProviderClient,
+  createZoomOfficialSdkVideoProviderClient,
+  createZoomRestVideoProviderClient,
+  createZoomServerOAuthAccessToken,
+  createZoomVideoClient,
+  type ZoomServerOAuthTokenOptions,
+} from "./client.js";
+export {
+  ZOOM_RIVET_MEETINGS_REST_EXCEPTION_OPERATION_UIDS,
+  ZOOM_RIVET_MEETINGS_SDK_OPERATION_COUNT,
+  ZOOM_RIVET_SDK_PACKAGE_NAME,
+} from "./official-sdk.js";
 export type * from "./contracts.js";
 export { zoomVideoIntegration, zoomVideoOperationHandlers } from "./integration.js";
 export { zoomVideoCredentialStatuses } from "./credentials.js";

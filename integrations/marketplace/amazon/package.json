@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-marketplace-amazon",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -58,9 +58,6 @@
     "manifestOnlyExports": [
       "./manifest",
       "./cognidesk"
-    ],
-    "providerSdkDependencies": [
-      "@amazon-sp-api-release/amazon-sp-api-sdk-js"
     ],
     "sizeBudget": {
       "dist": "2 MiB",

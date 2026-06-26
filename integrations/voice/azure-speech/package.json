@@ -46,9 +46,8 @@
     "release": "independent-provider",
     "category": "voice",
     "provider": "azure-speech",
-    "manifestOnlyExports": ["./manifest"],
-    "providerSdkDependencies": [
-      "microsoft-cognitiveservices-speech-sdk"
+    "manifestOnlyExports": [
+      "./manifest"
     ],
     "packageSizeBudgetBytes": {
       "packedSizeBytes": 12582912,

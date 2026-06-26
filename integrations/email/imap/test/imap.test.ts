@@ -4,9 +4,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { assertIntegrationConformance, createOperationHandlerStubs } from "@cognidesk/integration-kit/testing";
 import {
+  createImapEmailIntegrationOperationHandlers,
   createImapEmailIntegration,
   imapEmailCredentialStatuses,
   imapEmailProviderManifest,
+  type ImapEmailClient,
   type ImapRawClient,
 } from "../src/index.js";
 
@@ -52,7 +54,55 @@ describe("@cognidesk/integration-email-imap", () => {
     }).every((status) => status.state === "configured")).toBe(true);
   });
 
-  it("binds declared operations to ImapFlow", async () => {
+  it("constructs ImapFlow for default runtime operations", async () => {
+    vi.resetModules();
+    async function* fetched() {
+      yield { uid: 10, envelope: { subject: "Hello" } };
+    }
+    const rawClient = {
+      connect: vi.fn(async () => {}),
+      logout: vi.fn(async () => {}),
+      mailboxOpen: vi.fn(async () => ({ path: "Support", uidValidity: 123n, exists: 4 })),
+      status: vi.fn(async () => ({ messages: 4, unseen: 1 })),
+      search: vi.fn(async () => [10]),
+      fetch: vi.fn(() => fetched()),
+    };
+    const ImapFlow = vi.fn(function (_connection: unknown) {
+      return rawClient;
+    });
+    vi.doMock("imapflow", () => ({ ImapFlow }));
+
+    try {
+      const { createImapEmailIntegration } = await import("../src/client.js");
+      const connection = { host: "imap.example.test", port: 993, secure: true };
+      const integration = createImapEmailIntegration({ connection, mailbox: "Support" });
+
+      await expect(integration.operations["imap.mailbox.check"]?.())
+        .resolves.toMatchObject({ ready: true, mailbox: "Support", uidValidity: "123" });
+      await expect(integration.operations["email.thread.search"]?.({ query: { all: true } }))
+        .resolves.toEqual([10]);
+      await expect(integration.operations["email.thread.read"]?.({ range: [10], query: { envelope: true } }))
+        .resolves.toEqual([{ uid: 10, envelope: { subject: "Hello" } }]);
+      await integration.client.close();
+
+      expect(ImapFlow).toHaveBeenCalledWith(connection);
+      expect(integration.rawClient).toBe(rawClient);
+      expect(integration.client.rawClient).toBe(rawClient);
+      expect(rawClient.connect).toHaveBeenCalledTimes(1);
+      expect(rawClient.mailboxOpen).toHaveBeenNthCalledWith(1, "Support");
+      expect(rawClient.status).toHaveBeenCalledWith("Support", { messages: true, unseen: true, uidValidity: true });
+      expect(rawClient.mailboxOpen).toHaveBeenNthCalledWith(2, "Support");
+      expect(rawClient.search).toHaveBeenCalledWith({ all: true }, { uid: true });
+      expect(rawClient.mailboxOpen).toHaveBeenNthCalledWith(3, "Support");
+      expect(rawClient.fetch).toHaveBeenCalledWith([10], { envelope: true }, { uid: true });
+      expect(rawClient.logout).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.doUnmock("imapflow");
+      vi.resetModules();
+    }
+  });
+
+  it("binds declared operations to an injected ImapFlow-compatible client", async () => {
     async function* fetched() {
       yield { uid: 10, envelope: { subject: "Hello" } };
     }
@@ -78,5 +128,24 @@ describe("@cognidesk/integration-email-imap", () => {
     expect(integration.rawClient).toBe(rawClient);
     expect(integration.client.rawClient).toBe(rawClient);
     expect(rawClient.connect).toHaveBeenCalledTimes(1);
+  });
+
+  it("delegates operation handlers to an injected IMAP client", async () => {
+    const emailClient = {
+      rawClient: {} as ImapRawClient,
+      checkMailbox: vi.fn(async () => ({ ready: true, mailbox: "Archive" })),
+      searchMessages: vi.fn(async () => [42]),
+      fetchMessages: vi.fn(async () => [{ uid: 42, flags: ["\\Seen"] }]),
+      close: vi.fn(async () => {}),
+    } satisfies ImapEmailClient;
+    const handlers = createImapEmailIntegrationOperationHandlers(emailClient);
+
+    await expect(handlers["imap.mailbox.check"]()).resolves.toMatchObject({ ready: true, mailbox: "Archive" });
+    await expect(handlers["email.thread.search"]({ query: { all: true } })).resolves.toEqual([42]);
+    await expect(handlers["email.thread.read"]({ range: [42], query: { flags: true } }))
+      .resolves.toEqual([{ uid: 42, flags: ["\\Seen"] }]);
+    expect(emailClient.checkMailbox).toHaveBeenCalledTimes(1);
+    expect(emailClient.searchMessages).toHaveBeenCalledWith({ query: { all: true } });
+    expect(emailClient.fetchMessages).toHaveBeenCalledWith({ range: [42], query: { flags: true } });
   });
 });

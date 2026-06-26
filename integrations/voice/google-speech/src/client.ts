@@ -1,14 +1,15 @@
-import { SpeechClient } from "@google-cloud/speech";
-import { TextToSpeechClient } from "@google-cloud/text-to-speech";
+import { SpeechClient, protos as speechProtos } from "@google-cloud/speech";
+import { TextToSpeechClient, protos as textToSpeechProtos } from "@google-cloud/text-to-speech";
 import type {
   GoogleSpeechClient,
   GoogleSpeechClientOptions,
+  GoogleSpeechRawClients,
 } from "./contracts.js";
 import {
   languageFromVoiceName,
 } from "./media.js";
 
-export function createGoogleSpeechRawClients(options: GoogleSpeechClientOptions) {
+export function createGoogleSpeechRawClients(options: GoogleSpeechClientOptions): GoogleSpeechRawClients {
   return {
     speechClient: options.speechClient ?? new SpeechClient(options.clientOptions as never),
     textToSpeechClient: options.textToSpeechClient ?? new TextToSpeechClient(options.clientOptions as never),
@@ -18,12 +19,15 @@ export function createGoogleSpeechRawClients(options: GoogleSpeechClientOptions)
 export function createGoogleSpeechClient(options: GoogleSpeechClientOptions): GoogleSpeechClient {
   const rawClients = createGoogleSpeechRawClients(options);
   return {
+    getRawClients() {
+      return rawClients;
+    },
     async transcribeSpeech(input) {
       const languageCode = input.languageCode ?? "en-US";
       const sampleRate = input.sampleRate ?? 24_000;
-      const [response] = await (rawClients.speechClient as any).recognize({
+      const request: speechProtos.google.cloud.speech.v1.IRecognizeRequest = {
         config: {
-          encoding: input.encoding ?? "LINEAR16",
+          encoding: (input.encoding ?? "LINEAR16") as never,
           sampleRateHertz: sampleRate,
           languageCode,
           ...(input.model !== undefined ? { model: input.model } : {}),
@@ -35,23 +39,30 @@ export function createGoogleSpeechClient(options: GoogleSpeechClientOptions): Go
         audio: {
           content: Buffer.from(input.audio),
         },
-      }, await googleCallOptions(options, input.signal));
+      };
+      const [response] = await rawClients.speechClient.recognize(
+        request,
+        await googleCallOptions(options, input.signal),
+      );
       const results = response.results ?? [];
       const alternatives = results
-        .map((result: any) => result.alternatives?.[0])
-        .filter((alternative: any): alternative is NonNullable<typeof alternative> => Boolean(alternative));
+        .map((result) => result.alternatives?.[0])
+        .filter((alternative): alternative is NonNullable<typeof alternative> => Boolean(alternative));
       const text = alternatives
-        .map((alternative: any) => alternative.transcript ?? "")
+        .map((alternative) => alternative.transcript ?? "")
         .join(" ")
         .replace(/\s+/g, " ")
         .trim();
       const firstConfidence = alternatives[0]?.confidence;
       const firstLanguageCode = results[0]?.languageCode;
+      const requestId = response.requestId !== undefined && response.requestId !== null
+        ? String(response.requestId)
+        : undefined;
       return {
         text,
-        ...(firstConfidence !== undefined ? { confidence: firstConfidence } : {}),
+        ...(firstConfidence !== undefined && firstConfidence !== null ? { confidence: firstConfidence } : {}),
         ...(firstLanguageCode ? { languageCode: firstLanguageCode } : {}),
-        ...(response.requestId ? { requestId: response.requestId } : {}),
+        ...(requestId ? { requestId } : {}),
         ...(response.totalBilledTime ? { totalBilledTime: String(response.totalBilledTime) } : {}),
         raw: response as never,
       };
@@ -59,7 +70,7 @@ export function createGoogleSpeechClient(options: GoogleSpeechClientOptions): Go
     async synthesizeSpeech(input) {
       const voiceName = input.voiceName;
       const languageCode = input.languageCode ?? (voiceName ? languageFromVoiceName(voiceName) : undefined) ?? "en-US";
-      const [response] = await (rawClients.textToSpeechClient as any).synthesizeSpeech({
+      const request: textToSpeechProtos.google.cloud.texttospeech.v1.ISynthesizeSpeechRequest = {
         input: {
           text: input.text,
         },
@@ -76,7 +87,11 @@ export function createGoogleSpeechClient(options: GoogleSpeechClientOptions): Go
           ...(input.volumeGainDb !== undefined ? { volumeGainDb: input.volumeGainDb } : {}),
           ...(input.effectsProfileId !== undefined ? { effectsProfileId: [...input.effectsProfileId] } : {}),
         },
-      }, await googleCallOptions(options, input.signal));
+      };
+      const [response] = await rawClients.textToSpeechClient.synthesizeSpeech(
+        request,
+        await googleCallOptions(options, input.signal),
+      );
       if (!response.audioContent) throw new Error("Google Speech TTS response did not include audioContent.");
       return bytesToArrayBuffer(
         typeof response.audioContent === "string"

@@ -3,6 +3,8 @@ import {
   type WherebyLiveTranscriptionOptions,
   type WherebyRecordingOptions,
   type WherebyTranscriptionResource,
+  type WherebyVideoProviderClient,
+  createUnconfiguredWherebyVideoProviderClient,
   createWherebyVideoClient,
   expect,
   expectTypeOf,
@@ -11,7 +13,7 @@ import {
 } from "./helpers.js";
 
 export function registerWherebyClientOperationTests() {
-  it("creates Whereby meetings through the REST API", async () => {
+  it("creates Whereby meetings through the built-in REST adapter when apiKey is configured", async () => {
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({
         meetingId: "meeting_123",
@@ -19,12 +21,59 @@ export function registerWherebyClientOperationTests() {
         roomUrl: "https://example.whereby.com/support-abc",
         hostRoomUrl: "https://example.whereby.com/support-abc?roomKey=secret",
         endDate: "2099-07-01T10:01:32.041Z",
-      }), { status: 201 })
+      }), { status: 201, headers: { "content-type": "application/json" } })
     );
     const client = createWherebyVideoClient({
       apiKey: "whereby-api-key",
+      baseUrl: "https://api.whereby.test/v1",
       fetch: fetchMock as unknown as typeof fetch,
     });
+
+    const meeting = await client.createMeeting({
+      endDate: "2099-07-01T10:01:32.041Z",
+      fields: ["hostRoomUrl"],
+    });
+
+    expect(meeting.meetingId).toBe("meeting_123");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [requestUrl, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(requestUrl).toBe("https://api.whereby.test/v1/meetings");
+    expect(init.method).toBe("POST");
+    expect(init.headers).toMatchObject({
+      accept: "application/json",
+      authorization: "Bearer whereby-api-key",
+      "content-type": "application/json",
+    });
+    expect(JSON.parse(String(init.body))).toMatchObject({
+      endDate: "2099-07-01T10:01:32.041Z",
+      fields: ["hostRoomUrl"],
+    });
+  });
+
+  it("creates Whereby meetings through a host-injected provider client", async () => {
+    const providerClient = createProviderClient((operation, input) => {
+      expect(operation).toBe("POST /meetings");
+      expect(input).toMatchObject({
+        body: {
+          endDate: "2099-07-01T10:01:32.041Z",
+          isLocked: true,
+          roomMode: "group",
+          roomNamePrefix: "support",
+          roomNamePattern: "human-short",
+          fields: ["hostRoomUrl"],
+          recording: { type: "none" },
+          liveTranscription: { startTrigger: "none" },
+        },
+      });
+      return {
+        meetingId: "meeting_123",
+        roomName: "/support-abc",
+        roomUrl: "https://example.whereby.com/support-abc",
+        hostRoomUrl: "https://example.whereby.com/support-abc?roomKey=secret",
+        endDate: "2099-07-01T10:01:32.041Z",
+      };
+    });
+    const client = createWherebyVideoClient({ providerClient });
 
     const meeting = await client.createMeeting({
       endDate: "2099-07-01T10:01:32.041Z",
@@ -38,27 +87,37 @@ export function registerWherebyClientOperationTests() {
     });
 
     expect(meeting.meetingId).toBe("meeting_123");
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.whereby.dev/v1/meetings",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          authorization: "Bearer whereby-api-key",
-          "content-type": "application/json",
-        }),
-      }),
+    expect(providerClient.requestOperation).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails closed without Whereby API credentials or a host-provided provider client", async () => {
+    const client = createWherebyVideoClient();
+    await expect(client.listMeetings()).rejects.toThrow("apiKey");
+    await expect(createUnconfiguredWherebyVideoProviderClient().requestOperation("GET /meetings"))
+      .rejects.toThrow("apiKey");
+  });
+
+  it("throws structured Whereby JSON errors from the built-in REST adapter", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ error: "invalid_request", message: "Bad meeting id" }), {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      })
     );
-    const request = (fetchMock.mock.calls[0] as unknown[])[1] as { body: string };
-    expect(JSON.parse(request.body)).toEqual({
-      endDate: "2099-07-01T10:01:32.041Z",
-      isLocked: true,
-      roomMode: "group",
-      roomNamePrefix: "support",
-      roomNamePattern: "human-short",
-      fields: ["hostRoomUrl"],
-      recording: { type: "none" },
-      liveTranscription: { startTrigger: "none" },
+    const client = createWherebyVideoClient({
+      apiKey: "whereby-api-key",
+      baseUrl: "https://api.whereby.test/v1",
+      fetch: fetchMock as unknown as typeof fetch,
     });
+
+    await expect(client.getMeeting("meeting with spaces")).rejects.toMatchObject({
+      name: "IntegrationError",
+      code: "provider-validation",
+      statusCode: 400,
+      details: { payload: { error: "invalid_request", message: "Bad meeting id" } },
+    });
+    const [requestUrl] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(requestUrl).toBe("https://api.whereby.test/v1/meetings/meeting%20with%20spaces");
   });
 
   it("exposes official Whereby meeting media option and transcription state types", () => {
@@ -70,33 +129,30 @@ export function registerWherebyClientOperationTests() {
       .toEqualTypeOf<"ready" | "failed" | "in_progress" | undefined>();
   });
 
-  it("lists, reads, deletes meetings, and updates supported room theme tokens", async () => {
-    const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
-      if (init.method === "GET" && url.includes("/meetings?")) {
-        return new Response(JSON.stringify({
+  it("lists, reads, deletes meetings, and updates supported room theme tokens through provider operations", async () => {
+    const providerClient = createProviderClient((operation) => {
+      if (operation === "GET /meetings") {
+        return {
           results: [{
             meetingId: "meeting_123",
             roomUrl: "https://example.whereby.com/support-abc",
             endDate: "2099-07-01T10:01:32.041Z",
           }],
           cursor: null,
-        }), { status: 200 });
+        };
       }
-      if (init.method === "GET" && url.includes("/meetings/meeting_123")) {
-        return new Response(JSON.stringify({
+      if (operation === "GET /meetings/{meetingId}") {
+        return {
           meetingId: "meeting_123",
           roomName: "/support-abc",
           roomUrl: "https://example.whereby.com/support-abc",
           viewerRoomUrl: "https://example.whereby.com/support-abc?viewerKey=secret",
           endDate: "2099-07-01T10:01:32.041Z",
-        }), { status: 200 });
+        };
       }
-      return new Response(null, { status: 204 });
+      return {};
     });
-    const client = createWherebyVideoClient({
-      apiKey: "whereby-api-key",
-      fetch: fetchMock as unknown as typeof fetch,
-    });
+    const client = createWherebyVideoClient({ providerClient });
 
     await expect(client.listMeetings({ limit: 1, fields: ["hostRoomUrl"] })).resolves.toMatchObject({
       results: [expect.objectContaining({ meetingId: "meeting_123" })],
@@ -112,66 +168,69 @@ export function registerWherebyClientOperationTests() {
       tokens: { colors: { primary: "#005fcc", secondary: "#111111", focus: "#ffcc00" } },
     })).resolves.toEqual({});
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
+    expect(providerClient.requestOperation).toHaveBeenNthCalledWith(
       1,
-      "https://api.whereby.dev/v1/meetings?limit=1&fields=hostRoomUrl",
-      expect.objectContaining({ method: "GET" }),
+      "GET /meetings",
+      { query: { limit: 1, fields: ["hostRoomUrl"] } },
     );
-    expect(fetchMock).toHaveBeenNthCalledWith(
+    expect(providerClient.requestOperation).toHaveBeenNthCalledWith(
       2,
-      "https://api.whereby.dev/v1/meetings/meeting_123?fields=viewerRoomUrl",
-      expect.objectContaining({ method: "GET" }),
+      "GET /meetings/{meetingId}",
+      { pathParams: { meetingId: "meeting_123" }, query: { fields: ["viewerRoomUrl"] } },
     );
-    expect(fetchMock).toHaveBeenNthCalledWith(
+    expect(providerClient.requestOperation).toHaveBeenNthCalledWith(
       3,
-      "https://api.whereby.dev/v1/meetings/meeting_123",
-      expect.objectContaining({ method: "DELETE" }),
+      "DELETE /meetings/{meetingId}",
+      { pathParams: { meetingId: "meeting_123" } },
     );
-    expect(fetchMock).toHaveBeenNthCalledWith(
+    expect(providerClient.requestOperation).toHaveBeenNthCalledWith(
       4,
-      "https://api.whereby.dev/v1/rooms/%2Fsupport-abc/theme/tokens",
-      expect.objectContaining({ method: "PUT" }),
+      "PUT /rooms/{roomName}/theme/tokens",
+      {
+        pathParams: { roomName: "/support-abc" },
+        body: {
+          tokensPreset: "custom",
+          tokens: { colors: { primary: "#005fcc", secondary: "#111111", focus: "#ffcc00" } },
+        },
+      },
     );
   });
 
-  it("covers Whereby recordings, transcriptions, and beta summaries endpoints", async () => {
-    const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
-      if (init.method === "DELETE" || url.includes("bulk-delete")) {
-        return new Response(null, { status: 204 });
+  it("covers Whereby recordings, transcriptions, and beta summaries as host provider operations", async () => {
+    const providerClient = createProviderClient((operation) => {
+      if (operation === "GET /recordings/{recordingId}/access-link") {
+        return { accessLink: "https://recordings.example.test/recording.mp4", expires: 1_740_819_600_000 };
       }
-      if (url.includes("/recordings/recording_1/access-link")) {
-        return new Response(JSON.stringify({ accessLink: "https://recordings.example.test/recording.mp4", expires: 1_740_819_600_000 }), { status: 200 });
+      if (operation === "GET /transcriptions/{transcriptionId}/access-link") {
+        return { accessLink: "https://recordings.example.test/transcript.md", expires: 1_740_819_600_000 };
       }
-      if (url.includes("/transcriptions/transcription_1/access-link")) {
-        return new Response(JSON.stringify({ accessLink: "https://recordings.example.test/transcript.md", expires: 1_740_819_600_000 }), { status: 200 });
+      if (operation === "GET /recordings/{recordingId}") {
+        return { recordingId: "recording_1", filename: "recording.mp4" };
       }
-      if (url.includes("/recordings/recording_1")) {
-        return new Response(JSON.stringify({ recordingId: "recording_1", filename: "recording.mp4" }), { status: 200 });
+      if (operation === "GET /transcriptions/{transcriptionId}") {
+        return { transcriptionId: "transcription_1", state: "ready" };
       }
-      if (url.includes("/transcriptions/transcription_1")) {
-        return new Response(JSON.stringify({ transcriptionId: "transcription_1", state: "ready" }), { status: 200 });
+      if (operation === "GET /summaries/{summaryId}") {
+        return { summaryId: "summary_1", state: "ready" };
       }
-      if (url.includes("/summaries/summary_1")) {
-        return new Response(JSON.stringify({ summaryId: "summary_1", state: "ready" }), { status: 200 });
+      if (operation === "GET /recordings") {
+        return { results: [{ recordingId: "recording_1" }], cursor: "next-recordings" };
       }
-      if (url.endsWith("/recordings?limit=1")) {
-        return new Response(JSON.stringify({ results: [{ recordingId: "recording_1" }], cursor: "next-recordings" }), { status: 200 });
+      if (operation === "GET /transcriptions") {
+        return { results: [{ transcriptionId: "transcription_1" }], cursor: null };
       }
-      if (url.endsWith("/transcriptions?cursor=next-transcriptions")) {
-        return new Response(JSON.stringify({ results: [{ transcriptionId: "transcription_1" }], cursor: null }), { status: 200 });
+      if (operation === "GET /summaries") {
+        return { results: [{ summaryId: "summary_1" }], cursor: null };
       }
-      if (url.endsWith("/summaries?limit=2")) {
-        return new Response(JSON.stringify({ results: [{ summaryId: "summary_1" }], cursor: null }), { status: 200 });
+      if (operation === "POST /transcriptions") {
+        return { transcriptionId: "transcription_1", state: "processing" };
       }
-      if (url.endsWith("/transcriptions")) {
-        return new Response(JSON.stringify({ transcriptionId: "transcription_1", state: "processing" }), { status: 201 });
+      if (operation === "POST /summaries") {
+        return { summaryId: "summary_1", state: "processing" };
       }
-      return new Response(JSON.stringify({ summaryId: "summary_1", state: "processing" }), { status: 201 });
+      return {};
     });
-    const client = createWherebyVideoClient({
-      apiKey: "whereby-api-key",
-      fetch: fetchMock as unknown as typeof fetch,
-    });
+    const client = createWherebyVideoClient({ providerClient });
 
     await expect(client.listRecordings({ limit: 1 })).resolves.toMatchObject({ cursor: "next-recordings" });
     await expect(client.getRecording("recording_1")).resolves.toMatchObject({ recordingId: "recording_1" });
@@ -189,24 +248,33 @@ export function registerWherebyClientOperationTests() {
     await expect(client.getSummary("summary_1")).resolves.toMatchObject({ state: "ready" });
     await expect(client.deleteSummary("summary_1")).resolves.toEqual({});
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
+    expect(providerClient.requestOperation).toHaveBeenNthCalledWith(
       3,
-      "https://api.whereby.dev/v1/recordings/recording_1/access-link?validForSeconds=600",
-      expect.objectContaining({ method: "GET" }),
+      "GET /recordings/{recordingId}/access-link",
+      { pathParams: { recordingId: "recording_1" }, query: { validForSeconds: 600 } },
     );
-    expect(fetchMock).toHaveBeenNthCalledWith(
+    expect(providerClient.requestOperation).toHaveBeenNthCalledWith(
       6,
-      "https://api.whereby.dev/v1/transcriptions",
-      expect.objectContaining({ method: "POST" }),
+      "POST /transcriptions",
+      { body: { recordingId: "recording_1" } },
     );
-    expect(JSON.parse(String(((fetchMock.mock.calls[11] as unknown[])[1] as RequestInit).body))).toMatchObject({
-      transcriptionId: "transcription_1",
-      template: "General Narrative",
-    });
-    expect(fetchMock).toHaveBeenNthCalledWith(
+    expect(providerClient.requestOperation).toHaveBeenNthCalledWith(
+      12,
+      "POST /summaries",
+      { body: { transcriptionId: "transcription_1", template: "General Narrative" } },
+    );
+    expect(providerClient.requestOperation).toHaveBeenNthCalledWith(
       15,
-      "https://api.whereby.dev/v1/summaries/summary_1",
-      expect.objectContaining({ method: "DELETE" }),
+      "DELETE /summaries/{summaryId}",
+      { pathParams: { summaryId: "summary_1" } },
     );
   });
+}
+
+function createProviderClient(
+  handler: (operation: string, input?: unknown) => unknown | Promise<unknown>,
+): WherebyVideoProviderClient {
+  return {
+    requestOperation: vi.fn(async (operation, input) => handler(operation, input)) as WherebyVideoProviderClient["requestOperation"],
+  };
 }

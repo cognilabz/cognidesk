@@ -4,27 +4,19 @@ import type {
   AmazonRestrictedDataTokenRequest,
   AmazonRestrictedDataTokenResponse,
 } from "../contracts.js";
-import { amazonRequest, endpointBaseUrl } from "../request.js";
+import { createAmazonSpApiOfficialSdkApis } from "../official-sdk.js";
 
 export async function createAmazonRestrictedDataToken(
   options: AmazonMarketplaceClientOptions,
   input: AmazonRestrictedDataTokenRequest,
 ): Promise<AmazonRestrictedDataTokenResponse> {
-  if (!options.accessToken) {
-    throw new Error("Amazon LWA access token is required to create restricted data tokens.");
+  if (!options.accessToken && !(options.refreshToken && options.lwaClientId && options.lwaClientSecret)) {
+    throw new Error("Amazon LWA access token or refresh-token credentials are required to create restricted data tokens.");
   }
-  const fetchImpl = options.fetch ?? fetch;
-  const apiBaseUrl = (options.apiBaseUrl ?? endpointBaseUrl(options.endpoint ?? "na")).replace(/\/+$/, "");
-  return amazonRequest<AmazonRestrictedDataTokenResponse>({
-    url: `${apiBaseUrl}/tokens/2021-03-01/restrictedDataToken`,
-    fetch: fetchImpl,
-    options,
-    method: "POST",
-    body: {
-      restrictedResources: input.restrictedResources,
-      ...(input.targetApplication ? { targetApplication: input.targetApplication } : {}),
-    },
-  });
+  return createAmazonSpApiOfficialSdkApis(options).tokens().createRestrictedDataToken({
+    restrictedResources: input.restrictedResources,
+    ...(input.targetApplication ? { targetApplication: input.targetApplication } : {}),
+  }) as Promise<AmazonRestrictedDataTokenResponse>;
 }
 
 export async function refreshAmazonLwaAccessToken(

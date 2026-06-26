@@ -4,11 +4,23 @@ hide:
   - toc
 ---
 
-# Cognidesk
-
-## Build customer support agents as code.
-
-Cognidesk is a TypeScript runtime SDK that gives you full control over conversations, state machines, tools, knowledge retrieval, and UI — without vendor lock-in.
+<div class="cd-home">
+<h1 id="cognidesk">Cognidesk</h1>
+<h2 id="build-customer-support-agents-as-code">Build customer support agents as code.</h2>
+<p>Cognidesk is a TypeScript runtime SDK that gives you full control over conversations, state machines, tools, knowledge retrieval, and UI — without vendor lock-in.</p>
+<figure class="cd-runtime-map" aria-label="Cognidesk runtime flow from channel event to resolved support output">
+<div class="cd-runtime-map__top">
+<span>Runtime surface</span>
+<span>policy aware</span>
+</div>
+<div class="cd-runtime-map__canvas">
+<div class="cd-runtime-node cd-runtime-node--event"><span>Channel Event</span><strong>Chat, voice, email, ticket</strong></div>
+<div class="cd-runtime-node cd-runtime-node--journey"><span>Journey</span><strong>Stateful support path</strong></div>
+<div class="cd-runtime-node cd-runtime-node--tools"><span>Tools + Knowledge</span><strong>Typed actions and context</strong></div>
+<div class="cd-runtime-node cd-runtime-node--output"><span>Output Resolution</span><strong>Reply, draft, approve, handoff</strong></div>
+</div>
+</figure>
+</div>
 
 <div class="grid cards" markdown>
 

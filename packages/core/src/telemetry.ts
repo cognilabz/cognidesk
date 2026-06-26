@@ -40,6 +40,7 @@ export interface TelemetryContext {
 export const telemetrySpanNames = {
   runtimeInitialize: "cognidesk.runtime.initialize",
   runtimeCreateConversation: "cognidesk.runtime.create_conversation",
+  runtimeGetConversation: "cognidesk.runtime.get_conversation",
   runtimeListConversations: "cognidesk.runtime.list_conversations",
   runtimeEmitEvent: "cognidesk.runtime.emit_event",
   runtimeEmitIntermediateMessage: "cognidesk.runtime.emit_intermediate_message",

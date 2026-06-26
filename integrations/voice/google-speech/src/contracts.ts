@@ -15,6 +15,11 @@ export interface GoogleSpeechClientOptions {
   quotaProjectId?: string;
 }
 
+export interface GoogleSpeechRawClients {
+  speechClient: SpeechClient;
+  textToSpeechClient: TextToSpeechClient;
+}
+
 export interface GoogleSpeechCredentialStatusInput {
   accessToken?: string;
   hasAccessTokenProvider?: boolean;
@@ -87,6 +92,7 @@ export interface GoogleTextToSpeechInput {
 }
 
 export interface GoogleSpeechClient {
+  getRawClients(): GoogleSpeechRawClients;
   transcribeSpeech(input: GoogleSpeechToTextInput): Promise<GoogleSpeechToTextResult>;
   synthesizeSpeech(input: GoogleTextToSpeechInput): Promise<ArrayBuffer>;
 }

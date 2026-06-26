@@ -1,8 +1,19 @@
 export type * from "./contracts.js";
 export { amazonMarketplaceProviderManifest, amazonMarketplaceOperationAliases } from "./manifest.js";
-export { amazonMarketplaceIntegration } from "./integration.js";
+export {
+  amazonMarketplaceIntegration,
+  createAmazonIntegration,
+  createAmazonIntegrationOperationHandlers,
+  createAmazonMarketplaceIntegration,
+  createAmazonMarketplaceIntegrationOperationHandlers,
+} from "./integration.js";
 export { createAmazonMarketplaceClient } from "./client.js";
-export { loadAmazonSpApiOfficialSdk, type AmazonSpApiOfficialSdk } from "./official-sdk.js";
+export {
+  createAmazonSpApiOfficialSdkApis,
+  getAmazonSpApiOfficialSdk,
+  loadAmazonSpApiOfficialSdk,
+  type AmazonSpApiOfficialSdk,
+} from "./official-sdk.js";
 export {
   createAmazonRestrictedDataToken,
   refreshAmazonLwaAccessToken,

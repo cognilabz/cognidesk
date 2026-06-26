@@ -63,7 +63,7 @@ describe("integration catalog", () => {
       importPath: "@cognidesk/integration-ticketing-oracle-service/manifest",
       packageName: "@cognidesk/integration-ticketing-oracle-service",
       implementation: {
-        strategy: "direct-http-support-slice",
+        strategy: "provider-rest-adapter",
         runtimePackage: "@cognidesk/integration-ticketing-oracle-service",
         manifestSource: "integrations/ticketing/oracle-service/src/manifest.ts",
         manifestSourceKind: "manifest-only",
@@ -73,7 +73,7 @@ describe("integration catalog", () => {
       importPath: "@cognidesk/integration-ticketing-pega-customer-service/manifest",
       packageName: "@cognidesk/integration-ticketing-pega-customer-service",
       implementation: {
-        strategy: "direct-http-support-slice",
+        strategy: "provider-rest-adapter",
         runtimePackage: "@cognidesk/integration-ticketing-pega-customer-service",
         manifestSource: "integrations/ticketing/pega-customer-service/src/manifest.ts",
         manifestSourceKind: "manifest-only",
@@ -83,7 +83,7 @@ describe("integration catalog", () => {
       importPath: "@cognidesk/integration-ticketing-sap-service-cloud/manifest",
       packageName: "@cognidesk/integration-ticketing-sap-service-cloud",
       implementation: {
-        strategy: "direct-http-support-slice",
+        strategy: "support-workflow-adapter",
         runtimePackage: "@cognidesk/integration-ticketing-sap-service-cloud",
         manifestSource: "integrations/ticketing/sap-service-cloud/src/manifest.ts",
         manifestSourceKind: "manifest-only",

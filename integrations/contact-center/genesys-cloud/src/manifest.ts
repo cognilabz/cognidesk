@@ -43,7 +43,7 @@ export const genesysCloudContactCenterManifestInput = {
     scope: "support-workflow-subset",
     notes: [
       "Runtime uses the official purecloud-platform-client-v2 SDK for normalized Genesys Cloud support workflows.",
-      "The raw Genesys SDK ApiClient is exposed as an escape hatch for provider-specific operations.",
+      "The SDK-backed client exposes Genesys Conversations, Routing, Users, and ApiClient instances for host-level extension.",
       "Open Messaging webhook signature verification stays local because it protects the Cognidesk webhook boundary.",
       "The previous generated full Swagger clone is not carried forward as a Cognidesk-owned API surface.",
     ],
@@ -100,7 +100,7 @@ export const genesysCloudContactCenterManifestInput = {
     {
       alias: "contact-center.handoff.request",
       capability: "handoff",
-      providerOperation: "sdk-configured-request",
+      providerOperation: "ConversationsApi.postConversationsCallbacks | ConversationsApi.postConversationsMessageInboundOpenMessage",
       providerObject: "contactTransfer",
       sideEffect: true,
       exposesSensitiveData: true,
@@ -109,7 +109,7 @@ export const genesysCloudContactCenterManifestInput = {
     {
       alias: "contact-center.callback.schedule",
       capability: "schedule",
-      providerOperation: "POST /api/v2/conversations/callbacks",
+      providerOperation: "ConversationsApi.postConversationsCallbacks",
       providerObject: "callback",
       sideEffect: true,
       exposesSensitiveData: true,
@@ -118,20 +118,20 @@ export const genesysCloudContactCenterManifestInput = {
     {
       alias: "contact-center.contact.read",
       capability: "read-provider-object",
-      providerOperation: "GET /api/v2/conversations/{conversationId}",
+      providerOperation: "ConversationsApi.getConversation",
       providerObject: "contact",
       exposesSensitiveData: true,
     },
     {
       alias: "contact-center.queue.list",
       capability: "read-provider-object",
-      providerOperation: "GET /api/v2/routing/queues",
+      providerOperation: "RoutingApi.getRoutingQueues",
       providerObject: "queue",
     },
     {
       alias: "genesys-cloud.openMessaging.message.create",
       capability: "contact-center.open-messaging-ingress",
-      providerOperation: "POST /api/v2/conversations/messages/{integrationId}/inbound/open/message",
+      providerOperation: "ConversationsApi.postConversationsMessageInboundOpenMessage",
       providerObject: "genesysCloudOpenMessage",
       extension: true,
       sideEffect: true,
@@ -145,7 +145,7 @@ export const genesysCloudContactCenterManifestInput = {
   ],
   limitations: [
     "Genesys regions, OAuth permissions, Architect flows, queues, callbacks, digital integrations, and outbound policy remain SDK-user configuration.",
-    "Raw SDK access is available for escape-hatch use, but raw SDK breadth is not declared as normalized Cognidesk adapter coverage.",
+    "SDK client injection is available for escape-hatch use, but full SDK breadth is not declared as normalized Cognidesk adapter coverage.",
   ],
   metadata: {
     implementation: {
@@ -159,7 +159,7 @@ export const genesysCloudContactCenterManifestInput = {
       openMessagingOutboundWebhookSignature: "typed-verify-only",
       conversations: "sdk-normalized",
       queues: "sdk-normalized",
-      rawGenesysCloudSdkClient: "escape-hatch",
+      genesysCloudSdkClient: "escape-hatch",
       messengerJavascriptSdk: "provider-supported-customer-site-not-typed",
     },
   },

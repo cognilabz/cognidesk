@@ -4,7 +4,7 @@ import { createWhatsAppMessagingClient } from "./client/index.js";
 export function createWhatsAppMessagingLiveChecks(options: WhatsAppLiveCheckOptions) {
   return [{
     id: "phone-number",
-    description: "Meta Graph API phone number endpoint is reachable with the configured WhatsApp access token.",
+    description: "Configured WhatsApp Graph API adapter or provider client can read the phone-number readiness resource.",
     requiredCredentialIds: ["whatsapp-access-token", "whatsapp-phone-number-id"],
     async run(context: { signal?: AbortSignal }) {
       const client = options.client ?? createWhatsAppMessagingClient(options);

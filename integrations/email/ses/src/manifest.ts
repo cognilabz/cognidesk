@@ -29,7 +29,7 @@ export const sesEmailProviderManifest = defineIntegrationProviderPackage({
       label: "AWS credentials",
       description: "AWS credentials resolved by the AWS SDK default chain or explicitly supplied by the SDK user.",
       required: true,
-      scopes: ["ses:SendEmail", "ses:GetAccount", "ses:ListEmailIdentities", "ses:DeleteSuppressedDestination"],
+      scopes: ["ses:SendEmail", "ses:SendRawEmail", "ses:GetAccount", "ses:ListEmailIdentities", "ses:DeleteSuppressedDestination"],
       metadata: { scopeKind: "provider-permission-labels" },
     },
     {
@@ -58,7 +58,7 @@ export const sesEmailProviderManifest = defineIntegrationProviderPackage({
     {
       capability: "send",
       label: "Send SES email",
-      description: "Sends support email through AWS SDK v3 SESv2.",
+      description: "Sends support email through AWS SDK v3 SESv2 and raw MIME through classic SES.",
       audiences: ["customer-facing"],
       providerObjects: [{ kind: "sesMessage", label: "SES Message" }],
       requiresCredential: true,
@@ -92,6 +92,7 @@ export const sesEmailProviderManifest = defineIntegrationProviderPackage({
   ],
   operations: [
     { alias: "email.send", capability: "send", providerObject: "sesMessage", sideEffect: true, exposesSensitiveData: true },
+    { alias: "ses.rawEmail.send", capability: "send", providerObject: "sesMessage", extension: true, sideEffect: true, exposesSensitiveData: true },
     { alias: "email.deliveryStatus.read", capability: "read-provider-object", providerObject: "deliveryStatus", exposesSensitiveData: true },
     { alias: "ses.snsNotification.receive", capability: "receive", providerObject: "sesEvent", extension: true, exposesSensitiveData: true },
     { alias: "ses.account.read", capability: "read-provider-object", providerObject: "sesAccount", extension: true },

@@ -1,11 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import { runProviderConformance } from "@cognidesk/test-harness";
+import { assertIntegrationConformance } from "@cognidesk/integration-kit/testing";
 import {
+  createServiceNowSdkConnectorRawClient,
   createServiceNowTicketingClient,
+  createServiceNowTicketingIntegration,
   createServiceNowTicketingLiveChecks,
   serviceNowTicketingCredentialStatuses,
+  serviceNowTicketingProviderOperations,
   serviceNowTicketingProviderManifest,
 } from "../src/index.js";
+import type { ServiceNowRawClient, ServiceNowRecord, ServiceNowTicketingClientOptions } from "../src/index.js";
+
+interface FakeServiceNowConnector {
+  fetch: ReturnType<typeof vi.fn>;
+  queryTable: ReturnType<typeof vi.fn>;
+}
 
 describe("@cognidesk/integration-ticketing-servicenow", () => {
   it("exports an official provider manifest for ServiceNow ticketing", () => {
@@ -63,154 +73,356 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
         genericTableApi: "sdk-owned-classified-endpoint",
         arbitraryTableTyping: "not-covered",
       },
+      checkedProviderSdk: {
+        package: "@servicenow/sdk-api",
+        checkedVersion: "4.8.0",
+        result: "used-as-runtime-connector",
+      },
+      sdkDecision: {
+        result: "official-sdk-runtime-connector-not-ticketing-client",
+      },
+      implementation: {
+        strategy: "official-sdk-connector",
+        rawClientEscapeHatch: "ServiceNowTicketingClient.rawClient",
+        sdkPackage: "@servicenow/sdk-api",
+        sdkRuntimeSurface: "Connector.fetch and Connector.queryTable",
+        defaultClientPolicy: expect.stringContaining("official-servicenow-sdk-api-connector"),
+        packageOwnedRestClient: false,
+        rawClientOverride: true,
+      },
     });
+    expect(serviceNowTicketingProviderManifest.operations.map((operation) => operation.alias))
+      .toEqual(serviceNowTicketingProviderOperations.map((operation) => operation.alias));
+    expect(serviceNowTicketingProviderManifest.operations.map((operation) => operation.alias))
+      .toEqual([
+        "ticket.create",
+        "ticket.read",
+        "ticket.update",
+        "ticket.search",
+        "ticket.comment.create",
+        "ticket.internalNote.create",
+        "ticket.attachments.add",
+        "ticket.attachments.list",
+        "servicenow.record.create",
+        "servicenow.importSet.insert",
+        "servicenow.importSet.result.read",
+      ]);
   });
 
-  it("creates incidents through the ServiceNow Table API", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({
-        result: {
-          sys_id: "abc123",
-          number: "INC0010001",
-          short_description: "Cannot sign in",
-        },
-      }), { status: 201 })
-    );
+  it("binds declared operations to an injectable ServiceNow raw client", async () => {
+    const serviceNowCalls: Array<{ method: string; args: unknown[] }> = [];
+    const rawClient: ServiceNowRawClient = {
+      async createRecord<T extends ServiceNowRecord = ServiceNowRecord>(tableName: string, record: object) {
+        serviceNowCalls.push({ method: "createRecord", args: [tableName, record] });
+        return { sys_id: "created-1", tableName, ...record } as unknown as T;
+      },
+      async getRecord<T extends ServiceNowRecord = ServiceNowRecord>(tableName: string, sysId: string, query?: unknown) {
+        serviceNowCalls.push({ method: "getRecord", args: [tableName, sysId, query] });
+        return { sys_id: sysId, tableName } as unknown as T;
+      },
+      async updateRecord<T extends ServiceNowRecord = ServiceNowRecord>(tableName: string, sysId: string, patch: object) {
+        serviceNowCalls.push({ method: "updateRecord", args: [tableName, sysId, patch] });
+        return { sys_id: sysId, tableName, ...patch } as unknown as T;
+      },
+      async searchRecords<T extends ServiceNowRecord = ServiceNowRecord>(tableName: string, query?: unknown) {
+        serviceNowCalls.push({ method: "searchRecords", args: [tableName, query] });
+        return [{ sys_id: "match-1", tableName } as unknown as T];
+      },
+      async uploadAttachment(input) {
+        serviceNowCalls.push({ method: "uploadAttachment", args: [input] });
+        return { sys_id: "attachment-1", file_name: input.fileName };
+      },
+      async listAttachments(query) {
+        serviceNowCalls.push({ method: "listAttachments", args: [query] });
+        return [{ sys_id: "attachment-1" }];
+      },
+      async importSet(stagingTableName, record) {
+        serviceNowCalls.push({ method: "importSet", args: [stagingTableName, record] });
+        return { sys_id: "import-1", stagingTableName };
+      },
+      async getImportSetResult(stagingTableName, sysId) {
+        serviceNowCalls.push({ method: "getImportSetResult", args: [stagingTableName, sysId] });
+        return { sys_id: sysId, stagingTableName, status: "inserted" };
+      },
+    };
+    const client = createServiceNowTicketingClient({ rawClient });
+    const integration = createServiceNowTicketingIntegration({ ticketingClient: client });
+
+    expect(assertIntegrationConformance({
+      manifest: integration.manifest,
+      operations: integration.operations,
+    })).toMatchObject({
+      missingHandlerAliases: [],
+      extraHandlerAliases: [],
+      invalidExtensionOperationAliases: [],
+    });
+
+    await integration.run("ticket.create", { subject: "Cannot sign in", fields: { u_cognidesk: "conversation_1" } });
+    await integration.run("ticket.read", { ticketId: "abc123" });
+    await integration.run("ticket.update", { ticketId: "abc123", patch: { state: "2" } });
+    await integration.run("ticket.search", { query: "active=true", limit: 1 });
+    await integration.run("ticket.comment.create", { ticketId: "abc123", body: "Public follow-up." });
+    await integration.run("ticket.internalNote.create", { sysId: "abc123", note: "Internal handoff summary." });
+    await integration.run("ticket.attachments.add", { ticketId: "abc123", fileName: "debug.log", data: "log body" });
+    await integration.run("ticket.attachments.list", { ticketId: "abc123", limit: 5 });
+    await integration.run("servicenow.record.create", { tableName: "sn_customerservice_case", fields: { short_description: "Case" } });
+    await integration.run("servicenow.importSet.insert", { stagingTableName: "u_cognidesk_import", record: { short_description: "Import" } });
+    await integration.run("servicenow.importSet.result.read", { tableName: "u_cognidesk_import", id: "import-1" });
+
+    expect(serviceNowCalls.map((call) => call.method)).toEqual([
+      "createRecord",
+      "getRecord",
+      "updateRecord",
+      "searchRecords",
+      "updateRecord",
+      "updateRecord",
+      "uploadAttachment",
+      "listAttachments",
+      "createRecord",
+      "importSet",
+      "getImportSetResult",
+    ]);
+    expect(serviceNowCalls[0]).toMatchObject({
+      method: "createRecord",
+      args: ["incident", { short_description: "Cannot sign in", u_cognidesk: "conversation_1" }],
+    });
+    expect(serviceNowCalls[4]).toMatchObject({
+      method: "updateRecord",
+      args: ["incident", "abc123", { comments: "Public follow-up." }],
+    });
+    expect(serviceNowCalls[7]).toMatchObject({
+      method: "listAttachments",
+      args: [{ limit: 5, query: "table_name=incident^table_sys_id=abc123" }],
+    });
+
+    await expect(integration.run("ticket.attachments.list", { ticketId: "abc^123", limit: 5 }))
+      .rejects.toThrow("ServiceNow encoded query value for table_sys_id");
+    await expect(integration.run("ticket.attachments.list", { ticketId: "abc123", tableName: "incident=bad" }))
+      .rejects.toThrow("ServiceNow ticket.attachments.list requires a valid tableName.");
+  });
+
+  it("validates ServiceNow generic table and attachment inputs before raw client calls", async () => {
+    const rawCalls: string[] = [];
+    const rawClient: ServiceNowRawClient = {
+      async createRecord<T extends ServiceNowRecord = ServiceNowRecord>() {
+        rawCalls.push("createRecord");
+        return {} as T;
+      },
+      async getRecord<T extends ServiceNowRecord = ServiceNowRecord>() {
+        rawCalls.push("getRecord");
+        return {} as T;
+      },
+      async updateRecord<T extends ServiceNowRecord = ServiceNowRecord>() {
+        rawCalls.push("updateRecord");
+        return {} as T;
+      },
+      async searchRecords<T extends ServiceNowRecord = ServiceNowRecord>() {
+        rawCalls.push("searchRecords");
+        return [] as T[];
+      },
+      async uploadAttachment() {
+        rawCalls.push("uploadAttachment");
+        return {};
+      },
+      async listAttachments() {
+        rawCalls.push("listAttachments");
+        return [];
+      },
+      async importSet() {
+        rawCalls.push("importSet");
+        return {};
+      },
+      async getImportSetResult() {
+        rawCalls.push("getImportSetResult");
+        return {};
+      },
+    };
+    const integration = createServiceNowTicketingIntegration({
+      ticketingClient: createServiceNowTicketingClient({ rawClient }),
+    });
+
+    await expect(integration.run("servicenow.record.create", {
+      tableName: "bad-table",
+      fields: { short_description: "Case" },
+    })).rejects.toThrow("ServiceNow servicenow.record.create requires a valid tableName.");
+    await expect(integration.run("ticket.attachments.add", {
+      ticketId: "abc123",
+      fileName: "",
+      data: "log body",
+    })).rejects.toThrow("ServiceNow ticket.attachments.add fileName is required.");
+    await expect(integration.run("ticket.attachments.list", {
+      ticketId: "abc123",
+      tableName: "incident=bad",
+    })).rejects.toThrow("ServiceNow ticket.attachments.list requires a valid tableName.");
+    await expect(integration.run("servicenow.importSet.insert", {
+      tableName: "bad-table",
+      record: { short_description: "Import" },
+    })).rejects.toThrow("ServiceNow Import Set operation requires a valid tableName.");
+
+    expect(rawCalls).toEqual([]);
+  });
+
+  it("uses the official ServiceNow SDK connector when bearer credentials are configured", async () => {
+    const fetchMock = createServiceNowFetchMock();
+    const originalFetch = globalThis.fetch;
+    vi.stubGlobal("fetch", fetchMock);
     const client = createServiceNowTicketingClient({
       instanceUrl: "https://example.service-now.com/",
-      username: "api-user",
-      password: "api-pass",
-      fetch: fetchMock as unknown as typeof fetch,
+      accessToken: "bearer-token",
+      timeoutMs: 250,
     });
 
-    const incident = await client.createIncident({
-      shortDescription: "Cannot sign in",
-      description: "Customer cannot sign in after password reset.",
-      callerId: "user@example.test",
-      additionalFields: { u_cognidesk_conversation: "conversation_1" },
-    });
+    try {
+      await expect(client.createIncident({
+        shortDescription: "Cannot sign in",
+        additionalFields: { u_cognidesk: "conversation_1" },
+      })).resolves.toMatchObject({ sys_id: "created-1" });
+      await expect(client.getRecord("incident", "abc 123/a", {
+        fields: ["sys_id", "number"],
+        displayValue: "all",
+        excludeReferenceLink: true,
+      })).resolves.toMatchObject({ sys_id: "abc123" });
+      await expect(client.uploadAttachment({
+        tableName: "incident",
+        tableSysId: "abc 123/a",
+        fileName: "debug log.txt",
+        contentType: "text/plain",
+        data: "log body",
+      })).resolves.toMatchObject({ sys_id: "attachment-1" });
 
-    expect(incident.number).toBe("INC0010001");
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://example.service-now.com/api/now/table/incident",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          authorization: `Basic ${Buffer.from("api-user:api-pass").toString("base64")}`,
-          "content-type": "application/json",
-        }),
-      }),
-    );
-    const request = (fetchMock.mock.calls[0] as unknown[])[1] as { body: string };
-    expect(JSON.parse(request.body)).toMatchObject({
-      short_description: "Cannot sign in",
-      description: "Customer cannot sign in after password reset.",
-      caller_id: "user@example.test",
-      u_cognidesk_conversation: "conversation_1",
-    });
+      const [createUrl, createInit] = fetchMock.mock.calls[0]!;
+      expect(String(createUrl)).toBe("https://example.service-now.com/api/now/table/incident");
+      expect(createInit?.method).toBe("POST");
+      const createHeaders = new Headers(createInit?.headers);
+      expect(createHeaders.get("Authorization")).toBe("Bearer bearer-token");
+      expect(createHeaders.get("Content-Type")).toBe("application/json");
+      expect(JSON.parse(createInit?.body as string)).toEqual({
+        short_description: "Cannot sign in",
+        u_cognidesk: "conversation_1",
+      });
+
+      const readUrl = new URL(String(fetchMock.mock.calls[1]![0]));
+      expect(readUrl.pathname).toBe("/api/now/table/incident/abc%20123%2Fa");
+      expect(readUrl.searchParams.get("sysparm_fields")).toBe("sys_id,number");
+      expect(readUrl.searchParams.get("sysparm_display_value")).toBe("all");
+      expect(readUrl.searchParams.get("sysparm_exclude_reference_link")).toBe("true");
+
+      const attachmentUrl = new URL(String(fetchMock.mock.calls[2]![0]));
+      expect(attachmentUrl.pathname).toBe("/api/now/attachment/file");
+      expect(attachmentUrl.searchParams.get("table_name")).toBe("incident");
+      expect(attachmentUrl.searchParams.get("table_sys_id")).toBe("abc 123/a");
+      expect(attachmentUrl.searchParams.get("file_name")).toBe("debug log.txt");
+      const attachmentHeaders = new Headers(fetchMock.mock.calls[2]![1]?.headers);
+      expect(attachmentHeaders.get("Content-Type")).toBe("text/plain");
+      expect(fetchMock.mock.calls[2]![1]?.body).toBe("log body");
+      expect(fetchMock.mock.calls[2]![1]?.signal).toBeInstanceOf(AbortSignal);
+    } finally {
+      vi.stubGlobal("fetch", originalFetch);
+    }
   });
 
-  it("searches records with sysparm query controls", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({
-        result: [{ sys_id: "abc123", number: "INC0010001" }],
-      }), { status: 200 })
-    );
-    const client = createServiceNowTicketingClient({
-      instanceUrl: "https://example.service-now.com",
-      accessToken: "oauth-token",
-      fetch: fetchMock as unknown as typeof fetch,
+  it("uses the official ServiceNow SDK connector for OAuth runtime transport", async () => {
+    const connector: FakeServiceNowConnector = {
+      fetch: vi.fn(async () => jsonResponse({ result: { sys_id: "created-1" } })),
+      queryTable: vi.fn(async () => ({
+        table: "incident",
+        count: 1,
+        hasMore: false,
+        nextOffset: null,
+        records: [{ sys_id: "match-1" }],
+      })),
+    };
+    const client = createServiceNowSdkConnectorRawClient({
+      connector: connector as any,
+      accessToken: "bearer-token",
+      instanceUrl: "https://example.service-now.com/",
+      timeoutMs: 250,
     });
 
-    const records = await client.searchRecords("incident", {
+    await expect(client.createRecord("incident", { short_description: "Cannot sign in" }))
+      .resolves.toMatchObject({ sys_id: "created-1" });
+    await expect(client.searchRecords("incident", {
       query: "active=true",
       fields: ["sys_id", "number"],
-      limit: 5,
+      limit: 1,
+      displayValue: true,
       excludeReferenceLink: true,
-    });
+    })).resolves.toEqual([{ sys_id: "match-1" }]);
 
-    expect(records).toHaveLength(1);
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
-    expect(url).toBe("https://example.service-now.com/api/now/table/incident?sysparm_query=active%3Dtrue&sysparm_fields=sys_id%2Cnumber&sysparm_limit=5&sysparm_exclude_reference_link=true");
-    expect(init.headers.authorization).toBe("Bearer oauth-token");
+    expect(connector.fetch).toHaveBeenCalledWith(
+      "/api/now/table/incident",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ short_description: "Cannot sign in" }),
+      }),
+      undefined,
+    );
+    const createHeaders = new Headers(connector.fetch.mock.calls[0]![1]?.headers);
+    expect(createHeaders.get("Accept")).toBe("application/json");
+    expect(createHeaders.get("Content-Type")).toBe("application/json");
+    expect(connector.queryTable).toHaveBeenCalledWith({
+      table: "incident",
+      encodedQuery: "active=true",
+      fields: "sys_id,number",
+      limit: 1,
+      displayValue: "true",
+      excludeReferenceLink: true,
+      timeoutMs: 250,
+    });
   });
 
-  it("attaches ServiceNow incident work notes and comments through documented Table API updates", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ result: { sys_id: "abc123", number: "INC0010001" } }), { status: 200 })
-    );
+  it("does not fall back to package-owned Basic Auth REST when the SDK connector cannot be configured", async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse({ result: [{ sys_id: "match-1" }] }));
     const client = createServiceNowTicketingClient({
-      instanceUrl: "https://example.service-now.com",
-      accessToken: "oauth-token",
-      fetch: fetchMock as unknown as typeof fetch,
+      instance: "example.service-now.com",
+      ...({
+        username: "api-user",
+        password: "api-pass",
+        fetch: fetchMock,
+      } as unknown as Partial<ServiceNowTicketingClientOptions> & { fetch: typeof fetchMock }),
     });
 
-    await expect(client.addIncidentWorkNote("abc123", "Handoff summary for the ServiceNow agent."))
-      .resolves.toMatchObject({ sys_id: "abc123" });
-    await expect(client.addIncidentComment("abc123", "Customer-visible follow-up from Cognidesk."))
-      .resolves.toMatchObject({ sys_id: "abc123" });
+    await expect(client.searchRecords("incident", { limit: 1, query: "active=true" }))
+      .rejects.toThrow("built-in @servicenow/sdk-api Connector");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      "https://example.service-now.com/api/now/table/incident/abc123",
-      expect.objectContaining({
-        method: "PATCH",
-        body: JSON.stringify({ work_notes: "Handoff summary for the ServiceNow agent." }),
-      }),
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://example.service-now.com/api/now/table/incident/abc123",
-      expect.objectContaining({
-        method: "PATCH",
-        body: JSON.stringify({ comments: "Customer-visible follow-up from Cognidesk." }),
-      }),
+  it("creates an unconfigured integration safely with no factory options", async () => {
+    const integration = createServiceNowTicketingIntegration();
+
+    await expect(integration.run("ticket.search", undefined))
+      .rejects.toThrow("ServiceNow integration requires an injected ServiceNowRawClient");
+  });
+
+  it("surfaces ServiceNow REST JSON errors", async () => {
+    const connector: FakeServiceNowConnector = {
+      fetch: vi.fn(async () => jsonResponse({ error: { message: "ACL denied" }, status: "failure" }, {
+        status: 403,
+        statusText: "Forbidden",
+      })),
+      queryTable: vi.fn(),
+    };
+    const client = createServiceNowTicketingClient({
+      connector: connector as any,
+    });
+
+    await expect(client.getRecord("incident", "abc123")).rejects.toMatchObject({
+      message: "ServiceNow request failed with 403.",
+      status: 403,
+      payload: { error: { message: "ACL denied" }, status: "failure" },
+    });
+    expect(connector.fetch).toHaveBeenCalledWith(
+      "/api/now/table/incident/abc123",
+      expect.objectContaining({ method: "GET" }),
+      expect.any(URLSearchParams),
     );
   });
 
-  it("supports ServiceNow Attachment and Import Set API request shapes", async () => {
-    const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
-      if (url.includes("/attachment/file") && init.method === "POST") {
-        return new Response(JSON.stringify({ result: { sys_id: "attachment-1", file_name: "debug.log" } }), { status: 201 });
-      }
-      if (url.includes("/attachment?")) {
-        return new Response(JSON.stringify({ result: [{ sys_id: "attachment-1" }] }), { status: 200 });
-      }
-      if (url.endsWith("/api/now/import/u_cognidesk_import") && init.method === "POST") {
-        return new Response(JSON.stringify({ result: { sys_id: "import-1", transform_map: "map-1" } }), { status: 201 });
-      }
-      return new Response(JSON.stringify({ result: { sys_id: "import-1", status: "inserted" } }), { status: 200 });
-    });
-    const client = createServiceNowTicketingClient({
-      instanceUrl: "https://example.service-now.com",
-      accessToken: "oauth-token",
-      fetch: fetchMock as unknown as typeof fetch,
-    });
-
-    await expect(client.uploadAttachment({
-      tableName: "incident",
-      tableSysId: "abc123",
-      fileName: "debug.log",
-      contentType: "text/plain",
-      data: "log body",
-    })).resolves.toMatchObject({ sys_id: "attachment-1" });
-    await expect(client.listAttachments({
-      query: "table_name=incident^table_sys_id=abc123",
-      limit: 10,
-    })).resolves.toHaveLength(1);
-    await expect(client.importSet("u_cognidesk_import", {
-      short_description: "Cannot sign in",
-    })).resolves.toMatchObject({ sys_id: "import-1" });
-    await expect(client.getImportSetResult("u_cognidesk_import", "import-1")).resolves.toMatchObject({
-      status: "inserted",
-    });
-
-    const uploadInit = (fetchMock.mock.calls[0] as unknown[])[1] as { body: string; headers: Record<string, string> };
-    expect((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[0]).toBe(
-      "https://example.service-now.com/api/now/attachment/file?table_name=incident&table_sys_id=abc123&file_name=debug.log",
-    );
-    expect(uploadInit.body).toBe("log body");
-    expect(uploadInit.headers["content-type"]).toBe("text/plain");
+  it("fails closed when neither the official SDK connector nor a host raw client is provided", async () => {
+    const client = createServiceNowTicketingClient({});
+    await expect(client.searchRecords("incident"))
+      .rejects.toThrow("ServiceNow integration requires an injected ServiceNowRawClient");
   });
 
   it("reports live conformance as credential-blocked until ServiceNow credentials are configured", async () => {
@@ -226,8 +438,6 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
       live: {
         enabled: true,
         checks: createServiceNowTicketingLiveChecks({
-          instanceUrl: "https://example.service-now.com",
-          accessToken: "missing",
           client: {
             async searchRecords() {
               return [];
@@ -259,8 +469,6 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
       live: {
         enabled: true,
         checks: createServiceNowTicketingLiveChecks({
-          instanceUrl: "https://example.service-now.com",
-          accessToken: "configured",
           client: {
             async searchRecords<T>() {
               return [{ sys_id: "abc123", number: "INC0010001" }] as T[];
@@ -277,3 +485,22 @@ describe("@cognidesk/integration-ticketing-servicenow", () => {
     }));
   });
 });
+
+function createServiceNowFetchMock() {
+  const responses = [
+    { result: { sys_id: "created-1" } },
+    { result: { sys_id: "abc123" } },
+    { result: { sys_id: "attachment-1" } },
+    { result: [{ sys_id: "match-1" }] },
+  ];
+  return vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+    jsonResponse(responses.shift() ?? { result: {} }));
+}
+
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+    ...init,
+  });
+}

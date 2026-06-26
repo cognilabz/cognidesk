@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-voice-twilio",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -36,10 +36,7 @@
   },
   "cognidesk": {
     "kind": "provider-package",
-    "providerPackage": true,
-    "providerSdkDependencies": [
-      "twilio"
-    ]
+    "providerPackage": true
   },
   "publishConfig": {
     "access": "public",

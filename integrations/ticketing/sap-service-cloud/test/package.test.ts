@@ -8,7 +8,7 @@ import {
   createSapServiceCloudTicketingOperationHandlers,
   sapServiceCloudTicketingProviderManifest,
 } from "../src/index.js";
-import { sapServiceCloudSupportOperationAllowlist } from "../src/manifest.js";
+import { sapServiceCloudProviderClientOperations } from "../src/manifest.js";
 
 describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
   it("keeps the manifest-only entry metadata-only and scoped", async () => {
@@ -19,13 +19,30 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
       packageName: "@cognidesk/integration-ticketing-sap-service-cloud",
       coverage: { scope: "support-workflow-subset" },
       metadata: {
-        implementationStrategy: { strategy: "sdk-viable-reviewed-support-slice" },
-        supportOperationSlice: {
-          allowlistSha256: "0878a63145c55ce016d71a56643a963adc9fe945c7d0a029286d567e5027f30f",
+        implementationStrategy: "sap-cloud-sdk-http-client-odata-adapter",
+        implementation: {
+          strategy: "provider-sdk-http-client-odata-adapter",
+          adapterKind: "sap-cloud-sdk-http-client-odata-adapter",
+          providerSdkPackage: "@sap-cloud-sdk/http-client",
+          defaultHttpClient: "executeHttpRequest",
+          defaultFetchClient: "none-provider-client-override-only",
+          packageOwnedODataMapping: true,
+        },
+        providerClient: {
+          interface: "SapServiceCloudTicketingProviderClient",
+          defaultClient: "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client",
+        },
+        providerSdkRuntime: {
+          package: "@sap-cloud-sdk/http-client",
+          checkedVersion: "4.7.0",
+          importedRuntimeFunction: "executeHttpRequest",
+          importedRuntimeTypes: ["HttpRequestConfig", "HttpResponse", "Method"],
         },
       },
     });
-    expect(sapServiceCloudSupportOperationAllowlist.map((operation) => operation.alias)).toEqual([
+    expect(sapServiceCloudTicketingProviderManifest.metadata).not.toHaveProperty("supportOperationSlice");
+    expect(JSON.stringify(sapServiceCloudTicketingProviderManifest.metadata)).not.toContain("direct-http-support-slice");
+    expect(sapServiceCloudProviderClientOperations.map((operation) => operation.alias)).toEqual([
       "ticket.create",
       "ticket.read",
       "ticket.update",
@@ -49,9 +66,7 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     });
 
     const integration = createSapServiceCloudTicketingIntegration({
-      tenantUrl: "https://example.crm.ondemand.com",
-      accessToken: "token",
-      client,
+      providerClient: client,
     });
     await expect(integration.run("ticket.read", { objectId: "object-1" })).resolves.toMatchObject({
       ObjectID: "object-1",
@@ -59,18 +74,48 @@ describe("@cognidesk/integration-ticketing-sap-service-cloud", () => {
     expect(client.getServiceRequest).toHaveBeenCalledWith("object-1");
   });
 
-  it("keeps SAP SDK packages recorded as viable metadata rather than runtime dependencies", () => {
+  it("declares and documents the SAP Cloud SDK HTTP client runtime dependency", () => {
     const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
     const packageJson = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8"));
-    expect(packageJson.dependencies).toEqual({
+    expect(packageJson.dependencies).toMatchObject({
+      "@sap-cloud-sdk/http-client": "^4.7.0",
       "@cognidesk/core": "workspace:*",
       "@cognidesk/integration-kit": "workspace:*",
     });
-    expect(sapServiceCloudTicketingProviderManifest.metadata?.implementationStrategy).toMatchObject({
-      viableLibraries: expect.arrayContaining([
-        expect.objectContaining({ packageName: "@sap-cloud-sdk/odata-v2", version: "4.7.0" }),
-        expect.objectContaining({ packageName: "@sap-cloud-sdk/http-client", version: "4.7.0" }),
+    expect(sapServiceCloudTicketingProviderManifest.metadata?.checkedProviderSdk).toMatchObject({
+      verdict: "sdk-backed-generic-odata-http-client",
+      candidates: expect.arrayContaining([
+        expect.objectContaining({ package: "@sap-cloud-sdk/http-client", checkedVersion: "4.7.0", result: "accepted-runtime-http-client" }),
+        expect.objectContaining({ package: "@sap-cloud-sdk/odata-v2", checkedVersion: "4.7.0", result: "not-generated-client-in-this-package" }),
       ]),
     });
+  });
+
+  it("marks built-in OData credentials as conditional on the SAP SDK HTTP adapter", () => {
+    expect(sapServiceCloudTicketingProviderManifest.credentialRequirements).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: "sap-service-cloud-provider-client",
+        required: false,
+        metadata: expect.objectContaining({
+          credentialOwnership: "host-managed-override",
+          defaultClientPolicy: "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client",
+        }),
+      }),
+      expect.objectContaining({
+        id: "sap-service-cloud-instance",
+        required: false,
+        metadata: expect.objectContaining({
+          requiredWhen: "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client",
+        }),
+      }),
+      expect.objectContaining({
+        id: "sap-service-cloud-api-access",
+        required: false,
+        metadata: expect.objectContaining({
+          requiredWhen: "built-in-odata-adapter-backed-by-sap-cloud-sdk-http-client",
+          scopeKind: "internal-capability-labels",
+        }),
+      }),
+    ]));
   });
 });

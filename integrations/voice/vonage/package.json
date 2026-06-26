@@ -36,10 +36,7 @@
   },
   "cognidesk": {
     "kind": "provider-package",
-    "providerPackage": true,
-    "providerSdkDependencies": [
-      "@vonage/server-sdk"
-    ]
+    "providerPackage": true
   },
   "publishConfig": {
     "access": "public",

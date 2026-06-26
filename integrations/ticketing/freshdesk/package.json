@@ -1,6 +1,6 @@
 {
   "name": "@cognidesk/integration-ticketing-freshdesk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -26,6 +26,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@freshworks/freshdesk": "^0.0.1",
     "@cognidesk/core": "workspace:*",
     "@cognidesk/integration-kit": "workspace:*"
   },
@@ -44,6 +45,16 @@
     "release": "independent-provider",
     "category": "ticketing",
     "provider": "freshdesk",
+    "providerSdkRuntime": {
+      "sdkPackage": "@freshworks/freshdesk",
+      "checkedAt": "2026-06-25",
+      "checkedVersion": "0.0.1",
+      "license": "freshdesk",
+      "result": "accepted-default-runtime-sdk",
+      "reason": "@freshworks/freshdesk is the official Freshdesk JavaScript SDK package and exposes tickets, contacts, and conversations runtime clients used by this package.",
+      "defaultClientPolicy": "official-sdk-for-covered-operations-with-host-provider-client-required-for-sdk-gaps",
+      "typedClientOverride": "FreshdeskTicketingProviderClient"
+    },
     "manifestOnlyExports": [
       "./manifest"
     ],

@@ -5,6 +5,14 @@ import {
   StartTaskContactCommand,
   TransferContactCommand,
   type ConnectClientConfig,
+  type DescribeInstanceCommandOutput,
+  type Reference,
+  type StartChatContactCommandInput,
+  type StartChatContactCommandOutput,
+  type StartTaskContactCommandInput,
+  type StartTaskContactCommandOutput,
+  type TransferContactCommandInput,
+  type TransferContactCommandOutput,
 } from "@aws-sdk/client-connect";
 import {
   ConnectParticipantClient,
@@ -12,7 +20,15 @@ import {
   GetTranscriptCommand,
   SendEventCommand,
   SendMessageCommand,
+  type CreateParticipantConnectionCommandInput,
+  type CreateParticipantConnectionCommandOutput,
   type ConnectParticipantClientConfig,
+  type GetTranscriptCommandInput,
+  type GetTranscriptCommandOutput,
+  type SendEventCommandInput,
+  type SendEventCommandOutput,
+  type SendMessageCommandInput,
+  type SendMessageCommandOutput,
 } from "@aws-sdk/client-connectparticipant";
 import { defineIntegration } from "@cognidesk/integration-kit";
 import {
@@ -36,41 +52,111 @@ export interface AmazonConnectContactCenterOptions {
   participantClientConfig?: ConnectParticipantClientConfig;
 }
 
-export type AmazonConnectJsonObject = Record<string, unknown>;
+type AwsParticipantDetails = NonNullable<StartChatContactCommandInput["ParticipantDetails"]>;
+type AwsChatMessage = NonNullable<StartChatContactCommandInput["InitialMessage"]>;
 
-export interface AmazonConnectStartTaskInput extends AmazonConnectJsonObject {
-  name: string;
-  description?: string;
-  contactFlowId?: string;
-  quickConnectId?: string;
-  taskTemplateId?: string;
-  attributes?: Record<string, string>;
-  references?: Record<string, { type: string; value: string }>;
-  clientToken?: string;
+export interface AmazonConnectReferenceInput {
+  type: NonNullable<Reference["Type"]>;
+  value: NonNullable<Reference["Value"]>;
+  status?: Reference["Status"];
+  arn?: Reference["Arn"];
+  statusReason?: Reference["StatusReason"];
 }
 
-export interface AmazonConnectStartChatInput extends AmazonConnectJsonObject {
-  contactFlowId: string;
-  participantDetails: { displayName: string };
-  initialMessage?: { contentType: string; content: string };
-  supportedMessagingContentTypes?: string[];
-  attributes?: Record<string, string>;
-  clientToken?: string;
+export type AmazonConnectContactReferencesInput = Record<string, AmazonConnectReferenceInput | Reference>;
+
+export interface AmazonConnectStartTaskInput {
+  name: NonNullable<StartTaskContactCommandInput["Name"]>;
+  previousContactId?: StartTaskContactCommandInput["PreviousContactId"];
+  description?: StartTaskContactCommandInput["Description"];
+  contactFlowId?: StartTaskContactCommandInput["ContactFlowId"];
+  quickConnectId?: StartTaskContactCommandInput["QuickConnectId"];
+  taskTemplateId?: StartTaskContactCommandInput["TaskTemplateId"];
+  attributes?: StartTaskContactCommandInput["Attributes"];
+  references?: AmazonConnectContactReferencesInput;
+  scheduledTime?: StartTaskContactCommandInput["ScheduledTime"];
+  relatedContactId?: StartTaskContactCommandInput["RelatedContactId"];
+  segmentAttributes?: StartTaskContactCommandInput["SegmentAttributes"];
+  attachments?: StartTaskContactCommandInput["Attachments"];
+  clientToken?: StartTaskContactCommandInput["ClientToken"];
 }
 
-export interface AmazonConnectTransferInput extends AmazonConnectJsonObject {
-  contactId: string;
-  contactFlowId: string;
-  queueId?: string;
-  userId?: string;
-  clientToken?: string;
+export type AmazonConnectParticipantDetailsInput =
+  | AwsParticipantDetails
+  | { displayName: NonNullable<AwsParticipantDetails["DisplayName"]> };
+
+export type AmazonConnectChatMessageInput =
+  | AwsChatMessage
+  | {
+    contentType: NonNullable<AwsChatMessage["ContentType"]>;
+    content: NonNullable<AwsChatMessage["Content"]>;
+  };
+
+export interface AmazonConnectStartChatInput {
+  contactFlowId: NonNullable<StartChatContactCommandInput["ContactFlowId"]>;
+  participantDetails: AmazonConnectParticipantDetailsInput;
+  participantConfiguration?: StartChatContactCommandInput["ParticipantConfiguration"];
+  initialMessage?: AmazonConnectChatMessageInput;
+  chatDurationInMinutes?: StartChatContactCommandInput["ChatDurationInMinutes"];
+  supportedMessagingContentTypes?: StartChatContactCommandInput["SupportedMessagingContentTypes"];
+  persistentChat?: StartChatContactCommandInput["PersistentChat"];
+  relatedContactId?: StartChatContactCommandInput["RelatedContactId"];
+  segmentAttributes?: StartChatContactCommandInput["SegmentAttributes"];
+  customerId?: StartChatContactCommandInput["CustomerId"];
+  disconnectOnCustomerExit?: StartChatContactCommandInput["DisconnectOnCustomerExit"];
+  attributes?: StartChatContactCommandInput["Attributes"];
+  clientToken?: StartChatContactCommandInput["ClientToken"];
+}
+
+export interface AmazonConnectTransferInput {
+  contactId: NonNullable<TransferContactCommandInput["ContactId"]>;
+  contactFlowId: NonNullable<TransferContactCommandInput["ContactFlowId"]>;
+  queueId?: TransferContactCommandInput["QueueId"];
+  userId?: TransferContactCommandInput["UserId"];
+  clientToken?: TransferContactCommandInput["ClientToken"];
+}
+
+export interface AmazonConnectCreateParticipantConnectionInput {
+  participantToken: NonNullable<CreateParticipantConnectionCommandInput["ParticipantToken"]>;
+  type?: CreateParticipantConnectionCommandInput["Type"];
+  connectParticipant?: CreateParticipantConnectionCommandInput["ConnectParticipant"];
+}
+
+export interface AmazonConnectSendParticipantMessageInput {
+  connectionToken: NonNullable<SendMessageCommandInput["ConnectionToken"]>;
+  contentType: NonNullable<SendMessageCommandInput["ContentType"]>;
+  content: NonNullable<SendMessageCommandInput["Content"]>;
+  clientToken?: SendMessageCommandInput["ClientToken"];
+}
+
+export interface AmazonConnectSendParticipantEventInput {
+  connectionToken: NonNullable<SendEventCommandInput["ConnectionToken"]>;
+  contentType: NonNullable<SendEventCommandInput["ContentType"]>;
+  content?: SendEventCommandInput["Content"];
+  clientToken?: SendEventCommandInput["ClientToken"];
 }
 
 export interface AmazonConnectTranscriptInput {
-  connectionToken: string;
-  contactId?: string;
-  maxResults?: number;
-  nextToken?: string;
+  connectionToken: NonNullable<GetTranscriptCommandInput["ConnectionToken"]>;
+  contactId?: GetTranscriptCommandInput["ContactId"];
+  maxResults?: GetTranscriptCommandInput["MaxResults"];
+  nextToken?: GetTranscriptCommandInput["NextToken"];
+  scanDirection?: GetTranscriptCommandInput["ScanDirection"];
+  sortOrder?: GetTranscriptCommandInput["SortOrder"];
+  startPosition?: GetTranscriptCommandInput["StartPosition"];
+}
+
+export interface AmazonConnectStartTaskResult {
+  contactId: StartTaskContactCommandOutput["ContactId"];
+  raw: StartTaskContactCommandOutput;
+}
+
+export interface AmazonConnectStartChatResult {
+  contactId: StartChatContactCommandOutput["ContactId"];
+  participantId: StartChatContactCommandOutput["ParticipantId"];
+  participantToken: StartChatContactCommandOutput["ParticipantToken"];
+  continuedFromContactId: StartChatContactCommandOutput["ContinuedFromContactId"];
+  raw: StartChatContactCommandOutput;
 }
 
 export function createAmazonConnectContactCenterClient(
@@ -80,32 +166,44 @@ export function createAmazonConnectContactCenterClient(
 
   return {
     rawClients,
-    async startTaskContact(input: AmazonConnectStartTaskInput) {
-      const response = await rawClients.connect.send(new StartTaskContactCommand({
+    async startTaskContact(input: AmazonConnectStartTaskInput): Promise<AmazonConnectStartTaskResult> {
+      const commandInput: StartTaskContactCommandInput = {
         InstanceId: options.instanceId,
         Name: input.name,
+        PreviousContactId: input.previousContactId,
         Description: input.description,
         ContactFlowId: input.contactFlowId,
         QuickConnectId: input.quickConnectId,
         TaskTemplateId: input.taskTemplateId,
         Attributes: input.attributes,
-        References: normalizeReferences(input.references) as never,
+        References: normalizeReferences(input.references),
+        ScheduledTime: input.scheduledTime,
+        RelatedContactId: input.relatedContactId,
+        SegmentAttributes: input.segmentAttributes,
+        Attachments: input.attachments,
         ClientToken: input.clientToken,
-      }));
+      };
+      const response = await rawClients.connect.send(new StartTaskContactCommand(commandInput));
       return { contactId: response.ContactId, raw: response };
     },
-    async startChatContact(input: AmazonConnectStartChatInput) {
-      const response = await rawClients.connect.send(new StartChatContactCommand({
+    async startChatContact(input: AmazonConnectStartChatInput): Promise<AmazonConnectStartChatResult> {
+      const commandInput: StartChatContactCommandInput = {
         InstanceId: options.instanceId,
         ContactFlowId: input.contactFlowId,
-        ParticipantDetails: { DisplayName: input.participantDetails.displayName },
-        InitialMessage: input.initialMessage
-          ? { ContentType: input.initialMessage.contentType, Content: input.initialMessage.content }
-          : undefined,
+        ParticipantDetails: normalizeParticipantDetails(input.participantDetails),
+        ParticipantConfiguration: input.participantConfiguration,
+        InitialMessage: normalizeChatMessage(input.initialMessage),
+        ChatDurationInMinutes: input.chatDurationInMinutes,
         SupportedMessagingContentTypes: input.supportedMessagingContentTypes,
+        PersistentChat: input.persistentChat,
+        RelatedContactId: input.relatedContactId,
+        SegmentAttributes: input.segmentAttributes,
+        CustomerId: input.customerId,
+        DisconnectOnCustomerExit: input.disconnectOnCustomerExit,
         Attributes: input.attributes,
         ClientToken: input.clientToken,
-      }));
+      };
+      const response = await rawClients.connect.send(new StartChatContactCommand(commandInput));
       return {
         contactId: response.ContactId,
         participantId: response.ParticipantId,
@@ -114,47 +212,62 @@ export function createAmazonConnectContactCenterClient(
         raw: response,
       };
     },
-    async createParticipantConnection(input: { participantToken: string; type?: string[] }) {
-      return rawClients.participant.send(new CreateParticipantConnectionCommand({
+    async createParticipantConnection(
+      input: AmazonConnectCreateParticipantConnectionInput,
+    ): Promise<CreateParticipantConnectionCommandOutput> {
+      const commandInput: CreateParticipantConnectionCommandInput = {
         ParticipantToken: input.participantToken,
-        Type: input.type as never,
-      }));
+        Type: input.type,
+        ConnectParticipant: input.connectParticipant,
+      };
+      return rawClients.participant.send(new CreateParticipantConnectionCommand(commandInput));
     },
-    async sendParticipantMessage(input: { connectionToken: string; contentType: string; content: string; clientToken?: string }) {
-      return rawClients.participant.send(new SendMessageCommand({
+    async sendParticipantMessage(
+      input: AmazonConnectSendParticipantMessageInput,
+    ): Promise<SendMessageCommandOutput> {
+      const commandInput: SendMessageCommandInput = {
         ConnectionToken: input.connectionToken,
         ContentType: input.contentType,
         Content: input.content,
         ClientToken: input.clientToken,
-      }));
+      };
+      return rawClients.participant.send(new SendMessageCommand(commandInput));
     },
-    async sendParticipantEvent(input: { connectionToken: string; contentType: string; content?: string; clientToken?: string }) {
-      return rawClients.participant.send(new SendEventCommand({
+    async sendParticipantEvent(
+      input: AmazonConnectSendParticipantEventInput,
+    ): Promise<SendEventCommandOutput> {
+      const commandInput: SendEventCommandInput = {
         ConnectionToken: input.connectionToken,
         ContentType: input.contentType,
         Content: input.content,
         ClientToken: input.clientToken,
-      }));
+      };
+      return rawClients.participant.send(new SendEventCommand(commandInput));
     },
-    async getParticipantTranscript(input: AmazonConnectTranscriptInput) {
-      return rawClients.participant.send(new GetTranscriptCommand({
+    async getParticipantTranscript(input: AmazonConnectTranscriptInput): Promise<GetTranscriptCommandOutput> {
+      const commandInput: GetTranscriptCommandInput = {
         ConnectionToken: input.connectionToken,
         ContactId: input.contactId,
         MaxResults: input.maxResults,
         NextToken: input.nextToken,
-      }));
+        ScanDirection: input.scanDirection,
+        SortOrder: input.sortOrder,
+        StartPosition: input.startPosition,
+      };
+      return rawClients.participant.send(new GetTranscriptCommand(commandInput));
     },
-    async transferContact(input: AmazonConnectTransferInput) {
-      return rawClients.connect.send(new TransferContactCommand({
+    async transferContact(input: AmazonConnectTransferInput): Promise<TransferContactCommandOutput> {
+      const commandInput: TransferContactCommandInput = {
         InstanceId: options.instanceId,
         ContactId: input.contactId,
         ContactFlowId: input.contactFlowId,
         QueueId: input.queueId,
         UserId: input.userId,
         ClientToken: input.clientToken,
-      }));
+      };
+      return rawClients.connect.send(new TransferContactCommand(commandInput));
     },
-    async describeInstance() {
+    async describeInstance(): Promise<DescribeInstanceCommandOutput> {
       return rawClients.connect.send(new DescribeInstanceCommand({
         InstanceId: options.instanceId,
       }));
@@ -243,10 +356,44 @@ function createAmazonConnectRawClients(options: AmazonConnectContactCenterOption
   };
 }
 
-function normalizeReferences(references: AmazonConnectStartTaskInput["references"]) {
+function normalizeReferences(
+  references: AmazonConnectStartTaskInput["references"],
+): StartTaskContactCommandInput["References"] {
   if (!references) return undefined;
   return Object.fromEntries(Object.entries(references).map(([key, value]) => [
     key,
-    { Type: value.type, Value: value.value },
+    normalizeReference(value),
   ]));
+}
+
+function normalizeReference(reference: AmazonConnectReferenceInput | Reference): Reference {
+  if ("type" in reference) {
+    return {
+      Type: reference.type,
+      Value: reference.value,
+      Status: reference.status,
+      Arn: reference.arn,
+      StatusReason: reference.statusReason,
+    };
+  }
+  return reference;
+}
+
+function normalizeParticipantDetails(
+  participantDetails: AmazonConnectStartChatInput["participantDetails"],
+): StartChatContactCommandInput["ParticipantDetails"] {
+  if ("displayName" in participantDetails) {
+    return { DisplayName: participantDetails.displayName };
+  }
+  return participantDetails;
+}
+
+function normalizeChatMessage(
+  message: AmazonConnectStartChatInput["initialMessage"],
+): StartChatContactCommandInput["InitialMessage"] {
+  if (!message) return undefined;
+  if ("contentType" in message) {
+    return { ContentType: message.contentType, Content: message.content };
+  }
+  return message;
 }

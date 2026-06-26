@@ -1,3 +1,5 @@
+import type { ProviderJsonRetryOptions } from "@cognidesk/integration-kit";
+
 export type TikTokSocialJsonPrimitive = string | number | boolean | null;
 export type TikTokSocialJsonValue =
   | TikTokSocialJsonPrimitive
@@ -14,15 +16,20 @@ export interface TikTokSocialProviderResponse extends TikTokSocialJsonObject {}
 export interface TikTokSocialProviderExtensionFields extends TikTokSocialJsonObject {}
 
 export interface TikTokSocialClientOptions {
-  accessToken: string;
-  clientKey?: string;
-  clientSecret?: string;
-  openId?: string;
-  businessId?: string;
+  accessToken?: string;
+  baseUrl?: string;
   openApiBaseUrl?: string;
   businessApiBaseUrl?: string;
   businessApiVersion?: string;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: number | ProviderJsonRetryOptions;
+  clientKey?: string;
+  clientSecret?: string;
+  openId?: string;
+  businessId?: string;
+  providerClient?: TikTokSocialProviderClient;
 }
 
 export interface TikTokCredentialStatusInput {
@@ -44,6 +51,9 @@ export interface TikTokApiResponse<T extends TikTokSocialProviderExtensionValue 
     message?: string;
     log_id?: string;
   };
+  code?: number | string;
+  message?: string;
+  request_id?: string;
   [key: string]: TikTokSocialProviderExtensionValue;
 }
 
@@ -160,7 +170,7 @@ export interface TikTokGeneralDmSupport {
   alternatives: string[];
 }
 
-export interface TikTokSocialClient {
+export interface TikTokSocialProviderClient {
   getUserInfo(fields?: string[]): Promise<TikTokApiResponse<TikTokUserInfo>>;
   listVideos(input?: TikTokVideoListInput): Promise<TikTokApiResponse<TikTokVideoList>>;
   fetchPostStatus(input: TikTokPostStatusInput): Promise<TikTokApiResponse>;
@@ -169,6 +179,10 @@ export interface TikTokSocialClient {
   listBusinessComments(input: TikTokBusinessCommentListInput): Promise<TikTokApiResponse<TikTokCommentList>>;
   replyToBusinessComment(input: TikTokCommentReplyInput): Promise<TikTokApiResponse>;
   createBusinessComment(input: Omit<TikTokCommentReplyInput, "commentId">): Promise<TikTokApiResponse>;
+}
+
+export interface TikTokSocialClient extends TikTokSocialProviderClient {
+  providerClient: TikTokSocialProviderClient;
 }
 
 export interface TikTokLiveCheckOptions extends TikTokSocialClientOptions {

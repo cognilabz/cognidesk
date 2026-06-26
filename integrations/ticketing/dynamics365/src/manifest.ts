@@ -1,4 +1,5 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
+import { dynamics365TicketingProviderOperations } from "./operations.js";
 
 export const dynamics365TicketingProviderManifest = defineProviderPackage({
   id: "ticketing.dynamics365",
@@ -9,15 +10,18 @@ export const dynamics365TicketingProviderManifest = defineProviderPackage({
   trustLevel: "official",
   directions: ["bidirectional"],
   channelAudiences: ["customer-facing", "internal-support", "mixed"],
+  operations: dynamics365TicketingProviderOperations,
   coverage: {
     scope: "support-workflow-subset",
     notes: [
       "Coverage is limited to Dataverse incident CRUD/search, selected metadata/readiness helpers, incident notes via annotations, queue AddToQueue, and queue/activity reads used by Cognidesk support workflows.",
+      "Implementation uses dynamics-web-api 2.5.0; broader Dataverse Web API capabilities remain available through the rawClient escape hatch but are not Cognidesk adapter coverage.",
       "Annotation note creation supports bounded inline annotation document fields (`filename`, `documentbody`, `mimetype`) on the Dataverse annotation record; this is not a complete file/attachment lifecycle.",
       "This is not full Microsoft Dataverse, Dynamics 365 Customer Service, activity, annotation attachment, relationship metadata, broader queue routing, or custom action API coverage.",
     ],
     evidence: [
       { label: "Microsoft Dataverse Web API overview", url: "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview" },
+      { label: "dynamics-web-api Dataverse helper", url: "https://github.com/AleksandrRogov/DynamicsWebApi" },
       { label: "Dynamics 365 Customer Service incident table reference", url: "https://learn.microsoft.com/en-us/dynamics365/customer-service/develop/reference/entities/incident" },
       { label: "Dataverse EntityDefinitions metadata queries", url: "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/query-metadata-web-api" },
       { label: "Dataverse WhoAmI Function", url: "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/reference/whoami?view=dataverse-latest" },
@@ -56,11 +60,21 @@ export const dynamics365TicketingProviderManifest = defineProviderPackage({
       changesWorkflow: true,
     },
     {
+      capability: "draft",
+      label: "Create Dynamics internal notes",
+      description: "Creates Dataverse annotation records for internal support handoff context.",
+      audiences: ["internal-support", "mixed"],
+      providerObjects: [{ kind: "internalNote", label: "Internal Note", schemaName: "annotation" }],
+      requiresCredential: true,
+      sideEffect: true,
+      exposesSensitiveData: true,
+    },
+    {
       capability: "read-provider-object",
       label: "Read Dynamics cases",
       description: "Reads Dataverse incident records and readiness metadata.",
       audiences: ["internal-support", "mixed"],
-      providerObjects: [{ kind: "dynamics365Incident", label: "Dynamics 365 Case", schemaName: "incident" }, { kind: "dynamics365Annotation", label: "Dynamics 365 Annotation", schemaName: "annotation" }, { kind: "dynamics365Queue", label: "Dynamics 365 Queue", schemaName: "queue" }, { kind: "dynamics365Activity", label: "Dynamics 365 Activity", schemaName: "activitypointer" }],
+      providerObjects: [{ kind: "dynamics365Incident", label: "Dynamics 365 Case", schemaName: "incident" }, { kind: "dynamics365Annotation", label: "Dynamics 365 Annotation", schemaName: "annotation" }, { kind: "dynamics365Queue", label: "Dynamics 365 Queue", schemaName: "queue" }, { kind: "dynamics365Activity", label: "Dynamics 365 Activity", schemaName: "activitypointer" }, { kind: "dynamics365EntityDefinition", label: "Dynamics 365 Entity Definition", schemaName: "EntityDefinition" }, { kind: "dynamics365WhoAmI", label: "Dynamics 365 WhoAmI", schemaName: "WhoAmI" }],
       requiresCredential: true,
       exposesSensitiveData: true,
     },
@@ -106,7 +120,10 @@ export const dynamics365TicketingProviderManifest = defineProviderPackage({
   ],
   metadata: {
     implementation: {
-      strategy: "direct-http-support-slice",
+      strategy: "sdk-backed",
+      sdkPackage: "dynamics-web-api",
+      sdkVersionRange: "2.5.0",
+      rawClientEscapeHatch: "Dynamics365TicketingClient.rawClient/getRawClient()",
       runtimePackage: "@cognidesk/integration-ticketing-dynamics365",
       manifestImport: "no-sdk-client-initialization",
     },
@@ -139,6 +156,7 @@ export const dynamics365TicketingProviderManifest = defineProviderPackage({
       annotationAttachmentLifecycle: "provider-supported-not-typed",
       relationshipMetadata: "not-covered",
       customActions: "not-covered",
+      broaderDataverseApi: "provider-supported-raw-client",
     },
   },
   maintainers: [{ name: "Cognidesk", type: "official" }],

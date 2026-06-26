@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const workspacePatterns = [
@@ -41,8 +42,10 @@ const providerSdkPackages = new Set([
   "@azure/identity",
   "@deepgram/sdk",
   "@elevenlabs/elevenlabs-js",
+  "@freshworks/freshdesk",
   "@google-cloud/speech",
   "@google-cloud/text-to-speech",
+  "@google/rcsbusinessmessaging",
   "@googleapis/androidpublisher",
   "@googleapis/gmail",
   "@hubspot/api-client",
@@ -53,17 +56,30 @@ const providerSdkPackages = new Set([
   "@microsoft/microsoft-graph-client",
   "postmark",
   "@ringcentral/sdk",
+  "@sap-cloud-sdk/http-client",
   "@shopify/admin-api-client",
   "@shopify/shopify-api",
   "@slack/web-api",
   "@vonage/server-sdk",
+  "@zoom/rivet",
+  "appstore-connect-sdk",
+  "baileys",
   "discord.js",
+  "drachtio-srf",
+  "engagement-client-js",
+  "facebook-nodejs-business-sdk",
   "googleapis",
   "mailgun.js",
+  "node-zendesk",
+  "nodemailer",
   "openai",
   "purecloud-platform-client-v2",
   "stripe",
   "twilio",
+  "@freshworks/api-sdk",
+  "@servicenow/sdk",
+  "@servicenow/sdk-api",
+  "dynamics-web-api",
 ]);
 const infrastructurePackageNames = new Set([
   "@cognidesk/voice-websocket",
@@ -106,7 +122,9 @@ async function main() {
   await checkNoRuntimeNodeModulesScanning(workspaces);
   await checkManifestOnlyEntrypoints();
   await checkSdkBackedGeneratedClones(splitProviderPackages);
-  checkProviderSdkDependencyMetadata(splitProviderPackages);
+  await checkNoProviderSdkDecisionMetadata(splitProviderPackages);
+  await checkProviderSdkDependenciesAreUsedAtRuntime(splitProviderPackages);
+  await checkNoDirectHttpSupportSlice(splitProviderPackages);
   await checkFullProviderApiClaimsUseAdapterVerification(splitProviderPackages);
   await checkProviderCoverageArtifactReferences(splitProviderPackages);
 
@@ -128,7 +146,10 @@ async function main() {
   console.log("  package source does not scan node_modules at runtime");
   console.log("  manifest/catalog entry points are free of provider SDK runtime imports");
   console.log("  SDK-backed provider packages did not add generated full-provider API clones");
-  console.log("  SDK-backed provider packages declare provider SDK dependency metadata");
+  console.log("  SDK-backed provider packages use normal package.json runtime dependencies");
+  console.log("  non-SDK provider packages declare an explicit REST/protocol/internal decision");
+  console.log("  provider SDK runtime dependencies are imported by runtime source");
+  console.log("  provider packages do not use retired direct-http support slices");
   console.log("  full-provider-api claims require adapter verification, not raw SDK breadth");
   console.log("  provider coverage artifact references resolve under docs/provider-coverage");
   console.log("  provider package names use @cognidesk/integration-{category}-{provider}");
@@ -501,54 +522,235 @@ async function checkSdkBackedGeneratedClones(packages) {
   }
 }
 
-function checkProviderSdkDependencyMetadata(packages) {
+async function checkNoProviderSdkDecisionMetadata(packages) {
   for (const pkg of packages) {
-    for (const failure of providerSdkDependencyMetadataFailuresForPackage(pkg)) {
+    for (const failure of await noProviderSdkDecisionMetadataFailuresForPackage(pkg)) {
       failures.push(failure);
     }
   }
 }
 
-export function providerSdkDependencyMetadataFailuresForPackage(pkg) {
+async function checkProviderSdkDependenciesAreUsedAtRuntime(packages) {
+  for (const pkg of packages) {
+    for (const failure of await providerSdkRuntimeUsageFailuresForPackage(pkg)) {
+      failures.push(failure);
+    }
+  }
+}
+
+export async function providerSdkRuntimeUsageFailuresForPackage(pkg) {
+  const sdkDependencies = providerSdkRuntimeDependencyNames(pkg.packageJson);
+  if (sdkDependencies.length === 0) return [];
+
+  const sourceFiles = (await sourceFilesForPackage(pkg))
+    .filter((file) => file.endsWith(".ts"))
+    .filter((file) => !isGeneratedSourceFile(file))
+    .filter((file) => !isManifestOnlySourceFile(file));
+  const runtimeSource = (await Promise.all(sourceFiles.map((file) => readFile(file, "utf8")))).join("\n");
   const failures = [];
-  const declaredRaw = pkg.packageJson.cognidesk?.providerSdkDependencies;
-  const declared = Array.isArray(declaredRaw)
-    ? declaredRaw.filter((value) => typeof value === "string" && value.length > 0)
-    : [];
-  const invalidDeclared = Array.isArray(declaredRaw)
-    ? declaredRaw.filter((value) => typeof value !== "string" || value.length === 0)
-    : declaredRaw === undefined
-      ? []
-      : [declaredRaw];
-  const dependencyNames = runtimeDependencyNames(pkg.packageJson);
-  const knownSdkDependencies = [...dependencyNames]
-    .filter((dependencyName) => providerSdkPackages.has(dependencyName))
-    .sort((left, right) => left.localeCompare(right));
-  const missingMetadata = knownSdkDependencies.filter((dependencyName) => !declared.includes(dependencyName));
-  const unknownMetadata = declared.filter((dependencyName) => !dependencyNames.has(dependencyName));
   const packageJsonPath = pkg.packageJsonPath
     ? path.relative(repoRoot, pkg.packageJsonPath)
     : `${pkg.name}/package.json`;
 
-  if (invalidDeclared.length > 0) {
-    failures.push(
-      `${packageJsonPath}: cognidesk.providerSdkDependencies must be an array of package names`,
-    );
-  }
-
-  if (missingMetadata.length > 0) {
-    failures.push(
-      `${packageJsonPath}: SDK-backed provider package must list runtime SDK dependencies in cognidesk.providerSdkDependencies (${missingMetadata.join(", ")})`,
-    );
-  }
-
-  if (unknownMetadata.length > 0) {
-    failures.push(
-      `${packageJsonPath}: cognidesk.providerSdkDependencies references packages that are not runtime dependencies (${unknownMetadata.join(", ")})`,
-    );
+  for (const dependencyName of sdkDependencies) {
+    if (!sourceUsesRuntimePackage(runtimeSource, dependencyName)) {
+      failures.push(
+        `${packageJsonPath}: package.json runtime dependency ${dependencyName} is a provider SDK/lib, but runtime source does not import it`,
+      );
+    }
   }
 
   return failures;
+}
+
+function sourceUsesRuntimePackage(source, dependencyName) {
+  const sourceFile = ts.createSourceFile(
+    "integration-runtime-usage.ts",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
+  let found = false;
+
+  const moduleMatches = (value) => value === dependencyName || value.startsWith(`${dependencyName}/`);
+
+  const stringLiteralText = (node) =>
+    node && ts.isStringLiteralLike(node) ? node.text : undefined;
+
+  const isExternalModuleReference = (node) =>
+    ts.isExternalModuleReference(node)
+    && stringLiteralText(node.expression) !== undefined
+    && moduleMatches(stringLiteralText(node.expression));
+
+  const hasRuntimeImportClause = (importClause) => {
+    if (!importClause) return true;
+    if (importClause.isTypeOnly) return false;
+    if (importClause.name) return true;
+    const namedBindings = importClause.namedBindings;
+    if (!namedBindings) return false;
+    if (ts.isNamespaceImport(namedBindings)) return true;
+    return namedBindings.elements.some((specifier) => !specifier.isTypeOnly);
+  };
+
+  const hasRuntimeExportClause = (exportClause, isTypeOnly) => {
+    if (isTypeOnly) return false;
+    if (!exportClause) return true;
+    if (ts.isNamespaceExport(exportClause)) return true;
+    return exportClause.elements.some((specifier) => !specifier.isTypeOnly);
+  };
+
+  function visit(node) {
+    if (found) return;
+
+    if (
+      ts.isImportDeclaration(node)
+      && stringLiteralText(node.moduleSpecifier) !== undefined
+      && moduleMatches(stringLiteralText(node.moduleSpecifier))
+      && hasRuntimeImportClause(node.importClause)
+    ) {
+      found = true;
+      return;
+    }
+
+    if (
+      ts.isExportDeclaration(node)
+      && stringLiteralText(node.moduleSpecifier) !== undefined
+      && moduleMatches(stringLiteralText(node.moduleSpecifier))
+      && hasRuntimeExportClause(node.exportClause, node.isTypeOnly)
+    ) {
+      found = true;
+      return;
+    }
+
+    if (
+      ts.isImportEqualsDeclaration(node)
+      && !node.isTypeOnly
+      && isExternalModuleReference(node.moduleReference)
+    ) {
+      found = true;
+      return;
+    }
+
+    if (
+      ts.isCallExpression(node)
+      && node.arguments.length > 0
+      && stringLiteralText(node.arguments[0]) !== undefined
+      && moduleMatches(stringLiteralText(node.arguments[0]))
+      && (node.expression.kind === ts.SyntaxKind.ImportKeyword
+        || (ts.isIdentifier(node.expression) && node.expression.text === "require"))
+    ) {
+      found = true;
+      return;
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return found;
+}
+
+export async function noProviderSdkDecisionMetadataFailuresForPackage(pkg) {
+  if (providerSdkRuntimeDependencyNames(pkg.packageJson).length > 0) return [];
+
+  const packageJsonPath = pkg.packageJsonPath
+    ? path.relative(repoRoot, pkg.packageJsonPath)
+    : `${pkg.name}/package.json`;
+
+  if (packageJsonDeclaresNoProviderSdkDecision(pkg.packageJson)) return [];
+
+  return [
+    `${packageJsonPath}: no provider SDK/lib runtime dependency was found in normal package.json dependency fields, and no explicit REST/protocol/internal no-SDK decision was found in package metadata`,
+  ];
+}
+
+function packageJsonDeclaresNoProviderSdkDecision(packageJson) {
+  const metadata = packageJson.cognidesk ?? {};
+  if (
+    metadata.providerRestAdapterException === true
+    || metadata.providerSdkException === true
+  ) {
+    return true;
+  }
+
+  return [
+    metadata.providerRestAdapterException,
+    metadata.providerSdkException,
+    metadata.providerSdkDecision,
+    metadata.sdkDecision,
+    metadata.implementationStrategy,
+  ].some(hasMeaningfulNoProviderSdkDecision);
+}
+
+function sourceDeclaresNoProviderSdkDecision(source) {
+  const normalizedSource = source.toLowerCase();
+  return [
+    "providerRestAdapterException",
+    "providerSdkException",
+    "sdkDecision",
+    "providerSdkDecision",
+    "officialRuntimeSdkAvailable: false",
+    "no-official-sdk",
+    "no-suitable",
+    "no-provider-sdk",
+    "no-provider-SDK",
+    "not-applicable-internal-provider",
+    "internal-provider/local-runtime",
+    "local-protocol",
+    "protocol-local-runtime",
+    "protocol/local-runtime",
+  ].some((marker) => normalizedSource.includes(marker.toLowerCase()));
+}
+
+function hasMeaningfulNoProviderSdkDecision(value) {
+  if (value === true) return true;
+  if (typeof value === "string") return noProviderSdkDecisionPattern.test(value);
+  if (!value || typeof value !== "object") return false;
+
+  return Object.values(value).some((childValue) => hasMeaningfulNoProviderSdkDecision(childValue));
+}
+
+const noProviderSdkDecisionPattern = /\b(?:rest|protocol|internal|no[- ]?sdk|no[- ]?official|no[- ]?suitable|sdk[- ]?not[- ]?suitable|not[- ]?suitable|local[-/]runtime|local[-/]protocol)\b/iu;
+
+function sourceHasProperty(source, key) {
+  return new RegExp(`["']?${escapeRegExp(key)}["']?\\s*:`).test(source);
+}
+
+function sourceHasStringProperty(source, key, value) {
+  return new RegExp(`["']?${escapeRegExp(key)}["']?\\s*:\\s*["']${escapeRegExp(value)}["']`).test(source);
+}
+
+function sourceHasBooleanProperty(source, key, value) {
+  return new RegExp(`["']?${escapeRegExp(key)}["']?\\s*:\\s*${value ? "true" : "false"}\\b`).test(source);
+}
+
+function sourceDeclaresType(source, typeName) {
+  return new RegExp(`\\b(?:interface|type)\\s+${escapeRegExp(typeName)}\\b`).test(source);
+}
+
+function sourceHasRawClientProperty(source, rawClientType) {
+  return new RegExp(`\\brawClient\\??\\s*:\\s*${escapeRegExp(rawClientType)}\\b`).test(source);
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+async function checkNoDirectHttpSupportSlice(packages) {
+  for (const pkg of packages) {
+    const sourceFiles = await sourceFilesForPackage(pkg);
+    const manifestFiles = sourceFiles.filter((file) => /(^|[/\\])(?:manifest|catalog|selected-operations)(?:\.[a-z0-9-]+)?\.ts$/.test(file));
+
+    for (const file of manifestFiles) {
+      const source = await readFile(file, "utf8");
+      if (!source.includes("direct-http-support-slice")) continue;
+
+      failures.push(
+        `${path.relative(repoRoot, file)}: direct-http-support-slice is retired; provider packages must use a provider SDK/package or a robust provider-rest-adapter strategy, with host-injected clients kept as optional overrides instead of fragile raw API ownership`,
+      );
+    }
+  }
 }
 
 export function isGeneratedFullProviderApiClone(file) {
@@ -648,10 +850,13 @@ async function sourceFilesForPackage(pkg) {
 }
 
 export function isSdkBackedPackage(packageJson) {
-  const declared = packageJson.cognidesk?.providerSdkDependencies;
-  if (Array.isArray(declared) && declared.length > 0) return true;
+  return providerSdkRuntimeDependencyNames(packageJson).length > 0;
+}
 
-  return [...runtimeDependencyNames(packageJson)].some((dependencyName) => providerSdkPackages.has(dependencyName));
+function providerSdkRuntimeDependencyNames(packageJson) {
+  return [...runtimeDependencyNames(packageJson)]
+    .filter((dependencyName) => providerSdkPackages.has(dependencyName))
+    .sort((left, right) => left.localeCompare(right));
 }
 
 function runtimeDependencyNames(packageJson) {

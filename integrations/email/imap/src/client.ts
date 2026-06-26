@@ -36,6 +36,10 @@ export interface ImapEmailClient {
   close(): Promise<void>;
 }
 
+export interface ImapEmailIntegrationOptions extends ImapEmailClientOptions {
+  emailClient?: ImapEmailClient;
+}
+
 export function createImapEmailClient(options: ImapEmailClientOptions): ImapEmailClient {
   const rawClient = (options.rawClient ?? new ImapFlow(options.connection)) as ImapRawClient;
   const mailbox = options.mailbox ?? "INBOX";
@@ -94,17 +98,21 @@ export function createImapEmailClient(options: ImapEmailClientOptions): ImapEmai
   };
 }
 
-export function createImapEmailIntegration(options: ImapEmailClientOptions) {
-  const client = createImapEmailClient(options);
+export function createImapEmailIntegrationOperationHandlers(client: ImapEmailClient) {
+  return {
+    "imap.mailbox.check": () => client.checkMailbox(),
+    "email.thread.search": (input: unknown) => client.searchMessages(input as { query: SearchObject; uid?: boolean }),
+    "email.thread.read": (input: unknown) =>
+      client.fetchMessages(input as { range: string | number[] | SearchObject; query: FetchQueryObject; uid?: boolean }),
+  } as const;
+}
+
+export function createImapEmailIntegration(options: ImapEmailIntegrationOptions) {
+  const client = options.emailClient ?? createImapEmailClient(options);
   return {
     ...defineIntegration({
       manifest: imapEmailProviderManifest,
-      operations: {
-        "imap.mailbox.check": () => client.checkMailbox(),
-        "email.thread.search": (input: unknown) => client.searchMessages(input as { query: SearchObject; uid?: boolean }),
-        "email.thread.read": (input: unknown) =>
-          client.fetchMessages(input as { range: string | number[] | SearchObject; query: FetchQueryObject; uid?: boolean }),
-      },
+      operations: createImapEmailIntegrationOperationHandlers(client),
     }),
     rawClient: client.rawClient,
     client,

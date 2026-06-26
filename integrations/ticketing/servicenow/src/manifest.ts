@@ -1,4 +1,5 @@
 import { defineIntegrationProviderPackage as defineProviderPackage } from "@cognidesk/integration-kit";
+import { serviceNowTicketingProviderOperations } from "./operations.js";
 
 export const serviceNowTicketingProviderManifest = defineProviderPackage({
   id: "ticketing.servicenow",
@@ -9,10 +10,12 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
   trustLevel: "official",
   directions: ["bidirectional"],
   channelAudiences: ["internal-support", "mixed"],
+  operations: serviceNowTicketingProviderOperations,
   coverage: {
     scope: "support-workflow-subset",
     notes: [
       "Coverage is limited to ServiceNow Table API record create/read/update/search, incident creation, Attachment API upload/list, Import Set insert/read, and readiness checks used by Cognidesk support workflows.",
+      "Implementation uses the official @servicenow/sdk-api Connector when instanceUrl/baseUrl and OAuth bearer credentials are configured, with ServiceNowRawClient injection as an override for host-owned transports.",
       "Generic Table API helpers accept SDK-user-selected table names and fields, but they are not customer-specific generated schema coverage for arbitrary tables, custom fields, ACLs, business rules, or plugins.",
       "This is not full ServiceNow platform API coverage for Service Catalog/cart, journal-field semantics, attachment download/delete, transform-map lifecycle, scripted REST APIs, workflow APIs, or broader platform administration.",
     ],
@@ -29,18 +32,33 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
     {
       id: "servicenow-instance",
       label: "ServiceNow instance URL",
-      description: "The SDK user's ServiceNow instance URL, for example https://example.service-now.com.",
-      required: true,
+      description: "The SDK user's ServiceNow instance URL for the built-in official @servicenow/sdk-api Connector transport, for example https://example.service-now.com. Not required when the host injects a ServiceNowRawClient.",
+      required: false,
+      metadata: {
+        requiredWhen: "built-in-servicenow-sdk-connector",
+      },
     },
     {
       id: "servicenow-api-access",
       label: "ServiceNow API access",
-      description: "Server-side Basic Auth or OAuth bearer access for ServiceNow REST APIs; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes.",
+      description: "Server-side OAuth bearer access for the built-in official @servicenow/sdk-api Connector transport; effective access is governed by ServiceNow roles, ACLs, table access, and any tenant REST API Auth Scopes. Use ServiceNowRawClient injection for other tenant-auth transports.",
       scopes: ["table_api"],
-      required: true,
+      required: false,
       metadata: {
+        requiredWhen: "built-in-servicenow-sdk-connector",
         scopeKind: "internal-capability-labels",
         privilegeGuidance: "The table_api value is Cognidesk capability guidance, not a universal ServiceNow OAuth scope. The credential must be authorized for Table API, Attachment API, Import Set API, and configured target tables.",
+      },
+    },
+    {
+      id: "servicenow-raw-client",
+      label: "Host-provided ServiceNow raw client",
+      description: "Optional ServiceNowRawClient override supplied by the host application. When configured, Cognidesk delegates operations to that client instead of constructing the built-in @servicenow/sdk-api Connector transport.",
+      required: false,
+      metadata: {
+        credentialKind: "host-client-override",
+        clientInterface: "ServiceNowRawClient",
+        satisfies: ["servicenow-instance", "servicenow-api-access"],
       },
     },
   ],
@@ -90,6 +108,41 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
       exposesSensitiveData: true,
     },
     {
+      capability: "send",
+      label: "Send customer-visible updates",
+      description: "Posts customer-visible comments to ServiceNow incident records.",
+      audiences: ["mixed"],
+      providerObjects: [{ kind: "servicenowIncident", label: "ServiceNow Incident", schemaName: "incident" }],
+      requiresCredential: true,
+      sideEffect: true,
+      externallyVisible: true,
+      changesWorkflow: true,
+      exposesSensitiveData: true,
+    },
+    {
+      capability: "draft",
+      label: "Create internal notes",
+      description: "Creates internal work notes on ServiceNow incident records.",
+      audiences: ["internal-support", "mixed"],
+      providerObjects: [{ kind: "servicenowIncident", label: "ServiceNow Incident", schemaName: "incident" }],
+      requiresCredential: true,
+      sideEffect: true,
+      externallyVisible: false,
+      changesWorkflow: true,
+      exposesSensitiveData: true,
+    },
+    {
+      capability: "attach",
+      label: "Attach files to ServiceNow records",
+      description: "Uploads attachments to ServiceNow records.",
+      audiences: ["internal-support", "mixed"],
+      providerObjects: [{ kind: "servicenowAttachment", label: "ServiceNow Attachment" }],
+      requiresCredential: true,
+      sideEffect: true,
+      externallyVisible: true,
+      exposesSensitiveData: true,
+    },
+    {
       capability: "handoff",
       label: "Attach record handoff to ServiceNow",
       description: "Provides Table API incident, attachment, and import-set operations used by SDK-user-configured record handoff workflows; this is not native Virtual Agent or Live Agent Chat transfer coverage.",
@@ -110,9 +163,30 @@ export const serviceNowTicketingProviderManifest = defineProviderPackage({
   ],
   metadata: {
     implementation: {
-      strategy: "direct-http-support-slice",
+      strategy: "official-sdk-connector",
       runtimePackage: "@cognidesk/integration-ticketing-servicenow",
+      rawClientEscapeHatch: "ServiceNowTicketingClient.rawClient",
+      sdkPackage: "@servicenow/sdk-api",
+      sdkRuntimeSurface: "Connector.fetch and Connector.queryTable",
       manifestImport: "no-sdk-client-initialization",
+      defaultClientPolicy: "use-official-servicenow-sdk-api-connector-for-oauth-runtime-transport; require ServiceNowRawClient injection for non-OAuth tenant-auth transports",
+      rawClientOverride: true,
+      packageOwnedRestClient: false,
+    },
+    sdkDecision: {
+      checkedAt: "2026-06-25",
+      package: "@servicenow/sdk-api",
+      checkedVersion: "4.8.0",
+      license: "MIT",
+      result: "official-sdk-runtime-connector-not-ticketing-client",
+      reason: "The official ServiceNow SDK API exports Connector.fetch and Connector.queryTable as runtime instance transport. It does not provide a ticketing-specific Table/Attachment/Import Set client, so Cognidesk translates ticketing operations into the official connector transport and retains typed rawClient injection for host-owned clients.",
+    },
+    checkedProviderSdk: {
+      package: "@servicenow/sdk-api",
+      checkedVersion: "4.8.0",
+      license: "MIT",
+      result: "used-as-runtime-connector",
+      reason: "OAuth default runtime uses Connector.fetch for create/read/update/attachment/import-set calls and Connector.queryTable for compatible table search calls. Non-OAuth tenant-auth transports must be supplied through ServiceNowRawClient injection instead of a package-owned REST fallback.",
     },
     checkedProviderApiCoverage: {
       verifiedAt: "2026-06-18",
