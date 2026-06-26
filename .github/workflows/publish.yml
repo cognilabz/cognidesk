@@ -78,22 +78,11 @@ jobs:
       - name: Verify package publish smoke
         run: pnpm release:verify-packages -- --fail-size-budget
 
-      - name: Publish packages
-        shell: bash
-        run: |
-          args=(--tag latest)
-
-          if [ "${{ steps.publish-mode.outputs.dry_run }}" = "true" ]; then
-            args+=(--dry-run)
-          fi
-
-          pnpm release:publish -- "${args[@]}"
-
       - name: Refresh release lockfile
         if: steps.publish-mode.outputs.dry_run != 'true'
         run: pnpm install --lockfile-only
 
-      - name: Commit release version
+      - name: Commit and push release version
         if: steps.publish-mode.outputs.dry_run != 'true'
         shell: bash
         run: |
@@ -107,7 +96,23 @@ jobs:
 
           git add packages pnpm-lock.yaml
           git commit -m "Release SDK ${{ steps.release-version.outputs.version }}"
-          git push origin HEAD:main
+          git push origin HEAD:main || {
+            echo "Unable to push the release commit to main before npm publish." >&2
+            echo "No packages have been published yet." >&2
+            echo "Allow the release workflow actor to bypass the main ruleset, or merge the release version through a pull request before publishing." >&2
+            exit 1
+          }
+
+      - name: Publish packages
+        shell: bash
+        run: |
+          args=(--tag latest)
+
+          if [ "${{ steps.publish-mode.outputs.dry_run }}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+
+          pnpm release:publish -- "${args[@]}"
 
       - name: Create GitHub release
         if: steps.publish-mode.outputs.dry_run != 'true'
