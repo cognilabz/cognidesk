@@ -110,9 +110,16 @@ async function connectBaileysWhatsAppWebSession(
   options: WhatsAppWebSessionConnectOptions,
 ): Promise<WhatsAppWebSession> {
   const { state, saveCreds } = await useMultiFileAuthState(options.authStateDir);
+  if (!state.creds.registered && (state.creds.me || state.creds.pairingCode)) {
+    delete state.creds.me;
+    state.creds.pairingCode = undefined;
+    delete state.creds.account;
+    state.creds.signalIdentities = [];
+    await saveCreds();
+  }
   const fetchedVersion = await fetchLatestBaileysVersion().catch(() => undefined);
   const version = fetchedVersion?.version;
-  const browser = options.browser ?? Browsers.appropriate("Cognidesk");
+  const browser = options.browser ?? Browsers.appropriate("Chrome");
 
   return new Promise<WhatsAppWebSession>((resolve, reject) => {
     let activeSocket: WASocket | null = null;
@@ -166,8 +173,6 @@ async function connectBaileysWhatsAppWebSession(
         printQRInTerminal: false,
         connectTimeoutMs: Math.max(5_000, Math.min(remainingMs, 20_000)),
         markOnlineOnConnect: false,
-        syncFullHistory: false,
-        shouldSyncHistoryMessage: () => false,
       });
       activeSocket = socket;
       socket.ev.on("creds.update", saveCreds);
@@ -193,7 +198,7 @@ async function connectBaileysWhatsAppWebSession(
         !state.creds.registered
         && options.pairingPhoneNumber
         && !pairingRequested
-        && (update.connection === "connecting" || update.qr)
+        && update.qr
       ) {
         pairingRequested = true;
         pairingCode = await socket.requestPairingCode(normalizePairingPhoneNumber(options.pairingPhoneNumber));

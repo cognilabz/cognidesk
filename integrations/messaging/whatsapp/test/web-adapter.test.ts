@@ -61,6 +61,11 @@ describe("WhatsApp Web linked-device adapter", () => {
 
     const webClientSource = await readFile(new URL("../src/web-client.ts", import.meta.url), "utf8");
     expect(webClientSource).toContain("from \"baileys\"");
+    expect(webClientSource).toContain("Browsers.appropriate(\"Chrome\")");
+    expect(webClientSource).not.toContain("shouldSyncHistoryMessage: () => false");
+    expect(webClientSource).toContain("delete state.creds.me");
+    expect(webClientSource).toContain("&& update.qr");
+    expect(webClientSource).not.toContain("update.connection === \"connecting\" || update.qr");
 
     const manifestSource = await readFile(new URL("../src/web-manifest.ts", import.meta.url), "utf8");
     expect(manifestSource).not.toContain("from \"baileys\"");
