@@ -53,6 +53,7 @@ if (process.env.GITHUB_OUTPUT) {
 function isLightweightChange(file) {
   if (file === ".github/workflows/ci.yml") return true;
   if (file === ".github/workflows/publish.yml") return true;
+  if (file === ".gitignore") return isPackageReadmeGitignoreChange();
   if (file === "docs/releasing.md") return true;
   if (file === "scripts/classify-pr-ci.mjs") return true;
   if (file === "scripts/sync-package-readmes.mjs") return true;
@@ -63,6 +64,47 @@ function isLightweightChange(file) {
   if (isPublishablePackageJson(file)) return isVersionOnlyPackageJson(file);
 
   return false;
+}
+
+function isPackageReadmeGitignoreChange() {
+  const diff = git(["diff", "--unified=0", baseSha, headSha, "--", ".gitignore"]);
+  const added = [];
+  const removed = [];
+
+  for (const line of diff.split("\n")) {
+    if (line.startsWith("+++") || line.startsWith("---")) continue;
+    if (line.startsWith("+")) {
+      added.push(line.slice(1));
+    } else if (line.startsWith("-")) {
+      removed.push(line.slice(1));
+    }
+  }
+
+  const remainingAdded = cancelCommonLines(added, removed);
+  const remainingRemoved = cancelCommonLines(removed, added);
+
+  return remainingAdded.length === 0
+    && remainingRemoved.length > 0
+    && remainingRemoved.every((line) => line === "packages/*/README.md");
+}
+
+function cancelCommonLines(primary, secondary) {
+  const secondaryCounts = new Map();
+  for (const line of secondary) {
+    secondaryCounts.set(line, (secondaryCounts.get(line) ?? 0) + 1);
+  }
+
+  const remaining = [];
+  for (const line of primary) {
+    const count = secondaryCounts.get(line) ?? 0;
+    if (count > 0) {
+      secondaryCounts.set(line, count - 1);
+    } else {
+      remaining.push(line);
+    }
+  }
+
+  return remaining;
 }
 
 function isProviderSurfaceChange(file) {
