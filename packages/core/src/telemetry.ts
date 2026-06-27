@@ -505,7 +505,7 @@ function recordExceptionOnSpan(span: Span, error: unknown) {
   span.setAttribute(telemetryAttributes.errorType, typeof error);
 }
 
-function cleanAttributes(attributes: Attributes | undefined): Attributes {
+function cleanAttributes(attributes: Record<string, unknown> | undefined): Attributes {
   if (!attributes) return {};
   const cleaned: Attributes = {};
   for (const [key, value] of Object.entries(attributes)) {
@@ -517,7 +517,7 @@ function cleanAttributes(attributes: Attributes | undefined): Attributes {
   return cleaned;
 }
 
-function cleanAttributeValue(value: AttributeValue | null | undefined): AttributeValue | undefined {
+function cleanAttributeValue(value: unknown): AttributeValue | undefined {
   if (value === undefined || value === null) return undefined;
   if (typeof value === "string") return truncateAttributeString(value);
   if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
@@ -532,14 +532,23 @@ function cleanAttributeValue(value: AttributeValue | null | undefined): Attribut
     if (cleaned.every((item) => typeof item === "boolean")) return cleaned as boolean[];
     return cleaned.map(String);
   }
-  return truncateAttributeString(JSON.stringify(value));
+  return safeStringAttributeValue(value);
 }
 
 function cleanScalarAttributeValue(value: unknown): string | number | boolean | undefined {
   if (typeof value === "string") return truncateAttributeString(value);
   if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
   if (typeof value === "boolean") return value;
-  return undefined;
+  return safeStringAttributeValue(value);
+}
+
+function safeStringAttributeValue(value: unknown) {
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized === undefined ? undefined : truncateAttributeString(serialized);
+  } catch {
+    return undefined;
+  }
 }
 
 function truncateAttributeString(value: string) {

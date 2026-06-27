@@ -119,6 +119,7 @@ export function registerObservabilityTests() {
           return {
             attributes: {
               "app.customer_segment": "family",
+              "app.prompt_contexts": [{ kind: "journey", id: "book-flight" }] as unknown as string[],
             },
             metricAttributes: {
               "app.customer_segment": "family",
@@ -162,6 +163,7 @@ export function registerObservabilityTests() {
     );
     expect(responseModelSpan?.attributes).toMatchObject({
       "app.customer_segment": "family",
+      "app.prompt_contexts": [JSON.stringify({ kind: "journey", id: "book-flight" })],
       "cognidesk.model.usage.input_tokens": 7,
       "cognidesk.model.usage.cached_input_tokens": 2,
       "cognidesk.model.usage.output_tokens": 4,

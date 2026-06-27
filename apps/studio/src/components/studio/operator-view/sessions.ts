@@ -70,5 +70,24 @@ export async function persistOperatorMessage(
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ role, content }),
   });
-  if (!response.ok) throw new Error("Could not persist Operator message");
+  if (!response.ok) throw new Error(await responseErrorMessage(response, "Could not persist Operator message"));
+}
+
+async function responseErrorMessage(response: Response, fallback: string) {
+  const detail = await response.text().then((body) => {
+    if (!body) return null;
+    try {
+      const parsed = JSON.parse(body) as unknown;
+      if (isRecord(parsed) && typeof parsed.error === "string") return parsed.error;
+      if (isRecord(parsed) && typeof parsed.message === "string") return parsed.message;
+    } catch {
+      // Plain-text error responses are surfaced below.
+    }
+    return body.slice(0, 240);
+  }).catch(() => null);
+  return `${fallback} (${response.status}${detail ? `: ${detail}` : ""})`;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

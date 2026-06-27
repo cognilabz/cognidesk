@@ -216,7 +216,9 @@ function normalizeOrigin(value: string, baseOrigin: string | null) {
     const raw = value.includes("://")
       ? value
       : `${baseUrl?.protocol ?? "http:"}//${value}${value.includes(":") || !baseUrl?.port ? "" : `:${baseUrl.port}`}`;
-    return new URL(raw).origin;
+    const url = new URL(raw);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return url.origin;
   } catch {
     return null;
   }

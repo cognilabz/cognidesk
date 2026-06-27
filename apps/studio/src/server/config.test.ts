@@ -79,6 +79,10 @@ describe("studio configuration", () => {
       "http://localhost:3001",
       "http://127.0.0.1:3001",
     ]);
+    expect(studioTrustedOrigins(
+      "file:///tmp/studio",
+      "javascript://studio,ws://localhost:3001,https://studio.example.test",
+    )).toEqual(["https://studio.example.test"]);
   });
 
   it("keeps artifact storage defaults local-only", () => {

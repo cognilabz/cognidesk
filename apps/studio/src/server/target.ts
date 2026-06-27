@@ -101,9 +101,13 @@ export async function fetchTargetConversations(
   options: { limit?: number; offset?: number; agentId?: string; lifecycle?: StudioConversationRow["lifecycle"] } = {},
 ): Promise<StudioConversationRow[]> {
   const manifest = await currentTarget();
+  const requestedLimit = clampInt(options.limit ?? 50, 1, MAX_TARGET_CONVERSATIONS);
+  const requestedOffset = clampInt(options.offset ?? 0, 0, MAX_TARGET_CONVERSATIONS);
+  const adapterLimit = options.lifecycle
+    ? MAX_TARGET_CONVERSATIONS
+    : clampInt(requestedLimit + requestedOffset, 1, MAX_TARGET_CONVERSATIONS);
   const params = new URLSearchParams();
-  params.set("limit", String(clampInt(options.limit ?? 50, 1, MAX_TARGET_CONVERSATIONS)));
-  if (options.offset !== undefined) params.set("offset", String(clampInt(options.offset, 0, 100000)));
+  params.set("limit", String(adapterLimit));
   if (options.agentId) params.set("agentId", options.agentId);
   const response = await adapterFetch(manifest, `/conversations?${params.toString()}`);
   if (!response.ok) throw new Error(`Studio Adapter conversations returned ${response.status}`);
@@ -112,7 +116,8 @@ export async function fetchTargetConversations(
   if (!Array.isArray(conversationsPayload)) throw new Error("Studio Adapter conversations response is missing conversations array.");
   const conversations = StudioConversationSummarySchema.array().parse(conversationsPayload);
   const rows = conversations.map(studioConversationRowFromSummary);
-  return options.lifecycle ? rows.filter((row) => row.lifecycle === options.lifecycle) : rows;
+  const filteredRows = options.lifecycle ? rows.filter((row) => row.lifecycle === options.lifecycle) : rows;
+  return filteredRows.slice(requestedOffset, requestedOffset + requestedLimit);
 }
 
 export async function fetchTargetConversation(conversationId: string): Promise<StudioConversationRow> {
