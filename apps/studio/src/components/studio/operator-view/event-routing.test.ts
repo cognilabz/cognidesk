@@ -33,6 +33,13 @@ describe("operator event routing", () => {
     }, sessionB, null)).toBe(false);
   });
 
+  it("drops session events when no session is visible or active", () => {
+    expect(shouldApplyOperatorEvent({
+      type: "turn.completed",
+      sessionId: sessionA,
+    }, null, null)).toBe(false);
+  });
+
   it("allows socket errors without a session id", () => {
     const event = { type: "error" as const, message: "socket closed" };
 

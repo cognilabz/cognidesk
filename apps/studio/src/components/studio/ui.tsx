@@ -94,8 +94,8 @@ export function DataTable(props: { columns: string[]; rows: string[][]; emptyTex
           </tr>
         </thead>
         <tbody>
-          {props.rows.length ? props.rows.map((row) => (
-            <tr key={row.join("\u0000")}>
+          {props.rows.length ? props.rows.map((row, rowIndex) => (
+            <tr key={`${row.join("\u0000")}\u0000${rowIndex}`}>
               {props.columns.map((column, columnIndex) => {
                 const value = row[columnIndex] ?? "-";
                 return (

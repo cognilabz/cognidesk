@@ -6,6 +6,7 @@ import {
   resolveStudioDatabaseUrl,
   studioArtifactStorage,
   studioBetterAuthSecret,
+  studioTrustedOrigins,
   isStudioBuildPhase,
   studioOperatorRuntimeSecret,
   studioTargetServiceToken,
@@ -63,6 +64,21 @@ describe("studio configuration", () => {
       NODE_ENV: "production",
       COGNIDESK_STUDIO_TARGET_TOKEN: "dev-studio-token",
     })).toThrow("must not use dev-studio-token");
+  });
+
+  it("trusts LAN Studio URL and configured local dev origins for browser login", () => {
+    expect(studioTrustedOrigins(
+      "http://10.0.0.83:3001",
+      "localhost,127.0.0.1,10.0.0.83",
+    )).toEqual([
+      "http://10.0.0.83:3001",
+      "http://localhost:3001",
+      "http://127.0.0.1:3001",
+    ]);
+    expect(studioTrustedOrigins("http://localhost:3001", "")).toEqual([
+      "http://localhost:3001",
+      "http://127.0.0.1:3001",
+    ]);
   });
 
   it("keeps artifact storage defaults local-only", () => {

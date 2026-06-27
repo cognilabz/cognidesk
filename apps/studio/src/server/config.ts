@@ -49,6 +49,24 @@ export function studioEnv(): StudioEnv {
   };
 }
 
+export function studioTrustedOrigins(appUrl: string, allowedDevOrigins = process.env.STUDIO_ALLOWED_DEV_ORIGINS) {
+  const origins = new Set<string>();
+  const appOrigin = normalizeOrigin(appUrl, null);
+  if (appOrigin) {
+    origins.add(appOrigin);
+    addLoopbackPeerOrigins(origins, appOrigin);
+  }
+
+  for (const value of (allowedDevOrigins ?? "").split(",")) {
+    const origin = normalizeOrigin(value.trim(), appOrigin);
+    if (!origin) continue;
+    origins.add(origin);
+    addLoopbackPeerOrigins(origins, origin);
+  }
+
+  return [...origins];
+}
+
 export function resolveStudioDatabaseProvider(provider = process.env.STUDIO_DATABASE_PROVIDER): "sqlite" {
   const normalized = (provider ?? "sqlite").trim().toLowerCase();
   if (!normalized || normalized === "sqlite") return "sqlite";
@@ -189,6 +207,33 @@ function isLoopbackHostname(hostname: string) {
     || hostname === "0:0:0:0:0:0:0:1"
     || hostname === "0.0.0.0"
     || /^127(?:\.\d{1,3}){3}$/.test(hostname);
+}
+
+function normalizeOrigin(value: string, baseOrigin: string | null) {
+  if (!value) return null;
+  try {
+    const baseUrl = baseOrigin ? new URL(baseOrigin) : null;
+    const raw = value.includes("://")
+      ? value
+      : `${baseUrl?.protocol ?? "http:"}//${value}${value.includes(":") || !baseUrl?.port ? "" : `:${baseUrl.port}`}`;
+    return new URL(raw).origin;
+  } catch {
+    return null;
+  }
+}
+
+function addLoopbackPeerOrigins(origins: Set<string>, origin: string) {
+  try {
+    const url = new URL(origin);
+    if (url.hostname === "localhost") {
+      origins.add(`${url.protocol}//127.0.0.1${url.port ? `:${url.port}` : ""}`);
+    }
+    if (url.hostname === "127.0.0.1") {
+      origins.add(`${url.protocol}//localhost${url.port ? `:${url.port}` : ""}`);
+    }
+  } catch {
+    // Invalid origins are filtered by normalizeOrigin.
+  }
 }
 
 function truthyFlag(value: string | undefined) {
