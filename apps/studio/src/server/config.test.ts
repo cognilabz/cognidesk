@@ -67,11 +67,12 @@ describe("studio configuration", () => {
   });
 
   it("trusts LAN Studio URL and configured local dev origins for browser login", () => {
+    const privateLanHost = "192.168.1.25";
     expect(studioTrustedOrigins(
-      "http://10.0.0.83:3001",
-      "localhost,127.0.0.1,10.0.0.83",
+      `http://${privateLanHost}:3001`,
+      `localhost,127.0.0.1,${privateLanHost}`,
     )).toEqual([
-      "http://10.0.0.83:3001",
+      `http://${privateLanHost}:3001`,
       "http://localhost:3001",
       "http://127.0.0.1:3001",
     ]);
