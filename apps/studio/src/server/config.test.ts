@@ -6,6 +6,7 @@ import {
   resolveStudioDatabaseUrl,
   studioArtifactStorage,
   studioBetterAuthSecret,
+  studioTrustedOrigins,
   isStudioBuildPhase,
   studioOperatorRuntimeSecret,
   studioTargetServiceToken,
@@ -63,6 +64,56 @@ describe("studio configuration", () => {
       NODE_ENV: "production",
       COGNIDESK_STUDIO_TARGET_TOKEN: "dev-studio-token",
     })).toThrow("must not use dev-studio-token");
+  });
+
+  it("trusts LAN Studio URL and configured local dev origins for browser login", () => {
+    expect(studioTrustedOrigins(
+      "http://10.0.0.83:3001",
+      "localhost,127.0.0.1,10.0.0.83",
+    )).toEqual([
+      "http://10.0.0.83:3001",
+      "http://localhost:3001",
+      "http://127.0.0.1:3001",
+    ]);
+    expect(studioTrustedOrigins("http://localhost:3001", "")).toEqual([
+      "http://localhost:3001",
+      "http://127.0.0.1:3001",
+    ]);
+  });
+
+  it("adds localhost as a loopback peer when the app URL uses 127.0.0.1", () => {
+    expect(studioTrustedOrigins("http://127.0.0.1:3001", "")).toEqual([
+      "http://127.0.0.1:3001",
+      "http://localhost:3001",
+    ]);
+  });
+
+  it("deduplicates when allowedDevOrigins already contains the app hostname", () => {
+    const origins = studioTrustedOrigins("http://10.0.0.83:3001", "10.0.0.83");
+    expect(origins).toEqual(["http://10.0.0.83:3001"]);
+    expect(origins).toHaveLength(1);
+  });
+
+  it("ignores invalid entries in allowedDevOrigins", () => {
+    const origins = studioTrustedOrigins("http://10.0.0.83:3001", ":::invalid,not a host");
+    expect(origins).toEqual(["http://10.0.0.83:3001"]);
+  });
+
+  it("does not add loopback peers for non-loopback https app URLs", () => {
+    expect(studioTrustedOrigins("https://studio.example.com", "")).toEqual([
+      "https://studio.example.com",
+    ]);
+  });
+
+  it("infers protocol and port from app URL for bare hostnames in allowedDevOrigins", () => {
+    const origins = studioTrustedOrigins("http://10.0.0.83:3001", "10.0.0.5");
+    expect(origins).toContain("http://10.0.0.5:3001");
+  });
+
+  it("returns only the app origin when allowedDevOrigins is undefined and app is not loopback", () => {
+    expect(studioTrustedOrigins("https://studio.example.com", undefined)).toEqual([
+      "https://studio.example.com",
+    ]);
   });
 
   it("keeps artifact storage defaults local-only", () => {
