@@ -6,6 +6,7 @@ Cognidesk has a precise domain language. Understanding these concepts will make 
 
 | Concept | What it is |
 |---------|-----------|
+| [Architecture Overview](architecture.md) | A non-specialist map of channels, adapters, runtime components, and operations |
 | [Agent](agents.md) | A compiled definition that owns instructions, tools, knowledge, and journeys |
 | [Journey](journeys.md) | A state machine that guides a conversation through structured steps |
 | [Tool](tools.md) | A typed function the agent can invoke during a conversation |
