@@ -11,6 +11,13 @@ type ConversationRow = {
   createdAt?: string;
   updatedAt?: string;
   eventCount?: number;
+  tokenUsage?: {
+    inputTokens?: number | undefined;
+    outputTokens?: number | undefined;
+    cachedInputTokens?: number | undefined;
+    reasoningTokens?: number | undefined;
+    totalTokens?: number | undefined;
+  };
 };
 
 export const integerFormatter = new Intl.NumberFormat();
@@ -51,7 +58,12 @@ export function metricValue(widget: StudioDashboardWidget, dataset: StudioDashbo
     const metrics = conversationMetrics(rows);
     return resolvePath(metrics, widget.valuePath.replace("$metrics.", "")) ?? 0;
   }
-  if (widget.valuePath && dataset) return resolvePath(dataset.data, widget.valuePath);
+  if (widget.valuePath && dataset) {
+    const directValue = resolvePath(dataset.data, widget.valuePath);
+    if (directValue !== undefined) return directValue;
+    const normalizedValue = normalizedMetricValue(rowsFromUnknown(dataset.data), widget.valuePath);
+    if (normalizedValue !== undefined) return normalizedValue;
+  }
   return Array.isArray(dataset?.data) ? dataset.data.length : (rows.length || rowsFromUnknown(dataset?.data).length);
 }
 
@@ -93,12 +105,36 @@ function conversationMetrics(rows: ConversationRow[]) {
     counts[journeyId] = (counts[journeyId] ?? 0) + 1;
     return counts;
   }, {});
+  const tokenUsage = aggregateConversationTokenUsage(rows);
   return {
     totalConversations,
     handoverConversations,
     handoverPercentage: totalConversations ? Number(((handoverConversations / totalConversations) * 100).toFixed(1)) : 0,
     journeyCounts,
+    ...tokenUsage,
+    tokenUsage,
   };
+}
+
+function aggregateConversationTokenUsage(rows: ConversationRow[]) {
+  return rows.reduce(
+    (usage, row) => ({
+      inputTokens: usage.inputTokens + (row.tokenUsage?.inputTokens ?? 0),
+      outputTokens: usage.outputTokens + (row.tokenUsage?.outputTokens ?? 0),
+      cachedInputTokens: usage.cachedInputTokens + (row.tokenUsage?.cachedInputTokens ?? 0),
+      reasoningTokens: usage.reasoningTokens + (row.tokenUsage?.reasoningTokens ?? 0),
+      totalTokens: usage.totalTokens + (row.tokenUsage?.totalTokens ?? (
+        (row.tokenUsage?.inputTokens ?? 0) + (row.tokenUsage?.outputTokens ?? 0)
+      )),
+    }),
+    {
+      inputTokens: 0,
+      outputTokens: 0,
+      cachedInputTokens: 0,
+      reasoningTokens: 0,
+      totalTokens: 0,
+    },
+  );
 }
 
 function weeklyConversationTrend(rows: ConversationRow[]) {
@@ -380,6 +416,25 @@ function aggregateRowsByPath(rows: Array<Record<string, unknown>>, labelPath: st
     setPath(row, valuePath, value);
     return row;
   });
+}
+
+function normalizedMetricValue(rows: Array<Record<string, unknown>>, valuePath: string) {
+  const values = rows
+    .map((row) => resolvePath(row, valuePath))
+    .filter((value) => value !== undefined && value !== null);
+  if (!values.length) return undefined;
+  if (values.length === 1) return values[0];
+
+  const numericValues = values.map(numericValue);
+  if (numericValues.every((value) => value !== null)) {
+    const rowsLookLikeTimeSeries = rows.every((row) => (
+      row.timestamp !== undefined || row.time !== undefined || row.date !== undefined
+    ));
+    if (rowsLookLikeTimeSeries) return numericValues[numericValues.length - 1];
+    return numericValues.reduce((sum, value) => sum + (value ?? 0), 0);
+  }
+
+  return values[values.length - 1];
 }
 
 function categoryLabel(value: unknown) {

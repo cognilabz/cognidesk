@@ -101,5 +101,12 @@ export const StudioConversationSummarySchema = z.object({
   activeStateIds: z.array(z.string()).default([]),
   eventCount: z.number().int().optional(),
   traceIds: z.array(z.string()).default([]),
+  tokenUsage: z.object({
+    inputTokens: z.number().int().nonnegative().optional(),
+    outputTokens: z.number().int().nonnegative().optional(),
+    cachedInputTokens: z.number().int().nonnegative().optional(),
+    reasoningTokens: z.number().int().nonnegative().optional(),
+    totalTokens: z.number().int().nonnegative().optional(),
+  }).optional(),
 });
 export type StudioConversationSummary = z.infer<typeof StudioConversationSummarySchema>;

@@ -73,9 +73,71 @@ describe("studio adapter conversations", () => {
         activeStateIds: ["collectDetails"],
         eventCount: 1,
         traceIds: ["trace_direct"],
+        tokenUsage: {
+          inputTokens: 20,
+          outputTokens: 8,
+          cachedInputTokens: 3,
+          reasoningTokens: 2,
+          totalTokens: 28,
+        },
       },
     });
     expect(missing.status).toBe(404);
+  });
+
+  it("prefers provider totalTokens when aggregating conversation token usage", async () => {
+    const agent = createAgent("test-agent", {
+      instructions: "Test agent instructions",
+    }).compile();
+    const conversation = conversationRecord("conversation_usage");
+    const adapter = createCognideskStudioAdapter({
+      targetId: "test-target",
+      agent,
+      allowUnauthenticated: true,
+      runtime: {
+        async listEvents(conversationId) {
+          return [
+            runtimeEvent(conversationId),
+            {
+              ...runtimeEvent(conversationId),
+              id: "event_usage_generated",
+              offset: 2,
+              type: "message.generated",
+              data: {
+                textLength: 48,
+                usage: {
+                  inputTokens: 10,
+                  outputTokens: 5,
+                  totalTokens: 20,
+                },
+              },
+            },
+          ];
+        },
+      },
+      conversations: {
+        async getConversation(conversationId) {
+          return conversationId === conversation.id ? conversation : null;
+        },
+      },
+    });
+
+    const response = await adapter.handle(new Request("http://local/api/studio/conversations/conversation_usage"));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      conversation: {
+        id: "conversation_usage",
+        eventCount: 2,
+        tokenUsage: {
+          inputTokens: 30,
+          outputTokens: 13,
+          cachedInputTokens: 3,
+          reasoningTokens: 2,
+          totalTokens: 48,
+        },
+      },
+    });
   });
 });
 
@@ -98,6 +160,14 @@ function runtimeEvent(conversationId: string): RuntimeEvent {
     type: "message.completed",
     createdAt: "2026-06-26T08:01:00.000Z",
     telemetry: { traceId: "trace_direct" },
-    data: { text: "Hello from the runtime." },
+    data: {
+      text: "Hello from the runtime.",
+      usage: {
+        inputTokens: 20,
+        outputTokens: 8,
+        cachedInputTokens: 3,
+        reasoningTokens: 2,
+      },
+    },
   };
 }

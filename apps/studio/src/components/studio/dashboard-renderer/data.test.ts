@@ -17,9 +17,33 @@ const conversationsDataset: StudioDashboardDataset = {
       { id: "conversation_1", lifecycle: "active", activeJourneyId: "human-handoff" },
       { id: "conversation_2", lifecycle: "active", activeJourneyId: "human-handoff" },
       { id: "conversation_3", lifecycle: "active", activeJourneyId: "book-flight" },
-      { id: "conversation_4", lifecycle: "active", summary: "Escalated to a specialist." },
+      { id: "conversation_4", lifecycle: "active", summary: "Escalated to a specialist.", tokenUsage: { inputTokens: 12, outputTokens: 8, totalTokens: 25 } },
       { id: "conversation_5", lifecycle: "active" },
     ],
+  },
+};
+
+const prometheusVectorDataset: StudioDashboardDataset = {
+  id: "live-token-usage",
+  title: "Token usage",
+  mode: "live",
+  source: {
+    capability: "telemetry.metrics",
+    targetId: "flight-demo-local",
+    params: { query: "sum(cognidesk_model_tokens_total)" },
+  },
+  capturedAt: "2026-06-26T08:20:00.000Z",
+  data: {
+    status: "success",
+    data: {
+      resultType: "vector",
+      result: [
+        {
+          metric: { __name__: "cognidesk_model_tokens_total" },
+          value: [1782558000, "123"],
+        },
+      ],
+    },
   },
 };
 
@@ -39,6 +63,20 @@ describe("dashboard conversation metrics", () => {
     expect(metricValue(metricWidget("$metrics.handoverConversations"), conversationsDataset)).toBe(3);
     expect(metricValue(metricWidget("$metrics.journeyCounts.human-handoff"), conversationsDataset)).toBe(2);
     expect(metricValue(metricWidget("$metrics.journeyCounts.unassigned"), conversationsDataset)).toBe(2);
+  });
+
+  it("sums token usage metrics from conversation summaries", () => {
+    expect(metricValue(metricWidget("$metrics.inputTokens"), conversationsDataset)).toBe(12);
+    expect(metricValue(metricWidget("$metrics.outputTokens"), conversationsDataset)).toBe(8);
+    expect(metricValue(metricWidget("$metrics.totalTokens"), conversationsDataset)).toBe(25);
+    expect(metricValue(metricWidget("$metrics.tokenUsage.totalTokens"), conversationsDataset)).toBe(25);
+  });
+
+  it("reads metric cards from normalized Prometheus vector rows", () => {
+    expect(metricValue({
+      ...metricWidget("value"),
+      datasetId: "live-token-usage",
+    }, prometheusVectorDataset)).toBe(123);
   });
 
   it("returns zero for missing exact journey-count buckets", () => {

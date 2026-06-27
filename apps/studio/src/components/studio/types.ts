@@ -109,6 +109,13 @@ export type StudioConversationRow = {
   activeStateIds: string[];
   traceIds: string[];
   eventCount?: number | undefined;
+  tokenUsage?: {
+    inputTokens?: number | undefined;
+    outputTokens?: number | undefined;
+    cachedInputTokens?: number | undefined;
+    reasoningTokens?: number | undefined;
+    totalTokens?: number | undefined;
+  };
   satisfaction: "positive" | "neutral" | "negative";
 };
 

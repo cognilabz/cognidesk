@@ -65,9 +65,10 @@ export async function persistOperatorMessage(
   role: "user" | "assistant" | "system" | "tool",
   content: unknown,
 ) {
-  await fetch(`/api/studio/operator/sessions/${sessionId}`, {
+  const response = await fetch(`/api/studio/operator/sessions/${sessionId}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ role, content }),
   });
+  if (!response.ok) throw new Error("Could not persist Operator message");
 }

@@ -98,7 +98,7 @@ export async function fetchConfigurationSurface(): Promise<StudioConfigurationSu
 }
 
 export async function fetchTargetConversations(
-  options: { limit?: number; offset?: number; agentId?: string } = {},
+  options: { limit?: number; offset?: number; agentId?: string; lifecycle?: StudioConversationRow["lifecycle"] } = {},
 ): Promise<StudioConversationRow[]> {
   const manifest = await currentTarget();
   const params = new URLSearchParams();
@@ -111,7 +111,8 @@ export async function fetchTargetConversations(
   const conversationsPayload = isRecord(body) ? body.conversations : undefined;
   if (!Array.isArray(conversationsPayload)) throw new Error("Studio Adapter conversations response is missing conversations array.");
   const conversations = StudioConversationSummarySchema.array().parse(conversationsPayload);
-  return conversations.map(studioConversationRowFromSummary);
+  const rows = conversations.map(studioConversationRowFromSummary);
+  return options.lifecycle ? rows.filter((row) => row.lifecycle === options.lifecycle) : rows;
 }
 
 export async function fetchTargetConversation(conversationId: string): Promise<StudioConversationRow> {
@@ -140,6 +141,10 @@ export async function fetchConversationSnapshot(conversationId: string) {
 
 export async function queryDashboardData(query: StudioDashboardDataQuery) {
   const parsed = StudioDashboardDataQuerySchema.parse(query);
+  const manifest = await currentTarget();
+  if (parsed.targetId !== manifest.target.id) {
+    throw new Error(`Dashboard data targetId '${parsed.targetId}' does not match current Studio target '${manifest.target.id}'.`);
+  }
   switch (parsed.capability) {
     case "cognidesk.agent":
       return {
@@ -159,6 +164,7 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
       };
     case "cognidesk.conversations":
       const agentId = stringParam(parsed.params.agentId);
+      const lifecycle = lifecycleParam(parsed.params.lifecycle);
       return {
         id: randomUUID(),
         title: "Studio Conversations",
@@ -168,6 +174,7 @@ export async function queryDashboardData(query: StudioDashboardDataQuery) {
           limit: numberParam(parsed.params.limit) ?? 1000,
           offset: numberParam(parsed.params.offset) ?? 0,
           ...(agentId ? { agentId } : {}),
+          ...(lifecycle ? { lifecycle } : {}),
         }),
       };
     case "cognidesk.events": {
@@ -293,8 +300,13 @@ function studioConversationRowFromSummary(summary: StudioConversationSummary): S
     activeStateIds: summary.activeStateIds,
     traceIds: summary.traceIds,
     ...(summary.eventCount !== undefined ? { eventCount: summary.eventCount } : {}),
+    ...(summary.tokenUsage ? { tokenUsage: summary.tokenUsage } : {}),
     satisfaction: "neutral",
   };
+}
+
+function lifecycleParam(value: unknown): StudioConversationRow["lifecycle"] | undefined {
+  return value === "active" || value === "handoff" || value === "closed" ? value : undefined;
 }
 
 function summarizeTargetConversation(summary: StudioConversationSummary) {

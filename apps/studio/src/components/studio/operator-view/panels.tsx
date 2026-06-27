@@ -376,7 +376,7 @@ function SessionRow(props: {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              className="self-center text-slate-400 opacity-0 hover:bg-slate-100 hover:text-slate-950 group-hover:opacity-100 data-[state=open]:opacity-100"
+              className="self-center text-slate-400 hover:bg-slate-100 hover:text-slate-950 data-[state=open]:text-slate-950"
               size="icon-xs"
               type="button"
               variant="ghost"
