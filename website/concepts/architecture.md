@@ -4,70 +4,7 @@ This page is the non-specialist map of Cognidesk. It explains who can call into 
 
 ## One picture
 
-```mermaid
-flowchart LR
-    subgraph channels["External caller channels"]
-        web["Website or app chat"]
-        voice["Browser or telephony voice"]
-        email["Email inbox"]
-        ticket["Ticketing or CRM"]
-        messaging["Messaging, social, workplace"]
-        scheduled["Scheduled jobs or operators"]
-    end
-
-    subgraph edge["Application edge"]
-        react["@cognidesk/react and @cognidesk/ui"]
-        http["@cognidesk/http"]
-        voiceWs["@cognidesk/voice-websocket"]
-        providers["@cognidesk/integration-*"]
-        custom["Custom adapters"]
-    end
-
-    subgraph runtime["Cognidesk runtime"]
-        core["@cognidesk/core"]
-        agent["Agent definition"]
-        journeys["Journeys"]
-        tools["Tools"]
-        knowledge["Knowledge"]
-        events["Runtime Events"]
-    end
-
-    subgraph services["Shared services"]
-        models["@cognidesk/model"]
-        storage["@cognidesk/storage"]
-        telemetry["@cognidesk/otel"]
-        studioAdapter["@cognidesk/studio-adapter"]
-        studio["Cognidesk Studio"]
-    end
-
-    web --> react
-    react --> http
-    voice --> voiceWs
-    email --> providers
-    ticket --> providers
-    messaging --> providers
-    scheduled --> custom
-    http --> core
-    voiceWs --> core
-    providers --> core
-    custom --> core
-
-    core --> agent
-    agent --> journeys
-    agent --> tools
-    agent --> knowledge
-    core --> events
-    core --> models
-    core --> storage
-    core --> telemetry
-    core --> studioAdapter
-    studioAdapter --> studio
-
-    events --> http
-    core --> providers
-    core --> voiceWs
-    core --> custom
-```
+![Cognidesk architecture overview](../assets/diagrams/cognidesk-architecture.svg)
 
 In plain language: external channels bring support work in, adapters translate it into the Cognidesk runtime, and the runtime decides what should happen next. The runtime can answer, ask for more information, run a tool, retrieve knowledge, draft an action, wait for approval, hand off, or emit events for a UI and operations.
 
