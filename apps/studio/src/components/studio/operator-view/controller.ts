@@ -201,13 +201,15 @@ export function useOperatorController(props: OperatorViewProps) {
   async function sendOperatorMessage(messageOverride?: string) {
     const message = (messageOverride ?? input).trim();
     if (!message || isWorking) return;
+    const optimisticMessageId = createClientId();
+    let userMessagePersisted = false;
     setInput("");
     setIsWorking(true);
     assistantDraftRef.current = "";
     assistantMessageIdRef.current = null;
     setChatItems((items) => [
       ...items,
-      { id: createClientId(), role: "user", text: message, type: "message" },
+      { id: optimisticMessageId, role: "user", text: message, type: "message" },
     ]);
     try {
       dashboardSnapshotRef.current = await fetchDashboardSnapshot().catch(() => new Map());
@@ -220,6 +222,7 @@ export function useOperatorController(props: OperatorViewProps) {
         operatorSessionIdRef.current = sessionId;
         setSessions((items) => [nextSession, ...items.filter((item) => item.id !== nextSession.id)]);
         await persistOperatorMessage(sessionId, "user", message);
+        userMessagePersisted = true;
         activeTurnSessionIdRef.current = sessionId;
         socket.send(JSON.stringify({
           type: "session.start",
@@ -231,6 +234,7 @@ export function useOperatorController(props: OperatorViewProps) {
         }));
       } else {
         await persistOperatorMessage(sessionId, "user", message);
+        userMessagePersisted = true;
         activeTurnSessionIdRef.current = sessionId;
         socket.send(JSON.stringify({
           type: "turn.start",
@@ -241,6 +245,9 @@ export function useOperatorController(props: OperatorViewProps) {
         }));
       }
     } catch (error) {
+      if (!userMessagePersisted) {
+        setChatItems((items) => items.filter((item) => item.id !== optimisticMessageId));
+      }
       setIsWorking(false);
       activeTurnSessionIdRef.current = null;
       pushOperatorEvent({

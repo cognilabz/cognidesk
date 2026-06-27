@@ -250,12 +250,12 @@ export async function withTelemetrySpan<T>(
     return run(trace.wrapSpanContext(INVALID_SPAN_CONTEXT));
   }
 
-  const startedAt = performance.now();
   return getTracer().startActiveSpan(spanOptions.name, {
     attributes: cleanAttributes(spanOptions.attributes),
   }, async (span) => {
     let success = false;
     const enrichment = await applyTelemetrySpanEnrichment(options, spanOptions, span);
+    const startedAt = performance.now();
     try {
       const result = await run(span);
       success = true;
