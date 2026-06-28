@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { getStudioSession } from "@/server/auth";
+import { getStudioSession, hasStudioUsers } from "@/server/auth";
 import { LoginForm } from "@/components/login-form";
 
 export const runtime = "nodejs";
@@ -18,5 +18,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await getStudioSession(await headers());
   if (session) redirect("/");
   const params = await searchParams;
-  return <LoginForm initialError={params?.error ? "Sign-in failed." : null} />;
+  const error = typeof params?.error === "string"
+    ? (params.error === "1" ? "Sign-in failed." : params.error.slice(0, 160))
+    : null;
+  return <LoginForm initialError={error} mode={await hasStudioUsers() ? "login" : "setup"} />;
 }

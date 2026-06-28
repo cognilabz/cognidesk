@@ -28,16 +28,13 @@ corepack pnpm demo
 | Studio | `http://localhost:3000` | Web app. |
 | Studio operator runtime | `ws://localhost:4099/ws` | Operator WebSocket service. |
 
-The development bootstrap admin is created only when the Studio database is
-empty:
+When the Studio database is empty, `/login` opens a first-boot setup form for
+the initial Admin account. Studio does not ship known local login credentials or
+prefill the login form.
 
-| Field | Default |
-|-------|---------|
-| Email | `admin@local.cognidesk.dev` |
-| Password | `cognidesk-studio-admin` |
-
-Override the bootstrap account with `STUDIO_BOOTSTRAP_ADMIN_EMAIL`,
-`STUDIO_BOOTSTRAP_ADMIN_PASSWORD`, and `STUDIO_BOOTSTRAP_ADMIN_NAME`.
+For automated deployments, set `STUDIO_BOOTSTRAP_ADMIN_EMAIL` and
+`STUDIO_BOOTSTRAP_ADMIN_PASSWORD` together before the first start. Optionally set
+`STUDIO_BOOTSTRAP_ADMIN_NAME`; otherwise Studio uses `Cognidesk Studio Admin`.
 
 ## Configuration
 
@@ -84,8 +81,8 @@ pnpm --filter @cognidesk/studio db:migrate
 - Set a strong `BETTER_AUTH_SECRET`.
 - Set a strong `STUDIO_OPERATOR_RUNTIME_SECRET` on both Studio and the operator
   runtime.
-- Set explicit bootstrap admin credentials or create users through your own
-  provisioning flow.
+- Set explicit bootstrap admin credentials, complete the first-boot setup form,
+  or create users through your own provisioning flow.
 - Configure artifact storage explicitly outside local development; local MinIO endpoint and credentials are rejected in production/hosted mode.
 - Treat `COGNIDESK_STUDIO_TARGET_TOKEN` as a service credential.
 - Review the target manifest allowlist before enabling operator workflows.

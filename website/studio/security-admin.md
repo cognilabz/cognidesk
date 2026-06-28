@@ -31,7 +31,7 @@ Production deployments should:
 
 - Set a strong `BETTER_AUTH_SECRET`.
 - Set a strong `STUDIO_OPERATOR_RUNTIME_SECRET` on Studio and the operator runtime.
-- Set explicit bootstrap admin credentials or provision users externally.
+- Complete the first-boot Admin setup, set explicit bootstrap admin credentials, or provision users externally.
 - Configure artifact storage explicitly.
 - Avoid local MinIO credentials outside development.
 - Treat `COGNIDESK_STUDIO_TARGET_TOKEN` as a service credential.

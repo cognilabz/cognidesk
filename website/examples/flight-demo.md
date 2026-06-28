@@ -113,8 +113,7 @@ Studio operator runtime via Turbo's terminal UI.
 | Cognidesk Studio | `http://localhost:3000` |
 | Studio operator runtime | `ws://localhost:4099/ws` |
 
-The default local Studio login is `admin@local.cognidesk.dev` /
-`cognidesk-studio-admin`.
+On a fresh Studio database, open `/login` and create the first Admin account.
 
 For live model/provider runs, set `FLIGHT_DEMO_EXTERNAL_APIS=true`, provide the
 configured provider secrets, and run:
