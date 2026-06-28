@@ -77,3 +77,5 @@ The root demo script also supports OpenTelemetry through environment variables s
 The Studio target manifest points at Prometheus and Tempo. Under compose,
 `deploy/studio/compose-overlay.json` rewrites those endpoints from local host
 URLs to Docker service names.
+
+For the UI layer built on top of conversations, events, dashboard artifacts, and configured telemetry sources, see [Studio observability and dashboards](../studio/observability-dashboards.md).

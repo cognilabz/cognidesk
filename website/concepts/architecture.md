@@ -10,6 +10,8 @@ The runtime is the center of gravity. It preserves conversation state, applies t
 
 Studio sits beside the runtime rather than above it. It inspects an explicit target, shows conversations and telemetry, and lets operators run allowed workflows through a reviewable operator surface. Provider integrations stay outside the runtime core: they add concrete capabilities for email, messaging, ticketing, contact center, voice, workplace, commerce, and other systems only when the application installs, configures, and enables them.
 
+For the operational view of that Studio block, see [Cognidesk Studio](../studio/index.md).
+
 
 ## Architecture highlights
 
@@ -97,3 +99,4 @@ The important part is the split of responsibilities. Adapters know how to speak 
 - [Provider Integrations](../guides/provider-packages.md) explains external provider packages and capability boundaries.
 - [React UI](../guides/react-ui.md) shows the optional chat UI and hooks.
 - [Observability](../guides/observability.md) shows tracing, metrics, and dashboards.
+- [Cognidesk Studio](../studio/index.md) shows the operations surface for target inspection, conversations, dashboards, and operator workflows.

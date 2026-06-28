@@ -48,6 +48,14 @@ hide:
 
     [:octicons-arrow-right-24: Guides](guides/index.md)
 
+-   :material-monitor-dashboard:{ .lg .middle } **Operate with Studio**
+
+    ---
+
+    Inspect targets, conversations, journeys, dashboards, and operator workflows.
+
+    [:octicons-arrow-right-24: Studio](studio/index.md)
+
 -   :material-api:{ .lg .middle } **API Reference**
 
     ---

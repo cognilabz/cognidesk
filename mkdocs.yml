@@ -145,6 +145,13 @@ nav:
       - Observability: guides/observability.md
       - Provider Integration Catalog: guides/provider-integrations-catalog.md
       - Omnichannel NG Changes: guides/omnichannel-changes.md
+  - Studio:
+      - studio/index.md
+      - Target Manifest: studio/target-manifest.md
+      - Agent Configuration: studio/agent-configuration.md
+      - Observability & Dashboards: studio/observability-dashboards.md
+      - Operator Workflows: studio/operator-workflows.md
+      - Security & Admin: studio/security-admin.md
   - API Reference:
       - api-reference/index.md
       - "@cognidesk/core": api-reference/core.md

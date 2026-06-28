@@ -97,6 +97,8 @@ The default local Studio login is:
 | Email | `admin@local.cognidesk.dev` |
 | Password | `cognidesk-studio-admin` |
 
+After sign-in, use the [Studio guide](../studio/index.md) for the target overview, agent configuration, conversation observability, dashboard artifacts, and Operator workflows.
+
 ## Docker Dev Run
 
 Docker Compose loads the repository-root `.env` file automatically.

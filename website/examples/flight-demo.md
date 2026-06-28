@@ -2,6 +2,10 @@
 
 A complete customer support agent for a fictional airline. This example demonstrates all major Cognidesk features working together.
 
+The demo is intentionally small enough to run locally, but it uses the same runtime pieces as a real target: a compiled agent, state-machine journeys, a delegated journey, tools, knowledge, widgets, chat, voice, optional external channels, Studio Adapter endpoints, storage, and telemetry hooks.
+
+![Flight Demo session picker with conversation history and chat/voice start modes](../assets/screenshots/flight-demo-start.png)
+
 ## What it shows
 
 | Feature | Implementation |
@@ -17,6 +21,48 @@ A complete customer support agent for a fictional airline. This example demonstr
 | Voice | Real-time voice conversations |
 | External integration opt-in | Secure Email, Discord handoff, and WhatsApp Journeys can be enabled independently |
 | OpenTelemetry | Pre-built Grafana dashboards |
+
+## Customer experience
+
+The customer-facing app starts with a simple choice: chat or voice. Both modes create Cognidesk conversations against the same `flight-service` agent, and the conversation sidebar makes it easy to resume local sessions.
+
+![Flight Demo chat session before the first customer request](../assets/screenshots/flight-demo-chat-empty.png)
+
+The booking flow shows why the demo is useful as a reference app. A normal support request activates the `book-flight` state-machine journey, extracts route and date, calls mocked flight-service tools, and emits a choice widget for the available itinerary.
+
+![Flight Demo booking conversation with a flight choice widget](../assets/screenshots/flight-demo-booking-chat.png)
+
+Studio shows the same booking behavior as a state-machine flow, so the demo is not just a chat transcript. Builders can see the states, branches, tool-backed steps, and final booking path that drive the customer experience.
+
+![Studio state-machine journey graph for the Flight Demo book-flight flow](../assets/screenshots/studio-book-flight-journey-flow.png)
+
+The same pattern appears in other flows:
+
+| Request | What the demo exercises |
+|---------|-------------------------|
+| `Book a flight from Vienna to Berlin tomorrow for Alex Morgan.` | `book-flight` state machine, route/date extraction, mocked search tool, choice widget, and booking confirmation. |
+| `What is the status of booking CD-CL204-4821?` | `ticket-status` journey and mocked booking/status lookup. |
+| `Can I check in for CL204?` | Ticket-status path with flight-number extraction. |
+| `What baggage is included in economy?` | Knowledge retrieval and policy-grounded answer. |
+| `Please add a checked bag to CD-CL204-4821.` | `baggage-service` delegated journey. |
+| `My flight was cancelled and I need a person.` | Human handoff path when Discord handoff is enabled; otherwise a clear local-mode explanation. |
+
+## Studio view of the same demo
+
+Studio treats the Flight Demo as a target. The Flight API exposes Studio Adapter endpoints, and Studio uses them to inspect conversations, agent configuration, dashboards, telemetry, and operator workflows.
+
+When you run `corepack pnpm demo`, open Studio at `http://localhost:3000` and sign in with the default local admin. A conversation created in the Flight Demo appears in Studio with the active journey, active state, transcript, runtime snapshot, and event timeline.
+
+![Studio conversation detail for a Flight Demo booking journey](../assets/screenshots/studio-conversation-detail.png)
+
+This gives the demo two perspectives:
+
+| Perspective | Use |
+|-------------|-----|
+| Flight Demo frontend | Shows what a customer sees across chat, voice, widgets, channel-status badges, and conversation history. |
+| Studio | Shows what an operator or builder sees: target health, journeys, configuration, conversations, telemetry, dashboards, and operator sessions. |
+
+For a detailed Studio walkthrough, see [Cognidesk Studio](../studio/index.md).
 
 ## Local development runbook
 
