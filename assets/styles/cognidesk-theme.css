@@ -26,7 +26,7 @@
 
 [data-md-color-scheme="default"] {
   color-scheme: light;
-  --md-default-bg-color: var(--cd-bg);
+  --md-default-bg-color: oklch(98.6% 0.004 285);
   --md-default-fg-color: var(--cd-ink);
   --md-default-fg-color--light: var(--cd-ink-soft);
   --md-default-fg-color--lighter: var(--cd-muted);
@@ -88,8 +88,7 @@ html {
 
 body {
   min-height: 100vh;
-  background-color: var(--cd-bg);
-  background-image: var(--cd-page-bg);
+  background-color: var(--md-default-bg-color);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: 100vw 100vh;
@@ -101,6 +100,7 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: -1;
+  display: none;
   pointer-events: none;
   content: "";
   background-image:
