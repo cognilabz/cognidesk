@@ -218,7 +218,9 @@ function fakeTelemetry() {
       return run({});
     },
     setAttribute() {},
+    setAttributes() {},
     addEvent() {},
+    recordMetric() {},
     recordException() {},
   };
 }

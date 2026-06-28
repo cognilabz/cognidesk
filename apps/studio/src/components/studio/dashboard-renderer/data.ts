@@ -51,7 +51,12 @@ export function metricValue(widget: StudioDashboardWidget, dataset: StudioDashbo
     const metrics = conversationMetrics(rows);
     return resolvePath(metrics, widget.valuePath.replace("$metrics.", "")) ?? 0;
   }
-  if (widget.valuePath && dataset) return resolvePath(dataset.data, widget.valuePath);
+  if (widget.valuePath && dataset) {
+    const directValue = resolvePath(dataset.data, widget.valuePath);
+    if (directValue !== undefined) return directValue;
+    const normalizedValue = normalizedMetricValue(rowsFromUnknown(dataset.data), widget.valuePath);
+    if (normalizedValue !== undefined) return normalizedValue;
+  }
   return Array.isArray(dataset?.data) ? dataset.data.length : (rows.length || rowsFromUnknown(dataset?.data).length);
 }
 
@@ -380,6 +385,25 @@ function aggregateRowsByPath(rows: Array<Record<string, unknown>>, labelPath: st
     setPath(row, valuePath, value);
     return row;
   });
+}
+
+function normalizedMetricValue(rows: Array<Record<string, unknown>>, valuePath: string) {
+  const values = rows
+    .map((row) => resolvePath(row, valuePath))
+    .filter((value) => value !== undefined && value !== null);
+  if (!values.length) return undefined;
+  if (values.length === 1) return values[0];
+
+  const numericValues = values.map(numericValue);
+  if (numericValues.every((value) => value !== null)) {
+    const rowsLookLikeTimeSeries = rows.every((row) => (
+      row.timestamp !== undefined || row.time !== undefined || row.date !== undefined
+    ));
+    if (rowsLookLikeTimeSeries) return numericValues[numericValues.length - 1];
+    return numericValues.reduce((sum, value) => sum + (value ?? 0), 0);
+  }
+
+  return values[values.length - 1];
 }
 
 function categoryLabel(value: unknown) {

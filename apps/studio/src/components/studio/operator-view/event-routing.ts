@@ -11,6 +11,7 @@ export function shouldApplyOperatorEvent(
 ) {
   const eventSessionId = operatorEventSessionId(event);
   if (!eventSessionId) return true;
+  if (!activeTurnSessionId && !currentSessionId) return false;
   if (activeTurnSessionId && eventSessionId !== activeTurnSessionId) return false;
   if (currentSessionId && eventSessionId !== currentSessionId) return false;
   return true;

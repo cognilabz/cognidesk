@@ -1,5 +1,5 @@
 import type { StudioTargetManifest } from "@cognidesk/studio-contracts";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   OperatorChatItem,
   OperatorEvent,
@@ -53,6 +53,7 @@ export function useOperatorController(props: OperatorViewProps) {
   const assistantMessageIdRef = useRef<string | null>(null);
   const operatorSessionIdRef = useRef<string | null>(null);
   const activeTurnSessionIdRef = useRef<string | null>(null);
+  const initialOpenSessionIdRef = useRef(props.initialSessions[0]?.id ?? null);
   const persistQueueRef = useRef(Promise.resolve());
   const [operatorSessionId, setOperatorSessionId] = useState<string | null>(null);
   const [sessions, setSessions] = useState<OperatorSessionRow[]>(props.initialSessions);
@@ -97,6 +98,13 @@ export function useOperatorController(props: OperatorViewProps) {
   const assistantIsTyping = isAssistantTyping(visibleChatItems);
   const canStartNewSession = canStartNewOperatorSession(activeTurnSessionIdRef.current, isWorking);
   operatorSessionIdRef.current = operatorSessionId;
+
+  useEffect(() => {
+    const sessionId = initialOpenSessionIdRef.current;
+    if (!sessionId) return;
+    initialOpenSessionIdRef.current = null;
+    void openOperatorSession(sessionId);
+  }, []);
 
   function openDashboardPanel(options: { resetWidth?: boolean } = {}) {
     setDashboardActionError(null);
@@ -173,6 +181,11 @@ export function useOperatorController(props: OperatorViewProps) {
   async function confirmDeleteSession() {
     if (!pendingDeleteSession) return;
     const session = pendingDeleteSession;
+    if (activeTurnSessionIdRef.current === session.id) {
+      setPendingDeleteSession(null);
+      pushActiveTurnBlockedEvent();
+      return;
+    }
     const deleted = await deleteOperatorSession(session);
     if (!deleted) {
       pushOperatorEvent({ kind: "error", title: "Could not delete session", status: "error" });
@@ -188,13 +201,15 @@ export function useOperatorController(props: OperatorViewProps) {
   async function sendOperatorMessage(messageOverride?: string) {
     const message = (messageOverride ?? input).trim();
     if (!message || isWorking) return;
+    const optimisticMessageId = createClientId();
+    let userMessagePersisted = false;
     setInput("");
     setIsWorking(true);
     assistantDraftRef.current = "";
     assistantMessageIdRef.current = null;
     setChatItems((items) => [
       ...items,
-      { id: crypto.randomUUID(), role: "user", text: message, type: "message" },
+      { id: optimisticMessageId, role: "user", text: message, type: "message" },
     ]);
     try {
       dashboardSnapshotRef.current = await fetchDashboardSnapshot().catch(() => new Map());
@@ -207,6 +222,7 @@ export function useOperatorController(props: OperatorViewProps) {
         operatorSessionIdRef.current = sessionId;
         setSessions((items) => [nextSession, ...items.filter((item) => item.id !== nextSession.id)]);
         await persistOperatorMessage(sessionId, "user", message);
+        userMessagePersisted = true;
         activeTurnSessionIdRef.current = sessionId;
         socket.send(JSON.stringify({
           type: "session.start",
@@ -218,6 +234,7 @@ export function useOperatorController(props: OperatorViewProps) {
         }));
       } else {
         await persistOperatorMessage(sessionId, "user", message);
+        userMessagePersisted = true;
         activeTurnSessionIdRef.current = sessionId;
         socket.send(JSON.stringify({
           type: "turn.start",
@@ -228,6 +245,9 @@ export function useOperatorController(props: OperatorViewProps) {
         }));
       }
     } catch (error) {
+      if (!userMessagePersisted) {
+        setChatItems((items) => items.filter((item) => item.id !== optimisticMessageId));
+      }
       setIsWorking(false);
       activeTurnSessionIdRef.current = null;
       pushOperatorEvent({
@@ -327,7 +347,7 @@ export function useOperatorController(props: OperatorViewProps) {
     assistantDraftRef.current += delta;
     let assistantId = assistantMessageIdRef.current;
     if (!assistantId) {
-      assistantId = crypto.randomUUID();
+      assistantId = createClientId();
       assistantMessageIdRef.current = assistantId;
     }
     const nextAssistantId = assistantId;
@@ -378,7 +398,7 @@ export function useOperatorController(props: OperatorViewProps) {
   }
 
   function pushOperatorEvent(event: Omit<OperatorEventEntry, "id">, eventSessionId?: string | null) {
-    const entry: OperatorEventEntry = { id: crypto.randomUUID(), ...event };
+    const entry: OperatorEventEntry = { id: createClientId(), ...event };
     if (entry.kind === "activity" && !shouldDisplayActivityEvent(entry)) return;
     finishAssistantSegment({ sessionId: eventSessionId ?? null });
     setChatItems((items) => [...items, { id: entry.id, event: entry, type: "event" }]);
@@ -505,4 +525,17 @@ function filterSessions(sessions: OperatorSessionRow[], sessionSearch: string) {
   const query = sessionSearch.trim().toLowerCase();
   if (!query) return sessions;
   return sessions.filter((session) => session.title.toLowerCase().includes(query));
+}
+
+function createClientId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  const randomValues = typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function"
+    ? crypto.getRandomValues(new Uint32Array(2))
+    : null;
+  const entropy = randomValues
+    ? `${randomValues[0]?.toString(36) ?? "0"}${randomValues[1]?.toString(36) ?? "0"}`
+    : Math.random().toString(36).slice(2);
+  return `operator-${Date.now().toString(36)}-${entropy}`;
 }

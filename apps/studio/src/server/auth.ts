@@ -4,11 +4,11 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { and, eq, gt } from "drizzle-orm";
 import { db, ensureStudioDatabase } from "@/server/db/client";
 import { schema, session as sessionTable, studioAuditLog, user } from "@/server/db/schema";
-import { allowsLocalStudioDefaults, studioEnv } from "@/server/config";
+import { allowsLocalStudioDefaults, studioEnv, studioTrustedOrigins } from "@/server/config";
 import type { StudioRole } from "@cognidesk/studio-contracts";
 
 const env = studioEnv();
-const trustedOrigins = localTrustedOrigins(env.appUrl);
+const trustedOrigins = studioTrustedOrigins(env.appUrl);
 
 export const auth = betterAuth({
   baseURL: env.appUrl,
@@ -94,22 +94,6 @@ export async function ensureBootstrapAdmin() {
       createdAt: new Date(),
     }),
   ]);
-}
-
-function localTrustedOrigins(appUrl: string) {
-  const origins = new Set([appUrl]);
-  try {
-    const url = new URL(appUrl);
-    if (url.hostname === "localhost") {
-      origins.add(`${url.protocol}//127.0.0.1${url.port ? `:${url.port}` : ""}`);
-    }
-    if (url.hostname === "127.0.0.1") {
-      origins.add(`${url.protocol}//localhost${url.port ? `:${url.port}` : ""}`);
-    }
-  } catch {
-    // Keep the configured origin only.
-  }
-  return [...origins];
 }
 
 function bearerToken(headers: Headers) {

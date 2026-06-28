@@ -4,9 +4,13 @@ import {
   context,
   metrics,
   trace,
+  type AttributeValue,
   type Attributes,
+  type Counter,
+  type Histogram,
   type Span,
 } from "@opentelemetry/api";
+import type { UsageRecord } from "./types.js";
 
 type MaybePromise<T> = Promise<T> | T;
 
@@ -15,6 +19,8 @@ export type TelemetryContentMode = "redacted" | "full";
 export interface RuntimeTelemetryOptions {
   enabled?: boolean;
   content?: TelemetryContentMode;
+  customMetrics?: TelemetryCustomMetricDefinition[];
+  enrichSpan?: TelemetrySpanEnricher;
 }
 
 export interface RuntimeEventTelemetry {
@@ -33,7 +39,9 @@ export interface TelemetryContext {
   withSpan<T>(name: string, run: TelemetrySpanRunner<T>): Promise<T>;
   withSpan<T>(name: string, options: TelemetryContextSpanOptions, run: TelemetrySpanRunner<T>): Promise<T>;
   setAttribute(name: string, value: string | number | boolean): void;
+  setAttributes(attributes: Attributes): void;
   addEvent(name: string, attributes?: Attributes): void;
+  recordMetric(metric: TelemetryCustomMetric): void;
   recordException(error: unknown): void;
 }
 
@@ -76,6 +84,11 @@ export const telemetryAttributes = {
   modelRole: "cognidesk.model.role",
   modelProvider: "cognidesk.model.provider",
   modelName: "cognidesk.model.name",
+  modelInputTokens: "cognidesk.model.usage.input_tokens",
+  modelOutputTokens: "cognidesk.model.usage.output_tokens",
+  modelCachedInputTokens: "cognidesk.model.usage.cached_input_tokens",
+  modelReasoningTokens: "cognidesk.model.usage.reasoning_tokens",
+  modelTotalTokens: "cognidesk.model.usage.total_tokens",
   promptTask: "cognidesk.prompt.task",
   toolName: "cognidesk.tool.name",
   actionName: "cognidesk.action.name",
@@ -98,16 +111,12 @@ type TelemetryOptionsCarrier = {
   telemetry?: RuntimeTelemetryOptions;
 };
 
-type MetricKind = "runtime" | "model" | "tool" | "action" | "knowledge";
+export type TelemetryMetricKind = "runtime" | "model" | "tool" | "action" | "knowledge";
 
 type TelemetryMetricOptions = {
-  kind: MetricKind;
+  kind: TelemetryMetricKind;
   attributes?: Attributes;
-  tokenUsage?: {
-    inputTokens?: number;
-    outputTokens?: number;
-    totalTokens?: number;
-  };
+  tokenUsage?: UsageRecord;
 };
 
 export interface TelemetrySpanOptions {
@@ -116,9 +125,54 @@ export interface TelemetrySpanOptions {
   metric?: TelemetryMetricOptions;
 }
 
+export interface TelemetryCustomMetric {
+  name: string;
+  value: number;
+  attributes?: Attributes;
+}
+
+export interface TelemetryCustomMetricDefinition {
+  name: string;
+  kind: "counter" | "histogram";
+  description?: string;
+  unit?: string;
+}
+
+export interface TelemetrySpanEnrichmentInput {
+  spanName: string;
+  metricKind?: TelemetryMetricKind;
+  attributes: Attributes;
+  metricAttributes: Attributes;
+}
+
+export interface TelemetrySpanEvent {
+  name: string;
+  attributes?: Attributes;
+}
+
+export interface TelemetrySpanEnrichment {
+  attributes?: Attributes;
+  metricAttributes?: Attributes;
+  events?: TelemetrySpanEvent[];
+  metrics?: TelemetryCustomMetric[];
+}
+
+export type TelemetrySpanEnricher = (
+  input: TelemetrySpanEnrichmentInput,
+) => MaybePromise<TelemetrySpanEnrichment | null | undefined>;
+
 type TelemetryInstruments = ReturnType<typeof createTelemetryInstruments>;
+type CustomCounter = Pick<Counter, "add">;
+type CustomHistogram = Pick<Histogram, "record">;
 
 let telemetryInstruments: TelemetryInstruments | undefined;
+const customCounters = new Map<string, CustomCounter>();
+const customHistograms = new Map<string, CustomHistogram>();
+
+const maxAttributeValueLength = 512;
+const maxAttributeKeyLength = 128;
+const maxAttributeCount = 32;
+const maxAttributeArrayLength = 32;
 
 function getTracer() {
   return trace.getTracer("cognidesk.core");
@@ -196,11 +250,12 @@ export async function withTelemetrySpan<T>(
     return run(trace.wrapSpanContext(INVALID_SPAN_CONTEXT));
   }
 
-  const startedAt = performance.now();
   return getTracer().startActiveSpan(spanOptions.name, {
     attributes: cleanAttributes(spanOptions.attributes),
   }, async (span) => {
     let success = false;
+    const enrichment = await applyTelemetrySpanEnrichment(options, spanOptions, span);
+    const startedAt = performance.now();
     try {
       const result = await run(span);
       success = true;
@@ -215,7 +270,12 @@ export async function withTelemetrySpan<T>(
       throw error;
     } finally {
       const durationMs = performance.now() - startedAt;
-      recordSpanMetric(spanOptions.metric, success, durationMs);
+      recordSpanMetric(spanOptions.metric, success, durationMs, enrichment.metricAttributes);
+      recordCustomTelemetryMetrics(options, enrichment.metrics, {
+        ...spanOptions.metric?.attributes,
+        ...enrichment.metricAttributes,
+        [telemetryAttributes.success]: success,
+      });
       span.end();
     }
   });
@@ -270,9 +330,16 @@ export function createTelemetryContext(options: TelemetryOptionsCarrier): Teleme
       if (!telemetryEnabled(options)) return;
       trace.getActiveSpan()?.setAttribute(name, value);
     },
+    setAttributes(attributes) {
+      if (!telemetryEnabled(options)) return;
+      trace.getActiveSpan()?.setAttributes(cleanAttributes(attributes));
+    },
     addEvent(name, attributes = {}) {
       if (!telemetryEnabled(options)) return;
       trace.getActiveSpan()?.addEvent(name, cleanAttributes(attributes));
+    },
+    recordMetric(metric) {
+      recordCustomTelemetryMetrics(options, [metric]);
     },
     recordException(error) {
       if (!telemetryEnabled(options)) return;
@@ -282,10 +349,55 @@ export function createTelemetryContext(options: TelemetryOptionsCarrier): Teleme
   };
 }
 
-function recordSpanMetric(metric: TelemetryMetricOptions | undefined, success: boolean, durationMs: number) {
+export function applyUsageToTelemetrySpan(span: Span, usage: UsageRecord) {
+  if (usage.inputTokens !== undefined) span.setAttribute(telemetryAttributes.modelInputTokens, usage.inputTokens);
+  if (usage.outputTokens !== undefined) span.setAttribute(telemetryAttributes.modelOutputTokens, usage.outputTokens);
+  if (usage.cachedInputTokens !== undefined) span.setAttribute(telemetryAttributes.modelCachedInputTokens, usage.cachedInputTokens);
+  if (usage.reasoningTokens !== undefined) span.setAttribute(telemetryAttributes.modelReasoningTokens, usage.reasoningTokens);
+  if (usage.totalTokens !== undefined) span.setAttribute(telemetryAttributes.modelTotalTokens, usage.totalTokens);
+}
+
+async function applyTelemetrySpanEnrichment(
+  options: TelemetryOptionsCarrier,
+  spanOptions: TelemetrySpanOptions,
+  span: Span,
+): Promise<{ metricAttributes: Attributes; metrics: TelemetryCustomMetric[] }> {
+  const enrichSpan = options.telemetry?.enrichSpan;
+  if (!enrichSpan) return { metricAttributes: {}, metrics: [] };
+  try {
+    const enrichment = await enrichSpan({
+      spanName: spanOptions.name,
+      ...(spanOptions.metric?.kind ? { metricKind: spanOptions.metric.kind } : {}),
+      attributes: cleanAttributes(spanOptions.attributes),
+      metricAttributes: cleanAttributes(spanOptions.metric?.attributes),
+    });
+    if (!enrichment) return { metricAttributes: {}, metrics: [] };
+    const attributes = cleanAttributes(enrichment.attributes);
+    if (Object.keys(attributes).length > 0) span.setAttributes(attributes);
+    for (const event of enrichment.events ?? []) {
+      span.addEvent(event.name, cleanAttributes(event.attributes));
+    }
+    return {
+      metricAttributes: cleanAttributes(enrichment.metricAttributes),
+      metrics: enrichment.metrics ?? [],
+    };
+  } catch (error) {
+    recordExceptionOnSpan(span, error);
+    span.setAttribute("cognidesk.telemetry.enrichment_failed", true);
+    return { metricAttributes: {}, metrics: [] };
+  }
+}
+
+function recordSpanMetric(
+  metric: TelemetryMetricOptions | undefined,
+  success: boolean,
+  durationMs: number,
+  enrichmentAttributes: Attributes = {},
+) {
   if (!metric) return;
   const attributes = cleanAttributes({
     ...metric.attributes,
+    ...enrichmentAttributes,
     [telemetryAttributes.success]: success,
   });
   const instruments = getTelemetryInstruments();
@@ -301,8 +413,14 @@ function recordSpanMetric(metric: TelemetryMetricOptions | undefined, success: b
       if (metric.tokenUsage?.inputTokens !== undefined) {
         instruments.modelTokens.record(metric.tokenUsage.inputTokens, { ...attributes, "cognidesk.token.kind": "input" });
       }
+      if (metric.tokenUsage?.cachedInputTokens !== undefined) {
+        instruments.modelTokens.record(metric.tokenUsage.cachedInputTokens, { ...attributes, "cognidesk.token.kind": "cached_input" });
+      }
       if (metric.tokenUsage?.outputTokens !== undefined) {
         instruments.modelTokens.record(metric.tokenUsage.outputTokens, { ...attributes, "cognidesk.token.kind": "output" });
+      }
+      if (metric.tokenUsage?.reasoningTokens !== undefined) {
+        instruments.modelTokens.record(metric.tokenUsage.reasoningTokens, { ...attributes, "cognidesk.token.kind": "reasoning" });
       }
       if (metric.tokenUsage?.totalTokens !== undefined) {
         instruments.modelTokens.record(metric.tokenUsage.totalTokens, { ...attributes, "cognidesk.token.kind": "total" });
@@ -323,6 +441,60 @@ function recordSpanMetric(metric: TelemetryMetricOptions | undefined, success: b
   }
 }
 
+function recordCustomTelemetryMetrics(
+  options: TelemetryOptionsCarrier,
+  metricsToRecord: TelemetryCustomMetric[] | undefined,
+  commonAttributes: Attributes = {},
+) {
+  if (!telemetryEnabled(options) || !metricsToRecord?.length) return;
+  for (const metric of metricsToRecord) {
+    const definition = options.telemetry?.customMetrics?.find((candidate) => candidate.name === metric.name);
+    if (!definition || !isValidMetricName(definition.name) || !Number.isFinite(metric.value)) continue;
+    const attributes = cleanAttributes({
+      ...commonAttributes,
+      ...metric.attributes,
+    });
+    if (definition.kind === "histogram") {
+      const instrument = customHistograms.get(definition.name) ?? createCustomHistogram(definition);
+      instrument.record(metric.value, attributes);
+      continue;
+    }
+    if (metric.value < 0) continue;
+    const instrument = customCounters.get(definition.name) ?? createCustomCounter(definition);
+    instrument.add(metric.value, attributes);
+  }
+}
+
+function createCustomCounter(metric: TelemetryCustomMetricDefinition): CustomCounter {
+  const instrument = metrics.getMeter("cognidesk.core").createCounter(metric.name, {
+    ...(metric.description ? { description: metric.description } : {}),
+    ...(metric.unit ? { unit: metric.unit } : {}),
+  });
+  customCounters.set(metric.name, instrument);
+  return instrument;
+}
+
+function createCustomHistogram(metric: TelemetryCustomMetricDefinition): CustomHistogram {
+  const instrument = metrics.getMeter("cognidesk.core").createHistogram(metric.name, {
+    ...(metric.description ? { description: metric.description } : {}),
+    ...(metric.unit ? { unit: metric.unit } : {}),
+  });
+  customHistograms.set(metric.name, instrument);
+  return instrument;
+}
+
+function isValidMetricName(name: string) {
+  if (!name || name.length > 255) return false;
+  for (const character of name) {
+    const code = character.charCodeAt(0);
+    const isLower = code >= 97 && code <= 122;
+    const isUpper = code >= 65 && code <= 90;
+    const isDigit = code >= 48 && code <= 57;
+    if (!isLower && !isUpper && !isDigit && character !== "." && character !== "_" && character !== "-") return false;
+  }
+  return true;
+}
+
 function recordExceptionOnSpan(span: Span, error: unknown) {
   if (error instanceof Error) {
     span.recordException(error);
@@ -333,13 +505,55 @@ function recordExceptionOnSpan(span: Span, error: unknown) {
   span.setAttribute(telemetryAttributes.errorType, typeof error);
 }
 
-function cleanAttributes(attributes: Attributes | undefined): Attributes {
+function cleanAttributes(attributes: Record<string, unknown> | undefined): Attributes {
   if (!attributes) return {};
-  return Object.fromEntries(
-    Object.entries(attributes).filter((entry): entry is [string, NonNullable<Attributes[string]>] => (
-      entry[1] !== undefined && entry[1] !== null
-    )),
-  );
+  const cleaned: Attributes = {};
+  for (const [key, value] of Object.entries(attributes)) {
+    if (Object.keys(cleaned).length >= maxAttributeCount) break;
+    if (!key || key.length > maxAttributeKeyLength) continue;
+    const attributeValue = cleanAttributeValue(value);
+    if (attributeValue !== undefined) cleaned[key] = attributeValue;
+  }
+  return cleaned;
+}
+
+function cleanAttributeValue(value: unknown): AttributeValue | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === "string") return truncateAttributeString(value);
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
+  if (typeof value === "boolean") return value;
+  if (Array.isArray(value)) {
+    const cleaned = value
+      .slice(0, maxAttributeArrayLength)
+      .map((item) => cleanScalarAttributeValue(item))
+      .filter((item): item is string | number | boolean => item !== undefined);
+    if (cleaned.every((item) => typeof item === "string")) return cleaned as string[];
+    if (cleaned.every((item) => typeof item === "number")) return cleaned as number[];
+    if (cleaned.every((item) => typeof item === "boolean")) return cleaned as boolean[];
+    return cleaned.map(String);
+  }
+  return safeStringAttributeValue(value);
+}
+
+function cleanScalarAttributeValue(value: unknown): string | number | boolean | undefined {
+  if (typeof value === "string") return truncateAttributeString(value);
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
+  if (typeof value === "boolean") return value;
+  return safeStringAttributeValue(value);
+}
+
+function safeStringAttributeValue(value: unknown) {
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized === undefined ? undefined : truncateAttributeString(serialized);
+  } catch {
+    return undefined;
+  }
+}
+
+function truncateAttributeString(value: string) {
+  if (value.length <= maxAttributeValueLength) return value;
+  return `${value.slice(0, maxAttributeValueLength - 3)}...`;
 }
 
 function serializeEventAttributes(attributes: Record<string, unknown>): Attributes {

@@ -2,6 +2,7 @@ import type { CompiledAgent, CompiledJourney } from "../definition.js";
 import { runtimeLogger } from "../logging.js";
 import {
   addTelemetryContentEvent,
+  applyUsageToTelemetrySpan,
   telemetryAttributes,
   telemetryEventNames,
   telemetrySpanNames,
@@ -93,8 +94,10 @@ export async function generateTextWithTrace(args: {
     }, "Model call returned");
     span.setAttribute("cognidesk.model.output_text_length", output.text.length);
     span.setAttribute("cognidesk.model.tool_call_count", output.toolCalls?.length ?? 0);
-    if (output.usage?.totalTokens !== undefined) span.setAttribute("cognidesk.model.usage.total_tokens", output.usage.totalTokens);
-    if (output.usage) metric.tokenUsage = output.usage;
+    if (output.usage) {
+      applyUsageToTelemetrySpan(span, output.usage);
+      metric.tokenUsage = output.usage;
+    }
     addTelemetryContentEvent(args.options, telemetryEventNames.modelOutput, {
       "cognidesk.model.role": args.input.role,
       "cognidesk.model.text": output.text,
