@@ -90,12 +90,9 @@ corepack pnpm demo
 | Cognidesk Studio | `http://localhost:3000` |
 | Studio operator runtime | `ws://localhost:4099/ws` |
 
-The default local Studio login is:
-
-| Field | Value |
-| --- | --- |
-| Email | `admin@local.cognidesk.dev` |
-| Password | `cognidesk-studio-admin` |
+On a fresh Studio database, open `/login` and create the first Admin account.
+The login form is empty by default; Studio no longer ships known local
+credentials.
 
 After sign-in, use the [Studio guide](../studio/index.md) for the target overview, agent configuration, conversation observability, dashboard artifacts, and Operator workflows.
 

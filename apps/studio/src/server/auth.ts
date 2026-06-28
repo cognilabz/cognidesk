@@ -4,7 +4,7 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { and, eq, gt } from "drizzle-orm";
 import { db, ensureStudioDatabase } from "@/server/db/client";
 import { schema, session as sessionTable, studioAuditLog, user } from "@/server/db/schema";
-import { allowsLocalStudioDefaults, studioEnv, studioTrustedOrigins } from "@/server/config";
+import { studioEnv, studioTrustedOrigins } from "@/server/config";
 import type { StudioRole } from "@cognidesk/studio-contracts";
 
 const env = studioEnv();
@@ -62,35 +62,86 @@ export async function getStudioSession(headers: Headers): Promise<StudioAuthSess
   } as StudioAuthSession;
 }
 
+export async function hasStudioUsers() {
+  await ensureStudioDatabase();
+  const [existing] = await db.select({ id: user.id }).from(user).limit(1);
+  return Boolean(existing);
+}
+
+export interface CreateFirstBootAdminInput {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export type CreateFirstBootAdminResult =
+  | { ok: true }
+  | { ok: false; status: number; message: string };
+
+let firstBootAdminCreation: Promise<CreateFirstBootAdminResult> | null = null;
+
+export async function createFirstBootAdmin(input: CreateFirstBootAdminInput): Promise<CreateFirstBootAdminResult> {
+  firstBootAdminCreation ??= createFirstBootAdminOnce(input).finally(() => {
+    firstBootAdminCreation = null;
+  });
+  return firstBootAdminCreation;
+}
+
 export async function ensureBootstrapAdmin() {
   await ensureStudioDatabase();
   const [existing] = await db.select({ id: user.id }).from(user).limit(1);
   if (existing) return;
 
-  const email = process.env.STUDIO_BOOTSTRAP_ADMIN_EMAIL
-    ?? (allowsLocalStudioDefaults() ? "admin@local.cognidesk.dev" : undefined);
-  const password = process.env.STUDIO_BOOTSTRAP_ADMIN_PASSWORD
-    ?? (allowsLocalStudioDefaults() ? "cognidesk-studio-admin" : undefined);
-  const name = process.env.STUDIO_BOOTSTRAP_ADMIN_NAME ?? "Cognidesk Studio Admin";
-  if (!email || !password) return;
+  const email = process.env.STUDIO_BOOTSTRAP_ADMIN_EMAIL?.trim();
+  const password = process.env.STUDIO_BOOTSTRAP_ADMIN_PASSWORD?.trim();
+  const name = process.env.STUDIO_BOOTSTRAP_ADMIN_NAME?.trim() || "Cognidesk Studio Admin";
+  if (!email && !password) return;
+  if (!email || !password) {
+    throw new Error("STUDIO_BOOTSTRAP_ADMIN_EMAIL and STUDIO_BOOTSTRAP_ADMIN_PASSWORD must be configured together.");
+  }
 
+  await createAdminUser({ email, password, name }, "studio.bootstrap_admin.created");
+}
+
+async function createFirstBootAdminOnce(input: CreateFirstBootAdminInput): Promise<CreateFirstBootAdminResult> {
+  const email = input.email.trim().toLowerCase();
+  const name = input.name.trim();
+  const password = input.password;
+  if (!name) return { ok: false, status: 400, message: "Admin name is required." };
+  if (!email || !email.includes("@")) return { ok: false, status: 400, message: "A valid admin email is required." };
+  if (password.length < 8) return { ok: false, status: 400, message: "Admin password must be at least 8 characters." };
+  if (await hasStudioUsers()) return { ok: false, status: 409, message: "Studio already has an admin user." };
+
+  try {
+    await createAdminUser({ email, password, name }, "studio.first_boot_admin.created");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 400,
+      message: error instanceof Error ? error.message : "Admin setup failed.",
+    };
+  }
+}
+
+async function createAdminUser(input: CreateFirstBootAdminInput, auditAction: string) {
   await auth.api.signUpEmail({
     body: {
-      email,
-      password,
-      name,
+      email: input.email,
+      password: input.password,
+      name: input.name,
     },
   });
   await Promise.all([
-    db.update(user).set({ role: "admin" }).where(eq(user.email, email)),
+    db.update(user).set({ role: "admin" }).where(eq(user.email, input.email)),
     db.insert(studioAuditLog).values({
       id: randomUUID(),
       userId: null,
       targetId: null,
-      action: "studio.bootstrap_admin.created",
+      action: auditAction,
       subjectType: "user",
-      subjectId: email,
-      metadataJson: JSON.stringify({ email }),
+      subjectId: input.email,
+      metadataJson: JSON.stringify({ email: input.email }),
       createdAt: new Date(),
     }),
   ]);
