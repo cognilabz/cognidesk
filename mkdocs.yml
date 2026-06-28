@@ -120,6 +120,7 @@ nav:
       - Local Development: getting-started/local-development.md
   - Concepts:
       - concepts/index.md
+      - Architecture Overview: concepts/architecture.md
       - Agents: concepts/agents.md
       - Journeys: concepts/journeys.md
       - Tools: concepts/tools.md
