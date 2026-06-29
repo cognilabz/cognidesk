@@ -2421,7 +2421,7 @@
 </span><span id="__span-0-218"><a id="__codelineno-0-218" name="__codelineno-0-218" href="#__codelineno-0-218"></a><span class="w">     </span><span class="p">};</span>
 </span><span id="__span-0-219"><a id="__codelineno-0-219" name="__codelineno-0-219" href="#__codelineno-0-219"></a><span class="w">     </span><span class="nx">implementation</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-220"><a id="__codelineno-0-220" name="__codelineno-0-220" href="#__codelineno-0-220"></a><span class="w">        </span><span class="nx">manifestImport</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;no-sdk-client-initialization&quot;</span><span class="p">;</span>
-</span><span id="__span-0-221"><a id="__codelineno-0-221" name="__codelineno-0-221" href="#__codelineno-0-221"></a><span class="w">        </span><span class="nx">rawClientEscapeHatch</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;HubSpotTicketingClient.rawClient&quot;</span><span class="p">;</span>
+</span><span id="__span-0-221"><a id="__codelineno-0-221" name="__codelineno-0-221" href="#__codelineno-0-221"></a><span class="w">        </span><span class="nx">rawClientEscapeHatch</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()&quot;</span><span class="p">;</span>
 </span><span id="__span-0-222"><a id="__codelineno-0-222" name="__codelineno-0-222" href="#__codelineno-0-222"></a><span class="w">        </span><span class="nx">sdkPackage</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;@hubspot/api-client&quot;</span><span class="p">;</span>
 </span><span id="__span-0-223"><a id="__codelineno-0-223" name="__codelineno-0-223" href="#__codelineno-0-223"></a><span class="w">        </span><span class="nx">sdkVersionRange</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;^13.5.0&quot;</span><span class="p">;</span>
 </span><span id="__span-0-224"><a id="__codelineno-0-224" name="__codelineno-0-224" href="#__codelineno-0-224"></a><span class="w">        </span><span class="nx">strategy</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;official-sdk&quot;</span><span class="p">;</span>
@@ -2612,7 +2612,7 @@
 </tr>
 <tr>
 <td><code>metadata</code></td>
-<td>{ <code>channelCoverage</code>: { <code>associations</code>: <code>"typed-extension"</code>; <code>broaderHubSpotApi</code>: <code>"provider-supported-raw-client"</code>; <code>comments</code>: <code>"typed-note-create"</code>; <code>internalNotes</code>: <code>"typed-note-create"</code>; <code>tickets</code>: <code>"typed-create-read-update-search"</code>; }; <code>implementation</code>: { <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>rawClientEscapeHatch</code>: <code>"HubSpotTicketingClient.rawClient"</code>; <code>sdkPackage</code>: <code>"@hubspot/api-client"</code>; <code>sdkVersionRange</code>: <code>"^13.5.0"</code>; <code>strategy</code>: <code>"official-sdk"</code>; }; }</td>
+<td>{ <code>channelCoverage</code>: { <code>associations</code>: <code>"typed-extension"</code>; <code>broaderHubSpotApi</code>: <code>"provider-supported-raw-client"</code>; <code>comments</code>: <code>"typed-note-create"</code>; <code>internalNotes</code>: <code>"typed-note-create"</code>; <code>tickets</code>: <code>"typed-create-read-update-search"</code>; }; <code>implementation</code>: { <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>rawClientEscapeHatch</code>: <code>"HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()"</code>; <code>sdkPackage</code>: <code>"@hubspot/api-client"</code>; <code>sdkVersionRange</code>: <code>"^13.5.0"</code>; <code>strategy</code>: <code>"official-sdk"</code>; }; }</td>
 </tr>
 <tr>
 <td><code>metadata.channelCoverage</code></td>
@@ -2640,7 +2640,7 @@
 </tr>
 <tr>
 <td><code>metadata.implementation</code></td>
-<td>{ <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>rawClientEscapeHatch</code>: <code>"HubSpotTicketingClient.rawClient"</code>; <code>sdkPackage</code>: <code>"@hubspot/api-client"</code>; <code>sdkVersionRange</code>: <code>"^13.5.0"</code>; <code>strategy</code>: <code>"official-sdk"</code>; }</td>
+<td>{ <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>rawClientEscapeHatch</code>: <code>"HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()"</code>; <code>sdkPackage</code>: <code>"@hubspot/api-client"</code>; <code>sdkVersionRange</code>: <code>"^13.5.0"</code>; <code>strategy</code>: <code>"official-sdk"</code>; }</td>
 </tr>
 <tr>
 <td><code>metadata.implementation.manifestImport</code></td>
@@ -2648,7 +2648,7 @@
 </tr>
 <tr>
 <td><code>metadata.implementation.rawClientEscapeHatch</code></td>
-<td><code>"HubSpotTicketingClient.rawClient"</code></td>
+<td><code>"HubSpotTicketingClient.rawClient / HubSpotTicketingClient.getRawClient()"</code></td>
 </tr>
 <tr>
 <td><code>metadata.implementation.sdkPackage</code></td>

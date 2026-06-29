@@ -2379,7 +2379,7 @@
 </span><span id="__span-0-176"><a id="__codelineno-0-176" name="__codelineno-0-176" href="#__codelineno-0-176"></a><span class="w">        </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Intercom Conversations API&quot;</span><span class="p">;</span>
 </span><span id="__span-0-177"><a id="__codelineno-0-177" name="__codelineno-0-177" href="#__codelineno-0-177"></a><span class="w">        </span><span class="nx">url</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations&quot;</span><span class="p">;</span>
 </span><span id="__span-0-178"><a id="__codelineno-0-178" name="__codelineno-0-178" href="#__codelineno-0-178"></a><span class="w">     </span><span class="p">}];</span>
-</span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179" href="#__codelineno-0-179"></a><span class="w">     </span><span class="nx">notes</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Generated Cognidesk full-provider API clones should be removed only after this package&#39;s replacement tests pass.&quot;</span><span class="p">];</span>
+</span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179" href="#__codelineno-0-179"></a><span class="w">     </span><span class="nx">notes</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient/getRawClient().&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Generated Cognidesk full-provider API clones should be removed only after this package&#39;s replacement tests pass.&quot;</span><span class="p">];</span>
 </span><span id="__span-0-180"><a id="__codelineno-0-180" name="__codelineno-0-180" href="#__codelineno-0-180"></a><span class="w">     </span><span class="nx">scope</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;support-workflow-subset&quot;</span><span class="p">;</span>
 </span><span id="__span-0-181"><a id="__codelineno-0-181" name="__codelineno-0-181" href="#__codelineno-0-181"></a><span class="w">  </span><span class="p">};</span>
 </span><span id="__span-0-182"><a id="__codelineno-0-182" name="__codelineno-0-182" href="#__codelineno-0-182"></a><span class="w">  </span><span class="nx">credentialRequirements</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="p">[{</span>
@@ -2408,7 +2408,7 @@
 </span><span id="__span-0-205"><a id="__codelineno-0-205" name="__codelineno-0-205" href="#__codelineno-0-205"></a><span class="w">     </span><span class="p">};</span>
 </span><span id="__span-0-206"><a id="__codelineno-0-206" name="__codelineno-0-206" href="#__codelineno-0-206"></a><span class="w">     </span><span class="nx">implementation</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-207"><a id="__codelineno-0-207" name="__codelineno-0-207" href="#__codelineno-0-207"></a><span class="w">        </span><span class="nx">manifestImport</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;no-sdk-client-initialization&quot;</span><span class="p">;</span>
-</span><span id="__span-0-208"><a id="__codelineno-0-208" name="__codelineno-0-208" href="#__codelineno-0-208"></a><span class="w">        </span><span class="nx">rawClientEscapeHatch</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;IntercomTicketingClient.rawClient&quot;</span><span class="p">;</span>
+</span><span id="__span-0-208"><a id="__codelineno-0-208" name="__codelineno-0-208" href="#__codelineno-0-208"></a><span class="w">        </span><span class="nx">rawClientEscapeHatch</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;IntercomTicketingClient.rawClient/getRawClient()&quot;</span><span class="p">;</span>
 </span><span id="__span-0-209"><a id="__codelineno-0-209" name="__codelineno-0-209" href="#__codelineno-0-209"></a><span class="w">        </span><span class="nx">sdkPackage</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;intercom-client&quot;</span><span class="p">;</span>
 </span><span id="__span-0-210"><a id="__codelineno-0-210" name="__codelineno-0-210" href="#__codelineno-0-210"></a><span class="w">        </span><span class="nx">sdkVersionRange</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;7.0.3&quot;</span><span class="p">;</span>
 </span><span id="__span-0-211"><a id="__codelineno-0-211" name="__codelineno-0-211" href="#__codelineno-0-211"></a><span class="w">        </span><span class="nx">strategy</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;official-sdk&quot;</span><span class="p">;</span>
@@ -2564,7 +2564,7 @@
 </tr>
 <tr>
 <td><code>coverage</code></td>
-<td>{ <code>evidence</code>: readonly [{ <code>label</code>: <code>"Intercom Node client"</code>; <code>url</code>: <code>"https://github.com/intercom/intercom-node"</code>; }, { <code>label</code>: <code>"Intercom Tickets API"</code>; <code>url</code>: <code>"https://developers.intercom.com/docs/references/rest-api/api.intercom.io/tickets"</code>; }, { <code>label</code>: <code>"Intercom Conversations API"</code>; <code>url</code>: <code>"https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations"</code>; }]; <code>notes</code>: readonly [<code>"Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers."</code>, <code>"Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient."</code>, <code>"Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."</code>]; <code>scope</code>: <code>"support-workflow-subset"</code>; }</td>
+<td>{ <code>evidence</code>: readonly [{ <code>label</code>: <code>"Intercom Node client"</code>; <code>url</code>: <code>"https://github.com/intercom/intercom-node"</code>; }, { <code>label</code>: <code>"Intercom Tickets API"</code>; <code>url</code>: <code>"https://developers.intercom.com/docs/references/rest-api/api.intercom.io/tickets"</code>; }, { <code>label</code>: <code>"Intercom Conversations API"</code>; <code>url</code>: <code>"https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations"</code>; }]; <code>notes</code>: readonly [<code>"Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers."</code>, <code>"Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient/getRawClient()."</code>, <code>"Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."</code>]; <code>scope</code>: <code>"support-workflow-subset"</code>; }</td>
 </tr>
 <tr>
 <td><code>coverage.evidence</code></td>
@@ -2572,7 +2572,7 @@
 </tr>
 <tr>
 <td><code>coverage.notes</code></td>
-<td>readonly [<code>"Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers."</code>, <code>"Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient."</code>, <code>"Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."</code>]</td>
+<td>readonly [<code>"Coverage is scoped to normalized ticket and conversation operations implemented by typed handlers."</code>, <code>"Implementation uses the maintained official intercom-client package pinned to 7.0.3; broader Intercom APIs remain available through rawClient/getRawClient()."</code>, <code>"Generated Cognidesk full-provider API clones should be removed only after this package's replacement tests pass."</code>]</td>
 </tr>
 <tr>
 <td><code>coverage.scope</code></td>
@@ -2600,7 +2600,7 @@
 </tr>
 <tr>
 <td><code>metadata</code></td>
-<td>{ <code>channelCoverage</code>: { <code>broaderIntercomApi</code>: <code>"provider-supported-raw-client"</code>; <code>conversations</code>: <code>"typed-reply-read-extension"</code>; <code>internalNotes</code>: <code>"typed-conversation-note"</code>; <code>tickets</code>: <code>"typed-create-read-update-search"</code>; }; <code>implementation</code>: { <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>rawClientEscapeHatch</code>: <code>"IntercomTicketingClient.rawClient"</code>; <code>sdkPackage</code>: <code>"intercom-client"</code>; <code>sdkVersionRange</code>: <code>"7.0.3"</code>; <code>strategy</code>: <code>"official-sdk"</code>; <code>supplyChainNote</code>: <code>"7.0.3 is pinned; do not allow compromised 7.0.4."</code>; }; }</td>
+<td>{ <code>channelCoverage</code>: { <code>broaderIntercomApi</code>: <code>"provider-supported-raw-client"</code>; <code>conversations</code>: <code>"typed-reply-read-extension"</code>; <code>internalNotes</code>: <code>"typed-conversation-note"</code>; <code>tickets</code>: <code>"typed-create-read-update-search"</code>; }; <code>implementation</code>: { <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>rawClientEscapeHatch</code>: <code>"IntercomTicketingClient.rawClient/getRawClient()"</code>; <code>sdkPackage</code>: <code>"intercom-client"</code>; <code>sdkVersionRange</code>: <code>"7.0.3"</code>; <code>strategy</code>: <code>"official-sdk"</code>; <code>supplyChainNote</code>: <code>"7.0.3 is pinned; do not allow compromised 7.0.4."</code>; }; }</td>
 </tr>
 <tr>
 <td><code>metadata.channelCoverage</code></td>
@@ -2624,7 +2624,7 @@
 </tr>
 <tr>
 <td><code>metadata.implementation</code></td>
-<td>{ <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>rawClientEscapeHatch</code>: <code>"IntercomTicketingClient.rawClient"</code>; <code>sdkPackage</code>: <code>"intercom-client"</code>; <code>sdkVersionRange</code>: <code>"7.0.3"</code>; <code>strategy</code>: <code>"official-sdk"</code>; <code>supplyChainNote</code>: <code>"7.0.3 is pinned; do not allow compromised 7.0.4."</code>; }</td>
+<td>{ <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>rawClientEscapeHatch</code>: <code>"IntercomTicketingClient.rawClient/getRawClient()"</code>; <code>sdkPackage</code>: <code>"intercom-client"</code>; <code>sdkVersionRange</code>: <code>"7.0.3"</code>; <code>strategy</code>: <code>"official-sdk"</code>; <code>supplyChainNote</code>: <code>"7.0.3 is pinned; do not allow compromised 7.0.4."</code>; }</td>
 </tr>
 <tr>
 <td><code>metadata.implementation.manifestImport</code></td>
@@ -2632,7 +2632,7 @@
 </tr>
 <tr>
 <td><code>metadata.implementation.rawClientEscapeHatch</code></td>
-<td><code>"IntercomTicketingClient.rawClient"</code></td>
+<td><code>"IntercomTicketingClient.rawClient/getRawClient()"</code></td>
 </tr>
 <tr>
 <td><code>metadata.implementation.sdkPackage</code></td>

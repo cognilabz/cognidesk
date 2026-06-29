@@ -2361,37 +2361,55 @@
 </span><span id="__span-0-158"><a id="__codelineno-0-158" name="__codelineno-0-158" href="#__codelineno-0-158"></a><span class="w">        </span><span class="nx">formWebhooks</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;typed-validate-parse&quot;</span><span class="p">;</span>
 </span><span id="__span-0-159"><a id="__codelineno-0-159" name="__codelineno-0-159" href="#__codelineno-0-159"></a><span class="w">        </span><span class="nx">thirdPartyFormsProviderApis</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;not-covered&quot;</span><span class="p">;</span>
 </span><span id="__span-0-160"><a id="__codelineno-0-160" name="__codelineno-0-160" href="#__codelineno-0-160"></a><span class="w">     </span><span class="p">};</span>
-</span><span id="__span-0-161"><a id="__codelineno-0-161" name="__codelineno-0-161" href="#__codelineno-0-161"></a><span class="w">  </span><span class="p">};</span>
-</span><span id="__span-0-162"><a id="__codelineno-0-162" name="__codelineno-0-162" href="#__codelineno-0-162"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Cognidesk Forms&quot;</span><span class="p">;</span>
-</span><span id="__span-0-163"><a id="__codelineno-0-163" name="__codelineno-0-163" href="#__codelineno-0-163"></a><span class="w">  </span><span class="nx">operations</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="p">[{</span>
-</span><span id="__span-0-164"><a id="__codelineno-0-164" name="__codelineno-0-164" href="#__codelineno-0-164"></a><span class="w">     </span><span class="nx">alias</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cognidesk.form.definition.validate&quot;</span><span class="p">;</span>
-</span><span id="__span-0-165"><a id="__codelineno-0-165" name="__codelineno-0-165" href="#__codelineno-0-165"></a><span class="w">     </span><span class="nx">capability</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;read-provider-object&quot;</span><span class="p">;</span>
-</span><span id="__span-0-166"><a id="__codelineno-0-166" name="__codelineno-0-166" href="#__codelineno-0-166"></a><span class="w">     </span><span class="nx">extension</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
-</span><span id="__span-0-167"><a id="__codelineno-0-167" name="__codelineno-0-167" href="#__codelineno-0-167"></a><span class="w">     </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Validate form definition&quot;</span><span class="p">;</span>
-</span><span id="__span-0-168"><a id="__codelineno-0-168" name="__codelineno-0-168" href="#__codelineno-0-168"></a><span class="w">     </span><span class="nx">providerObject</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;formDefinition&quot;</span><span class="p">;</span>
-</span><span id="__span-0-169"><a id="__codelineno-0-169" name="__codelineno-0-169" href="#__codelineno-0-169"></a><span class="w">     </span><span class="nx">requiresCredential</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
-</span><span id="__span-0-170"><a id="__codelineno-0-170" name="__codelineno-0-170" href="#__codelineno-0-170"></a><span class="w">   </span><span class="p">},</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-171"><a id="__codelineno-0-171" name="__codelineno-0-171" href="#__codelineno-0-171"></a><span class="w">     </span><span class="nx">alias</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cognidesk.form.submission.normalize&quot;</span><span class="p">;</span>
-</span><span id="__span-0-172"><a id="__codelineno-0-172" name="__codelineno-0-172" href="#__codelineno-0-172"></a><span class="w">     </span><span class="nx">capability</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;receive&quot;</span><span class="p">;</span>
-</span><span id="__span-0-173"><a id="__codelineno-0-173" name="__codelineno-0-173" href="#__codelineno-0-173"></a><span class="w">     </span><span class="nx">exposesSensitiveData</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
-</span><span id="__span-0-174"><a id="__codelineno-0-174" name="__codelineno-0-174" href="#__codelineno-0-174"></a><span class="w">     </span><span class="nx">extension</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
-</span><span id="__span-0-175"><a id="__codelineno-0-175" name="__codelineno-0-175" href="#__codelineno-0-175"></a><span class="w">     </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Normalize form submission&quot;</span><span class="p">;</span>
-</span><span id="__span-0-176"><a id="__codelineno-0-176" name="__codelineno-0-176" href="#__codelineno-0-176"></a><span class="w">     </span><span class="nx">providerObject</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;formSubmission&quot;</span><span class="p">;</span>
-</span><span id="__span-0-177"><a id="__codelineno-0-177" name="__codelineno-0-177" href="#__codelineno-0-177"></a><span class="w">     </span><span class="nx">requiresCredential</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
-</span><span id="__span-0-178"><a id="__codelineno-0-178" name="__codelineno-0-178" href="#__codelineno-0-178"></a><span class="w">   </span><span class="p">},</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179" href="#__codelineno-0-179"></a><span class="w">     </span><span class="nx">alias</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cognidesk.form.webhook.parse&quot;</span><span class="p">;</span>
-</span><span id="__span-0-180"><a id="__codelineno-0-180" name="__codelineno-0-180" href="#__codelineno-0-180"></a><span class="w">     </span><span class="nx">capability</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;form.webhook-signature&quot;</span><span class="p">;</span>
-</span><span id="__span-0-181"><a id="__codelineno-0-181" name="__codelineno-0-181" href="#__codelineno-0-181"></a><span class="w">     </span><span class="nx">exposesSensitiveData</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
-</span><span id="__span-0-182"><a id="__codelineno-0-182" name="__codelineno-0-182" href="#__codelineno-0-182"></a><span class="w">     </span><span class="nx">extension</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
-</span><span id="__span-0-183"><a id="__codelineno-0-183" name="__codelineno-0-183" href="#__codelineno-0-183"></a><span class="w">     </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Parse form webhook&quot;</span><span class="p">;</span>
-</span><span id="__span-0-184"><a id="__codelineno-0-184" name="__codelineno-0-184" href="#__codelineno-0-184"></a><span class="w">     </span><span class="nx">providerObject</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;signedFormWebhook&quot;</span><span class="p">;</span>
-</span><span id="__span-0-185"><a id="__codelineno-0-185" name="__codelineno-0-185" href="#__codelineno-0-185"></a><span class="w">     </span><span class="nx">requiresCredential</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
-</span><span id="__span-0-186"><a id="__codelineno-0-186" name="__codelineno-0-186" href="#__codelineno-0-186"></a><span class="w">  </span><span class="p">}];</span>
-</span><span id="__span-0-187"><a id="__codelineno-0-187" name="__codelineno-0-187" href="#__codelineno-0-187"></a><span class="w">  </span><span class="nx">packageName</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;@cognidesk/integration-form-cognidesk&quot;</span><span class="p">;</span>
-</span><span id="__span-0-188"><a id="__codelineno-0-188" name="__codelineno-0-188" href="#__codelineno-0-188"></a><span class="w">  </span><span class="nx">privacyNotes</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Form submissions can include customer contact details, free-text messages, uploaded-file references, and SDK-user-defined custom fields.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Webhook secrets and registry credentials stay server-side and are represented in Studio only as readiness state.&quot;</span><span class="p">];</span>
-</span><span id="__span-0-189"><a id="__codelineno-0-189" name="__codelineno-0-189" href="#__codelineno-0-189"></a><span class="w">  </span><span class="nx">provider</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cognidesk&quot;</span><span class="p">;</span>
-</span><span id="__span-0-190"><a id="__codelineno-0-190" name="__codelineno-0-190" href="#__codelineno-0-190"></a><span class="w">  </span><span class="nx">trustLevel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;official&quot;</span><span class="p">;</span>
-</span><span id="__span-0-191"><a id="__codelineno-0-191" name="__codelineno-0-191" href="#__codelineno-0-191"></a><span class="p">};</span>
+</span><span id="__span-0-161"><a id="__codelineno-0-161" name="__codelineno-0-161" href="#__codelineno-0-161"></a><span class="w">     </span><span class="nx">checkedProviderSdk</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-162"><a id="__codelineno-0-162" name="__codelineno-0-162" href="#__codelineno-0-162"></a><span class="w">        </span><span class="nx">checkedAt</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2026-06-25&quot;</span><span class="p">;</span>
+</span><span id="__span-0-163"><a id="__codelineno-0-163" name="__codelineno-0-163" href="#__codelineno-0-163"></a><span class="w">        </span><span class="nx">packageSurfaceRuntimeSdkAvailable</span><span class="o">:</span><span class="w"> </span><span class="kt">false</span><span class="p">;</span>
+</span><span id="__span-0-164"><a id="__codelineno-0-164" name="__codelineno-0-164" href="#__codelineno-0-164"></a><span class="w">        </span><span class="nx">verdict</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;internal-provider/local-runtime/no-provider-SDK&quot;</span><span class="p">;</span>
+</span><span id="__span-0-165"><a id="__codelineno-0-165" name="__codelineno-0-165" href="#__codelineno-0-165"></a><span class="w">     </span><span class="p">};</span>
+</span><span id="__span-0-166"><a id="__codelineno-0-166" name="__codelineno-0-166" href="#__codelineno-0-166"></a><span class="w">     </span><span class="nx">implementation</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-167"><a id="__codelineno-0-167" name="__codelineno-0-167" href="#__codelineno-0-167"></a><span class="w">        </span><span class="nx">checkedAt</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2026-06-25&quot;</span><span class="p">;</span>
+</span><span id="__span-0-168"><a id="__codelineno-0-168" name="__codelineno-0-168" href="#__codelineno-0-168"></a><span class="w">        </span><span class="nx">checkedSurface</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;package.json dependencies and src runtime imports&quot;</span><span class="p">;</span>
+</span><span id="__span-0-169"><a id="__codelineno-0-169" name="__codelineno-0-169" href="#__codelineno-0-169"></a><span class="w">        </span><span class="nx">externalProviderSdk</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;not-applicable-internal-provider&quot;</span><span class="p">;</span>
+</span><span id="__span-0-170"><a id="__codelineno-0-170" name="__codelineno-0-170" href="#__codelineno-0-170"></a><span class="w">        </span><span class="nx">guardrails</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency.&quot;</span><span class="p">];</span>
+</span><span id="__span-0-171"><a id="__codelineno-0-171" name="__codelineno-0-171" href="#__codelineno-0-171"></a><span class="w">        </span><span class="nx">integrationKitStatus</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;implemented&quot;</span><span class="p">;</span>
+</span><span id="__span-0-172"><a id="__codelineno-0-172" name="__codelineno-0-172" href="#__codelineno-0-172"></a><span class="w">        </span><span class="nx">manifestImport</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;no-sdk-client-initialization&quot;</span><span class="p">;</span>
+</span><span id="__span-0-173"><a id="__codelineno-0-173" name="__codelineno-0-173" href="#__codelineno-0-173"></a><span class="w">        </span><span class="nx">protocolSource</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Cognidesk local form submission protocol&quot;</span><span class="p">;</span>
+</span><span id="__span-0-174"><a id="__codelineno-0-174" name="__codelineno-0-174" href="#__codelineno-0-174"></a><span class="w">        </span><span class="nx">providerSdkDecision</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;internal-provider/local-runtime/no-provider-SDK&quot;</span><span class="p">;</span>
+</span><span id="__span-0-175"><a id="__codelineno-0-175" name="__codelineno-0-175" href="#__codelineno-0-175"></a><span class="w">        </span><span class="nx">reason</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK.&quot;</span><span class="p">;</span>
+</span><span id="__span-0-176"><a id="__codelineno-0-176" name="__codelineno-0-176" href="#__codelineno-0-176"></a><span class="w">        </span><span class="nx">runtime</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;SDK-user-configured Cognidesk form registry and signed webhook parser&quot;</span><span class="p">;</span>
+</span><span id="__span-0-177"><a id="__codelineno-0-177" name="__codelineno-0-177" href="#__codelineno-0-177"></a><span class="w">        </span><span class="nx">strategy</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;protocol-local-runtime&quot;</span><span class="p">;</span>
+</span><span id="__span-0-178"><a id="__codelineno-0-178" name="__codelineno-0-178" href="#__codelineno-0-178"></a><span class="w">     </span><span class="p">};</span>
+</span><span id="__span-0-179"><a id="__codelineno-0-179" name="__codelineno-0-179" href="#__codelineno-0-179"></a><span class="w">  </span><span class="p">};</span>
+</span><span id="__span-0-180"><a id="__codelineno-0-180" name="__codelineno-0-180" href="#__codelineno-0-180"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Cognidesk Forms&quot;</span><span class="p">;</span>
+</span><span id="__span-0-181"><a id="__codelineno-0-181" name="__codelineno-0-181" href="#__codelineno-0-181"></a><span class="w">  </span><span class="nx">operations</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="p">[{</span>
+</span><span id="__span-0-182"><a id="__codelineno-0-182" name="__codelineno-0-182" href="#__codelineno-0-182"></a><span class="w">     </span><span class="nx">alias</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cognidesk.form.definition.validate&quot;</span><span class="p">;</span>
+</span><span id="__span-0-183"><a id="__codelineno-0-183" name="__codelineno-0-183" href="#__codelineno-0-183"></a><span class="w">     </span><span class="nx">capability</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;read-provider-object&quot;</span><span class="p">;</span>
+</span><span id="__span-0-184"><a id="__codelineno-0-184" name="__codelineno-0-184" href="#__codelineno-0-184"></a><span class="w">     </span><span class="nx">extension</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
+</span><span id="__span-0-185"><a id="__codelineno-0-185" name="__codelineno-0-185" href="#__codelineno-0-185"></a><span class="w">     </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Validate form definition&quot;</span><span class="p">;</span>
+</span><span id="__span-0-186"><a id="__codelineno-0-186" name="__codelineno-0-186" href="#__codelineno-0-186"></a><span class="w">     </span><span class="nx">providerObject</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;formDefinition&quot;</span><span class="p">;</span>
+</span><span id="__span-0-187"><a id="__codelineno-0-187" name="__codelineno-0-187" href="#__codelineno-0-187"></a><span class="w">     </span><span class="nx">requiresCredential</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
+</span><span id="__span-0-188"><a id="__codelineno-0-188" name="__codelineno-0-188" href="#__codelineno-0-188"></a><span class="w">   </span><span class="p">},</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-189"><a id="__codelineno-0-189" name="__codelineno-0-189" href="#__codelineno-0-189"></a><span class="w">     </span><span class="nx">alias</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cognidesk.form.submission.normalize&quot;</span><span class="p">;</span>
+</span><span id="__span-0-190"><a id="__codelineno-0-190" name="__codelineno-0-190" href="#__codelineno-0-190"></a><span class="w">     </span><span class="nx">capability</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;receive&quot;</span><span class="p">;</span>
+</span><span id="__span-0-191"><a id="__codelineno-0-191" name="__codelineno-0-191" href="#__codelineno-0-191"></a><span class="w">     </span><span class="nx">exposesSensitiveData</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
+</span><span id="__span-0-192"><a id="__codelineno-0-192" name="__codelineno-0-192" href="#__codelineno-0-192"></a><span class="w">     </span><span class="nx">extension</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
+</span><span id="__span-0-193"><a id="__codelineno-0-193" name="__codelineno-0-193" href="#__codelineno-0-193"></a><span class="w">     </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Normalize form submission&quot;</span><span class="p">;</span>
+</span><span id="__span-0-194"><a id="__codelineno-0-194" name="__codelineno-0-194" href="#__codelineno-0-194"></a><span class="w">     </span><span class="nx">providerObject</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;formSubmission&quot;</span><span class="p">;</span>
+</span><span id="__span-0-195"><a id="__codelineno-0-195" name="__codelineno-0-195" href="#__codelineno-0-195"></a><span class="w">     </span><span class="nx">requiresCredential</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
+</span><span id="__span-0-196"><a id="__codelineno-0-196" name="__codelineno-0-196" href="#__codelineno-0-196"></a><span class="w">   </span><span class="p">},</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-197"><a id="__codelineno-0-197" name="__codelineno-0-197" href="#__codelineno-0-197"></a><span class="w">     </span><span class="nx">alias</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cognidesk.form.webhook.parse&quot;</span><span class="p">;</span>
+</span><span id="__span-0-198"><a id="__codelineno-0-198" name="__codelineno-0-198" href="#__codelineno-0-198"></a><span class="w">     </span><span class="nx">capability</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;form.webhook-signature&quot;</span><span class="p">;</span>
+</span><span id="__span-0-199"><a id="__codelineno-0-199" name="__codelineno-0-199" href="#__codelineno-0-199"></a><span class="w">     </span><span class="nx">exposesSensitiveData</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
+</span><span id="__span-0-200"><a id="__codelineno-0-200" name="__codelineno-0-200" href="#__codelineno-0-200"></a><span class="w">     </span><span class="nx">extension</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
+</span><span id="__span-0-201"><a id="__codelineno-0-201" name="__codelineno-0-201" href="#__codelineno-0-201"></a><span class="w">     </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Parse form webhook&quot;</span><span class="p">;</span>
+</span><span id="__span-0-202"><a id="__codelineno-0-202" name="__codelineno-0-202" href="#__codelineno-0-202"></a><span class="w">     </span><span class="nx">providerObject</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;signedFormWebhook&quot;</span><span class="p">;</span>
+</span><span id="__span-0-203"><a id="__codelineno-0-203" name="__codelineno-0-203" href="#__codelineno-0-203"></a><span class="w">     </span><span class="nx">requiresCredential</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">;</span>
+</span><span id="__span-0-204"><a id="__codelineno-0-204" name="__codelineno-0-204" href="#__codelineno-0-204"></a><span class="w">  </span><span class="p">}];</span>
+</span><span id="__span-0-205"><a id="__codelineno-0-205" name="__codelineno-0-205" href="#__codelineno-0-205"></a><span class="w">  </span><span class="nx">packageName</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;@cognidesk/integration-form-cognidesk&quot;</span><span class="p">;</span>
+</span><span id="__span-0-206"><a id="__codelineno-0-206" name="__codelineno-0-206" href="#__codelineno-0-206"></a><span class="w">  </span><span class="nx">privacyNotes</span><span class="o">:</span><span class="w"> </span><span class="kt">readonly</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Form submissions can include customer contact details, free-text messages, uploaded-file references, and SDK-user-defined custom fields.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Webhook secrets and registry credentials stay server-side and are represented in Studio only as readiness state.&quot;</span><span class="p">];</span>
+</span><span id="__span-0-207"><a id="__codelineno-0-207" name="__codelineno-0-207" href="#__codelineno-0-207"></a><span class="w">  </span><span class="nx">provider</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cognidesk&quot;</span><span class="p">;</span>
+</span><span id="__span-0-208"><a id="__codelineno-0-208" name="__codelineno-0-208" href="#__codelineno-0-208"></a><span class="w">  </span><span class="nx">trustLevel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;official&quot;</span><span class="p">;</span>
+</span><span id="__span-0-209"><a id="__codelineno-0-209" name="__codelineno-0-209" href="#__codelineno-0-209"></a><span class="p">};</span>
 </span></code></pre></div>
 <h4 id="type-declaration">Type Declaration<a class="headerlink" href="#type-declaration" title="Permanent link">&para;</a></h4>
 <table>
@@ -2539,7 +2557,7 @@
 </tr>
 <tr>
 <td><code>metadata</code></td>
-<td>{ <code>channelCoverage</code>: { <code>formDefinitions</code>: <code>"typed-read-validate"</code>; <code>formSubmissions</code>: <code>"typed-validate-normalize"</code>; <code>formWebhooks</code>: <code>"typed-validate-parse"</code>; <code>thirdPartyFormsProviderApis</code>: <code>"not-covered"</code>; }; }</td>
+<td>{ <code>channelCoverage</code>: { <code>formDefinitions</code>: <code>"typed-read-validate"</code>; <code>formSubmissions</code>: <code>"typed-validate-normalize"</code>; <code>formWebhooks</code>: <code>"typed-validate-parse"</code>; <code>thirdPartyFormsProviderApis</code>: <code>"not-covered"</code>; }; <code>checkedProviderSdk</code>: { <code>checkedAt</code>: <code>"2026-06-25"</code>; <code>packageSurfaceRuntimeSdkAvailable</code>: <code>false</code>; <code>verdict</code>: <code>"internal-provider/local-runtime/no-provider-SDK"</code>; }; <code>implementation</code>: { <code>checkedAt</code>: <code>"2026-06-25"</code>; <code>checkedSurface</code>: <code>"package.json dependencies and src runtime imports"</code>; <code>externalProviderSdk</code>: <code>"not-applicable-internal-provider"</code>; <code>guardrails</code>: readonly [<code>"Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced."</code>, <code>"Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package."</code>, <code>"If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency."</code>]; <code>integrationKitStatus</code>: <code>"implemented"</code>; <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>protocolSource</code>: <code>"Cognidesk local form submission protocol"</code>; <code>providerSdkDecision</code>: <code>"internal-provider/local-runtime/no-provider-SDK"</code>; <code>reason</code>: <code>"Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK."</code>; <code>runtime</code>: <code>"SDK-user-configured Cognidesk form registry and signed webhook parser"</code>; <code>strategy</code>: <code>"protocol-local-runtime"</code>; }; }</td>
 </tr>
 <tr>
 <td><code>metadata.channelCoverage</code></td>
@@ -2560,6 +2578,70 @@
 <tr>
 <td><code>metadata.channelCoverage.thirdPartyFormsProviderApis</code></td>
 <td><code>"not-covered"</code></td>
+</tr>
+<tr>
+<td><code>metadata.checkedProviderSdk</code></td>
+<td>{ <code>checkedAt</code>: <code>"2026-06-25"</code>; <code>packageSurfaceRuntimeSdkAvailable</code>: <code>false</code>; <code>verdict</code>: <code>"internal-provider/local-runtime/no-provider-SDK"</code>; }</td>
+</tr>
+<tr>
+<td><code>metadata.checkedProviderSdk.checkedAt</code></td>
+<td><code>"2026-06-25"</code></td>
+</tr>
+<tr>
+<td><code>metadata.checkedProviderSdk.packageSurfaceRuntimeSdkAvailable</code></td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>metadata.checkedProviderSdk.verdict</code></td>
+<td><code>"internal-provider/local-runtime/no-provider-SDK"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation</code></td>
+<td>{ <code>checkedAt</code>: <code>"2026-06-25"</code>; <code>checkedSurface</code>: <code>"package.json dependencies and src runtime imports"</code>; <code>externalProviderSdk</code>: <code>"not-applicable-internal-provider"</code>; <code>guardrails</code>: readonly [<code>"Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced."</code>, <code>"Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package."</code>, <code>"If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency."</code>]; <code>integrationKitStatus</code>: <code>"implemented"</code>; <code>manifestImport</code>: <code>"no-sdk-client-initialization"</code>; <code>protocolSource</code>: <code>"Cognidesk local form submission protocol"</code>; <code>providerSdkDecision</code>: <code>"internal-provider/local-runtime/no-provider-SDK"</code>; <code>reason</code>: <code>"Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK."</code>; <code>runtime</code>: <code>"SDK-user-configured Cognidesk form registry and signed webhook parser"</code>; <code>strategy</code>: <code>"protocol-local-runtime"</code>; }</td>
+</tr>
+<tr>
+<td><code>metadata.implementation.checkedAt</code></td>
+<td><code>"2026-06-25"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.checkedSurface</code></td>
+<td><code>"package.json dependencies and src runtime imports"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.externalProviderSdk</code></td>
+<td><code>"not-applicable-internal-provider"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.guardrails</code></td>
+<td>readonly [<code>"Keep form definitions behind the SDK-user-configured registry until a named external forms provider package is introduced."</code>, <code>"Do not report third-party form hosting, submission storage, analytics, or provider webhook administration as covered by this package."</code>, <code>"If an external forms provider SDK is adopted later, route runtime operations through it and add a normal package.json runtime dependency."</code>]</td>
+</tr>
+<tr>
+<td><code>metadata.implementation.integrationKitStatus</code></td>
+<td><code>"implemented"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.manifestImport</code></td>
+<td><code>"no-sdk-client-initialization"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.protocolSource</code></td>
+<td><code>"Cognidesk local form submission protocol"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.providerSdkDecision</code></td>
+<td><code>"internal-provider/local-runtime/no-provider-SDK"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.reason</code></td>
+<td><code>"Cognidesk Forms is an internal intake protocol package; it validates SDK-user-defined forms and signed webhook payloads rather than wrapping a named external forms provider SDK."</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.runtime</code></td>
+<td><code>"SDK-user-configured Cognidesk form registry and signed webhook parser"</code></td>
+</tr>
+<tr>
+<td><code>metadata.implementation.strategy</code></td>
+<td><code>"protocol-local-runtime"</code></td>
 </tr>
 <tr>
 <td><code>name</code></td>

@@ -2907,9 +2907,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#retrievestoredemail" class="md-nav__link">
+  <a href="#create" class="md-nav__link">
     <span class="md-ellipsis">
-      retrieveStoredEmail?
+      create()
     </span>
   </a>
   
@@ -2934,9 +2934,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#create" class="md-nav__link">
+  <a href="#retrievestoredemail" class="md-nav__link">
     <span class="md-ellipsis">
-      create()
+      retrieveStoredEmail()
     </span>
   </a>
   
@@ -3934,12 +3934,12 @@
 <p><code>Promise</code>\&lt;<code>unknown</code>&gt;</p>
 <h5 id="messages">messages<a class="headerlink" href="#messages" title="Permanent link">&para;</a></h5>
 <div class="language-ts highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="w">  </span><span class="nx">retrieveStoredEmail</span><span class="o">?:</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">,</span><span class="w"> </span><span class="nx">storageKey</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
-</span><span id="__span-43-3"><a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">  </span><span class="nx">create</span><span class="o">:</span><span class="w"> </span><span class="kt">Promise</span><span class="o">&lt;</span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="w">  </span><span class="nx">create</span><span class="o">:</span><span class="w"> </span><span class="kt">Promise</span><span class="o">&lt;</span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-43-3"><a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">  </span><span class="nx">retrieveStoredEmail</span><span class="o">:</span><span class="w"> </span><span class="kt">Promise</span><span class="o">&lt;</span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
 </span><span id="__span-43-4"><a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="p">};</span>
 </span></code></pre></div>
-<h6 id="retrievestoredemail">retrieveStoredEmail?<a class="headerlink" href="#retrievestoredemail" title="Permanent link">&para;</a></h6>
-<div class="language-ts highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="nx">optional</span><span class="w"> </span><span class="nx">retrieveStoredEmail</span><span class="o">?:</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">,</span><span class="w"> </span><span class="nx">storageKey</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
+<h6 id="create">create()<a class="headerlink" href="#create" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="nx">create</span><span class="p">(</span><span class="nx">domain</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
 </span></code></pre></div>
 <h6 id="parameters_6">Parameters<a class="headerlink" href="#parameters_6" title="Permanent link">&para;</a></h6>
 <table>
@@ -3955,15 +3955,15 @@
 <td><code>string</code></td>
 </tr>
 <tr>
-<td><code>storageKey</code></td>
-<td><code>string</code></td>
+<td><code>data</code></td>
+<td><code>Record</code>\&lt;<code>string</code>, <code>unknown</code>&gt;</td>
 </tr>
 </tbody>
 </table>
 <h6 id="returns_8">Returns<a class="headerlink" href="#returns_8" title="Permanent link">&para;</a></h6>
 <p><code>Promise</code>\&lt;<code>unknown</code>&gt;</p>
-<h6 id="create">create()<a class="headerlink" href="#create" title="Permanent link">&para;</a></h6>
-<div class="language-ts highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="nx">create</span><span class="p">(</span><span class="nx">domain</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
+<h6 id="retrievestoredemail">retrieveStoredEmail()<a class="headerlink" href="#retrievestoredemail" title="Permanent link">&para;</a></h6>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="nx">retrieveStoredEmail</span><span class="p">(</span><span class="nx">domain</span><span class="p">,</span><span class="w"> </span><span class="nx">storageKey</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
 </span></code></pre></div>
 <h6 id="parameters_7">Parameters<a class="headerlink" href="#parameters_7" title="Permanent link">&para;</a></h6>
 <table>
@@ -3979,8 +3979,8 @@
 <td><code>string</code></td>
 </tr>
 <tr>
-<td><code>data</code></td>
-<td><code>Record</code>\&lt;<code>string</code>, <code>unknown</code>&gt;</td>
+<td><code>storageKey</code></td>
+<td><code>string</code></td>
 </tr>
 </tbody>
 </table>
